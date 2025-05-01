@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quality Alert Details</title> <!-- Form Title -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <link rel="stylesheet" href="../css/admin_qa.css">
+  <!-- Add specific styles for the form -->
+  <style>
+    .form-container { padding: 20px; max-width: 800px; margin: 20px auto; background: #fff; border-radius: 8px; box-shadow: var(--shadow-md); }
+    .form-container h2, .form-container h3 { margin-bottom: 20px; color: var(--accent-color); }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--text-dark); }
+    .form-group input[type="text"],
+    .form-group input[type="date"],
+    .form-group input[type="time"],
+    .form-group input[type="number"],
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    .form-group textarea { min-height: 80px; resize: vertical; overflow-y: auto; max-height: none; }
+    .form-group input:read-only,
+    .form-group select:disabled,
+    .form-group textarea:read-only {
+      background-color: #e9ecef;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    .form-actions { margin-top: 20px; text-align: right; }
+    .form-actions button { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; margin-left: 10px; }
+    .btn-save { background-color: var(--accent-color); color: white; }
+    .btn-back { background-color: #6c757d; color: white; }
+    .btn-alert { background-color: #28a745; color: white; }
+    .hidden { display: none; }
+    .pre-wrap { white-space: pre-wrap; }
+    .flex-row { display: flex; align-items: center; gap: 10px; }
+    .flex-row label, .flex-row input, .flex-row span, .flex-row button { flex: 1; }
+    .flex-row span { flex: 0; }
+  </style>
+</head>
+<body>
+
+  <div class="header-container">
+    <div class="header-title">Admin QA Dashboard</div>
+    <div class="company-logo">
+      <img src="../assets/logo.png" class="auth-logo" alt="Logo"/>
+    </div>
+  </div>
+  <!-- End Header -->
+
+  <!-- Main content area for the form -->
+  <main class="form-container" style="margin-top: 100px;">
+    <h2 id="form-title">Quality Alert Details</h2>
+    <form id="alert-form">
+      <!-- Hidden input for ID -->
+      <input type="hidden" id="alertId">
+
+      <!-- Display fields based on Supabase table, some read-only, some editable -->
+      <div class="form-group">
+        <label for="alertIdDisplay">Alert ID</label>
+        <input type="text" id="alertIdDisplay"> <!-- Removed readonly -->
+      </div>
+      <div class="form-group">
+        <label for="user_name">Reported By</label>
+        <input type="text" id="user_name" readonly>
+      </div>
+      <div class="form-group">
+        <label for="incidentdate">Incident Date</label>
+        <input type="date" id="incidentdate" readonly>
+      </div>
+      <div class="form-group">
+        <label for="incidenttime">Incident Time</label>
+        <input type="time" id="incidenttime" readonly>
+      </div>
+
+      <!-- Fields that might be editable -->
+      <div class="form-group">
+        <label for="incidenttitle">Incident Title</label>
+        <input type="text" id="incidenttitle">
+      </div>
+      <div class="form-group">
+        <label for="incidentdesc">Incident Description</label>
+        <textarea id="incidentdesc"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="responsibledept">Responsible Department</label>
+        <input type="text" id="responsibledept">
+      </div>
+      <div class="form-group">
+        <label for="statusaction">Status</label>
+        <select id="statusaction">
+          <option value="Open">Open</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Resolved">Resolved</option>
+          <option value="Completed">Completed</option>
+          <option value="Escalated">Escalated</option>
+        </select>
+      </div>
+
+      <!-- Heading for RPN calculation -->
+      <h3>RPN Calculation</h3>
+      <div class="form-group flex-row">
+        <label for="severity">Severity (S)</label>
+        <input type="number" id="severity" min="1" max="10">
+        <span>×</span>
+        <label for="detection">Detection (D)</label>
+        <input type="number" id="detection" min="1" max="10">
+        <span>×</span>
+        <label for="frequency">Frequency (F)</label>
+        <input type="number" id="frequency" min="1" max="10">
+        <span>=</span>
+        <label for="rpn">RPN</label>
+        <input type="number" id="rpn" readonly>
+        
+      </div>
+
+      <div class="form-group">
+        <label for="root_cause">Root Cause Analysis</label>
+        <textarea id="root_cause"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="corrective_actions">Corrective Actions Taken</label>
+        <textarea id="corrective_actions"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="remarks">Remarks</label>
+        <textarea id="remarks"></textarea>
+      </div>
+
+      <!-- Other fields from Supabase - some now editable -->
+      <div class="form-group">
+        <label for="locationarea">Location Area</label>
+        <input type="text" id="locationarea">
+      </div>
+      <div class="form-group">
+        <label for="abnormalitytype">Abnormality Type</label>
+        <input type="text" id="abnormalitytype">
+      </div>
+      <div class="form-group">
+        <label for="qualityrisk">Quality Risk</label>
+        <input type="text" id="qualityrisk">
+      </div>
+      <div class="form-group">
+        <label for="keptinview">Kept In View</label>
+        <input type="text" id="keptinview" readonly>
+      </div>
+      <div class="form-group">
+        <label for="defectdescription">Defect Description</label>
+        <textarea id="defectdescription"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="productcode">Product Code</label>
+        <input type="text" id="productcode">
+      </div>
+      <div class="form-group">
+        <label for="rollid">Roll ID</label>
+        <input type="text" id="rollid">
+      </div>
+      <div class="form-group">
+        <label for="lotno">Lot No</label>
+        <input type="text" id="lotno">
+      </div>
+      <div class="form-group">
+        <label for="rollpositions">Roll Positions</label>
+        <input type="text" id="rollpositions">
+      </div>
+      <div class="form-group">
+        <label for="lottime">Lot Time</label>
+        <input type="text" id="lottime">
+      </div>
+      <div class="form-group">
+        <label for="actiontaken">Action Taken (Initial)</label>
+        <textarea id="actiontaken"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="whoaction">Who Action (Initial)</label>
+        <input type="text" id="whoaction">
+      </div>
+      <div class="form-group">
+        <label for="whenactiondate">When Action Date (Initial)</label>
+        <input type="date" id="whenactiondate">
+      </div>
+      <div class="form-group">
+        <label for="timestamp">Timestamp</label>
+        <input type="text" id="timestamp" readonly>
+      </div>
+      <div class="form-group">
+        <label for="drafted_at">Drafted At</label>
+        <input type="text" id="drafted_at" readonly>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-back" onclick="window.history.back();">Back</button>
+        <button type="button" class="btn-alert" id="sendAlertButton">Send Alert</button>
+        <button type="submit" class="btn-save hidden" id="saveButton">Save Changes</button>
+      </div>
+    </form>
+    <div id="loading-message" style="text-align: center; padding: 20px;">Loading alert details...</div>
+    <div id="error-message" style="color: red; text-align: center; padding: 20px; display: none;"></div>
+  </main>
+  <script type="module" src="../js/quality_alerts_actions.js"></script>
+</body>
+</html>

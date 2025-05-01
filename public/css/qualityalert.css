@@ -1,0 +1,325 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+:root {
+    --primary-gradient: linear-gradient(45deg, #002E7D, #0046C7);
+    --accent-color: #002E7D;
+    --input-bg: rgba(255, 255, 255, 0.15);
+    --text-dark: #2D3436;
+    --text-light: #666666;
+    --text-primary: #000000;
+    --transition: all 0.3s ease-in-out;
+    --glass-bg: rgba(255, 255, 255, 0.3);
+    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.15);
+    --background-gradient: #f4f4f4; /* Light background */
+    --form-bg: #fff;
+    --header-desktop-height: 60px; /* Adjust as needed */
+    --header-mobile-height: 50px; /* Adjust as needed */
+    --form-element-spacing-desktop: 1.25rem;
+    --form-element-spacing-mobile: 1rem;
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    background-image: url('../assets/page-bg.png');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #f4f4f4;
+    padding: 1rem;
+    padding-top: 5px;
+    font-size: 1.5rem;
+}
+main {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+.incident-section {
+    width: 100%;
+    max-width: 720px;
+    background: var(--form-bg);
+    border-radius: 0.5rem;
+    padding: 2.5rem;
+    padding-top: calc(var(--header-desktop-height) + 1.5rem);
+    margin-top: 0.7rem;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    position: relative;
+    margin-top: 0;
+}
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--accent-color);
+    padding: 0 1.5rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    width: 100%;
+    box-sizing: border-box;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    height: var(--header-desktop-height);
+}
+.header-title {
+    color: white;
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+.company-logo img {
+    height: 28px;
+}
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.form-group {
+    text-align: left;
+    margin-bottom: var(--form-element-spacing-desktop);
+}
+.form-group label {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+input[type="text"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+    width: 100%;
+    padding: 0.9rem;
+    border: 2px solid #ccc;
+    border-radius: 0.75rem;
+    font-size: 1.05rem;
+    transition: var(--transition);
+    box-sizing: border-box;
+}
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 6px rgba(0, 46, 125, 0.3);
+}
+.split-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--form-element-spacing-desktop);
+    margin-bottom: var(--form-element-spacing-desktop);
+}
+textarea {
+    height: 180px;
+    resize: vertical;
+}
+#imageUploadContainer {
+    text-align: center;
+    margin: var(--form-element-spacing-desktop) 0;
+}
+#imageUploadContainer label button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 10px 20px;
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: var(--transition);
+}
+#imageUploadContainer label button:hover {
+    box-shadow: 0 5px 10px rgba(0, 46, 125, 0.2);
+    transform: translateY(-1px);
+}
+#imageUploadContainer input[type="file"] {
+    display: none;
+}
+#imagePreviews {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+#imagePreviews img {
+    max-height: 80px;
+    border-radius: 0.2rem;
+    border: 1px solid #ccc;
+}
+.button-container {
+    display: flex;
+    gap: var(--form-element-spacing-desktop);
+    justify-content: center;
+    margin-top: calc(var(--form-element-spacing-desktop) * 1.25);
+}
+
+.submit-btn, .draft-btn {
+    padding: 10px 20px;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: var(--transition);
+    text-align: center;
+    white-space: nowrap;
+    border: none;
+}
+.submit-btn {
+    background: var(--primary-gradient);
+    color: white;
+}
+.draft-btn {
+    background: #ccc;
+    color: #333;
+}
+.submit-btn:hover,
+.draft-btn:hover,
+#imageUploadContainer label button:hover {
+    box-shadow: 0 5px 10px rgba(0, 46, 125, 0.2);
+    transform: translateY(-1px);
+}
+.submit-btn:active,
+.draft-btn:active,
+#imageUploadContainer label button:active {
+    transform: scale(0.98);
+}
+
+.message {
+    padding: 15px 25px;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    min-width: 250px;
+}
+.submission-message {
+    position: absolute; /* Position the message absolutely within the incident section */
+    top: 50%; /* Center vertically */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%); /* Adjust position to truly center */
+    display: none; /* Initially hidden */
+    padding: 15px 25px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #d4edda; /* Light green background */
+    color: #155724; /* Dark green text */
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Mobile Styles (up to 768px width) */
+@media (max-width: 768px) {
+    .incident-section {
+        margin-top: 0rem;
+        padding: 1.5rem;
+        padding-top: calc(var(--header-mobile-height) + var(--form-element-spacing-mobile));
+        border-radius: 0.5rem;
+    }
+
+    body {
+        padding: 0.5rem;
+        font-size: 1rem;
+    }
+
+    main {
+        padding-top: 0;
+    }
+    .header-container {
+        padding: 8px 12px;
+        height: var(--header-mobile-height);
+    }
+    .header-title {
+        font-size: 1.2rem;
+    }
+    .company-logo img {
+        height: 35px;
+    }
+    .auth-form,
+    .split-container,
+    .form-group,
+    .button-container,
+    .action-status-container {
+        gap: var(--form-element-spacing-mobile);
+        margin-bottom: var(--form-element-spacing-mobile);
+    }
+    .button-container {
+        flex-direction: column;
+        margin-top: calc(var(--form-element-spacing-mobile) * 1.25);
+    }
+    #imageUploadContainer {
+        margin: var(--form-element-spacing-mobile) 0;
+    }
+    .submit-btn,
+    .draft-btn,
+    #imageUploadContainer label button {
+        width: 100%;
+        padding: 0.8rem;
+        font-size: 1rem;
+    }
+    #imageUploadContainer label button {
+        display: flex;
+        justify-content: center;
+    }
+}
+/* Small Mobile Styles (up to 480px width) */
+@media (max-width: 480px) {
+    .header-title {
+        font-size: 1.1rem;
+    }
+    .company-logo img {
+        height: 20px;
+    }
+    .form-group label {
+        font-size: 0.95rem;
+    }
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    select,
+    textarea {
+        font-size: 0.9rem;
+        padding: 0.7rem;
+        border-radius: 0.3rem;
+    }
+    .submit-btn,
+    .draft-btn,
+    #imageUploadContainer label button {
+        font-size: 0.95rem;
+        padding: 0.7rem 15px;
+        border-radius: 0.3rem;
+    }
+}
+.action-status-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--form-element-spacing-desktop);
+    margin-bottom: var(--form-element-spacing-desktop);
+}
+
+@media (max-width: 768px) {
+    .action-status-container {
+        grid-template-columns: 1fr;
+        gap: var(--form-element-spacing-mobile);
+    }
+}
