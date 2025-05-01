@@ -105,7 +105,7 @@ function applyFilters(render = true) {
     }
 }
 
-// Function to fetch the initial data (current month for the logged-in user)
+// Function to fetch the initial data (all alerts for the logged-in user)
 async function fetchLatestAlerts() {
     const tbody = document.getElementById('alertsBody');
     if (tbody) {
@@ -125,17 +125,6 @@ async function fetchLatestAlerts() {
         }
         const userId = user.id;
 
-        // 2. Determine the current month's date range
-        const now = new Date();
-        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-        // Supabase range filters require ISO strings
-        const firstDayISO = firstDayOfMonth.toISOString();
-        const lastDayISO = lastDayOfMonth.toISOString();
-
-
-        // 3. Fetch alerts for the current month filtered by user_id and join with users table
         const { data, error } = await supabase
             .from('quality_alerts')
             .select(`
@@ -149,8 +138,7 @@ async function fetchLatestAlerts() {
                 users ( full_name )
             `)
             .eq('user_id', userId) // Filter by the logged-in user's ID
-            .gte('incidentdate', firstDayISO)
-            .lte('incidentdate', lastDayISO)
+            
             .order('incidentdate', { ascending: false }); // Order by date descending initially
 
         if (error) {
