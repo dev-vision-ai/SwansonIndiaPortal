@@ -10,6 +10,7 @@ function renderTable(data) {
       <td>${alert.id}</td>
       <td>${new Date(alert.incidentdate).toLocaleDateString()}</td>
       <td>${alert.user_name || 'Unknown'}</td>
+      <td>${alert.user_department || 'N/A'}</td>
       <td>${alert.incidenttitle}</td>
       <td class="description-cell">${alert.incidentdesc || ''}</td>
       <td>${alert.responsibledept}</td>
@@ -144,7 +145,7 @@ async function fetchLatestAlerts() {
   try {
     document.getElementById('alertsBody').classList.add('loading');
     
-    // Remove month boundary filtering
+    // Modify the select query to include department
     const { data, error } = await supabase
       .from('quality_alerts')
       .select(`
@@ -155,7 +156,7 @@ async function fetchLatestAlerts() {
         statusaction,
         incidentdesc,
         abnormalitytype,
-        users ( full_name )
+        users ( full_name, department ) // Added department here
       `)
       .order('id', { ascending: false });
 
@@ -164,7 +165,8 @@ async function fetchLatestAlerts() {
     console.log("Fetched All Alerts:", data);
     alertsData = data.map(alert => ({
       ...alert,
-      user_name: alert.users ? alert.users.full_name : null
+      user_name: alert.users ? alert.users.full_name : null,
+      user_department: alert.users ? alert.users.department : null // Added department mapping
     }));
 
     if (alertsData.length === 0) {
@@ -193,12 +195,12 @@ setInterval(() => {
 
 function showError(message) {
   const tbody = document.getElementById('alertsBody');
-  tbody.innerHTML = `<tr class="error-row"><td colspan="7">${message}</td></tr>`;
+  tbody.innerHTML = `<tr class="error-row"><td colspan="9">${message}</td></tr>`; // Updated colspan
 }
 
 function showMessage(message) {
   const tbody = document.getElementById('alertsBody');
-  tbody.innerHTML = `<tr class="empty-row"><td colspan="7">${message}</td></tr>`;
+  tbody.innerHTML = `<tr class="empty-row"><td colspan="9">${message}</td></tr>`; // Updated colspan
 }
 
 async function loadUserProfile() {

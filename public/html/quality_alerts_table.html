@@ -66,16 +66,17 @@
           <th class="py-2 px-4" data-sort="id">Sr. No</th>
           <th class="py-2 px-4" data-sort="incidentdate">Date</th>
           <th class="py-2 px-4" data-sort="user_name">Reported By</th>
+          <th class="py-2 px-4" data-sort="user_department">Reporter Dept.</th> <!-- Added new header -->
           <th class="py-2 px-4" data-sort="incidenttitle">Title</th>
           <th class="py-2 px-4" data-sort="incidentdesc">Description</th>
           <th class="py-2 px-4" data-sort="responsibledept">Responsible Dept.</th>
-          <th class="py-2 px-4" data-sort="abnormalitytype">Type of Abnormality</th> <!-- New column header -->
-          <th class="py-2 px-4">Actions</th> <!-- Actions column is usually not sortable -->
+          <th class="py-2 px-4" data-sort="abnormalitytype">Type of Abnormality</th> 
+          <th class="py-2 px-4">Actions</th> 
         </tr>
       </thead>
       <tbody id="alertsBody">
           <tr class="loading-row">
-              <td colspan="8" class="text-center py-4">Loading alerts...</td> <!-- Updated colspan -->
+              <td colspan="9" class="text-center py-4">Loading alerts...</td> <!-- Updated colspan -->
           </tr>
       </tbody>
     </table>
