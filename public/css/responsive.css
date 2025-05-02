@@ -513,7 +513,7 @@
     }
     body {
         /* Ensure this padding is sufficient to clear the mobile header */
-        padding-top: 70px; /* Adjusted padding (Consolidated value) */
+        padding-top: 60px; /* Adjusted padding (Consolidated value) */
         /* Remove any duplicate padding-top: 60px; rule within this block */
     }
 
