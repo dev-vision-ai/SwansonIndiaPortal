@@ -152,6 +152,39 @@
     }
 
     /* About Us page specific adjustments for 768px */
+    .gm-message-content {
+        flex-direction: column; /* Stack image and text */
+        align-items: center; /* Center items when stacked */
+        gap: 20px; /* Add space between image and text */
+    }
+
+    .gm-photo {
+        max-width: 120px; /* Adjust image size for mobile */
+        width: 50%; 
+        margin-bottom: 15px; 
+    }
+
+    .message-text {
+        text-align: center; /* Center the text below the image */
+    }
+
+    .message-text p {
+        font-size: 1rem; /* Decrease font size for mobile */
+        line-height: 1.6; /* Adjust line height if needed */
+        padding: 0 10px; /* Adjust padding for smaller text */
+    }
+
+    /* Remove quote pseudo-elements on mobile if they look odd */
+    .message-text p::before,
+    .message-text p::after {
+        content: none; 
+    }
+
+    .gm-signature {
+        font-size: 1.1rem; /* Optionally adjust signature size */
+        padding: 15px 0 0 0; /* Adjust padding */
+    }
+
     .team-grid {
         grid-template-columns: 1fr; /* Stack team members */
     }

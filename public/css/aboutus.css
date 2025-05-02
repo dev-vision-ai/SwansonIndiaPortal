@@ -251,10 +251,6 @@ body {
     transition: transform 0.3s ease;
 }
 
-.gm-photo:hover {
-    transform: translateY(-5px);
-}
-
 .message-text {
     flex: 1;
     padding: 0 30px;
