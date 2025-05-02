@@ -36,11 +36,11 @@ body {
 
 .nav-container {
     display: flex;
-    justify-content: space-between; /* Changed back for better spacing distribution */
+    justify-content: space-between; /* <<< Change this back */
     align-items: center;
     max-width: 1800px; /* Adjusted max-width */
     margin: 0 auto; /* Center the container */
-    padding: 0 30px; /* Base horizontal padding */
+    padding: 0 15px 0 15px; /* Adjusted horizontal padding */
     gap: 15px; /* Base gap */
 }
 
@@ -50,7 +50,6 @@ body {
     gap: 10px;
 }
 
-.green-logo,
 .logo {
     height: 45px; /* Base logo height - slightly reduced */
     flex-shrink: 0; /* Prevent logos from shrinking disproportionately */
@@ -61,6 +60,7 @@ body {
     align-items: center; /* Vertically align links */
     flex-wrap: nowrap; /* Prevent wrapping by default */
     overflow: hidden; /* Hide overflow for now */
+    /* Ensure margin-left: auto; is REMOVED if it exists */
 }
 
 .nav-links a {
