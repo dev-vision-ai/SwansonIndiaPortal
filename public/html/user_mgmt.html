@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Management</title> <!-- Changed Title -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <!-- Link to a new CSS file for user management styles -->
+  <link rel="stylesheet" href="../css/admin_adhr.css">
+</head>
+<body>
+  <!-- Header remains the same -->
+  <div class="header-container">
+    <div class="header-title">User Management</div> <!-- Updated Header Title -->
+    <div class="company-logo">
+      <img src="../assets/logo.png" class="auth-logo" alt="Logo"/>
+    </div>
+  </div>
+
+  <main class="user-mgmt-container"> <!-- Changed main container class -->
+    <h2>Create New User</h2>
+    <form id="create-user-form" class="user-form">
+      <div class="form-group">
+        <label for="user-email">Email:</label>
+        <input type="email" id="user-email" name="email" required>
+      </div>
+      <div class="form-group">
+        <label for="user-password">Password:</label>
+        <input type="password" id="user-password" name="password" required>
+      </div>
+      <div class="form-group">
+        <label for="user-role">Role:</label>
+        <select id="user-role" name="role" required>
+          <option value="" disabled selected>Select Role</option>
+          <option value="employee">Employee</option>
+          <option value="admin_qa">Admin QA</option>
+          <option value="admin_iqa">Admin IQA</option>
+          <option value="admin_adhr">Admin AD/HR</option>
+          <!-- Add other roles as needed -->
+        </select>
+      </div>
+       <div class="form-group">
+        <label for="user-department">Department:</label>
+        <input type="text" id="user-department" name="department" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Create User</button>
+    </form>
+
+    <h2>Existing Users</h2>
+    <div class="table-container">
+      <table id="users-table">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Department</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- User rows will be populated by JavaScript -->
+          <tr class="loading-row">
+             <td colspan="4">Loading users...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <!-- Link to a new JS file for user management logic -->
+  <script type="module" src="../js/admin_adhr.js"></script> 
+</body>
+</html>
