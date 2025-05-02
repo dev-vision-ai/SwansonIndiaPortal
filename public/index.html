@@ -5,20 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - Swanson Plastics India Pvt. Ltd.</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- Keep v6 -->
     <link rel="stylesheet" href="./css/index.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-</head>
+    <link rel="stylesheet" href="css/responsive.css">
 <body>
 
-    <!-- Icon for transition effect -->
-    <div id="transition-icon" class="transition-icon">
-        <img src="./assets/paint-brush.png" alt="Transition Logo" style="width: 120px; height: auto;"> <!-- Increased width -->
-        <p class="loading-text">Loading...</p> <!-- Ensure this is below the image -->
-    </div>
-
-    <!-- Navigation Bar -->
-    <header class="navbar">
+    <header id="desktop-header" class="navbar"> <!-- <<< Added id="desktop-header" -->
         <div class="nav-container">
             <div class="logo-container">
                 <img src="./assets/green.png" alt="Green Initiative Logo" class="green-logo">
@@ -36,12 +28,32 @@
                 <a href="html/career.html">Careers</a>
                 <a href="./html/auth.html">Employee Portal</a>
             </nav>
-            <div id="date-time" class="date-time">
-                <span class="time-tag">India Time & Date</span>
-                <span id="current-date">Date: </span><br>
-                <span id="current-time">Time: </span>
-            </div>
         </div>
+    </header>
+
+    <!-- MOBILE Navigation Bar -->
+    <header id="mobile-header" class="navbar-mobile">
+        <div class="nav-container-mobile">
+            <div class="logo-container-mobile">
+                <img src="./assets/green.png" alt="Green Initiative Logo" class="green-logo-mobile">
+                <img src="./assets/logo.png" alt="Swanson Logo" class="logo-mobile">
+                <div class="company-names-mobile">
+                    <span class="company-name">Swanson Plastics India Private Limited</span>
+                    <span class="company-name-translated">स्वानसन प्लास्टिक्स इंडिया प्रायव्हेट लिमिटेड</span>
+                </div>
+            </div>
+            <button class="menu-icon" id="menu-toggle" aria-label="Toggle menu">
+                <!-- Ensure this is empty inside -->
+            </button>
+        </div>
+        <nav id="mobile-nav-links" class="mobile-nav-links">
+            <a href="./html/aboutus.html">About Us</a>
+            <a href="#products">Products</a>
+            <a href="#services">Services</a>
+            <a href="#contact">Contact</a>
+            <a href="html/career.html">Careers</a>
+            <a href="./html/auth.html">Employee Portal</a>
+        </nav>
     </header>
 
     <!-- Hero Section -->
@@ -107,15 +119,16 @@
             <h2>Our Valued Customers</h2>
             <div class="customers-container">
                 <div class="customers-grid">
-                    <div class="customer-logo">
-                        <img src="./assets/p&g.png" alt="Customer 1">
+                    <div class="customer-name-item"> <!-- Keep this class name -->
+                        <p>P&G</p> <!-- Back to text -->
                     </div>
-                    <div class="customer-logo">
-                        <img src="./assets/unicharm.png" alt="Customer 2">
+                    <div class="customer-name-item"> <!-- Keep this class name -->
+                        <p>Unicharm</p> <!-- Back to text -->
                     </div>
-                    <div class="customer-logo">
-                        <img src="./assets/j&j.png" alt="Customer 3">
+                    <div class="customer-name-item"> <!-- Keep this class name -->
+                        <p>JNTL</p> <!-- Back to text -->
                     </div>
+                    <!-- Add more customer names here if needed -->
                 </div>
             </div>
         </div>
@@ -124,11 +137,9 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
-            <div class="footer-section">
-                <h4>Contact Us</h4>
-                <p>Plot No. 2, Goa Industrial Development Corporation<br>Onda, Bhuimpal, Sattari-Goa, 403530<br>Phone: +91 9604214939</p>
-                <!-- Google Map -->
-                <div class="map-container">
+            <!-- Map First -->
+            <div class="footer-map-section">
+                 <div class="map-container">
                     <iframe 
                         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4729.814270724126!2d74.0697509543609!3d15.542818047035338!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bbfa2f48774e285%3A0x5909f5e875028f2!2sSwanson%20Plastics%20India%20Pvt%20Ltd!5e1!3m2!1sen!2sin!4v1744537737813!5m2!1sen!2sin" 
                         width="100%" 
@@ -140,7 +151,15 @@
                     </iframe>
                 </div>
             </div>
-            <div class="footer-section">
+
+            <!-- Contact Info Second -->
+            <div class="footer-contact-section">
+                <h4>Contact Us</h4>
+                <p>Plot No. 2, Goa Industrial Development Corporation<br>Onda, Bhuimpal, Sattari-Goa, 403530<br>Phone: +91 9604214939</p>
+            </div>
+
+            <!-- Quick Links Third -->
+            <div class="footer-links-section">
                 <h4>Quick Links</h4>
                 <a href="./html/aboutus.html">About Us</a>
                 <a href="#services">Services</a>

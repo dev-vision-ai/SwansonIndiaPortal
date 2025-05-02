@@ -1,0 +1,625 @@
+
+/* Larger Screens (Laptops/Desktops) - Adjustments if needed (Example) */
+@media (min-width: 1201px) {
+    .nav-container {
+        padding: 0 50px; /* More padding on very large screens */
+    }
+    .grid-3 {
+        padding: 0 80px;
+    }
+}
+
+/* Medium Screens (Tablets/Small Laptops) */
+@media (max-width: 1024px) {
+    .nav-container {
+        padding: 0 20px;
+    }
+    .hero h1 {
+        font-size: 3rem;
+    }
+    .hero p {
+        font-size: 1.3rem;
+    }
+    .grid-3 {
+        grid-template-columns: repeat(2, 1fr); /* 2 columns for tablets */
+        gap: 30px;
+        padding: 0 40px;
+    }
+    .grid-4 {
+        grid-template-columns: repeat(2, 1fr); /* 2 columns for tablets */
+    }
+    .section h2 {
+        font-size: 2.5rem;
+    }
+    .footer-content {
+        gap: 30px;
+    }
+    /* Add specific tablet adjustments for aboutus/career if needed */
+}
+
+/* Small Screens (Tablets/Large Mobiles) */
+@media (max-width: 768px) {
+    #desktop-header {
+        display: none !important; /* <<< Add !important HERE */
+    }
+    #mobile-header {
+        display: block; /* Show mobile header */
+    }
+    body {
+        padding-top: 60px; /* Adjust based on mobile header height */
+    }
+
+    .hero {
+        height: auto; 
+        padding: 100px 0 60px; 
+    }
+    .hero-overlay {
+        padding: 40px 20px;
+    }
+    .hero h1 {
+        font-size: 2.2rem;
+    }
+    .hero p {
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+    }
+    .cta-button {
+        padding: 12px 30px;
+        font-size: 0.9rem;
+    }
+
+    .section {
+        padding: 50px 0;
+    }
+    .section h2 {
+        font-size: 2rem;
+        margin-bottom: 30px;
+    }
+
+    .grid-3,
+    .grid-4 {
+        grid-template-columns: 1fr; /* Single column for mobile */
+        gap: 30px;
+        padding: 0 20px;
+    }
+    .service-card {
+        padding: 30px 20px;
+    }
+    .service-card h4 {
+        font-size: 1.5rem;
+    }
+    .service-card p {
+        font-size: 1rem;
+    }
+
+    .two-column {
+        flex-direction: column;
+        gap: 30px;
+        padding: 0 20px;
+    }
+    .two-column img {
+        width: 90%; /* Adjust image width */
+        max-width: 400px;
+    }
+
+    .section.incident-box {
+        padding: 30px 15px;
+        margin: 20px 10px;
+    }
+    .section.incident-box h2 {
+        font-size: 1.8rem;
+    }
+    .section.incident-box p {
+        font-size: 1rem;
+        padding-left: 0;
+    }
+
+    .section#core-offering {
+        padding: 40px 0;
+        margin: 20px 10px;
+    }
+    .product-single {
+        padding: 20px;
+    }
+    .product-single img {
+        max-width: 90%;
+    }
+    .product-single h4 {
+        font-size: 1.6rem;
+    }
+    .product-single p {
+        font-size: 1rem;
+    }
+
+    /* Footer Responsive Adjustments (Consolidated) */
+    .footer-content {
+        flex-direction: column; 
+        align-items: center; 
+        gap: 30px;
+        padding: 20px;
+    }
+    .footer-map-section,
+    .footer-contact-section,
+    .footer-links-section {
+        max-width: 90%; 
+        min-width: unset; 
+        width: 100%; 
+    }
+
+    /* Career page specific adjustments for 768px */
+    .job-listings {
+        grid-template-columns: 1fr;  /* Stack cards on mobile */
+    }
+
+    /* About Us page specific adjustments for 768px */
+    .team-grid {
+        grid-template-columns: 1fr; /* Stack team members */
+    }
+    .about-content {
+        flex-direction: column;
+    }
+    .about-content img {
+        width: 80%;
+        margin-bottom: 20px;
+    }
+}
+
+/* Very Small Screens (Mobiles) */
+@media (max-width: 480px) {
+    .navbar {
+        position: static; 
+        padding: 10px 0; 
+        border-bottom: 5px solid #e4c829; 
+    }
+    .nav-container {
+        flex-direction: column; 
+        align-items: center; /* Center logo-container and nav-links */
+        gap: 10px;
+        padding: 0 10px; 
+    }
+    .logo-container {
+        display: flex; 
+        /* flex-wrap: wrap; /* <<< Remove wrap */
+        justify-content: center; /* Center the items */
+        align-items: center; /* Vertically align items */
+        /* width: 100%; /* <<< Remove width */
+        text-align: center; 
+        gap: 10px; /* <<< Add gap back for spacing */
+    }
+    .green-logo,
+    .logo {
+        height: 35px; 
+        flex-shrink: 0; 
+        /* margin: 0 5px; /* <<< Remove margin, use gap */
+    }
+    .company-names {
+        /* display: block; /* <<< Remove display block */
+        /* width: 100%; /* <<< Remove width */
+        text-align: center; /* Keep text centered */
+        /* margin-top: 8px; /* <<< Remove margin-top */
+    }
+    .company-name,
+    .company-name-translated {
+        font-size: 0.9rem; 
+    }
+    .nav-links {
+        display: flex; 
+        flex-wrap: wrap; 
+        justify-content: center; /* Center links */
+        margin-top: 8px; /* <<< Adjust space below logo line */
+        width: 100%; 
+    }
+    .nav-links a {
+        font-size: 0.9rem; 
+        margin: 3px 8px;
+    }
+
+    /* Add margin to main content to create space below static navbar */
+    .main-content {
+        margin-top: 20px; 
+    }
+    .hero {
+         margin-top: 20px; 
+         padding-top: 60px; 
+    }
+
+
+    /* Base Mobile Header Styles (Hidden by default) */
+    #mobile-header {
+        display: none; /* Hide mobile header by default */
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background-color: #ffffff;
+        padding: 10px 0;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        border-bottom: 5px solid #e4c829;
+    }
+    
+    .nav-container-mobile {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1800px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+    
+    .logo-container-mobile {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .green-logo-mobile,
+    .logo-mobile {
+        height: 35px;
+        flex-shrink: 0;
+    }
+    
+    .company-names-mobile .company-name {
+        font-size: 0.8rem; /* <<< Apply the decrease here */
+        font-weight: 600;
+        color: #0a3083;
+        white-space: nowrap;
+    }
+    
+    .menu-icon {
+        background: none;
+        border: none;
+        font-size: 0.7rem;     /* <<< Decreased font size */
+        font-weight: 600;
+        color: #002E7D;
+        cursor: pointer;
+        padding: 8px 12px; 
+        z-index: 1001;
+        display: inline-block; 
+    }
+
+    .mobile-nav-links {
+        display: none; /* Hide links by default */
+        position: absolute;
+        top: 100%; /* Position below the header */
+        left: 0;
+        width: 100%;
+        background-color: #ffffff;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        padding: 10px 0;
+        border-top: 1px solid #eee;
+    }
+    
+    .mobile-nav-links.active {
+        display: block; /* Show links when active */
+    }
+    
+    .mobile-nav-links a {
+        display: block;
+        color: #002E7D;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 12px 20px;
+        border-bottom: 1px solid #eee;
+        text-align: center;
+    }
+    
+    .mobile-nav-links a:last-child {
+        border-bottom: none;
+    }
+    
+    .mobile-nav-links a:hover {
+        background-color: #f8f9fa;
+        color: #e4c829;
+    }
+    .hero h1 {
+        font-size: 1.8rem;
+    }
+    .hero p {
+        font-size: 1rem;
+    }
+    .section h2 {
+        font-size: 1.6rem;
+    }
+    .service-card h4 {
+        font-size: 1.3rem;
+    }
+    .footer-contact-section h4,
+    .footer-links-section h4 {
+        font-size: 1.2rem;
+    }
+    .job-card {
+        padding: 20px;
+    }
+    .team-member {
+        padding: 15px;
+    }
+}
+
+#mobile-header {
+    display: none; /* Hide mobile header by default */
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: #ffffff;
+    padding: 10px 0;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    border-bottom: 5px solid #e4c829;
+}
+
+.nav-container-mobile {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+.logo-container-mobile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.green-logo-mobile,
+.logo-mobile {
+    height: 35px;
+    flex-shrink: 0;
+}
+
+.company-names-mobile .company-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #0a3083;
+    white-space: nowrap;
+}
+
+.menu-icon {
+    background: none;
+    border: none;
+    color: #002E7D; /* Color for the lines */
+    cursor: pointer;
+    padding: 5px; /* Reset padding */
+    z-index: 1001;
+    /* Set fixed dimensions for the icon area */
+    width: 30px;
+    height: 30px;
+    display: flex; /* Use flex to help center if needed, but position relative is key */
+    justify-content: center;
+    align-items: center;
+    position: relative; /* <<< Crucial for pseudo-elements */
+    
+}
+
+.menu-icon::before,
+.menu-icon::after {
+    content: '';
+    position: absolute;
+    width: 20px; /* Width of the lines */
+    height: 3px;  /* Thickness of the lines */
+    background-color: currentColor; /* Use the button's color */
+    transition: transform 0.3s ease, top 0.3s ease;
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Adjust for centering */
+    border-radius: 1px; /* Optional: slightly rounded ends */
+}
+
+.menu-icon::before {
+    top: 8px; /* Position top line */
+}
+
+.menu-icon::after {
+    top: 19px; /* Position bottom line (adjust spacing as needed) */
+}
+
+/* Transform into 'X' when active */
+.menu-icon.active::before {
+    top: 50%; /* Move line to center */
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.menu-icon.active::after {
+    top: 50%; /* Move line to center */
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+/* <<< END Styles for CSS Hamburger/X Icon >>> */
+
+
+.mobile-nav-links {
+    /* display: none; /* <<< Remove display: none */
+    position: absolute;
+    top: 100%; 
+    left: 0;
+    width: 100%;
+    background-color: #ffffff;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    padding: 0; /* <<< Set top/bottom padding to 0 initially */
+    border-top: 1px solid #eee;
+    /* <<< Add these properties for transition >>> */
+    max-height: 0; /* Start with zero height */
+    overflow: hidden; /* Hide content that overflows */
+    transition: max-height 0.4s ease-out, padding 0.4s ease-out; /* Smooth transition for height and padding */
+}
+
+.mobile-nav-links.active {
+    /* display: block; /* <<< Remove display: block */
+    /* <<< Set max-height to allow content to show >>> */
+    max-height: 500px; /* Adjust if menu could be taller */
+    padding: 10px 0; /* <<< Restore padding when active */
+}
+
+.mobile-nav-links a {
+    display: block;
+    color: #002E7D;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+}
+
+.mobile-nav-links a:last-child {
+    border-bottom: none;
+}
+
+.mobile-nav-links a:hover {
+    background-color: #f8f9fa;
+    color: #e4c829;
+}
+
+/* Larger Screens (Laptops/Desktops) */
+@media (min-width: 1201px) {
+    .nav-container {
+        padding: 0 50px; 
+    }
+    .grid-3 {
+        padding: 0 80px;
+    }
+}
+
+/* Medium Screens (Tablets/Small Laptops) */
+@media (max-width: 1024px) {
+    .nav-container {
+        padding: 0 20px;
+    }
+    .hero h1 {
+        font-size: 3rem;
+    }
+    .hero p {
+        font-size: 1.3rem;
+    }
+    .grid-3 {
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 30px;
+        padding: 0 40px;
+    }
+    .grid-4 {
+        grid-template-columns: repeat(2, 1fr); 
+    }
+    .section h2 {
+        font-size: 2.5rem;
+    }
+    .footer-content {
+        gap: 30px;
+    }
+}
+
+/* Small Screens (Tablets/Large Mobiles) - Header Switch & Padding */
+@media (max-width: 768px) {
+    #desktop-header {
+        display: none !important; 
+    }
+    #mobile-header {
+        display: block; /* Show mobile header */
+    }
+    body {
+        /* Ensure this padding is sufficient to clear the mobile header */
+        padding-top: 90px; /* Adjusted padding (Consolidated value) */
+        /* Remove any duplicate padding-top: 60px; rule within this block */
+    }
+
+    /* Other 768px styles */
+    .hero {
+        height: auto; 
+        padding: 100px 0 60px; 
+    }
+    .hero-overlay {
+        padding: 40px 20px;
+    }
+    .hero h1 {
+        font-size: 2.2rem;
+    }
+    .hero p {
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+    }
+    .cta-button {
+        padding: 12px 30px;
+        font-size: 0.9rem;
+    }
+    .section {
+        padding: 50px 0;
+    }
+    .section h2 {
+        font-size: 2rem;
+        margin-bottom: 30px;
+    }
+    .grid-3,
+    .grid-4 {
+        grid-template-columns: 1fr; /* Single column for mobile */
+        gap: 30px;
+        padding: 0 20px;
+    }
+    .service-card {
+        padding: 30px 20px;
+    }
+    .service-card h4 {
+        font-size: 1.5rem;
+    }
+    .service-card p {
+        font-size: 1rem;
+    }
+    .two-column {
+        flex-direction: column;
+        gap: 30px;
+        padding: 0 20px;
+    }
+    .two-column img {
+        width: 90%; /* Adjust image width */
+        max-width: 400px;
+    }
+    .section.incident-box {
+        padding: 30px 15px;
+        margin: 20px 10px;
+    }
+    .section.incident-box h2 {
+        font-size: 1.8rem;
+    }
+    .section.incident-box p {
+        font-size: 1rem;
+        padding-left: 0;
+    }
+    .section#core-offering {
+        padding: 40px 0;
+        margin: 20px 10px;
+    }
+    .product-single {
+        padding: 20px;
+    }
+    .product-single img {
+        max-width: 90%;
+    }
+    .product-single h4 {
+        font-size: 1.6rem;
+    }
+    .product-single p {
+        font-size: 1rem;
+    }
+    .footer-content {
+        flex-direction: column; 
+        align-items: center; 
+        gap: 30px;
+        padding: 20px;
+    }
+    .footer-map-section,
+    .footer-contact-section,
+    .footer-links-section {
+        max-width: 90%; 
+        min-width: unset; 
+        width: 100%; 
+    }
+    .job-listings {
+        grid-template-columns: 1fr;  
+    }
+    .team-grid {
+        grid-template-columns: 1fr; 
+    }
+    .about-content {
+        flex-direction: column;
+    }
+    .about-content img {
+        width: 80%;
+        margin-bottom: 20px;
+    }
+}

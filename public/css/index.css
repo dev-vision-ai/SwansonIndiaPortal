@@ -28,7 +28,7 @@ body {
     top: 0;
     width: 100%;
     background-color: #ffffff;
-    padding: 20px 0;
+    padding: 15px 0; /* Base padding - slightly reduced */
     z-index: 1000;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     border-bottom: 7px solid #e4c829; /* Added yellow line */
@@ -36,37 +36,41 @@ body {
 
 .nav-container {
     display: flex;
-    justify-content: flex-start; /* Changed from space-between */
+    justify-content: space-between; /* Changed back for better spacing distribution */
     align-items: center;
-    max-width: 2000px;
-    margin: -5px;
-    padding: 0 50px;
-    gap: 10px;
+    max-width: 1800px; /* Adjusted max-width */
+    margin: 0 auto; /* Center the container */
+    padding: 0 30px; /* Base horizontal padding */
+    gap: 15px; /* Base gap */
 }
 
 .logo-container {
     display: flex;
     align-items: center;
-    gap: 0px;
-    margin-right: auto; /* Pushes subsequent elements to the right */
+    gap: 10px;
 }
 
-.green-logo {
-    height: 50px; /* Match the height of the Swanson logo */
-    margin-right: 10px; /* Add some space between the logos */
-}
-
+.green-logo,
 .logo {
-    height: 50px; /* Ensure both logos have the same height */
+    height: 45px; /* Base logo height - slightly reduced */
+    flex-shrink: 0; /* Prevent logos from shrinking disproportionately */
+}
+
+.nav-links {
+    display: flex; /* Ensure nav links are in a flex container */
+    align-items: center; /* Vertically align links */
+    flex-wrap: nowrap; /* Prevent wrapping by default */
+    overflow: hidden; /* Hide overflow for now */
 }
 
 .nav-links a {
     color: #002E7D;
     text-decoration: none;
     font-weight: 600;
-    margin: 0 20px;
+    margin: 0 15px; /* Base margin */
     transition: color 0.3s ease;
-    font-size: 1.1rem;  /* Increased font size */
+    font-size: 1.0rem;  /* Base font size */
+    white-space: nowrap; /* Prevent link text wrapping */
 }
 
 .nav-links a:hover {
@@ -247,29 +251,6 @@ body {
 }
 
 /* Responsive Adjustments */
-@media (max-width: 768px) {
-    .hero h1 {
-        font-size: 2.5rem;
-    }
-    
-    .hero p {
-        font-size: 1.2rem;
-    }
-    
-    .grid-3 {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-    
-    .section {
-        padding: 60px 0;
-    }
-    
-    .section h2 {
-        font-size: 2.2rem;
-    }
-}
-
 .bg-light {
     background-color: #f5f5f5;
 }
@@ -299,29 +280,23 @@ body {
     gap: 20px;
 }
 
-/* Remove the duplicate .product-card, .service-card style */
 .product-card,
 .service-card {
-    background: transparent;
+    background-color: #fff;
     padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     text-align: center;
-    box-shadow: none;
 }
 
-/* Update service card styles */
-.service-card {
-    background: transparent;
-    padding: 40px 30px;
-    border-radius: 0;
-    transition: all 0.3s ease;
-    position: relative;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    text-align: center;
-    box-shadow: none;
+.product-card img,
+.service-card i {
+    width: 60px;
+    margin-bottom: 20px;
+}
+
+.service-card i {
+    font-size: 2.5rem;
 }
 
 .service-card i {
@@ -376,139 +351,6 @@ body {
     line-height: 1.6;
 }
 
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    .hero h1 {
-        font-size: 2.5rem;
-    }
-    
-    .hero p {
-        font-size: 1.2rem;
-    }
-    
-    .grid-3 {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-    
-    .section {
-        padding: 60px 0;
-    }
-    
-    .section h2 {
-        font-size: 2.2rem;
-    }
-}
-
-.bg-light {
-    background-color: #f5f5f5;
-}
-
-.two-column {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 1200px;
-    margin: 0 auto;
-    gap: 20px;
-}
-
-.two-column img {
-    width: 50%;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.center {
-    text-align: center;
-}
-
-.grid-4 {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-}
-
-.product-card,
-.service-card {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    text-align: center;
-}
-
-.product-card img,
-.service-card i {
-    width: 60px;
-    margin-bottom: 20px;
-}
-
-.service-card i {
-    font-size: 2.5rem;
-}
-
-.contact-form input,
-.contact-form textarea {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border-radius: 5px;
-    border: 1px solid #ddd;
-}
-
-.contact-form button {
-    background-color: #002E7D;
-    color: #fff;
-    padding: 12px 30px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.contact-form button:hover {
-    background-color: #C5A047;
-}
-
-/* Footer */
-.footer {
-    background-color: #002E7D;
-    color: #fff;
-    padding: 40px 0;
-    text-align: center;
-}
-
-.footer .footer-section {
-    margin-bottom: 30px;
-}
-
-.footer .footer-section a {
-    color: #fff;
-    text-decoration: none;
-    display: block;
-    margin: 5px 0;
-}
-
-.footer-copyright {
-    padding-top: 20px;
-    font-size: 0.9rem;
-}
-
-@media (max-width: 768px) {
-    .grid-4 {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .two-column {
-        flex-direction: column;
-    }
-
-    .hero h1 {
-        font-size: 2rem;
-    }
-}
-
-
 .logo-container {
     display: flex;
     align-items: center;
@@ -554,17 +396,6 @@ body {
     color: #444;
     margin-bottom: 20px;  /* Reduced bottom margin */
     padding-left: 20px;
-}
-
-@media (max-width: 768px) {
-    .section.incident-box {
-        padding: 30px 20px;
-        margin: 20px 15px;
-    }
-    
-    .section.incident-box h2 {
-        font-size: 2.2rem;
-    }
 }
 
 .section#core-offering {
@@ -634,31 +465,6 @@ body {
     text-align: center; /* Center the text */
 }
 
-.date-time {
-    margin-left: 20px;
-    text-align: left;
-    color: #333;
-    font-size: 0.75rem;
-    line-height: 1.4;
-    border: 1px solid #333;
-    border-radius: 4px;
-    padding: 12px 10px 4px 10px;
-    position: relative;
-}
-
-.time-tag {
-    position: absolute;
-    top: -8px;
-    left: 10px;
-    background: #e4c829;
-    color: #333;
-    font-size: 0.7rem;
-    padding: 0px 4px;
-    border-radius: 2px;
-    font-weight: 500;
-}
-
-
 /* Map Container */
 .map-container {
     margin-top: 15px;
@@ -672,71 +478,171 @@ body {
 
 .map-container iframe {
     display: block;
-    width: 100%; /* Ensure the map takes full width of the container */
-    height: 300px; /* Increased height */
+    width: 100%;
+    height: 220px; /* Reduced height from 250px */
 }
 
-/* Adjust footer layout for better map display */
+/* --- Footer Styling --- */
+.footer {
+    background-color: #002E7D; /* Dark blue background for the whole footer */
+    color: #f0f0f0; /* Light default text color for the footer */
+    padding-top: 30px; /* Reduced padding from 40px */
+}
+
 .footer-content {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between; /* Adjusted for better spacing */
-    align-items: flex-start; /* Align items to the top */
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px; /* Added padding for better spacing */
+    flex-direction: row; 
+    flex-wrap: wrap; 
+    justify-content: center; 
+    align-items: flex-start; 
+    max-width: 1400px; 
+    margin: 0 auto; 
+    padding: 20px 20px 20px; /* Padding bottom and sides, no top padding needed here */
+    gap: 40px; 
 }
 
-.footer-section {
-    flex: 1;
-    min-width: 300px; /* Increased minimum width for better alignment */
-    margin: 0 15px 20px;
-    text-align: left; /* Align text to the left for consistency */
+/* Style for the individual sections */
+.footer-map-section,
+.footer-contact-section,
+.footer-links-section {
+    flex: 1; 
+    min-width: 300px; 
+    max-width: 450px; 
+    text-align: center; 
+    /* Removed background, padding, border-radius, shadow from individual sections */
 }
-/* Customer Section Styles */
-.customers-grid {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: 100px;  /* Increased gap for better spacing */
-    background: #ffffff;
-    padding: 40px 60px;  /* Increased padding */
-    border-radius: 15px;
+
+.footer-map-section .map-container {
+    max-width: 100%; 
+    margin: 0 auto 20px; /* Add bottom margin to map */
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Slightly darker shadow for contrast */
+}
+
+.footer-map-section .map-container iframe {
+    display: block;
+    width: 100%;
+    height: 250px; 
+}
+
+.footer-contact-section h4,
+.footer-links-section h4 {
+    margin-bottom: 20px; /* Increased margin */
+    font-size: 1.4rem; 
+    color: #ffffff; /* White headings */
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.footer-contact-section p {
+    margin: 0;
+    line-height: 1.7;
+    color: #d0d0d0; /* Light gray text */
+}
+
+.footer-links-section a {
+    display: block; 
+    margin: 10px 0; 
+    color: #e0e0e0; /* Lighter link color */
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.footer-links-section a:hover {
+    color: #e4c829; /* Keep gold hover */
+}
+
+.footer-copyright {
+    text-align: center;
+    padding: 10px 0; /* Increased padding */
+    margin-top: 10px; /* Adjusted margin */
+    border-top: 1px solid #00408a; /* Darker blue border */
+    color: #a0a0a0; /* Medium gray for copyright */
+    font-size: 0.9rem;
+    background-color: #002159; /* Slightly darker shade for copyright area */
+}
+
+.section#core-offering {
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+    padding: 50px 0;
+    text-align: center;
     max-width: 1800px;
+    margin: 30px auto;
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0, 46, 125, 0.08);
+}
+
+.product-single {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 1600px;  /* Increased width */
+    margin: 0 auto;
+    padding: 30px 40px;
+    border-radius: 15px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.product-single img {
+    width: 100%;
+    max-width: 600px;  /* Increased image width */
+    border-radius: 15px;
+    margin-bottom: 30px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.product-single h4 {
+    font-size: 2rem;
+    color: #002E7D;
+    margin-bottom: 20px;
+}
+
+.product-single p {
+    font-size: 1.15rem;
+    color: #444;
+    line-height: 1.8;
+    max-width: 1400px;  /* Control text width */
     margin: 0 auto;
 }
 
-.customer-logo {
-    display: flex;
+/* --- Our Valued Customers Section --- */
+
+.customers-container {
+    max-width: 1000px; 
+    margin: 40px auto 0; 
+    padding: 0 20px;
+}
+
+.customers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+    gap: 10px; /* <<< Re-confirming 10px gap */
+    justify-items: center; 
+    align-items: stretch; 
+}
+/* Make sure there isn't an extra closing brace '}' or other syntax error right before or after this block */
+
+.customer-name-item {
+    background: linear-gradient(145deg, #f8f9ff, #ffffff);
+    padding: 15px 20px; 
+    border-radius: 8px; 
+    box-shadow: 0 6px 12px rgba(0, 46, 125, 0.06);
+    text-align: center;
+    border-left: 5px solid #002E7D; /* Accent border */
+    /* transition: transform 0.25s ease-out, box-shadow 0.25s ease-out; */ /* Keep transition commented out */
+    display: flex; /* Center text vertically */
     justify-content: center;
     align-items: center;
-    padding: 15px;
-    height: 80px;  /* Fixed height for vertical alignment */
 }
 
-/* Specific logo sizes */
-.customer-logo:nth-child(1) img {
-    max-width: 100px;  /* P&G logo */
-    height: auto;
-}
-
-.customer-logo:nth-child(2) img {
-    max-width: 80px;  /* Unicharm logo */
-    height: auto;
-}
-
-.customer-logo:nth-child(3) img {
-    max-width: 200px;  /* J&J logo */
-    height: auto;
-}
-
-.customer-logo img {
-    transition: transform 0.4s ease;  /* Smoother transition */
-    filter: grayscale(0);  /* Remove grayscale */
-    opacity: 1;
-}
-
-.customer-logo:hover img {
-    transform: scale(1.08);  /* Subtle scale on hover */
+.customer-name-item p {
+    margin: 0;
+    font-size: 1.3rem; /* Larger font size */
+    font-weight: 700; /* Bolder */
+    color: #002E7D; /* Main brand color */
+    letter-spacing: 0.5px; /* Slight spacing */
 }
