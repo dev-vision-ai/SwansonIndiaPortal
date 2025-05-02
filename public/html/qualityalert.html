@@ -18,12 +18,22 @@
             </div>
             <form id="qualityAlertForm">
                 <div class="form-group">
-                    <label for="incidentTitle">Incident Title:</label>
+                    <label for="incidentTitle">Incident Name:</label>
                     <input type="text" id="incidentTitle" placeholder="Enter incident title">
                 </div>
                 <div class="split-container">
                     <div class="split-item form-group">
-                        <label for="responsibleDept">Responsible Department:</label>
+                        <label for="incidentDate">Date of Occurrence:</label>
+                        <input type="date" id="incidentDate">
+                    </div>
+                    <div class="split-item form-group">
+                        <label for="incidentTime">Time of Occurrence:</label>
+                        <input type="time" id="incidentTime">
+                    </div>
+                </div>
+                <div class="split-container">
+                    <div class="split-item form-group">
+                        <label for="responsibleDept">Responsible Dept. for Incident:</label>
                         <select id="responsibleDept">
                             <option>Select Department</option>
                             <option>Production</option>
@@ -39,26 +49,18 @@
                         </select>
                     </div>
                     <div class="split-item form-group">
-                        <label for="locationArea">Location/Area:</label>
+                        <label for="locationArea">Location Occured / Machine:</label>
                         <input type="text" id="locationArea" placeholder="Enter location">
                     </div>
                 </div>
-                <div class="split-container">
-                    <div class="split-item form-group">
-                        <label for="incidentDate">Date:</label>
-                        <input type="date" id="incidentDate">
-                    </div>
-                    <div class="split-item form-group">
-                        <label for="incidentTime">Time:</label>
-                        <input type="time" id="incidentTime">
-                    </div>
-                </div>
+                
                 <div class="split-container">
                     <div class="split-item form-group">
                         <label for="abnormalityType">Type of Abnormality:</label>
                         <select id="abnormalityType" required>
                             <option value="">Select Type</option>
                             <option value="Safety">Safety</option>
+                            <option value="Safety">Personal</option>
                             <option value="Raw/Sub Material">Raw/Sub Material</option>
                             <option value="Documents/Records">Documents/Records</option>
                             <option value="SOP Deviation">SOP Deviation</option>

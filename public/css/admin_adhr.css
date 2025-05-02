@@ -1,20 +1,17 @@
-/* Import Fonts (Optional - if not already imported globally) */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* Define necessary variables from dashboard.css */
 :root {
     --primary-gradient: linear-gradient(45deg, #002E7D, #0046C7);
     --accent-color: #002E7D;
-    --bg-color: #f5f5f5; /* Used by dropdown hover */
+    --bg-color: #f5f5f5; 
     --card-bg: #ffffff;
-    --text-dark: #2D3436; /* Used by dropdown text */
+    --text-dark: #2D3436; 
     --text-light: #666666;
     --border-color: #eee;
-    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.15); /* Used by dropdown */
-    --transition: all 0.3s ease-in-out; /* Used by dropdown */
+    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.15); 
+    --transition: all 0.3s ease-in-out; 
 }
 
-/* Basic body styling (optional, adjust as needed) */
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
@@ -23,14 +20,13 @@ body {
     background-position: center;
     background-attachment: fixed;
     background-color: var(--bg-color);
-    min-height: fixed;
+    min-height: 100vh; 
     color: #333;
-    padding-top: 70px; /* Add padding to prevent content from hiding under fixed header */
+    padding-top: 70px; 
 }
 
-/* Copied Header Styles */
 .header-container {
-    position: fixed; /* Make header fixed */
+    position: fixed; 
     top: 0;
     left: 0;
     width: 100%;
@@ -43,7 +39,7 @@ body {
     margin: 0;
     border-radius: 0;
     border-bottom: 7px solid #e4c829; 
-    box-sizing: border-box; /* Ensure padding is included in width */
+    box-sizing: border-box; 
 }
 
 .header-title {
@@ -62,101 +58,44 @@ body {
     margin-left: auto; 
 }
 
-/* Assuming the admin page uses the same logo class */
-.company-logo img.auth-logo { /* Target the specific logo class used in adminADHR.html */
-    height: 48px; /* Match dashboard style */
+.company-logo img.auth-logo { 
+    height: 48px; 
     filter: none;
     object-fit: contain;
     border: 3px solid white; 
 }
 
-.menu-icon {
-    position: relative;
-    cursor: pointer;
-    color: white;
-    font-size: 1.5rem; 
-    /* Add margin if needed to space from edge */
-    margin-right: 15px; /* Example spacing */
-}
-
-.dropdown-menu {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background: white;
-    border-radius: 8px;
-    box-shadow: var(--shadow-md);
-    min-width: 250px;
-    display: none;
-    z-index: 1000;
-    margin-top: 10px; /* Add some space below the icon */
-}
-
-/* Add JavaScript toggle for this class */
-.dropdown-menu.show { 
-    display: block;
-}
-
-.nav-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 15px 20px;
-    color: var(--text-dark);
-    text-decoration: none;
-    transition: var(--transition);
-}
-
-.nav-item:hover {
-    background: var(--bg-color);
-    color: var(--accent-color);
-}
-/* End Copied Header Styles */
-
-
-/* Add Quick Actions and Action Card Styles (Adapted from dashboard.css) */
 .quick-actions {
     display: grid;
-    /* Adjust grid to better match dashboard (e.g., 3 columns on wider screens) */
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-    gap: 1.5rem;
-    padding: 1rem 0; 
-    margin: 2rem 0;
+    grid-template-columns: 1fr; 
+    gap: 1rem;
+    padding:1.0rem; 
+    max-width: 250px; 
+    margin: 1rem 0 2rem 0; /* Reduced top margin to 1rem, kept bottom at 2rem */
 }
 
 .action-card {
-    /* Keep most existing styles: padding, border-radius, shadow, etc. */
-    background: white; /* Base background */
+    background: var(--card-bg);
     padding: 1.5rem;
-    border-radius: 8px;
+    border-radius: 0; 
     box-shadow: var(--shadow-md);
-    text-decoration: none; 
-    color: var(--text-dark); 
-    border: 1px solid #ddd; /* Slightly softer border */
+    cursor: pointer;
     transition: var(--transition);
+    border: 2px solid var(--border-color);
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center; 
     text-align: center; 
-    min-height: 150px; 
-    justify-content: center; 
+    color: var(--text-dark);
+    font-weight: 500;
+    text-decoration: none; 
+    height: 80px; /* Added specific height */
 }
-
-/* Add background tint for the first card (User Management) */
-.action-card:nth-child(1) {
-    background-color: rgba(0, 46, 125, 0.1); /* Light blue tint */
-}
-/* Add more :nth-child rules here if you add more cards */
-/* Example: 
-.action-card:nth-child(2) {
-    background-color: rgba(0, 125, 46, 0.1); // Light green tint 
-}
-*/
 
 .action-card:hover {
     border-color: var(--accent-color);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhance shadow on hover */
-    transform: translateY(-5px); 
+    box-shadow: 0 0 8px rgba(0, 46, 125, 0.4); 
 }
 
 .action-card .action-icon { 
@@ -167,51 +106,13 @@ body {
 
 .action-card h4 {
     margin-top: 0;
-    margin-bottom: 0.5rem;
-    font-size: 1.1rem;
+    margin-bottom: 0.3rem; /* Slightly reduced bottom margin */
+    font-size: 1rem; /* Reduced from 1.1rem */
     color: var(--accent-color);
 }
 
 .action-card p {
-    font-size: 0.9rem;
+    font-size: 0.8rem; /* Reduced from 0.9rem */
     color: var(--text-light);
     margin-bottom: 0;
 }
-/* End Quick Actions Styles */
-
-
-/* Main content area styling */
-.admin-content {
-    padding: 20px;
-    /* Adjust max-width if needed, maybe wider like dashboard? */
-    max-width: 1200px; /* Example: Wider container */
-    margin: 20px auto; 
-    /* Remove background and shadow to blend with body */
-    /* background-color: #fff; */ 
-    /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */ 
-    border-radius: 8px; /* Keep radius if desired */
-}
-
-.admin-content h2 {
-    text-align: center;
-    /* Use a color consistent with header/cards */
-    color: var(--accent-color); 
-    margin-bottom: 30px;
-    font-weight: 600; /* Slightly bolder */
-}
-
-/* Remove styles for elements no longer on this page */
-/* 
-.user-management-section { ... }
-.user-management-section h3 { ... }
-form div { ... }
-form label { ... }
-form input[type="text"], form input[type="password"] { ... }
-form input[type="checkbox"] { ... }
-form button[type="submit"] { ... }
-form button[type="submit"]:hover { ... }
-hr { ... }
-.success-message { ... }
-.error-message { ... }
-.success-message:empty, .error-message:empty { ... }
-*/

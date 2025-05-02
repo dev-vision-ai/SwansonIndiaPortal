@@ -32,6 +32,12 @@ function setupFormEventListeners(userId) {
     const takeImmediateAction = document.getElementById('takeImmediateAction');
     const actionFieldsContainer = document.getElementById('actionFieldsContainer');
 
+    // Get the labels and input fields for scrolling
+    const incidentDateLabel = document.querySelector('label[for="incidentDate"]');
+    const incidentTimeLabel = document.querySelector('label[for="incidentTime"]');
+    const incidentDateInput = document.getElementById('incidentDate');
+    const incidentTimeInput = document.getElementById('incidentTime');
+
     abnormalityType.addEventListener('change', function() {
         const isSemiFinished = this.value === 'Semi/Finished Goods';
         semiFinishedGoodsDetails.style.display = isSemiFinished ? 'block' : 'none';
@@ -85,6 +91,24 @@ function setupFormEventListeners(userId) {
     takeImmediateAction.addEventListener('change', function() {
         actionFieldsContainer.style.display = this.value === 'yes' ? 'block' : 'none';
     });
+
+    // Add smooth scroll listeners
+    if (incidentDateLabel && incidentDateInput) {
+        incidentDateLabel.addEventListener('click', () => {
+            incidentDateInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Optional: focus the input after scrolling
+            // setTimeout(() => incidentDateInput.focus(), 300); 
+        });
+    }
+
+    if (incidentTimeLabel && incidentTimeInput) {
+        incidentTimeLabel.addEventListener('click', () => {
+            // Change block from 'center' to 'start'
+            incidentTimeInput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Optional: focus the input after scrolling
+            // setTimeout(() => incidentTimeInput.focus(), 300); 
+        });
+    }
 
     function showMessage(message) {
         const submissionMessage = document.querySelector('.submission-message');
