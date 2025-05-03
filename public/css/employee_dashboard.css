@@ -100,11 +100,10 @@ body {
     justify-content: space-between;
     align-items: center;
     background-color: var(--accent-color);
-    padding: 10px 20px; /* Base padding for large screens */
+    padding: 10px 20px;
     margin: 0;
     border-radius: 0;
     border-bottom: 7px solid #e4c829;
-    box-sizing: border-box; /* Ensure padding is included in width */
 }
 
 .header-title {
@@ -112,42 +111,47 @@ body {
     left: 50%;
     transform: translateX(-50%);
     color: white;
-    font-size: 1.6rem; /* Base font size for large screens */
+    font-size: 1.6rem;
     font-weight: 600;
     letter-spacing: 0.5px;
-    white-space: nowrap; /* Prevent wrapping by default */
-    overflow: hidden; /* Hide overflow */
-    text-overflow: ellipsis; /* Add ellipsis if text overflows */
-    max-width: calc(100% - 200px); /* Limit width to prevent overlap with icons/logo - adjust 200px as needed */
+}
+
+.company-logo {
+    display: flex;
+    align-items: center; /* Center logo vertically */
+    margin-left: auto; /* Ensure logo stays on the right */
+}
+.header-title {
+    color: white;
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .company-logo img {
-    height: 48px; /* Base height for large screens */
+    height: 48px; /* Increase height for larger logo */
     filter: none;
     object-fit: contain;
-    border: 3px solid white;
+    border: 3px solid white; /* Add white border */
 }
 
-.left-section { /* Container for menu icon */
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    /* Add min-width if needed to prevent title overlap */
-    min-width: 50px; 
+.auth-logo {
+    height: 60px; /* Increase height for larger logo */
+    border: 3px solid white; /* Add white border */
 }
 
-.company-logo { /* Container for logo */
-    display: flex;
-    align-items: center;
-    margin-left: auto;
-    /* Add min-width if needed */
-    min-width: 80px; 
-}
-
-.menu-icon, .notification-icon { 
-    /* Base styles */
-    font-size: 1.5rem;
+.menu-icon {
+    position: relative;
     cursor: pointer;
+    color: white;
+    font-size: 1.5rem; /* Increase font size for larger icon */
+}
+
+.notification-icon {
+    position: relative;
+    cursor: pointer;
+    color: white;
+    font-size: 1.5rem; /* Increase font size for larger icon */
 }
 
 /* Dropdown Menu Styles */

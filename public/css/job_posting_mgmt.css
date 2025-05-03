@@ -1,0 +1,206 @@
+/* General Body and Layout */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f6;
+}
+
+.back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: #333;
+    text-decoration: none;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.back-button i {
+    margin-right: 5px;
+}
+
+.main-content {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 20px auto; /* Center content */
+}
+
+/* Section Styling */
+#add-job-section, 
+#job-list-section {
+    background-color: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    color: #333;
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* Form Styling */
+.user-form, 
+#add-job-form { 
+    /* background-color is handled by #add-job-section */
+    padding: 25px; /* Keep padding if needed inside the section */
+    margin-top: 15px; 
+}
+
+.form-group {
+    margin-bottom: 1rem; 
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-dark, #2D3436);
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="date"], /* Added date type */
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color, #ddd); /* Slightly darker border */
+    border-radius: 4px;
+    box-sizing: border-box; 
+    font-family: inherit; 
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: var(--accent-color, #002E7D);
+    outline: none; 
+    box-shadow: 0 0 0 2px rgba(0, 46, 125, 0.2); 
+}
+
+.form-group textarea {
+    resize: vertical; 
+    min-height: 80px;
+}
+
+/* General Button Styles */
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, opacity 0.2s ease-in-out;
+    color: white;
+    line-height: 1.5; /* Ensure consistent height */
+}
+
+.btn:hover {
+    opacity: 0.9;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Primary Button (Includes form submit) */
+.btn-primary,
+#add-job-form button[type="submit"] { 
+    background-color: var(--accent-color, #002E7D);
+    color: white;
+}
+
+/* Secondary Button */
+.btn-secondary {
+    background-color: #6c757d; 
+    color: white;
+}
+
+/* Warning Button (Used for Edit in table) */
+.btn-warning {
+    background-color: #ffc107;
+    color: #212529; 
+}
+.btn-warning:hover {
+    background-color: #e0a800;
+}
+
+/* Danger Button (Used for Delete in table) */
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+/* Form Action Button Container */
+.form-actions {
+    margin-top: 20px; 
+    display: flex; 
+    gap: 10px; 
+}
+
+/* Table Styling */
+.table-container {
+    overflow-x: auto; 
+    /* background-color handled by #job-list-section */
+    padding: 20px; /* Keep padding if needed inside the section */
+    margin-top: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+table th, table td {
+    padding: 0.8rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color, #eee);
+    vertical-align: middle; /* Align button vertically */
+}
+
+table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: var(--text-dark, #2D3436);
+}
+
+table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Specific styles for buttons inside table cells */
+table td .btn {
+    padding: 0.3rem 0.6rem; /* Smaller padding */
+    font-size: 0.85rem; /* Smaller font */
+    margin-right: 5px;
+}
+
+table td .btn:last-child {
+    margin-right: 0;
+}
+
+/* Loading/Empty States */
+#job-list-table-container p {
+    color: #777;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+}
+
+/* REMOVED Redundant section/main styles from the end */
+

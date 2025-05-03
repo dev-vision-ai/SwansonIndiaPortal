@@ -641,7 +641,7 @@
         width: 100%; 
     }
     .job-listings {
-        grid-template-columns: 1fr;  
+        grid-template-columns: 1fr;  /* Stack cards on mobile */
     }
     .team-grid {
         grid-template-columns: 1fr; 

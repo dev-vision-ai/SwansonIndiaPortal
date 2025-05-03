@@ -13,7 +13,7 @@
 body {
     padding-top: 80px;
     font-family: 'Inter', sans-serif;
-    background-image: url('../assets/page-bg.png');  /* Path corrected */
+    background-image: url('../assets/page-bg.png');
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -22,30 +22,30 @@ body {
     color: #333;
     line-height: 1.6;
     min-height: 100vh;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
+    display: flex; /* Use flexbox for footer */
+    flex-direction: column; /* Stack body content vertically */
 }
 
-/* Navbar */
+/* Navbar Styles (Assuming these are shared or defined elsewhere if needed) */
 .navbar {
     position: fixed;
     top: 0;
     width: 100%;
     background-color: #ffffff;
-    padding: 15px 0; /* Base padding */
+    padding: 15px 0;
     z-index: 1000;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    border-bottom: 7px solid #e4c829; /* Yellow line */
+    border-bottom: 7px solid #e4c829;
 }
 
 .nav-container {
     display: flex;
-    justify-content: space-between; /* <<< Change this back */
+    justify-content: space-between;
     align-items: center;
-    max-width: 1800px; /* Max width */
-    margin: 0 auto; /* Center */
-    padding: 0 15px 0 15px; /* Adjusted horizontal padding */
-    gap: 15px; /* Gap */
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 0 15px;
+    gap: 15px;
 }
 
 .logo-container {
@@ -55,30 +55,8 @@ body {
 }
 
 .logo {
-    height: 45px; /* Logo height */
+    height: 45px;
     flex-shrink: 0;
-}
-
-.nav-links {
-    display: flex;
-    align-items: center;
-    flex-wrap: nowrap;
-    /* overflow: hidden; /* Keep this commented out or removed */
-    /* Ensure margin-left: auto; is REMOVED if it exists */
-}
-
-.nav-links a {
-    color: #002E7D;
-    text-decoration: none;
-    font-weight: 600;
-    margin: 0 15px; /* Margin */
-    transition: color 0.3s ease;
-    font-size: 1.0rem;  /* Font size */
-    white-space: nowrap;
-}
-
-.nav-links a:hover {
-    color: #e4c829;
 }
 
 .company-names {
@@ -86,12 +64,34 @@ body {
     flex-direction: column;
 }
 
-.company-name, .company-name-translated {
+.company-name,
+.company-name-translated {
     font-size: 1rem;
     font-weight: 600;
     color: #0a3083;
 }
 
+.nav-links {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.nav-links a {
+    color: #002E7D;
+    text-decoration: none;
+    font-weight: 600;
+    margin: 0 15px;
+    transition: color 0.3s ease;
+    font-size: 1.0rem;
+    white-space: nowrap;
+}
+
+.nav-links a:hover {
+    color: #e4c829;
+}
+
+/* Dropdown styles (if applicable) */
 .dropdown {
     position: relative;
     display: inline-block;
@@ -101,10 +101,10 @@ body {
     color: #002E7D;
     text-decoration: none;
     font-weight: 600;
-    margin: 0 15px; 
+    margin: 0 15px;
     transition: color 0.3s ease;
     cursor: pointer;
-    font-size: 1.0rem; 
+    font-size: 1.0rem;
     white-space: nowrap;
 }
 
@@ -122,16 +122,16 @@ body {
     border-radius: 4px;
     padding: 8px 0;
     z-index: 1001;
-    left: 0; 
+    left: 0;
     top: 100%;
 }
 
 .dropdown-menu a {
     color: #002E7D;
-    padding: 10px 16px; 
+    padding: 10px 16px;
     text-decoration: none;
     display: block;
-    font-size: 0.95rem; 
+    font-size: 0.95rem;
     white-space: nowrap;
 }
 
@@ -144,183 +144,169 @@ body {
     color: #e4c829;
 }
 
-.date-time {
-    margin-left: 20px;
-    text-align: left;
-    color: #333;
-    font-size: 0.75rem;
-    line-height: 1.4;
-    border: 1px solid #333;
-    border-radius: 4px;
-    padding: 12px 10px 4px 10px;
-    position: relative;
-}
-
-.time-tag {
-    position: absolute;
-    top: -8px;
-    left: 10px;
-    background: #e4c829;
-    color: #333;
-    font-size: 0.7rem;
-    padding: 0px 4px;
-    border-radius: 2px;
-    font-weight: 500;
+/* Main Content Area */
+.main-content {
+    flex-grow: 1; /* Allows content to push footer down */
+    padding-bottom: 50px; /* Space above the footer */
 }
 
 .career-section {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-    margin-top: 20px;  /* Reduced from 100px since body already has padding */
-}
-
-/* Remove duplicate .job-listings and .job-card styles that appear later in the file */
-.job-listings {
-    display: grid;
-    grid-template-columns: repeat(1, 1fr);  /* Single column layout */
-    gap: 30px;  /* Increased gap between cards */
-    width: 100%;
-    margin-top: 30px;
-}
-
-.job-card {
-    padding: 35px;  /* Increased padding for better spacing */
-    max-width: 1000px;  /* Control maximum width of cards */
-    margin: 0 auto;  /* Center the cards */
+    padding: 40px 20px; /* Add horizontal padding back for spacing from screen edges */
+    /* max-width: 1200px; /* Remove max-width */
+    /* margin: 0 auto; /* Remove centering */
+    width: 100%; /* Ensure it takes full available width */
 }
 
 .career-section h1 {
-    margin-top: 10px;  /* Added to fine-tune spacing */
     margin-bottom: 15px;
-    font-size: 2rem;
-    text-align: left;
+    font-size: 2.2em;
+    font-weight: 700;
+    color: #002E7D;
+    text-align: left; /* Ensure text is left-aligned */
 }
 
 .career-intro {
-    color: #666;
+    color: #555;
     margin-bottom: 40px;
-    text-align: left;  /* Align text to left */
+    font-size: 1.1em;
+    text-align: left; /* Ensure text is left-aligned */
 }
 
+/* Styling for the job listings container - UPDATED for 3 Columns */
 .job-listings {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);  /* Changed to 3 columns */
-    gap: 20px;
-    width: 100%;
-    margin-top: 20px;
+    display: grid; /* Use Grid layout */
+    grid-template-columns: repeat(3, 1fr); /* Create exactly 3 equal columns */
+    gap: 25px; /* Gap between cards */
+    margin-top: 30px;
 }
 
-.job-card {
-    background: #fff;
-    padding: 25px;
+/* Styling for individual job posting cards - UPDATED for Grid */
+.job-posting-card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    text-align: left;
-    border: 1px solid #eee;
-    height: 100%;  /* Ensure equal height */
-    display: flex;
-    flex-direction: column;
+    padding: 25px 30px;
+    /* margin: 0 auto 25px auto; /* Remove auto margins, grid handles layout */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.3s ease;
+    /* max-width: 900px; /* Remove max-width, let grid control it */
+    width: 100%; /* Card takes full width of its grid cell */
+    display: flex; /* Use flexbox *inside* the card for content alignment */
+    flex-direction: column; /* Stack content vertically */
 }
 
-.job-card .description {
-    flex-grow: 1;  /* Allow description to take remaining space */
-    margin: 15px 0;
+.job-posting-card:hover {
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.12);
 }
 
-.apply-btn {
-    margin-top: auto;  /* Push button to bottom */
-    align-self: flex-start;  /* Align button to left */
-}
-
-.job-card h3 {
-    color: #002E7D;
+/* Style the job title */
+.job-posting-card h3 {
+    margin-top: 0;
     margin-bottom: 15px;
-    font-size: 1.3rem;
+    color: #003366;
+    font-size: 1.5em;
+    font-weight: 600;
 }
 
-.location, .experience {
-    color: #666;
-    font-size: 0.9rem;
-    margin-bottom: 8px;
-    display: block;  /* Ensure block display */
+/* Style the paragraphs within the card */
+.job-posting-card p {
+    margin-bottom: 10px;
+    line-height: 1.6;
+    color: #333;
 }
 
-.description {
-    margin: 10px 0;
+/* Style the 'strong' tags (Location, Experience, etc.) */
+.job-posting-card p strong {
+    color: #111;
+    font-weight: 500;
+    margin-right: 8px;
+    display: inline-block;
+    min-width: 100px; /* Helps align labels */
 }
 
-.apply-btn {
-    background: #002E7D;
-    color: #fff;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 10px;
+/* Style the job description section */
+.job-posting-card .job-description {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    flex-grow: 1; /* Allows description to push date down */
 }
 
-.apply-btn:hover {
-    background: #e4c829;
+.job-posting-card .job-description p {
+    color: #444;
+    font-size: 0.95em;
 }
 
+/* Style the 'Posted on' text */
+.job-posting-card p small {
+    color: #888;
+    font-size: 0.85em;
+    display: block;
+    margin-top: 20px;
+    text-align: right;
+    /* margin-top: auto; /* Let flex-grow on description push this down */
+}
+
+/* Message when no jobs are available - UPDATED */
 .no-jobs-message {
     text-align: center;
-    padding: 40px;
-    background: #fff;
+    padding: 40px 20px;
+    color: #555;
+    background-color: #f9f9f9;
+    border: 1px dashed #ccc;
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    color: #666;
+    /* max-width: 900px; /* Remove max-width */
+    margin: 30px auto;
+    grid-column: 1 / -1; /* Make message span all columns if grid is active */
 }
 
+/* Footer Styles */
 .footer {
-    background-color: #002E7D; 
-    color: #f0f0f0; 
-    padding-top: 30px; 
+    background-color: #002E7D;
+    color: #f0f0f0;
+    padding-top: 30px;
+    margin-top: auto; /* Pushes footer to bottom with flexbox */
 }
 
 .footer-content {
     display: flex;
-    flex-direction: row; 
-    flex-wrap: wrap; 
-    justify-content: center; 
-    align-items: flex-start; 
-    max-width: 1400px; 
-    margin: 0 auto; 
-    padding: 20px 20px 20px; 
-    gap: 40px; 
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    gap: 40px;
 }
 
-/* Style for the individual sections */
 .footer-map-section,
 .footer-contact-section,
 .footer-links-section {
-    flex: 1; 
-    min-width: 300px; 
-    max-width: 450px; 
-    text-align: center; 
-    
+    flex: 1;
+    min-width: 300px;
+    max-width: 450px;
+    text-align: center;
 }
 
 .footer-map-section .map-container {
-    max-width: 100%; 
-    margin: 0 auto 20px; /* Add bottom margin to map */
+    max-width: 100%;
+    margin: 0 auto 20px;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Slightly darker shadow for contrast */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .footer-map-section .map-container iframe {
     display: block;
     width: 100%;
-    height: 250px; 
+    height: 250px;
 }
 
 .footer-contact-section h4,
 .footer-links-section h4 {
-    margin-bottom: 20px; /* Increased margin */
-    font-size: 1.4rem; 
-    color: #ffffff; /* White headings */
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+    color: #ffffff;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -329,42 +315,237 @@ body {
 .footer-contact-section p {
     margin: 0;
     line-height: 1.7;
-    color: #d0d0d0; /* Light gray text */
+    color: #d0d0d0;
 }
 
 .footer-links-section a {
-    display: block; 
-    margin: 10px 0; 
-    color: #e0e0e0; /* Lighter link color */
+    display: block;
+    margin: 10px 0;
+    color: #e0e0e0;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.3s ease;
 }
 
 .footer-links-section a:hover {
-    color: #e4c829; /* Keep gold hover */
+    color: #e4c829;
 }
 
 .footer-copyright {
     text-align: center;
-    padding: 10px 0; /* Increased padding */
-    margin-top: 10px; /* Adjusted margin */
-    border-top: 1px solid #00408a; /* Darker blue border */
-    color: #a0a0a0; /* Medium gray for copyright */
+    padding: 15px 0; /* Increased padding */
+    margin-top: 20px; /* Increased margin */
+    border-top: 1px solid #00408a;
+    color: #a0a0a0;
     font-size: 0.9rem;
-    background-color: #002159; /* Slightly darker shade for copyright area */
+    background-color: #002159;
 }
 
-.main-content {
+/* Styling for individual job posting cards - UPDATED for Split BG */
+.job-posting-card {
+    /* background-color: #ffffff; /* REMOVE this line */
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    /* padding: 25px 30px; /* REMOVE or set to 0 if header/body handle padding */
+    padding: 0; /* Remove padding from main card */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.3s ease;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Ensure rounded corners clip inner divs */
+}
+
+/* Styling for individual job posting cards - CONSOLIDATED & ENHANCED (No Hover) */
+.job-posting-card {
+    border: 1px solid #d0d0d0; 
+    border-radius: 10px; 
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); 
+    transition: box-shadow 0.3s ease; 
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; 
+    background-color: #ffffff; 
+}
+/* NEW: Style for the Job Title part of the header - NO CHANGE */
+.job-title-header {
+    background: linear-gradient(145deg, #003a9e, #002E7D); 
+    padding: 10px 30px; 
+}
+
+/* NEW: Style for the Job Details part of the header - UPDATED to Light Grey BG */
+.job-details-header {
+    background-color: #e9ecef; /* Light grey */
+    padding: 20px 30px;
+    border-top: 1px solid #dee2e6; /* Slightly darker grey border */
+}
+
+/* Styles for the light grey details header */
+.job-details-header {
+    background-color: #f8f9fa; /* Very light grey */
+    padding: 10px 30px; 
+    border-top: 1px solid #e9ecef; /* Subtle border */
+}
+
+/* Style for the card body (White BG) - NO CHANGE */
+.job-card-body {
+    background-color: #ffffff; 
+    padding: 15px 30px;
     flex-grow: 1; 
-    /* padding-top: 100px; /* <<< Remove this line */
-    padding-bottom: 133px; /* Keep this for space above footer */
+    display: flex; 
+    flex-direction: column;
 }
 
-.career-section {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 20px; /* Keep horizontal centering */
-    margin-top: 05px; /* <<< Adjust this value (e.g., 20px, 30px, 40px) for spacing below header */
+/* Style the job title (within .job-title-header) - NO CHANGE */
+.job-title-header h3 {
+    margin: 0; 
+    color: #ffffff; 
+    font-size: 1.4em; 
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); 
 }
 
+/* Style the paragraphs within the light grey details header - Increased Font Size */
+.job-details-header p {
+    margin-bottom: 8px; 
+    line-height: 1.5;
+    color: #495057; /* Dark grey text for contrast on light grey */
+    font-size: 1em; /* Increased from 0.95em */
+}
+.job-details-header p:last-child {
+    margin-bottom: 0; 
+}
+
+/* Style the 'strong' tags within the light grey details header - NO CHANGE */
+.job-details-header p strong {
+    color: #002E7D; /* Dark Blue text for labels */
+    font-weight: 600; 
+    margin-right: 8px;
+    display: inline-block;
+    min-width: 90px; 
+}
+
+/* Style the paragraphs within the card body - NO CHANGE */
+.job-card-body p {
+    margin-bottom: 10px;
+    line-height: 1.6;
+    color: #333; 
+}
+
+/* Style the 'strong' tags (if any appear in body) - NO CHANGE */
+.job-card-body p strong {
+    color: #111;
+    font-weight: 500;
+    margin-right: 8px;
+    display: inline-block;
+    min-width: 100px;
+}
+
+/* Style the job description section - NO CHANGE */
+.job-card-body .job-description {
+    margin-top: 0; 
+    padding-top: 0; 
+    border-top: none; 
+    flex-grow: 1; 
+}
+
+.job-card-body .job-description p {
+    color: #444;
+    font-size: 0.95em;
+}
+
+/* Style the 'Posted on' text - NO CHANGE */
+.job-card-body p small {
+    color: #777; 
+    font-size: 0.85em;
+    display: block;
+    margin-top: 20px; 
+    text-align: right;
+}
+
+/* NEW: Style for the Apply Now button */
+.apply-button {
+    display: inline-block; /* Allow padding and margin */
+    background-color: #002E7D; /* Main blue color */
+    color: #ffffff; /* White text */
+    padding: 10px 20px; /* Button padding */
+    border: none;
+    border-radius: 5px; /* Rounded corners */
+    text-align: center;
+    text-decoration: none; /* Remove underline from link */
+    font-weight: 600;
+    margin-top: 15px; /* Space above the button */
+    align-self: flex-end; /* Align button to the right */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    cursor: pointer;
+}
+
+/* Remove or comment out WhatsApp specific styles */
+/*
+.whatsapp-share-button { ... }
+.whatsapp-share-button i { ... }
+.whatsapp-share-button:hover { ... }
+*/
+
+/* Style for the generic Share button - UPDATED */
+.share-button {
+    display: inline-flex; /* Use flex to align icon and text */
+    align-items: center;
+    justify-content: center; /* Center content */
+    gap: 8px; /* Space between icon and text */
+    background-color: #e4c829; /* Yellow background */
+    color: #002E7D; /* Dark blue text for contrast */
+    padding: 10px 20px; /* Match Apply Now button padding */
+    border: none;
+    border-radius: 5px; /* Match Apply Now button radius */
+    text-align: center;
+    text-decoration: none;
+    font-weight: 600; /* Match Apply Now button weight */
+    /* margin-top: 15px; /* Remove margin-top if using footer-actions */
+    /* align-self: flex-end; /* Remove align-self if using footer-actions */
+    transition: background-color 0.3s ease, transform 0.2s ease, color 0.3s ease;
+    cursor: pointer;
+    font-size: 1em; /* Match Apply Now font-size (assuming it's 1em or adjust if needed) */
+    line-height: 1; /* Ensure consistent line height */
+}
+
+.share-button i {
+    font-size: 1em; /* Keep icon size relative to text */
+    /* No specific color needed, inherits from button */
+}
+
+.share-button:disabled {
+    background-color: #f0e4a4; /* Lighter yellow when disabled */
+    color: #a0936b; /* Muted text color */
+    cursor: not-allowed;
+    transform: none; /* No lift when disabled */
+}
+
+/* Ensure footer actions layout is correct */
+.job-card-footer {
+    display: flex; /* Use flexbox for the footer */
+    justify-content: space-between; /* Space out date and actions */
+    align-items: center; /* Vertically align items */
+    margin-top: 20px; /* Add some space above the footer */
+    padding-top: 15px; /* Add padding above the footer content */
+    border-top: 1px solid #eee; /* Add a separator line */
+}
+
+.posted-on-date {
+    margin: 0; /* Remove default paragraph margin */
+}
+
+.footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px; 
+}
+
+.apply-button {
+    /* Existing styles - ensure padding/font-size match .share-button */
+    padding: 10px 20px; 
+    font-size: 1em;
+    margin-top: 0; 
+    align-self: unset; 
+}
