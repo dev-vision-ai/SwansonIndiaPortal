@@ -416,7 +416,7 @@
     .see-more-btn {
         /* margin-bottom: 15px; */ /* Keep this removed */
         /* margin-top: 10px; */   /* Increase this value */
-        margin-top: 20px; /* <<< INCREASED - More space above the button */
+        margin-top: 60px; /* <<< INCREASED - More space above the button */
     }
 
     .team-grid {
