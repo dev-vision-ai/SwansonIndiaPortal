@@ -399,17 +399,16 @@
     .apply-button {
         flex-grow: 1; 
         text-align: center; 
-        /* Base padding/font-size should be inherited from career.css */
-        /* Avoid setting specific small padding/font-size here unless needed */
     }
     /* --- END: Footer adjustments --- */
 
     /* Add styles for the See More button if needed */
     .see-more-btn {
-        /* Adjust size for very small screens if necessary */
+        /* Add margin below the button to prevent overlap with footer */
+        margin-bottom: 15px; /* Adjust value as needed */
+        /* Optional: Adjust size for very small screens if necessary */
         /* font-size: 0.9em; */
         /* padding: 6px 10px; */
-        /* margin-top: 8px; */
     }
 
     .team-grid {
