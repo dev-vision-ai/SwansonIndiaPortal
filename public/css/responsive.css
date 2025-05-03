@@ -370,17 +370,26 @@
         font-size: 1.0em;
     }
 
+    /* <<< ADD THIS RULE >>> */
+    .job-card-body {
+        margin-bottom: 15px; /* Add space AFTER the body (desc + button) */
+    }
+
     .job-card-body .job-description p {
         font-size: 1.0em;
     }
+
+    .job-description.expanded {
+       /* padding-bottom: 15px; */ /* <<< REMOVE this rule if present >>> */
+    }
+
     /* --- Footer adjustments for mobile --- */
     .job-card-footer {
-        flex-direction: column; /* Stack items vertically */
-        align-items: flex-start; /* Align items to the start */
-        gap: 10px; /* Add gap between stacked items */
-        padding-top: 10px;
-        /* margin-top: 10px; */ /* Remove or comment out this line if it exists */
-        margin-top: 20px; /* <<< ADD THIS LINE - Increase space above the footer */
+        flex-direction: column; 
+        align-items: flex-start; 
+        gap: 10px; 
+        padding-top: 10px; /* Keep internal padding */
+        /* margin-top: 20px; */ /* <<< REMOVE this rule if present >>> */
     }
 
     .posted-on-date {
@@ -405,11 +414,8 @@
 
     /* Add styles for the See More button if needed */
     .see-more-btn {
-        /* Add margin below the button to prevent overlap with footer */
-        margin-bottom: 15px; /* Adjust value as needed */
-        /* Optional: Adjust size for very small screens if necessary */
-        /* font-size: 0.9em; */
-        /* padding: 6px 10px; */
+        /* margin-bottom: 15px; */ /* <<< REMOVE this rule if present >>> */
+        margin-top: 10px; /* Optional: Add space above the button */
     }
 
     .team-grid {
