@@ -367,11 +367,11 @@
     }
 
     .job-details-header p {
-        font-size: 0.95em; /* <<< Increased from 0.9em */
+        font-size: 1.0em; /* <<< Increased from 0.9em */
     }
 
     .job-card-body .job-description p {
-        font-size: 0.95em; /* <<< Increased from 0.9em */
+        font-size: 1.0em; /* <<< Increased from 0.9em */
     }
 
     /* --- Footer adjustments for mobile --- */
