@@ -363,15 +363,15 @@
     }
 
     .job-title-header h3 {
-        font-size: 1.2em; /* Slightly smaller title */
+        font-size: 1.3em; /* <<< Increased from 1.2em */
     }
 
     .job-details-header p {
-        font-size: 0.9em; /* Smaller details text */
+        font-size: 0.95em; /* <<< Increased from 0.9em */
     }
 
     .job-card-body .job-description p {
-        font-size: 0.9em; /* Smaller description text */
+        font-size: 0.95em; /* <<< Increased from 0.9em */
     }
 
     /* --- Footer adjustments for mobile --- */
