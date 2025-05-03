@@ -372,7 +372,7 @@
 
     /* <<< ADD THIS RULE >>> */
     .job-card-body {
-        margin-bottom: 15px; /* Add space AFTER the body (desc + button) */
+        margin-bottom: 15px; /* Keep this space AFTER the body */
     }
 
     .job-card-body .job-description p {
@@ -414,8 +414,9 @@
 
     /* Add styles for the See More button if needed */
     .see-more-btn {
-        /* margin-bottom: 15px; */ /* <<< REMOVE this rule if present >>> */
-        margin-top: 10px; /* Optional: Add space above the button */
+        /* margin-bottom: 15px; */ /* Keep this removed */
+        /* margin-top: 10px; */   /* Increase this value */
+        margin-top: 20px; /* <<< INCREASED - More space above the button */
     }
 
     .team-grid {
