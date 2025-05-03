@@ -363,17 +363,16 @@
     }
 
     .job-title-header h3 {
-        font-size: 1.3em; /* <<< Increased from 1.2em */
+        font-size: 1.3em;
     }
 
     .job-details-header p {
-        font-size: 1.0em; /* <<< Increased from 0.9em */
+        font-size: 1.0em;
     }
 
     .job-card-body .job-description p {
-        font-size: 1.0em; /* <<< Increased from 0.9em */
+        font-size: 1.0em;
     }
-
     /* --- Footer adjustments for mobile --- */
     .job-card-footer {
         flex-direction: column; /* Stack items vertically */
@@ -392,20 +391,26 @@
     .footer-actions {
         width: 100%; /* Make button container take full width */
         justify-content: space-between; /* Space out buttons */
+        display: flex; /* Ensure flex is applied here for justify-content */
     }
 
-    @media (max-width: 480px) {
-        .share-button,
-        .apply-button {
-            flex-grow: 1; 
-            text-align: center; 
-            /* Ensure padding/font-size are NOT overridden here unless intended */
-            /* padding: 8px 10px; /* Example: REMOVE this if you want the smaller base size */
-            /* font-size: 0.9em; /* Example: REMOVE this if you want the smaller base size */
-        }
-        /* ... */
+    /* Styles for buttons specifically on small screens */
+    .share-button,
+    .apply-button {
+        flex-grow: 1; 
+        text-align: center; 
+        /* Base padding/font-size should be inherited from career.css */
+        /* Avoid setting specific small padding/font-size here unless needed */
     }
     /* --- END: Footer adjustments --- */
+
+    /* Add styles for the See More button if needed */
+    .see-more-btn {
+        /* Adjust size for very small screens if necessary */
+        /* font-size: 0.9em; */
+        /* padding: 6px 10px; */
+        /* margin-top: 8px; */
+    }
 
     .team-grid {
         grid-template-columns: 1fr; 
