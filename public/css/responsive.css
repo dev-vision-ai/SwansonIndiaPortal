@@ -359,10 +359,63 @@
         font-size: 1.2rem;
     }
     .job-card {
-        padding: 20px;
+        padding: 15px; /* Reduce padding inside card on small screens */
     }
-    .team-member {
-        padding: 15px;
+
+    .job-title-header h3 {
+        font-size: 1.2em; /* Slightly smaller title */
+    }
+
+    .job-details-header p {
+        font-size: 0.9em; /* Smaller details text */
+    }
+
+    .job-card-body .job-description p {
+        font-size: 0.9em; /* Smaller description text */
+    }
+
+    /* --- Footer adjustments for mobile --- */
+    .job-card-footer {
+        flex-direction: column; /* Stack items vertically */
+        align-items: flex-start; /* Align items to the start */
+        gap: 10px; /* Add gap between stacked items */
+        padding-top: 10px;
+        margin-top: 10px;
+    }
+
+    .posted-on-date {
+        text-align: left; /* Align date text to the left */
+        width: 100%; /* Take full width */
+        margin-bottom: 5px; /* Space below date */
+    }
+
+    .footer-actions {
+        width: 100%; /* Make button container take full width */
+        justify-content: space-between; /* Space out buttons */
+    }
+
+    @media (max-width: 480px) {
+        .share-button,
+        .apply-button {
+            flex-grow: 1; 
+            text-align: center; 
+            /* Ensure padding/font-size are NOT overridden here unless intended */
+            /* padding: 8px 10px; /* Example: REMOVE this if you want the smaller base size */
+            /* font-size: 0.9em; /* Example: REMOVE this if you want the smaller base size */
+        }
+        /* ... */
+    }
+    /* --- END: Footer adjustments --- */
+
+    .team-grid {
+        grid-template-columns: 1fr; 
+    }
+    .about-content {
+        flex-direction: column;
+    }
+    .about-content img {
+        width: 80%;
+        margin-bottom: 20px;
     }
 }
 

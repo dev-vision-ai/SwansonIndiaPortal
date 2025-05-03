@@ -496,6 +496,8 @@ body {
     gap: 8px; /* Space between icon and text */
     background-color: #e4c829; /* Yellow background */
     color: #002E7D; /* Dark blue text for contrast */
+    padding: 6px 12px; /* <<< Smaller padding */
+    font-size: 0.85em; /* <<< Smaller font size */
     padding: 10px 20px; /* Match Apply Now button padding */
     border: none;
     border-radius: 5px; /* Match Apply Now button radius */
