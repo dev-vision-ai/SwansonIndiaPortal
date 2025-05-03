@@ -41,16 +41,45 @@
           <input type="text" id="job-location" name="job-location">
         </div>
         <div class="form-group">
-          <label for="job-salary">Salary Range (Optional):</label>
-          <input type="text" id="job-salary" name="job-salary" placeholder="e.g., ₹30,000 - ₹45,000 pm">
+          <label for="job-salary">Salary:</label>
+          <input type="text" id="job-salary" name="job-salary"> <!-- <<< ADDED id="job-salary" -->
         </div>
         <div class="form-group">
           <label for="job-experience">Experience Needed (Optional):</label>
-          <input type="text" id="job-experience" name="job-experience" placeholder="e.g., 2-3 years">
+          <input type="text" id="job-experience" name="job-experience"> <!-- <<< ADDED id="job-experience" -->
         </div>
+
+        <!-- NEW FIELDS START -->
+        <div class="form-group">
+          <label for="num-positions">Number of Vacant Positions:</label>
+          <input type="number" id="num-positions" name="num-positions" min="1"> <!-- <<< ADDED id="num-positions" and changed type to number -->
+        </div>
+
+        <div class="form-group">
+          <label for="employment-type">Employment Type:</label>
+          <select id="employment-type" name="employment-type">
+            <option value="Full-time" selected>Full-time</option>
+            <option value="Part-time">Part-time</option>
+            <option value="Contract">Contract</option>
+            <option value="Internship">Internship</option>
+            <option value="Apprenticeship">Apprenticeship</option> <!-- <<< CORRECTED value -->
+            <option value="Temporary">Temporary</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="department">Department:</label>
+          <input type="text" id="department" name="department"> <!-- <<< ADDED id="department" -->
+        </div>
+
+        <div class="form-group">
+          <label for="program-duration">Program Duration (if applicable):</label>
+          <input type="text" id="program-duration" name="program-duration"> <!-- <<< ADDED id="program-duration" -->
+        </div>
+
         <div class="form-group">
           <label for="job-status">Status:</label>
-          <select id="job-status" name="job-status" required> <!-- Keep this one, maybe add required -->
+          <select id="job-status" name="job-status" required>
             <option value="active" selected>Active</option>
             <option value="inactive">Inactive</option>
           </select>

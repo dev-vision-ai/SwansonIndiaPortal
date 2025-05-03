@@ -22,9 +22,13 @@ body {
 }
 
 .main-content {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 20px auto; /* Center content */
+    /* padding: 20px; /* REMOVE or comment out this line */
+    padding: 20px 15px; /* <<< Keep top/bottom, add 15px left/right padding */
+    /* max-width: 1200px; /* Still removed */
+    /* margin: 20px auto; /* Still removed */
+    margin: 20px 0; /* Keep top/bottom margin */
+    width: 100%; 
+    box-sizing: border-box; /* Important: ensures padding is included within the 100% width */
 }
 
 /* Section Styling */
@@ -32,9 +36,17 @@ body {
 #job-list-section {
     background-color: #fff;
     padding: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 20px; /* Keep bottom margin */
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Remove margin-left/right auto if it was here */
+}
+
+/* Add this new rule specifically for the add job section */
+#add-job-section {
+    max-width: 900px; /* <<< Set a maximum width for the form section */
+    margin-left: auto;  /* <<< Center the section horizontally */
+    margin-right: auto; /* <<< Center the section horizontally */
 }
 
 h2 {
@@ -67,12 +79,13 @@ h2 {
 .form-group input[type="text"],
 .form-group input[type="email"],
 .form-group input[type="password"],
-.form-group input[type="date"], /* Added date type */
+.form-group input[type="date"],
+.form-group input[type="number"], /* <<< ADD THIS LINE */
 .form-group textarea,
 .form-group select {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid var(--border-color, #ddd); /* Slightly darker border */
+    border: 1px solid var(--border-color, #ddd); 
     border-radius: 4px;
     box-sizing: border-box; 
     font-family: inherit; 

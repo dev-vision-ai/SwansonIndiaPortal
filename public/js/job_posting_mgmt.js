@@ -49,7 +49,6 @@ async function loadJobPostings() {
     }
 }
 
-// --- Function to Render the Job Table ---
 function renderJobTable(jobs) {
     let tableHTML = `
         <table class="job-table">
@@ -57,10 +56,14 @@ function renderJobTable(jobs) {
                 <tr>
                     <th>Title</th>
                     <th>Location</th>
-                    <th>Salary Range</th>
+                    <th>Salary</th>
                     <th>Experience</th>
+                    <th>Vacant Positions</th> 
+                    <th>Enrollment Type</th> 
+                    <th>Department</th> 
+                    <th>Duration</th>
                     <th>Status</th>
-                    <th>Apply Before</th> <!-- Added Column -->
+                    <th>Apply Before</th>
                     <th>Created At</th>
                     <th>Actions</th>
                 </tr>
@@ -83,8 +86,12 @@ function renderJobTable(jobs) {
                 <td>${escapeHTML(job.location || '')}</td>
                 <td>${escapeHTML(job.salary_range || '')}</td>
                 <td>${escapeHTML(job.experience_needed || '')}</td>
+                <td>${escapeHTML(job.num_positions || '')}</td> 
+                <td>${escapeHTML(job.employment_type || '')}</td> 
+                <td>${escapeHTML(job.department || '')}</td>
+                <td>${escapeHTML(job.program_duration || '')}</td>
                 <td>${escapeHTML(job.status)}</td>
-                <td>${applyBeforeDate}</td> <!-- Display Apply Before Date -->
+                <td>${applyBeforeDate}</td>
                 <td>${createdAtDate}</td>
                 <td>
                     <button class="edit-btn btn btn-sm btn-warning" data-id="${job.id}">Edit</button>
@@ -99,6 +106,14 @@ function renderJobTable(jobs) {
     // Event listeners are handled by delegation in setupEventListeners
 }
 
+// --- Function to Auto-Resize Textarea ---
+function autoResizeTextarea(textarea) {
+    // Reset height to recalculate scrollHeight correctly
+    textarea.style.height = 'auto'; 
+    // Set height to scrollHeight (content height) + a small buffer if needed, or just scrollHeight
+    textarea.style.height = textarea.scrollHeight + 'px'; 
+}
+
 // --- Populate Form for Editing (Called by event listener) ---
 function populateFormForEdit(job) {
     document.getElementById('job-title').value = job.title || '';
@@ -106,8 +121,13 @@ function populateFormForEdit(job) {
     document.getElementById('job-location').value = job.location || '';
     document.getElementById('job-salary').value = job.salary_range || '';
     document.getElementById('job-experience').value = job.experience_needed || '';
-    document.getElementById('job-status').value = job.status || 'active'; // Use job-status and default to 'active'
-    // Format date for input type='date' (YYYY-MM-DD)
+    // --- ADD NEW FIELDS --- 
+    document.getElementById('num-positions').value = job.num_positions || '';
+    document.getElementById('employment-type').value = job.employment_type || 'Full-time'; // Default if null
+    document.getElementById('department').value = job.department || '';
+    document.getElementById('program-duration').value = job.program_duration || '';
+    // --- END NEW FIELDS --- 
+    document.getElementById('job-status').value = job.status || 'active';
     document.getElementById('apply_before').value = job.apply_before ? job.apply_before.split('T')[0] : '';
 
     // Set editing ID and change UI state
@@ -117,13 +137,24 @@ function populateFormForEdit(job) {
     formTitle.textContent = 'Edit Job Posting';
     showCancelButton(); // Show cancel button during edit
     window.scrollTo(0, 0);
+
+    // Trigger resize after populating for edit
+    const descriptionTextarea = document.getElementById('job-description');
+    autoResizeTextarea(descriptionTextarea); 
 }
 
 // --- Clear Form Fields and Reset State ---
 function clearForm() {
-    addJobForm.reset();
-    document.getElementById('job-description').value = '';
+    addJobForm.reset(); // Resets most fields
+    // Explicitly clear fields not reset by default or ensure defaults
+    const descriptionTextarea = document.getElementById('job-description');
+    descriptionTextarea.value = ''; 
+    autoResizeTextarea(descriptionTextarea); 
     document.getElementById('apply_before').value = '';
+    document.getElementById('num-positions').value = ''; // Clear number field
+    document.getElementById('employment-type').value = 'Full-time'; // Reset select to default
+    document.getElementById('department').value = '';
+    document.getElementById('program-duration').value = '';
 
     // Reset editing state
     editingJobId = null;
@@ -136,7 +167,7 @@ function clearForm() {
 // --- Handle Form Submission (Add/Update Job) ---
 async function handleFormSubmit(event) {
     event.preventDefault();
-    const currentEditingId = addJobForm.dataset.editingId; // Use ID from form dataset
+    const currentEditingId = addJobForm.dataset.editingId;
 
     const jobData = {
         title: document.getElementById('job-title').value,
@@ -144,14 +175,26 @@ async function handleFormSubmit(event) {
         location: document.getElementById('job-location').value,
         salary_range: document.getElementById('job-salary').value,
         experience_needed: document.getElementById('job-experience').value,
-        status: document.getElementById('job-status').value, // Use job-status
+        // --- ADD NEW FIELDS --- 
+        num_positions: parseInt(document.getElementById('num-positions').value) || null, // Parse as integer or null
+        employment_type: document.getElementById('employment-type').value,
+        department: document.getElementById('department').value,
+        program_duration: document.getElementById('program-duration').value,
+        // --- END NEW FIELDS --- 
+        status: document.getElementById('job-status').value,
         apply_before: document.getElementById('apply_before').value || null
     };
 
-    // Validation
+    // Validation (add validation for num_positions if needed)
     if (!jobData.title) {
         alert('Job Title is required.');
         return;
+    }
+    // Optional: Validate num_positions is a positive number if entered
+    const numPosValue = document.getElementById('num-positions').value;
+    if (numPosValue && (isNaN(parseInt(numPosValue)) || parseInt(numPosValue) <= 0)) {
+         alert('Number of Vacant Positions must be a positive number.');
+         return;
     }
     if (jobData.apply_before && isNaN(Date.parse(jobData.apply_before))) {
         alert('Invalid Apply Before date format.');
@@ -178,7 +221,7 @@ async function handleFormSubmit(event) {
             alert('Job posting added successfully!');
         }
         clearForm();
-        loadJobPostings(); // Use the correct function name
+        loadJobPostings();
     } catch (error) {
         console.error('Error saving job posting:', error);
         alert(`Error saving job posting: ${error.message}`);
@@ -285,6 +328,14 @@ function setupEventListeners() {
         });
     } else {
         console.error('Job list table container not found!');
+    }
+
+    // Add listener for textarea auto-resize
+    const descriptionTextarea = document.getElementById('job-description');
+    if (descriptionTextarea) {
+        descriptionTextarea.addEventListener('input', () => {
+            autoResizeTextarea(descriptionTextarea);
+        });
     }
 }
 

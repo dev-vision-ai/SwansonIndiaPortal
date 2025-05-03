@@ -9,16 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (menuToggle && mobileNavLinks) {
         menuToggle.addEventListener('click', () => {
             mobileNavLinks.classList.toggle('active');
-            // <<< Ensure this line IS present >>>
             menuToggle.classList.toggle('active'); 
-            // --- Ensure textContent changing is REMOVED --- 
-            /* 
-            if (mobileNavLinks.classList.contains('active')) {
-                menuToggle.textContent = 'Close'; 
-            } else {
-                menuToggle.textContent = 'Menu'; 
-            }
-            */
+            // REMOVED Commented-out textContent logic
         });
 
         // When a link is clicked, remove active classes
@@ -26,12 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
             link.addEventListener('click', () => {
                 if (mobileNavLinks.classList.contains('active')) {
                     mobileNavLinks.classList.remove('active');
-                    // <<< Ensure this line IS present >>>
                     menuToggle.classList.remove('active'); 
-                    // --- Ensure textContent reset is REMOVED --- 
-                    /*
-                    menuToggle.textContent = 'Menu';
-                    */
+                    // REMOVED Commented-out textContent logic
                 }
             });
         });
@@ -180,39 +168,70 @@ function renderPublicJobPostings(jobs, container) {
             }
         }
 
-        // --- START: Updated HTML Structure for Native Share --- 
+        const seeMoreButtonHTML = job.description ? `<button class="see-more-btn">See More</button>` : '';
+        
+        // --- PREPARE MAILTO LINK --- 
+        const recipientEmail = 'viraj.j@usig.com'; 
+        const subject = `Application for: ${job.title}`; 
+        // Encode subject for URL safety
+        const encodedSubject = encodeURIComponent(subject);
+        const mailtoLink = `mailto:${recipientEmail}?subject=${encodedSubject}`;
+        // --- END PREPARE MAILTO LINK ---
+
         listingsHTML += `
-            <div class="job-posting-card" id="job-${job.id}"> 
+            <div class="job-posting-card" id="job-${job.id}">
                 <div class="job-title-header">
                     <h3>${escapeHTML(job.title)}</h3>
                 </div>
+                
+                <!-- Job Details Header Section - REORDERED -->
                 <div class="job-details-header">
-                    ${job.location ? `<p><strong>Location:</strong> ${escapeHTML(job.location)}</p>` : ''}
-                    ${job.experience_needed ? `<p><strong>Experience:</strong> ${escapeHTML(job.experience_needed)}</p>` : ''}
-                    ${job.salary_range ? `<p><strong>Salary Range:</strong> ${escapeHTML(job.salary_range)}</p>` : ''}
-                    ${formattedApplyBeforeDate ? `<p class="apply-before-date"><strong>Apply Before:</strong> ${formattedApplyBeforeDate}</p>` : ''}
+                    ${job.location ? `<p><strong>Job Location:</strong> ${escapeHTML(job.location)}</p>` : ''} 
+                    ${job.experience_needed ? `<p><strong>Required Experience:</strong> ${escapeHTML(job.experience_needed)}</p>` : ''} 
+                    ${job.salary_range ? `<p><strong>Offered Salary:</strong> ${escapeHTML(job.salary_range)}</p>` : ''} 
+                    ${job.num_positions ? `<p><strong>No. of Vacant Positions:</strong> ${escapeHTML(job.num_positions)}</p>` : ''} 
+                    ${job.employment_type ? `<p><strong>Enrollment Type:</strong> ${escapeHTML(job.employment_type)}</p>` : ''} 
+                    ${job.department ? `<p><strong>Department:</strong> ${escapeHTML(job.department)}</p>` : ''} 
+                    ${formattedApplyBeforeDate ? `<p class="apply-before-date"><strong>Apply Before:</strong> ${formattedApplyBeforeDate}</p>` : ''} 
+                    ${(job.program_duration && job.program_duration.toUpperCase() !== 'NA') ? `<p><strong>Duration:</strong> ${escapeHTML(job.program_duration)}</p>` : ''} 
                 </div>
+                <!-- END Job Details Header Section -->
+
                 <div class="job-card-body">
-                    ${job.description ? `<div class="job-description"><p>${escapeHTML(job.description).replace(/\n/g, '<br>')}</p></div>` : '<div class="job-description"></div>'} 
+                    ${job.description ? `<div class="job-description"><p>${escapeHTML(job.description).replace(/\n/g, '<br>')}</p></div>` : '<div class="job-description"></div>'}
+                    ${seeMoreButtonHTML}
                     <div class="job-card-footer">
                         <p class="posted-on-date"><small>Posted on: ${formattedPostedDate}</small></p>
-                        <div class="footer-actions">
-                            <!-- CHANGE to a button for native share -->
-                            <button class="share-button" data-job-id="${job.id}" data-job-title="${escapeHTML(job.title)}" title="Share this job">
-                                <i class="fas fa-share-alt"></i> Share 
+                        <div class="job-actions"> 
+                            <a href="${mailtoLink}" class="apply-button">Apply Now</a>
+                            <button class="share-button" data-job-id="${job.id}" data-job-title="${escapeHTML(job.title)}"> 
+                                <i class="fas fa-share-alt"></i> Share
                             </button>
-                            <a href="mailto:viraj.j@usig.com?subject=Application for the post of ${encodeURIComponent(escapeHTML(job.title))}" class="apply-button">Apply Now</a>
                         </div>
                     </div>
                 </div>
             </div>
         `;
-        // --- END: Updated HTML Structure ---
     });
 
     container.innerHTML = listingsHTML;
 
-    // Add event listeners for the new share buttons
+    // Add 'See More' listener
+    container.addEventListener('click', function(event) {
+        if (event.target.classList.contains('see-more-btn')) {
+            const button = event.target;
+            // Find the job-card-body parent, then the job-description within it
+            const cardBody = button.closest('.job-card-body');
+            if (cardBody) {
+                const descriptionDiv = cardBody.querySelector('.job-description');
+                if (descriptionDiv) {
+                    descriptionDiv.classList.toggle('expanded'); // Toggle the class
+                    button.textContent = descriptionDiv.classList.contains('expanded') ? 'See Less' : 'See More'; // Update text based on new state
+                }
+            }
+        }
+    });
+
     addNativeShareListeners(); 
 }
 

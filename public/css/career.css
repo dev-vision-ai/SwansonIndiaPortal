@@ -174,10 +174,11 @@ body {
 
 /* Styling for the job listings container - UPDATED for 3 Columns */
 .job-listings {
-    display: grid; /* Use Grid layout */
-    grid-template-columns: repeat(3, 1fr); /* Create exactly 3 equal columns */
-    gap: 25px; /* Gap between cards */
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 25px; 
     margin-top: 30px;
+    align-items: start; /* <<< Make sure this line is present */
 }
 
 /* Styling for individual job posting cards - UPDATED for Grid */
@@ -229,7 +230,7 @@ body {
     margin-top: 20px;
     padding-top: 15px;
     border-top: 1px solid #eee;
-    flex-grow: 1; /* Allows description to push date down */
+    flex-grow: 1; /* Allow description to push date down */
 }
 
 .job-posting-card .job-description p {
@@ -392,9 +393,9 @@ body {
 .job-card-body {
     background-color: #ffffff; 
     padding: 15px 30px;
-    flex-grow: 1; 
-    display: flex; 
-    flex-direction: column;
+    flex-grow: 1; /* Allow body to take remaining space */
+    display: flex; /* Use flex inside body */
+    flex-direction: column; /* Stack description and button */
 }
 
 /* Style the job title (within .job-title-header) - NO CHANGE */
@@ -551,3 +552,57 @@ body {
     margin-top: 0; 
     align-self: unset; 
 }
+
+.job-description {
+    /* Initial collapsed state */
+    max-height: 10em; /* <<< INCREASED from 6em (shows more lines initially) */
+    overflow: hidden;
+    position: relative; 
+    transition: max-height 0.4s ease-out; 
+    margin-bottom: 10px; 
+}
+
+.job-description p {
+    margin: 0; /* Remove default paragraph margin if needed */
+    line-height: 1.5; /* Ensure consistent line height */
+}
+
+/* Optional: Add a fade-out effect at the bottom when collapsed */
+/* .job-description::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1.5em; 
+    background: linear-gradient(to bottom, transparent, white);
+    pointer-events: none; 
+} */
+
+/* Expanded state */
+.job-description.expanded {
+    max-height: 1000px; /* Keep this large for full expansion */
+    overflow: visible;
+}
+
+/* Remove fade-out when expanded */
+/* .job-description.expanded::after {
+    opacity: 0;
+} */
+
+/* Style for the 'See More' button */
+.see-more-btn {
+    background: none;
+    border: none;
+    color: #0056b3; /* Link-like color */
+    cursor: pointer;
+    font-weight: 600;
+    padding: 5px 0; /* Minimal padding */
+    margin-top: auto; /* Push button towards the bottom if description is short */
+    align-self: flex-start; /* Align to the left */
+    font-size: 0.9em;
+    text-decoration: underline;
+}
+
+.see-more-btn:hover {
+    color: #003d80;}
