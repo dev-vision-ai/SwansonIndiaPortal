@@ -18,8 +18,8 @@
     }
     
     .auth-container-wrapper {
-        max-width: 1000px;
-        width: 110%;
+        max-width: 1080px;
+        width: 100%;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         border-radius: 0; /* Changed from 1.5rem */
         overflow: hidden;
@@ -45,12 +45,10 @@
     }
   </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen"> <!-- Added flex centering and background -->
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4"> <!-- Removed 'relative' -->
 
-  <!-- Wrapper for centering and shadow -->
-  <div class="auth-container-wrapper flex flex-col md:flex-row bg-white">
+  <div class="auth-container-wrapper flex flex-col md:flex-row bg-white w-full"> <!-- Removed 'mt-16' -->
 
-    <!-- Left Side (Image and Welcome Text from index1.html concept) -->
     <div class="relative w-full md:w-1/2 h-64 md:h-auto">
       <img alt="Modern office background" class="object-cover w-full h-full" src="../assets/company-photo.png" />
 
@@ -70,10 +68,12 @@
     <div class="flex flex-col justify-center w-full md:w-1/2 px-8 py-12 sm:px-16 lg:px-24">
       <div class="max-w-md w-full mx-auto">
 
+        <!-- Home Button REMOVED from here -->
+
         <div class="text-center mb-8">
-            <img src="../assets/logo.png" alt="Company Logo" class="h-12 mx-auto mb-4"> <!-- Adjusted logo size and margin -->
-            <h1 class="text-2xl font-bold text-blue-800">Employee Portal</h1> <!-- Styled like image -->
-            <p class="text-sm text-gray-600 mt-1">Employee Login</p> <!-- Styled like image -->
+            <img src="../assets/logo.png" alt="Company Logo" class="h-12 mx-auto mb-4"> 
+            <h1 class="text-2xl font-bold text-blue-800">Employee Portal</h1> 
+            <p class="text-sm text-gray-600 mt-1">Employee Login</p> 
         </div>
 
         <form id="loginForm" class="space-y-5"> 
@@ -97,17 +97,31 @@
               Remember Me
              </label>
           </div>
+          
           <button type="submit"
-                  class="login-button w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 font-semibold text-base mt-4"> <!-- Adjusted padding/margin -->
+                  class="login-button w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 font-semibold text-base mt-4"> 
             Login
           </button>
+
+          <!-- Add Home Button HERE (Inside Form) -->
+          <div class="pt-2 text-center"> 
+            <a href="../index.html" 
+               class="inline-block py-1.5 px-3 border border-yellow-500 rounded-md shadow-sm text-xs font-medium text-black bg-yellow-400 hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"> <!-- Updated classes for yellow/black -->
+              <i class="fas fa-home mr-1"></i>Back to Home
+            </a>
+          </div>
+          <!-- End Home Button -->
+
         </form>
 
-        <p id="message" class="error-msg text-red-600 text-center mt-4 text-sm"></p> <!-- Styled with Tailwind -->
+        <p id="message" class="error-msg text-red-600 text-center mt-4 text-sm"></p> 
 
       </div>
     </div>
-  </div>
+  </div> <!-- End of auth-container-wrapper -->
+
+  <!-- Home Button REMOVED from the bottom -->
+
 
   <script type="module" src="../supabase-config.js"></script>
   <script type="module" src="../js/auth.js"></script>
