@@ -58,9 +58,10 @@ function renderJobTable(jobs) {
                     <th>Location</th>
                     <th>Salary</th>
                     <th>Experience</th>
-                    <th>Vacant Positions</th> 
-                    <th>Enrollment Type</th> 
-                    <th>Department</th> 
+                    <th>Qualification</th> 
+                    <th>Vacant Positions</th>
+                    <th>Enrollment Type</th>
+                    <th>Department</th>
                     <th>Duration</th>
                     <th>Status</th>
                     <th>Apply Before</th>
@@ -86,8 +87,9 @@ function renderJobTable(jobs) {
                 <td>${escapeHTML(job.location || '')}</td>
                 <td>${escapeHTML(job.salary_range || '')}</td>
                 <td>${escapeHTML(job.experience_needed || '')}</td>
-                <td>${escapeHTML(job.num_positions || '')}</td> 
-                <td>${escapeHTML(job.employment_type || '')}</td> 
+                <td>${escapeHTML(job.qualification || '')}</td> <!-- <<< ADDED CELL >>> -->
+                <td>${escapeHTML(job.num_positions || '')}</td>
+                <td>${escapeHTML(job.employment_type || '')}</td>
                 <td>${escapeHTML(job.department || '')}</td>
                 <td>${escapeHTML(job.program_duration || '')}</td>
                 <td>${escapeHTML(job.status)}</td>
@@ -121,6 +123,7 @@ function populateFormForEdit(job) {
     document.getElementById('job-location').value = job.location || '';
     document.getElementById('job-salary').value = job.salary_range || '';
     document.getElementById('job-experience').value = job.experience_needed || '';
+    document.getElementById('job-qualification').value = job.qualification || ''; // <<< ADD THIS LINE >>>
     // --- ADD NEW FIELDS --- 
     document.getElementById('num-positions').value = job.num_positions || '';
     document.getElementById('employment-type').value = job.employment_type || 'Full-time'; // Default if null
@@ -141,6 +144,8 @@ function populateFormForEdit(job) {
     // Trigger resize after populating for edit
     const descriptionTextarea = document.getElementById('job-description');
     autoResizeTextarea(descriptionTextarea); 
+    const qualificationTextarea = document.getElementById('job-qualification'); // <<< ADD THIS LINE >>>
+    if (qualificationTextarea) autoResizeTextarea(qualificationTextarea); // <<< ADD THIS LINE (Optional resize) >>>
 }
 
 // --- Clear Form Fields and Reset State ---
@@ -175,8 +180,9 @@ async function handleFormSubmit(event) {
         location: document.getElementById('job-location').value,
         salary_range: document.getElementById('job-salary').value,
         experience_needed: document.getElementById('job-experience').value,
+        qualification: document.getElementById('job-qualification').value, // <<< THIS LINE WAS MISSING >>>
         // --- ADD NEW FIELDS --- 
-        num_positions: parseInt(document.getElementById('num-positions').value) || null, // Parse as integer or null
+        num_positions: parseInt(document.getElementById('num-positions').value) || null, 
         employment_type: document.getElementById('employment-type').value,
         department: document.getElementById('department').value,
         program_duration: document.getElementById('program-duration').value,
@@ -204,19 +210,19 @@ async function handleFormSubmit(event) {
     try {
         if (currentEditingId) {
             // Update existing job
-            console.log(`Updating job with ID: ${currentEditingId}`);
+            console.log(`Updating job with ID: ${currentEditingId} with data:`, jobData); // Log the data being sent
             const { error } = await supabase
                 .from('job_postings')
-                .update(jobData)
+                .update(jobData) // jobData now includes qualification
                 .eq('id', currentEditingId);
             if (error) throw error;
             alert('Job posting updated successfully!');
         } else {
             // Add new job
-            console.log('Adding new job.');
+            console.log('Adding new job with data:', jobData); // Log the data being sent
             const { error } = await supabase
                 .from('job_postings')
-                .insert([jobData]);
+                .insert([jobData]); // jobData now includes qualification
             if (error) throw error;
             alert('Job posting added successfully!');
         }

@@ -1,15 +1,14 @@
 
-/* Larger Screens (Laptops/Desktops) - Adjustments if needed (Example) */
 @media (min-width: 1201px) {
     .nav-container {
-        padding: 0 50px; /* More padding on very large screens */
+        padding: 0 50px;
     }
     .grid-3 {
         padding: 0 80px;
     }
 }
 
-/* Medium Screens (Tablets/Small Laptops) */
+
 @media (max-width: 1024px) {
     .nav-container {
         padding: 0 20px;
@@ -21,12 +20,12 @@
         font-size: 1.3rem;
     }
     .grid-3 {
-        grid-template-columns: repeat(2, 1fr); /* 2 columns for tablets */
+        grid-template-columns: repeat(2, 1fr);
         gap: 30px;
         padding: 0 40px;
     }
     .grid-4 {
-        grid-template-columns: repeat(2, 1fr); /* 2 columns for tablets */
+        grid-template-columns: repeat(2, 1fr);
     }
     .section h2 {
         font-size: 2.5rem;
@@ -34,13 +33,13 @@
     .footer-content {
         gap: 30px;
     }
-    /* Add specific tablet adjustments for aboutus/career if needed */
+    
 }
 
-/* Small Screens (Tablets/Large Mobiles) */
+
 @media (max-width: 768px) {
     #desktop-header {
-        display: none !important; /* <<< Add !important HERE */
+        display: none !important;
     }
     #mobile-header {
         display: block; /* Show mobile header */
@@ -78,7 +77,7 @@
 
     .grid-3,
     .grid-4 {
-        grid-template-columns: 1fr; /* Single column for mobile */
+        grid-template-columns: 1fr;
         gap: 30px;
         padding: 0 20px;
     }
@@ -98,7 +97,7 @@
         padding: 0 20px;
     }
     .two-column img {
-        width: 90%; /* Adjust image width */
+        width: 90%;
         max-width: 400px;
     }
 
@@ -131,7 +130,7 @@
         font-size: 1rem;
     }
 
-    /* Footer Responsive Adjustments (Consolidated) */
+    
     .footer-content {
         flex-direction: column; 
         align-items: center; 
@@ -197,7 +196,7 @@
     }
 }
 
-/* Very Small Screens (Mobiles) */
+
 @media (max-width: 480px) {
     .navbar {
         position: static; 
@@ -212,23 +211,23 @@
     }
     .logo-container {
         display: flex; 
-        /* flex-wrap: wrap; /* <<< Remove wrap */
+        /* flex-wrap: wrap; 
         justify-content: center; /* Center the items */
         align-items: center; /* Vertically align items */
-        /* width: 100%; /* <<< Remove width */
+        /* width: 100%; 
         text-align: center; 
-        gap: 10px; /* <<< Add gap back for spacing */
+        gap: 10px; 
     }
     .logo {
         height: 35px; 
         flex-shrink: 0; 
-        /* margin: 0 5px; /* <<< Remove margin, use gap */
+        /* margin: 0 5px; 
     }
     .company-names {
-        /* display: block; /* <<< Remove display block */
-        /* width: 100%; /* <<< Remove width */
+        /* display: block; 
+        /* width: 100%; 
         text-align: center; /* Keep text centered */
-        /* margin-top: 8px; /* <<< Remove margin-top */
+        /* margin-top: 8px; 
     }
     .company-name,
     .company-name-translated {
@@ -238,7 +237,7 @@
         display: flex; 
         flex-wrap: wrap; 
         justify-content: center; /* Center links */
-        margin-top: 8px; /* <<< Adjust space below logo line */
+        margin-top: 8px; 
         width: 100%; 
     }
     .nav-links a {
@@ -258,7 +257,7 @@
 
     /* Base Mobile Header Styles (Hidden by default) */
     #mobile-header {
-        display: none; /* Hide mobile header by default */
+        display: none;
         position: fixed;
         top: 0;
         width: 100%;
@@ -290,7 +289,7 @@
     }
     
     .company-names-mobile .company-name {
-        font-size: 0.8rem; /* <<< Apply the decrease here */
+        font-size: 0.8rem; 
         font-weight: 600;
         color: #0a3083;
         white-space: nowrap;
@@ -299,7 +298,7 @@
     .menu-icon {
         background: none;
         border: none;
-        font-size: 0.7rem;     /* <<< Decreased font size */
+        font-size: 0.7rem;     
         font-weight: 600;
         color: #002E7D;
         cursor: pointer;
@@ -321,7 +320,7 @@
     }
     
     .mobile-nav-links.active {
-        display: block; /* Show links when active */
+        display: block;
     }
     
     .mobile-nav-links a {
@@ -359,7 +358,7 @@
         font-size: 1.2rem;
     }
     .job-card {
-        padding: 15px; /* Reduce padding inside card on small screens */
+        padding: 15px;
     }
 
     .job-title-header h3 {
@@ -370,9 +369,9 @@
         font-size: 1.0em;
     }
 
-    /* <<< ADD THIS RULE >>> */
+    
     .job-card-body {
-        margin-bottom: 15px; /* Keep this space AFTER the body */
+        margin-bottom: 15px;
     }
 
     .job-card-body .job-description p {
@@ -380,7 +379,7 @@
     }
 
     .job-description.expanded {
-       /* padding-bottom: 15px; */ /* <<< REMOVE this rule if present >>> */
+       /* padding-bottom: 15px; */ 
     }
 
     /* --- Footer adjustments for mobile --- */
@@ -389,7 +388,7 @@
         align-items: flex-start; 
         gap: 10px; 
         padding-top: 10px; /* Keep internal padding */
-        /* margin-top: 20px; */ /* <<< REMOVE this rule if present >>> */
+        /* margin-top: 20px; */ 
     }
 
     .posted-on-date {
@@ -410,13 +409,13 @@
         flex-grow: 1; 
         text-align: center; 
     }
-    /* --- END: Footer adjustments --- */
+    
 
-    /* Add styles for the See More button if needed */
+    
     .see-more-btn {
         /* margin-bottom: 15px; */ /* Keep this removed */
         /* margin-top: 10px; */   /* Increase this value */
-        margin-top: 60px; /* <<< INCREASED - More space above the button */
+        margin-top: 60px; 
     }
 
     .team-grid {
@@ -432,7 +431,7 @@
 }
 
 #mobile-header {
-    display: none; /* Hide mobile header by default */
+    display: none;
     position: fixed;
     top: 0;
     width: 100%;
@@ -474,7 +473,7 @@
 .menu-icon {
     background: none;
     border: none;
-    color: #002E7D; /* Color for the lines */
+    color: #002E7D;
     cursor: pointer;
     padding: 5px; /* Reset padding */
     z-index: 1001;
@@ -484,7 +483,7 @@
     display: flex; /* Use flex to help center if needed, but position relative is key */
     justify-content: center;
     align-items: center;
-    position: relative; /* <<< Crucial for pseudo-elements */
+    position: relative; 
     
 }
 
@@ -492,8 +491,8 @@
 .menu-icon::after {
     content: '';
     position: absolute;
-    width: 20px; /* Width of the lines */
-    height: 3px;  /* Thickness of the lines */
+    width: 20px;
+    height: 3px;
     background-color: currentColor; /* Use the button's color */
     transition: transform 0.3s ease, top 0.3s ease;
     left: 50%; /* Center horizontally */
@@ -519,7 +518,7 @@
     top: 50%; /* Move line to center */
     transform: translate(-50%, -50%) rotate(-45deg);
 }
-/* <<< END Styles for CSS Hamburger/X Icon >>> */
+
 
 
 .mobile-nav-links {
@@ -532,7 +531,7 @@
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
     padding: 0; /* <<< Set top/bottom padding to 0 initially */
     border-top: 1px solid #eee;
-    /* <<< Add these properties for transition >>> */
+    
     max-height: 0; /* Start with zero height */
     overflow: hidden; /* Hide content that overflows */
     transition: max-height 0.4s ease-out, padding 0.4s ease-out; /* Smooth transition for height and padding */
@@ -540,7 +539,7 @@
 
 .mobile-nav-links.active {
     /* display: block; /* <<< Remove display: block */
-    /* <<< Set max-height to allow content to show >>> */
+    
     max-height: 500px; /* Adjust if menu could be taller */
     padding: 10px 0; /* <<< Restore padding when active */
 }
@@ -574,7 +573,7 @@
     }
 }
 
-/* Medium Screens (Tablets/Small Laptops) */
+
 @media (max-width: 1024px) {
     .nav-container {
         padding: 0 20px;
@@ -611,8 +610,8 @@
     }
     body {
         /* Ensure this padding is sufficient to clear the mobile header */
-        padding-top: 60px; /* Adjusted padding (Consolidated value) */
-        /* Remove any duplicate padding-top: 60px; rule within this block */
+        padding-top: 60px;
+        
     }
 
     /* Other 768px styles */
@@ -643,7 +642,7 @@
     }
     .grid-3,
     .grid-4 {
-        grid-template-columns: 1fr; /* Single column for mobile */
+        grid-template-columns: 1fr;
         gap: 30px;
         padding: 0 20px;
     }
@@ -662,7 +661,7 @@
         padding: 0 20px;
     }
     .two-column img {
-        width: 90%; /* Adjust image width */
+        width: 90%;
         max-width: 400px;
     }
     .section.incident-box {

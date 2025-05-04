@@ -187,6 +187,7 @@ function renderPublicJobPostings(jobs, container) {
                 <!-- Job Details Header Section - REORDERED -->
                 <div class="job-details-header">
                     ${job.location ? `<p><strong>Job Location:</strong> ${escapeHTML(job.location)}</p>` : ''} 
+                    ${job.qualification ? `<p><strong>Qualification:</strong> ${escapeHTML(job.qualification)}</p>` : ''}
                     ${job.experience_needed ? `<p><strong>Required Experience:</strong> ${escapeHTML(job.experience_needed)}</p>` : ''} 
                     ${job.salary_range ? `<p><strong>Offered Salary:</strong> ${escapeHTML(job.salary_range)}</p>` : ''} 
                     ${job.num_positions ? `<p><strong>No. of Vacant Positions:</strong> ${escapeHTML(job.num_positions)}</p>` : ''} 
@@ -195,7 +196,6 @@ function renderPublicJobPostings(jobs, container) {
                     ${formattedApplyBeforeDate ? `<p class="apply-before-date"><strong>Apply Before:</strong> ${formattedApplyBeforeDate}</p>` : ''} 
                     ${(job.program_duration && job.program_duration.toUpperCase() !== 'NA') ? `<p><strong>Duration:</strong> ${escapeHTML(job.program_duration)}</p>` : ''} 
                 </div>
-                <!-- END Job Details Header Section -->
 
                 <div class="job-card-body">
                     ${job.description ? `<div class="job-description"><p>${escapeHTML(job.description).replace(/\n/g, '<br>')}</p></div>` : '<div class="job-description"></div>'}
