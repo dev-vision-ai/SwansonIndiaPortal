@@ -165,45 +165,104 @@ h2 {
     gap: 10px; 
 }
 
-/* Table Styling */
+/* Table Styling - Updated to match Quality Alerts Table */
 .table-container {
-    overflow-x: auto; 
-    /* background-color handled by #job-list-section */
-    padding: 20px; /* Keep padding if needed inside the section */
+    /* overflow-x: auto; */ /* <<< REMOVE this line */
+    padding: 0; 
     margin-top: 20px;
 }
 
-table {
+table.job-table { 
     width: 100%;
     border-collapse: collapse;
-    margin-top: 1rem;
+    border: 1px solid #e5e7eb;
+    margin-top: 0; 
+    background: white; 
+    box-shadow: none;
+    table-layout: fixed; /* <<< Changed to fixed for predictable widths */
+    box-sizing: border-box;
 }
 
-table th, table td {
-    padding: 0.8rem 1rem;
+table.job-table th,
+table.job-table td {
+    padding: 0.75rem 1rem; 
     text-align: left;
-    border-bottom: 1px solid var(--border-color, #eee);
-    vertical-align: middle; /* Align button vertically */
+    border-bottom: 1px solid #e5e7eb; 
+    border-right: 1px solid #e5e7eb;  
+    vertical-align: top; 
+    white-space: normal; 
+    word-break: break-word; 
+    font-size: 0.85rem; /* <<< Added/Adjusted font size */
 }
 
-table th {
-    background-color: #f8f9fa;
+/* --- START: Approximate Column Widths (Adjust percentages as needed) --- */
+table.job-table th:nth-child(1), table.job-table td:nth-child(1) { width: 10%; } /* Title */
+table.job-table th:nth-child(2), table.job-table td:nth-child(2) { width: 6%; }  /* Location */
+table.job-table th:nth-child(3), table.job-table td:nth-child(3) { width: 8%; }  /* Salary */
+table.job-table th:nth-child(4), table.job-table td:nth-child(4) { width: 15%; } /* Experience */
+table.job-table th:nth-child(5), table.job-table td:nth-child(5) { width: 18%; } /* Qualification */
+table.job-table th:nth-child(6), table.job-table td:nth-child(6) { width: 7%; }  /* Vacant Positions */
+table.job-table th:nth-child(7), table.job-table td:nth-child(7) { width: 8%; }  /* Enrollment Type */
+table.job-table th:nth-child(8), table.job-table td:nth-child(8) { width: 7%; }  /* Department */
+table.job-table th:nth-child(9), table.job-table td:nth-child(9) { width: 6%; }  /* Duration */
+table.job-table th:nth-child(10), table.job-table td:nth-child(10){ width: 5%; }  /* Status */
+table.job-table th:nth-child(11), table.job-table td:nth-child(11){ width: 7%; }  /* Apply Before */
+table.job-table th:nth-child(12), table.job-table td:nth-child(12){ width: 7%; }  /* Created At */
+table.job-table th:nth-child(13), table.job-table td:nth-child(13){ width: 5%; }  /* Actions */
+/* --- END: Approximate Column Widths --- */
+
+
+/* Remove right border from last column */
+table.job-table th:last-child,
+table.job-table td:last-child {
+    border-right: none;
+}
+
+/* Add left border to first column */
+table.job-table th:first-child,
+table.job-table td:first-child {
+    border-left: 1px solid #e5e7eb; /* Match QA border */
+}
+
+table.job-table th {
+    background-color: #1e293b; 
+    color: white;
     font-weight: 600;
-    color: var(--text-dark, #2D3436);
+    text-transform: uppercase;
+    font-size: 0.75rem; /* <<< Further reduced header font size */
+    letter-spacing: 0.5px;
+    border-right-color: #374151; 
+    position: sticky;
+    top: 0; 
+    z-index: 2;
+    vertical-align: bottom; 
 }
 
-table tbody tr:hover {
-    background-color: #f1f1f1;
+table.job-table tbody tr:nth-child(even) {
+    background-color: #f8fafc; /* Zebra striping (QA style) */
 }
+
+table.job-table tbody tr:hover td { /* Apply hover to td for consistency */
+    background-color: #f1f1f1; /* Slightly different hover, adjust if needed */
+}
+
+/* REMOVE these rules as wrapping is now default */
+/*
+table.job-table td.description-cell, 
+table.job-table td.qualification-cell { 
+    white-space: normal;
+}
+*/
 
 /* Specific styles for buttons inside table cells */
-table td .btn {
-    padding: 0.3rem 0.6rem; /* Smaller padding */
-    font-size: 0.85rem; /* Smaller font */
+table.job-table td .btn {
+    padding: 0.3rem 0.6rem; 
+    font-size: 0.85rem; 
     margin-right: 5px;
+    /* white-space: nowrap; */ /* <<< REMOVE this if you want button text to wrap (unlikely) */
 }
 
-table td .btn:last-child {
+table.job-table td .btn:last-child {
     margin-right: 0;
 }
 

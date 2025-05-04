@@ -65,7 +65,7 @@ function renderJobTable(jobs) {
                     <th>Duration</th>
                     <th>Status</th>
                     <th>Apply Before</th>
-                    <th>Created At</th>
+                    <th>Posted On</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -73,13 +73,19 @@ function renderJobTable(jobs) {
     `;
 
     jobs.forEach(job => {
-        // Format apply_before date, show N/A if null/undefined
+        // Format dates using 'en-GB' locale for DD/MM/YYYY
         const applyBeforeDate = job.apply_before
-            ? new Date(job.apply_before).toLocaleDateString('en-CA') // en-CA gives YYYY-MM-DD
+            ? new Date(job.apply_before).toLocaleDateString('en-GB') // <<< Use en-GB
             : 'N/A';
         const createdAtDate = job.created_at
-            ? new Date(job.created_at).toLocaleDateString()
+            ? new Date(job.created_at).toLocaleDateString('en-GB') // <<< Use en-GB
             : 'N/A';
+
+        // Capitalize status
+        let displayStatus = job.status || '';
+        if (displayStatus) {
+            displayStatus = displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1);
+        }
 
         tableHTML += `
             <tr data-id="${job.id}">
@@ -87,12 +93,12 @@ function renderJobTable(jobs) {
                 <td>${escapeHTML(job.location || '')}</td>
                 <td>${escapeHTML(job.salary_range || '')}</td>
                 <td>${escapeHTML(job.experience_needed || '')}</td>
-                <td>${escapeHTML(job.qualification || '')}</td> <!-- <<< ADDED CELL >>> -->
+                <td>${escapeHTML(job.qualification || '')}</td>
                 <td>${escapeHTML(job.num_positions || '')}</td>
                 <td>${escapeHTML(job.employment_type || '')}</td>
                 <td>${escapeHTML(job.department || '')}</td>
                 <td>${escapeHTML(job.program_duration || '')}</td>
-                <td>${escapeHTML(job.status)}</td>
+                <td>${escapeHTML(displayStatus)}</td>
                 <td>${applyBeforeDate}</td>
                 <td>${createdAtDate}</td>
                 <td>
