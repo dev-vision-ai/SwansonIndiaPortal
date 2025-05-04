@@ -19,10 +19,11 @@ async function getLoggedInUserId() {
 function setupFormEventListeners(userId) {
     const form = document.getElementById('qualityAlertForm');
     const abnormalityType = document.getElementById('abnormalityType');
-    const semiFinishedGoodsDetails = document.getElementById('semiFinishedGoodsDetails');
-    const incidentDescriptionContainer = document.getElementById('incidentDescriptionContainer');
+    // --- REMOVED: semiFinishedGoodsDetails --- 
+    const incidentDescriptionContainer = document.getElementById('incidentDescriptionContainer'); // Keep this
     const keptInViewContainer = document.getElementById('keptInViewContainer');
-    const defectDescription = document.getElementById('defectDescription');
+    const productDetailsContainer = document.getElementById('productDetailsContainer'); // <<< ADDED: Get the new container
+    // --- REMOVED: defectDescription --- 
     const submissionMessage = document.querySelector('.submission-message');
     const errorDiv = document.querySelector('.submission-error');
     const saveAsDraftButton = document.getElementById('saveAsDraft');
@@ -40,32 +41,51 @@ function setupFormEventListeners(userId) {
 
     abnormalityType.addEventListener('change', function() {
         const isSemiFinished = this.value === 'Semi/Finished Goods';
-        semiFinishedGoodsDetails.style.display = isSemiFinished ? 'block' : 'none';
+        // --- REMOVED: semiFinishedGoodsDetails.style.display --- 
         keptInViewContainer.style.display = isSemiFinished ? 'block' : 'none';
-        incidentDescriptionContainer.style.display = isSemiFinished ? 'none' : 'block';
-        document.getElementById('keptInView').required = isSemiFinished;
-        document.getElementById('keptInView').value = ''; // Reset Kept in View
+        // --- REMOVED: incidentDescriptionContainer.style.display --- (Keep it visible)
+        productDetailsContainer.style.display = 'none'; // <<< Hide product details initially when type changes
+
+        // Reset and manage required status for keptInView
+        const keptInViewSelect = document.getElementById('keptInView');
+        keptInViewSelect.required = isSemiFinished;
+        if (!isSemiFinished) {
+            keptInViewSelect.value = ''; // Reset if not Semi/Finished
+            // Ensure product details fields are not required if not Semi/Finished
+            setProductDetailsRequired(false);
+        } else {
+            // Trigger change on keptInView if it already has a value (e.g., draft load)
+            if (keptInViewSelect.value) {
+                keptInViewSelect.dispatchEvent(new Event('change'));
+            }
+        }
     });
 
     document.getElementById('keptInView').addEventListener('change', function() {
         const isYes = this.value === 'yes';
-        semiFinishedGoodsDetails.style.display = isYes ? 'block' : 'none';
-        incidentDescriptionContainer.style.display = isYes ? 'none' : 'block';
-        defectDescription.style.height = 'auto';
-        defectDescription.style.height = defectDescription.scrollHeight + 'px';
+        // --- REMOVED: semiFinishedGoodsDetails.style.display --- 
+        // --- REMOVED: incidentDescriptionContainer.style.display --- (Keep it visible)
+        productDetailsContainer.style.display = isYes ? 'block' : 'none'; // <<< Show/hide product details
+        // --- REMOVED: defectDescription height adjustments --- 
 
-        document.getElementById('productCode').required = isYes;
-        document.getElementById('rollID').required = isYes;
-        document.getElementById('lotNo').required = isYes;
-        document.getElementById('rollPositions').required = isYes;
-        document.getElementById('lotTime').required = isYes;
-        document.getElementById('defectDescription').required = isYes;
+        // Set required status for product detail fields based on 'keptInView' being 'yes'
+        setProductDetailsRequired(isYes);
     });
 
-    defectDescription.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = this.scrollHeight + 'px';
-    });
+    // Helper function to set required attribute for product details
+    // Helper function to set required attribute for product details
+    function setProductDetailsRequired(isRequired) {
+        // --- ADDED shift --- 
+        document.getElementById('shift').required = isRequired;
+        document.getElementById('productCode').required = isRequired;
+        document.getElementById('rollID').required = isRequired;
+        document.getElementById('lotNo').required = isRequired;
+        document.getElementById('rollPositions').required = isRequired;
+        document.getElementById('lotTime').required = isRequired;
+        // --- REMOVED: defectDescription.required --- 
+    }
+
+    // --- REMOVED: defectDescription input listener --- 
 
     chooseImageBtn.addEventListener('click', function() {
         imageUpload.click();
@@ -89,7 +109,19 @@ function setupFormEventListeners(userId) {
     });
 
     takeImmediateAction.addEventListener('change', function() {
-        actionFieldsContainer.style.display = this.value === 'yes' ? 'block' : 'none';
+        const actionTakenIsYes = this.value === 'yes';
+        actionFieldsContainer.style.display = actionTakenIsYes ? 'block' : 'none';
+
+        // --- ADDED: Reset status dropdown if action is 'No' --- 
+        const statusActionSelect = document.getElementById('statusAction');
+        if (!actionTakenIsYes) {
+            statusActionSelect.value = ''; // Reset to default/empty value
+            // Optionally clear other action fields too
+            // document.getElementById('actionTaken').value = '';
+            // document.getElementById('whoAction').value = '';
+            // document.getElementById('whenActionDate').value = '';
+        }
+        // --- End of addition ---
     });
 
     // Add smooth scroll listeners
@@ -125,7 +157,9 @@ function setupFormEventListeners(userId) {
         if (validateForm()) {
             const incidentTimeValue = document.getElementById('incidentTime').value;
             const lotTimeValue = document.getElementById('lotTime').value;
-            const semiFinishedGoodsVisible = document.getElementById('semiFinishedGoodsDetails').style.display === 'block';
+            // Check if product details are relevant (Semi/Finished and Kept in View = Yes)
+            const isProductDetailsRelevant = document.getElementById('abnormalityType').value === 'Semi/Finished Goods' && 
+                                           document.getElementById('keptInView').value === 'yes';
 
             const insertData = {
                 incidenttitle: document.getElementById('incidentTitle').value.trim(),
@@ -137,11 +171,13 @@ function setupFormEventListeners(userId) {
                 qualityrisk: document.getElementById('qualityRisk').value,
                 keptinview: document.getElementById('keptInView').value,
                 incidentdesc: document.getElementById('incidentDesc').value.trim(),
-                defectdescription: document.getElementById('defectDescription').value.trim(),
-                productcode: document.getElementById('productCode').value.trim(),
-                rollid: document.getElementById('rollID').value.trim(),
-                lotno: document.getElementById('lotNo').value.trim(),
-                rollpositions: document.getElementById('rollPositions').value.trim(),
+                // --- ADDED shift --- 
+                shift: isProductDetailsRelevant ? document.getElementById('shift').value : null,
+                productcode: isProductDetailsRelevant ? document.getElementById('productCode').value.trim() : null,
+                rollid: isProductDetailsRelevant ? document.getElementById('rollID').value.trim() : null,
+                lotno: isProductDetailsRelevant ? document.getElementById('lotNo').value.trim() : null,
+                rollpositions: isProductDetailsRelevant ? document.getElementById('rollPositions').value.trim() : null,
+                lottime: isProductDetailsRelevant ? (lotTimeValue || null) : null, // Send null if empty or not relevant
                 actiontaken: takeImmediateAction.value === 'yes' ? document.getElementById('actionTaken').value.trim() : null,
                 whoaction: takeImmediateAction.value === 'yes' ? document.getElementById('whoAction').value.trim() : null,
                 whenactiondate: takeImmediateAction.value === 'yes' ? document.getElementById('whenActionDate').value : null,
@@ -151,29 +187,23 @@ function setupFormEventListeners(userId) {
                 submission_status: 'submitted'
             };
 
-            // Conditionally add lotTime if the relevant section is visible and has a value
-            if (semiFinishedGoodsVisible) {
-                insertData.lottime = lotTimeValue || null; // Send null if empty but visible
-            } else {
-                insertData.lottime = null; // Send null if not relevant
-            }
+            // --- REMOVED: Conditional logic for lotTime based on semiFinishedGoodsVisible --- 
 
             try {
                 const { data, error } = await supabase
                     .from('quality_alerts')
-                    .insert(insertData);
+                    .insert([insertData]); // Pass data as an array
 
                 if (error) {
                     console.error('Submission error:', error);
-                    showMessage('Error submitting form. Please try again.');
+                    showMessage('Error submitting form. Please try again. Details: ' + error.message);
                 } else {
                     form.reset();
-                    abnormalityType.dispatchEvent(new Event('change'));
-                    document.getElementById('keptInView').dispatchEvent(new Event('change'));
+                    // Manually trigger change events to reset conditional fields
+                    abnormalityType.dispatchEvent(new Event('change')); 
+                    document.getElementById('takeImmediateAction').dispatchEvent(new Event('change'));
                     imagePreviews.innerHTML = '';
                     showMessage('Form submitted successfully!');
-
-
                 }
             } catch (error) {
                 console.error('Unexpected error:', error);
@@ -181,9 +211,7 @@ function setupFormEventListeners(userId) {
             }
         } else {
             console.log("Validation failed, preventing submission.");
-            // Make sure submissionError is defined or use a static message
-            // showMessage(submissionError); // If submissionError is defined elsewhere
-            showMessage('Validation failed. Please check the form.'); // Or use a static message
+            // showMessage is called within validateForm now
         }
     });
 
@@ -198,10 +226,12 @@ function setupFormEventListeners(userId) {
             const incidentTimeValue = document.getElementById('incidentTime').value;
             const whenActionDateValue = document.getElementById('whenActionDate').value;
             const lotTimeValue = document.getElementById('lotTime').value;
+            const isProductDetailsRelevant = document.getElementById('abnormalityType').value === 'Semi/Finished Goods' && 
+                                           document.getElementById('keptInView').value === 'yes';
 
             const { data, error } = await supabase
                 .from('quality_alert_drafts')
-                .insert({
+                .insert([{
                     user_id: userId,
                     incidenttitle: document.getElementById('incidentTitle').value.trim(),
                     responsibledept: document.getElementById('responsibleDept').value,
@@ -212,31 +242,31 @@ function setupFormEventListeners(userId) {
                     qualityrisk: document.getElementById('qualityRisk').value,
                     keptinview: document.getElementById('keptInView').value,
                     incidentdesc: document.getElementById('incidentDesc').value.trim(),
-                    defectdescription: document.getElementById('defectDescription').value.trim(),
-                    productcode: document.getElementById('productCode').value.trim(),
-                    rollid: document.getElementById('rollID').value.trim(),
-                    lotno: document.getElementById('lotNo').value.trim(),
-                    rollpositions: document.getElementById('rollPositions').value.trim(),
-                    lottime: lotTimeValue || null,
+                    // --- REMOVED: defectdescription --- 
+                    productcode: isProductDetailsRelevant ? document.getElementById('productCode').value.trim() : null,
+                    rollid: isProductDetailsRelevant ? document.getElementById('rollID').value.trim() : null,
+                    lotno: isProductDetailsRelevant ? document.getElementById('lotNo').value.trim() : null,
+                    rollpositions: isProductDetailsRelevant ? document.getElementById('rollPositions').value.trim() : null,
+                    lottime: isProductDetailsRelevant ? (lotTimeValue || null) : null,
                     actiontaken: document.getElementById('actionTaken').value.trim(),
                     whoaction: document.getElementById('whoAction').value.trim(),
                     whenactiondate: whenActionDateValue || null,
                     statusaction: document.getElementById('statusAction').value,
                     timestamp: new Date().toISOString(),
                     drafted_at: new Date().toISOString() // Optional: record the draft time
-                });
+                }]);
 
             if (error) {
                 const message = error.message || "An error occurred. Please try again.";
-                showError(message);
-                showMessage('Error submitting form. Please try again.');
+                // showError(message); // Assuming showError exists or use showMessage
+                showMessage('Error saving draft: ' + message);
             } else {
                 showMessage('Draft saved successfully!');
             }
         } catch (error) {
-            console.error('Unexpected error:', error);
-            showError("Unexpected error occurred. Please try again.");
-            showMessage(submissionError);
+            console.error('Unexpected error saving draft:', error);
+            // showError("Unexpected error occurred. Please try again.");
+            showMessage('Unexpected error saving draft. Please try again.');
         } finally {
             saveAsDraftButton.disabled = false;
             saveAsDraftButton.textContent = "Save as Draft";
@@ -248,12 +278,12 @@ function setupFormEventListeners(userId) {
         const responsibledept = document.getElementById('responsibleDept').value;
         const locationarea = document.getElementById('locationArea').value.trim();
         const incidentdate = document.getElementById('incidentDate').value;
-        const incidenttime = document.getElementById('incidentTime').value.trim();
+        const incidenttime = document.getElementById('incidentTime').value;
         const abnormalitytype = document.getElementById('abnormalityType').value;
         const qualityrisk = document.getElementById('qualityRisk').value;
         const keptinview = document.getElementById('keptInView').value;
-        // incidentdesc is not strictly required for validation based on the original logic
-        const defectdescription = document.getElementById('defectDescription').value.trim();
+        const incidentdesc = document.getElementById('incidentDesc').value.trim(); // Keep incidentDesc
+        // --- REMOVED: defectdescription --- 
         const productcode = document.getElementById('productCode').value.trim();
         const rollid = document.getElementById('rollID').value.trim();
         const lotno = document.getElementById('lotNo').value.trim();
@@ -266,9 +296,16 @@ function setupFormEventListeners(userId) {
         const takeImmediateActionValue = document.getElementById('takeImmediateAction').value;
 
         // Basic required fields check
-        if (!incidenttitle || responsibledept === 'Select Department' || !locationarea || !incidentdate || !incidenttime || abnormalitytype === '' || qualityrisk === '' || statusaction === '') {
+        if (!incidenttitle || responsibledept === 'Select Department' || !locationarea || !incidentdate || !incidenttime || abnormalitytype === '' || qualityrisk === '') {
             console.log("Validation failed: Basic required fields missing");
-            showMessage('Please fill in all required basic fields (Title, Dept, Location, Date, Time, Abnormality, Risk, Status).');
+            showMessage('Please fill in all required basic fields (Title, Dept, Location, Date, Time, Abnormality, Risk).');
+            return false;
+        }
+
+        // Check statusaction only if immediate action was taken
+        if (takeImmediateActionValue === 'yes' && statusaction === '') {
+            console.log("Validation failed: Immediate Action Status missing");
+            showMessage('Please select the Immediate Action Status.');
             return false;
         }
 
@@ -279,11 +316,15 @@ function setupFormEventListeners(userId) {
                  showMessage('Please specify if the item was Kept in View.');
                  return false;
             }
+            const shift = document.getElementById('shift').value; // <<< Get shift value
             if (keptinview === 'yes') {
-                // Check details only if Kept in View is 'yes'
-                if (!defectdescription || !productcode || !rollid || !lotno || !rollpositions || !lottime) {
-                    console.log("Validation failed: Semi/Finished Goods details missing when Kept in View is Yes");
-                    showMessage('Please fill in all Semi/Finished Goods details (Defect Desc, Prod Code, Roll ID, Lot No, Roll Pos, Lot Time).');
+                // Check product details only if Kept in View is 'yes'
+                // --- REMOVED: defectdescription check --- 
+                // --- MODIFIED check to include shift --- 
+                if (!shift || !productcode || !rollid || !lotno || !rollpositions || !lottime) { 
+                    console.log("Validation failed: Product details missing when Kept in View is Yes");
+                    // --- UPDATED message --- 
+                    showMessage('Please fill in all Product details (Shift, Prod Code, Roll ID, Lot No, Roll Pos, Lot Time).');
                     return false;
                 }
             }
@@ -297,6 +338,17 @@ function setupFormEventListeners(userId) {
                 return false;
             }
         }
+
+        // Validation for Incident Description (Now always potentially visible, make it required?)
+        // DECISION: Is Incident Description always required, or only required if not Semi/Finished?
+        // For now, let's make it required unless it's Semi/Finished AND Kept in View is No
+        const isSemiFinishedNoView = abnormalitytype === 'Semi/Finished Goods' && keptinview === 'no';
+        if (!incidentdesc && !isSemiFinishedNoView) { // Require description unless it's Semi/Finished and not kept
+             console.log("Validation failed: Incident Description required.");
+             showMessage('Please provide an Incident Description.');
+             return false;
+        }
+
 
         console.log("Validation successful!");
         return true;

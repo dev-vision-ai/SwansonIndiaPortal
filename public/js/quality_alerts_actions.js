@@ -38,7 +38,8 @@ const locationAreaInput = document.getElementById('locationarea');
 const abnormalityTypeInput = document.getElementById('abnormalitytype');
 const qualityRiskInput = document.getElementById('qualityrisk');
 const keptInViewInput = document.getElementById('keptinview');
-const defectDescriptionInput = document.getElementById('defectdescription');
+// --- ADD THIS LINE --- 
+const shiftInput = document.getElementById('shift'); 
 const productCodeInput = document.getElementById('productcode');
 const rollIdInput = document.getElementById('rollid');
 const lotNoInput = document.getElementById('lotno');
@@ -112,27 +113,28 @@ Roll ID: ${rollIdInput.value}
 Lot No: ${lotNoInput.value}
 Roll Positions: ${rollPositionsInput.value}
 Lot Time: ${lotTimeInput.value}
-Defect Description: ${defectDescriptionInput.value}
 ` : ''}
 ==========================
 
 Please reply with below details:
 
 Immediate Action :
-
-
+-------------------
+1.
+2.
 -------------------
 
 Root Cause Analysis:
+-------------------
 
 
 -------------------
 
 Corrective Actions:
-
-
-------------------
-
+-------------------
+1.
+2.
+-------------------
 `;
 
   window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -280,7 +282,7 @@ function populateForm(data) {
     if (incidentTitleInput) incidentTitleInput.value = get(data.incidenttitle);
     if (incidentDescInput) incidentDescInput.value = get(data.incidentdesc);
     if (responsibleDeptInput) responsibleDeptInput.value = get(data.responsibledept);
-    if (statusActionSelect) statusActionSelect.value = get(data.statusaction) || 'Open'; // Default if null
+    if (statusActionSelect) statusActionSelect.value = get(data.statusaction);
     if (severityInput) severityInput.value = get(data.severity);
     if (detectionInput) detectionInput.value = get(data.detection);
     if (frequencyInput) frequencyInput.value = get(data.frequency);
@@ -294,7 +296,7 @@ function populateForm(data) {
     if (abnormalityTypeInput) abnormalityTypeInput.value = get(data.abnormalitytype); // Ensure this is populated
     if (qualityRiskInput) qualityRiskInput.value = get(data.qualityrisk);
     if (keptInViewInput) keptInViewInput.value = get(data.keptinview);
-    if (defectDescriptionInput) defectDescriptionInput.value = get(data.defectdescription);
+    if (shiftInput) shiftInput.value = get(data.shift);
     if (productCodeInput) productCodeInput.value = get(data.productcode);
     if (rollIdInput) rollIdInput.value = get(data.rollid);
     if (lotNoInput) lotNoInput.value = get(data.lotno);
@@ -305,6 +307,13 @@ function populateForm(data) {
     if (whenActionDateInput) whenActionDateInput.value = formatDate(data.whenactiondate);
     if (timestampInput) timestampInput.value = formatTimestampForDisplay(data.timestamp);
     if (draftedAtInput) draftedAtInput.value = formatTimestampForDisplay(data.drafted_at);
+
+    // --- Ensure this logic exists --- 
+    const kivDetailsSection = document.querySelector('.kiv-details');
+    if (kivDetailsSection) {
+        kivDetailsSection.style.display = data.keptinview === 'yes' ? 'block' : 'none';
+    }
+    // --- End of confirmation ---
 }
 
 function setupFormMode(action) {
@@ -337,7 +346,10 @@ function setupFormMode(action) {
         statusActionSelect, rootCauseInput,
         correctiveActionsInput, remarksInput,
         locationAreaInput, abnormalityTypeInput, qualityRiskInput,
-        defectDescriptionInput, productCodeInput, rollIdInput, lotNoInput,
+        // --- ADD shiftInput HERE --- 
+        shiftInput,
+        // --- REMOVE 'defectDescriptionInput' FROM THIS ARRAY --- 
+        productCodeInput, rollIdInput, lotNoInput,
         rollPositionsInput, lotTimeInput, actionTakenInput, whoActionInput,
         whenActionDateInput
     ];
@@ -407,7 +419,10 @@ async function handleFormSubmit(event) {
         locationarea: locationAreaInput.value,
         abnormalitytype: abnormalityTypeInput.value,
         qualityrisk: qualityRiskInput.value,
-        defectdescription: defectDescriptionInput.value,
+        // --- ADD shift HERE --- 
+        shift: shiftInput.value,
+        // --- DELETE THIS LINE --- 
+        // defectdescription: defectDescriptionInput.value,
         productcode: productCodeInput.value,
         rollid: rollIdInput.value,
         lotno: lotNoInput.value,

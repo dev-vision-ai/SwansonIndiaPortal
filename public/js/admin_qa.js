@@ -94,7 +94,7 @@ function clearFilters() {
 }
 
 function setupEventListeners() {
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     fetchLatestAlerts();
     document.querySelectorAll('[data-sort]').forEach(header => {
       header.addEventListener('click', () => sortData(header.dataset.sort));
@@ -112,6 +112,34 @@ function setupEventListeners() {
     if (clearBtn) clearBtn.addEventListener('click', clearFilters);
     // -------------------------------
 
+    const logoutButton = document.getElementById('logoutButton'); // Get the button by its ID
+
+    // --- Updated Logout Button Listener with Confirmation --- 
+    if (logoutButton) {
+        logoutButton.addEventListener('click', async (e) => { // Added async and event object 'e'
+            e.preventDefault(); // Prevent default button behavior if any
+
+            if (window.confirm("Are you sure you want to log out?")) {
+                console.log('Logout confirmed, signing out...'); // Debug log
+                try {
+                    const { error } = await supabase.auth.signOut();
+                    if (error) {
+                        console.error('Error logging out:', error);
+                        alert('Logout failed. Please try again.');
+                    } else {
+                        console.log('Logout successful, redirecting...'); // Debug log
+                        window.location.href = '../html/auth.html'; // Redirect after successful logout
+                    }
+                } catch (err) {
+                    console.error('Exception during logout:', err);
+                    alert('An unexpected error occurred during logout.');
+                }
+            } else {
+                console.log('Logout cancelled by user.'); // Debug log (optional)
+            }
+        });
+    }
+    // --- End Updated Logout Button Listener ---
   });
 
   document.addEventListener('click', handleButtonActions);

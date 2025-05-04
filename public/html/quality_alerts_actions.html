@@ -9,7 +9,32 @@
   <link rel="stylesheet" href="../css/admin_qa.css">
   <!-- Add specific styles for the form -->
   <style>
-    .form-container { padding: 20px; max-width: 800px; margin: 20px auto; background: #fff; border-radius: 8px; box-shadow: var(--shadow-md); }
+    .form-container {
+      position: relative; /* Needed for absolute positioning of the button */
+      padding: 20px; 
+      max-width: 800px; 
+      margin: 20px auto; 
+      background: #fff; 
+      border-radius: 8px; 
+      box-shadow: var(--shadow-md); 
+    }
+    .btn-back-top {
+      position: absolute;
+      top: 15px; /* Adjust as needed */
+      left: 15px; /* Adjust as needed */
+      padding: 8px 15px;
+      font-size: 0.9rem;
+      /* Use existing btn-back styles or customize */
+      background-color: #6c757d; 
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .btn-back-top:hover {
+        background-color: #5a6268;
+    }
     .form-container h2, .form-container h3 { margin-bottom: 20px; color: var(--accent-color); }
     .form-group { margin-bottom: 15px; }
     .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--text-dark); }
@@ -44,11 +69,44 @@
     .flex-row { display: flex; align-items: center; gap: 10px; }
     .flex-row label, .flex-row input, .flex-row span, .flex-row button { flex: 1; }
     .flex-row span { flex: 0; }
+
+    /* --- ADDED CSS for side-by-side fields --- */
+    .form-row {
+      display: flex;
+      gap: 15px; /* Adjust spacing between fields */
+      margin-bottom: 15px;
+    }
+    .form-row .form-group {
+      flex: 1; /* Make fields share space equally */
+      margin-bottom: 0; /* Remove bottom margin from individual groups */
+    }
+    
+    .header-container { /* Ensure flex alignment for button */
+      display: flex;
+      align-items: center;
+      /* justify-content: space-between; /* Keep or adjust as needed */
+    }
+    .header-back-button {
+      padding: 6px 12px; /* Adjust padding as needed */
+      font-size: 0.9rem;
+      background-color: #e4c829; /* Yellow background */
+      color: #000000; /* Blue text (adjust if your blue is different) */
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-right: 15px; /* Add space between button and title */
+      font-weight: 600; /* Make font slightly bolder */
+    }
+    
   </style>
 </head>
 <body>
 
   <div class="header-container">
+    <!-- Move Back Button Here -->
+    <button type="button" class="header-back-button" onclick="window.history.back();">Back</button>
+    
     <div class="header-title">Admin QA Dashboard</div>
     <div class="company-logo">
       <img src="../assets/logo.png" class="auth-logo" alt="Logo"/>
@@ -57,7 +115,11 @@
   <!-- End Header -->
 
   <!-- Main content area for the form -->
-  <main class="form-container" style="margin-top: 100px;">
+  <main class="form-container" style="margin-top: 80px;"> 
+    <!-- --- REMOVE Back Button From Here --- 
+    <button type="button" class="btn-back-top" onclick="window.history.back();">Back</button>
+    -->
+
     <h2 id="form-title">Quality Alert Details</h2>
     <form id="alert-form">
       <!-- Hidden input for ID -->
@@ -72,36 +134,75 @@
         <label for="user_name">Reported By</label>
         <input type="text" id="user_name" readonly>
       </div>
-      <div class="form-group">
-        <label for="incidentdate">Incident Date</label>
-        <input type="date" id="incidentdate" readonly>
+
+      <!-- Wrap Date and Time in a form-row -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="incidentdate">Date of Occurrence:</label> 
+          <input type="date" id="incidentdate" readonly>
+        </div>
+        <div class="form-group">
+          <label for="incidenttime">Time of Occurrence:</label> 
+          <input type="time" id="incidenttime" readonly>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="incidenttime">Incident Time</label>
-        <input type="time" id="incidenttime" readonly>
+      <!-- End Date/Time form-row -->
+
+      <!-- Wrap Responsible Dept and Location in a form-row -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="responsibledept">Responsible Dept. for Incident:</label> 
+          <input type="text" id="responsibledept">
+        </div>
+        <div class="form-group">
+          <label for="locationarea">Location Occured / Machine:</label> 
+          <input type="text" id="locationarea">
+        </div>
       </div>
+      <!-- End Dept/Location form-row -->
+
+      <!-- Wrap Abnormality Type and Quality Risk in a new form-row -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="abnormalitytype">Type of Abnormality:</label> 
+          <input type="text" id="abnormalitytype">
+        </div>
+        <div class="form-group">
+          <label for="qualityrisk">Potential Quality Risk:</label> 
+          <input type="text" id="qualityrisk">
+        </div>
+      </div>
+      <!-- End Abnormality/Risk form-row -->
 
       <!-- Fields that might be editable -->
       <div class="form-group">
-        <label for="incidenttitle">Incident Title</label>
+        <label for="incidenttitle">Incident Name:</label> 
         <input type="text" id="incidenttitle">
       </div>
       <div class="form-group">
-        <label for="incidentdesc">Incident Description</label>
+        <label for="incidentdesc">Incident Description:</label>
         <textarea id="incidentdesc"></textarea>
       </div>
+  
+      <!-- <<< PASTE the Immediate Action fields here >>> -->
       <div class="form-group">
-        <label for="responsibledept">Responsible Department</label>
-        <input type="text" id="responsibledept">
+        <label for="actiontaken">Immediate Action Taken:</label> <!-- Changed label -->
+        <textarea id="actiontaken"></textarea>
       </div>
       <div class="form-group">
-        <label for="statusaction">Status</label>
+        <label for="whoaction">Action Taken By:</label> <!-- Changed label -->
+        <input type="text" id="whoaction">
+      </div>
+      <div class="form-group">
+        <label for="whenactiondate">Action Taken Date:</label> <!-- Changed label -->
+        <input type="date" id="whenactiondate">
+      </div>
+
+      <div class="form-group">
+        <label for="statusaction">Immediate Action Status:</label> <!-- Changed label -->
         <select id="statusaction">
-          <option value="Open">Open</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Resolved">Resolved</option>
           <option value="Completed">Completed</option>
-          <option value="Escalated">Escalated</option>
+          <option value="Pending">Pending</option>
         </select>
       </div>
 
@@ -135,59 +236,54 @@
         <textarea id="remarks"></textarea>
       </div>
 
-      <!-- Other fields from Supabase - some now editable -->
       <div class="form-group">
-        <label for="locationarea">Location Area</label>
-        <input type="text" id="locationarea">
-      </div>
-      <div class="form-group">
-        <label for="abnormalitytype">Abnormality Type</label>
-        <input type="text" id="abnormalitytype">
-      </div>
-      <div class="form-group">
-        <label for="qualityrisk">Quality Risk</label>
-        <input type="text" id="qualityrisk">
-      </div>
-      <div class="form-group">
-        <label for="keptinview">Kept In View</label>
+        <label for="keptinview">Kept in View?</label> 
         <input type="text" id="keptinview" readonly>
       </div>
-      <div class="form-group">
-        <label for="defectdescription">Defect Description</label>
-        <textarea id="defectdescription"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="productcode">Product Code</label>
-        <input type="text" id="productcode">
-      </div>
-      <div class="form-group">
-        <label for="rollid">Roll ID</label>
-        <input type="text" id="rollid">
-      </div>
-      <div class="form-group">
-        <label for="lotno">Lot No</label>
-        <input type="text" id="lotno">
-      </div>
-      <div class="form-group">
-        <label for="rollpositions">Roll Positions</label>
-        <input type="text" id="rollpositions">
-      </div>
-      <div class="form-group">
-        <label for="lottime">Lot Time</label>
-        <input type="text" id="lottime">
-      </div>
-      <div class="form-group">
-        <label for="actiontaken">Action Taken (Initial)</label>
-        <textarea id="actiontaken"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="whoaction">Who Action (Initial)</label>
-        <input type="text" id="whoaction">
-      </div>
-      <div class="form-group">
-        <label for="whenactiondate">When Action Date (Initial)</label>
-        <input type="date" id="whenactiondate">
-      </div>
+      
+      <!-- --- ADD Wrapper Div --- -->
+      <div class="form-section kiv-details" style="display: none;"> 
+          <h3>KIV Details</h3>
+
+          <!-- --- MOVE Shift Dropdown Inside --- -->
+          <div class="form-group">
+              <label for="shift">Shift:</label>
+              <select id="shift" name="shift" class="form-control">
+                  <option value="">Select Shift</option>
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                  <option value="C">C</option>
+                  <option value="G">G</option>
+              </select>
+          </div>
+
+          <!-- --- MOVE Product Code Inside --- -->
+          <div class="form-group">
+            <label for="productcode">Product Code</label>
+            <input type="text" id="productcode">
+          </div>
+          <!-- --- MOVE Roll ID Inside --- -->
+          <div class="form-group">
+            <label for="rollid">Roll ID</label>
+            <input type="text" id="rollid">
+          </div>
+          <!-- --- MOVE Lot No Inside --- -->
+          <div class="form-group">
+            <label for="lotno">Lot No</label>
+            <input type="text" id="lotno">
+          </div>
+          <!-- --- MOVE Roll Positions Inside --- -->
+          <div class="form-group">
+            <label for="rollpositions">Roll Positions</label>
+            <input type="text" id="rollpositions">
+          </div>
+          <!-- --- MOVE Lot Time Inside --- -->
+          <div class="form-group">
+            <label for="lottime">Lot Time:</label>
+            <input type="text" id="lottime">
+          </div>
+      </div> <!-- --- END Wrapper Div --- -->
+
       <div class="form-group">
         <label for="timestamp">Timestamp</label>
         <input type="text" id="timestamp" readonly>

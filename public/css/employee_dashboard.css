@@ -728,3 +728,40 @@ body {
 .filter-btn:hover { 
     background-color: #e0e0e0; 
 }
+
+/* Styles for Logout Button (Matching Back Button) */
+.logout-button {
+    padding: 8px 15px; /* Match back button padding */
+    font-size: 0.9rem;  /* Match back button font size */
+    background-color: #fcfcfc; /* Yellow background */
+    color: #000000; /* Blue text */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px; /* Space between button and name */
+    font-weight: 600; /* Make text bold like back button */
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .logout-button:hover {
+    background-color: #dfc532; /* Darker yellow on hover */
+    color: #000000; /* Darker blue on hover */
+  }
+
+/* Added Back Button Styles */
+.header-back-button {
+  padding: 6px 12px; 
+  font-size: 0.9rem;
+  background-color: #e4c829; /* Yellow background */
+  color: #000000; /* Black text */
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-right: 15px; /* Space between button and next element */
+  font-weight: 600; 
+}
+
+.header-back-button:hover {
+  background-color: #d3b725; /* Darker yellow on hover */
+}

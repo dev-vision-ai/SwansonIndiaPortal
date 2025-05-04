@@ -7,10 +7,36 @@
   <title>Quality Alerts Table</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
   <link rel="stylesheet" href="../css/admin_qa.css">
+  <!-- Add styles for the back button -->
+  <style>
+    .header-container { 
+      display: flex;
+      align-items: center;
+      /* Add other necessary header styles if not already in admin_qa.css */
+      /* e.g., justify-content: space-between; padding: 10px 20px; */
+    }
+    .header-back-button {
+      padding: 6px 12px; 
+      font-size: 0.9rem;
+      background-color: #e4c829; /* Yellow background */
+      color: #000000; /* Black text */
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-right: 15px; /* Space between button and title */
+      font-weight: 600; 
+    }
+    .header-back-button:hover {
+      background-color: #d3b725; /* Darker yellow on hover */
+    }
+  </style>
 </head>
 <body class="bg-gray-100 text-gray-900">
   <!-- Pasted Header -->
   <div class="header-container bg-white shadow-md p-4 flex justify-between items-center">
+    <!-- Changed Back Button Action -->
+    <button type="button" class="header-back-button" onclick="window.location.href='admin_qa.html';">Back</button>
     
     <div class="header-title text-2xl font-bold">Admin QA Dashboard</div>
     <div class="company-logo">
