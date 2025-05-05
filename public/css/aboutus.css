@@ -459,3 +459,264 @@ body {
     font-size: 0.9rem;
     background-color: #002159; 
 }
+
+body {
+    display: flex; /* Added */
+    flex-direction: column; /* Added */
+    min-height: 100vh; /* Added - Ensures body takes full viewport height */
+}
+
+/* Find the existing 'main' selector or add it if it doesn't exist */
+main {
+    flex-grow: 1; /* Added - Allows main content to expand */
+}
+
+/* Find the existing 'footer' or '.footer' selector */
+footer, .footer { /* Use whichever selector is already present, or both */
+    /* Remove any position: fixed/absolute, bottom: 0, width: 100% */
+    margin-top: auto; /* Added - Pushes footer down */
+}
+
+.album-item {
+    /* Add other styles like border, padding, background if needed */
+    text-align: center; /* Center align content */
+    margin-bottom: 20px; /* Space below items */
+}
+
+.album-thumbnail {
+    max-width: 100%; /* Ensure image fits container */
+    height: 150px; /* Example fixed height */
+    object-fit: cover; /* Scale image nicely */
+    display: block; /* Make it a block element */
+    margin: 0 auto 10px auto; /* Center image and add space below */
+    border: 1px solid #eee; /* Optional border */
+}
+
+/* You might already have .album-grid styles, adjust if necessary */
+.album-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Responsive columns */
+    gap: 20px; /* Space between grid items */
+}
+
+/* Styles for the image grid view */
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Adjust minmax for desired size */
+    gap: 15px; /* Spacing between images */
+    padding: 20px 0; /* Add some padding around the grid */
+}
+
+.image-grid-item {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden; /* Ensure images don't overflow the container */
+    aspect-ratio: 1 / 1; /* Make items square, adjust if needed */
+}
+
+.image-grid-item img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cover the area, cropping if necessary */
+    transition: transform 0.3s ease;
+}
+
+.image-grid-item img:hover {
+    transform: scale(1.05); /* Slight zoom on hover */
+}
+
+/* Ensure error messages don't try to use grid */
+#album-list:not(.image-grid) {
+    display: block; /* Or whatever the default display was */
+}
+.gm-photo {
+    width: 200px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.message-text {
+    flex: 1;
+}
+
+.message-text p {
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+.gm-signature {
+    font-style: normal !important;
+    color: #002E7D;
+    font-weight: 600;
+    margin-top: 20px;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-toggle {
+    color: #002E7D;
+    text-decoration: none;
+    font-weight: 600;
+    margin: 0 20px;
+    transition: color 0.3s ease;
+    cursor: pointer;
+}
+
+.dropdown-toggle i {
+    margin-left: 5px;
+    font-size: 0.8em;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    background-color: #ffffff;
+    min-width: 160px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    padding: 8px 0;
+    z-index: 1001;
+}
+
+.dropdown-menu a {
+    color: #002E7D;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 0.9em;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+.dropdown-menu a:hover {
+    background-color: #f8f9fa;
+    color: #e4c829;
+}
+
+/* --- Footer Styling (Copied from index.css) --- */
+.footer {
+    background-color: #002E7D; /* Dark blue background for the whole footer */
+    color: #f0f0f0; /* Light default text color for the footer */
+    padding-top: 30px; 
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: row; 
+    flex-wrap: wrap; 
+    justify-content: center; 
+    align-items: flex-start; 
+    max-width: 1400px; 
+    margin: 0 auto; 
+    padding: 20px 20px 20px; 
+    gap: 40px; 
+}
+
+/* Style for the individual sections */
+.footer-map-section,
+.footer-contact-section,
+.footer-links-section {
+    flex: 1; 
+    min-width: 300px; 
+    max-width: 450px; 
+    text-align: center; 
+    /* Removed background, padding, border-radius, shadow from individual sections */
+}
+
+.footer-map-section .map-container {
+    max-width: 100%; 
+    margin: 0 auto 20px; /* Add bottom margin to map */
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Slightly darker shadow for contrast */
+}
+
+.footer-map-section .map-container iframe {
+    display: block;
+    width: 100%;
+    height: 250px; 
+}
+
+.footer-contact-section h4,
+.footer-links-section h4 {
+    margin-bottom: 20px; 
+    font-size: 1.4rem; 
+    color: #ffffff; 
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.footer-contact-section p {
+    margin: 0;
+    line-height: 1.7;
+    color: #d0d0d0; 
+}
+
+.footer-links-section a {
+    display: block; 
+    margin: 10px 0; 
+    color: #e0e0e0; 
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.footer-links-section a:hover {
+    color: #e4c829; 
+}
+
+.footer-copyright {
+    text-align: center;
+    padding: 10px 0; 
+    margin-top: 10px; 
+    border-top: 1px solid #00408a; 
+    color: #a0a0a0; 
+    font-size: 0.9rem;
+    background-color: #002159; 
+}
+
+body {
+    display: flex; /* Added */
+    flex-direction: column; /* Added */
+    min-height: 100vh; /* Added - Ensures body takes full viewport height */
+}
+
+/* Find the existing 'main' selector or add it if it doesn't exist */
+main {
+    flex-grow: 1; /* Added - Allows main content to expand */
+}
+
+/* Find the existing 'footer' or '.footer' selector */
+footer, .footer { /* Use whichever selector is already present, or both */
+    /* Remove any position: fixed/absolute, bottom: 0, width: 100% */
+    margin-top: auto; /* Added - Pushes footer down */
+}
+
+.album-item {
+    /* Add other styles like border, padding, background if needed */
+    text-align: center; /* Center align content */
+    margin-bottom: 20px; /* Space below items */
+}
+
+.album-thumbnail {
+    max-width: 100%; /* Ensure image fits container */
+    height: 150px; /* Example fixed height */
+    object-fit: cover; /* Scale image nicely */
+    display: block; /* Make it a block element */
+    margin: 0 auto 10px auto; /* Center image and add space below */
+    border: 1px solid #eee; /* Optional border */
+}
+
+/* You might already have .album-grid styles, adjust if necessary */
+.album-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Responsive columns */
+    gap: 20px; /* Space between grid items */
+}

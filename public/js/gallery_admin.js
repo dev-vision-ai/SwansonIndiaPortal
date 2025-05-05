@@ -466,6 +466,8 @@ async function handleImageUploadSubmit(event) {
     const currentAlbumId = imageManagementSection.dataset.currentAlbumId;
     const uploadForm = document.getElementById('upload-image-form');
     const submitButton = uploadForm.querySelector('button[type="submit"]');
+    // Optional: Get caption if you add an input field for it
+    // const caption = document.getElementById('image-caption')?.value.trim() || '';
 
     if (!imageFile) {
         alert('Please select an image file to upload.');
@@ -482,69 +484,83 @@ async function handleImageUploadSubmit(event) {
         return;
     }
 
-    // --- Compression Options --- 
     const options = {
-        maxSizeMB: 1,          // Target max file size in MB
-        maxWidthOrHeight: 1280, // Corresponds to 720p longest side
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1280,
         useWebWorker: true,
-        initialQuality: 0.8,   // Start with higher quality (0 to 1)
-        // maxIteration: 10,   // Optional: Max attempts to reach maxSizeMB
-        // fileType: 'image/jpeg', // Optional: Force output type
+        initialQuality: 0.8,
     }
 
-    // Disable button and indicate progress
     submitButton.disabled = true;
     submitButton.textContent = 'Compressing...';
 
-    let compressedFile = imageFile; // Default to original if compression fails
+    let compressedFile = imageFile;
 
     try {
         console.log(`Original file size: ${(imageFile.size / 1024 / 1024).toFixed(2)} MB`);
-        console.log('Compressing image with options:', options);
-        
-        // --- Perform Compression --- <<< RE-ADDED
         compressedFile = await imageCompression(imageFile, options);
         console.log(`Compressed file size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
 
         submitButton.textContent = 'Uploading...';
 
-        // --- Sanitize the filename --- 
         const originalName = imageFile.name;
-        // Use the compressed file's name if available, otherwise sanitize original
-        const nameToSanitize = compressedFile.name || originalName; 
+        const nameToSanitize = compressedFile.name || originalName;
         const sanitizedName = sanitizeFilename(nameToSanitize);
-        console.log(`Original filename: ${originalName}, Sanitized filename: ${sanitizedName}`);
-
-        // Construct the path using the SANITIZED name
         const filePath = `${currentAlbumId}/${sanitizedName}`;
 
         console.log(`Uploading ${sanitizedName} (originally ${originalName}) to ${filePath}...`);
 
-        const { data, error: uploadError } = await supabase
+        // --- Step 1: Upload to Storage --- 
+        const { data: uploadData, error: uploadError } = await supabase
             .storage
             .from(BUCKET_NAME)
-            .upload(filePath, compressedFile, { // <<< Use compressedFile 
+            .upload(filePath, compressedFile, {
                 cacheControl: '3600',
-                upsert: false
+                upsert: false // Set to true if you want to overwrite existing files with the same name
             });
 
         if (uploadError) {
-            console.error('Supabase upload error:', uploadError.message || JSON.stringify(uploadError)); 
-            if (uploadError.message.includes('already exists') || (uploadError.error === 'Duplicate' && uploadError.statusCode === '409')) { 
+            console.error('Supabase upload error:', uploadError.message || JSON.stringify(uploadError));
+            if (uploadError.message.includes('already exists') || (uploadError.error === 'Duplicate' && uploadError.statusCode === '409')) {
                  alert(`Error: An image named "${sanitizedName}" already exists in this album. Please rename the file or delete the existing one.`);
+                 // No need to throw here, just alert and stop
+                 return; // Stop execution if duplicate
             } else {
-                throw uploadError;
+                throw uploadError; // Throw other upload errors
             }
+        }
+
+        console.log('Storage Upload successful:', uploadData);
+
+        // --- Step 2: Insert into gallery_images table --- 
+        console.log(`Inserting record into gallery_images for album ${currentAlbumId} with path ${filePath}`);
+        const { data: insertData, error: insertError } = await supabase
+            .from('gallery_images')
+            .insert([
+                {
+                    album_id: currentAlbumId,
+                    image_url: filePath, // Store the path used for upload
+                    // caption: caption // Uncomment if you add a caption field
+                }
+            ])
+            .select(); // Optionally select the inserted data
+
+        if (insertError) {
+            // If DB insert fails, maybe try to delete the uploaded file?
+            // This is more complex error handling, for now just log and alert.
+            console.error('Error inserting image record into database:', insertError.message);
+            alert(`Image uploaded to storage, but failed to save record to database: ${insertError.message}. Please try deleting the image and uploading again.`);
+            // Don't throw here, as the file *is* uploaded, but let the user know.
         } else {
-            console.log('Upload successful:', data);
-            alert('Image uploaded successfully!');
+            console.log('Database insert successful:', insertData);
+            alert('Image uploaded and record saved successfully!');
             uploadForm.reset();
-            loadImageList(currentAlbumId);
+            loadImageList(currentAlbumId); // Reload the list to show the new image
         }
 
     } catch (error) {
-        console.error('Error during compression or upload:', error.message || JSON.stringify(error)); 
-        // Provide more specific feedback if compression failed vs. upload
+        // Catch errors from compression or non-duplicate upload errors
+        console.error('Error during compression or upload:', error.message || JSON.stringify(error));
         if (error.message.includes('imageCompression')) {
              alert(`Error during image compression: ${error.message || JSON.stringify(error)}`);
         } else {
