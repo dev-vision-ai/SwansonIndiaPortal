@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - Swanson Plastics India Private Limited</title>
+    <!-- Title will be set dynamically by JavaScript -->
+    <title>Gallery - Swanson Plastics India</title> 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../css/aboutus.css">
-    <link rel="stylesheet" href="../css/responsive.css"> <!-- Ensure this is present and correct -->
+    <!-- Link to your main CSS and potentially a specific gallery CSS -->
+    <link rel="stylesheet" href="../css/index.css"> 
+    <link rel="stylesheet" href="../css/responsive.css">
+    <!-- Add a new CSS file for gallery-specific styles if needed -->
+    <!-- <link rel="stylesheet" href="../css/gallery.css"> --> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
+    <!-- You can reuse the navigation bar structure from index.html or aboutus.html -->
     <!-- DESKTOP Navigation Bar -->
     <header id="desktop-header" class="navbar"> <!-- <<< Added id="desktop-header" -->
         <div class="nav-container">
@@ -22,9 +27,9 @@
             </div>
             <nav class="nav-links">
                 <a href="../index.html">Home</a>
-                <a href="#aboutus">About Us</a>
+                <a href="aboutus.html">About Us</a>
                 <div class="dropdown">
-                    <a href="#gallery" class="dropdown-toggle">Gallery <i class="fas fa-caret-down"></i></a>
+                    <a href="#" class="dropdown-toggle">Gallery <i class="fas fa-caret-down"></i></a> <!-- Changed href to # for dropdown -->
                     <div class="dropdown-menu">
                         <a href="gallery_category.html?category=Company%20Events">Company Events</a>
                         <a href="gallery_category.html?category=Facilities">Facilities</a>
@@ -33,9 +38,9 @@
                         <a href="gallery_category.html?category=Achievements">Achievements</a>
                     </div>
                 </div>
-                <a href="#products">Products</a>
-                <a href="#contact">Contact</a>
-                <a href="../html/career.html">Careers</a>
+                <a href="../index.html#products">Products</a> <!-- Point to index.html section -->
+                <a href="../index.html#contact">Contact</a> <!-- Point to index.html section -->
+                <a href="career.html">Careers</a>
             </nav>
             <!-- Removed the date-time div -->
         </div>
@@ -45,7 +50,7 @@
     <header id="mobile-header" class="navbar-mobile">
         <div class="nav-container-mobile">
             <div class="logo-container-mobile">
-                <!-- Corrected paths for aboutus.html -->
+                <!-- Corrected paths for gallery_category.html -->
                 <img src="../assets/logo.png" alt="Swanson Logo" class="logo-mobile">
                 <div class="company-names-mobile">
                     <span class="company-name">Swanson Plastics India Private Limited</span>
@@ -57,41 +62,31 @@
             </button>
         </div>
         <nav id="mobile-nav-links" class="mobile-nav-links">
-            <!-- Corrected paths for aboutus.html -->
+            <!-- Corrected paths for gallery_category.html -->
             <a href="../index.html">Home</a>
-            <a href="#aboutus">About Us</a> 
-            <a href="#products">Products</a>
-            <a href="#contact">Contact</a>
-            <a href="../html/career.html">Careers</a>
+            <a href="aboutus.html">About Us</a> 
+            <a href="../index.html#products">Products</a> <!-- Point to index.html section -->
+            <a href="../index.html#contact">Contact</a> <!-- Point to index.html section -->
+            <a href="career.html">Careers</a>
         </nav>
     </header>
 
-    <!-- General Manager's Message -->
-    <section class="section incident-box" id="gm-message">
-        <div class="container">
-            <h2>Message from General Manager</h2>
-            <div class="gm-message-content">
-                <img src="../assets/gm-photo.jpg" alt="General Manager" class="gm-photo">
-                <div class="message-text">
-                    <p>"Welcome to Swanson Plastics India. Our commitment to excellence and innovation has been the cornerstone of our success for over three decades. We take pride in our state-of-the-art manufacturing facilities and our dedicated team that works tirelessly to deliver the highest quality products to our valued customers.</p>
-                    <p>As we continue to grow and evolve, our focus remains on sustainable practices and cutting-edge technology to meet the ever-changing needs of the industry. We invite you to explore the possibilities with us and experience the Swanson difference."</p>
-                    <p class="gm-signature">Mr. K.H. Chai<br>Plant General Manager</p>
-                </div>
-            </div>
+    <!-- Main Content Area -->
+    <main class="container section">
+        <!-- Category title will be inserted here by JavaScript -->
+        <h1 id="category-title">Gallery</h1> 
+        
+        <!-- Album list will be populated here by JavaScript -->
+        <div id="album-list" class="album-grid"> 
+            <!-- Example Album Item Structure (JS will create these) -->
+            <!-- 
+            <div class="album-item">
+                <img src="path/to/thumbnail.jpg" alt="Album Name">
+                <h3>Album Name</h3>
+            </div> 
+            -->
         </div>
-    </section>
-
-    <!-- About Us Section -->
-    <section class="section incident-box" id="about">
-        <div class="container">
-            <h2>About Us</h2>
-            <p>At Swanson Plastics, we provide innovative and high-quality solutions to meet your plastic engineering needs. With over 30 years of experience, we serve clients globally with precision and reliability.</p>
-            <p>SWANSON PLASTICS (INDIA) PRIVATE LIMITED (CIN: U25209GA2010FTC006469) is a Private company incorporated on 12 Dec 2010. It is classified as a subsidiary of a company incorporated outside India and is registered at Registrar of Companies, Goa. Its authorized share capital is Rs. 1156513900.00 and its paid-up capital is Rs. 1073513900.00.</p>
-            <p>SWANSON PLASTICS (INDIA) PRIVATE LIMITED's Annual General Meeting (AGM) was last held on 30 Dec 2023, and as per records from the Ministry of Corporate Affairs (MCA), its balance sheet was last filed on 2023-03-31. SWANSON PLASTICS (INDIA) PRIVATE LIMITED's NIC code is 2520 (which is part of its CIN). As per the NIC code, it is involved in the Manufacture of plastic products.</p>
-            <p>Directors of SWANSON PLASTICS (INDIA) PRIVATE LIMITED are YEA YIH HUANG, SALWI KUMARI, YIH WU GUEI, BENG JOO LEE, and WEN HAO WU.</p>
-            <p>SWANSON PLASTICS (INDIA) PRIVATE LIMITED's Corporate Identification Number (CIN) is U25209GA2010FTC006469 and its registration number is 6469.</p>
-        </div>
-    </section>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">
@@ -121,11 +116,11 @@
             <div class="footer-links-section">
                 <h4>Quick Links</h4>
                 <a href="../index.html">Home</a>
-                <a href="#aboutus">About Us</a>
-                <a href="#services">Services</a>
-                <a href="#products">Products</a>
-                <a href="#contact">Contact</a>
-                <a href="../html/career.html">Careers</a>
+                <a href="aboutus.html">About Us</a>
+                <a href="#services">Services</a> <!-- Keep or remove based on relevance -->
+                <a href="../index.html#products">Products</a> <!-- Point to index.html section -->
+                <a href="../index.html#contact">Contact</a> <!-- Point to index.html section -->
+                <a href="career.html">Careers</a>
                
             </div>
         </div>
@@ -134,6 +129,12 @@
         </div>
     </footer>
 
+    <!-- Link to Supabase client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Link to your Supabase config -->
+    <script src="../supabase-config.js"></script>
+    <!-- Link to the NEW JavaScript file we will create -->
+    <script type="module" src="../js/gallery_category.js"></script> 
 <script type="module" src="../js/index.js"></script>
 </body>
 </html>
