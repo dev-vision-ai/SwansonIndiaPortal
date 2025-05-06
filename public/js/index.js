@@ -284,3 +284,127 @@ function fallbackCopyLink(url, button) {
         alert('Failed to copy link. Please copy it manually.');
     });
 }
+
+// --- Slideshow Logic (Keep only one instance of this block) ---
+let slideIndex = 1;
+let slidesData = []; 
+const slideshowInner = document.getElementById('slideshow-inner');
+const slideDotsContainer = document.getElementById('slide-dots');
+
+async function fetchFeaturedSlideshowImages() {
+    if (!slideshowInner || !slideDotsContainer) {
+        console.log('Slideshow elements not found on this page.');
+        return;
+    }
+    console.log('Fetching featured slideshow images...');
+    try {
+        // 1. Get featured albums
+        const { data: featuredAlbums, error: albumsError } = await supabase
+            .from('gallery_albums')
+            .select('id, album_name')
+            .eq('show_in_slideshow', true); // Use the correct column name
+
+        if (albumsError) throw albumsError;
+        if (!featuredAlbums || featuredAlbums.length === 0) {
+            slideshowInner.innerHTML = '<p>No featured albums to display.</p>';
+            return;
+        }
+
+        console.log('Featured albums:', featuredAlbums);
+        slidesData = []; // Reset slides data
+
+        // 2. For each featured album, get its images
+        for (const album of featuredAlbums) {
+            const { data: images, error: imagesError } = await supabase
+                .from('gallery_images')
+                .select('image_url, caption')
+                .eq('album_id', album.id)
+                .order('created_at', { ascending: true }); // Or any other order you prefer
+
+            if (imagesError) {
+                console.error(`Error fetching images for album ${album.album_name}:`, imagesError);
+                continue; // Skip to next album on error
+            }
+
+            images.forEach(image => {
+                const { data: { publicUrl } } = supabase.storage.from('gallery-images').getPublicUrl(image.image_url);
+                slidesData.push({
+                    src: publicUrl,
+                    albumName: album.album_name,
+                    caption: image.caption || ''
+                });
+            });
+        }
+
+        if (slidesData.length === 0) {
+            slideshowInner.innerHTML = '<p>No images found in featured albums.</p>';
+            return;
+        }
+
+        renderSlides();
+        showSlides(slideIndex);
+
+    } catch (error) {
+        console.error('Error fetching featured slideshow images:', error);
+        if (slideshowInner) slideshowInner.innerHTML = '<p>Error loading slideshow images.</p>';
+    }
+}
+
+function renderSlides() {
+    slideshowInner.innerHTML = ''; // Clear existing slides
+    slideDotsContainer.innerHTML = ''; // Clear existing dots
+
+    slidesData.forEach((data, index) => {
+        const slideDiv = document.createElement('div');
+        slideDiv.classList.add('slide', 'fade');
+        slideDiv.innerHTML = `
+            <img src="${data.src}" alt="${data.albumName} - ${data.caption}">
+            <div class="slide-caption">${data.albumName}${data.caption ? ': ' + data.caption : ''}</div>
+        `;
+        slideshowInner.appendChild(slideDiv);
+
+        const dotSpan = document.createElement('span');
+        dotSpan.classList.add('dot');
+        dotSpan.onclick = () => currentSlide(index + 1);
+        slideDotsContainer.appendChild(dotSpan);
+    });
+}
+
+// Functions to control the slideshow (plusSlides, currentSlide, showSlides)
+// Make these functions global if onclick attributes are in HTML
+window.plusSlides = function(n) {
+  showSlides(slideIndex += n);
+}
+
+window.currentSlide = function(n) {
+  showSlides(slideIndex = n);
+}
+
+function showSlides(n) {
+    let i;
+    const slides = document.getElementsByClassName("slide");
+    const dots = document.getElementsByClassName("dot");
+    if (!slides || slides.length === 0) return;
+
+    if (n > slides.length) {slideIndex = 1}
+    if (n < 1) {slideIndex = slides.length}
+
+    for (i = 0; i < slides.length; i++) {
+        slides[i].style.display = "none";
+    }
+    for (i = 0; i < dots.length; i++) {
+        dots[i].className = dots[i].className.replace(" active", "");
+    }
+
+    slides[slideIndex-1].style.display = "block";
+    if (dots[slideIndex-1]) {
+         dots[slideIndex-1].className += " active";
+    }
+}
+
+// Call this when the DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('featured-slideshow-section')) { // Only run if slideshow section exists
+         fetchFeaturedSlideshowImages();
+    }
+});

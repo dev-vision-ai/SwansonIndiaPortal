@@ -174,3 +174,60 @@
   <script type="module" src="../js/gallery_admin.js"></script> 
 </body>
 </html>
+
+
+<!-- Create Album Form -->
+<div class="form-container" id="create-album-form-container">
+    <h3>Create New Album</h3>
+    <form id="create-album-form">
+        <div class="form-group">
+            <label for="album-name">Album Name:</label>
+            <input type="text" id="album-name" name="album-name" required>
+        </div>
+        <div class="form-group">
+            <label for="album-description">Description (Optional):</label>
+            <textarea id="album-description" name="album-description"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="album-category">Category:</label>
+            <select id="album-category" name="album-category" required>
+                <!-- Options will be populated by JS -->
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="is-featured-homepage">Feature on Homepage Slideshow?</label>
+            <input type="checkbox" id="is-featured-homepage" name="is-featured-homepage">
+        </div>
+        <button type="submit" class="btn">Create Album</button>
+    </form>
+</div>
+
+<!-- Edit Album Modal -->
+<div id="edit-album-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-button" onclick="hideEditAlbumModal()">&times;</span> <!-- This onclick is crucial -->
+        <h3>Edit Album</h3>
+        <form id="edit-album-form">
+            <input type="hidden" id="edit-album-id" name="edit-album-id">
+            <div class="form-group">
+                <label for="edit-album-name">Album Name:</label>
+                <input type="text" id="edit-album-name" name="edit-album-name" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-album-description">Description:</label>
+                <textarea id="edit-album-description" name="edit-album-description"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="edit-album-category">Category:</label>
+                <select id="edit-album-category" name="edit-album-category" required>
+                    <!-- Options will be populated by JS -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit-is-featured-homepage">Feature on Homepage Slideshow?</label>
+                <input type="checkbox" id="edit-is-featured-homepage" name="edit-is-featured-homepage">
+            </div>
+            <button type="submit" class="btn">Save Changes</button>
+        </form>
+    </div>
+</div>
