@@ -353,8 +353,16 @@ main.container.section {
     flex-grow: 1; /* Allow description to take available space */
     /* Basic truncation for long descriptions */
     display: -webkit-box;
-    -webkit-line-clamp: 3; /* Show up to 3 lines */
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-line-clamp: 3;
+    -moz-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
+    box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
     min-height: calc(0.9em * 1.5 * 1); /* Minimum height for at least one line, adjust if needed */
