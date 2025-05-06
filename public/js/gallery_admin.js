@@ -208,14 +208,11 @@ async function deleteAlbum(albumId) {
         const { data: files, error: listError } = await supabase
             .storage
             .from(BUCKET_NAME)
-            .list(`${albumId}/`, { // Path is the album ID followed by a slash
-                limit: 1000 // Use a high limit to get all files
+            .list(`${albumId}/`, { 
+                limit: 1000 
             });
 
         if (listError) {
-            console.error('Error listing files for deletion:', listError.message);
-            // Decide if you want to proceed with DB deletion even if listing fails
-            // For now, we'll throw the error to stop the process
             throw new Error(`Could not list files for deletion: ${listError.message}`);
         }
 
@@ -230,9 +227,6 @@ async function deleteAlbum(albumId) {
                 .remove(filePaths);
 
             if (removeError) {
-                console.error('Error deleting files from storage:', removeError.message);
-                // Decide if you want to proceed with DB deletion even if storage deletion fails
-                // For now, we'll throw the error to stop the process
                 throw new Error(`Could not delete associated files: ${removeError.message}`);
             }
             console.log('Successfully deleted associated files from storage.');
@@ -240,23 +234,38 @@ async function deleteAlbum(albumId) {
             console.log('No associated files found in storage to delete.');
         }
 
-        // --- Step 3: Delete the album record from the database --- 
-        console.log(`Deleting album record ${albumId} from database...`);
-        const { error: deleteDbError } = await supabase
+        // --- Step 3: Delete associated image records from gallery_images table --- 
+        console.log(`Deleting image records for album ${albumId} from gallery_images table...`);
+        const { error: deleteImageRecordsError } = await supabase
+            .from('gallery_images')
+            .delete()
+            .eq('album_id', albumId);
+
+        if (deleteImageRecordsError) {
+            // Log the error, but we might still want to try deleting the album itself.
+            // Or, you could choose to throw the error and stop.
+            console.error('Error deleting image records from gallery_images:', deleteImageRecordsError.message);
+            alert(`Error deleting associated image records from the database: ${deleteImageRecordsError.message}. Attempting to delete album entry anyway.`);
+            // Not throwing here, to allow album deletion attempt to proceed
+        }
+        console.log('Successfully deleted associated image records from gallery_images.');
+
+        // --- Step 4: Delete the album record from the gallery_albums database --- 
+        console.log(`Deleting album record ${albumId} from gallery_albums database...`);
+        const { error: deleteAlbumRecordError } = await supabase
             .from('gallery_albums')
             .delete()
             .eq('id', albumId);
 
-        if (deleteDbError) {
-            throw deleteDbError; // Throw the database error
+        if (deleteAlbumRecordError) {
+            throw deleteAlbumRecordError; 
         }
 
-        alert('Album and associated images deleted successfully!');
-        loadExistingAlbums(); // Refresh the list after deletion
+        alert('Album, associated images, and all related records deleted successfully!');
+        loadExistingAlbums(); 
 
     } catch (error) {
         console.error('Error during album deletion process:', error.message);
-        // Provide a more consolidated error message
         alert(`Error deleting album: ${error.message}. Please check the console for details.`);
     }
 }
@@ -337,35 +346,26 @@ async function loadImageList(albumId) {
     existingImagesListDiv.innerHTML = '<p>Loading images...</p>';
 
     try {
-        // List files in the album's folder within the bucket
-        const { data: files, error: listError } = await supabase
-            .storage
-            .from(BUCKET_NAME)
-            .list(`${albumId}/`, { // Path is the album ID followed by a slash
-                limit: 100, // Adjust limit as needed
-                offset: 0,
-                sortBy: { column: 'name', order: 'asc' },
-            });
+        // --- MODIFICATION: Fetch image data (including caption) from gallery_images table ---
+        const { data: imageRecords, error: dbError } = await supabase
+            .from('gallery_images')
+            .select('image_url, caption') // Select image_url and caption
+            .eq('album_id', albumId)
+            .order('created_at', { ascending: true }); // Or order by name, etc.
 
-        if (listError) { throw listError; }
+        if (dbError) { throw dbError; }
 
         existingImagesListDiv.innerHTML = ''; // Clear loading message
 
-        if (!files || files.length === 0) {
+        if (!imageRecords || imageRecords.length === 0) {
             existingImagesListDiv.innerHTML = '<p>No images found for this album.</p>';
             return;
         }
 
-        // Filter out potential placeholder files if Supabase adds them (like .emptyFolderPlaceholder)
-        const imageFiles = files.filter(file => !file.name.startsWith('.')); 
+        imageRecords.forEach(record => {
+            const imagePath = record.image_url; // This is the path like 'albumId/filename.jpg'
+            const caption = record.caption;
 
-        if (imageFiles.length === 0) {
-             existingImagesListDiv.innerHTML = '<p>No images found for this album.</p>';
-            return;
-        }
-
-        imageFiles.forEach(file => {
-            const imagePath = `${albumId}/${file.name}`;
             // Get public URL for the image
             const { data: { publicUrl } } = supabase
                 .storage
@@ -374,16 +374,23 @@ async function loadImageList(albumId) {
 
             if (publicUrl) {
                 const imageItem = document.createElement('div');
-                imageItem.classList.add('image-item');
+                imageItem.classList.add('image-item', 'mb-3'); // Added mb-3 for spacing
+                
+                let captionHTML = '';
+                if (caption) {
+                    captionHTML = `<p class="image-caption">${escapeHTML(caption)}</p>`;
+                }
+
                 imageItem.innerHTML = `
-                    <img src="${publicUrl}" alt="${escapeHTML(file.name)}" loading="lazy">
-                    <button class="btn-delete-image" data-image-path="${escapeHTML(imagePath)}">Delete</button>
+                    <img src="${publicUrl}" alt="${escapeHTML(caption || imagePath.split('/').pop())}" loading="lazy" style="max-width: 200px; max-height: 200px; display: block;">
+                    ${captionHTML}
+                    <button class="btn btn-sm btn-danger btn-delete-image mt-1" data-image-path="${escapeHTML(imagePath)}">Delete</button>
                 `;
+                // TODO: Add edit caption button here if needed in the future
                 existingImagesListDiv.appendChild(imageItem);
             }
         });
 
-        // Add event listeners for the delete buttons
         addImageDeleteListeners();
 
     } catch (error) {
@@ -410,67 +417,97 @@ function addImageDeleteListeners() {
     });
 }
 
-// --- Function to Delete an Image ---
+// --- Function to Delete an Image --- 
 async function deleteImage(imagePath) {
     console.log(`Attempting to delete image: ${imagePath}`);
+    const currentAlbumId = imageManagementSection.dataset.currentAlbumId;
+
+    if (!currentAlbumId) {
+        console.error('Cannot delete image record: currentAlbumId is not set.');
+        alert('Error: Could not determine the album for this image. Deletion aborted.');
+        return;
+    }
+
     try {
-        const { error } = await supabase
+        // --- Step 1: Delete from Supabase Storage --- 
+        const { error: storageError } = await supabase
             .storage
-            .from(BUCKET_NAME)
+            .from(BUCKET_NAME) // BUCKET_NAME should be defined (e.g., 'gallery-images')
             .remove([imagePath]); // Pass path in an array
 
-        if (error) { throw error; }
+        if (storageError) {
+            // If storage deletion fails, we might not want to delete the DB record yet.
+            // Or, we could proceed but warn the user.
+            console.error('Error deleting image from storage:', storageError.message);
+            alert(`Error deleting image from storage: ${storageError.message}. Database record not deleted.`);
+            return; // Stop if storage deletion fails
+        }
+        console.log('Image successfully deleted from storage.');
 
-        alert('Image deleted successfully!');
+        // --- Step 2: Delete from gallery_images database table --- 
+        // We need to match based on album_id AND the image_url (which is the imagePath)
+        const { error: dbError } = await supabase
+            .from('gallery_images')
+            .delete()
+            .eq('album_id', currentAlbumId) // Ensure we are deleting from the correct album
+            .eq('image_url', imagePath);    // And the specific image path
+
+        if (dbError) {
+            console.error('Error deleting image record from database:', dbError.message);
+            // At this point, the image is deleted from storage, but the DB record remains.
+            // This is an inconsistency. Alert the user.
+            alert(`Image deleted from storage, but failed to delete database record: ${dbError.message}. Please check database manually.`);
+            // We won't throw an error here to prevent the UI from breaking further,
+            // but the user is alerted to a data inconsistency.
+        } else {
+            console.log('Image record successfully deleted from database.');
+            alert('Image deleted successfully from storage and database!');
+        }
+
         // Reload the image list for the current album
-        const currentAlbumId = imageManagementSection.dataset.currentAlbumId;
         if (currentAlbumId) {
             loadImageList(currentAlbumId);
         } else {
-            console.warn('Could not determine current album ID to reload image list.');
+            // This case should ideally be caught by the check at the beginning of the function
+            console.warn('Could not determine current album ID to reload image list after deletion.');
         }
 
     } catch (error) {
-        console.error('Error deleting image:', error.message);
-        alert(`Error deleting image: ${error.message}`);
+        // Catch any other unexpected errors during the process
+        console.error('Unexpected error during image deletion:', error.message);
+        alert(`An unexpected error occurred while deleting the image: ${error.message}`);
     }
 }
 
 
-// --- Utility function to sanitize filenames --- 
+// --- Helper function to sanitize filenames (ADD THIS FUNCTION if not present) ---
 function sanitizeFilename(filename) {
-    // Replace spaces with underscores
-    // Remove characters that are often problematic in URLs/paths
-    // Keep the file extension
-    const nameWithoutExtension = filename.substring(0, filename.lastIndexOf('.')) || filename;
-    const extension = filename.substring(filename.lastIndexOf('.'));
-    
-    const sanitizedName = nameWithoutExtension
-        .replace(/\s+/g, '_')        // Replace spaces with underscores
-        .replace(/[^a-zA-Z0-9_\-\.]/g, '') // Remove invalid characters (allow letters, numbers, _, -, .)
-        .replace(/_{2,}/g, '_')     // Replace multiple underscores with single
-        .replace(/\_+$/, '')       // Remove trailing underscore
-        .replace(/^_+/, '');        // Remove leading underscore
-        
-    // If sanitization results in an empty name, use a default
-    const finalName = sanitizedName || 'uploaded_image';
-    
-    return finalName + extension;
+    let cleaned = filename.replace(/\s+/g, '_'); 
+    cleaned = cleaned.replace(/[^a-zA-Z0-9_.-]/g, ''); 
+    if (cleaned.match(/^\.+$/) || cleaned.startsWith('.')) {
+        cleaned = '_' + cleaned;
+    }
+    const maxLength = 100;
+    if (cleaned.length > maxLength) {
+        const extMatch = cleaned.match(/\.[^.]*$/);
+        const ext = extMatch ? extMatch[0] : '';
+        cleaned = cleaned.substring(0, maxLength - ext.length) + ext;
+    }
+    return cleaned || 'untitled_image';
 }
 
-// --- Function to Handle Image Upload --- 
+// --- Function to Handle Image Upload (for multiple files) --- 
 async function handleImageUploadSubmit(event) {
-    event.preventDefault(); // Prevent default form submission
+    event.preventDefault(); 
 
-    const imageFile = document.getElementById('image-file').files[0];
+    const imageFiles = document.getElementById('image-file').files;
     const currentAlbumId = imageManagementSection.dataset.currentAlbumId;
     const uploadForm = document.getElementById('upload-image-form');
     const submitButton = uploadForm.querySelector('button[type="submit"]');
-    // Optional: Get caption if you add an input field for it
-    // const caption = document.getElementById('image-caption')?.value.trim() || '';
+    const imageCaptionInput = document.getElementById('image-caption'); // Get the caption input
 
-    if (!imageFile) {
-        alert('Please select an image file to upload.');
+    if (!imageFiles || imageFiles.length === 0) {
+        alert('Please select one or more image files to upload.');
         return;
     }
 
@@ -479,97 +516,126 @@ async function handleImageUploadSubmit(event) {
         return;
     }
 
-    if (!imageFile.type.startsWith('image/')) {
-        alert('Please select a valid image file (e.g., JPG, PNG, GIF).');
-        return;
-    }
-
-    const options = {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 1280,
-        useWebWorker: true,
-        initialQuality: 0.8,
-    }
-
     submitButton.disabled = true;
-    submitButton.textContent = 'Compressing...';
+    submitButton.textContent = 'Processing...';
 
-    let compressedFile = imageFile;
+    let successfulUploadCount = 0;
+    const totalFiles = imageFiles.length;
+    const errorMessages = [];
 
-    try {
-        console.log(`Original file size: ${(imageFile.size / 1024 / 1024).toFixed(2)} MB`);
-        compressedFile = await imageCompression(imageFile, options);
-        console.log(`Compressed file size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
-
-        submitButton.textContent = 'Uploading...';
-
+    for (let i = 0; i < totalFiles; i++) {
+        const imageFile = imageFiles[i];
         const originalName = imageFile.name;
-        const nameToSanitize = compressedFile.name || originalName;
-        const sanitizedName = sanitizeFilename(nameToSanitize);
-        const filePath = `${currentAlbumId}/${sanitizedName}`;
+        submitButton.textContent = `Processing ${i + 1} of ${totalFiles}: ${escapeHTML(originalName).substring(0, 20)}...`;
 
-        console.log(`Uploading ${sanitizedName} (originally ${originalName}) to ${filePath}...`);
+        if (!imageFile.type.startsWith('image/')) {
+            console.warn(`Skipping non-image file: ${escapeHTML(originalName)}`);
+            errorMessages.push(`Skipped non-image file: ${escapeHTML(originalName)}`);
+            continue; 
+        }
 
-        // --- Step 1: Upload to Storage --- 
-        const { data: uploadData, error: uploadError } = await supabase
-            .storage
-            .from(BUCKET_NAME)
-            .upload(filePath, compressedFile, {
-                cacheControl: '3600',
-                upsert: false // Set to true if you want to overwrite existing files with the same name
-            });
+        const options = {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1280,
+            useWebWorker: true,
+            initialQuality: 0.90,
+        };
 
-        if (uploadError) {
-            console.error('Supabase upload error:', uploadError.message || JSON.stringify(uploadError));
-            if (uploadError.message.includes('already exists') || (uploadError.error === 'Duplicate' && uploadError.statusCode === '409')) {
-                 alert(`Error: An image named "${sanitizedName}" already exists in this album. Please rename the file or delete the existing one.`);
-                 // No need to throw here, just alert and stop
-                 return; // Stop execution if duplicate
+        try {
+            console.log(`Original file size (${escapeHTML(originalName)}): ${(imageFile.size / 1024 / 1024).toFixed(2)} MB`);
+            submitButton.textContent = `Compressing ${i + 1} of ${totalFiles}: ${escapeHTML(originalName).substring(0, 20)}...`;
+            const compressedFile = await imageCompression(imageFile, options);
+            console.log(`Compressed file size (${escapeHTML(originalName)}): ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
+            
+            submitButton.textContent = `Uploading ${i + 1} of ${totalFiles}: ${escapeHTML(originalName).substring(0, 20)}...`;
+
+            // const nameToSanitize = compressedFile.name || originalName;
+            // const sanitizedName = sanitizeFilename(nameToSanitize); 
+            // const filePath = `${currentAlbumId}/${sanitizedName}`;
+
+            // --- MODIFICATION: Generate a unique filename --- 
+            let originalExtension = '';
+            const lastDot = originalName.lastIndexOf('.');
+            if (lastDot > -1 && lastDot < originalName.length - 1) {
+                originalExtension = originalName.substring(lastDot).toLowerCase(); // e.g., .jpg, .png
+            }
+
+            // Generate a unique name part (timestamp + random string)
+            const uniqueNamePart = Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
+            const newFileName = uniqueNamePart + originalExtension; // e.g., "kxvzpr45_abc123de.jpg"
+            
+            const filePath = `${currentAlbumId}/${newFileName}`;
+            // --- END MODIFICATION ---
+
+            console.log(`Uploading ${escapeHTML(newFileName)} (originally ${escapeHTML(originalName)}) to ${filePath}...`);
+
+            const { data: uploadData, error: uploadError } = await supabase
+                .storage
+                .from(BUCKET_NAME) 
+                .upload(filePath, compressedFile, {
+                    cacheControl: '3600',
+                    upsert: false 
+                });
+
+            if (uploadError) {
+                console.error(`Supabase upload error for ${escapeHTML(originalName)}:`, uploadError.message || JSON.stringify(uploadError));
+                // --- MODIFICATION: Use newFileName in error message if relevant ---
+                if (uploadError.message.includes('already exists') || (uploadError.error === 'Duplicate' && uploadError.statusCode === '409')) {
+                    errorMessages.push(`Error for ${escapeHTML(originalName)}: An image named "${escapeHTML(newFileName)}" already exists in the album.`);
+                } else {
+                    errorMessages.push(`Upload error for ${escapeHTML(originalName)}: ${uploadError.message}`);
+                }
+                continue; 
+            }
+            console.log(`Storage Upload successful for ${escapeHTML(originalName)}:`, uploadData);
+
+            const captionValue = imageCaptionInput ? imageCaptionInput.value.trim() : ''; // Get caption value
+
+            // --- MODIFICATION: Include caption in the insert data --- 
+            const insertPayload = {
+                album_id: currentAlbumId,
+                image_url: filePath,
+            };
+            if (captionValue) { // Only add caption if it's not empty
+                insertPayload.caption = captionValue;
+            }
+
+            const { data: insertData, error: insertError } = await supabase
+                .from('gallery_images')
+                .insert([insertPayload]) // Use the payload with optional caption
+                .select();
+            // --- END MODIFICATION ---
+
+            if (insertError) {
+                console.error(`Error inserting image record for ${escapeHTML(originalName)}:`, insertError.message);
+                errorMessages.push(`DB insert error for ${escapeHTML(originalName)}: ${insertError.message}.`);
             } else {
-                throw uploadError; // Throw other upload errors
+                console.log(`Database insert successful for ${escapeHTML(originalName)}:`, insertData);
+                successfulUploadCount++;
+            }
+
+        } catch (error) {
+            console.error(`Error processing ${escapeHTML(originalName)}:`, error.message || JSON.stringify(error));
+            if (error.message && error.message.includes('imageCompression')) {
+                errorMessages.push(`Compression error for ${escapeHTML(originalName)}: ${error.message}`);
+            } else {
+                errorMessages.push(`Processing error for ${escapeHTML(originalName)}: ${error.message}`);
             }
         }
+    } 
 
-        console.log('Storage Upload successful:', uploadData);
+    submitButton.disabled = false;
+    submitButton.textContent = 'Upload Image(s)';
+    if (uploadForm) uploadForm.reset(); // This will also clear the caption input
 
-        // --- Step 2: Insert into gallery_images table --- 
-        console.log(`Inserting record into gallery_images for album ${currentAlbumId} with path ${filePath}`);
-        const { data: insertData, error: insertError } = await supabase
-            .from('gallery_images')
-            .insert([
-                {
-                    album_id: currentAlbumId,
-                    image_url: filePath, // Store the path used for upload
-                    // caption: caption // Uncomment if you add a caption field
-                }
-            ])
-            .select(); // Optionally select the inserted data
+    let finalMessage = '';
+    if (successfulUploadCount > 0) finalMessage += `${successfulUploadCount} of ${totalFiles} image(s) uploaded successfully.\n`;
+    if (errorMessages.length > 0) finalMessage += `\nEncountered ${errorMessages.length} error(s):\n- ${errorMessages.join('\n- ')}`;
+    if (!finalMessage) finalMessage = 'No images processed or selected. Check file types or console.';
+    
+    alert(finalMessage.trim());
 
-        if (insertError) {
-            // If DB insert fails, maybe try to delete the uploaded file?
-            // This is more complex error handling, for now just log and alert.
-            console.error('Error inserting image record into database:', insertError.message);
-            alert(`Image uploaded to storage, but failed to save record to database: ${insertError.message}. Please try deleting the image and uploading again.`);
-            // Don't throw here, as the file *is* uploaded, but let the user know.
-        } else {
-            console.log('Database insert successful:', insertData);
-            alert('Image uploaded and record saved successfully!');
-            uploadForm.reset();
-            loadImageList(currentAlbumId); // Reload the list to show the new image
-        }
-
-    } catch (error) {
-        // Catch errors from compression or non-duplicate upload errors
-        console.error('Error during compression or upload:', error.message || JSON.stringify(error));
-        if (error.message.includes('imageCompression')) {
-             alert(`Error during image compression: ${error.message || JSON.stringify(error)}`);
-        } else {
-             alert(`Error during upload: ${error.message || JSON.stringify(error)}`);
-        }
-    } finally {
-        submitButton.disabled = false;
-        submitButton.textContent = 'Upload Image';
-    }
+    if (successfulUploadCount > 0 || errorMessages.length > 0) loadImageList(currentAlbumId);
 }
 
 

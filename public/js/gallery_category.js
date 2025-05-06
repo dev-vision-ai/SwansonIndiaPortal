@@ -80,6 +80,7 @@ async function loadAlbumsByCategory(category) {
     }
 
     albumListElement.innerHTML = '<p>Loading albums...</p>'; // Show loading message
+    albumListElement.classList.remove('album-grid'); // Ensure album-grid class is removed for album listing view
 
     try {
         // Fetch albums for the category
@@ -169,6 +170,7 @@ async function loadImagesByAlbum(albumId) {
 
     albumListElement.innerHTML = '<p>Loading images...</p>';
     categoryTitleElement.textContent = 'Loading Album...';
+    albumListElement.classList.add('album-grid'); // Ensure album-grid class is added for image grid view
 
     try {
         // --- Step 1: Fetch Album Details --- 
@@ -202,7 +204,7 @@ async function loadImagesByAlbum(albumId) {
         }
 
         albumListElement.innerHTML = ''; // Clear loading message
-        albumListElement.classList.add('image-grid'); // Add class for grid styling
+        // The 'album-grid' class is already on #album-list in the HTML.
 
         if (!images || images.length === 0) {
             albumListElement.innerHTML = '<p>No images found in this album.</p>';
@@ -220,8 +222,8 @@ async function loadImagesByAlbum(albumId) {
                 const imageUrl = escapeHTML(urlData.publicUrl);
                 const albumNameEscaped = escapeHTML(albumName);
 
-                const imgContainer = document.createElement('div');
-                imgContainer.classList.add('image-grid-item');
+                const imgContainer = document.createElement('figure'); // Changed div to figure
+                imgContainer.classList.add('gallery-item');
                 
                 // <<< START CHANGE: Use glightbox class >>>
                 // The 'glightbox' class triggers the library
@@ -230,7 +232,8 @@ async function loadImagesByAlbum(albumId) {
                     <a href="${imageUrl}" class="glightbox" data-gallery="album-${albumId}">
                         <img src="${imageUrl}" alt="Image from ${albumNameEscaped}" loading="lazy">
                     </a>
-                `;
+                `; // REMOVED: <figcaption>${albumNameEscaped}</figcaption>
+                // And added figcaption
                 // <<< END CHANGE >>>
                 
                 albumListElement.appendChild(imgContainer);
@@ -255,7 +258,7 @@ async function loadImagesByAlbum(albumId) {
         console.error('Error loading images for album:', error.message);
         albumListElement.innerHTML = `<p class="error-message">Error loading images: ${error.message}</p>`;
         categoryTitleElement.textContent = 'Error Loading Album';
-        albumListElement.classList.remove('image-grid'); // Remove grid class on error
+        // The 'album-grid' class from HTML should persist on error.
     }
 }
 

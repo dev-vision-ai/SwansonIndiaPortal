@@ -65,6 +65,10 @@
                     <label for="album-description">Album Description (Optional):</label>
                     <textarea id="album-description" name="album_description"></textarea>
                 </div>
+                <div class="form-group form-check">
+                    <input type="checkbox" class="form-check-input" id="album-is-featured-news">
+                    <label class="form-check-label" for="album-is-featured-news">Feature as News on Homepage</label>
+                </div>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Create Album</button>
                 </div>
@@ -92,14 +96,19 @@
             <!-- Placeholder for Image Upload Form -->
             <div id="upload-image-section">
                 <h5>Upload New Image</h5>
-                <form id="upload-image-form">
+                <form id="upload-image-form" class="mb-3">
                     <div class="form-group">
-                        <label for="image-file">Select Image:</label>
-                        <input type="file" id="image-file" name="imageFile" accept="image/*" required>
+                        <label for="image-file">Select Image(s):</label>
+                        <input type="file" class="form-control-file" id="image-file" name="image-file" accept="image/*" multiple>
                     </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Upload Image</button>
+                    <!-- ADD THIS SECTION FOR CAPTION -->
+                    <div class="form-group">
+                        <label for="image-caption">Caption (optional):</label>
+                        <input type="text" class="form-control" id="image-caption" name="image-caption" placeholder="Enter a caption for the image(s)">
+                        <small class="form-text text-muted">If uploading multiple images, this caption will be applied to all of them in this batch.</small>
                     </div>
+                    <!-- END ADD CAPTION SECTION -->
+                    <button type="submit" class="btn btn-primary">Upload Image(s)</button>
                 </form>
             </div>
 

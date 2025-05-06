@@ -477,28 +477,6 @@ footer, .footer { /* Use whichever selector is already present, or both */
     margin-top: auto; /* Added - Pushes footer down */
 }
 
-.album-item {
-    /* Add other styles like border, padding, background if needed */
-    text-align: center; /* Center align content */
-    margin-bottom: 20px; /* Space below items */
-}
-
-.album-thumbnail {
-    max-width: 100%; /* Ensure image fits container */
-    height: 150px; /* Example fixed height */
-    object-fit: cover; /* Scale image nicely */
-    display: block; /* Make it a block element */
-    margin: 0 auto 10px auto; /* Center image and add space below */
-    border: 1px solid #eee; /* Optional border */
-}
-
-/* You might already have .album-grid styles, adjust if necessary */
-.album-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Responsive columns */
-    gap: 20px; /* Space between grid items */
-}
-
 /* Styles for the image grid view */
 .image-grid {
     display: grid;
@@ -697,26 +675,4 @@ main {
 footer, .footer { /* Use whichever selector is already present, or both */
     /* Remove any position: fixed/absolute, bottom: 0, width: 100% */
     margin-top: auto; /* Added - Pushes footer down */
-}
-
-.album-item {
-    /* Add other styles like border, padding, background if needed */
-    text-align: center; /* Center align content */
-    margin-bottom: 20px; /* Space below items */
-}
-
-.album-thumbnail {
-    max-width: 100%; /* Ensure image fits container */
-    height: 150px; /* Example fixed height */
-    object-fit: cover; /* Scale image nicely */
-    display: block; /* Make it a block element */
-    margin: 0 auto 10px auto; /* Center image and add space below */
-    border: 1px solid #eee; /* Optional border */
-}
-
-/* You might already have .album-grid styles, adjust if necessary */
-.album-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Responsive columns */
-    gap: 20px; /* Space between grid items */
 }

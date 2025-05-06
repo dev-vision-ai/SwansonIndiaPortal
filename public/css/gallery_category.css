@@ -1,0 +1,569 @@
+/* Reset and base styles */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    padding-top: 100px;
+    font-family: 'DM Sans', 'Noto Sans TC', 'Noto Sans SC', sans-serif;
+    background-image: url('../assets/page-bg.png');  /* Adjusted path */
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #ffffff;
+    color: #1d1d1d;
+    line-height: 1.6;
+    min-height: 100vh;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Navbar */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: #ffffff;
+    padding: 15px 0; /* Base padding - slightly reduced */
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    border-bottom: 7px solid #e4c829; /* Added yellow line */
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between; /* <<< Change this back */
+    align-items: center;
+    max-width: 1800px; /* Adjusted max-width */
+    margin: 0 auto; /* Center the container */
+    padding: 0 15px 0 30px; /* Adjusted horizontal padding */
+    gap: 15px; /* Base gap */
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 15px; /* Added margin to push it right */
+    /* margin-right: auto; Removed - let space-between handle spacing */
+}
+
+.logo {
+    height: 45px; /* Base logo height - slightly reduced */
+    flex-shrink: 0; /* Prevent logos from shrinking disproportionately */
+}
+
+.nav-links {
+    display: flex; /* Ensure nav links are in a flex container */
+    align-items: center; /* Vertically align links */
+    flex-wrap: nowrap; /* Prevent wrapping by default */
+    /* overflow: hidden; */
+    /* Ensure margin-left: auto; is REMOVED if it exists */
+}
+
+.nav-links a {
+    color: #002E7D;
+    text-decoration: none;
+    font-weight: 600;
+    margin: 0 15px; /* Base margin */
+    transition: color 0.3s ease;
+    font-size: 1.0rem;  /* Base font size */
+    white-space: nowrap; /* Prevent link text wrapping */
+}
+
+.nav-links a:hover {
+    color: #e4c829;
+}
+
+.company-names {
+    display: flex;
+    flex-direction: column;
+}
+
+.company-name, .company-name-translated {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0a3083; /* Changed color to black */
+}
+
+/* Also include dropdown styles if not already present and consistent */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-toggle {
+    color: #002E7D;
+    text-decoration: none;
+    font-weight: 600;
+    margin: 0 15px; /* Match nav-links a margin */
+    transition: color 0.3s ease;
+    cursor: pointer;
+    font-size: 1.0rem; /* Match nav-links a font-size */
+    white-space: nowrap;
+}
+
+.dropdown-toggle i {
+    margin-left: 5px;
+    font-size: 0.8em;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    background-color: #ffffff;
+    min-width: 160px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    padding: 8px 0;
+    z-index: 1001;
+    left: 0; /* Align dropdown to the left of the toggle */
+    top: 100%; /* Position below the toggle */
+}
+
+.dropdown-menu a {
+    color: #002E7D;
+    padding: 10px 16px; /* Adjusted padding */
+    text-decoration: none;
+    display: block;
+    font-size: 0.95rem; /* Slightly smaller font */
+    white-space: nowrap;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+.dropdown-menu a:hover {
+    background-color: #f8f9fa;
+    color: #e4c829;
+}
+
+/* --- Footer Styling (Copied from index.css) --- */
+.footer {
+    background-color: #002E7D; /* Dark blue background for the whole footer */
+    color: #f0f0f0; /* Light default text color for the footer */
+    padding-top: 30px; 
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: row; 
+    flex-wrap: wrap; 
+    justify-content: center; 
+    align-items: flex-start; 
+    max-width: 1400px; 
+    margin: 0 auto; 
+    padding: 20px 20px 20px; 
+    gap: 40px; 
+}
+
+/* Style for the individual sections */
+.footer-map-section,
+.footer-contact-section,
+.footer-links-section {
+    flex: 1; 
+    min-width: 300px; 
+    max-width: 450px; 
+    text-align: center; 
+    /* Removed background, padding, border-radius, shadow from individual sections */
+}
+
+.footer-map-section .map-container {
+    max-width: 100%; 
+    margin: 0 auto 20px; /* Add bottom margin to map */
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Slightly darker shadow for contrast */
+}
+
+.footer-map-section .map-container iframe {
+    display: block;
+    width: 100%;
+    height: 250px; 
+}
+
+.footer-contact-section h4,
+.footer-links-section h4 {
+    margin-bottom: 20px; 
+    font-size: 1.4rem; 
+    color: #ffffff; 
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.footer-contact-section p {
+    margin: 0;
+    line-height: 1.7;
+    color: #d0d0d0; 
+}
+
+.footer-links-section a {
+    display: block; 
+    margin: 10px 0; 
+    color: #e0e0e0; 
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.footer-links-section a:hover {
+    color: #e4c829; 
+}
+
+.footer-copyright {
+    text-align: center;
+    padding: 10px 0; 
+    margin-top: 10px; 
+    border-top: 1px solid #00408a; 
+    color: #a0a0a0; 
+    font-size: 0.9rem;
+    background-color: #002159; 
+}
+
+body {
+    display: flex; /* Added */
+    flex-direction: column; /* Added */
+    min-height: 100vh; /* Added - Ensures body takes full viewport height */
+}
+
+/* Find the existing 'main' selector or add it if it doesn't exist */
+main {
+    flex-grow: 1; /* Added - Allows main content to expand */
+}
+
+/* Find the existing 'footer' or '.footer' selector */
+footer, .footer { /* Use whichever selector is already present, or both */
+    /* Remove any position: fixed/absolute, bottom: 0, width: 100% */
+    margin-top: auto; /* Added - Pushes footer down */
+}
+
+
+/* =============================================== */
+/* === GALLERY CATEGORY PAGE STYLES === */
+/* =============================================== */
+
+/* --- Page Body & Main Container --- */
+main.container.section { 
+    max-width: 1800px; 
+    margin: 20px auto; 
+    padding: 20px 25px; 
+}
+
+#category-title {
+    text-align: center;
+    /* margin-bottom: 20px; */ 
+    color: #1A2E3B; 
+    font-size: 2.8em;
+    font-weight: 700; 
+    /* padding-bottom: 20px; */ 
+    border-bottom: 3px solid #DDE2E5; 
+    letter-spacing: -0.5px;
+
+    /* Added styles for container look */
+    background-color: #002E7D; 
+    text-align: center;
+    color: #ffffff;
+    font-size: 2.2em;
+    padding: 05px 25px; /* Reduced top/bottom padding */
+    margin-left: auto; 
+    margin-right: auto; 
+    margin-bottom: 0; 
+    max-width: 1800px; 
+    border-top-left-radius: 8px; 
+    border-top-right-radius: 8px; 
+    /* border-bottom: none; */ 
+}
+
+/* --- Album Listing Styles (when #album-list does NOT have .album-grid) --- */
+#album-list:not(.album-grid) {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(200px, 1fr));
+    gap: 10px;
+    padding: 20px; 
+    margin: 0 auto; /* Changed margin-top to 0 */
+    max-width: 1800px;
+    background-color: #f8f9fa; 
+    /* border-radius: 8px; */ /* Remove top radius if title has it */
+    border-bottom-left-radius: 8px; /* Keep bottom radius */
+    border-bottom-right-radius: 8px; /* Keep bottom radius */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
+}
+
+#album-list:not(.album-grid) .album-item {
+    background-color: #ffffff;
+    border: 1px solid #E7E9EC;
+    border-radius: 0; /* Removed rounded corners */
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(26, 46, 59, 0.07);
+    /* transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); */ /* REMOVED */
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+
+#album-list:not(.album-grid) .album-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(26, 46, 59, 0.15);
+}
+
+#album-list:not(.album-grid) .album-item .album-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex; /* Make the link fill the item and allow flex for its children */
+    flex-direction: column;
+    flex-grow: 1; /* Ensure link takes up all space in album-item */
+}
+
+#album-list:not(.album-grid) .album-item .album-thumbnail {
+    width: 100%;
+    height: 180px; /* Adjusted height for album thumbnails */
+    object-fit: cover;
+    display: block;
+    /* border-bottom: 1px solid #f0f2f5; */ /* Optional: matches gallery-caption border-top */
+    transition: opacity 0.3s ease;
+}
+
+#album-list:not(.album-grid) .album-item:hover .album-thumbnail {
+    opacity: 0.85; /* Slight opacity change on hover */
+}
+
+#album-list:not(.album-grid) .album-item h3 {
+    font-size: 1.15em; /* Slightly larger for album titles */
+    color: #1A2E3B; /* Darker, more prominent color */
+    margin: 15px 15px 8px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+#album-list:not(.album-grid) .album-item p {
+    font-size: 0.9em;
+    color: #5A6F7F; /* Softer color for description */
+    margin: 0 15px 15px;
+    line-height: 1.5;
+    flex-grow: 1; /* Allow description to take available space */
+    /* Basic truncation for long descriptions */
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Show up to 3 lines */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: calc(0.9em * 1.5 * 1); /* Minimum height for at least one line, adjust if needed */
+}
+
+/* --- Image Grid (Album Content) --- */
+.album-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(220px, 1fr));
+    gap: 5px; 
+    margin: 0 auto; /* Changed margin-top to 0 */
+    max-width: 1800px;
+    padding: 20px;
+    background-color: #f8f9fa; 
+    /* border-radius: 8px; */ /* Remove top radius if title has it */
+    border-bottom-left-radius: 8px; /* Keep bottom radius */
+    border-bottom-right-radius: 8px; /* Keep bottom radius */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
+}
+
+.gallery-item {
+    background-color: #ffffff;
+    border: 1px solid #E7E9EC;
+    border-radius: 0; /* Removed rounded corners */
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(26, 46, 59, 0.07);
+    /* transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); */ /* REMOVED */
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.gallery-item img { /* Targets <img> tags within .gallery-item */
+    width: 100%;
+    height: 200px; 
+    object-fit: cover; 
+    display: block;
+    cursor: pointer;
+    transition: opacity 0.3s ease; /* Added transition for smooth opacity change */
+}
+
+.gallery-item:hover img {
+    opacity: 0.75; /* Set desired opacity on hover */
+}
+
+#album-list:not(.album-grid) .album-item .album-thumbnail {
+    width: 100%;
+    height: 180px; /* Adjusted height for album thumbnails */
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.3s ease; /* Added transition for smooth opacity change */
+}
+
+#album-list:not(.album-grid) .album-item:hover .album-thumbnail {
+    opacity: 0.75; /* Set desired opacity on hover */
+}
+
+.gallery-caption { /* This class should be on the <figcaption> created by JS */
+    padding: 18px 22px;
+    font-size: 1em; 
+    color: #34495E; 
+    background-color: #fcfdfe; 
+    text-align: left;
+    line-height: 1.5;
+    border-top: 1px solid #f0f2f5; 
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
+/* --- Lightbox --- */
+.lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(20, 30, 40, 0.92); 
+    display: none; /* Initially hidden, shown by JS */
+    justify-content: center;
+    align-items: center;
+    z-index: 10000; 
+    padding: 20px;
+    box-sizing: border-box;
+    -webkit-backdrop-filter: blur(5px); 
+    backdrop-filter: blur(5px);
+}
+
+.lightbox-content {
+    position: relative;
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 6px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+    max-width: 88vw;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: lightboxFadeIn 0.4s ease-out;
+}
+
+@keyframes lightboxFadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+#lightbox-image { /* The <img> tag inside the lightbox */
+    max-width: 100%;
+    max-height: calc(85vh - 80px); 
+    display: block;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    object-fit: contain; 
+}
+
+.lightbox-caption-text { /* The caption <div> or <p> inside the lightbox */
+    color: #2c3e50;
+    font-size: 1.15em;
+    font-weight: 500;
+    text-align: center;
+    padding: 10px 0 0 0;
+    max-height: 70px;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.close-lightbox { /* The close button (X) for the lightbox */
+    position: absolute;
+    top: -18px;
+    right: -18px;
+    color: #1A2E3B;
+    background-color: #fff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    border: 2px solid #fff; 
+}
+
+.close-lightbox:hover {
+    transform: rotate(90deg) scale(1.05);
+    background-color: #f1f1f1;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
+
+/* --- Responsive Refinements for Gallery Page --- */
+@media (max-width: 1200px) {
+    .album-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+    }
+}
+
+@media (max-width: 992px) {
+    #category-title { font-size: 2.4em; margin-bottom: 40px; }
+    .album-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+    }
+    .gallery-item img { height: 220px; }
+}
+
+@media (max-width: 768px) {
+    #category-title { font-size: 2.1em; margin-bottom: 30px; }
+    .album-grid {
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 20px;
+    }
+    .gallery-item img { height: 200px; }
+    .lightbox-content { max-width: 92vw; max-height: 92vh; padding: 20px; }
+    #lightbox-image { max-height: calc(88vh - 70px); }
+    .close-lightbox { width: 36px; height: 36px; font-size: 18px; top: -15px; right: -15px;}
+}
+
+@media (max-width: 576px) {
+    main.container.section { padding: 15px; } /* More specific padding for small screens */
+    #category-title { font-size: 1.9em; margin-bottom: 25px; }
+    .album-grid {
+        grid-template-columns: 1fr; /* Single column */
+        gap: 25px;
+    }
+    .gallery-item img { height: 250px; }
+    .lightbox-content { width: calc(100% - 20px); padding: 15px; }
+    #lightbox-image { max-height: calc(80vh - 60px); }
+    .close-lightbox { width: 32px; height: 32px; font-size: 16px; top: 10px; right: 10px; background-color: rgba(255,255,255,0.8); color: #333; border: none;}
+}
+
+/* Loading/Error Message Styling for Gallery Page */
+#album-list p { /* This targets <p> tags directly inside #album-list, used for loading/error messages by JS */
+    font-size: 1.1em;
+    color: #555;
+    text-align: center;
+    padding: 40px 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.error-message { /* Class added by JS to the <p> tag on error */
+    color: #e74c3c !important; 
+    font-weight: 500;
+    background-color: #fdedec !important;
+    border: 1px solid #f5c6cb !important;
+}
