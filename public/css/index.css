@@ -139,19 +139,22 @@ body {
     position: relative;
 }
 
+#featured-slideshow-section {
+    min-height: 600px;
+    width: 90%;
+    margin: 0 auto;
+}
+
 .section h2 {
     font-size: 2.8rem;
     color: #002E7D;
     margin-bottom: 40px;
     position: relative;
     padding-bottom: 20px;
-    text-align: center;  /* Added text-align center */
-    width: 100%;  /* Added full width */
-}
-
-.container.center {
-    text-align: center;  /* Added text-align center */
-    width: 100%;  /* Added full width */
+    text-align: center;
+    width: 100%;
+    font-weight: 700; /* Ensure consistent font weight */
+    letter-spacing: 0.5px; /* Add letter spacing for readability */
 }
 
 .section h2::after {
@@ -164,16 +167,51 @@ body {
     height: 4px;
     background: linear-gradient(to right, #002E7D, #e4c829);
     border-radius: 2px;
+    margin-top: 10px; /* Add margin for spacing */
 }
 
 /* Service Cards Enhancement */
 .grid-3 {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 50px;
-    max-width: 1800px;
-    margin: 50px auto;
-    padding: 0 60px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.service-card {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.service-card h4 {
+    font-size: 1.8rem;
+    color: #002E7D;
+    margin: 20px 0 15px;
+    font-weight: 600;
+}
+
+.service-card p {
+    font-size: 1.15rem;
+    color: #555;
+    line-height: 1.6;
+    margin-top: 15px;
+}
+
+.policy-icon {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin: 0 auto 20px;
+    display: block;
 }
 
 .service-card {
@@ -422,10 +460,20 @@ body {
 
 .product-single img {
     width: 100%;
-    max-width: 600px;  /* Increased image width */
+    max-width: 600px;
     border-radius: 15px;
     margin-bottom: 30px;
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    image-rendering: -webkit-optimize-contrast; /* Chrome/Safari */
+    image-rendering: crisp-edges; /* Firefox */
+    image-rendering: pixelated; /* Fallback */
+    filter: drop-shadow(0 0 2px rgba(0,0,0,0.2));
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.product-single img:hover {
+    transform: scale(1.01);
+    filter: drop-shadow(0 0 4px rgba(0,0,0,0.3));
 }
 
 .product-single h4 {
@@ -480,6 +528,55 @@ body {
     display: block;
     width: 100%;
     height: 220px; /* Reduced height from 250px */
+}
+
+/* Quality Policy Section */
+.policy-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 50px;
+    max-width: 1800px;
+    margin: 50px auto;
+    padding: 0 60px;
+}
+
+.policy-item {
+    background: #f8f9ff; /* Changed to a solid color */
+    padding: 40px 30px;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.policy-item:hover i {
+    color: #e4c829;
+    transform: scale(1.1);
+}
+
+.policy-item i {
+    font-size: 3.5rem;
+    color: #002E7D;
+    margin-bottom: 25px;
+    transition: all 0.3s ease;
+}
+
+.policy-item h4 {
+    font-size: 1.8rem;
+    color: #002E7D;
+    margin: 20px 0;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.policy-item p {
+    font-size: 1.15rem;
+    color: #444;
+    line-height: 1.8;
+    margin-top: 15px;
+    font-weight: 400;
 }
 
 /* --- Footer Styling --- */
@@ -650,17 +747,19 @@ body {
 /* Slideshow container */
 .slideshow-container {
   position: relative;
-  max-width: 1000px; /* Adjust as needed */
-  margin: auto;
-  overflow: hidden; /* Important for fade effect */
+  max-width: 1200px; /* Increased width */
+  margin: 40px auto; /* Added vertical margin */
+  overflow: hidden;
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  padding: 20px; /* Added padding */
+  background-color: rgba(255, 255, 255, 0.699);
 }
 
 #slideshow-inner {
-    position: relative; /* Needed for absolute positioning of slides if using that method */
+    position: relative;
     width: 100%;
-    /* Height will be set by JS or aspect ratio padding-bottom trick if images vary */
+    min-height: 400px; /* Added minimum height */
 }
 
 /* Slides */
@@ -671,10 +770,14 @@ body {
 
 .slide img {
   width: 100%;
-  height: 500px; /* Or use aspect ratio, or set by JS */
-  object-fit: cover;
+  height: 600px;
+  object-fit: contain;
   display: block;
-  border-radius: 8px; /* If you want rounded images inside */
+  border-radius: 8px;
+  image-rendering: optimizeQuality;
+  filter: contrast(1.05) brightness(1.02);
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 /* Caption text */
@@ -741,4 +844,10 @@ body {
 @keyframes fade {
   from {opacity: .4}
   to {opacity: 1}
+}
+.policy-icon {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin-bottom: 20px;
 }

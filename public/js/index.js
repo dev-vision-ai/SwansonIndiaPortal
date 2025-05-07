@@ -292,8 +292,10 @@ const slideshowInner = document.getElementById('slideshow-inner');
 const slideDotsContainer = document.getElementById('slide-dots');
 
 async function fetchFeaturedSlideshowImages() {
-    if (!slideshowInner || !slideDotsContainer) {
-        console.log('Slideshow elements not found on this page.');
+    const featuredSlideshowSection = document.getElementById('featured-slideshow-section');
+    if (!slideshowInner || !slideDotsContainer || !featuredSlideshowSection) {
+        console.log('Slideshow elements or section not found on this page.');
+        if (featuredSlideshowSection) featuredSlideshowSection.style.display = 'none'; // Hide section if elements missing
         return;
     }
     console.log('Fetching featured slideshow images...');
@@ -302,11 +304,13 @@ async function fetchFeaturedSlideshowImages() {
         const { data: featuredAlbums, error: albumsError } = await supabase
             .from('gallery_albums')
             .select('id, album_name')
-            .eq('show_in_slideshow', true); // Use the correct column name
+            .eq('is_featured_news', true); // Changed to use is_featured_news column
 
         if (albumsError) throw albumsError;
         if (!featuredAlbums || featuredAlbums.length === 0) {
-            slideshowInner.innerHTML = '<p>No featured albums to display.</p>';
+            // slideshowInner.innerHTML = '<p>No featured albums to display.</p>';
+            console.log('No featured albums to display.');
+            featuredSlideshowSection.style.display = 'none'; // Hide the entire section
             return;
         }
 
@@ -337,16 +341,20 @@ async function fetchFeaturedSlideshowImages() {
         }
 
         if (slidesData.length === 0) {
-            slideshowInner.innerHTML = '<p>No images found in featured albums.</p>';
+            // slideshowInner.innerHTML = '<p>No images found in featured albums.</p>';
+            console.log('No images found in featured albums.');
+            featuredSlideshowSection.style.display = 'none'; // Hide the entire section
             return;
         }
 
+        featuredSlideshowSection.style.display = 'block'; // Ensure section is visible if there are slides
         renderSlides();
         showSlides(slideIndex);
 
     } catch (error) {
         console.error('Error fetching featured slideshow images:', error);
         if (slideshowInner) slideshowInner.innerHTML = '<p>Error loading slideshow images.</p>';
+        if (featuredSlideshowSection) featuredSlideshowSection.style.display = 'none'; // Hide on error too
     }
 }
 
@@ -358,7 +366,9 @@ function renderSlides() {
         const slideDiv = document.createElement('div');
         slideDiv.classList.add('slide', 'fade');
         slideDiv.innerHTML = `
-            <img src="${data.src}" alt="${data.albumName} - ${data.caption}">
+            <div class="slide-image-container">
+                <img src="${data.src}" alt="${data.albumName} - ${data.caption}" style="object-fit: contain; max-width: 100%; max-height: 100%;">
+            </div>
             <div class="slide-caption">${data.albumName}${data.caption ? ': ' + data.caption : ''}</div>
         `;
         slideshowInner.appendChild(slideDiv);

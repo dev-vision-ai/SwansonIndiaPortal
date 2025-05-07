@@ -8,6 +8,12 @@ const existingAlbumsListDiv = document.getElementById('existing-albums-list');
 // Add references to other elements as needed
 
 console.log('Gallery Admin JS loaded');
+if (!createAlbumForm) {
+    console.error('Create album form (create-album-form) not found!');
+}
+if (!existingAlbumsListDiv) {
+    console.error('Existing albums list div (existing-albums-list) not found!');
+}
 
 // --- Utility function to escape HTML (Good practice if displaying user input later) ---
 function escapeHTML(str) {
@@ -23,6 +29,7 @@ function escapeHTML(str) {
 // --- Authentication & Profile Loading --- 
 async function loadUserProfile() {
     console.time('loadUserProfile');
+    console.log('Attempting to load user profile...');
     try {
         console.time('getUser');
         const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -54,7 +61,9 @@ async function loadUserProfile() {
 
 
 // --- Album Management Functions (Keep as they are) ---
-async function createAlbum(category, albumName, description) { // <<< KEEP THIS VERSION
+async function createAlbum(category, albumName, description, isFeaturedNews) { // <<< MODIFIED: Added isFeaturedNews parameter
+    console.log(`Attempting to create album: Category='${category}', Name='${albumName}', Featured='${isFeaturedNews}'`);
+    console.time('createAlbumSupabaseCall');
     try {
         const { data, error } = await supabase
             .from('gallery_albums')
@@ -62,65 +71,99 @@ async function createAlbum(category, albumName, description) { // <<< KEEP THIS 
                 { 
                     category: category,
                     album_name: albumName, 
-                    album_description: description 
+                    album_description: description,
+                    is_featured_news: isFeaturedNews // <<< ADDED: Save the featured status
                 }
             ])
             .select();
+        console.timeEnd('createAlbumSupabaseCall');
 
         if (error) {
+            console.error('Supabase error during album creation:', error);
             throw error;
         }
 
-        console.log('Album created successfully:', data);
+        console.log('Album created successfully via Supabase:', data);
         alert('Album created successfully!');
-        createAlbumForm.reset();
-        loadExistingAlbums();
+        if (createAlbumForm) {
+            createAlbumForm.reset();
+        } else {
+            console.warn('createAlbumForm not found for reset after album creation.');
+        }
+        loadExistingAlbums(); // Reload albums after creation
 
     } catch (error) {
-        console.error('Error creating album:', error.message);
+        console.timeEnd('createAlbumSupabaseCall'); // Ensure timeEnd is called in case of early error
+        console.error('Error in createAlbum function:', error.message);
         alert(`Error creating album: ${error.message}`);
     }
 }
 
 // Function to handle the submission of the create album form
-function handleCreateAlbumSubmit(event) {
+async function handleCreateAlbumSubmit(event) {
     event.preventDefault();
+    console.log('handleCreateAlbumSubmit called.');
     
-    const category = document.getElementById('album-category').value.trim();
-    const albumName = document.getElementById('album-name').value.trim();
-    const description = document.getElementById('album-description').value.trim();
+    const categoryElement = document.getElementById('album-category');
+    const albumNameElement = document.getElementById('album-name');
+    const descriptionElement = document.getElementById('album-description');
+    const isFeaturedNewsElement = document.getElementById('album-is-featured-news');
 
-    if (!category || !albumName) {
-        alert('Category and Album Name are required.');
+    if (!categoryElement || !albumNameElement || !descriptionElement || !isFeaturedNewsElement) {
+        console.error('One or more form elements for album creation are missing.');
+        alert('Error: Form elements missing. Cannot create album.');
         return;
     }
 
-    createAlbum(category, albumName, description);
+    const category = categoryElement.value.trim();
+    const albumName = albumNameElement.value.trim();
+    const description = descriptionElement.value.trim();
+    const isFeaturedNews = isFeaturedNewsElement.checked; // <<< ADDED: Read checkbox value
+
+    console.log(`Form values: Category='${category}', Name='${albumName}', Description='${description}', Featured='${isFeaturedNews}'`);
+
+    if (!category || !albumName) {
+        alert('Category and Album Name are required.');
+        console.warn('Category or Album Name missing in form submission.');
+        return;
+    }
+
+    await createAlbum(category, albumName, description, isFeaturedNews); // <<< MODIFIED: Pass checkbox value
 }
 
 // --- Function to load existing albums --- 
 async function loadExistingAlbums() {
-    console.log('Loading existing albums...');
+    console.log('Attempting to load existing albums...');
+    console.time('loadExistingAlbums');
     if (!existingAlbumsListDiv) {
-        console.error('Existing albums list div not found!');
+        console.error('Existing albums list div (existing-albums-list) not found! Cannot load albums.');
+        console.timeEnd('loadExistingAlbums');
         return;
     }
 
     existingAlbumsListDiv.innerHTML = '<p>Loading albums...</p>';
 
     try {
+        console.time('loadExistingAlbumsSupabaseCall');
         // --- MODIFICATION: Select 'is_featured_news' --- 
         const { data: albums, error } = await supabase
             .from('gallery_albums')
             .select('*, is_featured_news') // <<< ADD is_featured_news HERE
             .order('created_at', { ascending: false });
+        console.timeEnd('loadExistingAlbumsSupabaseCall');
 
-        if (error) { throw error; }
+        if (error) { 
+            console.error('Supabase error during loading albums:', error);
+            throw error; 
+        }
 
+        console.log('Albums fetched from Supabase:', albums);
         existingAlbumsListDiv.innerHTML = '';
 
         if (!albums || albums.length === 0) {
             existingAlbumsListDiv.innerHTML = '<p>No albums found. Create one above!</p>';
+            console.log('No albums found in the database.');
+            console.timeEnd('loadExistingAlbums');
             return;
         }
 
@@ -132,6 +175,7 @@ async function loadExistingAlbums() {
                 <h4>${escapeHTML(album.album_name)}</h4>
                 <p><strong>Category:</strong> ${escapeHTML(album.category)}</p>
                 ${album.album_description ? `<p><strong>Description:</strong> ${escapeHTML(album.album_description)}</p>` : ''}
+                <p><strong>Featured News:</strong> ${album.is_featured_news ? 'Yes' : 'No'}</p> <!-- Added to display featured status -->
                 <div class="album-actions">
                     <button class="btn btn-info edit-album-btn" 
                             data-album-id="${album.id}" 
@@ -148,11 +192,16 @@ async function loadExistingAlbums() {
 
         // Add event listeners AFTER all buttons are added to the DOM
         addAlbumActionListeners(); 
+        console.log('Finished rendering existing albums.');
 
     } catch (error) {
-        console.error('Error loading albums:', error.message);
-        existingAlbumsListDiv.innerHTML = `<p class="error-message">Error loading albums: ${error.message}</p>`;
+        console.timeEnd('loadExistingAlbumsSupabaseCall'); // Ensure timeEnd is called in case of early error
+        console.error('Error in loadExistingAlbums function:', error.message);
+        if (existingAlbumsListDiv) {
+            existingAlbumsListDiv.innerHTML = `<p class="error-message">Error loading albums: ${error.message}</p>`;
+        }
     }
+    console.timeEnd('loadExistingAlbums');
 }
 
 // --- Function to Add Event Listeners to Album Buttons (Modify) ---
@@ -191,7 +240,7 @@ function addAlbumActionListeners() {
             const name = event.target.dataset.albumName;
             const category = event.target.dataset.albumCategory;
             const description = event.target.dataset.albumDescription;
-            // --- MODIFICATION: Get is_featured_news from data attribute --- 
+            // --- MODIFICATION: Get is_featured_news from data attribute ---
             const isFeaturedNews = event.target.dataset.isFeaturedNews === 'true'; // Convert string to boolean
             // Call the function to show the modal
             showEditAlbumModal(albumId, category, name, description, isFeaturedNews); // <<< Pass isFeaturedNews
@@ -199,11 +248,11 @@ function addAlbumActionListeners() {
     });
 }
 
-// --- Function to Delete an Album --- 
+// --- Function to Delete an Album ---
 async function deleteAlbum(albumId) {
     console.log(`Attempting to delete album with ID: ${albumId}`);
     try {
-        // --- Step 1: List files in the album's storage folder --- 
+        // --- Step 1: List files in the album's storage folder ---
         console.log(`Listing files in storage for album ${albumId}...`);
         const { data: files, error: listError } = await supabase
             .storage
@@ -216,7 +265,7 @@ async function deleteAlbum(albumId) {
             throw new Error(`Could not list files for deletion: ${listError.message}`);
         }
 
-        // --- Step 2: Delete the files if any exist --- 
+        // --- Step 2: Delete the files if any exist ---
         if (files && files.length > 0) {
             const filePaths = files.map(file => `${albumId}/${file.name}`);
             console.log(`Found ${filePaths.length} files to delete:`, filePaths);
@@ -234,7 +283,7 @@ async function deleteAlbum(albumId) {
             console.log('No associated files found in storage to delete.');
         }
 
-        // --- Step 3: Delete associated image records from gallery_images table --- 
+        // --- Step 3: Delete associated image records from gallery_images table ---
         console.log(`Deleting image records for album ${albumId} from gallery_images table...`);
         const { error: deleteImageRecordsError } = await supabase
             .from('gallery_images')
@@ -250,7 +299,7 @@ async function deleteAlbum(albumId) {
         }
         console.log('Successfully deleted associated image records from gallery_images.');
 
-        // --- Step 4: Delete the album record from the gallery_albums database --- 
+        // --- Step 4: Delete the album record from the gallery_albums database ---
         console.log(`Deleting album record ${albumId} from gallery_albums database...`);
         const { error: deleteAlbumRecordError } = await supabase
             .from('gallery_albums')
@@ -272,12 +321,31 @@ async function deleteAlbum(albumId) {
 
 // --- DOM Elements (Add new ones (Add new ones for Edit Modal) ---
 const editAlbumModal = document.getElementById('edit-album-modal');
-const editAlbumForm = document.getElementById('edit-album-form'); // Form inside the modal
+const editAlbumForm = document.getElementById('edit-album-form');
+
+// --- Function to Show Edit Album Modal ---
+function showEditAlbumModal(albumId, category, name, description, isFeatured) {
+    if (!editAlbumModal || !editAlbumForm) {
+        console.error('Edit album modal or form not found!');
+        return;
+    }
+    // Populate the form
+    document.getElementById('edit-album-id').value = albumId;
+    document.getElementById('edit-album-name').value = name;
+    document.getElementById('edit-album-description').value = description || '';
+    document.getElementById('edit-album-category').value = category; // Make sure categories are loaded in this select
+    document.getElementById('edit-album-is-featured-news').checked = isFeatured || false; // <<< MODIFIED ID HERE
+    
+    editAlbumModal.style.display = 'block';
+}
+
+
+
 const editAlbumIdInput = document.getElementById('edit-album-id');
 const editAlbumCategoryInput = document.getElementById('edit-album-category');
 const editAlbumNameInput = document.getElementById('edit-album-name');
 const editAlbumDescriptionInput = document.getElementById('edit-album-description');
-const editAlbumIsFeaturedNewsInput = document.getElementById('edit-album-is-featured-news'); // <<< ADD THIS LINE
+const editAlbumIsFeaturedNewsInput = document.getElementById('edit-album-is-featured-news'); // <<< This refers to the ID 'edit-album-is-featured-news'
 const createAlbumDescriptionInput = document.getElementById('album-description'); 
 const cancelEditButton = document.getElementById('cancel-edit-album-btn'); // Button in modal
 const imageManagementSection = document.getElementById('image-management');
@@ -285,7 +353,7 @@ const existingImagesListDiv = document.getElementById('existing-images-list');
 const imageManagementAlbumNameSpan = document.getElementById('image-management-album-name');
 const backToAlbumsButton = document.getElementById('back-to-albums');
 const createAlbumContentSection = document.getElementById('create-album-content-section'); 
-// const existingAlbumsContentSection = document.getElementById('existing-albums-content-section'); // We might not need this one
+// const existingAlbumsContentSection = document.getElementById('existing-albums-content-section'); // <<< REMOVED THIS LINE
 const existingAlbumsSection = document.getElementById('existing-albums-section'); // <<< ADD OR ENSURE THIS IS DEFINED
 
 // Add upload form elements later if needed
@@ -649,13 +717,30 @@ function initializeApp() {
     }
 
     // Listener for the EDIT form submission
+    // Inside your initializeApp or DOMContentLoaded
     if (editAlbumForm) {
-        editAlbumForm.addEventListener('submit', handleEditAlbumSubmit);
+    editAlbumForm.addEventListener('submit', handleEditAlbumSubmit);
     }
 
     // Listener for the cancel button in the edit modal
     if (cancelEditButton) {
         cancelEditButton.addEventListener('click', hideEditAlbumModal);
+    }
+
+    // Listener for a generic close button (e.g., "x" in the modal header) and clicking outside
+    if (editAlbumModal) {
+        const closeButton = editAlbumModal.querySelector('.close-button, .modal-header .close, [data-dismiss="modal"]');
+        if (closeButton) {
+            closeButton.addEventListener('click', hideEditAlbumModal);
+        }
+
+        // Listener for clicking outside the modal content to close
+        editAlbumModal.addEventListener('click', (event) => {
+            // If the click is directly on the modal backdrop (the modal element itself)
+            if (event.target === editAlbumModal) {
+                hideEditAlbumModal();
+            }
+        });
     }
 
     // Listener for input changes on the EDIT description textarea
@@ -692,25 +777,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// --- Function to Show Edit Album Modal (NEW) ---
-function showEditAlbumModal(id, category, name, description) {
-    if (!editAlbumModal || !editAlbumIdInput || !editAlbumCategoryInput || !editAlbumNameInput || !editAlbumDescriptionInput) {
-        console.error('Edit album modal elements not found! Ensure the modal HTML exists and IDs are correct.');
-        alert('Error: Could not open the edit form. Required elements are missing.');
-        return;
-    }
-    console.log(`Editing album: ${name} (ID: ${id})`);
-    editAlbumIdInput.value = id;
-    editAlbumCategoryInput.value = category;
-    editAlbumNameInput.value = name;
-    editAlbumDescriptionInput.value = description || ''; // Handle null/undefined descriptions
-    
-    // --- ADD THIS LINE to set initial height --- 
-    autoResizeTextarea(editAlbumDescriptionInput);
-    // --- END ADD --- 
 
-    editAlbumModal.style.display = 'block'; // Show the modal
-}
 
 // --- Function to Hide Edit Album Modal (NEW) ---
 function hideEditAlbumModal() {
@@ -720,57 +787,101 @@ function hideEditAlbumModal() {
     }
 }
 
-// --- Function to Handle Edit Album Form Submission (NEW) ---
+// --- Function to Populate Edit Album Modal ---
+async function populateEditAlbumModal(albumId) {
+    if (!albumId) {
+        alert('Error: Album ID is missing for editing.');
+        return;
+    }
+    showLoading('Loading album details...');
+    try {
+        const { data: album, error } = await supabase
+            .from('gallery_albums')
+            .select('*') // Select all fields, including is_featured_news
+            .eq('id', albumId)
+            .single();
+
+        if (error) throw error;
+        if (!album) {
+            alert('Album not found.');
+            return;
+        }
+
+        document.getElementById('edit-album-id').value = album.id;
+        document.getElementById('edit-album-name').value = album.album_name;
+        document.getElementById('edit-album-description').value = album.album_description || '';
+        
+        // Ensure the category select element exists and then set its value
+        const editAlbumCategorySelect = document.getElementById('edit-album-category');
+        if (editAlbumCategorySelect) {
+            editAlbumCategorySelect.value = album.category;
+        } else {
+            console.error('Edit album category select not found');
+        }
+        
+        document.getElementById('edit-album-is-featured-news').checked = album.is_featured_news || false; // <<< MODIFIED: Correct ID and property
+
+        showEditAlbumModal(); // This function should make the modal visible
+
+    } catch (error) {
+        console.error('Error fetching album for edit:', error);
+        alert(`Error loading album details: ${error.message}`);
+    } finally {
+        hideLoading();
+    }
+}
+
+// --- Function to Handle Edit Album Submission ---
 async function handleEditAlbumSubmit(event) {
     event.preventDefault();
-    // Ensure elements exist before accessing value
-    if (!editAlbumIdInput || !editAlbumCategoryInput || !editAlbumNameInput || !editAlbumDescriptionInput) {
-        console.error('Edit form inputs not found during submit.');
-        alert('Error submitting edit form. Please check console.');
+    const albumId = document.getElementById('edit-album-id').value;
+    const albumName = document.getElementById('edit-album-name').value.trim();
+    const albumDescription = document.getElementById('edit-album-description').value.trim();
+    const albumCategory = document.getElementById('edit-album-category').value;
+    const isFeaturedNews = document.getElementById('edit-album-is-featured-news').checked;
+
+    // Validate form inputs
+    if (!albumId) {
+        alert('Error: Album ID is missing. Cannot update.');
+        return;
+    }
+    if (!albumName || albumName.length < 3) {
+        alert('Album name is required and must be at least 3 characters.');
+        return;
+    }
+    if (!albumCategory) {
+        alert('Please select a category for the album.');
         return;
     }
 
-    const id = editAlbumIdInput.value;
-    const category = editAlbumCategoryInput.value.trim();
-    const albumName = editAlbumNameInput.value.trim();
-    const description = editAlbumDescriptionInput.value.trim();
-
-    if (!category || !albumName) {
-        alert('Category and Album Name cannot be empty.');
-        return;
-    }
-
-    // Optional: Add loading state to submit button here
-    const submitButton = editAlbumForm.querySelector('button[type="submit"]');
-    if(submitButton) submitButton.disabled = true; // Disable button
-
-    console.log(`Attempting to update album ID: ${id}`);
+    showLoading('Updating album...');
     try {
         const { data, error } = await supabase
             .from('gallery_albums')
-            .update({ 
-                category: category, 
-                album_name: albumName, 
-                album_description: description 
+            .update({
+                album_name: albumName,
+                album_description: albumDescription,
+                category: albumCategory,
+                is_featured_news: isFeaturedNews // <<< MODIFIED: Use new variable name
             })
-            .eq('id', id)
-            .select(); // Select the updated row
+            .eq('id', albumId)
+            .select();
 
-        if (error) {
-            throw error;
+        if (error) throw error;
+
+        if (data) {
+            alert('Album updated successfully!');
+            hideEditAlbumModal(); 
+            loadExistingAlbums(); 
+        } else {
+            alert('Album update did not return data. Please check Supabase.');
         }
 
-        console.log('Album updated successfully:', data);
-        alert('Album updated successfully!');
-        hideEditAlbumModal();
-        loadExistingAlbums(); // Refresh the list to show changes
-
     } catch (error) {
-        console.error('Error updating album:', error.message);
+        console.error('Error updating album:', error);
         alert(`Error updating album: ${error.message}`);
     } finally {
-        // Optional: Remove loading state from submit button here
-        if(submitButton) submitButton.disabled = false; // Re-enable button
+        hideLoading();
     }
 }
 

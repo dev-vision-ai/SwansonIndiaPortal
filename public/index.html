@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home - Swanson Plastics India Pvt. Ltd.</title>
+    <!-- Update Font Awesome to latest version -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> <!-- Keep v6 -->
     <link rel="stylesheet" href="./css/index.css">
     <link rel="stylesheet" href="css/responsive.css">
+</head>
 <body>
 
     <header id="desktop-header" class="navbar"> <!-- <<< Added id="desktop-header" -->
@@ -61,6 +63,27 @@
         </div>
     </section>
 
+    <!-- Quality Policy Section -->
+    <section class="section" id="quality-policy">
+        <div class="container">
+            <h2>Quality Policy</h2>
+            <div class="grid-3">
+                <div class="service-card">
+                    <img src="./assets/customer-satisfaction.png" alt="Customer Satisfaction" class="policy-icon">
+                    <h4>Total Customer Satisfaction</h4>
+                </div>
+                <div class="service-card">
+                    <img src="./assets/employee-participation.png" alt="Employee Participation" class="policy-icon">
+                    <h4>Participation by all Employees</h4>
+                </div>
+                <div class="service-card">
+                    <img src="./assets/quality-first.png" alt="Quality First" class="policy-icon">
+                    <h4>Do it Right, the First Time</h4>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Featured Albums Slideshow Section -->
     <section class="section" id="featured-slideshow-section">
         <div class="container">
@@ -108,17 +131,17 @@
             <h2>Our Services</h2>
             <div class="grid-3">
                 <div class="service-card">
-                    <i class="fas fa-industry"></i>  <!-- Changed from fa-cogs to fa-industry -->
+                    <img src="./assets/manufacturing-icon.png" alt="Custom Manufacturing" class="policy-icon">
                     <h4>Custom Manufacturing</h4>
                     <p>We offer Tailored Solutions for your Unique Product Needs.</p>
                 </div>
                 <div class="service-card">
-                    <i class="fas fa-leaf"></i>  <!-- Changed from fa-recycle to fa-leaf -->
+                    <img src="./assets/sustainability-icon.png" alt="Sustainability" class="policy-icon">
                     <h4>Sustainability</h4>
                     <p>Commitment to Eco-friendly Processes and Recyclable Materials.</p>
                 </div>
                 <div class="service-card">
-                    <i class="fas fa-lightbulb"></i>  <!-- Changed from fa-rocket to fa-lightbulb -->
+                    <img src="./assets/innovation-icon.png" alt="Innovation" class="policy-icon">
                     <h4>Innovation</h4>
                     <p>Constantly Evolving with Cutting-edge Technology and Designs.</p>
                 </div>
@@ -147,97 +170,7 @@
         </div>
     </section>
 
-    <!-- About Us Section -->
-    <section class="section incident-box" id="about"> <!-- Added incident-box class -->
-        <div class="container">
-            <h2>About Us</h2>
-            <p>At Swanson Plastics, we provide innovative and high-quality solutions to meet your plastic engineering needs. With over 30 years of experience, we serve clients globally with precision and reliability.</p>
-            <p>SWANSON PLASTICS (INDIA) PRIVATE LIMITED (CIN: U25209GA2010FTC006469) is a Private company incorporated on 12 Dec 2010. It is classified as a subsidiary of a company incorporated outside India and is registered at Registrar of Companies, Goa. Its authorized share capital is Rs. 1156513900.00 and its paid-up capital is Rs. 1073513900.00.</p>
-            <p>SWANSON PLASTICS (INDIA) PRIVATE LIMITED's Annual General Meeting (AGM) was last held on 30 Dec 2023, and as per records from the Ministry of Corporate Affairs (MCA), its balance sheet was last filed on 2023-03-31. SWANSON PLASTICS (INDIA) PRIVATE LIMITED's NIC code is 2520 (which is part of its CIN). As per the NIC code, it is involved in the Manufacture of plastic products.</p>
-            <p>Directors of SWANSON PLASTICS (INDIA) PRIVATE LIMITED are YEA YIH HUANG, SALWI KUMARI, YIH WU GUEI, BENG JOO LEE, and WEN HAO WU.</p>
-            <p>SWANSON PLASTICS (INDIA) PRIVATE LIMITED's Corporate Identification Number (CIN) is U25209GA2010FTC006469 and its registration number is 6469.</p>
-        </div>
-    </section>
-
-    <!-- Our Core Offering Section -->
-    <section class="section" id="core-offering">
-        <div class="container">
-            <h2>Our Core Offering</h2>
-            <div class="product-single">
-                <img src="./assets/roll.png" alt="PE Embossed Film Roll">
-                <h4>Customer-Specified PE Embossed Film Rolls</h4>
-                <p>We specialize in delivering high-quality, custom-engineered PE embossed film rolls tailored to your exact application needs</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Services Section -->
-    <section class="section" id="services">
-        <div class="container center">  <!-- Added 'center' class -->
-            <h2>Our Services</h2>
-            <div class="grid-3">
-                <div class="service-card">
-                    <i class="fas fa-industry"></i>  <!-- Changed from fa-cogs to fa-industry -->
-                    <h4>Custom Manufacturing</h4>
-                    <p>We offer Tailored Solutions for your Unique Product Needs.</p>
-                </div>
-                <div class="service-card">
-                    <i class="fas fa-leaf"></i>  <!-- Changed from fa-recycle to fa-leaf -->
-                    <h4>Sustainability</h4>
-                    <p>Commitment to Eco-friendly Processes and Recyclable Materials.</p>
-                </div>
-                <div class="service-card">
-                    <i class="fas fa-lightbulb"></i>  <!-- Changed from fa-rocket to fa-lightbulb -->
-                    <h4>Innovation</h4>
-                    <p>Constantly Evolving with Cutting-edge Technology and Designs.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Our Valued Customers Section -->
-    <section class="section" id="customers">
-        <div class="container center">
-            <h2>Our Valued Customers</h2>
-            <div class="customers-container">
-                <div class="customers-grid">
-                    <div class="customer-name-item"> <!-- Keep this class name -->
-                        <p>P&G</p> <!-- Back to text -->
-                    </div>
-                    <div class="customer-name-item"> <!-- Keep this class name -->
-                        <p>Unicharm</p> <!-- Back to text -->
-                    </div>
-                    <div class="customer-name-item"> <!-- Keep this class name -->
-                        <p>JNTL</p> <!-- Back to text -->
-                    </div>
-                    <!-- Add more customer names here if needed -->
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Featured Albums Slideshow Section -->
-    <section class="section" id="featured-slideshow-section">
-        <div class="container">
-            <h2>Featured Gallery</h2>
-            <div class="slideshow-container">
-                <!-- Slides will be dynamically inserted here by JavaScript -->
-                <div id="slideshow-inner">
-                    <!-- Example Slide Structure (will be generated by JS):
-                    <div class="slide fade">
-                        <img src="path/to/image.jpg" alt="Caption">
-                        <div class="slide-caption">Album Name: Album 1 - Image Caption</div>
-                    </div>
-                    -->
-                </div>
-                <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
-                <a class="next" onclick="plusSlides(1)">&#10095;</a>
-            </div>
-            <div style="text-align:center" id="slide-dots">
-                <!-- Dots will be dynamically inserted here -->
-            </div>
-        </div>
-    </section>
+    
 
     <!-- Footer -->
     <footer class="footer">
