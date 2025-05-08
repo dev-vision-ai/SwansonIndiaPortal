@@ -15,6 +15,99 @@ if (!existingAlbumsListDiv) {
     console.error('Existing albums list div (existing-albums-list) not found!');
 }
 
+// --- Constants ---
+const BUCKET_NAME = 'gallery-images'; // IMPORTANT: Change if your bucket name is different
+
+// --- Global Loading State Helper Functions ---
+function showLoading(message = 'Loading...') {
+    // Placeholder: Implement actual loading indicator display
+    // e.g., document.getElementById('loading-spinner').style.display = 'flex';
+    // if (document.getElementById('loading-message')) document.getElementById('loading-message').textContent = message;
+    console.log(`SHOW_LOADING: ${message}`); // Simple console log for now
+}
+
+function hideLoading() {
+    // Placeholder: Implement actual loading indicator hiding
+    // e.g., document.getElementById('loading-spinner').style.display = 'none';
+    console.log('HIDE_LOADING'); // Simple console log for now
+}
+
+// --- DOM Utilities ---
+const DOMUtils = {
+    getById: (id) => document.getElementById(id),
+    show: (element) => { if (element) element.style.display = 'block'; },
+    hide: (element) => { if (element) element.style.display = 'none'; },
+    setText: (element, text) => { if (element) element.textContent = text; },
+    setHtml: (element, html) => { if (element) element.innerHTML = html; },
+    getValue: (element) => (element ? element.value.trim() : ''),
+    getRawValue: (element) => (element ? element.value : ''),
+    isChecked: (element) => (element ? element.checked : false),
+    resetForm: (formElement) => { if (formElement) formElement.reset(); },
+    disableButton: (button, text = 'Processing...') => {
+        if (button) {
+            button.disabled = true;
+            button.textContent = text;
+        }
+    },
+    enableButton: (button, text) => {
+        if (button) {
+            button.disabled = false;
+            if (text) button.textContent = text;
+        }
+    }
+};
+
+// --- Event Listener Utility ---
+function reattachEventListener(selector, eventType, callback, parent = document) {
+    parent.querySelectorAll(selector).forEach(element => {
+        const newElement = element.cloneNode(true);
+        element.parentNode.replaceChild(newElement, element);
+        newElement.addEventListener(eventType, callback);
+    });
+}
+
+// --- Supabase Operation Helper ---
+async function handleSupabaseOperation(
+    operationPromise,
+    {
+        successMessage = null,
+        errorMessagePrefix = 'Error',
+        loadingMessage = null, // Pass a string to show loading, null/undefined to skip
+        successCallback = null,
+        errorCallback = null,
+        finallyCallback = null,
+        showAlertOnError = true,
+        showAlertOnSuccess = false // true to alert, false to console.log successMessage
+    } = {}
+) {
+    if (loadingMessage) showLoading(loadingMessage);
+    try {
+        const { data, error } = await operationPromise;
+        if (error) {
+            let detailedMessage = error.message;
+            if (error.details) detailedMessage += ` Details: ${error.details}`;
+            if (error.hint) detailedMessage += ` Hint: ${error.hint}`;
+            const customError = new Error(detailedMessage);
+            customError.originalError = error; // Attach original Supabase error
+            throw customError;
+        }
+
+        if (showAlertOnSuccess && successMessage) alert(successMessage);
+        else if (successMessage) console.log(successMessage); // Log if not alerting or no message
+
+        if (successCallback) successCallback(data);
+        return { data, error: null };
+    } catch (error) {
+        console.error(`${errorMessagePrefix}:`, error.message, error.originalError || error);
+        if (showAlertOnError) alert(`${errorMessagePrefix}: ${error.message}`);
+        if (errorCallback) errorCallback(error);
+        return { data: null, error };
+    } finally {
+        if (loadingMessage) hideLoading();
+        if (finallyCallback) finallyCallback();
+    }
+}
+
 // --- Utility function to escape HTML (Good practice if displaying user input later) ---
 function escapeHTML(str) {
     if (str === null || str === undefined) return '';
@@ -29,98 +122,68 @@ function escapeHTML(str) {
 // --- Authentication & Profile Loading --- 
 async function loadUserProfile() {
     console.time('loadUserProfile');
-    console.log('Attempting to load user profile...');
-    try {
-        console.time('getUser');
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        console.timeEnd('getUser');
+    const { data, error } = await handleSupabaseOperation(supabase.auth.getUser(), {
+        loadingMessage: 'Loading user profile...',
+        errorMessagePrefix: 'User Profile Error',
+        showAlertOnError: false // Don't alert, just log and redirect if needed
+    });
 
-        if (userError) {
-            console.error('Error getting user session:', userError.message);
-            // Consider if you need to redirect or show an error message on the page
-            // For now, just log and stop if we can't get the user
-            return;
-        }
+    if (error) {
+        console.error('Error getting user session:', error.message);
+        // Potentially redirect or show a message on the page
+        // For now, if there's an error, we might not want to initialize the app
+        // or redirect to login if it's an auth error.
+        // window.location.href = '../html/auth.html'; // Example redirect
+        console.timeEnd('loadUserProfile');
+        return;
+    }
 
-        if (user) {
-            console.log('User is authenticated:', user.email);
-            // User is authenticated, proceed to initialize the app
-            initializeApp();
-        } else {
-            // Handle case where user is not logged in
-            console.log('No active session found. Redirecting to login.');
-            window.location.href = '../html/auth.html';
-        }
-    } catch (error) {
-        // Catch any unexpected errors during the process
-        console.error('Unexpected error loading user profile:', error);
-        // Consider redirecting or showing a generic error message
+    if (data && data.user) {
+        console.log('User is authenticated:', data.user.email);
+        initializeApp();
+    } else {
+        console.log('No active session found or user data missing. Redirecting to login.');
+        window.location.href = '../html/auth.html';
     }
     console.timeEnd('loadUserProfile');
 }
 
 
-// --- Album Management Functions (Keep as they are) ---
-async function createAlbum(category, albumName, description, isFeaturedNews) { // <<< MODIFIED: Added isFeaturedNews parameter
-    console.log(`Attempting to create album: Category='${category}', Name='${albumName}', Featured='${isFeaturedNews}'`);
-    console.time('createAlbumSupabaseCall');
-    try {
-        const { data, error } = await supabase
-            .from('gallery_albums')
-            .insert([
-                { 
-                    category: category,
-                    album_name: albumName, 
-                    album_description: description,
-                    is_featured_news: isFeaturedNews // <<< ADDED: Save the featured status
-                }
-            ])
-            .select();
-        console.timeEnd('createAlbumSupabaseCall');
+// --- Album Management Functions ---
+async function createAlbum(category, albumName, description, isFeaturedNews) {
+    const operation = supabase
+        .from('gallery_albums')
+        .insert([{ 
+            category: category,
+            album_name: albumName, 
+            album_description: description,
+            is_featured_news: isFeaturedNews
+        }])
+        .select();
 
-        if (error) {
-            console.error('Supabase error during album creation:', error);
-            throw error;
+    const { error } = await handleSupabaseOperation(operation, {
+        loadingMessage: 'Creating album...',
+        successMessage: 'Album created successfully!',
+        errorMessagePrefix: 'Album Creation Error',
+        showAlertOnSuccess: true,
+        successCallback: () => {
+            if (createAlbumForm) DOMUtils.resetForm(createAlbumForm);
+            loadExistingAlbums();
         }
+    });
 
-        console.log('Album created successfully via Supabase:', data);
-        alert('Album created successfully!');
-        if (createAlbumForm) {
-            createAlbumForm.reset();
-        } else {
-            console.warn('createAlbumForm not found for reset after album creation.');
-        }
-        loadExistingAlbums(); // Reload albums after creation
-
-    } catch (error) {
-        console.timeEnd('createAlbumSupabaseCall'); // Ensure timeEnd is called in case of early error
-        console.error('Error in createAlbum function:', error.message);
-        alert(`Error creating album: ${error.message}`);
-    }
+    // Error handling is done by handleSupabaseOperation
+    // If specific actions are needed on error, they can be added to errorCallback
 }
 
 // Function to handle the submission of the create album form
 async function handleCreateAlbumSubmit(event) {
     event.preventDefault();
-    console.log('handleCreateAlbumSubmit called.');
     
-    const categoryElement = document.getElementById('album-category');
-    const albumNameElement = document.getElementById('album-name');
-    const descriptionElement = document.getElementById('album-description');
-    const isFeaturedNewsElement = document.getElementById('album-is-featured-news');
-
-    if (!categoryElement || !albumNameElement || !descriptionElement || !isFeaturedNewsElement) {
-        console.error('One or more form elements for album creation are missing.');
-        alert('Error: Form elements missing. Cannot create album.');
-        return;
-    }
-
-    const category = categoryElement.value.trim();
-    const albumName = albumNameElement.value.trim();
-    const description = descriptionElement.value.trim();
-    const isFeaturedNews = isFeaturedNewsElement.checked; // <<< ADDED: Read checkbox value
-
-    console.log(`Form values: Category='${category}', Name='${albumName}', Description='${description}', Featured='${isFeaturedNews}'`);
+    const category = DOMUtils.getValue(DOMUtils.getById('album-category'));
+    const albumName = DOMUtils.getValue(DOMUtils.getById('album-name'));
+    const description = DOMUtils.getValue(DOMUtils.getById('album-description'));
+    const isFeaturedNews = DOMUtils.isChecked(DOMUtils.getById('album-is-featured-news'));
 
     if (!category || !albumName) {
         alert('Category and Album Name are required.');
@@ -128,200 +191,151 @@ async function handleCreateAlbumSubmit(event) {
         return;
     }
 
-    await createAlbum(category, albumName, description, isFeaturedNews); // <<< MODIFIED: Pass checkbox value
+    await createAlbum(category, albumName, description, isFeaturedNews);
 }
 
 // --- Function to load existing albums --- 
 async function loadExistingAlbums() {
-    console.log('Attempting to load existing albums...');
-    console.time('loadExistingAlbums');
     if (!existingAlbumsListDiv) {
         console.error('Existing albums list div (existing-albums-list) not found! Cannot load albums.');
-        console.timeEnd('loadExistingAlbums');
         return;
     }
+    DOMUtils.setHtml(existingAlbumsListDiv, '<p>Loading albums...</p>');
 
-    existingAlbumsListDiv.innerHTML = '<p>Loading albums...</p>';
+    const operation = supabase
+        .from('gallery_albums')
+        .select('*, is_featured_news')
+        .order('created_at', { ascending: false });
 
-    try {
-        console.time('loadExistingAlbumsSupabaseCall');
-        // --- MODIFICATION: Select 'is_featured_news' --- 
-        const { data: albums, error } = await supabase
-            .from('gallery_albums')
-            .select('*, is_featured_news') // <<< ADD is_featured_news HERE
-            .order('created_at', { ascending: false });
-        console.timeEnd('loadExistingAlbumsSupabaseCall');
+    const { data: albums, error } = await handleSupabaseOperation(operation, {
+        // loadingMessage is handled above
+        errorMessagePrefix: 'Load Albums Error',
+        successCallback: (fetchedAlbums) => {
+            DOMUtils.setHtml(existingAlbumsListDiv, ''); // Clear loading
+            if (!fetchedAlbums || fetchedAlbums.length === 0) {
+                DOMUtils.setHtml(existingAlbumsListDiv, '<p>No albums found. Create one above!</p>');
+                return;
+            }
 
-        if (error) { 
-            console.error('Supabase error during loading albums:', error);
-            throw error; 
+            fetchedAlbums.forEach(album => {
+                const albumElement = document.createElement('div');
+                albumElement.classList.add('album-item');
+                albumElement.innerHTML = `
+                    <h4>${escapeHTML(album.album_name)}</h4>
+                    <p><strong>Category:</strong> ${escapeHTML(album.category)}</p>
+                    ${album.album_description ? `<p><strong>Description:</strong> ${escapeHTML(album.album_description)}</p>` : ''}
+                    <p><strong>Featured News:</strong> ${album.is_featured_news ? 'Yes' : 'No'}</p>
+                    <div class="album-actions">
+                        <button class="btn btn-info edit-album-btn" 
+                                data-album-id="${album.id}" 
+                                data-album-name="${escapeHTML(album.album_name)}" 
+                                data-album-category="${escapeHTML(album.category)}" 
+                                data-album-description="${escapeHTML(album.album_description || '')}"
+                                data-is-featured-news="${album.is_featured_news}">Edit Album</button> 
+                        <button class="btn btn-secondary manage-images-btn" data-album-id="${album.id}" data-album-name="${escapeHTML(album.album_name)}">Manage Images</button>
+                        <button class="btn btn-danger delete-album-btn" data-album-id="${album.id}">Delete Album</button>
+                    </div>
+                `;
+                existingAlbumsListDiv.appendChild(albumElement);
+            });
+            addAlbumActionListeners();
+        },
+        errorCallback: (err) => {
+            DOMUtils.setHtml(existingAlbumsListDiv, `<p class="error-message">Error loading albums: ${err.message}</p>`);
         }
-
-        console.log('Albums fetched from Supabase:', albums);
-        existingAlbumsListDiv.innerHTML = '';
-
-        if (!albums || albums.length === 0) {
-            existingAlbumsListDiv.innerHTML = '<p>No albums found. Create one above!</p>';
-            console.log('No albums found in the database.');
-            console.timeEnd('loadExistingAlbums');
-            return;
-        }
-
-        albums.forEach(album => {
-            const albumElement = document.createElement('div');
-            albumElement.classList.add('album-item');
-            // --- REMOVE THE COMMENT FROM THIS LINE --- 
-            albumElement.innerHTML = `
-                <h4>${escapeHTML(album.album_name)}</h4>
-                <p><strong>Category:</strong> ${escapeHTML(album.category)}</p>
-                ${album.album_description ? `<p><strong>Description:</strong> ${escapeHTML(album.album_description)}</p>` : ''}
-                <p><strong>Featured News:</strong> ${album.is_featured_news ? 'Yes' : 'No'}</p> <!-- Added to display featured status -->
-                <div class="album-actions">
-                    <button class="btn btn-info edit-album-btn" 
-                            data-album-id="${album.id}" 
-                            data-album-name="${escapeHTML(album.album_name)}" 
-                            data-album-category="${escapeHTML(album.category)}" 
-                            data-album-description="${escapeHTML(album.album_description || '')}"
-                            data-is-featured-news="${album.is_featured_news}">Edit Album</button> 
-                    <button class="btn btn-secondary manage-images-btn" data-album-id="${album.id}" data-album-name="${escapeHTML(album.album_name)}">Manage Images</button>
-                    <button class="btn btn-danger delete-album-btn" data-album-id="${album.id}">Delete Album</button>
-                </div>
-            `;
-            existingAlbumsListDiv.appendChild(albumElement);
-        });
-
-        // Add event listeners AFTER all buttons are added to the DOM
-        addAlbumActionListeners(); 
-        console.log('Finished rendering existing albums.');
-
-    } catch (error) {
-        console.timeEnd('loadExistingAlbumsSupabaseCall'); // Ensure timeEnd is called in case of early error
-        console.error('Error in loadExistingAlbums function:', error.message);
-        if (existingAlbumsListDiv) {
-            existingAlbumsListDiv.innerHTML = `<p class="error-message">Error loading albums: ${error.message}</p>`;
-        }
-    }
-    console.timeEnd('loadExistingAlbums');
+    });
 }
 
-// --- Function to Add Event Listeners to Album Buttons (Modify) ---
+// --- Function to Add Event Listeners to Album Buttons ---
 function addAlbumActionListeners() {
-    // --- Delete Buttons --- 
-    document.querySelectorAll('.delete-album-btn').forEach(button => {
-        // Prevent adding multiple listeners if called again
-        const newButton = button.cloneNode(true);
-        button.parentNode.replaceChild(newButton, button);
-        newButton.addEventListener('click', async (event) => {
-            const albumId = event.target.dataset.albumId;
-            // Updated confirmation message
-            if (confirm('Are you sure you want to delete this album and ALL its images? This action cannot be undone.')) { 
-                await deleteAlbum(albumId);
-            }
-        });
-    });
+    reattachEventListener('.delete-album-btn', 'click', async (event) => {
+        const albumId = event.target.dataset.albumId;
+        if (confirm('Are you sure you want to delete this album and ALL its images? This action cannot be undone.')) {
+            await deleteAlbum(albumId);
+        }
+    }, existingAlbumsListDiv); // Assuming buttons are within existingAlbumsListDiv
 
-    // --- Manage Images Buttons --- 
-    document.querySelectorAll('.manage-images-btn').forEach(button => {
-        const newButton = button.cloneNode(true);
-        button.parentNode.replaceChild(newButton, button);
-        newButton.addEventListener('click', (event) => {
-            const albumId = event.target.dataset.albumId;
-            const albumName = event.target.dataset.albumName;
-            showImageManagement(albumId, albumName);
-        });
-    });
+    reattachEventListener('.manage-images-btn', 'click', (event) => {
+        const albumId = event.target.dataset.albumId;
+        const albumName = event.target.dataset.albumName;
+        showImageManagement(albumId, albumName);
+    }, existingAlbumsListDiv);
 
-    // --- Edit Album Buttons (MODIFIED LOGIC) ---
-    document.querySelectorAll('.edit-album-btn').forEach(button => {
-        const newButton = button.cloneNode(true);
-        button.parentNode.replaceChild(newButton, button);
-        newButton.addEventListener('click', (event) => {
-            const albumId = event.target.dataset.albumId;
-            const name = event.target.dataset.albumName;
-            const category = event.target.dataset.albumCategory;
-            const description = event.target.dataset.albumDescription;
-            // --- MODIFICATION: Get is_featured_news from data attribute ---
-            const isFeaturedNews = event.target.dataset.isFeaturedNews === 'true'; // Convert string to boolean
-            // Call the function to show the modal
-            showEditAlbumModal(albumId, category, name, description, isFeaturedNews); // <<< Pass isFeaturedNews
-        });
-    });
+    reattachEventListener('.edit-album-btn', 'click', (event) => {
+        const button = event.target;
+        const albumId = button.dataset.albumId;
+        const name = button.dataset.albumName;
+        const category = button.dataset.albumCategory;
+        const description = button.dataset.albumDescription;
+        const isFeaturedNews = button.dataset.isFeaturedNews === 'true';
+        showEditAlbumModal(albumId, category, name, description, isFeaturedNews);
+    }, existingAlbumsListDiv);
 }
 
 // --- Function to Delete an Album ---
 async function deleteAlbum(albumId) {
-    console.log(`Attempting to delete album with ID: ${albumId}`);
+    showLoading('Deleting album...');
     try {
-        // --- Step 1: List files in the album's storage folder ---
-        console.log(`Listing files in storage for album ${albumId}...`);
-        const { data: files, error: listError } = await supabase
-            .storage
-            .from(BUCKET_NAME)
-            .list(`${albumId}/`, { 
-                limit: 1000 
-            });
+        // Step 1: List files in storage
+        const listOp = supabase.storage.from(BUCKET_NAME).list(`${albumId}/`, { limit: 1000 });
+        const { data: files, error: listError } = await handleSupabaseOperation(listOp, {
+            errorMessagePrefix: 'Storage List Error',
+            showAlertOnError: false // Handled in main catch
+        });
 
-        if (listError) {
-            throw new Error(`Could not list files for deletion: ${listError.message}`);
-        }
+        if (listError) throw listError; // Propagate to main catch
 
-        // --- Step 2: Delete the files if any exist ---
+        // Step 2: Delete files from storage if they exist
         if (files && files.length > 0) {
             const filePaths = files.map(file => `${albumId}/${file.name}`);
-            console.log(`Found ${filePaths.length} files to delete:`, filePaths);
-            
-            const { error: removeError } = await supabase
-                .storage
-                .from(BUCKET_NAME)
-                .remove(filePaths);
-
-            if (removeError) {
-                throw new Error(`Could not delete associated files: ${removeError.message}`);
-            }
-            console.log('Successfully deleted associated files from storage.');
+            const removeOp = supabase.storage.from(BUCKET_NAME).remove(filePaths);
+            const { error: removeError } = await handleSupabaseOperation(removeOp, {
+                successMessage: 'Associated files deleted from storage.',
+                errorMessagePrefix: 'Storage Remove Error',
+                showAlertOnError: false // Handled in main catch
+            });
+            if (removeError) throw removeError;
         } else {
             console.log('No associated files found in storage to delete.');
         }
 
-        // --- Step 3: Delete associated image records from gallery_images table ---
-        console.log(`Deleting image records for album ${albumId} from gallery_images table...`);
-        const { error: deleteImageRecordsError } = await supabase
-            .from('gallery_images')
-            .delete()
-            .eq('album_id', albumId);
-
-        if (deleteImageRecordsError) {
-            // Log the error, but we might still want to try deleting the album itself.
-            // Or, you could choose to throw the error and stop.
-            console.error('Error deleting image records from gallery_images:', deleteImageRecordsError.message);
-            alert(`Error deleting associated image records from the database: ${deleteImageRecordsError.message}. Attempting to delete album entry anyway.`);
-            // Not throwing here, to allow album deletion attempt to proceed
-        }
-        console.log('Successfully deleted associated image records from gallery_images.');
-
-        // --- Step 4: Delete the album record from the gallery_albums database ---
-        console.log(`Deleting album record ${albumId} from gallery_albums database...`);
-        const { error: deleteAlbumRecordError } = await supabase
-            .from('gallery_albums')
-            .delete()
-            .eq('id', albumId);
-
-        if (deleteAlbumRecordError) {
-            throw deleteAlbumRecordError; 
+        // Step 3: Delete image records from gallery_images table
+        const deleteImgRecordsOp = supabase.from('gallery_images').delete().eq('album_id', albumId);
+        const { error: deleteImgRecordsError } = await handleSupabaseOperation(deleteImgRecordsOp, {
+            successMessage: 'Associated image records deleted from database.',
+            errorMessagePrefix: 'DB Image Record Deletion Error',
+            showAlertOnError: false // Handled in main catch, or allow partial success
+        });
+        // Decide if this error is critical enough to stop album deletion
+        if (deleteImgRecordsError) {
+            console.warn('Error deleting image records, but proceeding with album deletion:', deleteImgRecordsError.message);
+            // alert(`Warning: Could not delete all image records: ${deleteImgRecordsError.message}`);
         }
 
-        alert('Album, associated images, and all related records deleted successfully!');
-        loadExistingAlbums(); 
+        // Step 4: Delete the album record from gallery_albums
+        const deleteAlbumOp = supabase.from('gallery_albums').delete().eq('id', albumId);
+        const { error: deleteAlbumError } = await handleSupabaseOperation(deleteAlbumOp, {
+            successMessage: 'Album deleted successfully!',
+            errorMessagePrefix: 'DB Album Deletion Error',
+            showAlertOnSuccess: true,
+            successCallback: () => loadExistingAlbums(),
+            showAlertOnError: false // Handled in main catch
+        });
+        if (deleteAlbumError) throw deleteAlbumError;
 
     } catch (error) {
         console.error('Error during album deletion process:', error.message);
         alert(`Error deleting album: ${error.message}. Please check the console for details.`);
+    } finally {
+        hideLoading();
     }
 }
 
-// --- DOM Elements (Add new ones (Add new ones for Edit Modal) ---
-const editAlbumModal = document.getElementById('edit-album-modal');
-const editAlbumForm = document.getElementById('edit-album-form');
+// --- DOM Elements for Edit Modal ---
+const editAlbumModal = DOMUtils.getById('edit-album-modal');
+const editAlbumForm = DOMUtils.getById('edit-album-form');
+// Note: editAlbumIdInput, editAlbumCategoryInput, etc., are defined later and used directly.
+// Consider defining them here if they are consistently needed by multiple functions.
 
 // --- Function to Show Edit Album Modal ---
 function showEditAlbumModal(albumId, category, name, description, isFeatured) {
@@ -329,14 +343,16 @@ function showEditAlbumModal(albumId, category, name, description, isFeatured) {
         console.error('Edit album modal or form not found!');
         return;
     }
-    // Populate the form
-    document.getElementById('edit-album-id').value = albumId;
-    document.getElementById('edit-album-name').value = name;
-    document.getElementById('edit-album-description').value = description || '';
-    document.getElementById('edit-album-category').value = category; // Make sure categories are loaded in this select
-    document.getElementById('edit-album-is-featured-news').checked = isFeatured || false; // <<< MODIFIED ID HERE
+    // Populate the form using DOMUtils
+    DOMUtils.getById('edit-album-id').value = albumId;
+    DOMUtils.getById('edit-album-name').value = name;
+    DOMUtils.getById('edit-album-description').value = description || '';
+    DOMUtils.getById('edit-album-category').value = category;
+    DOMUtils.getById('edit-album-is-featured-news').checked = isFeatured || false;
     
-    editAlbumModal.style.display = 'block';
+    DOMUtils.show(editAlbumModal);
+    // Trigger auto-resize for description textarea if it has content
+    autoResizeTextarea(DOMUtils.getById('edit-album-description')); 
 }
 
 
@@ -358,30 +374,26 @@ const existingAlbumsSection = document.getElementById('existing-albums-section')
 
 // Add upload form elements later if needed
 
-// --- Constants ---
-const BUCKET_NAME = 'gallery-images'; // <<< IMPORTANT: Change if your bucket name is different
+
 
 // --- Functions to Show/Hide Image Management Section ---
 function showImageManagement(albumId, albumName) {
     console.log(`Showing image management for album: ${albumName} (ID: ${albumId})`);
 
-    // Check if all required elements exist before proceeding
-    if (/* createAlbumContentSection && */ existingAlbumsSection && imageManagementSection && imageManagementAlbumNameSpan && backToAlbumsButton) { // Removed createAlbumContentSection check
-        // createAlbumContentSection.style.display = 'none'; // <<< REMOVE THIS LINE
-        existingAlbumsSection.style.display = 'none'; // <<< Hide the inner album list section
-        
-        imageManagementAlbumNameSpan.textContent = escapeHTML(albumName); 
-        imageManagementSection.style.display = 'block'; // <<< Show the image management section
-        imageManagementSection.dataset.currentAlbumId = albumId; 
+    if (existingAlbumsSection && imageManagementSection && imageManagementAlbumNameSpan && backToAlbumsButton) {
+        DOMUtils.hide(existingAlbumsSection);
+        DOMUtils.setText(imageManagementAlbumNameSpan, escapeHTML(albumName));
+        DOMUtils.show(imageManagementSection);
+        imageManagementSection.dataset.currentAlbumId = albumId;
 
-        backToAlbumsButton.onclick = hideImageManagement; 
+        // Ensure listener is fresh if this function can be called multiple times for different albums
+        backToAlbumsButton.removeEventListener('click', hideImageManagement); // Remove old before adding new
+        backToAlbumsButton.addEventListener('click', hideImageManagement);
 
-        loadImageList(albumId); 
+        loadImageList(albumId);
     } else {
         console.error('Could not find necessary elements for image management view.');
-        // Log which elements might be missing for debugging
-        // if (!createAlbumContentSection) console.error('Missing: create-album-content-section'); // Removed log
-        if (!existingAlbumsSection) console.error('Missing: existing-albums-section'); // Check this one
+        if (!existingAlbumsSection) console.error('Missing: existing-albums-section');
         if (!imageManagementSection) console.error('Missing: image-management');
         if (!imageManagementAlbumNameSpan) console.error('Missing: image-management-album-name');
         if (!backToAlbumsButton) console.error('Missing: back-to-albums');
@@ -389,15 +401,12 @@ function showImageManagement(albumId, albumName) {
 }
 
 function hideImageManagement() {
-    // Check if all required elements exist
-    if (/* createAlbumContentSection && */ existingAlbumsSection && imageManagementSection) { // Removed createAlbumContentSection check
-        imageManagementSection.style.display = 'none'; // Hide image management
-        
-        // createAlbumContentSection.style.display = 'block'; // <<< REMOVE THIS LINE
-        existingAlbumsSection.style.display = 'block'; // <<< Show the inner album list section again
+    if (existingAlbumsSection && imageManagementSection) {
+        DOMUtils.hide(imageManagementSection);
+        DOMUtils.show(existingAlbumsSection);
         
         if (imageManagementSection.dataset.currentAlbumId) {
-            delete imageManagementSection.dataset.currentAlbumId; 
+            delete imageManagementSection.dataset.currentAlbumId;
         }
     } else {
          console.error('Could not find necessary elements to hide image management view.');
@@ -406,144 +415,117 @@ function hideImageManagement() {
 
 // --- Function to Load Images for an Album ---
 async function loadImageList(albumId) {
-    console.log(`Loading images for album ID: ${albumId}`);
     if (!existingImagesListDiv) {
         console.error('Existing images list div not found!');
         return;
     }
-    existingImagesListDiv.innerHTML = '<p>Loading images...</p>';
+    DOMUtils.setHtml(existingImagesListDiv, '<p>Loading images...</p>');
 
-    try {
-        // --- MODIFICATION: Fetch image data (including caption) from gallery_images table ---
-        const { data: imageRecords, error: dbError } = await supabase
-            .from('gallery_images')
-            .select('image_url, caption') // Select image_url and caption
-            .eq('album_id', albumId)
-            .order('created_at', { ascending: true }); // Or order by name, etc.
+    const imageRecordsOp = supabase
+        .from('gallery_images')
+        .select('image_url, caption')
+        .eq('album_id', albumId)
+        .order('created_at', { ascending: true });
 
-        if (dbError) { throw dbError; }
-
-        existingImagesListDiv.innerHTML = ''; // Clear loading message
-
-        if (!imageRecords || imageRecords.length === 0) {
-            existingImagesListDiv.innerHTML = '<p>No images found for this album.</p>';
-            return;
-        }
-
-        imageRecords.forEach(record => {
-            const imagePath = record.image_url; // This is the path like 'albumId/filename.jpg'
-            const caption = record.caption;
-
-            // Get public URL for the image
-            const { data: { publicUrl } } = supabase
-                .storage
-                .from(BUCKET_NAME)
-                .getPublicUrl(imagePath);
-
-            if (publicUrl) {
-                const imageItem = document.createElement('div');
-                imageItem.classList.add('image-item', 'mb-3'); // Added mb-3 for spacing
-                
-                let captionHTML = '';
-                if (caption) {
-                    captionHTML = `<p class="image-caption">${escapeHTML(caption)}</p>`;
-                }
-
-                imageItem.innerHTML = `
-                    <img src="${publicUrl}" alt="${escapeHTML(caption || imagePath.split('/').pop())}" loading="lazy" style="max-width: 200px; max-height: 200px; display: block;">
-                    ${captionHTML}
-                    <button class="btn btn-sm btn-danger btn-delete-image mt-1" data-image-path="${escapeHTML(imagePath)}">Delete</button>
-                `;
-                // TODO: Add edit caption button here if needed in the future
-                existingImagesListDiv.appendChild(imageItem);
+    const { data: imageRecords, error } = await handleSupabaseOperation(imageRecordsOp, {
+        errorMessagePrefix: 'Load Images Error',
+        successCallback: (records) => {
+            DOMUtils.setHtml(existingImagesListDiv, ''); // Clear loading
+            if (!records || records.length === 0) {
+                DOMUtils.setHtml(existingImagesListDiv, '<p>No images found for this album.</p>');
+                return;
             }
-        });
 
-        addImageDeleteListeners();
+            records.forEach(record => {
+                const imagePath = record.image_url;
+                const caption = record.caption;
 
-    } catch (error) {
-        console.error('Error loading images:', error.message);
-        existingImagesListDiv.innerHTML = `<p class="error-message">Error loading images: ${error.message}</p>`;
-    }
+                const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(imagePath);
+                const publicUrl = urlData ? urlData.publicUrl : null;
+
+                if (publicUrl) {
+                    const imageItem = document.createElement('div');
+                    imageItem.classList.add('image-item', 'mb-3');
+                    let captionHTML = caption ? `<p class="image-caption">${escapeHTML(caption)}</p>` : '';
+                    imageItem.innerHTML = `
+                        <img src="${publicUrl}" alt="${escapeHTML(caption || imagePath.split('/').pop())}" loading="lazy" style="max-width: 200px; max-height: 200px; display: block;">
+                        ${captionHTML}
+                        <button class="btn btn-sm btn-danger btn-delete-image mt-1" data-image-path="${escapeHTML(imagePath)}">Delete</button>
+                    `;
+                    existingImagesListDiv.appendChild(imageItem);
+                }
+            });
+            addImageDeleteListeners(); // Uses reattachEventListener internally
+        },
+        errorCallback: (err) => {
+            DOMUtils.setHtml(existingImagesListDiv, `<p class="error-message">Error loading images: ${err.message}</p>`);
+        }
+    });
 }
 
 // --- Function to Add Listeners for Image Delete Buttons ---
 function addImageDeleteListeners() {
-    const deleteButtons = document.querySelectorAll('.btn-delete-image');
-    deleteButtons.forEach(button => {
-        // Remove existing listener to prevent duplicates if list is reloaded
-        button.replaceWith(button.cloneNode(true)); 
-    });
-    // Re-select buttons after cloning
-    document.querySelectorAll('.btn-delete-image').forEach(button => {
-         button.addEventListener('click', async (event) => {
-            const imagePath = event.target.dataset.imagePath;
-            if (confirm(`Are you sure you want to delete this image (${imagePath.split('/').pop()})?`)) {
-                await deleteImage(imagePath);
-            }
-        });
-    });
+    reattachEventListener('.btn-delete-image', 'click', async (event) => {
+        const imagePath = event.target.dataset.imagePath;
+        if (confirm(`Are you sure you want to delete this image (${imagePath.split('/').pop()})?`)) {
+            await deleteImage(imagePath);
+        }
+    }, existingImagesListDiv); // Assuming buttons are within existingImagesListDiv
 }
 
 // --- Function to Delete an Image --- 
 async function deleteImage(imagePath) {
-    console.log(`Attempting to delete image: ${imagePath}`);
     const currentAlbumId = imageManagementSection.dataset.currentAlbumId;
-
     if (!currentAlbumId) {
-        console.error('Cannot delete image record: currentAlbumId is not set.');
         alert('Error: Could not determine the album for this image. Deletion aborted.');
         return;
     }
 
+    showLoading('Deleting image...');
     try {
-        // --- Step 1: Delete from Supabase Storage --- 
-        const { error: storageError } = await supabase
-            .storage
-            .from(BUCKET_NAME) // BUCKET_NAME should be defined (e.g., 'gallery-images')
-            .remove([imagePath]); // Pass path in an array
+        // Step 1: Delete from Supabase Storage
+        const storageOp = supabase.storage.from(BUCKET_NAME).remove([imagePath]);
+        const { error: storageError } = await handleSupabaseOperation(storageOp, {
+            // successMessage: 'Image deleted from storage.', // Can be too noisy
+            errorMessagePrefix: 'Storage Deletion Error',
+            showAlertOnError: false // Handled in main catch or below
+        });
 
         if (storageError) {
-            // If storage deletion fails, we might not want to delete the DB record yet.
-            // Or, we could proceed but warn the user.
-            console.error('Error deleting image from storage:', storageError.message);
+            // If storage deletion fails, do not proceed to delete DB record.
             alert(`Error deleting image from storage: ${storageError.message}. Database record not deleted.`);
-            return; // Stop if storage deletion fails
+            throw storageError; // Propagate to main catch
         }
-        console.log('Image successfully deleted from storage.');
 
-        // --- Step 2: Delete from gallery_images database table --- 
-        // We need to match based on album_id AND the image_url (which is the imagePath)
-        const { error: dbError } = await supabase
-            .from('gallery_images')
-            .delete()
-            .eq('album_id', currentAlbumId) // Ensure we are deleting from the correct album
-            .eq('image_url', imagePath);    // And the specific image path
+        // Step 2: Delete from gallery_images database table
+        const dbOp = supabase.from('gallery_images').delete()
+            .eq('album_id', currentAlbumId)
+            .eq('image_url', imagePath);
+        
+        const { error: dbError } = await handleSupabaseOperation(dbOp, {
+            successMessage: 'Image deleted successfully from storage and database!',
+            errorMessagePrefix: 'DB Image Record Deletion Error',
+            showAlertOnSuccess: true,
+            showAlertOnError: false, // Handled in main catch or below
+            successCallback: () => loadImageList(currentAlbumId) // Reload list on full success
+        });
 
         if (dbError) {
-            console.error('Error deleting image record from database:', dbError.message);
-            // At this point, the image is deleted from storage, but the DB record remains.
-            // This is an inconsistency. Alert the user.
+            // Image deleted from storage, but DB record remains. This is an inconsistency.
             alert(`Image deleted from storage, but failed to delete database record: ${dbError.message}. Please check database manually.`);
-            // We won't throw an error here to prevent the UI from breaking further,
-            // but the user is alerted to a data inconsistency.
-        } else {
-            console.log('Image record successfully deleted from database.');
-            alert('Image deleted successfully from storage and database!');
-        }
-
-        // Reload the image list for the current album
-        if (currentAlbumId) {
+            // Still try to reload the list as the UI might be out of sync with storage
             loadImageList(currentAlbumId);
-        } else {
-            // This case should ideally be caught by the check at the beginning of the function
-            console.warn('Could not determine current album ID to reload image list after deletion.');
+            throw dbError; // Propagate to main catch
         }
 
     } catch (error) {
-        // Catch any other unexpected errors during the process
-        console.error('Unexpected error during image deletion:', error.message);
-        alert(`An unexpected error occurred while deleting the image: ${error.message}`);
+        // This catch block now handles errors propagated from handleSupabaseOperation or direct throws
+        console.error('Error during image deletion process:', error.message);
+        // Alert is already handled by handleSupabaseOperation if showAlertOnError was true there,
+        // or by specific alerts above. This can be a generic fallback.
+        // alert(`An unexpected error occurred while deleting the image: ${error.message}`);
+    } finally {
+        hideLoading();
     }
 }
 
@@ -566,27 +548,24 @@ function sanitizeFilename(filename) {
 
 // --- Function to Handle Image Upload (for multiple files) --- 
 async function handleImageUploadSubmit(event) {
-    event.preventDefault(); 
+    event.preventDefault();
 
-    const imageFiles = document.getElementById('image-file').files;
+    const imageFiles = DOMUtils.getById('image-file').files;
     const currentAlbumId = imageManagementSection.dataset.currentAlbumId;
-    const uploadForm = document.getElementById('upload-image-form');
+    const uploadForm = DOMUtils.getById('upload-image-form');
     const submitButton = uploadForm.querySelector('button[type="submit"]');
-    const imageCaptionInput = document.getElementById('image-caption'); // Get the caption input
+    const imageCaptionInput = DOMUtils.getById('image-caption');
 
     if (!imageFiles || imageFiles.length === 0) {
         alert('Please select one or more image files to upload.');
         return;
     }
-
     if (!currentAlbumId) {
         alert('Could not determine the current album. Please go back and select an album again.');
         return;
     }
 
-    submitButton.disabled = true;
-    submitButton.textContent = 'Processing...';
-
+    DOMUtils.disableButton(submitButton, 'Processing...');
     let successfulUploadCount = 0;
     const totalFiles = imageFiles.length;
     const errorMessages = [];
@@ -594,112 +573,78 @@ async function handleImageUploadSubmit(event) {
     for (let i = 0; i < totalFiles; i++) {
         const imageFile = imageFiles[i];
         const originalName = imageFile.name;
-        submitButton.textContent = `Processing ${i + 1} of ${totalFiles}: ${escapeHTML(originalName).substring(0, 20)}...`;
+        DOMUtils.setText(submitButton, `Processing ${i + 1} of ${totalFiles}: ${escapeHTML(originalName).substring(0, 20)}...`);
 
         if (!imageFile.type.startsWith('image/')) {
-            console.warn(`Skipping non-image file: ${escapeHTML(originalName)}`);
             errorMessages.push(`Skipped non-image file: ${escapeHTML(originalName)}`);
-            continue; 
+            continue;
         }
 
-        const options = {
-            maxSizeMB: 1,
-            maxWidthOrHeight: 1280,
-            useWebWorker: true,
-            initialQuality: 0.90,
-        };
+        const compressionOptions = { maxSizeMB: 1, maxWidthOrHeight: 1280, useWebWorker: true, initialQuality: 0.90 };
 
         try {
-            console.log(`Original file size (${escapeHTML(originalName)}): ${(imageFile.size / 1024 / 1024).toFixed(2)} MB`);
-            submitButton.textContent = `Compressing ${i + 1} of ${totalFiles}: ${escapeHTML(originalName).substring(0, 20)}...`;
-            const compressedFile = await imageCompression(imageFile, options);
-            console.log(`Compressed file size (${escapeHTML(originalName)}): ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
+            DOMUtils.setText(submitButton, `Compressing ${i + 1} of ${totalFiles}: ${escapeHTML(originalName).substring(0, 20)}...`);
+            const compressedFile = await imageCompression(imageFile, compressionOptions);
             
-            submitButton.textContent = `Uploading ${i + 1} of ${totalFiles}: ${escapeHTML(originalName).substring(0, 20)}...`;
+            DOMUtils.setText(submitButton, `Uploading ${i + 1} of ${totalFiles}: ${escapeHTML(originalName).substring(0, 20)}...`);
 
-            // const nameToSanitize = compressedFile.name || originalName;
-            // const sanitizedName = sanitizeFilename(nameToSanitize); 
-            // const filePath = `${currentAlbumId}/${sanitizedName}`;
-
-            // --- MODIFICATION: Generate a unique filename --- 
             let originalExtension = '';
             const lastDot = originalName.lastIndexOf('.');
             if (lastDot > -1 && lastDot < originalName.length - 1) {
-                originalExtension = originalName.substring(lastDot).toLowerCase(); // e.g., .jpg, .png
+                originalExtension = originalName.substring(lastDot).toLowerCase();
             }
-
-            // Generate a unique name part (timestamp + random string)
             const uniqueNamePart = Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
-            const newFileName = uniqueNamePart + originalExtension; // e.g., "kxvzpr45_abc123de.jpg"
-            
+            const newFileName = uniqueNamePart + originalExtension;
             const filePath = `${currentAlbumId}/${newFileName}`;
-            // --- END MODIFICATION ---
 
-            console.log(`Uploading ${escapeHTML(newFileName)} (originally ${escapeHTML(originalName)}) to ${filePath}...`);
-
-            const { data: uploadData, error: uploadError } = await supabase
-                .storage
-                .from(BUCKET_NAME) 
-                .upload(filePath, compressedFile, {
-                    cacheControl: '3600',
-                    upsert: false 
-                });
+            const uploadOp = supabase.storage.from(BUCKET_NAME).upload(filePath, compressedFile, { cacheControl: '3600', upsert: false });
+            const { error: uploadError } = await handleSupabaseOperation(uploadOp, {
+                errorMessagePrefix: `Upload Error (${escapeHTML(originalName)})`,
+                showAlertOnError: false // Collect errors manually
+            });
 
             if (uploadError) {
-                console.error(`Supabase upload error for ${escapeHTML(originalName)}:`, uploadError.message || JSON.stringify(uploadError));
-                // --- MODIFICATION: Use newFileName in error message if relevant ---
-                if (uploadError.message.includes('already exists') || (uploadError.error === 'Duplicate' && uploadError.statusCode === '409')) {
-                    errorMessages.push(`Error for ${escapeHTML(originalName)}: An image named "${escapeHTML(newFileName)}" already exists in the album.`);
+                if (uploadError.message.includes('already exists') || (uploadError.originalError && uploadError.originalError.error === 'Duplicate' && uploadError.originalError.statusCode === '409')) {
+                    errorMessages.push(`Error for ${escapeHTML(originalName)}: An image named "${escapeHTML(newFileName)}" already exists.`);
                 } else {
                     errorMessages.push(`Upload error for ${escapeHTML(originalName)}: ${uploadError.message}`);
                 }
-                continue; 
-            }
-            console.log(`Storage Upload successful for ${escapeHTML(originalName)}:`, uploadData);
-
-            const captionValue = imageCaptionInput ? imageCaptionInput.value.trim() : ''; // Get caption value
-
-            // --- MODIFICATION: Include caption in the insert data --- 
-            const insertPayload = {
-                album_id: currentAlbumId,
-                image_url: filePath,
-            };
-            if (captionValue) { // Only add caption if it's not empty
-                insertPayload.caption = captionValue;
+                continue;
             }
 
-            const { data: insertData, error: insertError } = await supabase
-                .from('gallery_images')
-                .insert([insertPayload]) // Use the payload with optional caption
-                .select();
-            // --- END MODIFICATION ---
+            const captionValue = DOMUtils.getValue(imageCaptionInput);
+            const insertPayload = { album_id: currentAlbumId, image_url: filePath };
+            if (captionValue) insertPayload.caption = captionValue;
+
+            const insertOp = supabase.from('gallery_images').insert([insertPayload]).select();
+            const { error: insertError } = await handleSupabaseOperation(insertOp, {
+                errorMessagePrefix: `DB Insert Error (${escapeHTML(originalName)})`,
+                showAlertOnError: false // Collect errors manually
+            });
 
             if (insertError) {
-                console.error(`Error inserting image record for ${escapeHTML(originalName)}:`, insertError.message);
                 errorMessages.push(`DB insert error for ${escapeHTML(originalName)}: ${insertError.message}.`);
             } else {
-                console.log(`Database insert successful for ${escapeHTML(originalName)}:`, insertData);
                 successfulUploadCount++;
             }
 
-        } catch (error) {
-            console.error(`Error processing ${escapeHTML(originalName)}:`, error.message || JSON.stringify(error));
-            if (error.message && error.message.includes('imageCompression')) {
-                errorMessages.push(`Compression error for ${escapeHTML(originalName)}: ${error.message}`);
+        } catch (error) { // Catch errors from imageCompression or other unexpected issues
+            let errMsg = error.message || JSON.stringify(error);
+            if (error.message && error.message.toLowerCase().includes('imagecompression')) {
+                 errorMessages.push(`Compression error for ${escapeHTML(originalName)}: ${errMsg}`);
             } else {
-                errorMessages.push(`Processing error for ${escapeHTML(originalName)}: ${error.message}`);
+                 errorMessages.push(`Processing error for ${escapeHTML(originalName)}: ${errMsg}`);
             }
         }
-    } 
+    }
 
-    submitButton.disabled = false;
-    submitButton.textContent = 'Upload Image(s)';
-    if (uploadForm) uploadForm.reset(); // This will also clear the caption input
+    DOMUtils.enableButton(submitButton, 'Upload Image(s)');
+    if (uploadForm) DOMUtils.resetForm(uploadForm);
 
     let finalMessage = '';
     if (successfulUploadCount > 0) finalMessage += `${successfulUploadCount} of ${totalFiles} image(s) uploaded successfully.\n`;
     if (errorMessages.length > 0) finalMessage += `\nEncountered ${errorMessages.length} error(s):\n- ${errorMessages.join('\n- ')}`;
-    if (!finalMessage) finalMessage = 'No images processed or selected. Check file types or console.';
+    if (!finalMessage.trim()) finalMessage = 'No images processed or selected. Check file types or console.';
     
     alert(finalMessage.trim());
 
@@ -834,23 +779,20 @@ async function populateEditAlbumModal(albumId) {
 // --- Function to Handle Edit Album Submission ---
 async function handleEditAlbumSubmit(event) {
     event.preventDefault();
+
     const albumId = document.getElementById('edit-album-id').value;
     const albumName = document.getElementById('edit-album-name').value.trim();
     const albumDescription = document.getElementById('edit-album-description').value.trim();
     const albumCategory = document.getElementById('edit-album-category').value;
     const isFeaturedNews = document.getElementById('edit-album-is-featured-news').checked;
 
-    // Validate form inputs
+    // Validation
+    if (!albumName) {
+        alert('Album name cannot be empty.'); // Consider using a unified notification/message helper if available
+        return;
+    }
     if (!albumId) {
-        alert('Error: Album ID is missing. Cannot update.');
-        return;
-    }
-    if (!albumName || albumName.length < 3) {
-        alert('Album name is required and must be at least 3 characters.');
-        return;
-    }
-    if (!albumCategory) {
-        alert('Please select a category for the album.');
+        alert('Error: Album ID is missing. Cannot update.'); // Consider using a unified notification/message helper
         return;
     }
 
@@ -862,24 +804,32 @@ async function handleEditAlbumSubmit(event) {
                 album_name: albumName,
                 album_description: albumDescription,
                 category: albumCategory,
-                is_featured_news: isFeaturedNews // <<< MODIFIED: Use new variable name
+                is_featured_news: isFeaturedNews
             })
             .eq('id', albumId)
-            .select();
+            .select(); // .select() is crucial to get the updated row(s) back
 
-        if (error) throw error;
-
-        if (data) {
-            alert('Album updated successfully!');
-            hideEditAlbumModal(); 
-            loadExistingAlbums(); 
-        } else {
-            alert('Album update did not return data. Please check Supabase.');
+        if (error) {
+            // Assuming handleSupabaseError logs the error and alerts the user.
+            // This function is expected to be available from previous refactoring steps.
+            handleSupabaseError(error, 'updating album');
+            return; // Exit after handling the error
         }
 
-    } catch (error) {
-        console.error('Error updating album:', error);
-        alert(`Error updating album: ${error.message}`);
+        if (data && data.length > 0) {
+            alert('Album updated successfully!'); // Consider a success message helper
+            hideEditAlbumModal();
+            await loadExistingAlbums(); // Ensure loadExistingAlbums is awaited if it's async
+        } else {
+            // This means the query ran without a database error, but no rows were updated or returned.
+            console.error(`Supabase update for album ID '${albumId}' returned no data. The album might not exist or no changes were made.`);
+            alert('Failed to update album. The album may not exist, or no changes were detected.'); // Consider an error message helper
+        }
+    } catch (unexpectedError) {
+        // This catch block handles errors not originating from the Supabase client call itself,
+        // or if handleSupabaseError re-throws, or errors in subsequent logic like loadExistingAlbums.
+        console.error('Unexpected error during album update process:', unexpectedError);
+        alert(`An unexpected error occurred while updating the album: ${unexpectedError.message}`); // Consider an error message helper
     } finally {
         hideLoading();
     }
