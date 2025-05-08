@@ -66,7 +66,6 @@
         padding: 12px 30px;
         font-size: 0.9rem;
     }
-
     .section {
         padding: 50px 0;
     }
@@ -74,7 +73,6 @@
         font-size: 2rem;
         margin-bottom: 30px;
     }
-
     .grid-3,
     .grid-4 {
         grid-template-columns: 1fr;
@@ -90,7 +88,6 @@
     .service-card p {
         font-size: 1rem;
     }
-
     .two-column {
         flex-direction: column;
         gap: 30px;
@@ -100,7 +97,6 @@
         width: 90%;
         max-width: 400px;
     }
-
     .section.incident-box {
         padding: 30px 15px;
         margin: 20px 10px;
@@ -112,7 +108,6 @@
         font-size: 1rem;
         padding-left: 0;
     }
-
     .section#core-offering {
         padding: 40px 0;
         margin: 20px 10px;
@@ -129,8 +124,6 @@
     .product-single p {
         font-size: 1rem;
     }
-
-    
     .footer-content {
         flex-direction: column; 
         align-items: center; 
@@ -193,6 +186,36 @@
     .about-content img {
         width: 80%;
         margin-bottom: 20px;
+    }
+
+    /* Slideshow adjustments for smaller screens */
+    #featured-slideshow-section {
+        min-height: 350px; /* Adjust as needed for mobile */
+        width: 100%; /* Full width on mobile */
+    }
+
+    .slideshow-container {
+        max-width: 100%; /* Allow full width within its parent */
+        margin: 20px auto; /* Reduced margin for mobile */
+        padding: 10px; /* Reduced padding */
+    }
+
+    #slideshow-inner {
+        min-height: 300px; /* Significantly reduced height for mobile */
+    }
+
+    .slide img {
+        height: 300px; /* Significantly reduced image height for mobile */
+    }
+
+    .prev, .next {
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    .dot {
+        height: 10px;
+        width: 10px;
     }
 }
 
@@ -704,11 +727,48 @@
         min-width: unset; 
         width: 100%; 
     }
+
+    /* Career page specific adjustments for 768px */
     .job-listings {
         grid-template-columns: 1fr;  /* Stack cards on mobile */
     }
+
+    /* About Us page specific adjustments for 768px */
+    .gm-message-content {
+        flex-direction: column; /* Stack image and text */
+        align-items: center; /* Center items when stacked */
+        gap: 20px; /* Add space between image and text */
+    }
+
+    .gm-photo {
+        max-width: 120px; /* Adjust image size for mobile */
+        width: 50%; 
+        margin-bottom: 15px; 
+    }
+
+    .message-text {
+        text-align: center; /* Center the text below the image */
+    }
+
+    .message-text p {
+        font-size: 1rem; /* Decrease font size for mobile */
+        line-height: 1.6; /* Adjust line height if needed */
+        padding: 0 10px; /* Adjust padding for smaller text */
+    }
+
+    /* Remove quote pseudo-elements on mobile if they look odd */
+    .message-text p::before,
+    .message-text p::after {
+        content: none; 
+    }
+
+    .gm-signature {
+        font-size: 1.1rem; /* Optionally adjust signature size */
+        padding: 15px 0 0 0; /* Adjust padding */
+    }
+
     .team-grid {
-        grid-template-columns: 1fr; 
+        grid-template-columns: 1fr; /* Stack team members */
     }
     .about-content {
         flex-direction: column;

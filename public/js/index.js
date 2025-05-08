@@ -295,66 +295,54 @@ async function fetchFeaturedSlideshowImages() {
     const featuredSlideshowSection = document.getElementById('featured-slideshow-section');
     if (!slideshowInner || !slideDotsContainer || !featuredSlideshowSection) {
         console.log('Slideshow elements or section not found on this page.');
-        if (featuredSlideshowSection) featuredSlideshowSection.style.display = 'none'; // Hide section if elements missing
+        if (featuredSlideshowSection) featuredSlideshowSection.style.display = 'none';
         return;
     }
     console.log('Fetching featured slideshow images...');
     try {
-        // 1. Get featured albums
-        const { data: featuredAlbums, error: albumsError } = await supabase
-            .from('gallery_albums')
-            .select('id, album_name')
-            .eq('is_featured_news', true); // Changed to use is_featured_news column
+        // Fetch images directly where featured_on_homepage is true
+        const { data: featuredImages, error: imagesError } = await supabase
+            .from('gallery_images')
+            .select('image_url, caption, album_id, gallery_albums(album_name)') // Select album_name via foreign key
+            .eq('featured_on_homepage', true)
+            .order('created_at', { ascending: false }); // Or your preferred order
 
-        if (albumsError) throw albumsError;
-        if (!featuredAlbums || featuredAlbums.length === 0) {
-            // slideshowInner.innerHTML = '<p>No featured albums to display.</p>';
-            console.log('No featured albums to display.');
-            featuredSlideshowSection.style.display = 'none'; // Hide the entire section
+        if (imagesError) throw imagesError;
+
+        if (!featuredImages || featuredImages.length === 0) {
+            console.log('No featured images to display.');
+            featuredSlideshowSection.style.display = 'none';
             return;
         }
 
-        console.log('Featured albums:', featuredAlbums);
+        console.log('Featured images:', featuredImages);
         slidesData = []; // Reset slides data
 
-        // 2. For each featured album, get its images
-        for (const album of featuredAlbums) {
-            const { data: images, error: imagesError } = await supabase
-                .from('gallery_images')
-                .select('image_url, caption')
-                .eq('album_id', album.id)
-                .order('created_at', { ascending: true }); // Or any other order you prefer
-
-            if (imagesError) {
-                console.error(`Error fetching images for album ${album.album_name}:`, imagesError);
-                continue; // Skip to next album on error
-            }
-
-            images.forEach(image => {
-                const { data: { publicUrl } } = supabase.storage.from('gallery-images').getPublicUrl(image.image_url);
-                slidesData.push({
-                    src: publicUrl,
-                    albumName: album.album_name,
-                    caption: image.caption || ''
-                });
+        featuredImages.forEach(image => {
+            const { data: { publicUrl } } = supabase.storage.from('gallery-images').getPublicUrl(image.image_url);
+            slidesData.push({
+                src: publicUrl,
+                // Access album_name from the joined gallery_albums table
+                albumName: image.gallery_albums ? image.gallery_albums.album_name : 'Unknown Album',
+                caption: image.caption || ''
             });
-        }
+        });
 
         if (slidesData.length === 0) {
-            // slideshowInner.innerHTML = '<p>No images found in featured albums.</p>';
-            console.log('No images found in featured albums.');
-            featuredSlideshowSection.style.display = 'none'; // Hide the entire section
+            // This case should ideally be caught by the featuredImages.length check above
+            console.log('No images processed for slideshow.');
+            featuredSlideshowSection.style.display = 'none';
             return;
         }
 
-        featuredSlideshowSection.style.display = 'block'; // Ensure section is visible if there are slides
+        featuredSlideshowSection.style.display = 'block';
         renderSlides();
         showSlides(slideIndex);
 
     } catch (error) {
         console.error('Error fetching featured slideshow images:', error);
         if (slideshowInner) slideshowInner.innerHTML = '<p>Error loading slideshow images.</p>';
-        if (featuredSlideshowSection) featuredSlideshowSection.style.display = 'none'; // Hide on error too
+        if (featuredSlideshowSection) featuredSlideshowSection.style.display = 'none';
     }
 }
 

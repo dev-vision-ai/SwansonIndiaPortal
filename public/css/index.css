@@ -140,8 +140,8 @@ body {
 }
 
 #featured-slideshow-section {
-    min-height: 600px;
-    width: 90%;
+    min-height: 750px; /* Increased to accommodate larger image height + padding */
+    width: 95%; /* Slightly wider, or use 100% if you want full width of its parent */
     margin: 0 auto;
 }
 
@@ -747,19 +747,19 @@ body {
 /* Slideshow container */
 .slideshow-container {
   position: relative;
-  max-width: 1200px; /* Increased width */
-  margin: 40px auto; /* Added vertical margin */
+  max-width: 1400px; /* Increased max-width */
+  margin: 40px auto; 
   overflow: hidden;
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  padding: 20px; /* Added padding */
+  padding: 20px; 
   background-color: rgba(255, 255, 255, 0.699);
 }
 
 #slideshow-inner {
     position: relative;
     width: 100%;
-    min-height: 400px; /* Added minimum height */
+    min-height: 700px; /* Increased to match new image height */
 }
 
 /* Slides */
@@ -770,7 +770,7 @@ body {
 
 .slide img {
   width: 100%;
-  height: 600px;
+  height: 700px; /* Increased image height */
   object-fit: contain;
   display: block;
   border-radius: 8px;

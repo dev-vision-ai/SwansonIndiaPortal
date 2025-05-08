@@ -157,7 +157,7 @@ async function createAlbum(category, albumName, description, isFeaturedNews) {
             category: category,
             album_name: albumName, 
             album_description: description,
-            is_featured_news: isFeaturedNews
+            // is_featured_news: isFeaturedNews // Removed this line as the field might not be needed or will default in DB
         }])
         .select();
 
@@ -183,7 +183,7 @@ async function handleCreateAlbumSubmit(event) {
     const category = DOMUtils.getValue(DOMUtils.getById('album-category'));
     const albumName = DOMUtils.getValue(DOMUtils.getById('album-name'));
     const description = DOMUtils.getValue(DOMUtils.getById('album-description'));
-    const isFeaturedNews = DOMUtils.isChecked(DOMUtils.getById('album-is-featured-news'));
+    // const isFeaturedNews = DOMUtils.isChecked(DOMUtils.getById('album-is-featured-news')); // Removed this line
 
     if (!category || !albumName) {
         alert('Category and Album Name are required.');
@@ -191,7 +191,7 @@ async function handleCreateAlbumSubmit(event) {
         return;
     }
 
-    await createAlbum(category, albumName, description, isFeaturedNews);
+    await createAlbum(category, albumName, description); // Removed isFeaturedNews from arguments
 }
 
 // --- Function to load existing albums --- 
@@ -224,14 +224,14 @@ async function loadExistingAlbums() {
                     <h4>${escapeHTML(album.album_name)}</h4>
                     <p><strong>Category:</strong> ${escapeHTML(album.category)}</p>
                     ${album.album_description ? `<p><strong>Description:</strong> ${escapeHTML(album.album_description)}</p>` : ''}
-                    <p><strong>Featured News:</strong> ${album.is_featured_news ? 'Yes' : 'No'}</p>
                     <div class="album-actions">
                         <button class="btn btn-info edit-album-btn" 
                                 data-album-id="${album.id}" 
                                 data-album-name="${escapeHTML(album.album_name)}" 
                                 data-album-category="${escapeHTML(album.category)}" 
                                 data-album-description="${escapeHTML(album.album_description || '')}"
-                                data-is-featured-news="${album.is_featured_news}">Edit Album</button> 
+                                // data-is-featured-news="${album.is_featured_news}" // Removed this data attribute
+                                >Edit Album</button> 
                         <button class="btn btn-secondary manage-images-btn" data-album-id="${album.id}" data-album-name="${escapeHTML(album.album_name)}">Manage Images</button>
                         <button class="btn btn-danger delete-album-btn" data-album-id="${album.id}">Delete Album</button>
                     </div>
@@ -267,8 +267,8 @@ function addAlbumActionListeners() {
         const name = button.dataset.albumName;
         const category = button.dataset.albumCategory;
         const description = button.dataset.albumDescription;
-        const isFeaturedNews = button.dataset.isFeaturedNews === 'true';
-        showEditAlbumModal(albumId, category, name, description, isFeaturedNews);
+        // const isFeaturedNews = button.dataset.isFeaturedNews === 'true'; // Removed this line
+        showEditAlbumModal(albumId, category, name, description); // Removed isFeaturedNews from arguments
     }, existingAlbumsListDiv);
 }
 
@@ -348,7 +348,7 @@ function showEditAlbumModal(albumId, category, name, description, isFeatured) {
     DOMUtils.getById('edit-album-name').value = name;
     DOMUtils.getById('edit-album-description').value = description || '';
     DOMUtils.getById('edit-album-category').value = category;
-    DOMUtils.getById('edit-album-is-featured-news').checked = isFeatured || false;
+    // DOMUtils.getById('edit-album-is-featured-news').checked = isFeatured || false; // Removed this line
     
     DOMUtils.show(editAlbumModal);
     // Trigger auto-resize for description textarea if it has content
@@ -361,7 +361,7 @@ const editAlbumIdInput = document.getElementById('edit-album-id');
 const editAlbumCategoryInput = document.getElementById('edit-album-category');
 const editAlbumNameInput = document.getElementById('edit-album-name');
 const editAlbumDescriptionInput = document.getElementById('edit-album-description');
-const editAlbumIsFeaturedNewsInput = document.getElementById('edit-album-is-featured-news'); // <<< This refers to the ID 'edit-album-is-featured-news'
+// const editAlbumIsFeaturedNewsInput = document.getElementById('edit-album-is-featured-news'); // <<< This refers to the ID 'edit-album-is-featured-news' - REMOVED
 const createAlbumDescriptionInput = document.getElementById('album-description'); 
 const cancelEditButton = document.getElementById('cancel-edit-album-btn'); // Button in modal
 const imageManagementSection = document.getElementById('image-management');
@@ -423,7 +423,7 @@ async function loadImageList(albumId) {
 
     const imageRecordsOp = supabase
         .from('gallery_images')
-        .select('image_url, caption')
+        .select('id, image_url, caption, featured_on_homepage') // <-- Added id and featured_on_homepage
         .eq('album_id', albumId)
         .order('created_at', { ascending: true });
 
@@ -439,6 +439,8 @@ async function loadImageList(albumId) {
             records.forEach(record => {
                 const imagePath = record.image_url;
                 const caption = record.caption;
+                const imageId = record.id; // <-- Get image ID
+                const isFeatured = record.featured_on_homepage; // <-- Get featured status
 
                 const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(imagePath);
                 const publicUrl = urlData ? urlData.publicUrl : null;
@@ -450,12 +452,21 @@ async function loadImageList(albumId) {
                     imageItem.innerHTML = `
                         <img src="${publicUrl}" alt="${escapeHTML(caption || imagePath.split('/').pop())}" loading="lazy" style="max-width: 200px; max-height: 200px; display: block;">
                         ${captionHTML}
-                        <button class="btn btn-sm btn-danger btn-delete-image mt-1" data-image-path="${escapeHTML(imagePath)}">Delete</button>
+                        <div class="image-actions mt-1">
+                            <input type="checkbox" 
+                                   class="feature-checkbox" 
+                                   data-image-id="${imageId}" 
+                                   ${isFeatured ? 'checked' : ''}>
+                            <label for="feature-checkbox-${imageId}" style="margin-left: 5px;">Feature on Homepage News</label>
+                        </div>
+                        <button class="btn btn-sm btn-danger btn-delete-image mt-1" data-image-id="${imageId}" data-image-path="${escapeHTML(imagePath)}">Delete</button>
                     `;
+                    // Note: I also added data-image-id to the delete button for consistency, you might need to update deleteImage function if it relied only on imagePath
                     existingImagesListDiv.appendChild(imageItem);
                 }
             });
-            addImageDeleteListeners(); // Uses reattachEventListener internally
+            addImageDeleteListeners(); 
+            addImageFeatureToggleListeners(); // <-- Call the new function here
         },
         errorCallback: (err) => {
             DOMUtils.setHtml(existingImagesListDiv, `<p class="error-message">Error loading images: ${err.message}</p>`);
@@ -463,21 +474,56 @@ async function loadImageList(albumId) {
     });
 }
 
+// --- Function to Add Listeners for Image Feature Toggles ---
+function addImageFeatureToggleListeners() {
+    reattachEventListener('.feature-checkbox', 'change', async (event) => {
+        const checkbox = event.target;
+        const imageId = checkbox.dataset.imageId;
+        const isFeatured = checkbox.checked;
+
+        console.log(`Toggling homepage feature for image ${imageId} to ${isFeatured}`);
+
+        const operation = supabase
+            .from('gallery_images')
+            .update({ featured_on_homepage: isFeatured })
+            .eq('id', imageId);
+
+        await handleSupabaseOperation(operation, {
+            loadingMessage: 'Updating image feature status...',
+            successMessage: 'Image feature status updated successfully!',
+            errorMessagePrefix: 'Image Feature Update Error',
+            showAlertOnSuccess: false, // Set to true if you want an alert on success
+            showAlertOnError: true
+        });
+    }, existingImagesListDiv); // Attach to the parent div where images are listed
+}
+
 // --- Function to Add Listeners for Image Delete Buttons ---
 function addImageDeleteListeners() {
     reattachEventListener('.btn-delete-image', 'click', async (event) => {
-        const imagePath = event.target.dataset.imagePath;
+        const button = event.target;
+        const imageId = button.dataset.imageId; // <-- Get imageId
+        const imagePath = button.dataset.imagePath;
+
+        if (!imageId || !imagePath) {
+            console.error('Missing imageId or imagePath for deletion.');
+            alert('Could not delete image: data missing.');
+            return;
+        }
+
         if (confirm(`Are you sure you want to delete this image (${imagePath.split('/').pop()})?`)) {
-            await deleteImage(imagePath);
+            await deleteImage(imageId, imagePath); // <-- Pass both imageId and imagePath
         }
     }, existingImagesListDiv); // Assuming buttons are within existingImagesListDiv
 }
 
 // --- Function to Delete an Image --- 
-async function deleteImage(imagePath) {
+async function deleteImage(imageId, imagePath) { // Signature already accepts imageId and imagePath
     const currentAlbumId = imageManagementSection.dataset.currentAlbumId;
-    if (!currentAlbumId) {
-        alert('Error: Could not determine the album for this image. Deletion aborted.');
+    // currentAlbumId might still be useful for reloading the list, but not strictly for deletion if imageId is unique
+    if (!currentAlbumId) { // Keep this check for context, e.g., reloading the list
+        alert('Error: Could not determine the album context. Deletion aborted.');
+        console.error('currentAlbumId not found in imageManagementSection.dataset');
         return;
     }
 
@@ -486,43 +532,36 @@ async function deleteImage(imagePath) {
         // Step 1: Delete from Supabase Storage
         const storageOp = supabase.storage.from(BUCKET_NAME).remove([imagePath]);
         const { error: storageError } = await handleSupabaseOperation(storageOp, {
-            // successMessage: 'Image deleted from storage.', // Can be too noisy
             errorMessagePrefix: 'Storage Deletion Error',
-            showAlertOnError: false // Handled in main catch or below
+            showAlertOnError: false 
         });
 
         if (storageError) {
-            // If storage deletion fails, do not proceed to delete DB record.
             alert(`Error deleting image from storage: ${storageError.message}. Database record not deleted.`);
-            throw storageError; // Propagate to main catch
+            throw storageError; 
         }
 
-        // Step 2: Delete from gallery_images database table
+        // Step 2: Delete from gallery_images database table using imageId
         const dbOp = supabase.from('gallery_images').delete()
-            .eq('album_id', currentAlbumId)
-            .eq('image_url', imagePath);
+            .eq('id', imageId); // <-- Use imageId for deletion
         
         const { error: dbError } = await handleSupabaseOperation(dbOp, {
             successMessage: 'Image deleted successfully from storage and database!',
             errorMessagePrefix: 'DB Image Record Deletion Error',
             showAlertOnSuccess: true,
-            showAlertOnError: false, // Handled in main catch or below
-            successCallback: () => loadImageList(currentAlbumId) // Reload list on full success
+            showAlertOnError: false, 
+            successCallback: () => loadImageList(currentAlbumId) 
         });
 
         if (dbError) {
-            // Image deleted from storage, but DB record remains. This is an inconsistency.
             alert(`Image deleted from storage, but failed to delete database record: ${dbError.message}. Please check database manually.`);
-            // Still try to reload the list as the UI might be out of sync with storage
-            loadImageList(currentAlbumId);
-            throw dbError; // Propagate to main catch
+            loadImageList(currentAlbumId); // Still try to reload
+            throw dbError; 
         }
 
     } catch (error) {
-        // This catch block now handles errors propagated from handleSupabaseOperation or direct throws
         console.error('Error during image deletion process:', error.message);
-        // Alert is already handled by handleSupabaseOperation if showAlertOnError was true there,
-        // or by specific alerts above. This can be a generic fallback.
+        // Generic alert can be added here if specific ones above don't cover all cases
         // alert(`An unexpected error occurred while deleting the image: ${error.message}`);
     } finally {
         hideLoading();
