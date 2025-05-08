@@ -408,15 +408,24 @@ body {
 
 
 .section.incident-box {
-    background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+    /* background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%); */ /* REMOVE or COMMENT OUT if using image bg */
     border: none;
     border-radius: 15px;
     box-shadow: 0 20px 40px rgba(0, 46, 125, 0.08);
-    padding: 30px;  /* Reduced vertical padding */
-    margin: 30px auto;  /* Reduced margin */
-    max-width: 1800px;  /* Increased width */
-    position: relative;
+    padding: 30px;
+    margin: 30px auto;
+    max-width: 1800px;
+    position: relative; /* ENSURE THIS IS PRESENT */
+    overflow: hidden;   /* ADD THIS if not already present for #about */
     text-align: left;
+}
+
+/* You might need to be more specific if .incident-box is used elsewhere without this bg */
+.section.incident-box#about {
+    position: relative; /* Ensure it's set */
+    overflow: hidden;   /* Ensure it's set */
+    /* Remove background gradient if you want the image to be the only background */
+    /* background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%); */ 
 }
 
 .section.incident-box h2 {
@@ -436,14 +445,38 @@ body {
     padding-left: 20px;
 }
 
+/* Update this existing rule */
 .section#core-offering {
-    background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+    /* background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%); */ /* REMOVE or COMMENT OUT this line */
+    position: relative; /* ADD THIS: Crucial for positioning the child image */
+    overflow: hidden;   /* ADD THIS: To contain the absolutely positioned image */
     padding: 50px 0;
     text-align: center;
     max-width: 1800px;
     margin: 30px auto;
     border-radius: 15px;
     box-shadow: 0 20px 40px rgba(0, 46, 125, 0.08);
+}
+
+/* ADD THESE NEW STYLES if they don't exist or update them */
+.section-bg-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    object-position: center;
+    opacity: 0.3; /* Adjust opacity as needed (e.g., 0.1 for 10%, 0.5 for 50%) */
+    z-index: -1;   /* Places the image behind the content */
+    border-radius: 15px; /* Match parent's border-radius */
+}
+
+/* Ensure the content container is styled correctly */
+.section#core-offering .container {
+    position: relative; /* Ensure content is above the background image */
+    z-index: 1;         /* Must be higher than .section-bg-image's z-index */
+    /* Add any other existing styles for .container here */
 }
 
 .product-single {
@@ -662,6 +695,9 @@ body {
     background-color: #002159; /* Slightly darker shade for copyright area */
 }
 
+/* Make sure to REMOVE the duplicate .section#core-offering rule that was around line 665 */
+/* For example, the block starting with: */
+/*
 .section#core-offering {
     background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
     padding: 50px 0;
@@ -671,7 +707,7 @@ body {
     border-radius: 15px;
     box-shadow: 0 20px 40px rgba(0, 46, 125, 0.08);
 }
-
+*/
 .product-single {
     display: flex;
     flex-direction: column;
