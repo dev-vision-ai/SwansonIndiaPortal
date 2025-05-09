@@ -823,15 +823,15 @@ async function handleEditAlbumSubmit(event) {
     const albumName = document.getElementById('edit-album-name').value.trim();
     const albumDescription = document.getElementById('edit-album-description').value.trim();
     const albumCategory = document.getElementById('edit-album-category').value;
-    const isFeaturedNews = document.getElementById('edit-album-is-featured-news').checked;
+    // Removed: const isFeaturedNews = document.getElementById('edit-album-is-featured-news').checked;
 
     // Validation
     if (!albumName) {
-        alert('Album name cannot be empty.'); // Consider using a unified notification/message helper if available
+        alert('Album name cannot be empty.');
         return;
     }
     if (!albumId) {
-        alert('Error: Album ID is missing. Cannot update.'); // Consider using a unified notification/message helper
+        alert('Error: Album ID is missing. Cannot update.');
         return;
     }
 
@@ -843,7 +843,7 @@ async function handleEditAlbumSubmit(event) {
                 album_name: albumName,
                 album_description: albumDescription,
                 category: albumCategory,
-                is_featured_news: isFeaturedNews
+                // Removed: is_featured_news: isFeaturedNews
             })
             .eq('id', albumId)
             .select(); // .select() is crucial to get the updated row(s) back

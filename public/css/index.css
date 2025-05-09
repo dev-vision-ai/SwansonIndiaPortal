@@ -607,36 +607,35 @@ body {
 
 /* --- Footer Styling --- */
 .footer {
-    background-color: #002E7D; /* Dark blue background for the whole footer */
-    color: #f0f0f0; /* Light default text color for the footer */
-    padding-top: 30px; /* Reduced padding from 40px */
+    background-color: #002E7D;
+    color: #f0f0f0;
+    font-family: 'DM Sans', 'Noto Sans TC', 'Noto Sans SC', sans-serif;
 }
 
 .footer-content {
     display: flex;
-    flex-direction: row; 
-    flex-wrap: wrap; 
-    justify-content: center; 
-    align-items: flex-start; 
-    max-width: 1400px; 
-    margin: 0 auto; 
-    padding: 20px 20px 20px; /* Padding bottom and sides, no top padding needed here */
-    gap: 40px; 
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px 20px 20px;
+    font-family: 'DM Sans', 'Noto Sans TC', 'Noto Sans SC', sans-serif;
 }
 
-/* Style for the individual sections */
 .footer-map-section,
 .footer-contact-section,
 .footer-links-section {
-    flex: 1; 
-    min-width: 300px; 
-    max-width: 450px; 
-    text-align: center; 
+    flex: 1;
+    min-width: 300px;
+    max-width: 450px;
+    text-align: center;
     /* Removed background, padding, border-radius, shadow from individual sections */
 }
 
 .footer-map-section .map-container {
-    max-width: 100%; 
+    max-width: 100%;
     margin: 0 auto 20px; /* Add bottom margin to map */
     border-radius: 0;
     overflow: hidden;
@@ -646,61 +645,52 @@ body {
 .footer-map-section .map-container iframe {
     display: block;
     width: 100%;
-    height: 250px; 
+    height: 250px;
 }
 
 .footer-contact-section h4,
 .footer-links-section h4 {
-    margin-bottom: 20px; /* Increased margin */
-    font-size: 1.4rem; 
-    color: #ffffff; /* White headings */
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+    color: #ffffff;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    font-family: 'DM Sans', 'Noto Sans TC', 'Noto Sans SC', sans-serif;
 }
 
 .footer-contact-section p {
     margin: 0;
     line-height: 1.7;
-    color: #d0d0d0; /* Light gray text */
+    color: #d0d0d0;
+    font-family: 'DM Sans', 'Noto Sans TC', 'Noto Sans SC', sans-serif;
 }
 
 .footer-links-section a {
-    display: block; 
-    margin: 10px 0; 
-    color: #e0e0e0; /* Lighter link color */
+    display: block;
+    margin: 10px 0;
+    color: #e0e0e0;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.3s ease;
+    font-family: 'DM Sans', 'Noto Sans TC', 'Noto Sans SC', sans-serif;
 }
 
 .footer-links-section a:hover {
-    color: #e4c829; /* Keep gold hover */
+    color: #e4c829;
 }
 
 .footer-copyright {
     text-align: center;
-    padding: 10px 0; /* Increased padding */
-    margin-top: 10px; /* Adjusted margin */
-    border-top: 1px solid #00408a; /* Darker blue border */
-    color: #a0a0a0; /* Medium gray for copyright */
+    padding: 10px 0;
+    margin-top: 10px;
+    border-top: 1px solid #00408a;
+    color: #a0a0a0;
     font-size: 0.9rem;
-    background-color: #002159; /* Slightly darker shade for copyright area */
+    background-color: #002159;
+    font-family: 'DM Sans', 'Noto Sans TC', 'Noto Sans SC', sans-serif;
 }
 
-/* Make sure to REMOVE the duplicate .section#core-offering rule that was around line 665 */
-/* For example, the block starting with: */
-/*
-.section#core-offering {
-    background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
-    padding: 50px 0;
-    text-align: center;
-    max-width: 1800px;
-    margin: 30px auto;
-    border-radius: 0;
-    box-shadow: 0 20px 40px rgba(0, 46, 125, 0.08);
-}
-*/
 .product-single {
     display: flex;
     flex-direction: column;
