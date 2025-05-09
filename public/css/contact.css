@@ -1,0 +1,481 @@
+/* Reset and base styles */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    padding-top: 100px;
+    font-family: 'DM Sans', 'Noto Sans TC', 'Noto Sans SC', sans-serif;
+    background-image: url('../assets/page-bg.png');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #ffffff;
+    color: #1d1d1d;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    margin-top: 50px;
+    padding: 0 20px;
+}
+
+/* Navbar */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: #ffffff;
+    padding: 15px 0;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    border-bottom: 7px solid #e4c829;
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 0 15px;
+    gap: 15px;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo {
+    height: 45px;
+    flex-shrink: 0;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.nav-links a {
+    color: #002E7D;
+    text-decoration: none;
+    font-weight: 600;
+    margin: 0 15px;
+    transition: color 0.3s ease;
+    font-size: 1.0rem;
+    white-space: nowrap;
+}
+
+.nav-links a:hover {
+    color: #e4c829;
+}
+
+.company-names {
+    display: flex;
+    flex-direction: column;
+}
+
+.company-name, .company-name-translated {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0a3083;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-toggle {
+    color: #002E7D;
+    text-decoration: none;
+    font-weight: 600;
+    margin: 0 15px;
+    transition: color 0.3s ease;
+    cursor: pointer;
+    font-size: 1.0rem;
+    white-space: nowrap;
+}
+
+.dropdown-toggle i {
+    margin-left: 5px;
+    font-size: 0.8em;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    background-color: #ffffff;
+    min-width: 160px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    padding: 8px 0;
+    z-index: 1001;
+    left: 0;
+    top: 100%;
+}
+
+.dropdown-menu a {
+    color: #002E7D;
+    padding: 10px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+.dropdown-menu a:hover {
+    background-color: #f8f9fa;
+    color: #e4c829;
+}
+
+.section {
+    padding: 50px 0;
+    text-align: center;
+}
+
+
+
+.company-names {
+    display: flex;
+    flex-direction: column;
+}
+
+.company-name, .company-name-translated {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0a3083;
+}
+
+
+
+
+
+.gm-message-content {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    margin-top: 20px;
+}
+
+.gm-photo {
+    width: 200px;
+    border-radius: 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.message-text {
+    flex: 1;
+}
+
+.message-text p {
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+.gm-signature {
+    font-style: normal !important;
+    color: #002E7D;
+    font-weight: 600;
+    margin-top: 20px;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-toggle {
+    color: #002E7D;
+    text-decoration: none;
+    font-weight: 600;
+    margin: 0 20px;
+    transition: color 0.3s ease;
+    cursor: pointer;
+}
+
+.dropdown-toggle i {
+    margin-left: 5px;
+    font-size: 0.8em;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    background-color: #ffffff;
+    min-width: 160px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    padding: 8px 0;
+    z-index: 1001;
+}
+
+.dropdown-menu a {
+    color: #002E7D;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 0.9em;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+.dropdown-menu a:hover {
+    background-color: #f8f9fa;
+    color: #e4c829;
+}
+
+
+
+/* --- Footer Styling --- */
+.footer {
+    background-color: #002E7D;
+    color: #f0f0f0;
+    padding-top: 30px;
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px 20px 20px;
+    gap: 40px;
+}
+
+.footer-map-section,
+.footer-contact-section,
+.footer-links-section {
+    flex: 1;
+    min-width: 300px;
+    max-width: 450px;
+    text-align: center;
+}
+
+.footer-map-section .map-container {
+    max-width: 100%;
+    margin: 0 auto 20px;
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.footer-map-section .map-container iframe {
+    display: block;
+    width: 100%;
+    height: 250px;
+}
+
+.footer-contact-section h4,
+.footer-links-section h4 {
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+    color: #ffffff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.footer-contact-section p {
+    margin: 0;
+    line-height: 1.7;
+    color: #d0d0d0;
+}
+
+.footer-links-section a {
+    display: block;
+    margin: 10px 0;
+    color: #e0e0e0;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.footer-links-section a:hover {
+    color: #e4c829;
+}
+
+.footer-copyright {
+    text-align: center;
+    padding: 10px 0;
+    margin-top: 10px;
+    border-top: 1px solid #00408a;
+    color: #a0a0a0;
+    font-size: 0.9rem;
+    background-color: #002159;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Find the existing 'main' selector or add it if it doesn't exist */
+main {
+    flex-grow: 1;
+}
+
+/* Find the existing 'footer' or '.footer' selector */
+footer, .footer {
+    /* Remove any position: fixed/absolute, bottom: 0, width: 100% */
+    margin-top: auto;
+}
+
+
+
+/* --- Footer Styling (Copied from index.css) --- */
+.footer {
+    background-color: #002E7D;
+    color: #f0f0f0;
+    padding-top: 30px;
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px 20px 20px;
+    gap: 40px;
+}
+
+/* Style for the individual sections */
+.footer-map-section,
+.footer-contact-section,
+.footer-links-section {
+    flex: 1;
+    min-width: 300px;
+    max-width: 450px;
+    text-align: center;
+    /* Removed background, padding, border-radius, shadow from individual sections */
+}
+
+.footer-map-section .map-container {
+    max-width: 100%;
+    margin: 0 auto 20px;
+    border-radius: 0;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.footer-map-section .map-container iframe {
+    display: block;
+    width: 100%;
+    height: 250px;
+}
+
+.footer-contact-section h4,
+.footer-links-section h4 {
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+    color: #ffffff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.footer-contact-section p {
+    margin: 0;
+    line-height: 1.7;
+    color: #d0d0d0;
+}
+
+.footer-links-section a {
+    display: block;
+    margin: 10px 0;
+    color: #e0e0e0;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.footer-links-section a:hover {
+    color: #e4c829;
+}
+
+.footer-copyright {
+    text-align: center;
+    padding: 10px 0;
+    margin-top: 10px;
+    border-top: 1px solid #00408a;
+    color: #a0a0a0;
+    font-size: 0.9rem;
+    background-color: #002159;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Find the existing 'main' selector or add it if it doesn't exist */
+main {
+    flex-grow: 1;
+}
+
+/* Find the existing 'footer' or '.footer' selector */
+footer, .footer {
+    /* Remove any position: fixed/absolute, bottom: 0, width: 100% */
+    margin-top: auto;
+}
+
+.contact-grids {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    padding: 2rem 5%;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.grid-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.grid-item h2 {
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.contact-list p {
+    margin: 0.8rem 0;
+    color: #34495e;
+}
+
+.fa-phone, .fa-envelope {
+    margin-right: 0.5rem;
+    color: #3498db;
+}
