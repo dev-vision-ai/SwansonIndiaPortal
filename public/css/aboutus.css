@@ -33,7 +33,7 @@ body {
 
 .about-us-section {
     background-color: #ffffff;
-    border-radius: 10px;
+    border-radius: 0;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     padding: 30px;
     max-width: 1200px;
@@ -180,7 +180,7 @@ body {
 
 .gallery-grid img {
     width: 100%;
-    border-radius: 10px;
+    border-radius: 0;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
@@ -310,7 +310,7 @@ body {
 
 .gm-photo {
     width: 200px;
-    border-radius: 10px;
+    border-radius: 0;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -410,7 +410,7 @@ body {
 .footer-map-section .map-container {
     max-width: 100%; 
     margin: 0 auto 20px; /* Add bottom margin to map */
-    border-radius: 8px;
+    border-radius: 0;
     overflow: hidden;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Slightly darker shadow for contrast */
 }
@@ -487,7 +487,7 @@ footer, .footer { /* Use whichever selector is already present, or both */
 
 .image-grid-item {
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 0;
     overflow: hidden; /* Ensure images don't overflow the container */
     aspect-ratio: 1 / 1; /* Make items square, adjust if needed */
 }
@@ -510,7 +510,7 @@ footer, .footer { /* Use whichever selector is already present, or both */
 }
 .gm-photo {
     width: 200px;
-    border-radius: 10px;
+    border-radius: 0;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -610,7 +610,7 @@ footer, .footer { /* Use whichever selector is already present, or both */
 .footer-map-section .map-container {
     max-width: 100%; 
     margin: 0 auto 20px; /* Add bottom margin to map */
-    border-radius: 8px;
+    border-radius: 0;
     overflow: hidden;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Slightly darker shadow for contrast */
 }

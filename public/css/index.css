@@ -94,7 +94,7 @@ body {
 .hero-overlay {
     background: rgba(0, 0, 0, 0.2);
     padding: 80px;
-    border-radius: 0px;
+    border-radius: 0;
     backdrop-filter: blur(5px);
     max-width: 1200px;
     margin: 0 20px;
@@ -181,7 +181,7 @@ body {
 .service-card {
     background: white;
     padding: 30px;
-    border-radius: 10px;
+    border-radius: 0;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
     text-align: center;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -217,7 +217,7 @@ body {
 .service-card {
     background: transparent;  /* Remove background */
     padding: 40px 30px;
-    border-radius: 15px;
+    border-radius: 0;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
@@ -304,7 +304,7 @@ body {
 
 .two-column img {
     width: 50%;
-    border-radius: 10px;
+    border-radius: 0;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
@@ -322,7 +322,7 @@ body {
 .service-card {
     background-color: #fff;
     padding: 20px;
-    border-radius: 10px;
+    border-radius: 0;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     text-align: center;
 }
@@ -410,7 +410,7 @@ body {
 .section.incident-box {
     /* background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%); */ /* REMOVE or COMMENT OUT if using image bg */
     border: none;
-    border-radius: 15px;
+    border-radius: 0;
     box-shadow: 0 20px 40px rgba(0, 46, 125, 0.08);
     padding: 30px;
     margin: 30px auto;
@@ -420,13 +420,6 @@ body {
     text-align: left;
 }
 
-/* You might need to be more specific if .incident-box is used elsewhere without this bg */
-.section.incident-box#about {
-    position: relative; /* Ensure it's set */
-    overflow: hidden;   /* Ensure it's set */
-    /* Remove background gradient if you want the image to be the only background */
-    /* background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%); */ 
-}
 
 .section.incident-box h2 {
     color: #002E7D;
@@ -454,7 +447,7 @@ body {
     text-align: center;
     max-width: 1800px;
     margin: 30px auto;
-    border-radius: 15px;
+    border-radius: 0;
     box-shadow: 0 20px 40px rgba(0, 46, 125, 0.08);
 }
 
@@ -469,7 +462,7 @@ body {
     object-position: center;
     opacity: 0.3; /* Adjust opacity as needed (e.g., 0.1 for 10%, 0.5 for 50%) */
     z-index: -1;   /* Places the image behind the content */
-    border-radius: 15px; /* Match parent's border-radius */
+    border-radius: 0; /* Match parent's border-radius */
 }
 
 /* Ensure the content container is styled correctly */
@@ -486,7 +479,7 @@ body {
     max-width: 1600px;  /* Increased width */
     margin: 0 auto;
     padding: 30px 40px;
-    border-radius: 15px;
+    border-radius: 0;
     background: #ffffff;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
@@ -494,7 +487,7 @@ body {
 .product-single img {
     width: 100%;
     max-width: 600px;
-    border-radius: 15px;
+    border-radius: 0;
     margin-bottom: 30px;
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
     image-rendering: -webkit-optimize-contrast; /* Chrome/Safari */
@@ -549,7 +542,7 @@ body {
 /* Map Container */
 .map-container {
     margin-top: 15px;
-    border-radius: 8px;
+    border-radius: 0;
     overflow: hidden;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     max-width: 500px; /* Increased width */
@@ -576,7 +569,7 @@ body {
 .policy-item {
     background: #f8f9ff; /* Changed to a solid color */
     padding: 40px 30px;
-    border-radius: 15px;
+    border-radius: 0;
     transition: all 0.3s ease;
     text-align: center;
     position: relative;
@@ -645,7 +638,7 @@ body {
 .footer-map-section .map-container {
     max-width: 100%; 
     margin: 0 auto 20px; /* Add bottom margin to map */
-    border-radius: 8px;
+    border-radius: 0;
     overflow: hidden;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Slightly darker shadow for contrast */
 }
@@ -704,7 +697,7 @@ body {
     text-align: center;
     max-width: 1800px;
     margin: 30px auto;
-    border-radius: 15px;
+    border-radius: 0;
     box-shadow: 0 20px 40px rgba(0, 46, 125, 0.08);
 }
 */
@@ -715,7 +708,7 @@ body {
     max-width: 1600px;  /* Increased width */
     margin: 0 auto;
     padding: 30px 40px;
-    border-radius: 15px;
+    border-radius: 0;
     background: #ffffff;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
@@ -723,7 +716,7 @@ body {
 .product-single img {
     width: 100%;
     max-width: 600px;  /* Increased image width */
-    border-radius: 15px;
+    border-radius: 0;
     margin-bottom: 30px;
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
@@ -762,7 +755,7 @@ body {
 .customer-name-item {
     background: linear-gradient(145deg, #f8f9ff, #ffffff);
     padding: 15px 20px; 
-    border-radius: 8px; 
+    border-radius: 0; 
     box-shadow: 0 6px 12px rgba(0, 46, 125, 0.06);
     text-align: center;
     border-left: 5px solid #002E7D; /* Accent border */
