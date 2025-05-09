@@ -743,13 +743,13 @@ body {
 /* Make sure there isn't an extra closing brace '}' or other syntax error right before or after this block */
 
 .customer-name-item {
-    width: 120px; /* Increased width for larger circle */
-    height: 120px; /* Increased height for larger circle */
-    border-radius: 50%; /* Maintain circular shape */
-    display: flex; /* Center text vertically */
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(145deg, #f8f9ff, #ffffff);
+    background: linear-gradient(145deg, #d0ecff, #e6f2ff);
     padding: 15px 20px;
     box-shadow: 0 6px 12px rgba(0, 46, 125, 0.06);
     text-align: center;
