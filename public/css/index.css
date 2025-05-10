@@ -235,9 +235,9 @@ body {
 }
 
 .service-card i {
-    font-size: 3.5rem;  /* Larger icons */
+    font-size: 3.5rem;
     color: #002E7D;
-    margin-bottom: 25px;
+    margin-bottom: 15px; /* Reduced margin-bottom to decrease gap */
     transition: all 0.3s ease;
 }
 
