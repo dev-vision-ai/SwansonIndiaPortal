@@ -545,6 +545,20 @@ body {
     gap: 10px; 
 }
 
+@media (max-width: 768px) {
+    .apply-button, .share-button {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .button-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
 .apply-button {
     /* Existing styles - ensure padding/font-size match .share-button */
     padding: 10px 20px; 
@@ -566,18 +580,6 @@ body {
     margin: 0; /* Remove default paragraph margin if needed */
     line-height: 1.5; /* Ensure consistent line height */
 }
-
-/* Optional: Add a fade-out effect at the bottom when collapsed */
-/* .job-description::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 1.5em; 
-    background: linear-gradient(to bottom, transparent, white);
-    pointer-events: none; 
-} */
 
 /* Expanded state */
 .job-description.expanded {
