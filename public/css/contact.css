@@ -165,10 +165,6 @@ body {
     color: #0a3083;
 }
 
-
-
-
-
 .gm-message-content {
     display: flex;
     gap: 30px;
@@ -451,23 +447,28 @@ footer, .footer {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
-    padding: 2rem 5%;
-    max-width: 1200px;
+    padding: 2rem 2%; 
+    max-width: 1400px; 
     margin: 0 auto;
 }
 
 .grid-item {
-    background: #f8f9fa;
-    border-radius: 8px;
+    background: #ffffff; /* Changed from #f8f9fa for a cleaner look */
+    border-radius: 10px; /* Slightly more rounded corners */
     padding: 2rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12); /* Enhanced shadow */
+    border: 1px solid #e0e0e0; /* Subtle border */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for hover */
 }
 
-.grid-item h2 {
-    color: #2c3e50;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 0.5rem;
+/* Assuming titles are H2 in desktop view within .contact-grids */
+.contact-grids .grid-item h2 { /* Made selector more specific */
+    color: #002E7D; /* Changed color to match theme */
+    border-bottom: 3px solid #e4c829; /* Thicker, theme-colored border */
+    padding-bottom: 0.75rem; /* Adjusted padding */
     margin-bottom: 1.5rem;
+    font-size: 1.5rem; /* Adjusted font size if needed */
+    text-align: left; /* Aligning title to the left as per screenshot */
 }
 
 .contact-list p {

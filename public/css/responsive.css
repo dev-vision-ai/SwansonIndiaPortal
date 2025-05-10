@@ -25,161 +25,8 @@
     }
 }
 
-
-@media (max-width: 768px) {
-    #desktop-header {
-        display: none !important;
-    }
-    #mobile-header {
-        display: block; /* Show mobile header */
-    }
-    body {
-        padding-top: 60px; /* Adjust based on mobile header height */
-    }
-
-    .hero {
-        height: auto; 
-        padding: 100px 0 60px; 
-    }
-    .hero-overlay {
-        padding: 40px 20px;
-    }
-    .hero h1 {
-        font-size: 2.2rem;
-    }
-    .hero p {
-        font-size: 1.1rem;
-        margin-bottom: 30px;
-    }
-    .cta-button {
-        padding: 12px 30px;
-        font-size: 0.9rem;
-    }
-    .section {
-        padding: 50px 0;
-    }
-    .section h2 {
-        font-size: 2rem;
-        margin-bottom: 30px;
-    }
-    .grid-3,
-    .grid-4 {
-        grid-template-columns: 1fr;
-        gap: 30px;
-        padding: 0 20px;
-    }
-    .service-card {
-        padding: 30px 20px;
-    }
-    .service-card h4 {
-        font-size: 1.5rem;
-    }
-    .service-card p {
-        font-size: 1rem;
-    }
-    .two-column {
-        flex-direction: column;
-        gap: 30px;
-        padding: 0 20px;
-    }
-    .two-column img {
-        width: 90%;
-        max-width: 400px;
-    }
-    .section.incident-box {
-        padding: 30px 15px;
-        margin: 20px 10px;
-    }
-    .section.incident-box h2 {
-        font-size: 1.8rem;
-    }
-    .section.incident-box p {
-        font-size: 1rem;
-        padding-left: 0;
-    }
-    .section#core-offering {
-        padding: 40px 0;
-        margin: 20px 10px;
-    }
-    .product-single {
-        padding: 20px;
-    }
-    .product-single img {
-        max-width: 90%;
-    }
-    .product-single h4 {
-        font-size: 1.6rem;
-    }
-    .product-single p {
-        font-size: 1rem;
-    }
-    .footer-content {
-        flex-direction: column; 
-        align-items: center; 
-        gap: 30px;
-        padding: 20px;
-    }
-    .footer-map-section,
-    .footer-contact-section,
-    .footer-links-section {
-        max-width: 90%; 
-        min-width: unset; 
-        width: 100%; 
-    }
-
-    /* Career page specific adjustments for 768px */
-    .job-listings {
-        grid-template-columns: 1fr;  /* Stack cards on mobile */
-    }
-
-    /* About Us page specific adjustments for 768px */
-    .gm-message-content {
-        flex-direction: column; /* Stack image and text */
-        align-items: center; /* Center items when stacked */
-        gap: 20px; /* Add space between image and text */
-    }
-
-    .gm-photo {
-        max-width: 120px; /* Adjust image size for mobile */
-        width: 50%; 
-        margin-bottom: 15px; 
-    }
-
-    .message-text {
-        text-align: center; /* Center the text below the image */
-    }
-
-    .message-text p {
-        font-size: 1rem; /* Decrease font size for mobile */
-        line-height: 1.6; /* Adjust line height if needed */
-        padding: 0 10px; /* Adjust padding for smaller text */
-    }
-
-    /* Remove quote pseudo-elements on mobile if they look odd */
-    .message-text p::before,
-    .message-text p::after {
-        content: none; 
-    }
-
-    .gm-signature {
-        font-size: 1.1rem; /* Optionally adjust signature size */
-        padding: 15px 0 0 0; /* Adjust padding */
-    }
-
-    .team-grid {
-        grid-template-columns: 1fr; /* Stack team members */
-    }
-    .about-content {
-        flex-direction: column;
-    }
-    .about-content img {
-        width: 80%;
-        margin-bottom: 20px;
-    }
-}
-
 #mobile-header {
-    display: none;
+    display: none; /* Hidden by default */
     position: fixed;
     top: 0;
     width: 100%;
@@ -225,14 +72,12 @@
     cursor: pointer;
     padding: 5px; /* Reset padding */
     z-index: 1001;
-    /* Set fixed dimensions for the icon area */
     width: 30px;
     height: 30px;
-    display: flex; /* Use flex to help center if needed, but position relative is key */
+    display: flex;
     justify-content: center;
     align-items: center;
     position: relative; 
-    
 }
 
 .menu-icon::before,
@@ -241,55 +86,48 @@
     position: absolute;
     width: 20px;
     height: 3px;
-    background-color: currentColor; /* Use the button's color */
+    background-color: currentColor;
     transition: transform 0.3s ease, top 0.3s ease;
-    left: 50%; /* Center horizontally */
-    transform: translateX(-50%); /* Adjust for centering */
-    border-radius: 1px; /* Optional: slightly rounded ends */
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 1px;
 }
 
 .menu-icon::before {
-    top: 8px; /* Position top line */
+    top: 8px;
 }
 
 .menu-icon::after {
-    top: 19px; /* Position bottom line (adjust spacing as needed) */
+    top: 19px;
 }
 
-/* Transform into 'X' when active */
 .menu-icon.active::before {
-    top: 50%; /* Move line to center */
+    top: 50%;
     transform: translate(-50%, -50%) rotate(45deg);
 }
 
 .menu-icon.active::after {
-    top: 50%; /* Move line to center */
+    top: 50%;
     transform: translate(-50%, -50%) rotate(-45deg);
 }
 
-
-
 .mobile-nav-links {
-    /* display: none; /* <<< Remove display: none */
     position: absolute;
     top: 100%; 
     left: 0;
     width: 100%;
     background-color: #ffffff;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-    padding: 0; /* <<< Set top/bottom padding to 0 initially */
+    padding: 0;
     border-top: 1px solid #eee;
-    
-    max-height: 0; /* Start with zero height */
-    overflow: hidden; /* Hide content that overflows */
-    transition: max-height 0.4s ease-out, padding 0.4s ease-out; /* Smooth transition for height and padding */
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-out, padding 0.4s ease-out;
 }
 
 .mobile-nav-links.active {
-    /* display: block; /* <<< Remove display: block */
-    
-    max-height: 500px; /* Adjust if menu could be taller */
-    padding: 10px 0; /* <<< Restore padding when active */
+    max-height: 500px;
+    padding: 10px 0;
 }
 
 .mobile-nav-links a {
@@ -311,44 +149,6 @@
     color: #e4c829;
 }
 
-/* Larger Screens (Laptops/Desktops) */
-@media (min-width: 1201px) {
-    .nav-container {
-        padding: 0 50px;
-    }
-    .grid-3 {
-        padding: 0 80px;
-    }
-}
-
-
-@media (max-width: 1024px) {
-    .nav-container {
-        padding: 0 20px;
-    }
-    .hero h1 {
-        font-size: 3rem;
-    }
-    .hero p {
-        font-size: 1.3rem;
-    }
-    .grid-3 {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 30px;
-        padding: 0 40px;
-    }
-    .grid-4 {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .section h2 {
-        font-size: 2.5rem;
-    }
-    .footer-content {
-        gap: 30px;
-    }
-}
-
-/* Small Screens (Tablets/Large Mobiles) - Header Switch & Padding */
 @media (max-width: 768px) {
     #desktop-header {
         display: none !important;
@@ -357,12 +157,9 @@
         display: block; /* Show mobile header */
     }
     body {
-        /* Ensure this padding is sufficient to clear the mobile header */
-        padding-top: 60px;
-        
+        padding-top: 60px; /* Adjust based on mobile header height */
     }
 
-    /* Other 768px styles */
     .hero {
         height: auto; 
         padding: 100px 0 60px; 
@@ -391,9 +188,33 @@
     .grid-3,
     .grid-4 {
         grid-template-columns: 1fr;
-        gap: 30px;
+        gap: 30px; /* Increased gap for better spacing */
         padding: 0 20px;
     }
+
+    /* Contact page specific grid adjustments */
+    .contact-grids {
+        display: grid;
+        grid-template-columns: 1fr; /* Stack items vertically */
+        gap: 25px; /* Increased gap between cards */
+        padding: 0 25px; /* Side padding for the container */
+        margin-top: 30px; /* Increased space above the contact grids */
+        margin-bottom: 30px; /* Increased space below the contact grids */
+    }
+
+    .contact-grids .grid-item {
+        padding: 15px; /* Reduced padding inside cards */
+    }
+    .contact-grids .grid-item h4 {
+        font-size: 0.9rem !important; 
+        margin-bottom: 10px; 
+    }
+    .contact-grids .grid-item p,
+    .contact-grids .grid-item li,
+    .contact-grids .grid-item a {
+        font-size: 0.85rem !important;
+    }
+
     .service-card {
         padding: 30px 20px;
     }
@@ -453,47 +274,46 @@
         width: 100%; 
     }
 
-    /* Career page specific adjustments for 768px */
+    /* Career page specific adjustments */
     .job-listings {
         grid-template-columns: 1fr;  /* Stack cards on mobile */
     }
 
-    /* About Us page specific adjustments for 768px */
+    /* About Us page specific adjustments */
     .gm-message-content {
-        flex-direction: column; /* Stack image and text */
-        align-items: center; /* Center items when stacked */
-        gap: 20px; /* Add space between image and text */
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
     }
 
     .gm-photo {
-        max-width: 120px; /* Adjust image size for mobile */
+        max-width: 120px;
         width: 50%; 
         margin-bottom: 15px; 
     }
 
     .message-text {
-        text-align: center; /* Center the text below the image */
+        text-align: center;
     }
 
     .message-text p {
-        font-size: 1rem; /* Decrease font size for mobile */
-        line-height: 1.6; /* Adjust line height if needed */
-        padding: 0 10px; /* Adjust padding for smaller text */
+        font-size: 1rem;
+        line-height: 1.6;
+        padding: 0 10px;
     }
 
-    /* Remove quote pseudo-elements on mobile if they look odd */
     .message-text p::before,
     .message-text p::after {
         content: none; 
     }
 
     .gm-signature {
-        font-size: 1.1rem; /* Optionally adjust signature size */
-        padding: 15px 0 0 0; /* Adjust padding */
+        font-size: 1.1rem;
+        padding: 15px 0 0 0;
     }
 
     .team-grid {
-        grid-template-columns: 1fr; /* Stack team members */
+        grid-template-columns: 1fr;
     }
     .about-content {
         flex-direction: column;
@@ -501,5 +321,15 @@
     .about-content img {
         width: 80%;
         margin-bottom: 20px;
+    }
+}
+
+/* Larger Screens (Laptops/Desktops) */
+@media (min-width: 1201px) {
+    .nav-container {
+        padding: 0 50px;
+    }
+    .grid-3 {
+        padding: 0 80px;
     }
 }
