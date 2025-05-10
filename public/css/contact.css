@@ -260,7 +260,7 @@ body {
     flex-wrap: wrap;
     justify-content: center;
     align-items: flex-start;
-    max-width: 1600px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 20px 20px 20px;
     gap: 40px;
@@ -360,7 +360,7 @@ footer, .footer {
     flex-wrap: wrap;
     justify-content: center;
     align-items: flex-start;
-    max-width: 1600px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 20px 20px 20px;
     gap: 40px;
@@ -452,7 +452,7 @@ footer, .footer {
     grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
     padding: 2rem 5%;
-    max-width: 1600px;
+    max-width: 1200px;
     margin: 0 auto;
 }
 
@@ -475,7 +475,9 @@ footer, .footer {
     color: #34495e;
 }
 
-.fa-phone, .fa-envelope {
-    margin-right: 0.5rem;
-    color: #3498db;
+.fas.fa-phone, .fas.fa-envelope {
+    margin-right: 0.8rem;
+    color: #002E7D;
+    font-size: 1.2rem;
+    transition: color 0.3s ease;
 }
