@@ -79,9 +79,13 @@ body {
 
 /* Hero Section Enhancement */
 .hero {
-    background: linear-gradient(rgba(0, 46, 125, 0.8), rgba(0, 46, 125, 0.8)),
-        url('../assets/company-photo.png') no-repeat center center/cover; /* Corrected path */
-    height: 100vh;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    height: 120vh; /* Increased from 100vh */
+    min-height: 600px; /* Increased from 600px */
+    max-height: 950px; /* Increased from 800px */
+    overflow-y: auto; /* Allow scrolling if content exceeds height */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -89,15 +93,20 @@ body {
     color: #fff;
     position: relative;
     overflow: hidden;
+    transition: background-image 1s ease-in-out; /* Added for smooth transition */
+    z-index: 2;
 }
 
 .hero-overlay {
-    background: rgba(0, 0, 0, 0.2);
+    /* background: rgba(0, 0, 0, 0.2); */ /* Comment out or remove this line */
     padding: 80px;
     border-radius: 0;
-    backdrop-filter: blur(5px);
+    /* backdrop-filter: blur(5px); */ /* Comment out or remove this line */
     max-width: 1200px;
     margin: 0 20px;
+    /* Ensure text is above the background image, though default flow should handle this */
+    position: relative; 
+    z-index: 1; /* Can be helpful, but might not be strictly necessary */
 }
 
 .hero h1 {
@@ -748,7 +757,7 @@ body {
     border-radius: 50%;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: center; /* Keeps the overlay box centered vertically */
     background: linear-gradient(145deg, #d0ecff, #e6f2ff);
     padding: 15px 20px;
     box-shadow: 0 6px 12px rgba(0, 46, 125, 0.06);

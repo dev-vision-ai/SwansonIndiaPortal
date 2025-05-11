@@ -406,3 +406,159 @@ document.addEventListener('DOMContentLoaded', () => {
          fetchFeaturedSlideshowImages();
     }
 });
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const heroSection = document.getElementById('hero-slideshow');
+    if (heroSection) {
+        const slides = [
+            {
+                image: './assets/factory-front-2.jpg',
+                title: 'Evovling Infrastructure',
+                description: 'Progressing toward a greener, more efficient manufacturing future.'
+            },
+            {
+                image: './assets/slideshow/join-our-team.png',
+                title: 'Join Our Dynamic Team',
+                description: 'Explore exciting career opportunities with us.'
+            },
+            {
+                image: './assets/slideshow/quality.jpg',
+                title: 'Commitment to Quality',
+                description: 'Delivering excellence in every product.'
+            },
+            {
+                image: './assets/slideshow/recycle.jpg',
+                title: 'Sustainable Practices',
+                description: 'Dedicated to a greener future through recycling.'
+            },
+            {
+                image: './assets/slideshow/solar.jpg',
+                title: 'Harnessing Solar Power',
+                description: 'Investing in renewable energy for a sustainable tomorrow.'
+            },
+            {
+                image: './assets/slideshow/safety-first.jpg',
+                title: 'Safety First, Always',
+                description: 'Prioritizing a safe working environment for everyone.'
+            },
+            {
+                image: './assets/slideshow/teamwork.jpg',
+                title: 'The Power of Teamwork',
+                description: 'Achieving great things together.'
+            },
+            {
+                image: './assets/slideshow/environment.jpg',
+                title: 'Protecting Our Environment',
+                description: 'Committed to eco-conscious manufacturing processes.'
+            }
+        ];
+        let currentIndex = 0;
+        const heroOverlay = heroSection.querySelector('.hero-overlay');
+        const heroTitle = heroOverlay ? heroOverlay.querySelector('h1') : null;
+        const heroDescription = heroOverlay ? heroOverlay.querySelector('p') : null;
+
+        function changeBackgroundImage() {
+            currentIndex = (currentIndex + 1) % slides.length;
+            const currentSlide = slides[currentIndex];
+            
+            // Set background image with overlay
+            const overlayGradient = 'linear-gradient(rgba(0, 46, 125, 0.5), rgba(0, 46, 125, 0.7))'; 
+            heroSection.style.backgroundImage = `${overlayGradient}, url('${currentSlide.image}')`;
+
+            // Update text content
+            if (heroTitle) {
+                heroTitle.textContent = currentSlide.title;
+            }
+            if (heroDescription) {
+                heroDescription.textContent = currentSlide.description;
+            }
+        }
+
+        // Initial setup
+        if (slides.length > 0) {
+            const initialSlide = slides[0];
+            const initialOverlayGradient = 'linear-gradient(rgba(0, 46, 125, 0.5), rgba(0, 46, 125, 0.7))';
+            heroSection.style.backgroundImage = `${initialOverlayGradient}, url('${initialSlide.image}')`;
+            if (heroTitle) {
+                heroTitle.textContent = initialSlide.title;
+            }
+            if (heroDescription) {
+                heroDescription.textContent = initialSlide.description;
+            }
+        }
+
+        setInterval(changeBackgroundImage, 3000); // Change image every 3 seconds
+    }
+
+    // Featured Gallery Slideshow Logic (existing or new)
+    const slideshowInner = document.getElementById('slideshow-inner');
+    const slideDotsContainer = document.getElementById('slide-dots');
+
+    if (slideshowInner && slideDotsContainer) {
+        const galleryImages = [
+            { src: './assets/slideshow/environment.jpg', alt: 'Environment' },
+            { src: './assets/slideshow/join-our-team.png', alt: 'Join Our Team' },
+            { src: './assets/slideshow/quality.jpg', alt: 'Quality' },
+            { src: './assets/slideshow/recycle.jpg', alt: 'Recycle' },
+            { src: './assets/slideshow/safety-first.jpg', alt: 'Safety First' },
+            { src: './assets/slideshow/solar.jpg', alt: 'Solar' },
+            { src: './assets/slideshow/teamwork.jpg', alt: 'Teamwork' }
+        ];
+
+        galleryImages.forEach((image, index) => {
+            // Create slide
+            const slide = document.createElement('div');
+            slide.classList.add('slide');
+            if (index === 0) slide.classList.add('active'); // Make first slide active
+            const img = document.createElement('img');
+            img.src = image.src;
+            img.alt = image.alt;
+            slide.appendChild(img);
+            slideshowInner.appendChild(slide);
+
+            // Create dot
+            const dot = document.createElement('span');
+            dot.classList.add('dot');
+            if (index === 0) dot.classList.add('active');
+            dot.setAttribute('onclick', `currentSlide(${index + 1})`);
+            slideDotsContainer.appendChild(dot);
+        });
+
+        let slideIndex = 1;
+        showSlides(slideIndex);
+
+        // Attach functions to window object to make them accessible from HTML onclick
+        window.plusSlides = function(n) {
+            showSlides(slideIndex += n);
+        };
+
+        window.currentSlide = function(n) {
+            showSlides(slideIndex = n);
+        };
+
+        function showSlides(n) {
+            let i;
+            const slides = document.getElementsByClassName("slide");
+            const dots = document.getElementsByClassName("dot");
+            if (n > slides.length) { slideIndex = 1 }
+            if (n < 1) { slideIndex = slides.length }
+            for (i = 0; i < slides.length; i++) {
+                slides[i].style.display = "none";
+                slides[i].classList.remove('active');
+            }
+            for (i = 0; i < dots.length; i++) {
+                dots[i].className = dots[i].className.replace(" active", "");
+            }
+            if (slides[slideIndex - 1]) {
+                 slides[slideIndex - 1].style.display = "block";
+                 slides[slideIndex - 1].classList.add('active');
+            }
+            if (dots[slideIndex - 1]) {
+                dots[slideIndex - 1].className += " active";
+            }
+        }
+    } else {
+        console.log('Slideshow inner container or dots container not found.');
+    }
+});
