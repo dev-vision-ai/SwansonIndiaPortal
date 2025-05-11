@@ -7,21 +7,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const mobileNavLinks = document.getElementById('mobile-nav-links');
 
     if (menuToggle && mobileNavLinks) {
-        menuToggle.addEventListener('click', () => {
-            mobileNavLinks.classList.toggle('active');
-            menuToggle.classList.toggle('active'); 
-            // REMOVED Commented-out textContent logic
+        menuToggle.addEventListener('click', function(e) {
+            // Only toggle if click is directly on the menu toggle, not a dropdown
+            if (e.target === menuToggle || e.target === menuToggle.querySelector('.menu-icon')) {
+                mobileNavLinks.classList.toggle('active');
+                menuToggle.classList.toggle('active');
+            }
         });
 
         // When a link is clicked, remove active classes
         mobileNavLinks.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                if (mobileNavLinks.classList.contains('active')) {
-                    mobileNavLinks.classList.remove('active');
-                    menuToggle.classList.remove('active'); 
-                    // REMOVED Commented-out textContent logic
-                }
-            });
+            if (!link.classList.contains('dropdown-toggle-mobile')) {
+                link.addEventListener('click', () => {
+                    if (mobileNavLinks.classList.contains('active')) {
+                        mobileNavLinks.classList.remove('active');
+                        menuToggle.classList.remove('active');
+                    }
+                });
+            }
         });
     }
     // --- End Mobile Menu Toggle Logic ---
@@ -561,4 +564,62 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.log('Slideshow inner container or dots container not found.');
     }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const dropdownToggles = document.querySelectorAll('.dropdown-toggle-mobile');
+    
+    dropdownToggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const dropdown = this.closest('.dropdown-mobile');
+            const menu = dropdown.querySelector('.dropdown-menu-mobile');
+            const isOpen = menu.classList.contains('show');
+            
+            // Close all other dropdowns first
+            document.querySelectorAll('.dropdown-menu-mobile.show').forEach(openMenu => {
+                if (openMenu !== menu) {
+                    openMenu.classList.remove('show');
+                    openMenu.style.maxHeight = '0';
+                    const otherArrow = openMenu.previousElementSibling.querySelector('.dropdown-arrow');
+                    if (otherArrow) otherArrow.classList.remove('rotated');
+                }
+            });
+            
+            // Toggle current dropdown
+            if (isOpen) {
+                menu.style.maxHeight = '0';
+                setTimeout(() => menu.classList.remove('show'), 300);
+            } else {
+                menu.classList.add('show');
+                menu.style.maxHeight = menu.scrollHeight + 'px';
+            }
+            
+            // Toggle arrow icon
+            const arrow = this.querySelector('.dropdown-arrow');
+            if (arrow) arrow.classList.toggle('rotated', !isOpen);
+        });
+        
+        // Prevent dropdown menu clicks from closing
+        const menu = toggle.nextElementSibling;
+        if (menu) {
+            menu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+    });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown-mobile')) {
+            document.querySelectorAll('.dropdown-menu-mobile.show').forEach(menu => {
+                menu.style.maxHeight = '0';
+                setTimeout(() => menu.classList.remove('show'), 300);
+                const arrow = menu.previousElementSibling.querySelector('.dropdown-arrow');
+                if (arrow) arrow.classList.remove('rotated');
+            });
+        }
+    });
 });

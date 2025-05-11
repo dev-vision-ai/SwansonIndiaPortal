@@ -367,3 +367,71 @@
         gap: 40px;
     }
 }
+
+/* Improved Mobile Dropdown Styles */
+.dropdown-mobile {
+    position: relative;
+}
+
+.dropdown-toggle-mobile {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.dropdown-arrow {
+    transition: transform 0.3s ease;
+    margin-left: 5px;
+}
+
+.dropdown-arrow.rotated {
+    transform: rotate(180deg);
+}
+
+.dropdown-menu-mobile {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+    background-color: #f8f9fa;
+    will-change: max-height;
+}
+
+.dropdown-menu-mobile.show {
+    display: block;
+    max-height: 500px;
+}
+
+.dropdown-menu-mobile a {
+    padding: 12px 40px !important;
+    font-size: 0.9rem;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    transition: background-color 0.2s ease;
+    display: block;
+}
+
+.dropdown-menu-mobile a:hover {
+    background-color: #e9ecef;
+}
+
+/* Ensure dropdown stays within mobile menu */
+.dropdown-menu-mobile {
+    position: static;
+    width: 100%;
+    box-shadow: none;
+    border-top: none;
+}
+
+/* Keep mobile menu open when dropdown is active */
+.mobile-nav-links.active {
+    max-height: none;
+    overflow: visible;
+}
+
+/* Rest of your existing dropdown styles remain the same */
+.mobile-nav-links.active {
+    max-height: 1000px;
+}

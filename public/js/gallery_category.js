@@ -3,38 +3,12 @@ import { supabase } from '../supabase-config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- Mobile Menu Toggle Logic (Copied from index.js) ---
-    const menuToggle = document.getElementById('menu-toggle');
-    const mobileNavLinks = document.getElementById('mobile-nav-links');
-
-    if (menuToggle && mobileNavLinks) {
-        menuToggle.addEventListener('click', () => {
-            mobileNavLinks.classList.toggle('active');
-            menuToggle.classList.toggle('active');
-        });
-
-        // When a link is clicked on mobile, close the menu
-        mobileNavLinks.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                // Check if it's NOT a dropdown toggle link before closing
-                if (!link.classList.contains('dropdown-toggle') && mobileNavLinks.classList.contains('active')) {
-                    mobileNavLinks.classList.remove('active');
-                    menuToggle.classList.remove('active');
-                }
-            });
-        });
-    }
-    // --- End Mobile Menu Toggle Logic ---
-
-    // --- Desktop Dropdown Logic (Simplified from index.js) ---
     const dropdownToggles = document.querySelectorAll('#desktop-header .dropdown-toggle'); // Target only desktop dropdown
 
     dropdownToggles.forEach(toggle => {
         // Prevent default link behavior for dropdown toggles
         toggle.addEventListener('click', (event) => {
             event.preventDefault();
-            // Basic toggle functionality (CSS handles the display)
-            // No complex JS needed here if CSS :hover/:focus works
         });
     });
     // --- End Desktop Dropdown Logic ---
