@@ -1,4 +1,3 @@
-/* Import Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
@@ -154,8 +153,6 @@ body {
     font-size: 1.5rem; /* Increase font size for larger icon */
 }
 
-/* Dropdown Menu Styles */
-/* Adjust the position of the dropdown menu to be below the arrow */
 .dropdown-menu {
     display: none;
     position: absolute;

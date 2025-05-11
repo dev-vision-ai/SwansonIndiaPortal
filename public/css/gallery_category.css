@@ -311,11 +311,6 @@ main.container.section {
     flex-direction: column;
 }
 
-#album-list:not(.album-grid) .album-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 30px rgba(26, 46, 59, 0.15);
-}
-
 #album-list:not(.album-grid) .album-item .album-link {
     text-decoration: none;
     color: inherit;
@@ -351,7 +346,6 @@ main.container.section {
     margin: 0 15px 15px;
     line-height: 1.5;
     flex-grow: 1; /* Allow description to take available space */
-    /* Basic truncation for long descriptions */
     display: -webkit-box;
     display: -moz-box;
     display: -ms-flexbox;

@@ -445,10 +445,10 @@ footer, .footer {
 
 .contact-grids {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-    padding: 2rem 2%; 
-    max-width: 1400px; 
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    padding: 20px;
+    max-width: 1400px;
     margin: 0 auto;
 }
 

@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const slides = [
             {
                 image: './assets/factory-front-2.jpg',
-                title: 'Evovling Infrastructure',
+                title: 'Expanding Infrastructure',
                 description: 'Progressing toward a greener, more efficient manufacturing future.'
             },
             {
