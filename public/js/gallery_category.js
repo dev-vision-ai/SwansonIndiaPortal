@@ -1,50 +1,91 @@
 // Import the Supabase client from the config file
 import { supabase } from '../supabase-config.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+// Add this at the beginning of your existing JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    const mobileNav = document.getElementById('mobile-nav-links');
+    
+    if (menuToggle && mobileNav) {
+        menuToggle.addEventListener('click', function() {
+            mobileNav.classList.toggle('active');
+            menuToggle.classList.toggle('active'); // ADDED for icon animation
+        });
 
-    const dropdownToggles = document.querySelectorAll('#desktop-header .dropdown-toggle'); // Target only desktop dropdown
-
-    dropdownToggles.forEach(toggle => {
-        // Prevent default link behavior for dropdown toggles
-        toggle.addEventListener('click', (event) => {
-            event.preventDefault();
+        // ADDED: Close mobile menu when a non-dropdown link is clicked
+        mobileNav.querySelectorAll('a').forEach(link => {
+            // Check if the link is NOT a dropdown toggle for the gallery
+            if (!link.classList.contains('mobile-dropdown-toggle')) {
+                link.addEventListener('click', () => {
+                    // Only close if the main mobile nav is active
+                    if (mobileNav.classList.contains('active')) {
+                        mobileNav.classList.remove('active');
+                        menuToggle.classList.remove('active');
+                    }
+                });
+            }
+        });
+    }
+    
+    // Mobile dropdown toggle
+    const mobileDropdownToggles = document.querySelectorAll('.mobile-dropdown-toggle');
+    mobileDropdownToggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            const menu = this.nextElementSibling; // Should be .mobile-dropdown-menu
+            // Toggle the .show class instead of .active to match CSS
+            if (menu && menu.classList.contains('mobile-dropdown-menu')) {
+                menu.classList.toggle('show');
+                // Optionally, rotate arrow if one exists
+                const arrow = this.querySelector('.fas.fa-caret-down');
+                if (arrow) {
+                    arrow.classList.toggle('rotated'); // Assumes a .rotated class for the arrow
+                }
+            }
         });
     });
-    // --- End Desktop Dropdown Logic ---
-
-    // --- Gallery Category/Album Specific Logic ---
-    const categoryTitleElement = document.getElementById('category-title');
-    const albumListElement = document.getElementById('album-list');
-    const urlParams = new URLSearchParams(window.location.search);
-
-    // <<< START CHANGE: Check for albumId OR category >>>
-    const albumId = urlParams.get('albumId');
-    const category = urlParams.get('category');
-
-    if (albumId) {
-        // If albumId exists, load images for that album
-        console.log(`Loading images for album ID: ${albumId}`);
-        loadImagesByAlbum(albumId); 
-    } else if (category) {
-        // If category exists (and albumId doesn't), load albums for that category
-        const decodedCategory = decodeURIComponent(category);
-        console.log(`Loading albums for category: ${decodedCategory}`);
-        // Update Page Title and Heading for Category View
-        document.title = `${decodedCategory} - Gallery - Swanson Plastics India`;
-        if (categoryTitleElement) {
-            categoryTitleElement.textContent = decodedCategory;
-        }
-        loadAlbumsByCategory(decodedCategory);
-    } else {
-        // If neither albumId nor category exists, show an error
-        console.error('No category or album ID found in URL');
-        if (categoryTitleElement) categoryTitleElement.textContent = 'Error: Category/Album Not Specified';
-        if (albumListElement) albumListElement.innerHTML = '<p class="error-message">No category or album was specified in the URL.</p>';
-    }
-    // <<< END CHANGE >>>
-
 });
+
+const dropdownToggles = document.querySelectorAll('#desktop-header .dropdown-toggle'); // Target only desktop dropdown
+
+dropdownToggles.forEach(toggle => {
+    // Prevent default link behavior for dropdown toggles
+    toggle.addEventListener('click', (event) => {
+        event.preventDefault();
+    });
+});
+// --- End Desktop Dropdown Logic ---
+
+// --- Gallery Category/Album Specific Logic ---
+const categoryTitleElement = document.getElementById('category-title');
+const albumListElement = document.getElementById('album-list');
+const urlParams = new URLSearchParams(window.location.search);
+
+// <<< START CHANGE: Check for albumId OR category >>>
+const albumId = urlParams.get('albumId');
+const category = urlParams.get('category');
+
+if (albumId) {
+    // If albumId exists, load images for that album
+    console.log(`Loading images for album ID: ${albumId}`);
+    loadImagesByAlbum(albumId); 
+} else if (category) {
+    // If category exists (and albumId doesn't), load albums for that category
+    const decodedCategory = decodeURIComponent(category);
+    console.log(`Loading albums for category: ${decodedCategory}`);
+    // Update Page Title and Heading for Category View
+    document.title = `${decodedCategory} - Gallery - Swanson Plastics India`;
+    if (categoryTitleElement) {
+        categoryTitleElement.textContent = decodedCategory;
+    }
+    loadAlbumsByCategory(decodedCategory);
+} else {
+    // If neither albumId nor category exists, show an error
+    console.error('No category or album ID found in URL');
+    if (categoryTitleElement) categoryTitleElement.textContent = 'Error: Category/Album Not Specified';
+    if (albumListElement) albumListElement.innerHTML = '<p class="error-message">No category or album was specified in the URL.</p>';
+}
 
 async function loadAlbumsByCategory(category) {
     const albumListElement = document.getElementById('album-list');

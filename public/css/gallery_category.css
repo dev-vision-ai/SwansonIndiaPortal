@@ -510,48 +510,6 @@ main.container.section {
     box-shadow: 0 6px 15px rgba(0,0,0,0.2);
 }
 
-/* --- Responsive Refinements for Gallery Page --- */
-@media (max-width: 1200px) {
-    .album-grid {
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 30px;
-    }
-}
-
-@media (max-width: 992px) {
-    #category-title { font-size: 2.4em; margin-bottom: 40px; }
-    .album-grid {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 25px;
-    }
-    .gallery-item img { height: 220px; }
-}
-
-@media (max-width: 768px) {
-    #category-title { font-size: 2.1em; margin-bottom: 30px; }
-    .album-grid {
-        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-        gap: 20px;
-    }
-    .gallery-item img { height: 200px; }
-    .lightbox-content { max-width: 92vw; max-height: 92vh; padding: 20px; }
-    #lightbox-image { max-height: calc(88vh - 70px); }
-    .close-lightbox { width: 36px; height: 36px; font-size: 18px; top: -15px; right: -15px;}
-}
-
-@media (max-width: 576px) {
-    main.container.section { padding: 15px; } /* More specific padding for small screens */
-    #category-title { font-size: 1.9em; margin-bottom: 25px; }
-    .album-grid {
-        grid-template-columns: 1fr; /* Single column */
-        gap: 25px;
-    }
-    .gallery-item img { height: 250px; }
-    .lightbox-content { width: calc(100% - 20px); padding: 15px; }
-    #lightbox-image { max-height: calc(80vh - 60px); }
-    .close-lightbox { width: 32px; height: 32px; font-size: 16px; top: 10px; right: 10px; background-color: rgba(255,255,255,0.8); color: #333; border: none;}
-}
-
 /* Loading/Error Message Styling for Gallery Page */
 #album-list p { /* This targets <p> tags directly inside #album-list, used for loading/error messages by JS */
     font-size: 1.1em;

@@ -188,12 +188,12 @@
         text-align: center;
     }
     .hero h1 {
-        font-size: 1.1rem;
-        margin-bottom: 10px; /* Adjusted from 10px */
+        font-size: 1.5rem;
+        margin-bottom: 10px;
     }
     .hero p {
-        font-size: 1.0rem;
-        margin-bottom: 5px; /* Adjusted from 25px */
+        font-size: 1.2rem;
+        margin-bottom: 10px;
     }
     .cta-button {
         margin-top: 20px;
@@ -204,7 +204,7 @@
         padding: 50px 0;
     }
     .section h2 {
-        font-size: 2rem;
+        font-size: 1.8rem;
         margin-bottom: 30px;
     }
     .grid-3,
@@ -382,16 +382,16 @@
     user-select: none;
 }
 
-.dropdown-arrow {
+.mobile-dropdown-toggle .fas.fa-caret-down {
     transition: transform 0.3s ease;
     margin-left: 5px;
 }
 
-.dropdown-arrow.rotated {
+.mobile-dropdown-toggle .fas.fa-caret-down.rotated {
     transform: rotate(180deg);
 }
 
-.dropdown-menu-mobile {
+.mobile-dropdown-menu {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -399,12 +399,12 @@
     will-change: max-height;
 }
 
-.dropdown-menu-mobile.show {
+.mobile-dropdown-menu.show {
     display: block;
     max-height: 500px;
 }
 
-.dropdown-menu-mobile a {
+.mobile-dropdown-menu a {
     padding: 12px 40px !important;
     font-size: 0.9rem;
     text-align: left;
@@ -413,12 +413,12 @@
     display: block;
 }
 
-.dropdown-menu-mobile a:hover {
+.mobile-dropdown-menu a:hover {
     background-color: #e9ecef;
 }
 
 /* Ensure dropdown stays within mobile menu */
-.dropdown-menu-mobile {
+.mobile-dropdown-menu {
     position: static;
     width: 100%;
     box-shadow: none;
@@ -434,4 +434,48 @@
 /* Rest of your existing dropdown styles remain the same */
 .mobile-nav-links.active {
     max-height: 1000px;
+}
+
+
+@media (max-width: 768px) {
+    /* Add these fixes */
+    html, body {
+        overflow-x: hidden;
+    }
+    
+    main.container.section {
+        width: 100vw;
+        padding: 0 10px;
+    }
+
+    #album-list:not(.album-grid) {
+        grid-template-columns: 1fr;
+        margin: 0 -10px; /* Counteract container padding */
+        width: calc(100% + 20px);
+    }
+
+    .album-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100%, 1fr));
+        margin: 0 -10px;
+        width: calc(100% + 20px);
+    }
+
+    .gallery-item img {
+        max-width: 100%;
+        padding: 0 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    /* Additional mobile fixes */
+    .album-item {
+        box-sizing: border-box;
+        padding: 0 10px;
+    }
+    
+    .lightbox-content {
+        left: 10px;
+        right: 10px;
+        width: calc(100% - 20px);
+    }
 }

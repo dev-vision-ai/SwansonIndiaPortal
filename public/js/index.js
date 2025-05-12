@@ -5,17 +5,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Mobile Menu Toggle Logic --- 
     const menuToggle = document.getElementById('menu-toggle');
     const mobileNavLinks = document.getElementById('mobile-nav-links');
-
+    
     if (menuToggle && mobileNavLinks) {
-        menuToggle.addEventListener('click', function(e) {
-            // Only toggle if click is directly on the menu toggle, not a dropdown
-            if (e.target === menuToggle || e.target === menuToggle.querySelector('.menu-icon')) {
-                mobileNavLinks.classList.toggle('active');
-                menuToggle.classList.toggle('active');
-            }
+        menuToggle.addEventListener('click', function() {
+            mobileNavLinks.classList.toggle('active');
+            menuToggle.classList.toggle('active');
         });
 
-        // When a link is clicked, remove active classes
+        // Close mobile menu when a non-dropdown link is clicked
         mobileNavLinks.querySelectorAll('a').forEach(link => {
             if (!link.classList.contains('dropdown-toggle-mobile')) {
                 link.addEventListener('click', () => {
@@ -27,6 +24,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    
+    // Mobile dropdown toggle
+    const mobileDropdownToggles = document.querySelectorAll('.dropdown-toggle-mobile');
+    mobileDropdownToggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            const menu = this.nextElementSibling;
+            if (menu && menu.classList.contains('mobile-dropdown-menu')) {
+                menu.classList.toggle('show');
+                const arrow = this.querySelector('.fas.fa-caret-down');
+                if (arrow) {
+                    arrow.classList.toggle('rotated');
+                }
+            }
+        });
+    });
     // --- End Mobile Menu Toggle Logic ---
 
     // --- Transition Icon Logic ---
