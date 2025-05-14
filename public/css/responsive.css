@@ -161,10 +161,12 @@
     }
 
     .hero {
-        min-height: 50vh; /* Minimum height for mobile */
+        min-height: 50vh;
+        height: auto;
         background-size: cover;
         background-position: center center;
         position: relative;
+        box-sizing: border-box;
     }
     .hero-overlay {
         position: absolute;
