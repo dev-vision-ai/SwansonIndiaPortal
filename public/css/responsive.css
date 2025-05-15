@@ -1,5 +1,6 @@
 
 @media (max-width: 1024px) {
+    /* Refined styles for smaller laptops and larger tablets */
     .nav-container {
         padding: 0 20px;
     }
@@ -9,14 +10,7 @@
     .hero p {
         font-size: 1.3rem;
     }
-    .grid-3 {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 30px;
-        padding: 0 40px;
-    }
-    .grid-4 {
-        grid-template-columns: repeat(2, 1fr);
-    }
+
     .section h2 {
         font-size: 2.5rem;
     }
@@ -24,6 +18,8 @@
         gap: 30px;
     }
 }
+
+
 
 #mobile-header {
     display: none; /* Hidden by default */
@@ -150,6 +146,27 @@
 }
 
 @media (max-width: 768px) {
+    /* Refined styles for tablets and smaller devices */
+    .nav-container {
+        padding: 0 15px; /* Further reduce padding */
+    }
+    .hero h1 {
+        font-size: 2.2rem; /* Slightly smaller for better fit */
+    }
+    .hero p {
+        font-size: 1.2rem; /* Adjust for readability */
+    }
+
+    .section h2 {
+        font-size: 1.7rem; /* Consistent heading size */
+    }
+    .footer-content {
+        padding: 15px; /* Adjust padding */
+    }
+    .two-column img {
+        max-width: 100%; /* Ensure images are responsive */
+    }
+
     #desktop-header {
         display: none !important;
     }
@@ -208,14 +225,7 @@
         font-size: 1.8rem;
         margin-bottom: 30px;
     }
-    .grid-3,
-    .grid-4 {
-        grid-template-columns: 1fr;
-        gap: 20px;
-        padding: 0 15px;
-        margin: 0 auto;
-        max-width: 100%;
-    }
+
 
     /* Contact page specific grid adjustments */
     .contact-grids {
@@ -347,9 +357,96 @@
         width: 80%;
         margin-bottom: 20px;
     }
+
+    .album-grid .gallery-item img {
+        width: 100%;
+        height: 100%;
+    }
 }
 
 /* Larger Screens (Laptops/Desktops) */
+@media (min-width: 1201px) and (max-width: 1365px) {
+    /* Styles for typical laptop screens */
+    .nav-container {
+        padding: 0 40px;
+    }
+    .hero h1 {
+        font-size: 3.2rem;
+    }
+    .hero p {
+        font-size: 1.35rem;
+    }
+    .grid-3 {
+        padding: 0 60px;
+        gap: 35px;
+    }
+    .section h2 {
+        font-size: 2.4rem;
+    }
+}
+
+@media (min-width: 1366px) and (max-width: 1919px) {
+    /* Styles for larger laptop screens and smaller desktop monitors */
+    .nav-container {
+        padding: 0 60px;
+    }
+    .hero h1 {
+        font-size: 3.5rem;
+    }
+    .hero p {
+        font-size: 1.4rem;
+    }
+    .grid-3 {
+        padding: 0 70px;
+        gap: 35px;
+    }
+    .grid-4 {
+        padding: 0 50px;
+        gap: 35px;
+    }
+    .section h2 {
+        font-size: 2.6rem;
+    }
+    .footer-content {
+        gap: 50px;
+    }
+}
+
+@media (min-width: 1920px) {
+    /* Styles for large desktop monitors */
+    .nav-container {
+        padding: 0 80px;
+        max-width: 1800px; /* Max container width for very large screens */
+        margin: 0 auto;
+    }
+    .hero h1 {
+        font-size: 4rem;
+    }
+    .hero p {
+        font-size: 1.5rem;
+    }
+    .grid-3 {
+        padding: 0 100px;
+        gap: 50px;
+    }
+    .grid-4 {
+        padding: 0 80px;
+        gap: 50px;
+    }
+    .section {
+        padding: 80px 0;
+    }
+    .section h2 {
+        font-size: 3rem;
+    }
+    .footer-content {
+        gap: 60px;
+        max-width: 1800px;
+        margin: 0 auto;
+    }
+}
+
+/* Original styles for min-width: 1201px, keep as a fallback or adjust if needed */
 @media (min-width: 1201px) {
     .nav-container {
         padding: 0 50px;
@@ -370,6 +467,8 @@
         gap: 40px;
     }
 }
+
+
 
 /* Improved Mobile Dropdown Styles */
 .dropdown-mobile {
@@ -441,66 +540,111 @@
 
 
 @media (max-width: 768px) {
-    /* Add these fixes */
-    html, body {
-        overflow-x: hidden;
+    /* Refined styles for tablets and smaller devices */
+    .nav-container {
+        padding: 0 15px; /* Further reduce padding */
     }
-    
-    main.container.section {
-        width: 100%;
-        max-width: 100%;
-        margin: 0;
-        padding: 0;
+    .hero h1 {
+        font-size: 2.2rem; /* Slightly smaller for better fit */
     }
-    
-    album-grid {
-        gap: 15px;
+    .hero p {
+        font-size: 1.2rem; /* Adjust for readability */
     }
-    
-    .gallery-item {
-        max-width: 100%;
-        overflow: hidden;
+
+    .section h2 {
+        font-size: 1.7rem; /* Consistent heading size */
     }
-    
-    .album-grid {
-        grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-        width: 100%;
-        margin: 0;
-        padding: 0 10px;
-        overflow-x: hidden;
+    .footer-content {
+        padding: 15px; /* Adjust padding */
     }
-    
-    .album-item {
-        width: 100%;
-        padding: 0;
-        margin: 0;
-        box-sizing: border-box;
+    .two-column img {
+        max-width: 100%; /* Ensure images are responsive */
     }
-    
-    .gallery-item img {
-        max-width: 100%;
+
+    /* Gallery Category/Album Specific Adjustments */
+    #album-list.album-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Display two items per row */
+        gap: 10px; /* Adjust gap for mobile */
+        padding: 0 10px; /* Add some padding */
+    }
+
+    .album-item, .gallery-item {
+        padding: 5px;
+        text-align: center; /* Center content */
+    }
+
+    .album-item img, .gallery-item img {
+        max-width: 100%; /* Ensure images don't overflow */
         height: auto;
-        padding: 0;
-        object-fit: cover;
+        margin-bottom: auto; /* Space between image and text */
     }
-    
-    .lightbox-content {
-        left: 10px;
-        right: 10px;
-        width: calc(100% - 20px);
+
+    .album-item h3 {
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+    }
+
+    .album-item p {
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .album-link {
+        text-decoration: none;
+        color: inherit; /* Inherit text color */
+    }
+
+    /* Adjustments for very small screens if needed */
+    @media (max-width: 360px) {
+        #album-list.album-grid {
+            grid-template-columns: 1fr; /* Stack items on very small screens */
+            gap: 15px;
+            padding: 0 10px;
+        }
+
+        .album-item, .gallery-item {
+            padding: 10px;
+        }
+
+        .album-item h3 {
+            font-size: 1.1rem;
+        }
+
+        .album-item p {
+            font-size: 0.85rem;
+        }
     }
 }
 
-@media (max-width: 576px) {
-    /* Additional mobile fixes */
-    .album-item {
-        box-sizing: border-box;
-        padding: 0 10px;
+@media (max-width: 360px) {
+    .hero h1 {
+        font-size: 1.5rem;
     }
-    
-    .lightbox-content {
-        left: 10px;
-        right: 10px;
-        width: calc(100% - 20px);
+    .hero p {
+        font-size: 1rem;
+    }
+    .section h2 {
+        font-size: 1.4rem;
+    }
+    .company-names-mobile .company-name {
+        font-size: 0.8rem;
+    }
+    .logo-container-mobile {
+        gap: 5px;
+    }
+    .green-logo-mobile,
+    .logo-mobile {
+        height: 30px;
+    }
+    .cta-button {
+        padding: 6px 12px;
+        font-size: 0.7rem;
+    }
+    .footer-content {
+        padding: 15px;
+    }
+    .footer-map-section iframe {
+        height: 150px;
     }
 }

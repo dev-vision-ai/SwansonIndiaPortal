@@ -247,16 +247,10 @@ footer, .footer { /* Use whichever selector is already present, or both */
     margin-top: auto; /* Added - Pushes footer down */
 }
 
-
-/* =============================================== */
-/* === GALLERY CATEGORY PAGE STYLES === */
-/* =============================================== */
-
-/* --- Page Body & Main Container --- */
-main.container.section { 
-    max-width: 1800px; 
-    margin: 20px auto; 
-    padding: 20px 25px; 
+main.container.section {
+    max-width: 1800px;
+    padding: 20px 25px;
+    margin: 0 auto; /* Ensure the container is centered */
 }
 
 #category-title {
@@ -289,14 +283,29 @@ main.container.section {
     display: grid;
     grid-template-columns: repeat(5, minmax(200px, 1fr));
     gap: 10px;
-    padding: 20px; 
+    padding: 20px;
     margin: 0 auto; /* Changed margin-top to 0 */
-    max-width: 1800px;
-    background-color: #f8f9fa; 
-    /* border-radius: 8px; */ /* Remove top radius if title has it */
-    border-bottom-left-radius: 8px; /* Keep bottom radius */
-    border-bottom-right-radius: 8px; /* Keep bottom radius */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
+    background-color: #f8f9fa;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    min-height: 200px;
+}
+
+@media (max-width: 768px) {
+    #album-list:not(.album-grid) {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 15px;
+        min-height: 150px;
+    }
+
+    #album-list:not(.album-grid) .album-item .album-thumbnail {
+        padding-bottom: 100%; /* Maintain square on mobile */
+    }
+
+    #album-list:not(.album-grid) .album-item .album-thumbnail img {
+        width: 100%;
+    }
 }
 
 #album-list:not(.album-grid) .album-item {
@@ -321,10 +330,36 @@ main.container.section {
 
 #album-list:not(.album-grid) .album-item .album-thumbnail {
     width: 100%;
-    height: 180px; /* Adjusted height for album thumbnails */
+    padding-bottom: 100%; /* Creates square aspect ratio */
+    position: relative;
+    overflow: hidden;
+    object-fit: cover; /* Ensures image aspect ratio is maintained */
+}
+
+@media (max-width: 768px) {
+    #album-list:not(.album-grid) {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 15px;
+        min-height: 150px;
+    }
+
+    #album-list:not(.album-grid) .album-item .album-thumbnail {
+        padding-bottom: 100%; /* Maintain square on mobile */
+    }
+
+    #album-list:not(.album-grid) .album-item .album-thumbnail img {
+        width: 100%;
+    }
+}
+
+#album-list:not(.album-grid) .album-item .album-thumbnail img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     display: block;
-    /* border-bottom: 1px solid #f0f2f5; */ /* Optional: matches gallery-caption border-top */
     transition: opacity 0.3s ease;
 }
 
@@ -366,15 +401,22 @@ main.container.section {
 .album-grid {
     display: grid;
     grid-template-columns: repeat(5, minmax(220px, 1fr));
-    gap: 5px; 
-    margin: 0 auto; /* Changed margin-top to 0 */
-    max-width: 1800px;
-    padding: 20px;
-    background-color: #f8f9fa; 
-    /* border-radius: 8px; */ /* Remove top radius if title has it */
-    border-bottom-left-radius: 8px; /* Keep bottom radius */
-    border-bottom-right-radius: 8px; /* Keep bottom radius */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
+    gap: 5px;
+    margin: 0 auto;
+    padding: 5px; /* Adjusted padding to match gap */
+    background-color: #f8f9fa;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    min-height: 200px;
+}
+
+@media (max-width: 768px) {
+    .album-grid {
+        grid-template-columns: 1fr;
+        padding: 15px;
+        min-height: 150px;
+    }
 }
 
 .gallery-item {
@@ -391,7 +433,8 @@ main.container.section {
 
 .gallery-item img { /* Targets <img> tags within .gallery-item */
     width: 100%;
-    height: 200px; 
+    /* height: 200px; */ /* Removed fixed height */
+    aspect-ratio: 1/1; /* Added to make images square */
     object-fit: cover; 
     display: block;
     cursor: pointer;
@@ -400,14 +443,6 @@ main.container.section {
 
 .gallery-item:hover img {
     opacity: 0.75; /* Set desired opacity on hover */
-}
-
-#album-list:not(.album-grid) .album-item .album-thumbnail {
-    width: 100%;
-    height: 180px; /* Adjusted height for album thumbnails */
-    object-fit: cover;
-    display: block;
-    transition: opacity 0.3s ease; /* Added transition for smooth opacity change */
 }
 
 #album-list:not(.album-grid) .album-item:hover .album-thumbnail {
