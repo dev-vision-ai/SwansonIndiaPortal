@@ -29,6 +29,9 @@ body {
 .main-content {
     margin-top: 50px;
     padding: 0 20px;
+    max-width: 1400px; /* Limit content width for better readability */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* Navbar */
@@ -192,6 +195,73 @@ body {
     max-width: 1400px;
     position: relative;
     text-align: left;
+}
+
+/* Product Grid and Cards Enhancements */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive columns */
+    gap: 30px; /* Increased gap */
+    margin-top: 30px;
+}
+
+.product-card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0; /* Added subtle border */
+    border-radius: 10px; /* Softer corners */
+    box-shadow: 0 10px 20px rgba(0, 46, 125, 0.15), 0 5px 10px rgba(0, 0, 0, 0.08); /* Enhanced shadow for depth */
+    padding: 25px; /* Increased padding */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Ensures button aligns at bottom */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden; /* Ensures image corners are rounded if image is flush */
+}
+
+
+
+.product-card img {
+    width: 100%;
+    max-height: 200px; /* Or a suitable height */
+    object-fit: cover; /* Ensures image covers the area well */
+    border-radius: 6px; /* Slightly rounded corners for the image */
+    margin-bottom: 20px; /* Space below image */
+}
+
+.product-card h3 {
+    font-size: 1.4rem; /* Slightly larger heading */
+    color: #002E7D;
+    margin-bottom: 12px; /* Increased space below heading */
+    font-weight: 700;
+}
+
+.product-card p {
+    font-size: 1rem; /* Slightly larger paragraph text */
+    color: #333;
+    line-height: 1.7; /* Improved line spacing */
+    margin-bottom: 25px; /* Increased space below paragraph */
+    flex-grow: 1;
+}
+
+.product-card .cta-button {
+    background-color: #002E7D; /* Primary blue */
+    color: white;
+    padding: 12px 25px; /* Improved padding */
+    text-decoration: none;
+    border-radius: 25px; /* Rounded button */
+    font-weight: 600;
+    text-align: center;
+    display: inline-block; /* Or block if it should take full width */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    border: 2px solid transparent;
+    margin-top: auto; /* Pushes button to the bottom of the card */
+}
+
+.product-card .cta-button:hover {
+    background-color: #e4c829; /* Accent yellow on hover */
+    color: #002E7D; /* Dark blue text on hover for contrast */
+    transform: translateY(-2px);
+    border: 2px solid #002E7D;
 }
 
 .section.incident-box::before {
@@ -578,4 +648,41 @@ main {
 footer, .footer {
     /* Remove any position: fixed/absolute, bottom: 0, width: 100% */
     margin-top: auto;
+}
+
+/* Product Specifications Section */
+.product-specifications {
+    margin: 20px auto 30px;
+    padding: 12px 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    max-width: 600px;
+    width: 85%;
+    text-align: center;
+}
+
+.product-specifications li {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    padding: 6px 10px;
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.product-specifications li strong {
+    color: #002E7D;
+    font-weight: 600;
+    margin-right: 8px;
+    font-size: 0.85rem;
+}
+
+.product-specifications li span {
+    flex-grow: 1;
+    text-align: right;
 }

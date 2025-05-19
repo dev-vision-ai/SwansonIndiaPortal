@@ -330,34 +330,15 @@ main.container.section {
 
 #album-list:not(.album-grid) .album-item .album-thumbnail {
     width: 100%;
-    padding-bottom: 100%; /* Creates square aspect ratio */
+    /* Removed padding-bottom to use aspect-ratio instead */
     position: relative;
     overflow: hidden;
-    object-fit: cover; /* Ensures image aspect ratio is maintained */
-}
-
-@media (max-width: 768px) {
-    #album-list:not(.album-grid) {
-        grid-template-columns: repeat(2, 1fr);
-        padding: 15px;
-        min-height: 150px;
-    }
-
-    #album-list:not(.album-grid) .album-item .album-thumbnail {
-        padding-bottom: 100%; /* Maintain square on mobile */
-    }
-
-    #album-list:not(.album-grid) .album-item .album-thumbnail img {
-        width: 100%;
-    }
+    object-fit: cover;
 }
 
 #album-list:not(.album-grid) .album-item .album-thumbnail img {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
-    height: 100%;
+    aspect-ratio: 1/1;
     object-fit: cover;
     display: block;
     transition: opacity 0.3s ease;

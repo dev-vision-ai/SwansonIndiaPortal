@@ -19,6 +19,13 @@
     }
 }
 
+/* Responsive adjustments for larger screens - 4 column service cards */
+@media (min-width: 1200px) {
+    .grid-3 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
 
 
 #mobile-header {
@@ -364,6 +371,13 @@
     }
 }
 
+/* Responsive adjustments for larger screens - 4 column service cards */
+@media (min-width: 1200px) {
+    .grid-3 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
 /* Larger Screens (Laptops/Desktops) */
 @media (min-width: 1201px) and (max-width: 1365px) {
     /* Styles for typical laptop screens */
@@ -382,6 +396,13 @@
     }
     .section h2 {
         font-size: 2.4rem;
+    }
+}
+
+/* Responsive adjustments for larger screens - 4 column service cards */
+@media (min-width: 1200px) {
+    .grid-3 {
+        grid-template-columns: repeat(4, 1fr);
     }
 }
 
@@ -409,6 +430,13 @@
     }
     .footer-content {
         gap: 50px;
+    }
+}
+
+/* Responsive adjustments for larger screens - 4 column service cards */
+@media (min-width: 1200px) {
+    .grid-3 {
+        grid-template-columns: repeat(4, 1fr);
     }
 }
 
@@ -446,6 +474,13 @@
     }
 }
 
+/* Responsive adjustments for larger screens - 4 column service cards */
+@media (min-width: 1200px) {
+    .grid-3 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
 /* Original styles for min-width: 1201px, keep as a fallback or adjust if needed */
 @media (min-width: 1201px) {
     .nav-container {
@@ -465,6 +500,13 @@
     }
     .footer-content {
         gap: 40px;
+    }
+}
+
+/* Responsive adjustments for larger screens - 4 column service cards */
+@media (min-width: 1200px) {
+    .grid-3 {
+        grid-template-columns: repeat(4, 1fr);
     }
 }
 
@@ -561,6 +603,10 @@
         max-width: 100%; /* Ensure images are responsive */
     }
 
+    #services .container.center {
+        padding: 0 15px;
+    }
+
     /* Gallery Category/Album Specific Adjustments */
     #album-list.album-grid {
         display: grid;
@@ -617,6 +663,13 @@
     }
 }
 
+/* Responsive adjustments for larger screens - 4 column service cards */
+@media (min-width: 1200px) {
+    .grid-3 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
 @media (max-width: 360px) {
     .hero h1 {
         font-size: 1.5rem;
@@ -646,5 +699,12 @@
     }
     .footer-map-section iframe {
         height: 150px;
+    }
+}
+
+/* Responsive adjustments for larger screens - 4 column service cards */
+@media (min-width: 1200px) {
+    .grid-3 {
+        grid-template-columns: repeat(4, 1fr);
     }
 }
