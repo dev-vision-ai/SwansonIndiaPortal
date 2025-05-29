@@ -324,6 +324,22 @@ body {
 
 .user-name {
     color: white;
+    white-space: nowrap; /* Prevent wrapping to multiple lines initially */
+}
+
+/* Adjustments for smaller screens directly in this file */
+@media (max-width: 768px) { /* Apply to tablets and smaller phones */
+    .user-name {
+        display: none; /* Hide user name on mobile */
+    }
+}
+
+@media (max-width: 480px) {
+    /* user-name is already hidden by the 768px rule, specific 480px rules for user-name can be removed or kept if other adjustments are needed */
+    /* For clarity, explicitly hiding again or ensuring it's hidden if other 768px rules were to be overridden */
+    .user-name {
+        display: none;
+    }
 }
 
 /* Removed notification-dropdown styles */
