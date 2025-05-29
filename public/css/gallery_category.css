@@ -51,9 +51,8 @@ body {
 .logo-container {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 20px;
     margin-left: 15px; /* Added margin to push it right */
-    /* margin-right: auto; Removed - let space-between handle spacing */
 }
 
 .logo {
@@ -248,298 +247,125 @@ footer, .footer { /* Use whichever selector is already present, or both */
 }
 
 main.container.section {
-    max-width: 1800px;
-    padding: 20px 25px;
-    margin: 0 auto; /* Ensure the container is centered */
+    max-width: center;
+    padding: 20px 20px;
 }
 
 #category-title {
     text-align: center;
-    /* margin-bottom: 20px; */ 
     color: #1A2E3B; 
     font-size: 2.8em;
     font-weight: 700; 
-    /* padding-bottom: 20px; */ 
     border-bottom: 3px solid #DDE2E5; 
     letter-spacing: -0.5px;
-
-    /* Added styles for container look */
     background-color: #002E7D; 
     text-align: center;
     color: #ffffff;
-    font-size: 2.2em;
+    font-size: 1.5em;
     padding: 05px 25px; /* Reduced top/bottom padding */
     margin-left: auto; 
     margin-right: auto; 
     margin-bottom: 0; 
-    max-width: 1800px; 
+    max-width: auto; 
     border-top-left-radius: 8px; 
     border-top-right-radius: 8px; 
-    /* border-bottom: none; */ 
 }
 
-/* --- Album Listing Styles (when #album-list does NOT have .album-grid) --- */
-#album-list:not(.album-grid) {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(200px, 1fr));
-    gap: 10px;
-    padding: 20px;
-    margin: 0 auto; /* Changed margin-top to 0 */
-    background-color: #f8f9fa;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-    min-height: 200px;
+/* Gallery Album Display Styles */
+#album-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    gap: 15px; /* Increased space between albums */
+    padding: 20px 0;
+    align-items: flex-start; /* Align items to the start of the cross axis */
 }
 
-@media (max-width: 768px) {
-    #album-list:not(.album-grid) {
-        grid-template-columns: repeat(2, 1fr);
-        padding: 15px;
-        min-height: 150px;
-    }
-
-    #album-list:not(.album-grid) .album-item .album-thumbnail {
-        padding-bottom: 100%; /* Maintain square on mobile */
-    }
-
-    #album-list:not(.album-grid) .album-item .album-thumbnail img {
-        width: 100%;
-    }
+.album-item {
+    display: block; /* Make the whole item clickable */
+    text-decoration: none; /* Remove underline from link */
+    color: inherit; /* Inherit text color */
+    background-color: #f9f9f9; /* Add a light background color */
+    border: 1px solid #ccc; /* Make border slightly more visible */
+    border-radius: 8px; /* Optional: Rounded corners */
+    overflow: hidden; /* Hide overflow for rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Enhance shadow for more depth */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effect */
+    flex: 0 0 auto; /* Prevent shrinking/growing, base size on width */
+    flex: 1 1 auto; /* Allow flex items to grow and shrink */
+    max-width: 250px; /* Set a max-width for each album item */
+    height: 250px; /* Set a fixed height for each album item */
 }
 
-#album-list:not(.album-grid) .album-item {
-    background-color: #ffffff;
-    border: 1px solid #E7E9EC;
-    border-radius: 0; /* Removed rounded corners */
-    overflow: hidden;
-    box-shadow: 0 8px 25px rgba(26, 46, 59, 0.07);
-    /* transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); */ /* REMOVED */
+.album-item:hover {
+    transform: none; /* Remove the scaling effect on hover */
+    box-shadow: none; /* Remove the box shadow effect on hover */
+    cursor: default; /* Change cursor back to default */
+}
+
+.album-item img {
+    width: 100%;
+    height: 160px; /* Set a fixed height for the image */
+    display: block; /* Remove extra space below image */
+    object-fit: cover; /* Cover the area, cropping if necessary */
+}
+
+.album-info {
+    padding: 15px;
     text-align: center;
-    display: flex;
-    flex-direction: column;
+    background-color: #e9ecef; /* Light grey background for caption area */
 }
 
-#album-list:not(.album-grid) .album-item .album-link {
-    text-decoration: none;
-    color: inherit;
-    display: flex; /* Make the link fill the item and allow flex for its children */
-    flex-direction: column;
-    flex-grow: 1; /* Ensure link takes up all space in album-item */
+.album-info h5 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+    font-weight: bold; /* Make heading text bolder */
+    color: #002E7D; /* Album title color */
 }
 
-#album-list:not(.album-grid) .album-item .album-thumbnail {
-    width: 100%;
-    /* Removed padding-bottom to use aspect-ratio instead */
-    position: relative;
-    overflow: hidden;
-    object-fit: cover;
+.album-info p {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+    color: #555; /* Album description color */
 }
 
-#album-list:not(.album-grid) .album-item .album-thumbnail img {
-    width: 100%;
-    aspect-ratio: 1/1;
-    object-fit: cover;
+/* Style for when no albums are found */
+#album-list:empty::before {
+    content: 'No albums found in this category.';
     display: block;
-    transition: opacity 0.3s ease;
-}
-
-#album-list:not(.album-grid) .album-item:hover .album-thumbnail {
-    opacity: 0.85; /* Slight opacity change on hover */
-}
-
-#album-list:not(.album-grid) .album-item h3 {
-    font-size: 1.15em; /* Slightly larger for album titles */
-    color: #1A2E3B; /* Darker, more prominent color */
-    margin: 15px 15px 8px;
-    font-weight: 600;
-    line-height: 1.3;
-}
-
-#album-list:not(.album-grid) .album-item p {
-    font-size: 0.9em;
-    color: #5A6F7F; /* Softer color for description */
-    margin: 0 15px 15px;
-    line-height: 1.5;
-    flex-grow: 1; /* Allow description to take available space */
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-    -webkit-line-clamp: 3;
-    -moz-line-clamp: 3;
-    line-clamp: 3;
-    -webkit-box-orient: vertical;
-    -moz-box-orient: vertical;
-    box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-height: calc(0.9em * 1.5 * 1); /* Minimum height for at least one line, adjust if needed */
-}
-
-/* --- Image Grid (Album Content) --- */
-.album-grid {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(220px, 1fr));
-    gap: 5px;
-    margin: 0 auto;
-    padding: 5px; /* Adjusted padding to match gap */
-    background-color: #f8f9fa;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-    min-height: 200px;
-}
-
-@media (max-width: 768px) {
-    .album-grid {
-        grid-template-columns: 1fr;
-        padding: 15px;
-        min-height: 150px;
-    }
-}
-
-.gallery-item {
-    background-color: #ffffff;
-    border: 1px solid #E7E9EC;
-    border-radius: 0; /* Removed rounded corners */
-    overflow: hidden;
-    box-shadow: 0 8px 25px rgba(26, 46, 59, 0.07);
-    /* transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); */ /* REMOVED */
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-.gallery-item img { /* Targets <img> tags within .gallery-item */
-    width: 100%;
-    /* height: 200px; */ /* Removed fixed height */
-    aspect-ratio: 1/1; /* Added to make images square */
-    object-fit: cover; 
-    display: block;
-    cursor: pointer;
-    transition: opacity 0.3s ease; /* Added transition for smooth opacity change */
-}
-
-.gallery-item:hover img {
-    opacity: 0.75; /* Set desired opacity on hover */
-}
-
-#album-list:not(.album-grid) .album-item:hover .album-thumbnail {
-    opacity: 0.75; /* Set desired opacity on hover */
-}
-
-.gallery-caption { /* This class should be on the <figcaption> created by JS */
-    padding: 18px 22px;
-    font-size: 1em; 
-    color: #34495E; 
-    background-color: #fcfdfe; 
-    text-align: left;
-    line-height: 1.5;
-    border-top: 1px solid #f0f2f5; 
-    flex-grow: 1;
-    display: flex;
-    align-items: center;
-}
-
-/* --- Lightbox --- */
-.lightbox-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(20, 30, 40, 0.92); 
-    display: none; /* Initially hidden, shown by JS */
-    justify-content: center;
-    align-items: center;
-    z-index: 10000; 
-    padding: 20px;
-    box-sizing: border-box;
-    -webkit-backdrop-filter: blur(5px); 
-    backdrop-filter: blur(5px);
-}
-
-.lightbox-content {
-    position: relative;
-    background-color: #fff;
-    padding: 25px;
-    border-radius: 6px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-    max-width: 88vw;
-    max-height: 88vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    animation: lightboxFadeIn 0.4s ease-out;
-}
-
-@keyframes lightboxFadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-#lightbox-image { /* The <img> tag inside the lightbox */
-    max-width: 100%;
-    max-height: calc(85vh - 80px); 
-    display: block;
-    margin-bottom: 20px;
-    border-radius: 4px;
-    object-fit: contain; 
-}
-
-.lightbox-caption-text { /* The caption <div> or <p> inside the lightbox */
-    color: #2c3e50;
-    font-size: 1.15em;
-    font-weight: 500;
     text-align: center;
-    padding: 10px 0 0 0;
-    max-height: 70px;
-    overflow-y: auto;
-    width: 100%;
-}
-
-.close-lightbox { /* The close button (X) for the lightbox */
-    position: absolute;
-    top: -18px;
-    right: -18px;
-    color: #1A2E3B;
-    background-color: #fff;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    border: 2px solid #fff; 
-}
-
-.close-lightbox:hover {
-    transform: rotate(90deg) scale(1.05);
-    background-color: #f1f1f1;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
-}
-
-/* Loading/Error Message Styling for Gallery Page */
-#album-list p { /* This targets <p> tags directly inside #album-list, used for loading/error messages by JS */
-    font-size: 1.1em;
+    font-size: 1.2rem;
     color: #555;
-    text-align: center;
-    padding: 40px 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    margin-top: 20px;
 }
 
-.error-message { /* Class added by JS to the <p> tag on error */
-    color: #e74c3c !important; 
-    font-weight: 500;
-    background-color: #fdedec !important;
-    border: 1px solid #f5c6cb !important;
+/* Styles for individual photos when an album is being viewed (inside #album-list.album-grid) */
+#album-list.album-grid figure.gallery-item {
+    /* Adjust container if needed, e.g., for spacing */
+    margin: 5px; /* Reduced margin to decrease gaps */
+    background-color: #fff; /* Optional: background for each item */
+    border: 1px solid #eee; /* Optional: border for each item */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Optional: subtle shadow */
+    /* border-radius: 4px; Removed */
+    /* overflow: hidden; Removed */
+}
+
+#album-list.album-grid figure.gallery-item img {
+    max-height: 200px; /* Further reduced height for in-album photos */
+    width: 100%; /* Make image responsive within its container */
+    object-fit: cover; /* Cover the area, may crop; use 'contain' to see full image */
+    display: block; /* Remove extra space below image */
+    /* border-radius: 4px; If you want image corners rounded, ensure figure has overflow:hidden */
+}
+
+/* Style for when no albums are found */
+#album-list:empty::before {
+    content: 'No albums found in this category.';
+    display: block;
+    text-align: center;
+    font-size: 1.2rem;
+    color: #555;
+    margin-top: 20px;
 }

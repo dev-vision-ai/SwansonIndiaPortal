@@ -470,7 +470,8 @@ body {
     display: inline-block; /* Allow padding and margin */
     background-color: #002E7D; /* Main blue color */
     color: #ffffff; /* White text */
-    padding: 10px 20px; /* Button padding */
+    padding: 8px 16px; /* Consistent padding for both buttons */
+    font-size: 0.9em; /* Consistent font size for both buttons */
     border: none;
     border-radius: 5px; /* Rounded corners */
     text-align: center;
@@ -482,13 +483,6 @@ body {
     cursor: pointer;
 }
 
-/* Remove or comment out WhatsApp specific styles */
-/*
-.whatsapp-share-button { ... }
-.whatsapp-share-button i { ... }
-.whatsapp-share-button:hover { ... }
-*/
-
 /* Style for the generic Share button - UPDATED */
 .share-button {
     display: inline-flex; /* Use flex to align icon and text */
@@ -497,9 +491,8 @@ body {
     gap: 8px; /* Space between icon and text */
     background-color: #e4c829; /* Yellow background */
     color: #002E7D; /* Dark blue text for contrast */
-    padding: 6px 12px; /* <<< Smaller padding */
-    font-size: 0.85em; /* <<< Smaller font size */
-    padding: 10px 20px; /* Match Apply Now button padding */
+    padding: 8px 16px; /* Consistent padding for both buttons */
+    font-size: 0.9em; /* Consistent font size for both buttons */
     border: none;
     border-radius: 5px; /* Match Apply Now button radius */
     text-align: center;
@@ -509,7 +502,6 @@ body {
     /* align-self: flex-end; /* Remove align-self if using footer-actions */
     transition: background-color 0.3s ease, transform 0.2s ease, color 0.3s ease;
     cursor: pointer;
-    font-size: 1em; /* Match Apply Now font-size (assuming it's 1em or adjust if needed) */
     line-height: 1; /* Ensure consistent line height */
 }
 
@@ -561,10 +553,10 @@ body {
 
 .apply-button {
     /* Existing styles - ensure padding/font-size match .share-button */
-    padding: 10px 20px; 
-    font-size: 1em;
-    margin-top: 0; 
-    align-self: unset; 
+    padding: 8px 16px; /* Consistent padding for both buttons */
+    font-size: 0.9em; /* Consistent font size for both buttons */
+    margin-top: 15px; /* Space above the button */
+    align-self: flex-end; /* Align button to the right */
 }
 
 .job-description {
