@@ -1,5 +1,18 @@
 import { supabase } from '../supabase-config.js';
 
+function showMessage(message) {
+    const submissionMessage = document.querySelector('.submission-message');
+    if (submissionMessage) {
+        submissionMessage.textContent = message;
+        submissionMessage.style.display = 'block';
+        setTimeout(() => {
+            submissionMessage.style.display = 'none';
+        }, 3000);
+    } else {
+        console.warn('Submission message element not found.');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const userId = await getLoggedInUserId();
     if (!userId) {
@@ -9,7 +22,106 @@ document.addEventListener('DOMContentLoaded', async () => {
         return; // Important to stop further execution if not authenticated
     }
     setupFormEventListeners(userId);
+
+    // Check if we are editing a draft
+    const urlParams = new URLSearchParams(window.location.search);
+    const draftId = urlParams.get('id');
+    const action = urlParams.get('action');
+
+    if (draftId && action === 'edit') {
+        await loadDraftForEditing(draftId);
+    }
 });
+
+async function loadDraftForEditing(draftId) {
+    try {
+        const { data, error } = await supabase
+            .from('quality_alert_drafts')
+            .select('*')
+            .eq('id', draftId)
+            .single();
+
+        if (error) {
+            console.error('Error fetching draft:', error);
+            showMessage('Error loading draft for editing.');
+            return;
+        }
+
+        if (data) {
+            // Populate form fields
+            const incidentTitle = document.getElementById('incidentTitle');
+            if (incidentTitle) incidentTitle.value = data.incidenttitle || '';
+            const responsibleDept = document.getElementById('responsibleDept');
+            if (responsibleDept) responsibleDept.value = data.responsibledept || '';
+            const locationArea = document.getElementById('locationArea');
+            if (locationArea) locationArea.value = data.locationarea || '';
+            const incidentDate = document.getElementById('incidentDate');
+            if (incidentDate) incidentDate.value = data.incidentdate || '';
+            const incidentTime = document.getElementById('incidentTime');
+            if (incidentTime) incidentTime.value = data.incidenttime || '';
+            const abnormalityType = document.getElementById('abnormalityType');
+            if (abnormalityType) abnormalityType.value = data.abnormalitytype || '';
+            const qualityRisk = document.getElementById('qualityRisk');
+            if (qualityRisk) qualityRisk.value = data.qualityrisk || '';
+            const keptInView = document.getElementById('keptInView');
+            if (keptInView) keptInView.value = data.keptinview || '';
+            const incidentDesc = document.getElementById('incidentDesc');
+            if (incidentDesc) incidentDesc.value = data.incidentdesc || '';
+
+            // Trigger change events for conditional display logic
+            if (abnormalityType) abnormalityType.dispatchEvent(new Event('change'));
+            if (keptInView) keptInView.dispatchEvent(new Event('change'));
+
+            // Populate product details if relevant
+            if (data.abnormalitytype === 'Semi/Finished Goods' && data.keptinview === 'yes') {
+                const shift = document.getElementById('shift');
+                if (shift) shift.value = data.shift || '';
+                const productCode = document.getElementById('productCode');
+                if (productCode) productCode.value = data.productcode || '';
+                const rollID = document.getElementById('rollID');
+                if (rollID) rollID.value = data.rollid || '';
+                const lotNo = document.getElementById('lotNo');
+                if (lotNo) lotNo.value = data.lotno || '';
+                const rollPositions = document.getElementById('rollPositions');
+                if (rollPositions) rollPositions.value = data.rollpositions || '';
+                const lotTime = document.getElementById('lotTime'); // Corrected ID to 'lotTime'
+                if (lotTime) lotTime.value = data.lottime || '';
+            }
+
+            // Populate action taken fields if relevant
+            const takeImmediateAction = document.getElementById('takeImmediateAction');
+            if (data.actiontaken) {
+                if (takeImmediateAction) takeImmediateAction.value = 'yes';
+                if (takeImmediateAction) takeImmediateAction.dispatchEvent(new Event('change'));
+                const actionTaken = document.getElementById('actionTaken');
+                if (actionTaken) actionTaken.value = data.actiontaken || '';
+                const whoAction = document.getElementById('whoAction');
+                if (whoAction) whoAction.value = data.whoaction || '';
+                const whenActionDate = document.getElementById('whenActionDate');
+                if (whenActionDate) whenActionDate.value = data.whenactiondate || '';
+                const statusAction = document.getElementById('statusAction');
+                if (statusAction) statusAction.value = data.statusaction || '';
+            } else {
+                if (takeImmediateAction) takeImmediateAction.value = 'no';
+                if (takeImmediateAction) takeImmediateAction.dispatchEvent(new Event('change'));
+            }
+
+            if (typeof showMessage === 'function') {
+                showMessage('Draft loaded successfully for editing.');
+            } else {
+                console.warn('showMessage function is not defined.');
+            }
+        }
+    } catch (error) {
+        console.error('Unexpected error loading draft:', error);
+        if (typeof showMessage === 'function') {
+            showMessage('Unexpected error loading draft. Please try again.');
+        } else {
+            console.warn('showMessage function is not defined, cannot display error message.');
+        }
+
+    }
+}
 
 async function getLoggedInUserId() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -161,14 +273,7 @@ function setupFormEventListeners(userId) {
         });
     }
 
-    function showMessage(message) {
-        const submissionMessage = document.querySelector('.submission-message');
-        submissionMessage.textContent = message;
-        submissionMessage.style.display = 'block';
-        setTimeout(() => {
-            submissionMessage.style.display = 'none';
-        }, 3000);
-    }
+
 
     form.addEventListener('submit', async function(event) {
         event.preventDefault();
@@ -222,14 +327,37 @@ function setupFormEventListeners(userId) {
                         console.error('Submission error:', error);
                         showMessage('Error submitting form. Please try again. Details: ' + error.message);
                     } else {
-                        form.reset();
-                        // Manually trigger change events to reset conditional fields
-                        abnormalityType.dispatchEvent(new Event('change')); 
-                        document.getElementById('takeImmediateAction').dispatchEvent(new Event('change'));
-                        imagePreviews.innerHTML = '';
-                        compressedFiles = []; // Clear the array after successful submission
-                        showMessage('Form submitted successfully!');
+                        showMessage('Quality Alert submitted successfully!');
+
+                        // Check if this was an edited draft and delete it
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const draftId = urlParams.get('id');
+                        const action = urlParams.get('action');
+
+                        if (draftId && action === 'edit') {
+                            const { error: deleteError } = await supabase
+                                .from('quality_alert_drafts')
+                                .delete()
+                                .eq('id', draftId);
+
+                            if (deleteError) {
+                                console.error('Error deleting draft:', deleteError);
+                                showMessage('Quality Alert submitted, but failed to delete draft.');
+                            } else {
+                                console.log('Draft deleted successfully.');
+                            }
+                        }
+
+                        // Optionally, redirect or clear form
+                        document.getElementById('qualityAlertForm').reset();
+                        // Clear image previews
+                        document.getElementById('imagePreviews').innerHTML = '';
+        // Declare uploadedImageUrls here if it's meant to be reset or used within this scope
+        // If it's used elsewhere, it should be declared in a higher scope.
+        // For now, assuming it's meant to be reset here.
+        let uploadedImageUrls = [];
                     }
+
             } catch (error) {
                 console.error('Unexpected error:', error);
                 showMessage('Error submitting form. Please try again.');
@@ -269,6 +397,7 @@ function setupFormEventListeners(userId) {
                     incidentdesc: document.getElementById('incidentDesc').value.trim(),
                     // --- REMOVED: defectdescription --- 
                     productcode: isProductDetailsRelevant ? document.getElementById('productCode').value.trim() : null,
+                    shift: isProductDetailsRelevant ? document.getElementById('shift').value.trim() : null,
                     rollid: isProductDetailsRelevant ? document.getElementById('rollID').value.trim() : null,
                     lotno: isProductDetailsRelevant ? document.getElementById('lotNo').value.trim() : null,
                     rollpositions: isProductDetailsRelevant ? document.getElementById('rollPositions').value.trim() : null,

@@ -28,7 +28,8 @@ function renderTable(data) {
                 <td class="description-cell">${alert.incidentdesc || 'No Description'}</td>
                 <td>${alert.responsibledept || 'N/A'}</td>
                 <td>${alert.abnormalitytype || 'N/A'}</td>
-                <td><a href="quality_alerts_actions.html?id=${alert.id}&action=view" class="action-link">View Actions</a></td>
+                <td>${alert.status || 'N/A'}</td>
+                <td><a href="${alert.status === 'Draft' ? 'qualityalert.html' : 'quality_alerts_actions.html'}?id=${alert.id}&action=${alert.status === 'Draft' ? 'edit' : 'view'}" class="action-link">${alert.status === 'Draft' ? 'Edit Draft' : 'View Actions'}</a></td>
             </tr>
         `;
     }).join('');
@@ -93,6 +94,47 @@ function applyFilters(render = true) {
     }
 }
 
+async function fetchDraftQualityAlerts() {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            console.error("User not logged in, cannot fetch draft alerts.");
+            return [];
+        }
+        const userId = user.id;
+
+        const { data, error } = await supabase
+            .from('quality_alert_drafts')
+            .select(`
+                id,
+                incidenttitle,
+                responsibledept,
+                incidentdate,
+                incidentdesc,
+                abnormalitytype,
+                user_id,
+                users ( full_name )
+            `)
+            .eq('user_id', userId)
+            .order('drafted_at', { ascending: false });
+
+        if (error) {
+            console.error("Supabase error fetching user's draft alerts:", error);
+            throw error;
+        }
+
+        return data.map(draft => ({
+            ...draft,
+            user_name: draft.users ? draft.users.full_name : 'Unknown',
+            status: 'Draft' // Add a status to differentiate drafts
+        }));
+
+    } catch (error) {
+        console.error('Error fetching or processing draft alerts:', error);
+        return [];
+    }
+}
+
 async function fetchLatestAlerts() {
     const tbody = document.getElementById('alertsBody');
     if (tbody) {
@@ -133,14 +175,21 @@ async function fetchLatestAlerts() {
             throw error;
         }
 
-        
-        alertsData = data.map(alert => ({
+        const submittedAlerts = data.map(alert => ({
             ...alert,
-            
-            user_name: alert.users ? alert.users.full_name : 'Unknown'
+            user_name: alert.users ? alert.users.full_name : 'Unknown',
+            status: 'Submitted' // Add a status to differentiate submitted alerts
         }));
 
-        
+        const draftAlerts = await fetchDraftQualityAlerts();
+
+        // Combine and sort alerts (you might want a more sophisticated sort)
+        alertsData = [...submittedAlerts, ...draftAlerts].sort((a, b) => {
+            const dateA = new Date(a.incidentdate || a.drafted_at);
+            const dateB = new Date(b.incidentdate || b.drafted_at);
+            return dateB - dateA; // Sort by most recent date
+        });
+
         renderTable(alertsData);
 
     } catch (error) {

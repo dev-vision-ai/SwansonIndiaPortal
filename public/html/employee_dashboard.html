@@ -30,50 +30,48 @@
                 <!-- Removed welcome section HTML -->
 
                 <div class="quick-actions">
-                     <div class="action-card" onclick="location.href='../html/qualityalert.html'">
+                     <div class="action-card" data-department="All" onclick="location.href='../html/qualityalert.html'">
                         <i class="fas fa-exclamation-circle"></i>
                         <h3>Quality Alert</h3>
                         <p>Report New Quality Alert</p>
                     </div>
-                     <div class="action-card" onclick="location.href='../html/safetyincident.html'">
+                     <div class="action-card" data-department="All" onclick="location.href='../html/safetyincident.html'">
                         <i class="fas fa-hard-hat"></i>
                         <h3>Safety Incident</h3>
                         <p>Report a Safety Incident</p>
                     </div>
-                     <div class="action-card" onclick="location.href='../html/ci.html';">
+                     <div class="action-card" data-department="All" onclick="location.href='../html/ci.html';">
                         <i class="fas fa-lightbulb"></i>
                         <h3>Continual Improvement Form</h3>
                         <p>Report Improvement Ideas</p>
                     </div>
-                    <div class="action-card" onclick="location.href='https://gtech-swanson.azurewebsites.net'">
+                    <div class="action-card" data-department="Quality Assurance,IQA" onclick="location.href='https://gtech-swanson.azurewebsites.net'">
                         <i class="fas fa-print"></i>
                         <h3>RTCIS</h3>
                         <p>Print RTCIS Labels</p>
                     </div>
-                     <div class="action-card" onclick="location.href='../html/dailyreport.html'">
+                     <div class="action-card" data-department="All" onclick="location.href='../html/dailyreport.html'">
                         <i class="fas fa-calendar-alt"></i>
                         <h3>Daily Reports</h3>
                         <p>Prepare/View Daily Reports</p>
                     </div>
                      <!-- TODO: Update onclick with correct path once Incoming Inspection form exists -->
-                     <div class="action-card" onclick="//" title="Incoming Inspection form not yet available">
+                     <div class="action-card" data-department="IQA" onclick="//" title="Incoming Inspection form not yet available">
                         <i class="fas fa-search"></i>
                         <h3>Incoming Inspection</h3>
                         <p>Prepare/View Incoming Inspection Reports</p>
                     </div>
 
-                    <div class="action-card" onclick="location.href='../html/emp_quality_alerts_table.html'">
+                    <div class="action-card" data-department="All" onclick="location.href='../html/emp_quality_alerts_table.html'">
                         <i class="fas fa-clipboard-list"></i>
                         <h3>My Forms</h3>
                         <p>View Your Submitted Forms</p>
                     </div>
-                    <div class="action-card">
-                        <i class="fas fa-clock"></i>
+                    <div class="action-card" data-department="All">
                         <h3>Pending</h3>
                         <p>View Pending Actions</p>
                     </div>
-                    <div class="action-card">
-                        <i class="fas fa-chart-bar"></i>
+                    <div class="action-card" data-department="All">
                         <h3>Reports</h3>
                         <p>View All Reports</p>
                     </div>
