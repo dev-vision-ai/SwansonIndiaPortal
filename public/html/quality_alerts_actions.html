@@ -233,18 +233,26 @@
       <!-- RPN Calculation -->
       <div id="rpn-calculation-section" class="form-group">
         <h3>RPN Calculation</h3>
-        <div class="flex-row">
-          <label for="severity">Severity (S):</label>
-          <input type="number" id="severity" min="1" max="10" value="1">
-          <span class="rpn-operator">x</span>
-          <label for="detection">Detection (D):</label>
-          <input type="number" id="detection" min="1" max="10" value="1">
-          <span class="rpn-operator">x</span>
-          <label for="frequency">Frequency (F):</label>
-          <input type="number" id="frequency" min="1" max="10" value="1">
+        <div class="form-row">
+                <div class="rpn-input-group">
+                    <label for="severity">Severity:<br>(S)</label>
+                    <input type="number" id="severity" name="severity" min="1" max="10" value="1">
+                </div>
+                <span class="rpn-operator">x</span>
+                <div class="rpn-input-group">
+                    <label for="detection">Detection:<br>(D)</label>
+                    <input type="number" id="detection" name="detection" min="1" max="10" value="1">
+                </div>
+                <span class="rpn-operator">x</span>
+                <div class="rpn-input-group">
+                    <label for="frequency">Frequency:<br>(F)</label>
+                    <input type="number" id="frequency" name="frequency" min="1" max="10" value="1">
+                </div>
           <span class="rpn-operator">=</span>
-          <label for="rpn">RPN:</label>
-          <input type="text" id="rpn" readonly>
+          <div class="rpn-input-group">
+            <label for="rpn">RPN:</label>
+            <input type="text" id="rpn" readonly>
+          </div>
         </div>
       </div>
         </div>

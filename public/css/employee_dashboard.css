@@ -89,6 +89,25 @@ body {
     }
 }
 
+@media (max-width: 768px) {
+    body {
+        padding-top: 70px; /* Adjust based on header height */
+    }
+    .header-container {
+        padding: 5px 10px;
+    }
+    .header-title {
+        font-size: 1.2rem;
+    }
+    .company-logo img {
+        height: 38px;
+    }
+    .header-back-button {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+}
+
 .header-container {
     position: fixed;
     top: 0;

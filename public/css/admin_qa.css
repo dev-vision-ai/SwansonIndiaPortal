@@ -333,6 +333,63 @@ tbody tr:nth-child(even) {
   margin-right: 0.5rem;
 }
 
+    .flex-row { display: flex; align-items: center; gap: 10px; }
+    .flex-row label, .flex-row input, .flex-row span, .flex-row button { flex: 1; }
+
+    /* RPN Calculation specific styles */
+    .rpn-input-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+    }
+
+    .rpn-input-group label {
+      white-space: nowrap;
+      margin-bottom: 5px;
+    }
+
+    .rpn-input-group input[type="number"],
+    .rpn-input-group input[type="text"] {
+      width: 80px; /* Adjust as needed */
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      #rpn-calculation-section .form-row {
+        flex-wrap: nowrap; /* Prevent items from wrapping */
+        justify-content: space-between; /* Distribute items evenly */
+        overflow-x: auto; /* Enable horizontal scrolling if content overflows */
+        padding-bottom: 10px; /* Add padding for scrollbar */
+      }
+
+      .rpn-input-group {
+        flex-shrink: 1; /* Allow items to shrink */
+        width: 20%; /* Further adjust width to fit all elements horizontally */
+        margin-right: 0; /* Remove margin between items */
+      }
+
+        .rpn-input-group label {
+            font-size: 0.8em; /* Slightly increased font size */
+            line-height: 1.2;
+        }
+
+      .rpn-input-group input[type="number"],
+      .rpn-input-group input[type="text"] {
+        width: 100%; /* Make inputs take full width of their group */
+        padding: 5px; /* Reduce padding */
+        font-size: 0.8em; /* Reduce font size for inputs */
+      }
+
+      .rpn-operator {
+        flex-shrink: 0; /* Prevent operators from shrinking */
+        width: 5%; /* Adjust width for operator */
+        text-align: center;
+        margin-right: 0; /* Remove margin between operators and inputs */
+        font-size: 0.8em; /* Reduce font size for operators */
+      }
+    }
+
 .filter-btn { 
    background-color: #ffe342; 
    color: #000000; 
