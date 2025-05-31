@@ -91,21 +91,40 @@ function setupFormEventListeners(userId) {
         imageUpload.click();
     });
 
-    imageUpload.addEventListener('change', function(e) {
+    let compressedFiles = []; // Store compressed files globally or pass them
+
+    imageUpload.addEventListener('change', async function(e) {
         const files = e.target.files;
         imagePreviews.innerHTML = '';
-        Array.from(files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const img = document.createElement('img');
-                img.src = event.target.result;
-                img.style.maxWidth = '200px';
-                img.style.margin = '10px';
-                img.style.borderRadius = '4px';
-                imagePreviews.appendChild(img);
-            };
-            reader.readAsDataURL(file);
-        });
+        compressedFiles = []; // Clear previous files
+
+        for (const file of Array.from(files)) {
+            try {
+                const options = {
+                    maxSizeMB: 1, // (max file size in MB)
+                    maxWidthOrHeight: 1920, // max width or height in pixels
+                    useWebWorker: true,
+                    fileType: 'image/jpeg' // Ensure output is JPEG
+                };
+                const compressedFile = await imageCompression(file, options);
+                compressedFiles.push(compressedFile);
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = document.createElement('img');
+                    img.src = event.target.result;
+                    img.style.maxWidth = '200px';
+                    img.style.margin = '10px';
+                    img.style.borderRadius = '4px';
+                    imagePreviews.appendChild(img);
+                };
+                reader.readAsDataURL(compressedFile);
+
+            } catch (error) {
+                console.error('Image compression error:', error);
+                showMessage(`Error compressing image ${file.name}.`);
+            }
+        }
     });
 
     takeImmediateAction.addEventListener('change', function() {
@@ -185,26 +204,32 @@ function setupFormEventListeners(userId) {
                 user_id: userId,
                 timestamp: new Date().toISOString(),
                 submission_status: 'submitted'
-            };
+                };
 
-            // --- REMOVED: Conditional logic for lotTime based on semiFinishedGoodsVisible --- 
+                // --- REMOVED: Conditional logic for lotTime based on semiFinishedGoodsVisible --- 
 
-            try {
-                const { data, error } = await supabase
-                    .from('quality_alerts')
-                    .insert([insertData]); // Pass data as an array
+                try {
+                    let imageUrls = [];
+                    if (compressedFiles.length > 0) {
+                        imageUrls = await uploadImagesToSupabase(compressedFiles);
+                    }
 
-                if (error) {
-                    console.error('Submission error:', error);
-                    showMessage('Error submitting form. Please try again. Details: ' + error.message);
-                } else {
-                    form.reset();
-                    // Manually trigger change events to reset conditional fields
-                    abnormalityType.dispatchEvent(new Event('change')); 
-                    document.getElementById('takeImmediateAction').dispatchEvent(new Event('change'));
-                    imagePreviews.innerHTML = '';
-                    showMessage('Form submitted successfully!');
-                }
+                    const { data, error } = await supabase
+                        .from('quality_alerts')
+                        .insert([{ ...insertData, image_urls: imageUrls }]); // Pass data as an array
+
+                    if (error) {
+                        console.error('Submission error:', error);
+                        showMessage('Error submitting form. Please try again. Details: ' + error.message);
+                    } else {
+                        form.reset();
+                        // Manually trigger change events to reset conditional fields
+                        abnormalityType.dispatchEvent(new Event('change')); 
+                        document.getElementById('takeImmediateAction').dispatchEvent(new Event('change'));
+                        imagePreviews.innerHTML = '';
+                        compressedFiles = []; // Clear the array after successful submission
+                        showMessage('Form submitted successfully!');
+                    }
             } catch (error) {
                 console.error('Unexpected error:', error);
                 showMessage('Error submitting form. Please try again.');
@@ -272,6 +297,30 @@ function setupFormEventListeners(userId) {
             saveAsDraftButton.textContent = "Save as Draft";
         }
     });
+
+    async function uploadImagesToSupabase(files) {
+        const imageUrls = [];
+        for (const file of files) {
+            const { data, error } = await supabase.storage
+                .from('quality-alert-images') // Your Supabase bucket name
+                .upload(`${Date.now()}_${file.name}`, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (error) {
+                console.error('Error uploading image:', error);
+                showMessage(`Error uploading ${file.name}: ${error.message}`);
+            } else {
+                // Get public URL
+                const { data: publicUrlData } = supabase.storage
+                    .from('quality-alert-images')
+                    .getPublicUrl(data.path);
+                imageUrls.push(publicUrlData.publicUrl);
+            }
+        }
+        return imageUrls;
+    }
 
     function validateForm() {
         const incidenttitle = document.getElementById('incidentTitle').value.trim();

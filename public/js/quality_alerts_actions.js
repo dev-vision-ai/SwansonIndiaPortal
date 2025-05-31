@@ -16,7 +16,7 @@ const severityInput = document.getElementById('severity');
 const detectionInput = document.getElementById('detection');
 const frequencyInput = document.getElementById('frequency');
 const rpnInput = document.getElementById('rpn');
-const calculateRpnBtn = document.getElementById('calculateRpnBtn');
+
 
 // Add event listeners for dynamic RPN calculation
 severityInput.addEventListener('input', calculateRPN);
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Add event listener for the calculate button
-    if (calculateRpnBtn) calculateRpnBtn.addEventListener('click', handleRpnCalculation);
+    
 });
 
 // --- Functions ---
@@ -308,7 +308,50 @@ function populateForm(data) {
     if (timestampInput) timestampInput.value = formatTimestampForDisplay(data.timestamp);
     if (draftedAtInput) draftedAtInput.value = formatTimestampForDisplay(data.drafted_at);
 
-    // --- Ensure this logic exists --- 
+    // Display images
+    const imageDisplayContainer = document.getElementById('imageDisplayContainer');
+    if (imageDisplayContainer) {
+        imageDisplayContainer.innerHTML = ''; // Clear previous images
+
+        if (data.image_urls && data.image_urls.length > 0) {
+            let imagesProcessed = 0;
+            let successfulLoads = 0;
+            const totalImages = data.image_urls.length;
+
+            const checkCompletion = () => {
+                if (imagesProcessed === totalImages) {
+                    if (successfulLoads === 0) {
+                        imageDisplayContainer.innerHTML = '<p>No images uploaded for this alert.</p>';
+                    }
+                }
+            };
+
+            data.image_urls.forEach(url => {
+                const img = new Image(); // Use new Image() for better control over loading
+                img.src = url;
+                img.style.maxWidth = '200px';
+                img.style.margin = '10px';
+                img.style.borderRadius = '4px';
+
+                img.onload = () => {
+                    imageDisplayContainer.appendChild(img);
+                    successfulLoads++;
+                    imagesProcessed++;
+                    checkCompletion();
+                };
+
+                img.onerror = () => {
+                    console.warn(`Failed to load image: ${url}`);
+                    imagesProcessed++;
+                    checkCompletion();
+                };
+            });
+        } else {
+            imageDisplayContainer.innerHTML = '<p>No images uploaded for this alert.</p>';
+        }
+    }
+
+    // --- Ensure this logic exists ---
     const kivDetailsSection = document.querySelector('.kiv-details');
     if (kivDetailsSection) {
         kivDetailsSection.style.display = data.keptinview === 'yes' ? 'block' : 'none';
@@ -366,10 +409,8 @@ function setupFormMode(action) {
     });
 
     // Ensure RPN fields and calculate button are always editable
-    if (severityInput) severityInput.readOnly = false;
-    if (detectionInput) detectionInput.readOnly = false;
-    if (frequencyInput) frequencyInput.readOnly = false;
-    if (calculateRpnBtn) calculateRpnBtn.disabled = false;
+    
+    
 
     // Show/hide save button and attach/detach submit listener
     if (isEditMode) {
@@ -383,22 +424,7 @@ function setupFormMode(action) {
     }
 }
 
-function handleRpnCalculation() {
-    const s = parseInt(severityInput.value, 10);
-    const d = parseInt(detectionInput.value, 10);
-    const f = parseInt(frequencyInput.value, 10);
 
-    // Basic validation - ensure all are numbers
-    if (isNaN(s) || isNaN(d) || isNaN(f)) {
-        alert('Please enter valid numbers for Severity, Detection, and Frequency.');
-        rpnInput.value = '';
-        return;
-    }
-
-    // Perform calculation
-    const rpn = s * d * f;
-    rpnInput.value = rpn;
-}
 
 async function handleFormSubmit(event) {
     event.preventDefault();
@@ -412,6 +438,9 @@ async function handleFormSubmit(event) {
         incidentdesc: incidentDescInput.value,
         responsibledept: responsibleDeptInput.value,
         statusaction: statusActionSelect.value,
+        severity: severityInput.value ? parseInt(severityInput.value, 10) : null,
+        detection: detectionInput.value ? parseInt(detectionInput.value, 10) : null,
+        frequency: frequencyInput.value ? parseInt(frequencyInput.value, 10) : null,
         rpn: rpnInput.value ? parseInt(rpnInput.value, 10) : null, // Update calculated RPN
         root_cause: rootCauseInput.value,
         corrective_actions: correctiveActionsInput.value,

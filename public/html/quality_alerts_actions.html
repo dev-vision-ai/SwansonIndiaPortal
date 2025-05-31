@@ -7,6 +7,30 @@
   <title>Quality Alert Details</title> <!-- Form Title -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
   <link rel="stylesheet" href="../css/admin_qa.css">
+  <style>
+    #rpn-calculation-section {
+      background-color: #f0f0f0; /* Light gray background */
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+     }
+
+     .rpn-operator {
+       margin: 0 5px;
+       font-weight: bold;
+     }
+
+     #rpn {
+       background-color: #fffb00; /* Light green background for RPN input */
+     }
+
+     .image-previews-container {
+       background-color: #f9f9f9; /* Light gray background for image container */
+       padding: 10px;
+       border-radius: 5px;
+       border: 1px solid #ddd;
+     }
+   </style>
   <!-- Add specific styles for the form -->
   <style>
     .form-container {
@@ -206,21 +230,30 @@
         </select>
       </div>
 
-      <!-- Heading for RPN calculation -->
-      <h3>RPN Calculation</h3>
-      <div class="form-group flex-row">
-        <label for="severity">Severity (S)</label>
-        <input type="number" id="severity" min="1" max="10">
-        <span>×</span>
-        <label for="detection">Detection (D)</label>
-        <input type="number" id="detection" min="1" max="10">
-        <span>×</span>
-        <label for="frequency">Frequency (F)</label>
-        <input type="number" id="frequency" min="1" max="10">
-        <span>=</span>
-        <label for="rpn">RPN</label>
-        <input type="number" id="rpn" readonly>
-        
+      <!-- RPN Calculation -->
+      <div id="rpn-calculation-section" class="form-group">
+        <h3>RPN Calculation</h3>
+        <div class="flex-row">
+          <label for="severity">Severity (S):</label>
+          <input type="number" id="severity" min="1" max="10" value="1">
+          <span class="rpn-operator">x</span>
+          <label for="detection">Detection (D):</label>
+          <input type="number" id="detection" min="1" max="10" value="1">
+          <span class="rpn-operator">x</span>
+          <label for="frequency">Frequency (F):</label>
+          <input type="number" id="frequency" min="1" max="10" value="1">
+          <span class="rpn-operator">=</span>
+          <label for="rpn">RPN:</label>
+          <input type="text" id="rpn" readonly>
+        </div>
+      </div>
+        </div>
+      </div>
+
+      <!-- Image Display Container -->
+      <div class="form-group">
+        <h3>Uploaded Images</h3>
+        <div id="imageDisplayContainer" class="image-previews-container"></div>
       </div>
 
       <div class="form-group">

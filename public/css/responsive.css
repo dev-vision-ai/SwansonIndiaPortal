@@ -477,7 +477,7 @@
     }
 
     .album-item {
-        width: calc(50% - 7.5px); /* Adjusted for 15px gap */
+        width: calc(50% - 5px); /* Adjusted for 10px gap */
         height: 200px;
     }
 
@@ -496,7 +496,8 @@
     #album-list.album-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 5px; /* Reduced gap */
+        gap: 10px; /* Adjusted gap */
+        margin: 0 auto;
     }
 
     #album-list.album-grid figure.gallery-item {
@@ -517,7 +518,7 @@
     }
 
     .album-item {
-        width: calc(50% - 5px); /* Adjusted for two items per row with 10px gap */
+        width: calc(50% - 2.5px); /* Adjusted for 5px gap */
         height: 180px;
     }
 
@@ -536,7 +537,8 @@
     #album-list.album-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 2px; /* Further reduced gap for smaller screens */
+        gap: 5px; /* Adjusted gap */
+        margin: 0 auto;
     }
 
     #album-list.album-grid figure.gallery-item {

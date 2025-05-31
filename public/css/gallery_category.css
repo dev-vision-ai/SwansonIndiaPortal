@@ -321,14 +321,18 @@ main.container.section {
     margin-top: 0;
     margin-bottom: 5px;
     font-size: 1.1rem;
-    font-weight: bold; /* Make heading text bolder */
+    font-weight: 700; /* Make heading text bolder */
     color: #002E7D; /* Album title color */
+    font-family: 'Montserrat', sans-serif; /* Professional font */
+    text-decoration: none; /* Ensure no underline */
 }
 
 .album-info p {
     margin-bottom: 0;
     font-size: 0.9rem;
     color: #555; /* Album description color */
+    font-family: 'Open Sans', sans-serif; /* Professional font */
+    text-decoration: none; /* Ensure no underline */
 }
 
 /* Style for when no albums are found */
