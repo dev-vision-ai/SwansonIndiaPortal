@@ -110,6 +110,8 @@ function setupEventListeners() {
     if (deptInput) deptInput.addEventListener('change', applyFilters);
     if (abnormalityInput) abnormalityInput.addEventListener('change', applyFilters);
     if (clearBtn) clearBtn.addEventListener('click', clearFilters);
+    const showStatsBtn = document.getElementById('showStats');
+    if (showStatsBtn) showStatsBtn.addEventListener('click', showStats);
     // -------------------------------
 
     const logoutButton = document.getElementById('logoutButton'); // Get the button by its ID
@@ -146,6 +148,10 @@ function setupEventListeners() {
 }
 
 setupEventListeners();
+
+function showStats() {
+  window.location.href = '../html/quality_alerts_stats.html';
+}
 
 function handleButtonActions(e) {
   // Check if the clicked element has the 'action-btn' class
