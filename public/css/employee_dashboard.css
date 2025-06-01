@@ -44,26 +44,28 @@ body {
     flex-direction: column;
     gap: 2rem;
     width: 100vw;
-    height: 100vh;
-    justify-content: center;
+    min-height: 100vh; /* Ensure it takes full viewport height */
+    justify-content: flex-start; /* Align items to the top */
     align-items: center;
     margin: 0;
+    padding-top: 60px; /* Add padding to account for fixed header */
+    overflow-y: auto; /* Enable scrolling for content overflow */
 }
 
 .dashboard-section {
-    margin-top: 60px; /* Add top margin to avoid header overlap */
+    margin-top: 0; /* Adjusted to rely on body padding-top */
     width: 100%; /* Expand to full width */
-    height: calc(100% - 60px); /* Adjust height to fit below header */
+    height: auto; /* Allow content to dictate height */
     flex-shrink: 0;
-    background: #FFFFFF;
-    background-image: url('../assets/page-bg.png'); /* Replace with your image path */
+    /* background: #FFFFFF; */
+    /* background-image: url('../assets/page-bg.png'); */ /* Removed redundant background image */
     background-size: cover;
     background-position: center; /* Centers the image */
     background-repeat: no-repeat;
     border-radius: 0; /* Remove border-radius for full edge contact */
     padding: 0; /* Remove padding for full edge contact */
-    box-shadow: var(--shadow-md);
-    border: 1px solid rgba(0, 0, 0, 0.1); /* Correct border declaration */
+    /* box-shadow: var(--shadow-md); */
+    /* border: 1px solid rgba(0, 0, 0, 0.1); */
 }
 
 .incident-section {
@@ -71,7 +73,7 @@ body {
     width: 100%; /* Match width to header */
     height: 60px; /* Match height to header */
     flex-shrink: 0;
-    background: #FFFFFF;
+    /* background: #FFFFFF; */
     border-radius: 0.5rem;
     padding: 2.5rem;
     box-shadow: var(--shadow-md);
@@ -91,7 +93,7 @@ body {
 
 @media (max-width: 768px) {
     body {
-        padding-top: 70px; /* Adjust based on header height */
+        padding-top: 0; /* Removed padding-top as it's handled by container */
     }
     .header-container {
         padding: 5px 10px;
@@ -106,6 +108,15 @@ body {
         padding: 8px 12px;
         font-size: 0.9rem;
     }
+
+    .quality-alerts-container h2 {
+        padding-top: 70px; /* Increased padding for mobile to ensure it clears the header */
+    }
+}
+
+/* General style for desktop and larger screens */
+.quality-alerts-container h2 {
+    padding-top: 40px; /* Increased padding for desktop to ensure it clears the header */
 }
 
 .header-container {
@@ -455,23 +466,24 @@ body {
 
 /* Table Styles (copied from admin_qa/dashboard_qa.css for consistency) */
 .quality-alerts-container {
-    margin-top: 0;
-    padding-top: 10px;
-    width: 100%;
-    height: calc(100vh - 75px);
-    background: white;
-    border-radius: 0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    overflow-y: auto;
-    position: fixed;
-    top: 75px;
-    left: 0;
-    right: 0;
-    text-align: center;
+        margin-top: 0;
+        padding-top: 10px;
+        width: 100%;
+        height: calc(100vh - 60px); /* Adjusted height */
+        background: white;
+        border-radius: 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        overflow-y: auto;
+        position: fixed;
+        top: 60px; /* Adjusted top position */
+        left: 0;
+        right: 0;
+        text-align: center;
 }
 
 .quality-alerts-container h2 {
     margin-bottom: 1rem; /* Add spacing below the heading */
+    /* padding-top: 20px; */ /* This is now handled by the rule around line 120 */
 }
 
 .filter-controls {
@@ -480,24 +492,36 @@ body {
 }
 
 @media (max-width: 768px) {
-  .quality-alerts-container {
-    padding: 1rem; /* Adjust padding for smaller screens */
-    width: 100%; /* Ensure full width */
-    position: static; /* Remove fixed positioning */
-    margin-top: -24rem; /* Add margin for spacing */
-  }
+    .quality-alerts-container {
+        width: 100%; /* Ensure container takes full width */
+        padding: 0 10px; /* Add some horizontal padding */
+    }
 
-  .quality-alerts-container table {
-    min-width: 100%; /* Ensure table fits within container */
-    overflow-x: auto; /* Allow horizontal scrolling */
-    display: block; /* Make table block-level to enable scrolling */
-  }
+    table {
+        width: 100%;
+        display: block;
+        white-space: nowrap; /* Prevent text wrapping in cells */
+    }
 
-  .quality-alerts-container th,
-  .quality-alerts-container td {
-    padding: 0.5rem; /* Adjust padding for smaller screens */
-    white-space: normal; /* Prevent text wrapping */
-  }
+    th,
+    td {
+        padding: 8px 10px; /* Adjust padding for smaller screens */
+        font-size: 0.85rem; /* Smaller font size for readability */
+        box-sizing: border-box; /* Include padding in element's total width */
+    }
+
+    /* Adjust filter controls for mobile */
+    .filter-controls {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-input,
+    .filter-select,
+    .filter-btn {
+        width: 90%; /* Make filter elements take more width */
+    }
 }
 
 .quality-alerts-container table {
@@ -605,24 +629,36 @@ body {
 
 
 @media (max-width: 768px) {
-  .quality-alerts-container {
-    padding: 1rem; /* Adjust padding for smaller screens */
-    width: 100%; /* Ensure full width */
-    position: static; /* Remove fixed positioning */
-    margin-top: -24rem; /* Add margin for spacing */
-  }
+    .quality-alerts-container {
+        width: 100%; /* Ensure container takes full width */
+        padding: 0 10px; /* Add some horizontal padding */
+    }
 
-  .quality-alerts-container table {
-    min-width: 100%; /* Ensure table fits within container */
-    overflow-x: auto; /* Allow horizontal scrolling */
-    display: block; /* Make table block-level to enable scrolling */
-  }
+    table {
+        width: 100%;
+        display: block;
+        white-space: nowrap; /* Prevent text wrapping in cells */
+    }
 
-  .quality-alerts-container th,
-  .quality-alerts-container td {
-    padding: 0.5rem; /* Adjust padding for smaller screens */
-    white-space: normal; /* Prevent text wrapping */
-  }
+    th,
+    td {
+        padding: 8px 10px; /* Adjust padding for smaller screens */
+        font-size: 0.85rem; /* Smaller font size for readability */
+        box-sizing: border-box; /* Include padding in element's total width */
+    }
+
+    /* Adjust filter controls for mobile */
+    .filter-controls {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .filter-input,
+    .filter-select,
+    .filter-btn {
+        width: 90%; /* Make filter elements take more width */
+    }
 }
 
 .quality-alerts-container table {
