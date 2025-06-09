@@ -239,12 +239,14 @@ body {
     margin-bottom: 0.5rem;
 }
 
-.quick-actions {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+.quick-action-grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 1.5rem;
     padding: 1rem;
     margin: 2rem 0;
+    justify-content: center; /* Center the cards horizontally */
 }
 
 .action-card {
@@ -256,6 +258,7 @@ body {
     transition: var(--transition);
     border: 2px solid #ccc;
     animation: fadeIn 0.5s ease-out forwards;
+    width: 250px; /* Set a fixed width for uniformity */
     height: 140px; /* Set a fixed height for uniformity */
     display: flex;
     flex-direction: column;
@@ -285,8 +288,10 @@ body {
     .header-container {
         padding: 1rem;
     }
-    .quick-actions {
-        grid-template-columns: 1fr;
+    .quick-action-grid {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
     }
     .recent-activities,
     .notifications {

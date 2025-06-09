@@ -26,7 +26,7 @@
                         <img src="../assets/logo.png" alt="Company Logo" class="auth-logo">
                     </div>
                 </div>
-                <div class="quick-actions">
+                <div class="quick-action-grid">
                      <div class="action-card" data-department="All" onclick="location.href='../html/qualityalert.html'">
                         <i class="fas fa-exclamation-circle"></i>
                         <h3>Quality Alert</h3>
@@ -42,18 +42,18 @@
                         <h3>Continual Improvement Form</h3>
                         <p>Report Improvement Ideas</p>
                     </div>
-                    <div class="action-card" data-department="Quality Assurance,IQA" onclick="location.href='../html/rtcis.html'">
+                    <div class="action-card" data-department="Quality Control,Quality Assurance,IQA" onclick="location.href='../html/rtcis.html'">
                         <i class="fas fa-print"></i>
                         <h3>RTCIS</h3>
                         <p>Print RTCIS Labels</p>
                     </div>
-                     <div class="action-card" data-department="All" onclick="location.href='../html/dailyreport.html'">
+                     <div class="action-card" data-department="Quality Control,Quality Assurance" onclick="location.href='../html/dailyreport.html'">
                         <i class="fas fa-calendar-alt"></i>
                         <h3>Daily Reports</h3>
                         <p>Prepare/View Daily Reports</p>
                     </div>
                      <!-- TODO: Update onclick with correct path once Incoming Inspection form exists -->
-                     <div class="action-card" data-department="IQA" onclick="//" title="Incoming Inspection form not yet available">
+                     <div class="action-card" data-department="Quality Control,Quality Assurance" onclick="//" title="Incoming Inspection form not yet available">
                         <i class="fas fa-search"></i>
                         <h3>Incoming Inspection</h3>
                         <p>Prepare/View Incoming Inspection Reports</p>
@@ -64,14 +64,7 @@
                         <h3>My Forms</h3>
                         <p>View Your Submitted Forms</p>
                     </div>
-                    <div class="action-card" data-department="All">
-                        <h3>Pending</h3>
-                        <p>View Pending Actions</p>
-                    </div>
-                    <div class="action-card" data-department="All">
-                        <h3>Reports</h3>
-                        <p>View All Reports</p>
-                    </div>
+
                 </div>
 
                 <div id="recentActivitiesList" class="activity-list">

@@ -380,6 +380,10 @@ async function loadUserProfile() {
             }
             if (employeeNameElement) employeeNameElement.textContent = profile.full_name;
             if (employeeCodeElement) employeeCodeElement.textContent = (profile.employee_code || '').toUpperCase();
+
+            // Call the filtering function after user profile is loaded
+            filterQuickActionsByDepartment(user);
+
         } else if (profileError) {
             console.error("Error fetching profile:", profileError);
             if (userNameElement) userNameElement.textContent = user.email ? 'Hi, ' + user.email : 'Hi there';
@@ -390,4 +394,66 @@ async function loadUserProfile() {
         console.error("User not logged in.");
         window.location.href = '../html/auth.html';
     }
-    console.timeEnd('loadUserProfile total');}
+    console.timeEnd('loadUserProfile total');
+}
+
+async function filterQuickActionsByDepartment(user) {
+    console.log('filterQuickActionsByDepartment called.');
+    console.log('User object:', user);
+
+    if (!user) {
+        console.log('No user object, cannot filter quick actions.');
+        return;
+    }
+
+    try {
+        const { data: userProfile, error } = await supabase
+            .from('users')
+            .select('department')
+            .eq('id', user.id)
+            .single();
+
+        if (error) {
+            console.error('Error fetching user profile for department:', error);
+            return;
+        }
+
+        console.log('User profile data:', userProfile);
+
+        const userDepartment = userProfile?.department;
+        console.log('User Department:', userDepartment);
+
+        const quickActionCards = document.querySelectorAll('.action-card'); // Changed to action-card based on HTML
+        console.log('Found quick action cards:', quickActionCards.length);
+
+        quickActionCards.forEach(card => {
+            const cardDepartments = card.getAttribute('data-department');
+            console.log('Card data-department:', cardDepartments);
+
+            let shouldDisplay = false;
+
+            if (cardDepartments) {
+                const departmentsArray = cardDepartments.split(',').map(dept => dept.trim());
+                console.log('Card departments array:', departmentsArray);
+
+                if (departmentsArray.includes('All')) {
+                    shouldDisplay = true;
+                } else if (userDepartment) {
+                    const userDepartmentsArray = userDepartment.split(',').map(d => d.trim());
+                    shouldDisplay = departmentsArray.some(cardDept => userDepartmentsArray.includes(cardDept));
+                }
+            }
+
+            console.log(`Card: ${card.querySelector('h3')?.textContent || 'N/A'}, Should Display: ${shouldDisplay}`);
+            card.style.display = shouldDisplay ? '' : 'none';
+        });
+
+        const quickActionGrid = document.querySelector('.quick-action-grid');
+        if (quickActionGrid) {
+            quickActionGrid.style.display = ''; // Make the grid visible after filtering
+        }
+
+    } catch (error) {
+        console.error('Unexpected error in filterQuickActionsByDepartment:', error);
+    }
+}

@@ -6,63 +6,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>RTCIS Label</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- JsBarcode Library - Placed in head as it's needed early -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
     <link rel="stylesheet" href="../css/employee_dashboard.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        /* Base font for the entire body */
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+        }
+
+        /* Styles for elements when printed */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            .print-label-size {
+                width: 100mm !important; /* Set exact width for printing */
+                /* Removed fixed height: 150mm !important; to allow content to dictate height */
+                margin: 0;
+                padding: 5mm; /* Small padding for print margins */
+                box-sizing: border-box; /* Include padding in width/height */
+                border: 1px solid black; /* Ensure border is visible in print */
+            }
+            .print-label-size .font-bold {
+                font-size: 10pt; /* Approximate 3.5mm */
+            }
+            .print-label-size strong {
+                font-size: 14pt; /* Approximate 5mm */
+            }
+            /* This will make the container visible during print */
+            /* #staticLabelPrintContainer {
+                 display: block !important;
+            } */
+            /* Hide other page elements during print if desired */
+            main, .header-container {
+                display: none;
+            }
+        }
+        /* Style for the static label preview when displayed on screen */
+
+    </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
+    <!-- This div will temporarily hold the label content before conversion to PDF -->
+    <div id="staticLabelPrintContainer" style="position: absolute; left: -9999px;"></div>
     <div class="header-container">
-        <button type="button" class="header-back-button" onclick="window.location.href='employee_dashboard.html';">Back</button>
+        <button type="button" class="header-back-button">Back</button>
         <div class="header-title">Generate/Print RTCIS Labels</div>
         <div class="company-logo">
             <img src="../assets/logo.png" alt="Company Logo">
         </div>
     </div>
-    <!-- Main Content -->
+
     <main class="flex-1 flex items-center justify-center p-3 w-full">
         <div class="bg-white rounded-xl shadow-2xl flex max-w-5xl w-full overflow-hidden">
-            <!-- Left Section (Image and Label Print) -->
             <div class="w-1/4 bg-[#002E7D] p-8 flex flex-col items-center justify-center rounded-l-xl relative">
                 <div class="absolute inset-0 bg-pattern opacity-10"></div>
                 <img src="../assets/logo.png" alt="Swanson Label Print" class="h-20 w-32 mb-4 relative z-10">
                 <h2 class="text-white text-3xl font-extrabold text-center relative z-10">Label Print</h2>
             </div>
 
-            <!-- Right Section (Form) -->
             <div class="w-3/4 p-10">
                 <h3 class="text-2xl font-bold text-gray-800 mb-6">Product Details</h3>
                 <form id="rtcisForm" class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5">
-                    <div>
-                        <label for="name" class="block text-sm font-semibold text-gray-700 mb-1">Name:</label>
-                        <select id="name" name="name" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
-                            <option>FG BIG LABEL</option>
-                        </select>
-                    </div>
+
+
                     <div>
                         <label for="irms_gcas" class="block text-sm font-semibold text-gray-700 mb-1">IRMS/GCAS:</label>
-                        <input type="text" id="irms_gcas" name="gcas_number" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        <input type="text" id="irms_gcas" name="irms_gcas" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
                     <div>
                         <label for="lot_no" class="block text-sm font-semibold text-gray-700 mb-1">LOT No:</label>
                         <input type="text" id="lot_no" name="lot_number" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
-
-                    <div>
-                        <label for="basis_weight" class="block text-sm font-semibold text-gray-700 mb-1">Basis Weight (g):</label>
-                        <input type="text" id="basis_weight" name="basis_weight" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
-                    </div>
                     <div>
                         <label for="quantity" class="block text-sm font-semibold text-gray-700 mb-1">Quantity (No. of Rolls):</label>
-                        <input type="text" id="quantity" name="quantity" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        <input type="number" id="quantity" name="quantity" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
-                    <div>
-                        <label for="production_date" class="block text-sm font-semibold text-gray-700 mb-1">Production Date:</label>
+                     <div>
+                         <label for="production_date" class="block text-sm font-semibold text-gray-700 mb-1">Production Date:</label>
                         <input type="date" id="production_date" name="production_date" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
 
                     <div>
-                        <label for="height" class="block text-sm font-semibold text-gray-700 mb-1">Height (mtrs):</label>
+                        <label for="height" class="block text-sm font-semibold text-gray-700 mb-1">Height (mm):</label>
                         <input type="text" id="height" name="height" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
                     <div>
@@ -83,212 +114,23 @@
                         <input type="text" id="pallet_number" name="pallet_number" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
                     <div>
-                        <label for="pallet_ttype" class="block text-sm font-semibold text-gray-700 mb-1">Pallet Type:</label>
-                        <input type="text" id="pallet_ttype" name="pallet_type" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        <label for="pallet_type" class="block text-sm font-semibold text-gray-700 mb-1">Pallet Type:</label>
+                        <input type="text" id="pallet_type" name="pallet_type" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
-
                     <div class="md:col-span-3 flex justify-end mt-6">
                         <button type="submit" class="inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
-                            Submit
+                            Generate Label
                         </button>
                     </div>
                 </form>
-
-                <div id="labelPreview" class="mt-8 p-6 bg-white rounded-xl shadow-lg hidden">
-                    <!-- Label content will be generated here -->
-                </div>
-
-                <div class="mx-auto hidden font-roboto-medium" id="staticLabelPreview">
-                    <div class="w-full max-w-2xl border border-black text-sm h-full">
-                    <div class="grid grid-cols-2 border-b border-black">
-                        <div class="p-2 border-r border-black">
-                            <p class="font-semibold">Swanson Plastics (India) Private Limited</p>
-                            <p class="font-bold">Bhuipal, Goa</p>
-                        </div>
-                        <div class="p-2">
-                            <p class="font-bold">Supplier Product: <strong></strong></p>
-                            <p class="font-bold">IRMS GCAS: <strong></strong></p>
-                            <p class="font-bold">Prod Date: <strong></strong></p>
-                        </div>
-                    </div>
-
-                    <div class="border-b border-black p-2 font-semibold">
-                        ITEM: <strong></strong>
-                    </div>
-
-                    <div class="grid grid-cols-2 border-b border-black">
-                        <div class="p-2 border-r border-black">
-                            <p class="font-bold">WIDTH (MM): <strong></strong> &nbsp;&nbsp; HEIGHT (MM): <strong></strong></p>
-                        </div>
-                        <div class="p-2">
-                            <p class="font-bold">GROSS wt.(KG): <strong></strong> &nbsp;&nbsp; NET wt.(KG): <strong></strong></p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 border-b border-black">
-                        <div class="p-2 border-r border-black space-y-2">
-                            <p class="font-bold">IRMS GCAS#: <strong></strong></p>
-                            <hr class="border-t border-black"/>
-                            <p class="font-bold">PI Number: <strong></strong></p>
-                            <hr class="border-t border-black"/>
-                            <p class="font-bold">QUANTITY (KG): <strong></strong></p>
-                            <hr class="border-t border-black"/>
-                            <p class="font-bold">BASIS WEIGHT (GSM): <strong></strong></p>
-                        </div>
-                        <div class="p-2 space-y-2">
-                            <p class="font-bold">LOT#: <strong></strong></p>
-                            <hr class="border-t border-black"/>
-                            <p class="font-bold">Pallet Number: <strong></strong></p>
-                            <hr class="border-t border-black"/>
-                            <p class="font-bold">Sequence Number: <strong></strong></p>
-                            <hr class="border-t border-black"/>
-                            <p class="font-bold">PALLET TYPE : <strong></strong></p>
-                        </div>
-                    </div>
-
-                    <div class="border-b border-black p-2">
-                        <p class="font-semibold">GCAS/ Net wt.</p>
-                        <div class="w-full h-16 mt-1 flex items-center justify-center">
-                        <svg id="barcode1" class="h-[50px]"></svg>
-                    </div>
-                        <span class="barcode-text" id="barcode1-text"></span>
-                    </div>
-
-                    <div class="border-b border-black p-2">
-                        <p class="font-semibold">Lot No.</p>
-                        <div class="w-full h-16 mt-1 flex items-center justify-center">
-                        <svg id="barcode2" class="h-[50px]"></svg>
-                    </div>
-                        <span class="barcode-text" id="barcode2-text"></span>
-                    </div>
-
-
-
-                    <div class="p-2">
-                        <p class="font-semibold">Unit Load ID</p>
-                        <div class="w-full h-16 mt-1 flex items-center justify-center">
-                        <svg id="barcode3" class="h-[50px]"></svg>
-                    </div>
-                        <span class="barcode-text" id="barcode3-text"></span>
-                    </div>
-                </div>
-                </div>
-
-                <div class="flex justify-center mt-6 print-hidden">
-                    <button id="printLabel" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline hidden">Print Label</button>
-                </div>
             </div>
         </div>
     </main>
 
-    <style>
-        @media print {
-            body > *:not(#labelPreview) {
-                display: none !important;
-            }
-            #labelPreview {
-                display: block !important;
-                width: 100%;
-                margin: 0;
-                padding: 0;
-            }
-            .print-hidden {
-        .font-roboto-medium {
-            font-family: 'Roboto', sans-serif;
-            font-weight: 500;
-        }
-                display: none !important;
-            }
-        }
-    </style>
-
-    <script>
-        document.getElementById('rtcisForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            const form = event.target;
-            const formData = new FormData(form);
-            const data = {};
-            for (let [key, value] of formData.entries()) {
-                data[key] = value;
-            }
-
-            // Format production date
-            const productionDate = new Date(data.production_date);
-            const options = { day: '2-digit', month: 'short', year: 'numeric' };
-            const formattedDate = productionDate.toLocaleDateString('en-US', options).replace(/,/g, '');
-
-            const labelPreview = document.getElementById('labelPreview');
-            const staticLabelPreview = document.getElementById('staticLabelPreview');
-            labelPreview.classList.add('hidden'); // Hide the dynamic preview
-            staticLabelPreview.classList.remove('hidden'); // Show the static preview
-            document.getElementById('printLabel').classList.remove('hidden');
-
-            // Populate the static label preview with data
-            staticLabelPreview.querySelector('.grid.grid-cols-2:nth-of-type(1) .p-2:nth-of-type(2) p:nth-of-type(1) strong').textContent = 'APE-168(18)C'; // Supplier Product
-            staticLabelPreview.querySelector('.grid.grid-cols-2:nth-of-type(1) .p-2:nth-of-type(2) p:nth-of-type(2) strong').textContent = data.gcas_number; // IRMS GCAS
-            staticLabelPreview.querySelector('.grid.grid-cols-2:nth-of-type(1) .p-2:nth-of-type(2) p:nth-of-type(3) strong').textContent = formattedDate; // Prod Date
-            staticLabelPreview.querySelector('.border-b.border-black.p-2.font-semibold strong').textContent = data.name; // ITEM
-
-            staticLabelPreview.querySelector('.grid.grid-cols-2:nth-of-type(3) .p-2:nth-of-type(1) p strong:nth-of-type(1)').textContent = data.width; // WIDTH
-            staticLabelPreview.querySelector('.grid.grid-cols-2:nth-of-type(3) .p-2:nth-of-type(1) p strong:nth-of-type(2)').textContent = data.height; // HEIGHT
-            staticLabelPreview.querySelector('.grid.grid-cols-2:nth-of-type(3) .p-2:nth-of-type(2) p strong:nth-of-type(1)').textContent = data.gross_weight; // GROSS wt.
-            staticLabelPreview.querySelector('.grid.grid-cols-2:nth-of-type(3) .p-2:nth-of-type(2) p strong:nth-of-type(2)').textContent = data.net_weight; // NET wt.
-
-            staticLabelPreview.querySelector('.grid.grid-cols-2:nth-of-type(4) .p-2:nth-of-type(1) p:nth-of-type(1) strong').textContent = data.gcas_number; // IRMS GCAS#
-            staticLabelPreview.querySelector('.grid.grid-cols-2:nth-of-type(4) .p-2:nth-of-type(2) p:nth-of-type(1) strong').textContent = data.lot_number; // LOT#
-
-            staticLabelPreview.querySelector('.grid.grid-cols-2:nth-of-type(4) .p-2:nth-of-type(1) p:nth-of-type(2) strong').textContent = data.pi_number; // PI Number
-            staticLabelPreview.querySelector('.grid.grid-cols-2:nth-of-type(4) .p-2:nth-of-type(2) p:nth-of-type(2) strong').textContent = data.pallet_number; // Pallet Number
-
-            staticLabelPreview.querySelector('.grid.grid-cols-2:nth-of-type(4) .p-2:nth-of-type(1) p:nth-of-type(3) strong').textContent = data.quantity; // QUANTITY (KG)
-            staticLabelPreview.querySelector('.grid.grid-cols-2:nth-of-type(4) .p-2:nth-of-type(2) p:nth-of-type(3) strong').textContent = data.sequence_number; // Sequence Number
-
-            staticLabelPreview.querySelector('.grid.grid-cols-2:nth-of-type(4) .p-2:nth-of-type(1) p:nth-of-type(4) strong').textContent = data.basis_weight; // BASIS WEIGHT (GSM)
-            staticLabelPreview.querySelector('.grid.grid-cols-2:nth-of-type(4) .p-2:nth-of-type(2) p:nth-of-type(4) strong').textContent = data.pallet_type; // PALLET TYPE
-
-            // Generate barcodes for the static preview
-            JsBarcode(staticLabelPreview.querySelector('#barcode1'), `(91)${data.gcas_number}(37)${data.net_weight}`, {
-                format: "CODE128",
-                displayValue: false,
-                height: 80,
-                width: 2,
-                margin: 0,
-                textMargin: 0,
-                fontSize: 0
-            });
-
-            JsBarcode(staticLabelPreview.querySelector('#barcode2'), `(10)${data.lot_number}~(90)${data.pallet_type}`, {
-                format: "CODE128",
-                displayValue: false,
-                height: 80,
-                width: 2,
-                margin: 0,
-                textMargin: 0,
-                fontSize: 0
-            });
-
-            JsBarcode(staticLabelPreview.querySelector('#barcode3'), `(00)11534145${data.sequence_number}3`, {
-                format: "CODE128",
-                displayValue: false,
-                height: 80,
-                width: 2,
-                margin: 0,
-                textMargin: 0,
-                fontSize: 0
-            });
-
-            // Update the text under the barcodes
-            staticLabelPreview.querySelector('#barcode1-text').textContent = `(91)${data.gcas_number}(37)${data.net_weight}`;
-            staticLabelPreview.querySelector('#barcode2-text').textContent = `(10)${data.lot_number}~(90)${data.pallet_type}`;
-
-
-            staticLabelPreview.querySelector('#barcode3-text').textContent = `(00) 1 1534145 ${data.sequence_number} 3`;
-        });
-
-        document.getElementById('printLabel').addEventListener('click', function() {
-            window.print();
-        });
-    </script>
+    <!-- html2canvas and jspdf are loaded at the end of the body, which is good practice -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Your custom script, ensure this path is correct -->
+    <script src="../js/rtcis.js"></script>
 </body>
 </html>
