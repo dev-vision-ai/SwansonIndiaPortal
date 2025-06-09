@@ -423,6 +423,11 @@ async function filterQuickActionsByDepartment(user) {
         const userDepartment = userProfile?.department;
         console.log('User Department:', userDepartment);
 
+        const quickActionGrid = document.querySelector('.quick-action-grid');
+        if (quickActionGrid) {
+            quickActionGrid.style.display = 'none'; // Hide the entire grid initially
+        }
+
         const quickActionCards = document.querySelectorAll('.action-card'); // Changed to action-card based on HTML
         console.log('Found quick action cards:', quickActionCards.length);
 
@@ -448,10 +453,9 @@ async function filterQuickActionsByDepartment(user) {
             card.style.display = shouldDisplay ? '' : 'none';
         });
 
-        const quickActionGrid = document.querySelector('.quick-action-grid');
         if (quickActionGrid) {
-            quickActionGrid.style.display = ''; // Make the grid visible after filtering
-        }
+             quickActionGrid.style.display = 'flex'; // Show the entire grid after filtering
+         }
 
     } catch (error) {
         console.error('Unexpected error in filterQuickActionsByDepartment:', error);

@@ -240,7 +240,7 @@ body {
 }
 
 .quick-action-grid {
-    display: flex;
+    display: none; /* Hide by default */
     flex-direction: row;
     flex-wrap: wrap;
     gap: 1.5rem;
