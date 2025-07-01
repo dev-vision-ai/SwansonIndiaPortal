@@ -1,0 +1,118 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Create Film Inspection Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="../../css/employee_dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
+    <div class="header-container">
+        <button type="button" class="header-back-button" onclick="window.location.href='film_inspection_forms_list.html'">Back</button>
+        <div class="header-title">Create Film Inspection Form</div>
+        <div class="company-logo">
+            <img src="../../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+
+    <main class="flex-1 flex items-center justify-center p-3 w-full">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-6xl p-10">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Film Inspection Form Details</h2>
+                <form id="filmInspectionForm" class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5">
+                    <div>
+                        <label for="product_code" class="block text-sm font-semibold text-gray-700 mb-1">Product Code <span class="text-red-500">*</span>:</label>
+                        <select id="product_code" name="product_code" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <option value="">Select Product Code</option>
+                            <option>WHITE-234(18)</option>
+                            <option>APE-176(18)CP(LCC+WW)BS</option>
+                            <option>APE-168(18)CP(KRANTI)</option>
+                            <option>APE-168(18)C</option>
+                            <option>WHITE-214(18)</option>
+                            <option>APE-168(16)CP(KRANTI)</option>
+                            <option>APE-168(16)C</option>
+                            <option>APE-102(18)C</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="prod_order" class="block text-sm font-semibold text-gray-700 mb-1">Production Instruction (PI) No. <span class="text-red-500">*</span>:</label>
+                        <input type="text" id="production_order" name="production_order" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" placeholder="Enter Prod. Order">
+                    </div>
+                    <div>
+                        <label for="machine_no" class="block text-sm font-semibold text-gray-700 mb-1">Machine No. <span class="text-red-500">*</span>:</label>
+                        <input type="text" id="machine_no" name="machine_no" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" placeholder="Select Machine">
+                    </div>
+                    <div>
+                        <label for="production_date" class="block text-sm font-semibold text-gray-700 mb-1">Production Date <span class="text-red-500">*</span>:</label>
+                        <input type="date" id="production_date" name="production_date" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                    </div>
+                    <div>
+                        <label for="specification" class="block text-sm font-medium text-gray-700">Specification <span class="text-red-500">*</span></label>
+                        <select id="specification" name="specification" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <option value="">Select Specification</option>
+                            <option>18gsmx168mmx4700m</option>
+                            <option>16gsmx168mmx5000m</option>
+                            <option>18gsmx250mmx6000m</option>
+                            <option>18gsmx290mmx6000m</option>
+                            <option>18gsmx214mmx6500m</option>
+                            <option>18gsmx234mmx7000m</option>
+                            <option>18gsmx176mmx9000m</option>
+                            <option>18gsmx172mmx4300m</option> 
+                        </select>
+                    </div>
+                    <div>
+                        <label for="purchase_order" class="block text-sm font-semibold text-gray-700 mb-1">PO <span class="text-red-500">*</span>:</label>
+                        <input type="text" id="purchase_order" name="purchase_order" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" placeholder="Enter PO">
+                    </div>
+                    <div>
+                        <label for="quantity" class="block text-sm font-semibold text-gray-700 mb-1">Quantity:</label>
+                        <div class="mt-1 flex rounded-md shadow-sm">
+                            <input type="text" id="quantity" name="quantity" class="flex-1 block w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" placeholder="Enter Quantity">
+                            <span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-200 text-gray-500 text-sm">Rolls</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="inspection_date" class="block text-sm font-semibold text-gray-700 mb-1">Inspection Date <span class="text-red-500">*</span>:</label>
+                        <input type="date" id="inspection_date" name="inspection_date" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                    </div>
+                    <div>
+                        <label for="lot_no" class="block text-sm font-semibold text-gray-700 mb-1">Lot. No <span class="text-red-500">*</span>:</label>
+                        <div class="mt-1 flex rounded-md shadow-sm">
+                            <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-200 text-gray-500 text-sm">SWIN</span>
+                            <input type="text" id="lot_no" name="lot_no" class="flex-1 block w-full px-4 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" placeholder="Enter Lot. No" maxlength="8">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="ref_no" class="block text-sm font-semibold text-gray-700 mb-1">Ref. No:</label>
+                        <input type="text" id="ref_no" name="ref_no" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" placeholder="Enter Ref. No">
+                    </div>
+
+                    <div class="md:col-span-3 flex justify-end mt-6 space-x-4">
+                        <button type="reset" class="inline-flex justify-center py-3 px-6 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+                            Clear Form
+                        </button>
+                        <button type="submit" class="inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                            Save
+                        </button>
+                        <button type="button" class="inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                            Next
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module" src="../../supabase-config.js"></script>
+    <script type="module" src="../../js/film_inspection_form.js"></script>
+</body>
+</html>

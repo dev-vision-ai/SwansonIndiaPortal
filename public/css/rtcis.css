@@ -1,0 +1,241 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap'); /* Using Roboto as a common clean font */
+
+:root {
+    --primary-blue: #007bff; /* A typical blue for the header/buttons */
+    --light-blue-background: #e9f5ff; /* Lighter blue for the overall background */
+    --card-background: #ffffff;
+    --border-color: #ced4da;
+    --text-color: #333;
+    --label-text-color: #555;
+    --button-hover-blue: #0056b3;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--light-blue-background);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Header/Navbar Styling */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--primary-blue);
+    color: white;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.navbar-left .back-button {
+    background-color: white;
+    color: var(--primary-blue);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.navbar-left .back-button:hover {
+    background-color: #f0f0f0;
+}
+
+.navbar-center h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.navbar-right .spi-logo-header {
+    height: 40px; /* Adjust as needed */
+}
+
+/* Main Container */
+.container {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.card-container {
+    display: flex;
+    background-color: var(--card-background);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px var(--shadow-color);
+    overflow: hidden; /* Ensures rounded corners apply to children */
+    width: 90%; /* Adjust as needed */
+    max-width: 1000px; /* Max width for the card */
+}
+
+/* Left Section - Label Print */
+.label-print-section {
+    background-color: var(--primary-blue);
+    color: white;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 30%; /* Adjust width as needed */
+    box-sizing: border-box; /* Include padding in width */
+}
+
+.label-print-section .spi-logo-card {
+    width: 120px; /* Adjust logo size */
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.label-print-section h2 {
+    font-size: 1.8rem;
+    margin: 0;
+    font-weight: 700;
+}
+
+/* Right Section - Product Details Form */
+.product-details-section {
+    padding: 30px;
+    width: 70%; /* Adjust width as needed */
+    box-sizing: border-box; /* Include padding in width */
+}
+
+.product-details-section h3 {
+    font-size: 1.7rem;
+    color: var(--text-color);
+    margin-top: 0;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap; /* Allows items to wrap on smaller screens */
+    gap: 20px; /* Space between form groups */
+    margin-bottom: 15px;
+}
+
+.form-group {
+    flex: 1; /* Allows form groups to grow and shrink */
+    min-width: 250px; /* Minimum width for each input field */
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    color: var(--label-text-color);
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 1rem;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.5); /* Adjust icon color if needed */
+}
+
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--primary-blue);
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end; /* Align button to the right */
+    margin-top: 30px;
+}
+
+.generate-label-button {
+    background-color: var(--primary-blue);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.generate-label-button:hover {
+    background-color: var(--button-hover-blue);
+}
+
+/* Basic Responsiveness */
+@media (max-width: 768px) {
+    .card-container {
+        flex-direction: column;
+        width: 95%;
+    }
+
+    .label-print-section,
+    .product-details-section {
+        width: 100%;
+        padding: 20px;
+    }
+
+    .label-print-section {
+        border-bottom-left-radius: 0;
+        border-top-right-radius: 8px;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .form-group {
+        min-width: unset; /* Remove min-width for smaller screens */
+        width: 100%; /* Take full width */
+    }
+
+    .navbar-center h1 {
+        font-size: 1.2rem;
+        text-align: center;
+    }
+
+    .navbar {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .navbar-left, .navbar-right {
+        flex-basis: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar-center h1 {
+        font-size: 1rem;
+    }
+    .label-print-section h2 {
+        font-size: 1.5rem;
+    }
+    .product-details-section h3 {
+        font-size: 1.4rem;
+    }
+}

@@ -1,0 +1,382 @@
+/* Base styles copied from admin_adhr.css for consistency */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary-gradient: linear-gradient(45deg, #002E7D, #0046C7);
+    --accent-color: #002E7D;
+    --bg-color: #f5f5f5; 
+    --card-bg: #ffffff;
+    --text-dark: #2D3436; 
+    --text-light: #666666;
+    --border-color: #eee;
+    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.15); 
+    --transition: all 0.3s ease-in-out; 
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background-image: url('../assets/page-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-color: var(--bg-color);
+    min-height: 100vh; 
+    color: #333;
+    padding-top: 70px; /* Match header height */
+}
+
+.header-container {
+    position: fixed; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    background-color: var(--accent-color);
+    padding: 10px 20px; 
+    margin: 0;
+    border-radius: 0;
+    border-bottom: 7px solid #e4c829; 
+    box-sizing: border-box; 
+}
+
+.header-title {
+    position: absolute; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    color: white;
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.company-logo {
+    display: flex;
+    align-items: center; 
+    margin-left: auto; 
+}
+
+.company-logo img.auth-logo { 
+    height: 48px; 
+    filter: none;
+    object-fit: contain;
+    border: 3px solid white; 
+}
+
+.user-info {
+    display: flex; /* Ensure button and name are side-by-side */
+    align-items: center;
+}
+
+.user-name {
+    color: white;
+    margin-left: 10px; /* Space between button and name */
+}
+
+main {
+    padding: 20px;
+}
+
+.admin-form {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* Styles for distinct sections */
+.content-section {
+    background-color: var(--card-bg, #ffffff);
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-md, 0 4px 10px rgba(0, 0, 0, 0.15));
+    margin-bottom: 30px; /* Space between sections */
+    /* Default: full width */
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.content-section h4 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: var(--accent-color);
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 10px;
+    font-size: 1.3rem; /* Slightly larger heading */
+    font-weight: 600;
+}
+
+/* Apply max-width and center the first content section (Create Album) */
+#album-management > .content-section:first-of-type {
+    max-width: 600px; /* Keep or adjust the width */
+    margin-left: auto; /* Center the block */
+    margin-right: auto; /* Center the block */
+}
+
+.admin-form {
+    /* Styles for the form itself, no width/margin needed here now */
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.admin-form h4 {
+    /* Styles for 'Create New Album' heading inside the form */
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: var(--accent-color);
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    font-size: 1.1rem; 
+}
+
+hr {
+    border: none;
+    border-top: 1px solid var(--border-color, #eee);
+    margin: 30px 0;
+}
+
+.form-group {
+    margin-bottom: 1rem; 
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-dark, #2D3436);
+}
+
+.form-group input[type="text"],
+.form-group input[list], 
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color, #ddd); 
+    border-radius: 4px;
+    box-sizing: border-box; 
+    font-family: inherit; 
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: var(--accent-color, #002E7D);
+    outline: none; 
+    box-shadow: 0 0 0 2px rgba(0, 46, 125, 0.2); 
+}
+
+.form-group textarea {
+    resize: vertical; 
+    min-height: 80px;
+    overflow: hidden; /* Add this line */
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, opacity 0.2s ease-in-out;
+    color: white;
+    line-height: 1.5; 
+}
+
+.btn:hover {
+    opacity: 0.9;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-primary {
+    background-color: var(--accent-color, #002E7D);
+}
+
+.btn-secondary {
+    background-color: var(--accent-color, #002E7D);
+    color: white;
+}
+
+.btn-danger {
+    background-color: #dc3545; 
+    color: white;
+}
+
+/* Style for Edit Album button */
+.edit-album-btn {
+    background-color: #e4c829; /* Light Yellow */
+    color: #000000; /* Dark text for contrast */
+    border: 1px solid #ccc; /* Optional: Add a light border */
+}
+
+.edit-album-btn:hover {
+    background-color: #fffacd; /* Slightly darker yellow on hover (Lemon Chiffon) */
+    opacity: 1; /* Override general button hover if needed */
+}
+
+/* Style for the Back to Albums button */
+#back-to-albums {
+    background-color: var(--accent-color, #002E7D);
+    color: white;
+    margin-top: 15px; 
+}
+
+/* Update hover effects */
+.btn-secondary:hover,
+#back-to-albums:hover {
+    opacity: 0.85; /* Keep hover for blue buttons */
+}
+
+.btn-danger:hover {
+    background-color: #c82333; /* Darker red on hover */
+    border-color: #bd2130;
+    opacity: 1; /* Override general .btn:hover opacity if needed */
+}
+
+
+/* Styles for the album items */
+.album-item {
+    border: 1px solid var(--border-color, #eee);
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.form-actions {
+    margin-top: 20px; 
+    display: flex; 
+    gap: 10px; 
+}
+.header-back-button {
+    padding: 6px 12px; 
+    font-size: 0.9rem;
+    background-color: #e4c829; /* Yellow background */
+    color: #000000; /* Black text */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-right: 15px; /* Adjust spacing as needed */
+    font-weight: 600; 
+    /* Position it correctly - might need adjustment based on header layout */
+    order: -1; /* Try to place it first in flex/grid layout */
+    align-self: center; /* Align vertically if header is flex */
+  }
+  
+  .header-back-button:hover {
+    background-color: #d3b725; /* Darker yellow on hover */
+  }
+
+/* Styles for the image grid */
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Responsive grid */
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.image-item {
+    border: 1px solid var(--border-color, #eee);
+    border-radius: 4px;
+    padding: 10px;
+    text-align: center;
+    background-color: #f9f9f9;
+}
+
+.image-item img {
+    max-width: 100%;
+    height: 100px; /* Fixed height for consistency */
+    object-fit: cover; /* Scale image nicely */
+    display: block;
+    margin-bottom: 10px;
+}
+
+.image-item .btn-delete-image {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    background-color: #dc3545; /* Red */
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.image-item .btn-delete-image:hover {
+    background-color: #c82333;
+}
+
+
+/* --- Edit Album Modal Styles --- */
+
+.modal {
+    /* Hidden by default (handled by inline style and JS) */
+    /* display: none; */ 
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.6); /* Black w/ opacity (dim background) */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto; /* Adjust top margin (e.g., 5% or less) if you want it higher */
+    padding: 25px;
+    border: 1px solid #888;
+    width: 90%; 
+    max-width: 920px; /* Your increased width */
+    min-height: 400px; /* Added: Minimum height - adjust as needed */
+    border-radius: 8px;
+    position: relative; 
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    display: flex; /* Optional: Use flexbox for better internal layout */
+    flex-direction: column; /* Optional: Stack content vertically */
+}
+
+/* The Close Button */
+.close-button {
+    color: #aaa;
+    position: absolute; /* Position relative to modal-content */
+    top: 10px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Style form elements inside modal if needed */
+.modal-content .form-group {
+    margin-bottom: 15px;
+}
+
+.modal-content .form-actions {
+    text-align: right;
+    margin-top: 20px;
+}
+
+/* Adjust height of description textarea in the edit modal */
+.modal-content #edit-album-description {
+    /* height: 250px; */ /* <<< REMOVE or COMMENT OUT this line */
+    min-height: 150px; /* Keep this minimum */
+    resize: vertical; 
+    overflow-y: auto; /* Keep this */
+}
+  

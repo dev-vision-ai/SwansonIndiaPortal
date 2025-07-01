@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quality Alert Details</title> <!-- Form Title -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <link rel="stylesheet" href="../css/admin_qa.css">
+  <style>
+    #rpn-calculation-section {
+      background-color: #f0f0f0; /* Light gray background */
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+     }
+
+     .rpn-operator {
+       margin: 0 5px;
+       font-weight: bold;
+     }
+
+     #rpn {
+       background-color: #fffb00; /* Light green background for RPN input */
+     }
+
+     .image-previews-container {
+       background-color: #f9f9f9; /* Light gray background for image container */
+       padding: 10px;
+       border-radius: 5px;
+       border: 1px solid #ddd;
+     }
+   </style>
+  <!-- Add specific styles for the form -->
+  <style>
+    .form-container {
+      position: relative; /* Needed for absolute positioning of the button */
+      padding: 20px; 
+      max-width: 800px; 
+      margin: 20px auto; 
+      background: #fff; 
+      border-radius: 8px; 
+      box-shadow: var(--shadow-md); 
+    }
+    .btn-back-top {
+      position: absolute;
+      top: 15px; /* Adjust as needed */
+      left: 15px; /* Adjust as needed */
+      padding: 8px 15px;
+      font-size: 0.9rem;
+      /* Use existing btn-back styles or customize */
+      background-color: #6c757d; 
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .btn-back-top:hover {
+        background-color: #5a6268;
+    }
+    .form-container h2, .form-container h3 { margin-bottom: 20px; color: var(--accent-color); }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--text-dark); }
+    .form-group input[type="text"],
+    .form-group input[type="date"],
+    .form-group input[type="time"],
+    .form-group input[type="number"],
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    .form-group textarea { min-height: 80px; resize: vertical; overflow-y: auto; max-height: none; }
+    .form-group input:read-only,
+    .form-group select:disabled,
+    .form-group textarea:read-only {
+      background-color: #e9ecef;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    .form-actions { margin-top: 20px; text-align: right; }
+    .form-actions button { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; margin-left: 10px; }
+    .btn-save { background-color: var(--accent-color); color: white; }
+    .btn-back { background-color: #6c757d; color: white; }
+    .btn-alert { background-color: #28a745; color: white; }
+    .hidden { display: none; }
+    .pre-wrap { white-space: pre-wrap; }
+    .flex-row { display: flex; align-items: center; gap: 10px; }
+    .flex-row label, .flex-row input, .flex-row span, .flex-row button { flex: 1; }
+    .flex-row span { flex: 0; }
+
+    /* --- ADDED CSS for side-by-side fields --- */
+    .form-row {
+      display: flex;
+      gap: 15px; /* Adjust spacing between fields */
+      margin-bottom: 15px;
+    }
+    .form-row .form-group {
+      flex: 1; /* Make fields share space equally */
+      margin-bottom: 0; /* Remove bottom margin from individual groups */
+    }
+    
+    .header-container { /* Ensure flex alignment for button */
+      display: flex;
+      align-items: center;
+      /* justify-content: space-between; /* Keep or adjust as needed */
+    }
+    .header-back-button {
+      padding: 6px 12px; /* Adjust padding as needed */
+      font-size: 0.9rem;
+      background-color: #e4c829; /* Yellow background */
+      color: #000000; /* Blue text (adjust if your blue is different) */
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-right: 15px; /* Add space between button and title */
+      font-weight: 600; /* Make font slightly bolder */
+    }
+    
+  </style>
+</head>
+<body>
+
+  <div class="header-container">
+    <!-- Move Back Button Here -->
+    <button type="button" class="header-back-button" onclick="window.history.back();">Back</button>
+    
+    <div class="header-title">Admin QA Dashboard</div>
+    <div class="company-logo">
+      <img src="../assets/logo.png" class="auth-logo" alt="Logo"/>
+    </div>
+  </div>
+  <!-- End Header -->
+
+  <!-- Main content area for the form -->
+  <main class="form-container" style="margin-top: 80px;"> 
+    <!-- --- REMOVE Back Button From Here --- 
+    <button type="button" class="btn-back-top" onclick="window.history.back();">Back</button>
+    -->
+
+    <h2 id="form-title">Quality Alert Details</h2>
+    <form id="alert-form">
+      <!-- Hidden input for ID -->
+      <input type="hidden" id="alertId">
+
+      <!-- Display fields based on Supabase table, some read-only, some editable -->
+      <div class="form-group">
+        <label for="alertIdDisplay">Alert ID</label>
+        <input type="text" id="alertIdDisplay"> <!-- Removed readonly -->
+      </div>
+      <div class="form-group">
+        <label for="user_name">Reported By</label>
+        <input type="text" id="user_name" readonly>
+      </div>
+
+      <!-- Wrap Date and Time in a form-row -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="incidentdate">Date of Occurrence:</label> 
+          <input type="date" id="incidentdate" readonly>
+        </div>
+        <div class="form-group">
+          <label for="incidenttime">Time of Occurrence:</label> 
+          <input type="time" id="incidenttime" readonly>
+        </div>
+      </div>
+      <!-- End Date/Time form-row -->
+
+      <!-- Wrap Responsible Dept and Location in a form-row -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="responsibledept">Responsible Dept. for Incident:</label> 
+          <input type="text" id="responsibledept">
+        </div>
+        <div class="form-group">
+          <label for="locationarea">Location Occured / Machine:</label> 
+          <input type="text" id="locationarea">
+        </div>
+      </div>
+      <!-- End Dept/Location form-row -->
+
+      <!-- Wrap Abnormality Type and Quality Risk in a new form-row -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="abnormalitytype">Type of Abnormality:</label> 
+          <input type="text" id="abnormalitytype">
+        </div>
+        <div class="form-group">
+          <label for="qualityrisk">Potential Quality Risk:</label> 
+          <input type="text" id="qualityrisk">
+        </div>
+      </div>
+      <!-- End Abnormality/Risk form-row -->
+
+      <!-- Fields that might be editable -->
+      <div class="form-group">
+        <label for="incidenttitle">Incident Name:</label> 
+        <input type="text" id="incidenttitle">
+      </div>
+      <div class="form-group">
+        <label for="incidentdesc">Incident Description:</label>
+        <textarea id="incidentdesc"></textarea>
+      </div>
+  
+      <!-- <<< PASTE the Immediate Action fields here >>> -->
+      <div class="form-group">
+        <label for="actiontaken">Immediate Action Taken:</label> <!-- Changed label -->
+        <textarea id="actiontaken"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="whoaction">Action Taken By:</label> <!-- Changed label -->
+        <input type="text" id="whoaction">
+      </div>
+      <div class="form-group">
+        <label for="whenactiondate">Action Taken Date:</label> <!-- Changed label -->
+        <input type="date" id="whenactiondate">
+      </div>
+
+      <div class="form-group">
+        <label for="statusaction">Immediate Action Status:</label> <!-- Changed label -->
+        <select id="statusaction">
+          <option value="Completed">Completed</option>
+          <option value="Pending">Pending</option>
+        </select>
+      </div>
+
+      <!-- RPN Calculation -->
+      <div id="rpn-calculation-section" class="form-group">
+        <h3>RPN Calculation</h3>
+        <div class="form-row">
+          <div class="rpn-input-group">
+            <label for="severity">Severity (S):</label>
+            <input type="number" id="severity" min="1" max="10" value="1">
+          </div>
+          <span class="rpn-operator">x</span>
+          <div class="rpn-input-group">
+            <label for="detection">Detection (D):</label>
+            <input type="number" id="detection" min="1" max="10" value="1">
+          </div>
+          <span class="rpn-operator">x</span>
+          <div class="rpn-input-group">
+            <label for="frequency">Frequency (F):</label>
+            <input type="number" id="frequency" min="1" max="10" value="1">
+          </div>
+          <span class="rpn-operator">=</span>
+          <div class="rpn-input-group">
+            <label for="rpn">RPN:</label>
+            <input type="text" id="rpn" readonly>
+          </div>
+        </div>
+      </div>
+        </div>
+      </div>
+
+      <!-- Image Display Container -->
+      <div class="form-group">
+        <h3>Uploaded Images</h3>
+        <div id="imageDisplayContainer" class="image-previews-container"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="root_cause">Root Cause Analysis</label>
+        <textarea id="root_cause"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="corrective_actions">Corrective Actions Taken</label>
+        <textarea id="corrective_actions"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="remarks">Remarks</label>
+        <textarea id="remarks"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="keptinview">Kept in View?</label> 
+        <input type="text" id="keptinview" readonly>
+      </div>
+      
+      <!-- --- ADD Wrapper Div --- -->
+      <div class="form-section kiv-details" style="display: none;"> 
+          <h3>KIV Details</h3>
+
+          <!-- --- MOVE Shift Dropdown Inside --- -->
+          <div class="form-group">
+              <label for="shift">Shift:</label>
+              <select id="shift" name="shift" class="form-control">
+                  <option value="">Select Shift</option>
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                  <option value="C">C</option>
+                  <option value="G">G</option>
+              </select>
+          </div>
+
+          <!-- --- MOVE Product Code Inside --- -->
+          <div class="form-group">
+            <label for="productcode">Product Code</label>
+            <input type="text" id="productcode">
+          </div>
+          <!-- --- MOVE Roll ID Inside --- -->
+          <div class="form-group">
+            <label for="rollid">Roll ID</label>
+            <input type="text" id="rollid">
+          </div>
+          <!-- --- MOVE Lot No Inside --- -->
+          <div class="form-group">
+            <label for="lotno">Lot No</label>
+            <input type="text" id="lotno">
+          </div>
+          <!-- --- MOVE Roll Positions Inside --- -->
+          <div class="form-group">
+            <label for="rollpositions">Roll Positions</label>
+            <input type="text" id="rollpositions">
+          </div>
+          <!-- --- MOVE Lot Time Inside --- -->
+          <div class="form-group">
+            <label for="lottime">Lot Time:</label>
+            <input type="text" id="lottime">
+          </div>
+      </div> <!-- --- END Wrapper Div --- -->
+
+      <div class="form-group">
+        <label for="timestamp">Timestamp</label>
+        <input type="text" id="timestamp" readonly>
+      </div>
+      <div class="form-group">
+        <label for="drafted_at">Drafted At</label>
+        <input type="text" id="drafted_at" readonly>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-back" onclick="window.history.back();">Back</button>
+        <button type="button" class="btn-alert" id="sendAlertButton">Send Alert</button>
+        <button type="submit" class="btn-save hidden" id="saveButton">Save Changes</button>
+      </div>
+    </form>
+    <div id="loading-message" style="text-align: center; padding: 20px;">Loading alert details...</div>
+    <div id="error-message" style="color: red; text-align: center; padding: 20px; display: none;"></div>
+  </main>
+  <script type="module" src="../js/quality_alerts_actions.js"></script>
+</body>
+</html>
