@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+=======
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+>>>>>>> d54ca94 (Initial commit: Add all project files)
 
 // ✅ Your new project credentials
 const supabaseUrl = "https://ufczydnvscaicygwlmhz.supabase.co";
