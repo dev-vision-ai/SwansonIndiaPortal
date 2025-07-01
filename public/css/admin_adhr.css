@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary-gradient: linear-gradient(45deg, #002E7D, #0046C7);
+    --accent-color: #002E7D;
+    --bg-color: #f5f5f5; 
+    --card-bg: #ffffff;
+    --text-dark: #2D3436; 
+    --text-light: #666666;
+    --border-color: #eee;
+    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.15); 
+    --transition: all 0.3s ease-in-out; 
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background-image: url('../assets/page-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-color: var(--bg-color);
+    min-height: 100vh; 
+    color: #333;
+    padding-top: 70px; 
+}
+
+.header-container {
+    position: fixed; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    background-color: var(--accent-color);
+    padding: 10px 20px; 
+    margin: 0;
+    border-radius: 0;
+    border-bottom: 7px solid #e4c829; 
+    box-sizing: border-box; 
+}
+
+.header-title {
+    position: absolute; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    color: white;
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.company-logo {
+    display: flex;
+    align-items: center; 
+    margin-left: auto; 
+}
+
+.company-logo img.auth-logo { 
+    height: 48px; 
+    filter: none;
+    object-fit: contain;
+    border: 3px solid white; 
+}
+
+/* --- START: Styles copied from employee_dashboard.css --- */
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+    margin: 2rem 0;
+    /* Removed max-width: none; as it's default */
+}
+
+.action-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0;
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    transition: var(--transition);
+    border: 2px solid #ccc;
+    animation: fadeIn 0.5s ease-out forwards; /* Added animation */
+    height: 100px; /* Set a fixed height for uniformity */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* Removed color, font-weight, text-decoration as they might be inherited or set elsewhere */
+}
+
+.action-card:hover {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 8px rgba(0, 46, 125, 0.4);
+}
+ 
+/* --- START: Add Background Tints --- */
+.action-card:nth-child(1) {
+    background-color: rgba(0, 46, 125, 0.15); /* Lighter Blue tint */
+}
+.action-card:nth-child(2) {
+    background-color: rgba(46, 125, 50, 0.15); /* Green tint */
+}
+/* Add more rules if you have more cards */
+.action-card:nth-child(3) {
+    background-color: rgba(199, 70, 0, 0.15); /* Orange tint */
+}
+.action-card:nth-child(4) {
+    background-color: rgba(70, 0, 199, 0.15); /* Purple tint */
+}
+/* --- END: Add Background Tints --- */
+
+/* --- END: Styles copied from employee_dashboard.css --- */
+
+.action-card .action-icon { 
+    font-size: 2.5rem; /* Icon size */
+    color: var(--accent-color); 
+    margin-bottom: 1rem;
+    text-align: center; 
+}
+
+.action-card h4 { /* Heading style */
+    margin-top: 0;
+    margin-bottom: 0.3rem; 
+    font-size: 1rem; /* Heading font size */
+    color: var(--accent-color);
+    text-align: center; 
+}
+
+.action-card p { /* Paragraph style */
+    font-size: 0.8rem; /* Paragraph font size */
+    color: var(--text-light);
+    margin-bottom: 0;
+    text-align: center; 
+}
+
+.logout-button {
+    padding: 8px 15px; /* Match back button padding */
+    font-size: 0.9rem;  /* Match back button font size */
+    background-color: #fcfcfc; /* Yellow background */
+    color: #000000; /* Blue text */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px; /* Space between button and name */
+    font-weight: 600; /* Make text bold like back button */
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .logout-button:hover {
+    background-color: #dfc532; /* Darker yellow on hover */
+    color: #000000; /* Darker blue on hover */
+  }
+  
+  .user-name {
+    color: white;
+}

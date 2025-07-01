@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<<<<<<< HEAD
+=======
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+>>>>>>> d54ca94 (Initial commit: Add all project files)
+    <title>Home - Swanson Plastics India Pvt. Ltd.</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <link rel="stylesheet" href="./css/index.css">
+    <link rel="stylesheet" href="./css/responsive.css">
+</head>
+<body>
+
+    <header id="desktop-header" class="navbar"> <!-- <<< Added id="desktop-header" -->
+        <div class="nav-container">
+            <div class="logo-container">
+                <img src="./assets/logo.png" alt="Swanson Logo" class="logo">
+                <div class="company-names">
+                    <span class="company-name">Swanson Plastics India Private Limited</span>
+                    <span class="company-name-translated">स्वानसन प्लास्टिक्स इंडिया प्रायवेट लिमिटेड</span>
+                </div>
+            </div>
+            <nav class="nav-links">
+                <a href="./html/aboutus.html">About Us</a>
+                <a href="./html/products.html">Products</a>
+                <a href="./html/contact.html">Contact</a>
+                <a href="./html/career.html">Career Opportunities</a>
+                <a href="./html/auth.html">Employee Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MOBILE Navigation Bar -->
+    <header id="mobile-header" class="navbar-mobile">
+        <div class="nav-container-mobile">
+            <div class="logo-container-mobile">
+                <img src="./assets/logo.png" alt="Swanson Logo" class="logo-mobile">
+                <div class="company-names-mobile">
+                    <span class="company-name">Swanson Plastics India Private Limited</span>
+                    <span class="company-name-translated">स्वानसन प्लास्टिक्स इंडिया प्रायवेट लिमिटेड</span>
+                </div>
+            </div>
+            <button class="menu-icon" id="menu-toggle" aria-label="Toggle menu">
+                <!-- Ensure this is empty inside -->
+            </button>
+        </div>
+        <nav id="mobile-nav-links" class="mobile-nav-links">
+            <a href="./html/aboutus.html">About Us</a>
+            <a href="./html/products.html">Products</a>
+            <a href="./html/contact.html">Contact</a>
+            <a href="./html/career.html">Career Opportunities</a>
+            <a href="./html/auth.html">Employee Login</a>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero-slideshow">
+        <div class="hero-overlay">
+            <h1>Innovative and High-quality solutions to meet your needs</h1>
+            <p>Your partner in eco-friendly manufacturing.</p>
+            <a href="./html/products.html" class="cta-button">Explore Our Products</a>
+        </div>
+    </section>
+
+    <!-- Quality Policy Section -->
+    <section class="section" id="quality-policy">
+        <div class="container">
+            <h2>Our Quality Policy</h2>
+            <div class="grid-1">
+                <div class="policy-single-box">
+                    <div class="policy-content">
+                        <div class="policy-item">
+                            <i class="bi bi-emoji-smile"></i>
+                            <h4>Total Customer Satisfaction</h4>
+                        </div>
+                        <div class="policy-item">
+                            <i class="bi bi-people"></i>
+                            <h4>Participation by all Employees</h4>
+                        </div>
+                        <div class="policy-item">
+                            <i class="bi bi-check-circle"></i>
+                            <h4>Do it Right, the First Time</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Albums Slideshow Section -->
+    <section class="section" id="featured-slideshow-section">
+        <div class="container">
+            <h2>Featured Gallery</h2>
+            <div class="slideshow-container">
+                <!-- Slides will be dynamically inserted here by JavaScript -->
+                <div id="slideshow-inner">
+                </div>
+                <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+                <a class="next" onclick="plusSlides(1)">&#10095;</a>
+            </div>
+            <div style="text-align:center" id="slide-dots">
+                <!-- Dots will be dynamically inserted here -->
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Our Core Offering Section -->
+    <section class="section" id="core-offering">
+                <div class="container">
+            <h2>Our Core Offering</h2>
+            <h3 style="text-align: center; margin-top: 40px; margin-bottom: 30px; font-size: 1.5rem; color: #002E7D; font-weight: 700; letter-spacing: 0.5px; padding-bottom: 15px;">HYGIENE MATERIALS</h3>
+            <div class="product-single">
+                <img src="./assets/roll.png" alt="PE Embossed Film Roll">
+                <h4>Customer-Specified PE Embossed Film Rolls</h4>
+                <p>Swanson is a leading producer of embossed film for hygienic products in Asia. Our production facilities are situated throughout major regions of Asia, and we use the advanced cast film and extension equipment and technologies for producing special customized formulas, texturing, and prints. Products can be made from a variety of materials with finely wrought textures.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="section" id="services">
+        <div class="container center">  <!-- Added 'center' class -->
+            <h2>Our Services</h2>
+            <div class="grid-3">
+                <div class="service-card">
+                    <i class="bi bi-gear policy-icon"></i>
+                    <h4>Custom Manufacturing</h4>
+                    <p>We offer Tailored Solutions for your Unique Product Needs.</p>
+                </div>
+                <div class="service-card">
+                    <i class="bi bi-recycle policy-icon"></i>
+                    <h4>Sustainability</h4>
+                    <p>Commitment to Eco-friendly Processes and Recyclable Materials.</p>
+                </div>
+                <div class="service-card">
+                    <i class="bi bi-box-seam policy-icon"></i>
+                    <h4>Product Packaging</h4>
+                    <p>Custom packaging solutions for safe transportation and brand presentation.</p>
+                </div>
+                <div class="service-card">
+                    <i class="bi bi-lightbulb policy-icon"></i>
+                    <h4>Innovation</h4>
+                    <p>Constantly Evolving with Cutting-edge Technology and Designs.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <!-- Map First -->
+            <div class="footer-map-section">
+                 <div class="map-container">
+                    <iframe 
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4729.814270724126!2d74.0697509543609!3d15.542818047035338!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bbfa2f48774e285%3A0x5909f5e875028f2!2sSwanson%20Plastics%20India%20Pvt%20Ltd!5e1!3m2!1sen!2sin!4v1744537737813!5m2!1sen!2sin" 
+                        width="100%" 
+                        height="300" 
+                        style="border:0;" 
+                        allowfullscreen 
+                        loading="lazy" 
+                        referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+            </div>
+
+            <!-- Contact Info Second -->
+            <div class="footer-contact-section">
+                <h4>Contact Us</h4>
+                <p>Plot No. 2, Goa Industrial Development Corporation<br>Onda, Bhuimpal, Sattari-Goa, 403530<br>Phone: +91 7262002306</p>
+            </div>
+
+            <!-- Quick Links Third -->
+            <div class="footer-links-section">
+                <h4>Quick Links</h4>
+                <a href="./html/aboutus.html">About Us</a>
+                <a href="./html/products.html">Products</a>
+                <a href="./html/contact.html">Contact</a>
+                <a href="./html/products.html">Career Opportunities</a>
+                <a href="./html/auth.html">Employee Portal</a>
+            </div>
+        </div>
+        <div class="footer-copyright">
+            <p>© 2025 Swanson Plastics India Pvt. Ltd. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+<script type="module" src="./js/index.js"></script>
+<<<<<<< HEAD
+</html>
+=======
+</html>
+>>>>>>> d54ca94 (Initial commit: Add all project files)

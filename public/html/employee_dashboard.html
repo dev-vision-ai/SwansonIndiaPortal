@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Employee Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="../css/employee_dashboard.css">
+</head>
+<body>
+    <main>
+        <div class="container">
+            <section class="dashboard-section">
+                <div class="header-container">
+                    <div class="left-section">
+                        <div class="user-info">
+                             <!-- Add Logout Button Here -->
+                             <button id="logoutButton" class="logout-button">Logout</button> 
+                             <!-- User Name -->
+                             <div class="user-name"></div> 
+                        </div>
+                    </div>
+                    <div class="header-title">Employee Dashboard</div>
+                    <div class="company-logo">
+                        <img src="../assets/logo.png" alt="Company Logo" class="auth-logo">
+                    </div>
+                </div>
+                <div class="quick-action-grid">
+                     <div class="action-card" data-department="All" onclick="location.href='../html/qualityalert.html'">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h3>Quality Alert</h3>
+                        <p>Report New Quality Alert</p>
+                    </div>
+                     <div class="action-card" data-department="All" onclick="location.href='../html/safetyincident.html'">
+                        <i class="fas fa-hard-hat"></i>
+                        <h3>Safety Incident</h3>
+                        <p>Report a Safety Incident</p>
+                    </div>
+                     <div class="action-card" data-department="All" onclick="location.href='../html/ci.html';">
+                        <i class="fas fa-lightbulb"></i>
+                        <h3>Continual Improvement Form</h3>
+                        <p>Report Improvement Ideas</p>
+                    </div>
+                    <div class="action-card" data-department="Quality Control,Quality Assurance,IQA" onclick="location.href='../html/rtcis.html'">
+                        <i class="fas fa-print"></i>
+                        <h3>RTCIS</h3>
+                        <p>Print RTCIS Labels</p>
+                    </div>
+                     <div class="action-card" data-department="Quality Control,Quality Assurance" onclick="location.href='../html/dailyreport.html'">
+                        <i class="fas fa-calendar-alt"></i>
+                        <h3>Daily Reports</h3>
+                        <p>Prepare/View Daily Reports</p>
+                    </div>
+                     <!-- TODO: Update onclick with correct path once Incoming Inspection form exists -->
+                     <div class="action-card" data-department="Quality Control,Quality Assurance" onclick="//" title="Incoming Inspection form not yet available">
+                        <i class="fas fa-search"></i>
+                        <h3>Incoming Inspection</h3>
+                        <p>Prepare/View Incoming Inspection Reports</p>
+                    </div>
+
+                    <div class="action-card" data-department="All" onclick="location.href='../html/emp_quality_alerts_table.html'">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>My Forms</h3>
+                        <p>View Your Submitted Forms</p>
+                    </div>
+
+<<<<<<< HEAD
+=======
+                    <div class="action-card" data-department="Quality Control,Quality Assurance" onclick="location.href='../html/pre_store_&_fif/film_inspection_forms_list.html'">
+                        <i class="fas fa-file-alt"></i>
+                        <h3>Prestore & Film Inspection Form</h3>
+                        <p>Access Prestore & Film Inspection Forms</p>
+
+>>>>>>> d54ca94 (Initial commit: Add all project files)
+                </div>
+
+                <div id="recentActivitiesList" class="activity-list">
+                </div>
+
+            </section>
+            <section class="incident-section">
+                </section>
+        </div>
+    </main>
+    <footer class="footer" style="position: fixed; bottom: 0; width: 100%; background-color: rgba(255, 255, 255, 0.0);"> <!-- Reduced opacity -->
+        <div class="footer-content" style="text-align: center; padding: 6.5px;">
+        </div>
+    </footer>
+    <script type="module" src="../js/employee_dashboard.js"></script>
+</body>
+</html>
