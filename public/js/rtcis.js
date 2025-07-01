@@ -41,15 +41,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Helper: Generate barcodes using JsBarcode
     function generateBarcodes(data) {
-        // GCAS/Net wt. SVG
-        JsBarcode('#barcode-gcas', `(91)${data.irms_gcas}(37)${data.quantity}`, {format: 'CODE128', width:2, height:50, displayValue: false});
-        document.getElementById('barcode-gcas-text').textContent = `(91) ${data.irms_gcas}(37)${data.quantity}`;
-        // Lot No. SVG
-        JsBarcode('#barcode-lot', `(10)${data.lot_number}~(90)${data.pallet_type}`, {format: 'CODE128', width:2, height:50, displayValue: false});
-        document.getElementById('barcode-lot-text').textContent = `(10)${data.lot_number}~(90)${data.pallet_type}`;
-        // Unit Load ID (SSCC) SVG
-        JsBarcode('#barcode-sscc', `(00)${data.sscc}`, {format: 'CODE128', width:2, height:50, displayValue: false});
-        document.getElementById('barcode-sscc-text').textContent = `(00) ${data.sscc}`;
+        // GCAS/Net wt. SVG (encoded: 919189984037454.72)
+        JsBarcode('#barcode-gcas', `91${data.irms_gcas}37${data.net_weight}`, {format: 'CODE128', width:2, height:50, displayValue: false});
+        // Move barcode up
+        const barcodeGcasSvg = document.getElementById('barcode-gcas');
+        if (barcodeGcasSvg) {
+            barcodeGcasSvg.style.marginBottom = '0px';
+            barcodeGcasSvg.style.marginTop = '-5px';
+            barcodeGcasSvg.style.background = '#fff';
+        }
+        document.getElementById('barcode-gcas-text').textContent = `(91) ${data.irms_gcas}(37)${data.net_weight}`;
+        // Lot No. SVG (encoded: 10SWIN2504042390NONE)
+        JsBarcode('#barcode-lot', `10${data.lot_number}90${data.pallet_type}`, {format: 'CODE128', width:2, height:50, displayValue: false});
+        // Move barcode up
+        const barcodeLotSvg = document.getElementById('barcode-lot');
+        if (barcodeLotSvg) {
+            barcodeLotSvg.style.marginBottom = '0px';
+            barcodeLotSvg.style.marginTop = '-5px';
+            barcodeLotSvg.style.background = '#fff';
+        }
+        document.getElementById('barcode-lot-text').textContent = `(10) ${data.lot_number}~(90)${data.pallet_type}`;
+        // Unit Load ID (SSCC) SVG (encoded: 0011534145XXXXXXXXX[check])
+        JsBarcode('#barcode-sscc', `00${data.sscc}`, {format: 'CODE128', width:2, height:50, displayValue: false});
+        // Move barcode up
+        const barcodeSsccSvg = document.getElementById('barcode-sscc');
+        if (barcodeSsccSvg) {
+            barcodeSsccSvg.style.marginBottom = '0px';
+            barcodeSsccSvg.style.marginTop = '-5px';
+            barcodeSsccSvg.style.background = '#fff';
+        }
+        // Group and space SSCC for human-readable as per SOP: (00) 1 1534145 000000123 4
+        const sscc = data.sscc;
+        const hrSSCC = `(00) ${sscc[0]} ${sscc.slice(1,8)} ${sscc.slice(8,17)} ${sscc.slice(17)}`;
+        document.getElementById('barcode-sscc-text').textContent = hrSSCC;
 
         // Also render to canvas for PDF export and return base64
         function svgToCanvasBase64(svgSelector) {
@@ -78,21 +102,29 @@ document.addEventListener('DOMContentLoaded', () => {
         ]);
     }
 
+    // Helper: Format date from YYYY-MM-DD to DD-MMM-YYYY
+    function formatDateToDDMMMYYYY(dateStr) {
+        if (!dateStr) return '';
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const [year, month, day] = dateStr.split('-');
+        return `${day}-${months[parseInt(month, 10) - 1]}-${year}`;
+    }
+
     // Helper: Fill label layout
     function fillLabel(data) {
         document.getElementById('label-product').textContent = data.product_code;
         document.getElementById('label-gcas-head').textContent = data.irms_gcas;
-        document.getElementById('label-prod-date').textContent = data.production_date;
+        document.getElementById('label-prod-date').textContent = formatDateToDDMMMYYYY(data.production_date);
         document.getElementById('label-item').textContent = data.material_description;
         document.getElementById('label-width').textContent = data.width;
         document.getElementById('label-height').textContent = data.height;
         document.getElementById('label-gross').textContent = data.gross_weight;
-        document.getElementById('label-net').textContent = data.quantity;
+        document.getElementById('label-net').textContent = data.net_weight;
         document.getElementById('label-gcas').textContent = data.irms_gcas;
         document.getElementById('label-lot').textContent = data.lot_number;
         document.getElementById('label-pi').textContent = data.pi_number;
-        document.getElementById('label-palletnum').textContent = data.pallet_number;
-        document.getElementById('label-qty').textContent = data.quantity;
+        document.getElementById('label-palletnum').textContent = `${data.pallet_number} / (${data.quantity} Rolls)`;
+        document.getElementById('label-qty').textContent = data.net_weight;
         document.getElementById('label-seq').textContent = data.sequence_number;
         document.getElementById('label-basis').textContent = data.basis_weight;
         document.getElementById('label-pallettype').textContent = data.pallet_type;
@@ -116,12 +148,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 font-size: 12pt;
                 background: #fff !important;
                 table-layout: fixed;
-                border: 1px solid #000 !important;
+                border: 2px solid #000 !important;
                 transform: scale(0.9);
                 transform-origin: top left;
               }
               .rtcis-label-table td, .rtcis-label-table th {
-                border: 1px solid #000 !important;
+                border: 2px solid #000 !important;
                 padding: 10px 18px 26px 18px !important;
                 line-height: 1.3 !important;
                 min-height: 32px !important;
@@ -167,6 +199,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 font-weight: normal;
                 text-align: left;
                 vertical-align: middle;
+                word-break: break-word;
+                max-width: 250px;
+                max-height: 60px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                line-height: 1.1;
               }
               .rtcis-label-item {
                 font-size: 18pt;
@@ -201,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 text-align: center;
                 font-size: 14pt;
                 font-family: 'Calibri', Arial, sans-serif;
-                margin-top: 8px;
+                margin-top: 6px;
                 vertical-align: middle;
               }
               /* Flex layout for merged cells with two columns, values under headings */
@@ -210,12 +248,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 justify-content: space-between;
                 align-items: flex-start;
                 gap: 32px;
+                padding: 0;
               }
               .rtcis-flex-col {
                 display: flex;
                 flex-direction: column;
                 align-items: flex-start;
                 min-width: 90px;
+                padding: 0;
               }
               .a4-sheet {
                 width: 155.448mm;
@@ -337,6 +377,20 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('No data found for the given IRMS/GCAS number.');
             return;
         }
+        // Get logged-in user's UUID
+        let userName = '';
+        const { data: authData } = await supabase.auth.getUser();
+        const uuid = authData?.user?.id || authData?.user?.uuid;
+        if (uuid) {
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('name')
+                .eq('uuid', uuid)
+                .single();
+            if (userData && userData.name) {
+                userName = userData.name;
+            }
+        }
         // Gather all data for the label
         const labelData = {
             irms_gcas: data.irms_gcas || '',
@@ -344,9 +398,13 @@ document.addEventListener('DOMContentLoaded', () => {
             material_description: data.material_description || '',
             width: data.width || '',
             basis_weight: data.basis_weight || '',
+            standard_weight: data.standard_weight || '',
             // Manual fields
-            lot_number: form.elements['lot_number'].value.trim(),
-            quantity: form.elements['quantity'].value.trim(),
+            lot_number: (() => {
+                let lot = form.elements['lot_number'].value.trim();
+                return lot.startsWith('SWIN') ? lot : 'SWIN' + lot;
+            })(),
+            quantity: form.elements['quantity'].value.trim(), // No. of Rolls / Pallet
             production_date: form.elements['production_date'].value.trim(),
             height: form.elements['height'].value.trim(),
             gross_weight: form.elements['gross_weight'].value.trim(),
@@ -355,15 +413,25 @@ document.addEventListener('DOMContentLoaded', () => {
             pallet_number: form.elements['pallet_number'].value.trim(),
             pallet_type: form.elements['pallet_type'].value.trim(),
         };
-        // SSCC
-        labelData.sscc = generateSSCC(COMPANY_PREFIX, serialReference);
+        // Calculate net weight
+        let net_weight = '';
+        if (labelData.quantity && labelData.standard_weight) {
+            const rolls = parseFloat(labelData.quantity);
+            const std_weight = parseFloat(labelData.standard_weight);
+            if (!isNaN(rolls) && !isNaN(std_weight)) {
+                net_weight = (rolls * std_weight).toFixed(2);
+            }
+        }
+        labelData.net_weight = net_weight;
+        // SSCC: Use company prefix 1534145 and sequence_number as serial reference
+        labelData.sscc = generateSSCC('1534145', labelData.sequence_number);
         // Fill label
         ensureLabelDiv();
         fillLabel(labelData);
         const [barcodeGcas, barcodeLot, barcodeSscc] = await generateBarcodes(labelData);
         // Build pdfmake docDefinition for pixel-perfect label with small margins and 5% scale down
         const docDefinition = {
-            pageSize: { width: 440.64, height: 524.16 },
+            pageSize: { width: 439.68, height: 545.04 }, // 6.12 x 7.57 inches in points
             pageMargins: [2.5, 2.5, 2.5, 2.5], // 1mm margin on all sides
             content: [
                 {
@@ -373,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             // Header row
                             [
                                 { text: 'Swanson Plastics (India) Private Limited\nBhuipal, Goa', colSpan: 2, style: 'headerLeft', alignment: 'left', border: [true, true, true, true], margin: [4, 5, 0, 5] }, {},
-                                { text: `Supplier Product: ${labelData.product_code}\nIRMS GCAS: ${labelData.irms_gcas}\nProd Date: ${labelData.production_date}`, colSpan: 2, style: 'headerRight', alignment: 'left', border: [true, true, true, true], margin: [4, 5, 4, 5] }, {}
+                                { text: `Supplier Product: ${labelData.product_code}\nIRMS GCAS: ${labelData.irms_gcas}\nProd Date: ${formatDateToDDMMMYYYY(labelData.production_date)}`, colSpan: 2, style: 'headerRight', alignment: 'left', border: [true, true, true, true], margin: [4, 5, 4, 5] }, {}
                             ],
                             // ITEM row
                             [
@@ -384,7 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 { stack: [ { text: 'WIDTH (MM):', style: 'tableHeading', alignment: 'center' }, { text: labelData.width, style: 'tableValue', alignment: 'center' } ], alignment: 'center', border: [true, true, false, false], margin: [0, 4, 0, 4] },
                                 { stack: [ { text: 'HEIGHT (MM):', style: 'tableHeading', alignment: 'center' }, { text: labelData.height, style: 'tableValue', alignment: 'center' } ], alignment: 'center', border: [false, true, true, false], margin: [0, 4, 0, 4] },
                                 { stack: [ { text: 'GROSS wt.(KG):', style: 'tableHeading', alignment: 'center' }, { text: labelData.gross_weight, style: 'tableValue', alignment: 'center' } ], alignment: 'center', border: [true, true, false, false], margin: [0, 4, 0, 4] },
-                                { stack: [ { text: 'NET wt.(KG):', style: 'tableHeading', alignment: 'center' }, { text: labelData.quantity, style: 'tableValue', alignment: 'center' } ], alignment: 'center', border: [false, true, true, false], margin: [0, 4, 0, 4] }
+                                { stack: [ { text: 'NET wt.(KG):', style: 'tableHeading', alignment: 'center' }, { text: labelData.net_weight, style: 'tableValue', alignment: 'center' } ], alignment: 'center', border: [false, true, true, false], margin: [0, 4, 0, 4] }
                             ],
                             // Full-width line below dimension/weight row
                             [
@@ -405,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ],
                             [
                                 { colSpan: 2, style: 'tableValue', alignment: 'left', border: [true, false, true, false], margin: [4, 6, 4, 6], text: [ { text: 'PI Number: ', bold: true }, { text: labelData.pi_number, bold: true } ] }, {},
-                                { colSpan: 2, style: 'tableValue', alignment: 'left', border: [true, false, true, false], margin: [4, 6, 4, 6], text: [ { text: 'Pallet Number: ', bold: true }, { text: labelData.pallet_number, bold: true } ] }, {}
+                                { colSpan: 2, style: 'tableValue', alignment: 'left', border: [true, false, true, false], margin: [4, 6, 4, 6], text: [ { text: 'Pallet Number: ', bold: true }, { text: `${labelData.pallet_number} / (${labelData.quantity} Rolls)`, bold: true } ] }, {}
                             ],
                             // Separator line after PI Number/Pallet Number
                             [
@@ -413,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 { colSpan: 2, border: [true, false, true, true], text: '', margin: [0, 0, 0, 0], style: 'cell' }, {}
                             ],
                             [
-                                { colSpan: 2, style: 'tableValue', alignment: 'left', border: [true, false, true, false], margin: [4, 6, 4, 6], text: [ { text: 'QUANTITY (KG): ', bold: true }, { text: labelData.quantity, bold: true } ] }, {},
+                                { colSpan: 2, style: 'tableValue', alignment: 'left', border: [true, false, true, false], margin: [4, 6, 4, 6], text: [ { text: 'QUANTITY (KG): ', bold: true }, { text: labelData.net_weight, bold: true } ] }, {},
                                 { colSpan: 2, style: 'tableValue', alignment: 'left', border: [true, false, true, false], margin: [4, 6, 4, 6], text: [ { text: 'Sequence Number: ', bold: true }, { text: labelData.sequence_number, bold: true } ] }, {}
                             ],
                             // Separator line after QUANTITY (KG)/Sequence Number
@@ -435,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 { text: 'GCAS/ Net wt.', colSpan: 4, style: 'barcodeLabel', alignment: 'left', verticalAlignment: 'middle', border: [true, true, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
                             ],
                             [
-                                { image: barcodeGcas, width: 227, height: 79, colSpan: 4, alignment: 'center', border: [true, false, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
+                                { image: barcodeGcas, width: 227, height: 79, colSpan: 4, alignment: 'center', border: [true, false, true, false], margin: [4, -18, 4, -18] }, {}, {}, {}
                             ],
                             [
                                 { text: document.getElementById('barcode-gcas-text').innerText, colSpan: 4, style: 'barcodeHuman', alignment: 'center', border: [true, false, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
@@ -444,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 { text: 'Lot No.', colSpan: 4, style: 'barcodeLabel', alignment: 'left', verticalAlignment: 'middle', border: [true, true, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
                             ],
                             [
-                                { image: barcodeLot, width: 227, height: 79, colSpan: 4, alignment: 'center', border: [true, false, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
+                                { image: barcodeLot, width: 227, height: 79, colSpan: 4, alignment: 'center', border: [true, false, true, false], margin: [4, -18, 4, -18] }, {}, {}, {}
                             ],
                             [
                                 { text: document.getElementById('barcode-lot-text').innerText, colSpan: 4, style: 'barcodeHuman', alignment: 'center', border: [true, false, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
@@ -453,7 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 { text: 'Unit Load ID', colSpan: 4, style: 'barcodeLabel', alignment: 'left', verticalAlignment: 'middle', border: [true, true, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
                             ],
                             [
-                                { image: barcodeSscc, width: 227, height: 79, colSpan: 4, alignment: 'center', border: [true, false, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
+                                { image: barcodeSscc, width: 227, height: 79, colSpan: 4, alignment: 'center', border: [true, false, true, false], margin: [4, -18, 4, -18] }, {}, {}, {}
                             ],
                             [
                                 { text: document.getElementById('barcode-sscc-text').innerText, colSpan: 4, style: 'barcodeHuman', alignment: 'center', border: [true, false, true, true], margin: [4, 0, 4, 5] }, {}, {}, {}
@@ -485,8 +553,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 tableValue: { fontSize: 12, bold: true },
                 barcodeLabel: { fontSize: 12, bold: true },
                 barcodeHuman: { fontSize: 12, alignment: 'center', bold: true }
+            },
+            info: {
+                title: 'RTCIS Label',
+                author: userName || 'Swanson Plastics (India) Private Limited',
             }
         };
-        pdfMake.createPdf(docDefinition).open();
+        // Auto-generate filename: [LOT NO]-[PALLET NO]-[SEQUENCE NO].pdf
+        const filename = `${labelData.lot_number}-${labelData.pallet_number}-${labelData.sequence_number}.pdf`;
+        const pdfDoc = pdfMake.createPdf(docDefinition);
+        pdfDoc.open();
+        pdfDoc.download(filename);
     });
 });
