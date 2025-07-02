@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
               }
               .rtcis-label-header {
                 font-weight: bold;
-                font-size: 17pt;
+                font-size: 12pt;
                 text-align: left;
                 vertical-align: middle;
               }
@@ -278,7 +278,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="a4-sheet" style="width:210mm;height:297mm;margin:0 auto;background:#fff;box-sizing:border-box;display:flex;align-items:center;justify-content:center;page-break-after:always;">
               <table class="rtcis-label-table">
                 <tr>
-                  <td colspan="2" class="rtcis-label-header" style="font-size:14pt;">Swanson Plastics (India) Private Limited<br>Bhuipal, Goa</td>
+                  <br>
+                  <td colspan="2" class="rtcis-label-header" style="font-size:11pt;">Swanson Plastics (India) Private Limited, Bhuimpal, Goa</td>
                   <td colspan="2" class="rtcis-label-supplier">
                     <span class="label">Supplier Product:</span> <span class="value" id="label-product"></span><br>
                     <span class="label">IRMS GCAS:</span> <span class="value" id="label-gcas-head"></span><br>
@@ -440,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         body: [
                             // Header row
                             [
-                                { text: 'Swanson Plastics (India) Private Limited\nBhuipal, Goa', colSpan: 2, style: 'headerLeft', alignment: 'left', border: [true, true, true, true], margin: [4, 5, 0, 5] }, {},
+                                { text: 'Swanson Plastics (India) Private Limited, Bhuimpal, Goa', colSpan: 2, style: 'headerLeft', alignment: 'left', border: [true, true, true, true], margin: [4, 5, 0, 5] }, {},
                                 { text: `Supplier Product: ${labelData.product_code}\nIRMS GCAS: ${labelData.irms_gcas}\nProd Date: ${formatDateToDDMMMYYYY(labelData.production_date)}`, colSpan: 2, style: 'headerRight', alignment: 'left', border: [true, true, true, true], margin: [4, 5, 4, 5] }, {}
                             ],
                             // ITEM row
@@ -546,12 +547,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 font: 'Roboto'
             },
             styles: {
-                headerLeft: { fontSize: 12, bold: true },
+                headerLeft: { fontSize: 11, bold: true },
                 headerRight: { fontSize: 12, bold: true },
                 item: { fontSize: 12, bold: true },
                 tableHeading: { fontSize: 12, bold: true },
                 tableValue: { fontSize: 12, bold: true },
-                barcodeLabel: { fontSize: 12, bold: true },
+                barcodeLabel: { fontSize: 15, bold: true },
                 barcodeHuman: { fontSize: 12, alignment: 'center', bold: true }
             },
             info: {

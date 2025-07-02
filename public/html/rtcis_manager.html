@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>RTCIS Label Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="../css/employee_dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+        }
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            main, .header-container {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
+    <div class="header-container">
+        <button type="button" class="header-back-button">Back</button>
+        <div class="header-title">Manage RTCIS Master Labels</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+    <main class="flex-1 flex items-start justify-center p-3 w-full min-h-screen pt-24 md:pt-28 lg:pt-32">
+        <div class="bg-white rounded-xl shadow-2xl flex max-w-7xl w-full overflow-hidden">
+            <div class="w-1/5 bg-[#002E7D] p-8 flex flex-col items-center justify-center rounded-l-xl relative">
+                <div class="absolute inset-0 bg-pattern opacity-10"></div>
+                <img src="../assets/logo.png" alt="Swanson Label Print" class="h-20 w-32 mb-4 relative z-10">
+                <h2 class="text-white text-3xl font-extrabold text-center relative z-10">RTCIS Label Manager</h2>
+            </div>
+            <div class="flex-1 p-2 md:p-8 flex flex-col items-center justify-center">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">RTCIS Master Label Management</h3>
+                <!-- Add New RTCIS Master Label Form -->
+                <div class="bg-white rounded-xl shadow-md p-6 mb-8 w-full border border-gray-300">
+                  <h3 class="text-xl font-bold mb-4 text-gray-800 text-center">Add New RTCIS Master Label</h3>
+                  <form id="rtcisMasterForm" class="grid grid-cols-1 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div>
+                        <label for="irms_gcas" class="block text-base font-semibold text-gray-700 mb-1">IRMS/GCAS : </label>
+                        <input id="irms_gcas" type="text" name="irms_gcas" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" required>
+                      </div>
+                      <div>
+                        <label for="mrms_no" class="block text-base font-semibold text-gray-700 mb-1">MRMS No. : </label>
+                        <input id="mrms_no" type="text" name="mrms_no" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                      </div>
+                      <div>
+                        <label for="standard_weight" class="block text-base font-semibold text-gray-700 mb-1">Standard Weight : </label>
+                        <input id="standard_weight" type="text" step="any" name="standard_weight" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" required>
+                      </div>
+                      <div>
+                        <label for="no_of_slits" class="block text-base font-semibold text-gray-700 mb-1">No. of Slits : </label>
+                        <input id="no_of_slits" type="text" name="no_of_slits" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                      </div>
+                    </div>
+                    <div>
+                      <label for="material_description" class="block text-base font-semibold text-gray-700 mb-1">Material Description : </label>
+                      <input id="material_description" type="text" name="material_description" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" required>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div class="md:col-span-2">
+                        <label for="product_code" class="block text-base font-semibold text-gray-700 mb-1">Product Code : </label>
+                        <input id="product_code" type="text" name="product_code" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" required>
+                      </div>
+                      <div>
+                        <label for="basis_weight" class="block text-base font-semibold text-gray-700 mb-1">Basis Weight : </label>
+                        <input id="basis_weight" type="text" step="any" name="basis_weight" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" required>
+                      </div>
+                      <div>
+                        <label for="width" class="block text-base font-semibold text-gray-700 mb-1">Width : </label>
+                        <input id="width" type="text" step="any" name="width" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" required>
+                      </div>
+                    </div>
+                    <div class="flex justify-end">
+                      <button type="submit" class="bg-blue-700 text-white px-6 py-2 rounded shadow hover:bg-blue-800">Add Label</button>
+                    </div>
+                  </form>
+                </div>
+                <!-- View All Labels Button (moved to bottom) -->
+                <div class="flex justify-center mt-6">
+                  <button id="viewAllLabelsBtn" class="bg-blue-700 text-white px-6 py-2 rounded shadow hover:bg-blue-800 font-semibold text-base font-roboto-medium">View All Labels</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Modal for viewing all labels -->
+    <div id="labelsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+      <div class="bg-white shadow-2xl p-6 w-full max-w-full max-h-[80vh] overflow-y-auto relative my-12 mx-8">
+        <button id="closeLabelsModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+        <h3 class="text-xl font-bold mb-4 text-gray-800 text-center">All RTCIS Master Labels</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full table-auto border border-gray-400 text-sm">
+            <thead>
+              <tr class="bg-gray-100">
+                <th class="px-2 py-1 border border-gray-400 text-center">IRMS/GCAS</th>
+                <th class="px-2 py-1 border border-gray-400 text-center">MRMS No.</th>
+                <th class="px-2 py-1 border border-gray-400 text-center">Standard Weight</th>
+                <th class="px-2 py-1 border border-gray-400 text-center">No. of Slits</th>
+                <th class="px-2 py-1 border border-gray-400 text-center">Material Description</th>
+                <th class="px-2 py-1 border border-gray-400 text-center">Product Code</th>
+                <th class="px-2 py-1 border border-gray-400 text-center">Basis Weight</th>
+                <th class="px-2 py-1 border border-gray-400 text-center">Width</th>
+                <th class="px-2 py-1 border border-gray-400 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="labelsTableBody">
+              <!-- Rows will be inserted by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Edit Label Modal -->
+    <div id="editLabelModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+      <div class="bg-white shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative my-12 mx-2">
+        <button id="closeEditLabelModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+        <h3 class="text-xl font-bold mb-4 text-gray-800 text-center">Edit RTCIS Master Label</h3>
+        <form id="editLabelForm" class="grid grid-cols-1 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label for="edit_irms_gcas" class="block text-base font-semibold text-gray-700 mb-1">IRMS/GCAS : </label>
+              <input id="edit_irms_gcas" name="irms_gcas" type="text" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" required>
+            </div>
+            <div>
+              <label for="edit_mrms_no" class="block text-base font-semibold text-gray-700 mb-1">MRMS No. : </label>
+              <input id="edit_mrms_no" name="mrms_no" type="text" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+            </div>
+            <div>
+              <label for="edit_standard_weight" class="block text-base font-semibold text-gray-700 mb-1">Standard Weight : </label>
+              <input id="edit_standard_weight" name="standard_weight" type="text" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" required>
+            </div>
+            <div>
+              <label for="edit_no_of_slits" class="block text-base font-semibold text-gray-700 mb-1">No. of Slits : </label>
+              <input id="edit_no_of_slits" name="no_of_slits" type="text" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+            </div>
+          </div>
+          <div>
+            <label for="edit_material_description" class="block text-base font-semibold text-gray-700 mb-1">Material Description : </label>
+            <input id="edit_material_description" name="material_description" type="text" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" required>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="md:col-span-2">
+              <label for="edit_product_code" class="block text-base font-semibold text-gray-700 mb-1">Product Code : </label>
+              <input id="edit_product_code" name="product_code" type="text" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" required>
+            </div>
+            <div>
+              <label for="edit_basis_weight" class="block text-base font-semibold text-gray-700 mb-1">Basis Weight : </label>
+              <input id="edit_basis_weight" name="basis_weight" type="text" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" required>
+            </div>
+            <div>
+              <label for="edit_width" class="block text-base font-semibold text-gray-700 mb-1">Width : </label>
+              <input id="edit_width" name="width" type="text" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" required>
+            </div>
+          </div>
+          <div class="flex justify-end gap-4 mt-2">
+            <button type="button" id="cancelEditLabel" class="bg-gray-300 text-gray-800 px-6 py-2 rounded shadow hover:bg-gray-400 font-semibold text-base">Cancel</button>
+            <button type="submit" class="bg-blue-700 text-white px-6 py-2 rounded shadow hover:bg-blue-800 font-semibold text-base">Save</button>
+          </div>
+          <input type="hidden" id="edit_label_id" name="id">
+        </form>
+      </div>
+    </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const backBtn = document.querySelector('.header-back-button');
+        if (backBtn) {
+          backBtn.addEventListener('click', function() {
+            window.location.href = 'admin_qa.html';
+          });
+        }
+      });
+    </script>
+    <script type="module" src="../js/rtcis_manager.js"></script>
+</body>
+</html> 
