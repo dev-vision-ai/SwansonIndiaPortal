@@ -26,17 +26,23 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-image: url('../assets/page-bg.png');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-color: var(--bg-color);
+    /* Remove old background image and color */
+    /* background-image: url('../assets/page-bg.png'); */
+    /* background-size: cover; */
+    /* background-position: center; */
+    /* background-attachment: fixed; */
+    /* background-color: var(--bg-color); */
     padding: 0;
     margin: 0;
     font-size: 1rem;
     font-weight: 400;
     line-height: 1.5;
     color: var(--text-dark);
+    /* Subtle polymer chain SVG pattern for plastic industry */
+    background-color: #eaf1fa;
+    background-image: url('data:image/svg+xml;utf8,<svg width="60" height="30" viewBox="0 0 60 30" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><circle cx="45" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><line x1="25" y1="15" x2="35" y2="15" stroke="%2399aabb" stroke-width="1" opacity="0.10"/></svg>');
+    background-size: 60px 30px;
+    background-repeat: repeat;
 }
 
 .container {
@@ -240,34 +246,195 @@ body {
 }
 
 .quick-action-grid {
-    display: none; /* Hide by default */
-    flex-direction: row;
+    display: flex;
     flex-wrap: wrap;
-    gap: 1.5rem;
-    padding: 1rem;
+    gap: 1.2rem;
+    justify-content: center;
     margin: 2rem 0;
-    justify-content: center; /* Center the cards horizontally */
+    padding: 0;
+    height: 300px; /* Fixed grid height */
+    overflow-y: auto;
+    align-content: flex-start;
 }
 
 .action-card {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 0;
+    background: #fff;
+    padding: 0;
+    border-radius: 16px;
     box-shadow: var(--shadow-md);
     cursor: pointer;
-    transition: var(--transition);
-    border: 2px solid #ccc;
-    animation: fadeIn 0.5s ease-out forwards;
-    width: 250px; /* Set a fixed width for uniformity */
-    height: 140px; /* Set a fixed height for uniformity */
+    transition: box-shadow 0.18s;
+    border: 2px solid #e4c829; /* yellow border for accent */
+    width: 270px;
+    height: 120px; /* Fixed card height */
+    min-height: 120px;
+    max-height: 120px;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
+    align-items: center;
+    position: relative;
+    margin-left: 1.2rem; /* space for pop-out circle */
+    overflow: visible;
+    text-align: left;
 }
 
 .action-card:hover {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 8px rgba(0, 46, 125, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 46, 125, 0.18);
+}
+
+.action-card-icon-circle {
+    position: absolute;
+    left: -32px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 64px;
+    height: 64px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,46,125,0.18);
+    z-index: 2;
+    border: 4px solid #fff;
+}
+
+.action-card-icon-circle i {
+    color: #fff;
+    font-size: 2rem;
+}
+
+.action-card-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+}
+
+.action-card-heading {
+    /* Glassmorphism gradient using #002E7D */
+    background: linear-gradient(135deg, rgba(0,46,125,0.92) 60%, rgba(0,70,199,0.85) 100%);
+    color: #fff;
+    flex: 1 1 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top-right-radius: 16px;
+    border-top-left-radius: 16px;
+    font-size: 0.98rem;
+    font-weight: 600;
+    margin: 0;
+    height: 50%;
+    text-align: center;
+    word-break: break-word;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 8px 0 rgba(0,46,125,0.08);
+    position: relative;
+}
+
+.action-card-heading::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+    border-top-right-radius: 16px;
+    border-top-left-radius: 16px;
+    pointer-events: none;
+}
+
+.action-card-heading h3 {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+.action-card-description {
+    background: #f5f5f5;
+    color: var(--text-light);
+    flex: 1 1 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom-right-radius: 16px;
+    border-bottom-left-radius: 16px;
+    font-size: 0.89rem;
+    margin: 0;
+    height: 50%;
+    text-align: center;
+}
+
+.action-card-description p {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+.action-card h3, .action-card p {
+    margin: 0;
+    padding: 0;
+}
+
+/* Remove old nth-child background tints for cards */
+.action-card:nth-child(n) {
+    background: #fff;
+}
+
+@media (max-width: 900px) {
+    .action-card {
+        width: 90vw;
+        min-width: 0;
+        margin-left: 0.7rem;
+        padding-left: 2.5rem;
+    }
+    .action-card-icon-circle {
+        left: -24px;
+        width: 48px;
+        height: 48px;
+    }
+}
+
+@media (max-width: 600px) {
+    .quick-action-grid {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        height: auto;
+        min-height: 0;
+        max-height: none;
+    }
+    .action-card {
+        width: 92vw;
+        max-width: 400px;
+        min-width: 0;
+        border-radius: 12px;
+        margin-left: 0;
+        margin-right: 0;
+        margin-bottom: 1.1rem;
+        height: auto;
+        min-height: 90px;
+        max-height: none;
+    }
+    .action-card-icon-circle {
+        left: -16px;
+        width: 34px;
+        height: 34px;
+    }
+    .action-card-icon-circle i {
+        font-size: 1.1rem;
+    }
+    .action-card-heading {
+        font-size: 0.95rem;
+        border-top-right-radius: 12px;
+        border-top-left-radius: 12px;
+        min-height: 38px;
+    }
+    .action-card-description {
+        font-size: 0.82rem;
+        border-bottom-right-radius: 12px;
+        border-bottom-left-radius: 12px;
+        min-height: 38px;
+    }
 }
 
 .notifications {
@@ -431,42 +598,6 @@ body {
     padding: 15px 20px;
     color: var(--text-light);
     text-align: center;
-}
-
-.action-card:nth-child(1) {
-    background-color: rgba(0, 46, 125, 0.2); /* Blue tint */
-}
-
-.action-card:nth-child(2) {
-    background-color: rgba(0, 70, 199, 0.2); /* Dark blue tint */
-}
-
-.action-card:nth-child(3) {
-    background-color: rgba(46, 125, 50, 0.2); /* Green tint */
-}
-
-.action-card:nth-child(4) {
-    background-color: rgba(199, 70, 0, 0.2); /* Orange tint */
-}
-
-.action-card:nth-child(5) {
-    background-color: rgba(125, 0, 46, 0.2); /* Red tint */
-}
-
-.action-card:nth-child(6) {
-    background-color: rgba(70, 0, 199, 0.2); /* Purple tint */
-}
-
-.action-card:nth-child(7) {
-    background-color: rgba(255, 165, 0, 0.2); /* Light orange tint */
-}
-
-.action-card:nth-child(8) {
-    background-color: rgba(0, 255, 127, 0.2); /* Light green tint */
-}
-
-.action-card:nth-child(9) {
-    background-color: rgba(255, 20, 147, 0.2); /* Pink tint */
 }
 
 /* Table Styles (copied from admin_qa/dashboard_qa.css for consistency) */
