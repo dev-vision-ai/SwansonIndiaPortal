@@ -187,8 +187,18 @@
       document.addEventListener('DOMContentLoaded', function() {
         const backBtn = document.querySelector('.header-back-button');
         if (backBtn) {
+          // Get ?from=... parameter
+          function getQueryParam(name) {
+            const url = new URL(window.location.href);
+            return url.searchParams.get(name);
+          }
+          const from = getQueryParam('from');
           backBtn.addEventListener('click', function() {
-            window.location.href = 'admin_qa.html';
+            if (from === 'admin_qc') {
+              window.location.href = 'admin_qc.html';
+            } else {
+              window.location.href = 'admin_qa.html';
+            }
           });
         }
       });
