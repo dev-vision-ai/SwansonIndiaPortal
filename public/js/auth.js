@@ -6,12 +6,20 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     const empCode = document.getElementById("empcode").value.trim().toUpperCase();
     const password = document.getElementById("password").value.trim();
     const message = document.getElementById("message");
+    const rememberMe = document.getElementById("rememberMe").checked;
 
     message.textContent = ""; // Clear previous errors
 
     if (!empCode || !password) {
         message.textContent = "Please enter both fields.";
         return;
+    }
+
+    // Set session persistence based on Remember Me
+    if (rememberMe) {
+        await supabase.auth.setSessionPersistence('local'); // Persist across browser restarts
+    } else {
+        await supabase.auth.setSessionPersistence('session'); // Only for current tab/session
     }
 
     try {
@@ -98,3 +106,16 @@ document.getElementById("logoutBtn")?.addEventListener("click", async () => {
         alert("Error logging out. Please try again.");
     }
 });
+
+// Password eye icon toggle
+const passwordInput = document.getElementById('password');
+const togglePasswordBtn = document.getElementById('togglePassword');
+const eyeIcon = document.getElementById('eyeIcon');
+if (togglePasswordBtn && passwordInput && eyeIcon) {
+    togglePasswordBtn.addEventListener('click', function() {
+        const type = passwordInput.type === 'password' ? 'text' : 'password';
+        passwordInput.type = type;
+        eyeIcon.classList.toggle('fa-eye');
+        eyeIcon.classList.toggle('fa-eye-slash');
+    });
+}
