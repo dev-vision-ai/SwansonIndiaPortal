@@ -361,6 +361,23 @@ document.addEventListener('DOMContentLoaded', () => {
         return div;
     }
 
+    async function populateGCASDropdown() {
+        const select = document.getElementById('irms_gcas');
+        if (!select) return;
+        select.innerHTML = '<option value="">Loading...</option>';
+        const { data, error } = await supabase
+            .from('rtcis_master_data')
+            .select('irms_gcas')
+            .order('irms_gcas', { ascending: true });
+        if (error || !data) {
+            select.innerHTML = '<option value="">Error loading GCAS</option>';
+            return;
+        }
+        select.innerHTML = '<option value="">Select IRMS/GCAS</option>' +
+            data.map(row => `<option value="${row.irms_gcas}">${row.irms_gcas}</option>`).join('');
+    }
+    populateGCASDropdown();
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const irms_gcas = form.elements['irms_gcas'].value.trim();
@@ -430,10 +447,30 @@ document.addEventListener('DOMContentLoaded', () => {
         ensureLabelDiv();
         fillLabel(labelData);
         const [barcodeGcas, barcodeLot, barcodeSscc] = await generateBarcodes(labelData);
-        // Build pdfmake docDefinition for pixel-perfect label with small margins and 5% scale down
+        
+        // --- FIXED PAGE SIZE (6.18 x 7.75 inch) WITH FIXED MARGINS ---
+        const labelDiv = document.getElementById('label-print-area');
+        const table = labelDiv.querySelector('table');
+        const tableRect = table.getBoundingClientRect();
+
+        const mmToPt = mm => mm * 2.83465;
+        const pxToMm = px => Math.ceil(px / 3.779528);
+
+        // Fixed page size in mm (6.18 x 7.75 in)
+        const pageWidthMM = 157.09;
+        const pageHeightMM = 196.85;
+        const pageWidthPT = mmToPt(pageWidthMM);
+        const pageHeightPT = mmToPt(pageHeightMM);
+
+        // Fixed margins
+        const marginLeftPT = mmToPt(1.5); // 2mm left
+        const marginRightPT = mmToPt(1.5); // 2mm right
+        const marginTopPT = mmToPt(1.5); // 3mm top
+        const marginBottomPT = mmToPt(1.5); // 3mm bottom
+
         const docDefinition = {
-            pageSize: { width: 439.68, height: 545.04 }, // 6.12 x 7.57 inches in points
-            pageMargins: [2.5, 2.5, 2.5, 2.5], // 1mm margin on all sides
+            pageSize: { width: pageWidthPT, height: pageHeightPT },
+            pageMargins: [marginLeftPT, marginTopPT, marginRightPT, marginBottomPT],
             content: [
                 {
                     table: {

@@ -20,17 +20,19 @@
 
         /* Styles for elements when printed */
         @media print {
-            body {
-                margin: 0;
-                padding: 0;
+            @page {
+                size: auto; /* Let browser pick height */
+                margin: 2mm; /* Equal margin on all sides */
             }
-            .print-label-size {
-                width: 100mm !important; /* Set exact width for printing */
-                /* Removed fixed height: 150mm !important; to allow content to dictate height */
-                margin: 0;
-                padding: 5mm; /* Small padding for print margins */
-                box-sizing: border-box; /* Include padding in width/height */
-                border: 1px solid black; /* Ensure border is visible in print */
+            .print-label-size, .a4-sheet, .rtcis-label-table {
+                width: 185mm !important;
+                height: auto !important;
+                margin: 0 auto !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            body {
+                background: #fff !important;
             }
             .print-label-size .font-bold {
                 font-size: 10pt; /* Approximate 3.5mm */
@@ -48,7 +50,18 @@
             }
         }
         /* Style for the static label preview when displayed on screen */
-
+        .rtcis-label-table {
+            width: auto !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+        }
+        #label-print-area, .a4-sheet {
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
@@ -89,15 +102,17 @@
 
                     <div>
                         <label for="irms_gcas" class="block text-sm font-semibold text-gray-700 mb-1">IRMS/GCAS:</label>
-                        <input type="text" id="irms_gcas" name="irms_gcas" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        <select id="irms_gcas" name="irms_gcas" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                          <option value="">Loading...</option>
+                        </select>
                     </div>
                     <div>
                         <label for="lot_number" class="block text-sm font-semibold text-gray-700 mb-1">LOT No:</label>
-                        <input type="text" id="lot_number" name="lot_number" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        <input type="text" id="lot_number" name="lot_number" maxlength="8" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
                     <div>
                         <label for="quantity" class="block text-sm font-semibold text-gray-700 mb-1">No. of Rolls / Pallet:</label>
-                        <input type="number" id="quantity" name="quantity" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        <input type="text" id="quantity" name="quantity" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
                      <div>
                          <label for="production_date" class="block text-sm font-semibold text-gray-700 mb-1">Production Date:</label>
@@ -119,7 +134,7 @@
 
                     <div>
                         <label for="pi_number" class="block text-sm font-semibold text-gray-700 mb-1">PI Number:</label>
-                        <input type="text" id="pi_number" name="pi_number" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        <input type="text" id="pi_number" name="pi_number" maxlength="10" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
                     <div>
                         <label for="pallet_number" class="block text-sm font-semibold text-gray-700 mb-1">Pallet Number:</label>
