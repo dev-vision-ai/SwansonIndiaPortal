@@ -1,5 +1,20 @@
 import { supabase } from "../supabase-config.js";
 
+// Classic Remember Me: Prefill credentials if saved
+
+document.addEventListener('DOMContentLoaded', () => {
+    const empCodeInput = document.getElementById('empcode');
+    const passwordInput = document.getElementById('password');
+    const rememberMe = document.getElementById('rememberMe');
+    const savedEmpCode = localStorage.getItem('rememberedEmpCode');
+    const savedPassword = localStorage.getItem('rememberedPassword');
+    if (savedEmpCode && savedPassword) {
+        empCodeInput.value = savedEmpCode;
+        passwordInput.value = savedPassword;
+        rememberMe.checked = true;
+    }
+});
+
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -15,11 +30,13 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         return;
     }
 
-    // Set session persistence based on Remember Me
+    // Classic Remember Me: Save or remove credentials
     if (rememberMe) {
-        await supabase.auth.setSessionPersistence('local'); // Persist across browser restarts
+        localStorage.setItem('rememberedEmpCode', empCode);
+        localStorage.setItem('rememberedPassword', password);
     } else {
-        await supabase.auth.setSessionPersistence('session'); // Only for current tab/session
+        localStorage.removeItem('rememberedEmpCode');
+        localStorage.removeItem('rememberedPassword');
     }
 
     try {
@@ -31,6 +48,19 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         if (error) throw error;
 
         const user = data.user;
+
+        // Store session in localStorage or sessionStorage
+        const session = supabase.auth.getSession ? (await supabase.auth.getSession()).data.session : data.session;
+        if (session) {
+            const sessionStr = JSON.stringify(session);
+            if (rememberMe) {
+                localStorage.setItem('supabase.auth.session', sessionStr);
+                sessionStorage.removeItem('supabase.auth.session');
+            } else {
+                sessionStorage.setItem('supabase.auth.session', sessionStr);
+                localStorage.removeItem('supabase.auth.session');
+            }
+        }
 
         // Fetch user role and department from the database
         const { data: userProfile, error: profileError } = await supabase
@@ -100,6 +130,9 @@ document.getElementById("logoutBtn")?.addEventListener("click", async () => {
     try {
         const { error } = await supabase.auth.signOut();
         if (error) throw error;
+        // Remove session from both storages
+        localStorage.removeItem('supabase.auth.session');
+        sessionStorage.removeItem('supabase.auth.session');
         window.location.href = "auth.html";
     } catch (error) {
         console.error("Error logging out:", error);
