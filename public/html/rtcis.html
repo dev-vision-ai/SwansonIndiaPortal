@@ -181,6 +181,22 @@
           const maxDate = `${yyyy}-${mm}-${dd}`;
           prodDateInput.setAttribute('max', maxDate);
         }
+        // Prevent Enter key from submitting the form
+        const form = document.getElementById('rtcisForm');
+        if (form) {
+          form.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+              e.preventDefault();
+              // Move focus to next field
+              const focusable = Array.from(form.querySelectorAll('input, select, textarea, button'))
+                .filter(el => !el.disabled && el.type !== 'hidden' && el.offsetParent !== null);
+              const index = focusable.indexOf(e.target);
+              if (index > -1 && index < focusable.length - 1) {
+                focusable[index + 1].focus();
+              }
+            }
+          });
+        }
       });
     </script>
 </body>
