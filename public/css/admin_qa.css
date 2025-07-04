@@ -510,3 +510,50 @@ tbody tr:nth-child(even) {
     background-color: #dfc532; /* Darker yellow on hover */
     color: #000000; /* Darker blue on hover */
 }
+
+.js-hide {
+  display: none !important;
+}
+
+@keyframes cardFadeInPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.03) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.action-card:not(.js-hide) {
+  animation: cardFadeInPop 1.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Full page fade-in (excluding header) */
+.page-fade-in {
+  opacity: 0;
+  animation: pageFadeIn 1.5s ease forwards;
+}
+
+@keyframes pageFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Header fade-in (no movement, just opacity) */
+.header-fade-in {
+  opacity: 0;
+  animation: headerFadeIn 1.2s ease forwards;
+}
+
+@keyframes headerFadeIn {
+  to {
+    opacity: 1;
+  }
+}

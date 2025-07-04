@@ -62,6 +62,13 @@
             padding: 0 !important;
             box-sizing: border-box !important;
         }
+        .page-fade-in {
+            opacity: 0;
+            animation: pageFadeIn 1.5s ease forwards;
+        }
+        @keyframes pageFadeIn {
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
@@ -75,7 +82,7 @@
         </div>
     </div>
 
-    <main class="flex-1 flex items-start justify-center p-3 w-full min-h-screen pt-24 md:pt-28 lg:pt-32">
+    <main class="flex-1 flex items-start justify-center p-3 w-full min-h-screen pt-24 md:pt-28 lg:pt-32 page-fade-in">
         <div class="bg-white rounded-xl shadow-2xl flex max-w-5xl w-full overflow-hidden">
             <div class="w-1/4 bg-[#002E7D] p-8 flex flex-col items-center justify-center rounded-l-xl relative">
                 <div class="absolute inset-0 bg-pattern opacity-10"></div>

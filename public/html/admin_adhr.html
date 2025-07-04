@@ -10,47 +10,71 @@
   <link rel="stylesheet" href="../css/admin_adhr.css">
 </head>
 <body>
-  <div class="header-container">
-    <!-- User info section first (contains logout) -->
-    <div class="user-info">
-      <button id="logoutButton" class="logout-button">Logout</button> 
-      <span class="user-name"></span> 
+  <div class="container page-fade-in">
+    <section class="dashboard-section">
+      <div class="header-container header-fade-in">
+        <!-- User info section first (contains logout) -->
+        <div class="user-info">
+          <button id="logoutButton" class="logout-button">Logout</button> 
+          <span class="user-name"></span> 
 
-    </div>
+        </div>
 
-    <!-- Header title second -->
-    <div class="header-title">Admin & HR Dashboard</div> 
-    
-    <!-- Logo last -->
-    <div class="company-logo">
-      <img src="../assets/logo.png" class="auth-logo" alt="Logo"/>
-    </div>
-</div>
-  
-    <div class="quick-actions">
-        <!-- Card for User Management -->
-        <a href="user_mgmt.html" class="action-card"> 
-            <i class="bi bi-people-fill action-icon"></i> <!-- Changed from fas fa-users-cog -->
-            <h4>User Management</h4>
-            <p>Create new users and manage existing accounts.</p> 
-        </a>
-
-        <!-- Card for Job Posting Management -->
-        <a href="job_posting_mgmt.html" class="action-card"> 
-            <i class="bi bi-briefcase-fill action-icon"></i> <!-- Changed from fas fa-briefcase -->
-            <h4>Job Postings</h4>
-            <p>Create, update, and manage job listings for the careers page.</p> 
-        </a>
-
-        <!-- Card for Gallery Management -->
-        <a href="gallery_admin.html" class="action-card"> 
-            <i class="bi bi-images action-icon"></i> <!-- Changed from fas fa-images -->
-            <h4>Gallery Management</h4>
-            <p>Manage website gallery albums and images.</p> 
-        </a>
+        <!-- Header title second -->
+        <div class="header-title">Admin & HR Dashboard</div> 
         
-    </div> 
+        <!-- Logo last -->
+        <div class="company-logo">
+          <img src="../assets/logo.png" class="auth-logo" alt="Logo"/>
+        </div>
+    </div>
+  
+    <div class="quick-action-grid">
+      <div class="action-card" onclick="location.href='user_mgmt.html'">
+        <div class="action-card-icon-circle">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="action-card-content">
+          <div class="action-card-heading">
+            <h3>User Management</h3>
+          </div>
+          <div class="action-card-description">
+            <p>Create new users and manage existing accounts.</p>
+          </div>
+        </div>
+      </div>
+      <div class="action-card" onclick="location.href='job_posting_mgmt.html'">
+        <div class="action-card-icon-circle">
+          <i class="bi bi-briefcase-fill"></i>
+        </div>
+        <div class="action-card-content">
+          <div class="action-card-heading">
+            <h3>Job Postings</h3>
+          </div>
+          <div class="action-card-description">
+            <p>Create, update, and manage job listings for the careers page.</p>
+          </div>
+        </div>
+      </div>
+      <div class="action-card" onclick="location.href='gallery_admin.html'">
+        <div class="action-card-icon-circle">
+          <i class="bi bi-images"></i>
+        </div>
+        <div class="action-card-content">
+          <div class="action-card-heading">
+            <h3>Gallery Management</h3>
+          </div>
+          <div class="action-card-description">
+            <p>Manage website gallery albums and images.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
   </main>
+  <footer class="designer-watermark">
+    <i class="bi bi-gear-fill" style="margin-right:6px;"></i> Designed by <span>GGC</span>
+  </footer>
   <script type="module" src="../js/admin_adhr.js"></script> 
 </body>
 </html>

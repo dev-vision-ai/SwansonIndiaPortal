@@ -13,6 +13,13 @@
             font-family: 'Roboto', sans-serif;
             font-weight: 500;
         }
+        .page-fade-in {
+            opacity: 0;
+            animation: pageFadeIn 1.5s ease forwards;
+        }
+        @keyframes pageFadeIn {
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen pt-[10px]">
@@ -25,7 +32,7 @@
     </div>
 
     <main class="flex-1 flex justify-center p-3 w-full pt-10">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-full p-10">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-full p-10 container page-fade-in">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">Film Inspection List</h2>
             <div class="flex justify-between items-center mb-4">
                 <div class="flex items-center">

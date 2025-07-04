@@ -450,7 +450,11 @@ async function filterQuickActionsByDepartment(user) {
             }
 
             console.log(`Card: ${card.querySelector('h3')?.textContent || 'N/A'}, Should Display: ${shouldDisplay}`);
-            card.style.display = shouldDisplay ? '' : 'none';
+            if (shouldDisplay) {
+                card.classList.remove('js-hide');
+            } else {
+                card.classList.add('js-hide');
+            }
         });
 
         if (quickActionGrid) {

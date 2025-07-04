@@ -23,15 +23,6 @@
 
 body {
     min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    /* Remove old background image and color */
-    /* background-image: url('../assets/page-bg.png'); */
-    /* background-size: cover; */
-    /* background-position: center; */
-    /* background-attachment: fixed; */
-    /* background-color: var(--bg-color); */
     padding: 0;
     margin: 0;
     font-size: 1rem;
@@ -49,13 +40,14 @@ body {
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    width: 100vw;
+    width: 100%;
     min-height: 100vh; /* Ensure it takes full viewport height */
     justify-content: flex-start; /* Align items to the top */
     align-items: center;
     margin: 0;
     padding-top: 60px; /* Add padding to account for fixed header */
-    overflow-y: auto; /* Enable scrolling for content overflow */
+    /* overflow-y: auto; */ /* Removed to allow body to scroll */
+    padding-bottom: 2rem; /* Add some space at the bottom */
 }
 
 .dashboard-section {
@@ -90,39 +82,13 @@ body {
     display: block;
 }
 
-@media (max-width: 1500px) {
-    .container {
-        flex-direction: column;
-        align-items: center;
-    }
-}
-
-@media (max-width: 768px) {
-    body {
-        padding-top: 0; /* Removed padding-top as it's handled by container */
-    }
-    .header-container {
-        padding: 5px 10px;
-    }
-    .header-title {
-        font-size: 1.2rem;
-    }
-    .company-logo img {
-        height: 38px;
-    }
-    .header-back-button {
-        padding: 8px 12px;
-        font-size: 0.9rem;
-    }
-
-    .quality-alerts-container h2 {
-        padding-top: 70px; /* Increased padding for mobile to ensure it clears the header */
-    }
-}
-
 /* General style for desktop and larger screens */
 .quality-alerts-container h2 {
-    padding-top: 40px; /* Increased padding for desktop to ensure it clears the header */
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-top: 40px;
+    text-align: center;
 }
 
 .header-container {
@@ -252,8 +218,8 @@ body {
     justify-content: center;
     margin: 2rem 0;
     padding: 0;
-    height: 300px; /* Fixed grid height */
-    overflow-y: auto;
+    /* height: 300px; */ /* Removed fixed grid height */
+    /* overflow-y: auto; */ /* Removed overflow */
     align-content: flex-start;
 }
 
@@ -275,10 +241,16 @@ body {
     margin-left: 1.2rem; /* space for pop-out circle */
     overflow: visible;
     text-align: left;
+    /* Add animation only when card is shown */
+    transition: opacity 0.3s, transform 0.3s;
 }
 
 .action-card:hover {
     box-shadow: 0 8px 24px rgba(0, 46, 125, 0.18);
+}
+
+.action-card:not(.js-hide) {
+    animation: cardFadeInPop 1.8s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .action-card-icon-circle {
@@ -380,95 +352,26 @@ body {
     background: #fff;
 }
 
-@media (max-width: 900px) {
-    .action-card {
-        width: 90vw;
-        min-width: 0;
-        margin-left: 0.7rem;
-        padding-left: 2.5rem;
-    }
-    .action-card-icon-circle {
-        left: -24px;
-        width: 48px;
-        height: 48px;
-    }
-}
-
-@media (max-width: 600px) {
-    .quick-action-grid {
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-        height: auto;
-        min-height: 0;
-        max-height: none;
-    }
-    .action-card {
-        width: 92vw;
-        max-width: 400px;
-        min-width: 0;
-        border-radius: 12px;
-        margin-left: 0;
-        margin-right: 0;
-        margin-bottom: 1.1rem;
-        height: auto;
-        min-height: 90px;
-        max-height: none;
-    }
-    .action-card-icon-circle {
-        left: -16px;
-        width: 34px;
-        height: 34px;
-    }
-    .action-card-icon-circle i {
-        font-size: 1.1rem;
-    }
-    .action-card-heading {
-        font-size: 0.95rem;
-        border-top-right-radius: 12px;
-        border-top-left-radius: 12px;
-        min-height: 38px;
-    }
-    .action-card-description {
-        font-size: 0.82rem;
-        border-bottom-right-radius: 12px;
-        border-bottom-left-radius: 12px;
-        min-height: 38px;
-    }
-}
-
-.notifications {
-    background: white;
-    margin: 1rem 0;
-    padding: 1.5rem;
-    border-radius: 0;
-    box-shadow: var(--shadow-md);
-    border: 2px solid #ccc;
-}
-
-.activity-list,
-.notification-list {
-    margin-top: 1rem;
-}
-
 @media (max-width: 768px) {
+    body {
+        padding-top: 0; /* Removed padding-top as it's handled by container */
+    }
     .header-container {
-        padding: 1rem;
-    }
-    .quick-action-grid {
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-    .recent-activities,
-    .notifications {
-        margin: 0 1rem 1.5rem;
+        padding: 5px 10px;
     }
     .header-title {
         font-size: 1.2rem;
     }
-    .auth-logo {
-        height: 30px;
+    .company-logo img {
+        height: 38px;
+    }
+    .header-back-button {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+
+    .quality-alerts-container h2 {
+        padding-top: 70px; /* Increased padding for mobile to ensure it clears the header */
     }
 }
 
@@ -602,24 +505,18 @@ body {
 
 /* Table Styles (copied from admin_qa/dashboard_qa.css for consistency) */
 .quality-alerts-container {
-        margin-top: 0;
-        padding-top: 10px;
-        width: 100%;
-        height: calc(100vh - 60px); /* Adjusted height */
-        background: white;
-        border-radius: 0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        overflow-y: auto;
-        position: fixed;
-        top: 60px; /* Adjusted top position */
-        left: 0;
-        right: 0;
-        text-align: center;
-}
-
-.quality-alerts-container h2 {
-    margin-bottom: 1rem; /* Add spacing below the heading */
-    /* padding-top: 20px; */ /* This is now handled by the rule around line 120 */
+    background: transparent !important;
+    margin-top: 0;
+    padding-top: 10px;
+    width: 100%;
+    min-height: calc(100vh - 60px); /* Changed to min-height */
+    background: white;
+    border-radius: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow-y: visible; /* Changed to visible */
+    position: relative; /* Changed to relative */
+    text-align: center;
+    padding-bottom: 2rem; /* Added bottom padding */
 }
 
 .filter-controls {
@@ -968,4 +865,180 @@ body {
 
 .header-back-button:hover {
   background-color: #d3b725; /* Darker yellow on hover */
+}
+
+@media (max-width: 600px) {
+    .header-container {
+        height: 70px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        border-bottom-width: 5px;
+    }
+    .header-title {
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.10rem;
+        text-align: center;
+    }
+    .logout-button {
+        padding: 4px 10px;
+        font-size: 0.85rem;
+        margin-right: 6px;
+    }
+    .quick-action-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+        padding: 0;
+        gap: 0;
+    }
+    .action-card {
+        width: calc(50% - 1.2rem);
+        min-width: 120px;
+        max-width: 180px;
+        margin: 0.6rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 0;
+        position: relative;
+        height: 90px;
+        min-height: 90px;
+        max-height: 90px;
+    }
+    .action-card-heading,
+    .action-card-heading h3,
+    .action-card-description,
+    .action-card-description p {
+        word-break: break-word;
+        white-space: normal;
+        text-align: center;
+    }
+    .action-card-heading {
+        font-size: 0.75rem;
+    }
+    .action-card-description {
+        font-size: 0.7rem;
+    }
+    .action-card-icon-circle {
+        display: none;
+    }
+    .filter-controls {
+        flex-direction: column !important;
+        gap: 6px !important;
+        margin-bottom: 10px !important;
+    }
+    .filter-controls span {
+        font-size: 0.95rem !important;
+        margin-bottom: 2px !important;
+    }
+    .filter-input,
+    .filter-select {
+        font-size: 0.92rem !important;
+        padding: 0.35rem 0.5rem !important;
+        height: 2.1rem !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        margin-bottom: 2px !important;
+    }
+    .filter-btn,
+    #clearFilters {
+        font-size: 0.95rem !important;
+        padding: 0.4rem 0.5rem !important;
+        height: 2.1rem !important;
+        width: 100% !important;
+        margin-bottom: 2px !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .desktop-only { display: none !important; }
+}
+
+.js-hide {
+  display: none !important;
+}
+
+@keyframes cardFadeInPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.03) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Full page fade-in (excluding header) */
+.page-fade-in {
+  opacity: 0;
+  animation: pageFadeIn 1.5s ease forwards;
+}
+
+@keyframes pageFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Header fade-in (no movement, just opacity) */
+.header-fade-in {
+  opacity: 0;
+  animation: headerFadeIn 1.2s ease forwards;
+}
+
+@keyframes headerFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .quality-alerts-container h2 {
+    font-size: 1.1rem !important;
+    padding-top: 24px;
+  }
+}
+
+.filter-controls span,
+.filter-input,
+.filter-select,
+.filter-btn,
+#clearFilters {
+  font-size: 1.6rem;
+}
+
+@media (max-width: 600px) {
+  .filter-controls span,
+  .filter-input,
+  .filter-select,
+  .filter-btn,
+  #clearFilters {
+    font-size: 0.85rem !important;
+  }
+}
+
+@media (min-width: 601px) {
+  .filter-controls span,
+  .filter-input,
+  .filter-select,
+  .filter-btn,
+  #clearFilters {
+    font-size: 1rem;
+    padding: 0.35rem 0.7rem;
+    height: 2.2rem;
+    min-width: 0;
+    width: auto;
+    margin-bottom: 0;
+  }
+  .filter-controls {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
 }
