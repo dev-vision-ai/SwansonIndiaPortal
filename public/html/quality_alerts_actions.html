@@ -7,6 +7,7 @@
   <title>Quality Alert Details</title> <!-- Form Title -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
   <link rel="stylesheet" href="../css/admin_qa.css">
+  <link rel="stylesheet" href="../css/header.css">
   <style>
     #rpn-calculation-section {
       background-color: #f0f0f0; /* Light gray background */
@@ -16,22 +17,17 @@
      }
 
      .rpn-operator {
-       margin: 0 5px;
+       margin: 0 10px;
        font-weight: bold;
-       align-self: flex-end;
-     }
-
-     .rpn-input-group {
-        display: flex;
-        flex-direction: column;
      }
 
      .rpn-input-group label {
+        display: block;
         margin-bottom: 5px;
      }
 
      #rpn-calculation-section .form-row {
-        align-items: flex-end;
+        align-items: baseline;
      }
 
      #rpn {
@@ -142,9 +138,7 @@
 <body>
 
   <div class="header-container">
-    <!-- Move Back Button Here -->
     <button type="button" class="header-back-button" onclick="window.history.back();">Back</button>
-    
     <div class="header-title">Admin QA Dashboard</div>
     <div class="company-logo">
       <img src="../assets/logo.png" class="auth-logo" alt="Logo"/>
@@ -228,31 +222,6 @@
           <div class="immediate-action-field" style="flex-basis: 70%; min-width: 0; display: flex; flex-direction: column;">
             <label for="actiontaken">Immediate Action</label>
             <textarea id="actiontaken" rows="5" style="max-width:100%; width: 100%;"></textarea>
-            <!-- RPN Calculation section moved here -->
-            <div id="rpn-calculation-section" class="form-group" style="margin-top: 10px;">
-              <h3>RPN Calculation</h3>
-              <div class="form-row">
-                <div class="rpn-input-group">
-                  <label for="severity">Severity (S):</label>
-                  <input type="number" id="severity">
-                </div>
-                <span class="rpn-operator">x</span>
-                <div class="rpn-input-group">
-                  <label for="detection">Detection (D):</label>
-                  <input type="number" id="detection">
-                </div>
-                <span class="rpn-operator">x</span>
-                <div class="rpn-input-group">
-                  <label for="frequency">Frequency (F):</label>
-                  <input type="number" id="frequency">
-                </div>
-                <span class="rpn-operator">=</span>
-                <div class="rpn-input-group">
-                  <label for="rpn">RPN:</label>
-                  <input type="text" id="rpn" readonly>
-                </div>
-              </div>
-            </div>
           </div>
           <div class="immediate-action-field" style="display: flex; flex-direction: column; justify-content: flex-start; flex-basis: 22%; min-width: 80px;">
             <label for="whoaction">Who:</label>
@@ -269,10 +238,82 @@
         </div>
       </div>
       <!-- End scrollable row -->
+      <!-- KIV section moved here -->
+      <div class="form-section kiv-details" style="display: none;"> 
+          <h3>KIV Details</h3>
+          <div class="form-row">
+            <div class="form-group">
+                <label for="shift">Shift:</label>
+                <select id="shift" name="shift" class="form-control">
+                    <option value="">Select Shift</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="G">G</option>
+                </select>
+            </div>
+            <div class="form-group">
+              <label for="productcode">Product Code</label>
+              <input type="text" id="productcode">
+            </div>
+            <div class="form-group">
+              <label for="rollid">Roll ID</label>
+              <input type="text" id="rollid">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="lotno">Lot No</label>
+              <input type="text" id="lotno">
+            </div>
+            <div class="form-group">
+              <label for="rollpositions">Roll Positions</label>
+              <input type="text" id="rollpositions">
+            </div>
+            <div class="form-group">
+              <label for="lottime">Lot Time:</label>
+              <input type="text" id="lottime">
+            </div>
+          </div>
+      </div> <!-- --- END Wrapper Div --- -->
+      <!-- RPN Calculation Table Section (now outside scroll area) -->
+      <div class="rpn-repeat-row" style="display: flex; flex-direction: row; gap: 16px; align-items: stretch; margin-bottom: 16px;">
+        <div class="rpn-table-container">
+          <table class="rpn-table">
+            <tr>
+              <th rowspan="2">RPN</th>
+              <th>S</th>
+              <th>D</th>
+              <th>F</th>
+              <th>RPN (S×D×F)</th>
+            </tr>
+            <tr>
+              <td><input type="text" id="severity" inputmode="numeric" pattern="[0-9]*" style="width: 60px;"></td>
+              <td><input type="text" id="detection" inputmode="numeric" pattern="[0-9]*" style="width: 60px;"></td>
+              <td><input type="text" id="frequency" inputmode="numeric" pattern="[0-9]*" style="width: 60px;"></td>
+              <td><input type="text" id="rpn" readonly style="width: 80px; background: #fffb00; text-align: center;"></td>
+            </tr>
+          </table>
+        </div>
+        <div class="repeat-alert-table-container">
+          <table class="rpn-table repeat-alert-table">
+            <tr>
+              <th>Repeat Alert?</th>
+              <td>
+                <select id="repeat_alert" class="repeat-alert-select">
+                  <option value="">Select</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
 
       <!-- Image Display Container -->
       <div class="form-group">
-        <h3>Uploaded Images</h3>
+        <h3 class="uploaded-images-title">Uploaded Images</h3>
         <div id="imageDisplayContainer" class="image-previews-container"></div>
       </div>
 
@@ -320,49 +361,6 @@
         <label for="drafted_at">Drafted At</label>
         <input type="text" id="drafted_at" readonly>
       </div>
-
-      <!-- --- ADD Wrapper Div --- -->
-      <div class="form-section kiv-details" style="display: none;"> 
-          <h3>KIV Details</h3>
-
-          <!-- --- MOVE Shift Dropdown Inside --- -->
-          <div class="form-group">
-              <label for="shift">Shift:</label>
-              <select id="shift" name="shift" class="form-control">
-                  <option value="">Select Shift</option>
-                  <option value="A">A</option>
-                  <option value="B">B</option>
-                  <option value="C">C</option>
-                  <option value="G">G</option>
-              </select>
-          </div>
-
-          <!-- --- MOVE Product Code Inside --- -->
-          <div class="form-group">
-            <label for="productcode">Product Code</label>
-            <input type="text" id="productcode">
-          </div>
-          <!-- --- MOVE Roll ID Inside --- -->
-          <div class="form-group">
-            <label for="rollid">Roll ID</label>
-            <input type="text" id="rollid">
-          </div>
-          <!-- --- MOVE Lot No Inside --- -->
-          <div class="form-group">
-            <label for="lotno">Lot No</label>
-            <input type="text" id="lotno">
-          </div>
-          <!-- --- MOVE Roll Positions Inside --- -->
-          <div class="form-group">
-            <label for="rollpositions">Roll Positions</label>
-            <input type="text" id="rollpositions">
-          </div>
-          <!-- --- MOVE Lot Time Inside --- -->
-          <div class="form-group">
-            <label for="lottime">Lot Time:</label>
-            <input type="text" id="lottime">
-          </div>
-      </div> <!-- --- END Wrapper Div --- -->
 
       <div class="form-actions">
         <button type="button" class="btn-back" onclick="window.history.back();">Back</button>
