@@ -17,18 +17,20 @@ const detectionInput = document.getElementById('detection');
 const frequencyInput = document.getElementById('frequency');
 const rpnInput = document.getElementById('rpn');
 
+// Add reference for Repeat Alert dropdown
+const repeatAlertSelect = document.getElementById('repeat_alert');
 
 // Add event listeners for dynamic RPN calculation
-severityInput.addEventListener('input', calculateRPN);
-detectionInput.addEventListener('input', calculateRPN);
-frequencyInput.addEventListener('input', calculateRPN);
-
-function calculateRPN() {
-    const severity = parseInt(severityInput.value) || 0;
-    const detection = parseInt(detectionInput.value) || 0;
-    const frequency = parseInt(frequencyInput.value) || 0;
-    const rpn = severity * detection * frequency;
-    rpnInput.value = rpn;
+if (severityInput && detectionInput && frequencyInput && rpnInput) {
+  function calculateRPN() {
+    const s = parseInt(severityInput.value) || 0;
+    const d = parseInt(detectionInput.value) || 0;
+    const f = parseInt(frequencyInput.value) || 0;
+    rpnInput.value = s * d * f;
+  }
+  severityInput.addEventListener('input', calculateRPN);
+  detectionInput.addEventListener('input', calculateRPN);
+  frequencyInput.addEventListener('input', calculateRPN);
 }
 const rootCauseInput = document.getElementById('root_cause');
 const correctiveActionsInput = document.getElementById('corrective_actions');
@@ -49,6 +51,10 @@ const actionTakenInput = document.getElementById('actiontaken');
 const whoActionInput = document.getElementById('whoaction');
 const whenActionDateInput = document.getElementById('whenactiondate');
 const timestampInput = document.getElementById('timestamp');
+// Add references for Counter Measure row fields
+const counterWhoInput = document.getElementById('counter_who');
+const counterWhenInput = document.getElementById('counter_when');
+const counterStatusInput = document.getElementById('counter_status');
 
 // Add event listener for send alert button
 document.getElementById('sendAlertButton').addEventListener('click', async function() {
@@ -290,6 +296,9 @@ function populateForm(data) {
     if (rootCauseInput) rootCauseInput.value = get(data.root_cause);
     if (correctiveActionsInput) correctiveActionsInput.value = get(data.corrective_actions);
     if (remarksInput) remarksInput.value = get(data.remarks);
+    if (counterWhoInput) counterWhoInput.value = get(data.counter_who);
+    if (counterWhenInput) counterWhenInput.value = get(data.counter_when);
+    if (counterStatusInput) counterStatusInput.value = get(data.counter_status);
 
     // Other read-only fields
     if (locationAreaInput) locationAreaInput.value = get(data.locationarea);
@@ -307,6 +316,7 @@ function populateForm(data) {
     if (whenActionDateInput) whenActionDateInput.value = get(data.whenactiondate);
     if (timestampInput) timestampInput.value = formatTimestampForDisplay(data.timestamp);
     if (draftedAtInput) draftedAtInput.value = formatTimestampForDisplay(data.drafted_at);
+    if (repeatAlertSelect) repeatAlertSelect.value = get(data.repeat_alert);
 
     // Display images
     const imageDisplayContainer = document.getElementById('imageDisplayContainer');
@@ -367,7 +377,8 @@ function setupFormMode(action) {
     const alwaysReadOnlyFields = [
         userNameInput, incidentDateInput, incidentTimeInput,
         keptInViewInput,
-        timestampInput, draftedAtInput
+        timestampInput, draftedAtInput,
+        rpnInput, // Add RPN input to always read-only
     ];
 
     // Set readOnly/disabled for always read-only fields
@@ -394,7 +405,9 @@ function setupFormMode(action) {
         // --- REMOVE 'defectDescriptionInput' FROM THIS ARRAY --- 
         productCodeInput, rollIdInput, lotNoInput,
         rollPositionsInput, lotTimeInput, actionTakenInput, whoActionInput,
-        whenActionDateInput
+        whenActionDateInput,
+        counterWhoInput, counterWhenInput, counterStatusInput,
+        severityInput, detectionInput, frequencyInput // Add S, D, F inputs here
     ];
 
     // Set readOnly/disabled for conditionally editable fields based on mode
@@ -408,9 +421,10 @@ function setupFormMode(action) {
         }
     });
 
-    // Ensure RPN fields and calculate button are always editable
-    
-    
+    // Lock repeat_alert dropdown in view mode
+    if (repeatAlertSelect) {
+        repeatAlertSelect.disabled = !isEditMode;
+    }
 
     // Show/hide save button and attach/detach submit listener
     if (isEditMode) {
@@ -450,8 +464,6 @@ async function handleFormSubmit(event) {
         qualityrisk: qualityRiskInput.value,
         // --- ADD shift HERE --- 
         shift: shiftInput.value,
-        // --- DELETE THIS LINE --- 
-        // defectdescription: defectDescriptionInput.value,
         productcode: productCodeInput.value,
         rollid: rollIdInput.value,
         lotno: lotNoInput.value,
@@ -460,6 +472,10 @@ async function handleFormSubmit(event) {
         actiontaken: actionTakenInput.value,
         whoaction: whoActionInput.value,
         whenactiondate: whenActionDateInput.value || null,
+        counter_who: counterWhoInput.value,
+        counter_when: counterWhenInput.value,
+        counter_status: counterStatusInput.value,
+        repeat_alert: repeatAlertSelect ? repeatAlertSelect.value : null,
     };
 
     try {

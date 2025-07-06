@@ -18,6 +18,20 @@
      .rpn-operator {
        margin: 0 5px;
        font-weight: bold;
+       align-self: flex-end;
+     }
+
+     .rpn-input-group {
+        display: flex;
+        flex-direction: column;
+     }
+
+     .rpn-input-group label {
+        margin-bottom: 5px;
+     }
+
+     #rpn-calculation-section .form-row {
+        align-items: flex-end;
      }
 
      #rpn {
@@ -211,9 +225,34 @@
       <!-- Begin scrollable row for Immediate Action and related fields -->
       <div class="immediate-action-row-scroll">
         <div class="form-group" style="display: flex; align-items: flex-start; gap: 6px; min-width: 700px;">
-          <div class="immediate-action-field" style="flex-basis: 70%; min-width: 0;">
+          <div class="immediate-action-field" style="flex-basis: 70%; min-width: 0; display: flex; flex-direction: column;">
             <label for="actiontaken">Immediate Action</label>
             <textarea id="actiontaken" rows="5" style="max-width:100%; width: 100%;"></textarea>
+            <!-- RPN Calculation section moved here -->
+            <div id="rpn-calculation-section" class="form-group" style="margin-top: 10px;">
+              <h3>RPN Calculation</h3>
+              <div class="form-row">
+                <div class="rpn-input-group">
+                  <label for="severity">Severity (S):</label>
+                  <input type="number" id="severity">
+                </div>
+                <span class="rpn-operator">x</span>
+                <div class="rpn-input-group">
+                  <label for="detection">Detection (D):</label>
+                  <input type="number" id="detection">
+                </div>
+                <span class="rpn-operator">x</span>
+                <div class="rpn-input-group">
+                  <label for="frequency">Frequency (F):</label>
+                  <input type="number" id="frequency">
+                </div>
+                <span class="rpn-operator">=</span>
+                <div class="rpn-input-group">
+                  <label for="rpn">RPN:</label>
+                  <input type="text" id="rpn" readonly>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="immediate-action-field" style="display: flex; flex-direction: column; justify-content: flex-start; flex-basis: 22%; min-width: 80px;">
             <label for="whoaction">Who:</label>
@@ -231,34 +270,6 @@
       </div>
       <!-- End scrollable row -->
 
-      <!-- RPN Calculation -->
-      <div id="rpn-calculation-section" class="form-group">
-        <h3>RPN Calculation</h3>
-        <div class="form-row">
-          <div class="rpn-input-group">
-            <label for="severity">Severity (S):</label>
-            <input type="number" id="severity" min="1" max="10" value="1">
-          </div>
-          <span class="rpn-operator">x</span>
-          <div class="rpn-input-group">
-            <label for="detection">Detection (D):</label>
-            <input type="number" id="detection" min="1" max="10" value="1">
-          </div>
-          <span class="rpn-operator">x</span>
-          <div class="rpn-input-group">
-            <label for="frequency">Frequency (F):</label>
-            <input type="number" id="frequency" min="1" max="10" value="1">
-          </div>
-          <span class="rpn-operator">=</span>
-          <div class="rpn-input-group">
-            <label for="rpn">RPN:</label>
-            <input type="text" id="rpn" readonly>
-          </div>
-        </div>
-      </div>
-        </div>
-      </div>
-
       <!-- Image Display Container -->
       <div class="form-group">
         <h3>Uploaded Images</h3>
@@ -270,8 +281,26 @@
         <textarea id="root_cause"></textarea>
       </div>
       <div class="form-group">
-        <label for="corrective_actions">Counter Measure</label>
-        <textarea id="corrective_actions"></textarea>
+        <div class="immediate-action-row-scroll">
+          <div class="form-group" style="display: flex; align-items: flex-start; gap: 6px; min-width: 700px;">
+            <div class="immediate-action-field" style="flex-basis: 70%; min-width: 0; display: flex; flex-direction: column;">
+              <label for="corrective_actions">Counter Measure: </label>
+              <textarea id="corrective_actions" name="corrective_actions" rows="5" style="max-width:100%; width: 100%;"></textarea>
+            </div>
+            <div class="immediate-action-field" style="display: flex; flex-direction: column; justify-content: flex-start; flex-basis: 22%; min-width: 80px;">
+              <label for="counter_who">Who:</label>
+              <textarea id="counter_who" name="counter_who" rows="5" style="width:100%;"></textarea>
+            </div>
+            <div class="immediate-action-field" style="display: flex; flex-direction: column; justify-content: flex-start; flex-basis: 22%; min-width: 80px;">
+              <label for="counter_when">When:</label>
+              <textarea id="counter_when" name="counter_when" rows="5" style="width:100%;"></textarea>
+            </div>
+            <div class="immediate-action-field" style="display: flex; flex-direction: column; justify-content: flex-start; flex-basis: 22%; min-width: 80px;">
+              <label for="counter_status">Status</label>
+              <textarea id="counter_status" name="counter_status" rows="5" style="width:100%;"></textarea>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="form-group">
         <label for="remarks">Remarks</label>

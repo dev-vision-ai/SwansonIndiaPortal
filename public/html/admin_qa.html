@@ -7,20 +7,21 @@
   <title>Admin QA Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
   <link rel="stylesheet" href="../css/admin_qa.css">
+  <link rel="stylesheet" href="../css/header.css">
 </head>
 <body>
   <div class="container page-fade-in">
     <section class="dashboard-section">
-      <div class="header-container header-fade-in bg-white shadow-md p-4 flex justify-between items-center">
-        <div class="user-info flex items-center">
+      <div class="header-container header-fade-in">
+        <div class="user-info">
           <!-- Logout Button First -->
           <button id="logoutButton" class="logout-button">Logout</button> 
           <!-- User Name Second -->
-          <span class="user-name text-gray-800"></span> <!-- User name will be populated by JS -->
+          <span class="user-name"></span> <!-- User name will be populated by JS -->
         </div>
-        <div class="header-title text-2xl font-bold text-white">Admin QA Dashboard</div>
+        <div class="header-title">Admin QA Dashboard</div>
         <div class="company-logo">
-          <img src="../assets/logo.png" class="auth-logo h-10" alt="Logo"/>
+          <img src="../assets/logo.png" class="auth-logo" alt="Logo"/>
         </div>
       </div>
       <main class="qa-container">

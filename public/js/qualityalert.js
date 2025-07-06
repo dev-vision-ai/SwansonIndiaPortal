@@ -297,54 +297,54 @@ function setupFormEventListeners(userId) {
                 user_id: userId,
                 timestamp: new Date().toISOString(),
                 submission_status: 'submitted'
-            };
+                };
 
-            // --- REMOVED: Conditional logic for lotTime based on semiFinishedGoodsVisible --- 
+                // --- REMOVED: Conditional logic for lotTime based on semiFinishedGoodsVisible --- 
 
-            try {
-                let imageUrls = [];
-                if (compressedFiles.length > 0) {
-                    imageUrls = await uploadImagesToSupabase(compressedFiles);
-                }
-
-                const { data, error } = await supabase
-                    .from('quality_alerts')
-                    .insert([{ ...insertData, image_urls: imageUrls }]); // Pass data as an array
-
-                if (error) {
-                    console.error('Submission error:', error);
-                    showMessage('Error submitting form. Please try again. Details: ' + error.message, true);
-                } else {
-                    showMessage('Quality Alert submitted successfully!');
-
-                    // Check if this was an edited draft and delete it
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const draftId = urlParams.get('id');
-                    const action = urlParams.get('action');
-
-                    if (draftId && action === 'edit') {
-                        const { error: deleteError } = await supabase
-                            .from('quality_alert_drafts')
-                            .delete()
-                            .eq('id', draftId);
-
-                        if (deleteError) {
-                            console.error('Error deleting draft:', deleteError);
-                            showMessage('Quality Alert submitted, but failed to delete draft.', true);
-                        } else {
-                            console.log('Draft deleted successfully.');
-                        }
+                try {
+                    let imageUrls = [];
+                    if (compressedFiles.length > 0) {
+                        imageUrls = await uploadImagesToSupabase(compressedFiles);
                     }
 
-                    // Optionally, redirect or clear form
-                    document.getElementById('qualityAlertForm').reset();
-                    // Clear image previews
-                    document.getElementById('imagePreviews').innerHTML = '';
+                    const { data, error } = await supabase
+                        .from('quality_alerts')
+                        .insert([{ ...insertData, image_urls: imageUrls }]); // Pass data as an array
+
+                    if (error) {
+                        console.error('Submission error:', error);
+                    showMessage('Error submitting form. Please try again. Details: ' + error.message, true);
+                    } else {
+                        showMessage('Quality Alert submitted successfully!');
+
+                        // Check if this was an edited draft and delete it
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const draftId = urlParams.get('id');
+                        const action = urlParams.get('action');
+
+                        if (draftId && action === 'edit') {
+                            const { error: deleteError } = await supabase
+                                .from('quality_alert_drafts')
+                                .delete()
+                                .eq('id', draftId);
+
+                            if (deleteError) {
+                                console.error('Error deleting draft:', deleteError);
+                            showMessage('Quality Alert submitted, but failed to delete draft.', true);
+                            } else {
+                                console.log('Draft deleted successfully.');
+                            }
+                        }
+
+                        // Optionally, redirect or clear form
+                        document.getElementById('qualityAlertForm').reset();
+                        // Clear image previews
+                        document.getElementById('imagePreviews').innerHTML = '';
         // Declare uploadedImageUrls here if it's meant to be reset or used within this scope
         // If it's used elsewhere, it should be declared in a higher scope.
         // For now, assuming it's meant to be reset here.
         let uploadedImageUrls = [];
-                }
+                    }
 
             } catch (error) {
                 console.error('Unexpected error:', error);

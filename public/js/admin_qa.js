@@ -173,12 +173,10 @@ function handleButtonActions(e) {
   }
 }
 
-
-
 async function fetchLatestAlerts() {
   try {
-    document.getElementById('alertsBody').classList.add('loading');
-    
+    const alertsBody = document.getElementById('alertsBody');
+    if (alertsBody) alertsBody.classList.add('loading');
     // Modify the select query to include department
     const { data, error } = await supabase
       .from('quality_alerts')
@@ -212,7 +210,8 @@ async function fetchLatestAlerts() {
   } catch (error) {
     showError(error.message);
   } finally {
-    document.getElementById('alertsBody').classList.remove('loading');
+    const alertsBody = document.getElementById('alertsBody');
+    if (alertsBody) alertsBody.classList.remove('loading');
   }
 }
 
@@ -229,12 +228,16 @@ setInterval(() => {
 
 function showError(message) {
   const tbody = document.getElementById('alertsBody');
-  tbody.innerHTML = `<tr class="error-row"><td colspan="9">${message}</td></tr>`; // Updated colspan
+  if (tbody) {
+    tbody.innerHTML = `<tr class="error-row"><td colspan="9">${message}</td></tr>`; // Updated colspan
+  }
 }
 
 function showMessage(message) {
   const tbody = document.getElementById('alertsBody');
-  tbody.innerHTML = `<tr class="empty-row"><td colspan="9">${message}</td></tr>`; // Updated colspan
+  if (tbody) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="9">${message}</td></tr>`; // Updated colspan
+  }
 }
 
 async function loadUserProfile() {
@@ -247,13 +250,18 @@ async function loadUserProfile() {
             .single();
 
         if (profile) {
-            document.querySelector('.user-name').textContent = 'Hi, ' + profile.full_name;
-            document.getElementById('employeeName').textContent = profile.full_name;
-            document.getElementById('employeeCode').textContent = (profile.employee_code || '').toUpperCase();
+            const userNameEl = document.querySelector('.user-name');
+            if (userNameEl) userNameEl.textContent = 'Hi, ' + profile.full_name;
+            const employeeNameEl = document.getElementById('employeeName');
+            if (employeeNameEl) employeeNameEl.textContent = profile.full_name;
+            const employeeCodeEl = document.getElementById('employeeCode');
+            if (employeeCodeEl) employeeCodeEl.textContent = (profile.employee_code || '').toUpperCase();
         } else if (profileError) {
             console.error("Error fetching profile:", profileError);
-            document.getElementById('employeeName').textContent = user.email || 'Employee';
-            document.getElementById('employeeCode').textContent = user.id.substring(0, 8).toUpperCase();
+            const employeeNameEl = document.getElementById('employeeName');
+            if (employeeNameEl) employeeNameEl.textContent = user.email || 'Employee';
+            const employeeCodeEl = document.getElementById('employeeCode');
+            if (employeeCodeEl) employeeCodeEl.textContent = user.id.substring(0, 8).toUpperCase();
         }
     } else {
         console.error("User not logged in.");
