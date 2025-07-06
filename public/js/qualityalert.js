@@ -1,15 +1,21 @@
 import { supabase } from '../supabase-config.js';
 
-function showMessage(message) {
+function showMessage(message, isError = false) {
+    const overlay = document.querySelector('.submission-message-overlay');
     const submissionMessage = document.querySelector('.submission-message');
-    if (submissionMessage) {
+    if (submissionMessage && overlay) {
         submissionMessage.textContent = message;
-        submissionMessage.style.display = 'block';
+        submissionMessage.classList.remove('error', 'show');
+        overlay.classList.remove('show');
+        if (isError) submissionMessage.classList.add('error');
+        submissionMessage.classList.add('show');
+        overlay.classList.add('show');
         setTimeout(() => {
-            submissionMessage.style.display = 'none';
+            submissionMessage.classList.remove('show');
+            overlay.classList.remove('show');
         }, 3000);
     } else {
-        console.warn('Submission message element not found.');
+        console.warn('Submission message or overlay element not found.');
     }
 }
 
@@ -43,7 +49,7 @@ async function loadDraftForEditing(draftId) {
 
         if (error) {
             console.error('Error fetching draft:', error);
-            showMessage('Error loading draft for editing.');
+            showMessage('Error loading draft for editing.', true);
             return;
         }
 
@@ -115,7 +121,7 @@ async function loadDraftForEditing(draftId) {
     } catch (error) {
         console.error('Unexpected error loading draft:', error);
         if (typeof showMessage === 'function') {
-            showMessage('Unexpected error loading draft. Please try again.');
+            showMessage('Unexpected error loading draft. Please try again.', true);
         } else {
             console.warn('showMessage function is not defined, cannot display error message.');
         }
@@ -142,7 +148,6 @@ function setupFormEventListeners(userId) {
     const chooseImageBtn = document.getElementById('chooseImageBtn');
     const imageUpload = document.getElementById('imageUpload');
     const imagePreviews = document.getElementById('imagePreviews');
-    const takeImmediateAction = document.getElementById('takeImmediateAction');
     const actionFieldsContainer = document.getElementById('actionFieldsContainer');
 
     // Get the labels and input fields for scrolling
@@ -234,25 +239,9 @@ function setupFormEventListeners(userId) {
 
             } catch (error) {
                 console.error('Image compression error:', error);
-                showMessage(`Error compressing image ${file.name}.`);
+                showMessage(`Error compressing image ${file.name}.`, true);
             }
         }
-    });
-
-    takeImmediateAction.addEventListener('change', function() {
-        const actionTakenIsYes = this.value === 'yes';
-        actionFieldsContainer.style.display = actionTakenIsYes ? 'block' : 'none';
-
-        // --- ADDED: Reset status dropdown if action is 'No' --- 
-        const statusActionSelect = document.getElementById('statusAction');
-        if (!actionTakenIsYes) {
-            statusActionSelect.value = ''; // Reset to default/empty value
-            // Optionally clear other action fields too
-            // document.getElementById('actionTaken').value = '';
-            // document.getElementById('whoAction').value = '';
-            // document.getElementById('whenActionDate').value = '';
-        }
-        // --- End of addition ---
     });
 
     // Add smooth scroll listeners
@@ -295,72 +284,71 @@ function setupFormEventListeners(userId) {
                 qualityrisk: document.getElementById('qualityRisk').value,
                 keptinview: document.getElementById('keptInView').value,
                 incidentdesc: document.getElementById('incidentDesc').value.trim(),
-                // --- ADDED shift --- 
                 shift: isProductDetailsRelevant ? document.getElementById('shift').value : null,
                 productcode: isProductDetailsRelevant ? document.getElementById('productCode').value.trim() : null,
                 rollid: isProductDetailsRelevant ? document.getElementById('rollID').value.trim() : null,
                 lotno: isProductDetailsRelevant ? document.getElementById('lotNo').value.trim() : null,
                 rollpositions: isProductDetailsRelevant ? document.getElementById('rollPositions').value.trim() : null,
-                lottime: isProductDetailsRelevant ? (lotTimeValue || null) : null, // Send null if empty or not relevant
-                actiontaken: takeImmediateAction.value === 'yes' ? document.getElementById('actionTaken').value.trim() : null,
-                whoaction: takeImmediateAction.value === 'yes' ? document.getElementById('whoAction').value.trim() : null,
-                whenactiondate: takeImmediateAction.value === 'yes' ? document.getElementById('whenActionDate').value : null,
-                statusaction: document.getElementById('statusAction').value,
+                lottime: isProductDetailsRelevant ? (lotTimeValue || null) : null,
+                actiontaken: document.getElementById('actionTaken').value.trim() || null,
+                whoaction: document.getElementById('whoAction').value.trim() || null,
+                whenactiondate: document.getElementById('whenActionDate').value.trim() || null,
+                statusaction: document.getElementById('statusAction').value.trim() || null,
                 user_id: userId,
                 timestamp: new Date().toISOString(),
                 submission_status: 'submitted'
-                };
+            };
 
-                // --- REMOVED: Conditional logic for lotTime based on semiFinishedGoodsVisible --- 
+            // --- REMOVED: Conditional logic for lotTime based on semiFinishedGoodsVisible --- 
 
-                try {
-                    let imageUrls = [];
-                    if (compressedFiles.length > 0) {
-                        imageUrls = await uploadImagesToSupabase(compressedFiles);
+            try {
+                let imageUrls = [];
+                if (compressedFiles.length > 0) {
+                    imageUrls = await uploadImagesToSupabase(compressedFiles);
+                }
+
+                const { data, error } = await supabase
+                    .from('quality_alerts')
+                    .insert([{ ...insertData, image_urls: imageUrls }]); // Pass data as an array
+
+                if (error) {
+                    console.error('Submission error:', error);
+                    showMessage('Error submitting form. Please try again. Details: ' + error.message, true);
+                } else {
+                    showMessage('Quality Alert submitted successfully!');
+
+                    // Check if this was an edited draft and delete it
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const draftId = urlParams.get('id');
+                    const action = urlParams.get('action');
+
+                    if (draftId && action === 'edit') {
+                        const { error: deleteError } = await supabase
+                            .from('quality_alert_drafts')
+                            .delete()
+                            .eq('id', draftId);
+
+                        if (deleteError) {
+                            console.error('Error deleting draft:', deleteError);
+                            showMessage('Quality Alert submitted, but failed to delete draft.', true);
+                        } else {
+                            console.log('Draft deleted successfully.');
+                        }
                     }
 
-                    const { data, error } = await supabase
-                        .from('quality_alerts')
-                        .insert([{ ...insertData, image_urls: imageUrls }]); // Pass data as an array
-
-                    if (error) {
-                        console.error('Submission error:', error);
-                        showMessage('Error submitting form. Please try again. Details: ' + error.message);
-                    } else {
-                        showMessage('Quality Alert submitted successfully!');
-
-                        // Check if this was an edited draft and delete it
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const draftId = urlParams.get('id');
-                        const action = urlParams.get('action');
-
-                        if (draftId && action === 'edit') {
-                            const { error: deleteError } = await supabase
-                                .from('quality_alert_drafts')
-                                .delete()
-                                .eq('id', draftId);
-
-                            if (deleteError) {
-                                console.error('Error deleting draft:', deleteError);
-                                showMessage('Quality Alert submitted, but failed to delete draft.');
-                            } else {
-                                console.log('Draft deleted successfully.');
-                            }
-                        }
-
-                        // Optionally, redirect or clear form
-                        document.getElementById('qualityAlertForm').reset();
-                        // Clear image previews
-                        document.getElementById('imagePreviews').innerHTML = '';
+                    // Optionally, redirect or clear form
+                    document.getElementById('qualityAlertForm').reset();
+                    // Clear image previews
+                    document.getElementById('imagePreviews').innerHTML = '';
         // Declare uploadedImageUrls here if it's meant to be reset or used within this scope
         // If it's used elsewhere, it should be declared in a higher scope.
         // For now, assuming it's meant to be reset here.
         let uploadedImageUrls = [];
-                    }
+                }
 
             } catch (error) {
                 console.error('Unexpected error:', error);
-                showMessage('Error submitting form. Please try again.');
+                showMessage('Error submitting form. Please try again.', true);
             }
         } else {
             console.log("Validation failed, preventing submission.");
@@ -395,17 +383,16 @@ function setupFormEventListeners(userId) {
                     qualityrisk: document.getElementById('qualityRisk').value,
                     keptinview: document.getElementById('keptInView').value,
                     incidentdesc: document.getElementById('incidentDesc').value.trim(),
-                    // --- REMOVED: defectdescription --- 
                     productcode: isProductDetailsRelevant ? document.getElementById('productCode').value.trim() : null,
                     shift: isProductDetailsRelevant ? document.getElementById('shift').value.trim() : null,
                     rollid: isProductDetailsRelevant ? document.getElementById('rollID').value.trim() : null,
                     lotno: isProductDetailsRelevant ? document.getElementById('lotNo').value.trim() : null,
                     rollpositions: isProductDetailsRelevant ? document.getElementById('rollPositions').value.trim() : null,
                     lottime: isProductDetailsRelevant ? (lotTimeValue || null) : null,
-                    actiontaken: document.getElementById('actionTaken').value.trim(),
-                    whoaction: document.getElementById('whoAction').value.trim(),
+                    actiontaken: document.getElementById('actionTaken').value.trim() || null,
+                    whoaction: document.getElementById('whoAction').value.trim() || null,
                     whenactiondate: whenActionDateValue || null,
-                    statusaction: document.getElementById('statusAction').value,
+                    statusaction: document.getElementById('statusAction').value.trim() || null,
                     timestamp: new Date().toISOString(),
                     drafted_at: new Date().toISOString() // Optional: record the draft time
                 }]);
@@ -413,14 +400,14 @@ function setupFormEventListeners(userId) {
             if (error) {
                 const message = error.message || "An error occurred. Please try again.";
                 // showError(message); // Assuming showError exists or use showMessage
-                showMessage('Error saving draft: ' + message);
+                showMessage('Error saving draft: ' + message, true);
             } else {
                 showMessage('Draft saved successfully!');
             }
         } catch (error) {
             console.error('Unexpected error saving draft:', error);
             // showError("Unexpected error occurred. Please try again.");
-            showMessage('Unexpected error saving draft. Please try again.');
+            showMessage('Unexpected error saving draft. Please try again.', true);
         } finally {
             saveAsDraftButton.disabled = false;
             saveAsDraftButton.textContent = "Save as Draft";
@@ -439,7 +426,7 @@ function setupFormEventListeners(userId) {
 
             if (error) {
                 console.error('Error uploading image:', error);
-                showMessage(`Error uploading ${file.name}: ${error.message}`);
+                showMessage(`Error uploading ${file.name}: ${error.message}`, true);
             } else {
                 // Get public URL
                 const { data: publicUrlData } = supabase.storage
@@ -471,19 +458,18 @@ function setupFormEventListeners(userId) {
         const whoaction = document.getElementById('whoAction').value.trim();
         const whenactiondate = document.getElementById('whenActionDate').value;
         const statusaction = document.getElementById('statusAction').value;
-        const takeImmediateActionValue = document.getElementById('takeImmediateAction').value;
 
         // Basic required fields check
         if (!incidenttitle || responsibledept === 'Select Department' || !locationarea || !incidentdate || !incidenttime || abnormalitytype === '' || qualityrisk === '') {
             console.log("Validation failed: Basic required fields missing");
-            showMessage('Please fill in all required basic fields (Title, Dept, Location, Date, Time, Abnormality, Risk).');
+            showMessage('Please fill in all required basic fields (Title, Dept, Location, Date, Time, Abnormality, Risk).', true);
             return false;
         }
 
         // Check statusaction only if immediate action was taken
-        if (takeImmediateActionValue === 'yes' && statusaction === '') {
+        if (statusaction === '') {
             console.log("Validation failed: Immediate Action Status missing");
-            showMessage('Please select the Immediate Action Status.');
+            showMessage('Please select the Immediate Action Status.', true);
             return false;
         }
 
@@ -491,7 +477,7 @@ function setupFormEventListeners(userId) {
         if (abnormalitytype === 'Semi/Finished Goods') {
             if (keptinview === '') {
                  console.log("Validation failed: Kept in View required for Semi/Finished Goods");
-                 showMessage('Please specify if the item was Kept in View.');
+                 showMessage('Please specify if the item was Kept in View.', true);
                  return false;
             }
             const shift = document.getElementById('shift').value; // <<< Get shift value
@@ -502,18 +488,9 @@ function setupFormEventListeners(userId) {
                 if (!shift || !productcode || !rollid || !lotno || !rollpositions || !lottime) { 
                     console.log("Validation failed: Product details missing when Kept in View is Yes");
                     // --- UPDATED message --- 
-                    showMessage('Please fill in all Product details (Shift, Prod Code, Roll ID, Lot No, Roll Pos, Lot Time).');
+                    showMessage('Please fill in all Product details (Shift, Prod Code, Roll ID, Lot No, Roll Pos, Lot Time).', true);
                     return false;
                 }
-            }
-        }
-
-        // Conditional validation for 'Immediate Action' fields
-        if (takeImmediateActionValue === 'yes') {
-            if (!actiontaken || !whoaction || !whenactiondate) {
-                console.log("Validation failed: Immediate Action details missing");
-                showMessage('Please fill in all Immediate Action details (Action Taken, Who, When).');
-                return false;
             }
         }
 
@@ -523,7 +500,7 @@ function setupFormEventListeners(userId) {
         const isSemiFinishedNoView = abnormalitytype === 'Semi/Finished Goods' && keptinview === 'no';
         if (!incidentdesc && !isSemiFinishedNoView) { // Require description unless it's Semi/Finished and not kept
              console.log("Validation failed: Incident Description required.");
-             showMessage('Please provide an Incident Description.');
+             showMessage('Please provide an Incident Description.', true);
              return false;
         }
 

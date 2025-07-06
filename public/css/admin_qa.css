@@ -247,6 +247,59 @@ body {
         flex-direction: column;
         align-items: center;
     }
+    .header-container {
+        height: 70px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        border-bottom-width: 5px;
+    }
+    .header-title {
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.10rem;
+        text-align: center;
+    }
+    .logout-button {
+        padding: 4px 10px;
+        font-size: 0.85rem;
+        margin-right: 6px;
+    }
+    .immediate-action-row-scroll {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    .immediate-action-row-scroll .form-group {
+        flex-wrap: nowrap;
+        min-width: 700px;
+        gap: 0;
+    }
+    .immediate-action-row-scroll .immediate-action-field {
+        margin-right: 12px;
+    }
+    .immediate-action-row-scroll .immediate-action-field:last-child {
+        margin-right: 0;
+    }
+    .immediate-action-row-scroll textarea {
+        min-width: 120px;
+        max-width: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-container {
+        padding: 5px 10px;
+    }
+    .header-title {
+        font-size: 1.2rem;
+    }
+    .company-logo img {
+        height: 38px;
+    }
+    .user-name {
+        display: none;
+    }
 }
 
 /* Remove old table styles */

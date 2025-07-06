@@ -153,42 +153,28 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="takeImmediateAction">Immediate Action Taken?</label>
-                        <select id="takeImmediateAction" required>
-                            <option value="">Select</option>
-                            <option value="yes">Yes</option>
-                            <option value="no">No</option>
-                        </select>
-                    </div>
-                    <div id="actionFieldsContainer" style="display: none;">
-                        <div class="form-group">
-                            <label>Immediate Action Taken:</label>
-                            <div class="split-container">
+                    <!-- Always show Immediate Action Taken section -->
+                    <div id="actionFieldsContainer">
+                        <div class="immediate-action-row">
+                            <div class="form-group">
+                                <label>Immediate Action</label>
                                 <textarea id="actionTaken" placeholder="Describe action"></textarea>
                             </div>
-                        </div>
-                        <div class="action-status-container">
-                        <div class="form-group">
-                            <label for="whoAction">Action Taken By:</label>
-                            <input type="text" id="whoAction">
-                        </div>
-                        <div class="form-group">
-                            <label for="whenActionDate">Action Taken Date:</label>
-                            <input type="date" id="whenActionDate">
-                        </div>
-                        <div class="form-group">
-                            <label for="statusAction">Immediate Action Status:</label>
-                            <select id="statusAction">
-                                <!-- --- ADDED Default Option --- -->
-                                <option value="">Select Status</option> 
-                                <option value="Completed">Completed</option>
-                                <option value="Pending">Pending</option>
-                            </select>
+                            <div class="form-group">
+                                <label for="whoAction">Who:</label>
+                                <textarea id="whoAction" placeholder="Enter name"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="whenActionDate">When:</label>
+                                <textarea id="whenActionDate" placeholder="Enter date"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="statusAction">Status:</label>
+                                <textarea id="statusAction" placeholder="Enter status"></textarea>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div id="imageUploadContainer">
+                    <div id="imageUploadContainer">
                         <label for="imageUpload">
                             <button type="button" id="chooseImageBtn" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
                                 <i class="fas fa-camera"></i> Choose Images/Files
@@ -202,7 +188,8 @@
                         <button type="button" id="saveAsDraft" class="draft-btn btn btn-secondary">Save as Draft</button>
                     </div>
                 </form>
-                <div class="submission-message" style="display: none;"></div>
+                <div class="submission-message-overlay"></div>
+                <div class="submission-message"></div>
             </div>
         </section>
     </main>

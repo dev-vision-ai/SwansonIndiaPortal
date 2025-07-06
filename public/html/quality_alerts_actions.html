@@ -36,7 +36,7 @@
     .form-container {
       position: relative; /* Needed for absolute positioning of the button */
       padding: 20px; 
-      max-width: 800px; 
+      max-width: 1000px; 
       margin: 20px auto; 
       background: #fff; 
       border-radius: 8px; 
@@ -151,7 +151,7 @@
 
       <!-- Display fields based on Supabase table, some read-only, some editable -->
       <div class="form-group">
-        <label for="alertIdDisplay">Alert ID</label>
+        <label for="alertIdDisplay">Quality Alert Masterlist No.</label>
         <input type="text" id="alertIdDisplay"> <!-- Removed readonly -->
       </div>
       <div class="form-group">
@@ -208,27 +208,28 @@
         <textarea id="incidentdesc"></textarea>
       </div>
   
-      <!-- <<< PASTE the Immediate Action fields here >>> -->
-      <div class="form-group">
-        <label for="actiontaken">Immediate Action Taken:</label> <!-- Changed label -->
-        <textarea id="actiontaken"></textarea>
+      <!-- Begin scrollable row for Immediate Action and related fields -->
+      <div class="immediate-action-row-scroll">
+        <div class="form-group" style="display: flex; align-items: flex-start; gap: 6px; min-width: 700px;">
+          <div class="immediate-action-field" style="flex-basis: 70%; min-width: 0;">
+            <label for="actiontaken">Immediate Action</label>
+            <textarea id="actiontaken" rows="5" style="max-width:100%; width: 100%;"></textarea>
+          </div>
+          <div class="immediate-action-field" style="display: flex; flex-direction: column; justify-content: flex-start; flex-basis: 22%; min-width: 80px;">
+            <label for="whoaction">Who:</label>
+            <textarea id="whoaction" rows="5" style="width:100%;"></textarea>
+          </div>
+          <div class="immediate-action-field" style="display: flex; flex-direction: column; justify-content: flex-start; flex-basis: 22%; min-width: 80px;">
+            <label for="whenactiondate">When:</label>
+            <textarea id="whenactiondate" rows="5" style="width:100%;"></textarea>
+          </div>
+          <div class="immediate-action-field" style="display: flex; flex-direction: column; justify-content: flex-start; flex-basis: 22%; min-width: 80px;">
+            <label for="statusaction">Status</label>
+            <textarea id="statusaction" rows="5" style="width:100%;"></textarea>
+          </div>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="whoaction">Action Taken By:</label> <!-- Changed label -->
-        <input type="text" id="whoaction">
-      </div>
-      <div class="form-group">
-        <label for="whenactiondate">Action Taken Date:</label> <!-- Changed label -->
-        <input type="date" id="whenactiondate">
-      </div>
-
-      <div class="form-group">
-        <label for="statusaction">Immediate Action Status:</label> <!-- Changed label -->
-        <select id="statusaction">
-          <option value="Completed">Completed</option>
-          <option value="Pending">Pending</option>
-        </select>
-      </div>
+      <!-- End scrollable row -->
 
       <!-- RPN Calculation -->
       <div id="rpn-calculation-section" class="form-group">
@@ -265,11 +266,11 @@
       </div>
 
       <div class="form-group">
-        <label for="root_cause">Root Cause Analysis</label>
+        <label for="root_cause">Cause</label>
         <textarea id="root_cause"></textarea>
       </div>
       <div class="form-group">
-        <label for="corrective_actions">Corrective Actions Taken</label>
+        <label for="corrective_actions">Counter Measure</label>
         <textarea id="corrective_actions"></textarea>
       </div>
       <div class="form-group">
@@ -277,11 +278,20 @@
         <textarea id="remarks"></textarea>
       </div>
 
-      <div class="form-group">
+      <!-- Hide Kept in View, Timestamp, and Drafted At sections -->
+      <div class="form-group hidden">
         <label for="keptinview">Kept in View?</label> 
         <input type="text" id="keptinview" readonly>
       </div>
-      
+      <div class="form-group hidden">
+        <label for="timestamp">Timestamp</label>
+        <input type="text" id="timestamp" readonly>
+      </div>
+      <div class="form-group hidden">
+        <label for="drafted_at">Drafted At</label>
+        <input type="text" id="drafted_at" readonly>
+      </div>
+
       <!-- --- ADD Wrapper Div --- -->
       <div class="form-section kiv-details" style="display: none;"> 
           <h3>KIV Details</h3>
@@ -324,15 +334,6 @@
             <input type="text" id="lottime">
           </div>
       </div> <!-- --- END Wrapper Div --- -->
-
-      <div class="form-group">
-        <label for="timestamp">Timestamp</label>
-        <input type="text" id="timestamp" readonly>
-      </div>
-      <div class="form-group">
-        <label for="drafted_at">Drafted At</label>
-        <input type="text" id="drafted_at" readonly>
-      </div>
 
       <div class="form-actions">
         <button type="button" class="btn-back" onclick="window.history.back();">Back</button>

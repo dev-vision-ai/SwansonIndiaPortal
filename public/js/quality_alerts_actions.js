@@ -304,7 +304,7 @@ function populateForm(data) {
     if (lotTimeInput) lotTimeInput.value = get(data.lottime);
     if (actionTakenInput) actionTakenInput.value = get(data.actiontaken);
     if (whoActionInput) whoActionInput.value = get(data.whoaction);
-    if (whenActionDateInput) whenActionDateInput.value = formatDate(data.whenactiondate);
+    if (whenActionDateInput) whenActionDateInput.value = get(data.whenactiondate);
     if (timestampInput) timestampInput.value = formatTimestampForDisplay(data.timestamp);
     if (draftedAtInput) draftedAtInput.value = formatTimestampForDisplay(data.drafted_at);
 
