@@ -610,4 +610,3 @@ async function getNextAlertId() {
     const nextSerial = String(maxSerial + 1).padStart(2, '0');
     return `${prefix}-${nextSerial}`;
 }
-yes
