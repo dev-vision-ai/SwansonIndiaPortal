@@ -125,8 +125,8 @@ document.getElementById('sendAlertButton').addEventListener('click', async funct
     body += `${padLabel('Lot Time', labelWidth)}: ${lotTimeInput.value}\n`;
   }
 
-  // Add the alert link to the email body
-  const alertLink = `https://swanson-india-portal.vercel.app/html/quality_alerts_actions.html?id=${encodeURIComponent(alertId)}`;
+  // Add the alert link to the email body with action=edit
+  const alertLink = `https://swanson-india-portal.vercel.app/html/quality_alerts_actions.html?id=${encodeURIComponent(alertId)}&action=edit`;
 
   body += '\n------------------------------------------------------------\n';
   body += `View or update this alert: \n${alertLink}\n`;
