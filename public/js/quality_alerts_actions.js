@@ -66,13 +66,13 @@ document.getElementById('sendAlertButton').addEventListener('click', async funct
       .select('is_admin, department')
       .eq('id', user.id)
       .single();
-      
     if (!profile?.is_admin || profile?.department !== 'Quality Assurance') {
       alert('Only QA Admins can send alerts');
       return;
     }
   }
 
+  // Gather all fields
   const alertId = document.getElementById('alertId').value;
   const department = document.getElementById('responsibledept').value;
   const rootCause = document.getElementById('root_cause').value;
@@ -84,64 +84,59 @@ document.getElementById('sendAlertButton').addEventListener('click', async funct
   const incidentTime = document.getElementById('incidenttime').value;
   const location = document.getElementById('locationarea').value;
   const abnormalityType = document.getElementById('abnormalitytype').value;
-  
-  if (!department) {
-    alert('Please specify the responsible department');
-    return;
+  // KIV fields
+  const keptInViewInput = document.getElementById('keptinview');
+  const productCodeInput = document.getElementById('productcode');
+  const rollIdInput = document.getElementById('rollid');
+  const lotNoInput = document.getElementById('lotno');
+  const rollPositionsInput = document.getElementById('rollpositions');
+  const lotTimeInput = document.getElementById('lottime');
+
+  // Helper for alignment
+  function padLabel(label, width) {
+    return label.padEnd(width, ' ');
   }
-  
-  // Construct detailed email body with only alerts action table data
-  const subject = `Internal Quality Alerts Notification!`;
-  const body =`
+  const labelWidth = 18; // Adjust for best alignment
 
-Quality Alert Notification
-=========================
-Hi Team,
-Please find below the Quality Alerts Notification: 
------------------
-Date: ${incidentDate}
-Reported By: ${userName}
-Time: ${incidentTime}
+  const subject = `Internal Quality Alert Notification!`;
+  let body = '';
+  body += 'Dear Team,\n\n';
+  body += 'Please find below the details of a new Quality Alert:\n\n';
+  body += '------------------------------------------------------------\n';
+  body += `${padLabel('Date', labelWidth)}: ${incidentDate}\n`;
+  body += `${padLabel('Reported By', labelWidth)}: ${userName}\n`;
+  body += `${padLabel('Time', labelWidth)}: ${incidentTime}\n\n`;
+  body += 'Incident Details:\n';
+  body += '------------------------------------------------------------\n';
+  body += `${padLabel('Title', labelWidth)}: ${incidentTitle}\n`;
+  body += `${padLabel('Description', labelWidth)}: ${incidentDesc}\n`;
+  body += `${padLabel('Location/Area', labelWidth)}: ${location}\n`;
+  body += `${padLabel('Abnormality Type', labelWidth)}: ${abnormalityType}\n`;
+  body += `${padLabel('Department', labelWidth)}: ${department}\n`;
 
-Incident Details:
------------------
-Title: ${incidentTitle}
-Description: ${incidentDesc}
-Location/Area: ${location}
-Abnormality Type: ${abnormalityType}
-Responsible Department: ${department}
+  // KIV Details if present
+  if (keptInViewInput && keptInViewInput.value === 'yes') {
+    body += '\nKIV Details:\n';
+    body += '------------------------------------------------------------\n';
+    body += `${padLabel('Product Code', labelWidth)}: ${productCodeInput.value}\n`;
+    body += `${padLabel('Roll ID', labelWidth)}: ${rollIdInput.value}\n`;
+    body += `${padLabel('Lot No', labelWidth)}: ${lotNoInput.value}\n`;
+    body += `${padLabel('Roll Positions', labelWidth)}: ${rollPositionsInput.value}\n`;
+    body += `${padLabel('Lot Time', labelWidth)}: ${lotTimeInput.value}\n`;
+  }
 
-${keptInViewInput.value === 'yes' ? `
-KIV Details:
------------------
-Product Code: ${productCodeInput.value}
-Roll ID: ${rollIdInput.value}
-Lot No: ${lotNoInput.value}
-Roll Positions: ${rollPositionsInput.value}
-Lot Time: ${lotTimeInput.value}
-` : ''}
-==========================
+  // Add the alert link to the email body
+  const alertLink = `https://swanson-india-portal.vercel.app/html/qualityalert.html?id=${encodeURIComponent(alertId)}`;
 
-Please reply with below details:
-
-Immediate Action :
--------------------
-1.
-2.
--------------------
-
-Root Cause Analysis:
--------------------
-
-
--------------------
-
-Corrective Actions:
--------------------
-1.
-2.
--------------------
-`;
+  body += '\n------------------------------------------------------------\n';
+  body += `View or update this alert: \n${alertLink}\n`;
+  body += '------------------------------------------------------------\n';
+  body += 'Please reply with the following details:\n\n';
+  body += 'Immediate Action(s) Taken\n1. \n2. \n\n';
+  body += 'Root Cause Analysis\n(Describe here)\n\n';
+  body += 'Corrective Actions\n1. \n2. \n\n';
+  body += '------------------------------------------------------------\n\n';
+  body += 'Thank you,\nQuality Assurance Team';
 
   window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 });
@@ -523,36 +518,43 @@ function showError(message) {
     errorMessage.style.display = 'block';
 }
 
-// Delete button creation (modify this section)
+// DELETE BUTTON LOGIC (clean, robust, only once)
 let deleteButton = document.querySelector('.delete-button');
 if (!deleteButton) {
     deleteButton = document.createElement('button');
+    deleteButton.type = 'button'; // Prevent form submission on delete
     deleteButton.textContent = 'Delete';
     deleteButton.classList.add('delete-button', 'red-button');
-    saveButton.insertAdjacentElement('afterend', deleteButton);
+    if (window.saveButton) {
+        saveButton.insertAdjacentElement('afterend', deleteButton);
+    } else {
+        document.body.appendChild(deleteButton); // fallback
+    }
 }
-
-// Delete event handler (modify this section)
-deleteButton.addEventListener('click', async function handler() {
+// Remove any previous click handlers (if any)
+deleteButton.replaceWith(deleteButton.cloneNode(true));
+deleteButton = document.querySelector('.delete-button');
+deleteButton.type = 'button'; // Ensure type is always button
+deleteButton.addEventListener('click', async function () {
     if (confirm('Are you sure you want to delete this alert?')) {
         try {
             const { error } = await supabase
                 .from('quality_alerts')
                 .delete()
                 .match({ id: alertIdInput.value });
-
             if (error) throw error;
-            
-            // Replace history before redirect
-            window.history.replaceState({}, '', 'quality_alerts_table.html');
-            window.location.href = 'quality_alerts_table.html';
-
+            alert('Alert deleted successfully!');
+            setTimeout(() => {
+                window.history.replaceState({}, '', 'quality_alerts_table.html');
+                window.location.href = 'quality_alerts_table.html';
+            }, 300);
         } catch (error) {
             console.error('Delete error details:', error);
             alert(`Error deleting alert: ${error.message || 'Check console for details'}`);
         }
     }
-}, {once: true}); // Ensures the listener only fires once
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   // Auto-expand textareas based on content
   function adjustTextareaHeight(textarea) {
@@ -608,3 +610,4 @@ async function getNextAlertId() {
     const nextSerial = String(maxSerial + 1).padStart(2, '0');
     return `${prefix}-${nextSerial}`;
 }
+yes

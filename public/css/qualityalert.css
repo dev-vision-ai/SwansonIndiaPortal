@@ -255,12 +255,6 @@ textarea {
 }
 
 @media (max-width: 600px) {
-    html, body {
-        height: 100vh !important;
-        min-height: 0 !important;
-        overflow: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-    }
     .split-container {
         display: flex !important;
         flex-direction: row !important;
