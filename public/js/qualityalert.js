@@ -19,8 +19,6 @@ function showMessage(message, isError = false) {
     }
 }
 
-const urlParams = new URLSearchParams(window.location.search);
-
 document.addEventListener('DOMContentLoaded', async () => {
     const userId = await getLoggedInUserId();
     if (!userId) {
@@ -29,77 +27,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = '/';
         return; // Important to stop further execution if not authenticated
     }
-    // Fetch user profile to determine role
-    const { data: userProfile } = await supabase
-        .from('users')
-        .select('is_admin')
-        .eq('id', userId)
-        .single();
-    const isQAAdmin = userProfile && userProfile.is_admin;
-
-    // Get alert ID from URL
-    const alertId = urlParams.get('id');
-    if (!alertId) return;
-
-    // Fetch alert data including recipient_edit_completed
-    const { data: alertData, error } = await supabase
-        .from('quality_alerts')
-        .select('*')
-        .eq('id', alertId)
-        .single();
-    if (error || !alertData) return;
-
-    // Populate form fields as before (reuse your existing logic)
-    // ... (populate all fields from alertData) ...
-    // Example:
-    document.getElementById('incidentTitle').value = alertData.incidenttitle || '';
-    document.getElementById('responsibleDept').value = alertData.responsibledept || '';
-    document.getElementById('locationArea').value = alertData.locationarea || '';
-    document.getElementById('incidentDate').value = alertData.incidentdate || '';
-    document.getElementById('incidentTime').value = alertData.incidenttime || '';
-    document.getElementById('abnormalityType').value = alertData.abnormalitytype || '';
-    document.getElementById('qualityRisk').value = alertData.qualityrisk || '';
-    document.getElementById('keptInView').value = alertData.keptinview || '';
-    document.getElementById('incidentDesc').value = alertData.incidentdesc || '';
-    // ... (populate other fields as needed) ...
-    document.getElementById('actionTaken').value = alertData.actiontaken || '';
-    document.getElementById('whoAction').value = alertData.whoaction || '';
-    document.getElementById('whenActionDate').value = alertData.whenactiondate || '';
-    document.getElementById('statusAction').value = alertData.statusaction || '';
-    document.getElementById('cause').value = alertData.cause || '';
-    document.getElementById('counterMeasure').value = alertData.countermeasure || '';
-    document.getElementById('counterWho').value = alertData.counterwho || '';
-    document.getElementById('counterWhen').value = alertData.counterwhen || '';
-    document.getElementById('counterStatus').value = alertData.counterstatus || '';
-
-    // Set field editability
-    const editableForNonAdmin = !isQAAdmin && alertData.recipient_edit_completed === false;
-    // List of allowed editable field IDs for non-admins
-    const allowedFields = [
-        'actionTaken', 'whoAction', 'whenActionDate', 'statusAction',
-        'cause',
-        'counterMeasure', 'counterWho', 'counterWhen', 'counterStatus'
-    ];
-    // Set all fields to read-only by default for non-admins
-    if (!isQAAdmin) {
-        document.querySelectorAll('#qualityAlertForm input, #qualityAlertForm textarea, #qualityAlertForm select').forEach(el => {
-            el.readOnly = true;
-            el.disabled = true;
-        });
-        if (editableForNonAdmin) {
-            allowedFields.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.readOnly = false;
-                    el.disabled = false;
-                }
-            });
-        }
-    }
-    // QA admins: all fields editable (default behavior)
     setupFormEventListeners(userId);
 
     // Check if we are editing a draft
+    const urlParams = new URLSearchParams(window.location.search);
     const draftId = urlParams.get('id');
     const action = urlParams.get('action');
 
@@ -561,30 +492,6 @@ function setupFormEventListeners(userId) {
         // If it's used elsewhere, it should be declared in a higher scope.
         // For now, assuming it's meant to be reset here.
         let uploadedImageUrls = [];
-
-                        // Check user role and set recipient_edit_completed if non-admin
-                        let updateData = { /* ...fields to update... */ };
-                        if (!isQAAdmin) {
-                            updateData.recipient_edit_completed = true;
-                        }
-
-                        // Update the alert in Supabase
-                        const { error } = await supabase
-                            .from('quality_alerts')
-                            .update(updateData)
-                            .eq('id', alertId);
-
-                        if (error) {
-                            hideUploadOverlay();
-                            showMessage('Error saving alert. Please try again.', true);
-                            return;
-                        }
-
-                        updateUploadProgress(100);
-                        setTimeout(hideUploadOverlay, 500);
-                        showMessage('Alert updated successfully!');
-
-                        // Optionally, reload or redirect
                     }
 
             } catch (error) {
