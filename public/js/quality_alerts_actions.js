@@ -126,7 +126,7 @@ document.getElementById('sendAlertButton').addEventListener('click', async funct
   }
 
   // Add the alert link to the email body
-  const alertLink = `https://swanson-india-portal.vercel.app/html/qualityalert.html?id=${encodeURIComponent(alertId)}`;
+  const alertLink = `https://swanson-india-portal.vercel.app/html/quality_alerts_actions.html?id=${encodeURIComponent(alertId)}`;
 
   body += '\n------------------------------------------------------------\n';
   body += `View or update this alert: \n${alertLink}\n`;
