@@ -48,6 +48,19 @@ function sortData(column) {
 
     currentlyDisplayedData.sort((a, b) => {
         const modifier = currentSort.direction === 'asc' ? 1 : -1;
+        if (currentSort.column === 'id') {
+            // Sort by prefix (YYMM), then by serial (XX) as number
+            const parseId = (id) => {
+                const match = id && id.match(/^(\d{4})-(\d{2})$/);
+                return match ? { prefix: match[1], serial: parseInt(match[2], 10) } : { prefix: '', serial: 0 };
+            };
+            const aId = parseId(a.id);
+            const bId = parseId(b.id);
+            if (aId.prefix !== bId.prefix) {
+                return (aId.prefix.localeCompare(bId.prefix)) * modifier;
+            }
+            return (aId.serial - bId.serial) * modifier;
+        }
         const aValue = a[currentSort.column];
         const bValue = b[currentSort.column];
      

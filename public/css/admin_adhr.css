@@ -24,46 +24,6 @@ body {
     padding-top: 70px; 
 }
 
-.header-container {
-    position: fixed; 
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
-    display: flex;
-    justify-content: space-between; 
-    align-items: center; 
-    background-color: var(--accent-color);
-    padding: 10px 20px; 
-    margin: 0;
-    border-radius: 0;
-    border-bottom: 7px solid #e4c829; 
-    box-sizing: border-box; 
-}
-
-.header-title {
-    position: absolute; 
-    left: 50%; 
-    transform: translateX(-50%); 
-    color: white;
-    font-size: 1.6rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
-
-.company-logo {
-    display: flex;
-    align-items: center; 
-    margin-left: auto; 
-}
-
-.company-logo img.auth-logo { 
-    height: 48px; 
-    filter: none;
-    object-fit: contain;
-    border: 3px solid white; 
-}
-
 .quick-action-grid {
     display: flex;
     flex-wrap: wrap;

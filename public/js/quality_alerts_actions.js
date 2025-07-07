@@ -431,10 +431,16 @@ function setupFormMode(action) {
         if (saveButton) saveButton.classList.remove('hidden');
         if (form) form.addEventListener('submit', handleFormSubmit);
         if (deleteButton) deleteButton.classList.remove('hidden');
+        // Show Send Alert button
+        const sendAlertButton = document.getElementById('sendAlertButton');
+        if (sendAlertButton) sendAlertButton.style.display = '';
     } else {
         if (saveButton) saveButton.classList.add('hidden');
         if (form) form.removeEventListener('submit', handleFormSubmit);
         if (deleteButton) deleteButton.classList.add('hidden');
+        // Hide Send Alert button
+        const sendAlertButton = document.getElementById('sendAlertButton');
+        if (sendAlertButton) sendAlertButton.style.display = 'none';
     }
 }
 
@@ -479,6 +485,11 @@ async function handleFormSubmit(event) {
     };
 
     try {
+        // Check for network connectivity
+        if (!navigator.onLine) {
+            alert('You are offline. Please check your internet connection and try again.');
+            return;
+        }
         const { error } = await supabase
             .from('quality_alerts')
             .update(updatedData)
@@ -486,13 +497,19 @@ async function handleFormSubmit(event) {
 
         if (error) throw error;
         alert('Alert updated successfully!');
-        
         // Replace current history entry instead of adding new one
         window.history.replaceState({}, '', `?id=${updatedData.id}&action=view`);
-        window.location.reload();  // Refresh to load new ID
+        // Add a short delay before reload to ensure request completes
+        setTimeout(() => {
+            window.location.reload();
+        }, 300);
     } catch (error) {
         console.error("Error updating alert:", error);
-        alert(`Error updating alert: ${error.message || JSON.stringify(error)}`);
+        if (error.message && error.message.includes('Failed to fetch')) {
+            alert('Network error: Failed to reach the server. Please check your connection and try again.');
+        } else {
+            alert(`Error updating alert: ${error.message || JSON.stringify(error)}`);
+        }
     } finally {
         saveButton.disabled = false;
         saveButton.textContent = 'Save Changes';
@@ -558,3 +575,36 @@ document.addEventListener('DOMContentLoaded', () => {
     new ResizeObserver(() => adjustTextareaHeight(textarea)).observe(textarea);
   });
 });
+
+async function getNextAlertId() {
+    // Get current year and month
+    const now = new Date();
+    const year = now.getFullYear() % 100; // last two digits
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const prefix = `${year}${month}`; // e.g., 2507
+
+    // Query Supabase for all IDs starting with this prefix
+    const { data, error } = await supabase
+        .from('quality_alerts')
+        .select('id')
+        .like('id', `${prefix}-%`);
+
+    if (error) {
+        console.error('Error fetching alert IDs:', error);
+        throw error;
+    }
+
+    // Find the highest serial number for this month
+    let maxSerial = 0;
+    if (data && data.length > 0) {
+        data.forEach(row => {
+            const match = row.id.match(/^\d{4}-(\d{2})$/);
+            if (match) {
+                const serial = parseInt(match[1], 10);
+                if (serial > maxSerial) maxSerial = serial;
+            }
+        });
+    }
+    const nextSerial = String(maxSerial + 1).padStart(2, '0');
+    return `${prefix}-${nextSerial}`;
+}

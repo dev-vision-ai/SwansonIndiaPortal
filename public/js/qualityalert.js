@@ -210,22 +210,157 @@ function setupFormEventListeners(userId) {
 
     let compressedFiles = []; // Store compressed files globally or pass them
 
+    // --- Spinner Overlay HTML Injection ---
+    function showUploadOverlay(progress = 0, onCancel, message = 'uploading...') {
+        let overlay = document.getElementById('image-upload-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'image-upload-overlay';
+            document.body.appendChild(overlay);
+        }
+        overlay.innerHTML = `
+            <div class="spinner-blur-bg"></div>
+            <div class="spinner-content">
+                <div class="spinner"></div>
+                <div class="progress-text"><span id="upload-progress">${progress}</span>% ${message}</div>
+                <button class="cancel-upload-btn" id="cancel-upload-btn" title="Cancel Upload">&times;</button>
+            </div>
+        `;
+        overlay.style.display = 'flex';
+        // Prevent scrolling/interactions
+        document.body.style.overflow = 'hidden';
+        // Cancel button
+        const cancelBtn = document.getElementById('cancel-upload-btn');
+        if (cancelBtn) {
+            cancelBtn.onclick = () => {
+                if (onCancel) onCancel();
+                hideUploadOverlay();
+            };
+        }
+    }
+    function updateUploadProgress(progress) {
+        const progressElem = document.getElementById('upload-progress');
+        if (progressElem) progressElem.textContent = progress;
+    }
+    function hideUploadOverlay() {
+        const overlay = document.getElementById('image-upload-overlay');
+        if (overlay) overlay.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    // --- CSS for Spinner Overlay ---
+    (function addSpinnerOverlayCSS() {
+        if (document.getElementById('spinner-overlay-style')) return;
+        const style = document.createElement('style');
+        style.id = 'spinner-overlay-style';
+        style.textContent = `
+#image-upload-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.spinner-blur-bg {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 1;
+}
+.spinner-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255,255,255,0.95);
+  border-radius: 12px;
+  padding: 32px 40px 24px 40px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.12);
+}
+@media (max-width: 600px) {
+  .spinner-content {
+    padding: 18px 16px 14px 16px;
+    min-width: 180px;
+    max-width: 90vw;
+  }
+  .progress-text {
+    font-size: 1rem;
+  }
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border-width: 4px;
+  }
+  .cancel-upload-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 1.5rem;
+  }
+}
+.spinner {
+  border: 6px solid #e4e4e4;
+  border-top: 6px solid #002E7D;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 18px;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.progress-text {
+  font-size: 1.2rem;
+  color: #002E7D;
+  margin-bottom: 18px;
+}
+.cancel-upload-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #fff;
+  border: none;
+  font-size: 2rem;
+  color: #d32f2f;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.cancel-upload-btn:hover {
+  background: #ffeaea;
+}
+`;
+        document.head.appendChild(style);
+    })();
+
+    // --- Update image upload logic ---
+    let currentUploadXHR = null;
     imageUpload.addEventListener('change', async function(e) {
         const files = e.target.files;
         imagePreviews.innerHTML = '';
-        compressedFiles = []; // Clear previous files
+        compressedFiles = [];
 
         for (const file of Array.from(files)) {
             try {
                 const options = {
-                    maxSizeMB: 1, // (max file size in MB)
-                    maxWidthOrHeight: 1920, // max width or height in pixels
+                    maxSizeMB: 1,
+                    maxWidthOrHeight: 1920,
                     useWebWorker: true,
-                    fileType: 'image/jpeg' // Ensure output is JPEG
+                    fileType: 'image/jpeg'
                 };
                 const compressedFile = await imageCompression(file, options);
                 compressedFiles.push(compressedFile);
 
+                // Only preview the image, do not upload here
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     const img = document.createElement('img');
@@ -236,10 +371,8 @@ function setupFormEventListeners(userId) {
                     imagePreviews.appendChild(img);
                 };
                 reader.readAsDataURL(compressedFile);
-
             } catch (error) {
-                console.error('Image compression error:', error);
-                showMessage(`Error compressing image ${file.name}.`, true);
+                showMessage(`Error compressing image: ${file.name}`, true);
             }
         }
     });
@@ -268,13 +401,23 @@ function setupFormEventListeners(userId) {
         event.preventDefault();
 
         if (validateForm()) {
+            // Show overlay (no cancel button during submit for safety)
+            showUploadOverlay(0, null, 'submitting...');
+            const cancelBtn = document.getElementById('cancel-upload-btn');
+            if (cancelBtn) cancelBtn.style.display = 'none';
+            updateUploadProgress(0);
+
             const incidentTimeValue = document.getElementById('incidentTime').value;
             const lotTimeValue = document.getElementById('lotTime').value;
             // Check if product details are relevant (Semi/Finished and Kept in View = Yes)
             const isProductDetailsRelevant = document.getElementById('abnormalityType').value === 'Semi/Finished Goods' && 
                                            document.getElementById('keptInView').value === 'yes';
 
+            // --- Generate new string ID ---
+            const id = await getNextAlertId();
+
             const insertData = {
+                id, // Use the generated string ID
                 incidenttitle: document.getElementById('incidentTitle').value.trim(),
                 responsibledept: document.getElementById('responsibleDept').value,
                 locationarea: document.getElementById('locationArea').value.trim(),
@@ -307,14 +450,19 @@ function setupFormEventListeners(userId) {
                         imageUrls = await uploadImagesToSupabase(compressedFiles);
                     }
 
+                    // Simulate progress (since insert is atomic)
+                    updateUploadProgress(50);
                     const { data, error } = await supabase
                         .from('quality_alerts')
                         .insert([{ ...insertData, image_urls: imageUrls }]); // Pass data as an array
 
                     if (error) {
+                        hideUploadOverlay();
                         console.error('Submission error:', error);
-                    showMessage('Error submitting form. Please try again. Details: ' + error.message, true);
+                        showMessage('Error submitting form. Please try again. Details: ' + error.message, true);
                     } else {
+                        updateUploadProgress(100);
+                        setTimeout(hideUploadOverlay, 500);
                         showMessage('Quality Alert submitted successfully!');
 
                         // Check if this was an edited draft and delete it
@@ -347,6 +495,7 @@ function setupFormEventListeners(userId) {
                     }
 
             } catch (error) {
+                hideUploadOverlay();
                 console.error('Unexpected error:', error);
                 showMessage('Error submitting form. Please try again.', true);
             }
@@ -354,6 +503,7 @@ function setupFormEventListeners(userId) {
             console.log("Validation failed, preventing submission.");
             // showMessage is called within validateForm now
         }
+        hideUploadOverlay();
     });
 
     saveAsDraftButton.addEventListener('click', async function(event) {
@@ -507,5 +657,39 @@ function setupFormEventListeners(userId) {
 
         console.log("Validation successful!");
         return true;
+    }
+
+    // --- Add getNextAlertId function ---
+    async function getNextAlertId() {
+        // Get current year and month
+        const now = new Date();
+        const year = now.getFullYear() % 100; // last two digits
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const prefix = `${year}${month}`; // e.g., 2507
+
+        // Query Supabase for all IDs starting with this prefix
+        const { data, error } = await supabase
+            .from('quality_alerts')
+            .select('id')
+            .like('id', `${prefix}-%`);
+
+        if (error) {
+            console.error('Error fetching alert IDs:', error);
+            throw error;
+        }
+
+        // Find the highest serial number for this month
+        let maxSerial = 0;
+        if (data && data.length > 0) {
+            data.forEach(row => {
+                const match = row.id.match(/^\d{4}-(\d{2})$/);
+                if (match) {
+                    const serial = parseInt(match[1], 10);
+                    if (serial > maxSerial) maxSerial = serial;
+                }
+            });
+        }
+        const nextSerial = String(maxSerial + 1).padStart(2, '0');
+        return `${prefix}-${nextSerial}`;
     }
 }
