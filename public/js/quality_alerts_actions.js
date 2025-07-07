@@ -190,56 +190,170 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (errorMessage) errorMessage.style.display = 'none';
     if (loadingMessage) loadingMessage.style.display = 'block';
 
-    const params = new URLSearchParams(window.location.search);
-    const alertId = params.get('id');
-    const action = params.get('action'); // 'view', 'edit', or 'new'
-
-    // Handle new alert creation
-    if (action === 'new') {
-        try {
-            const nextId = await getNextAlertId();
-            alertIdDisplay.value = nextId;
-            alertIdInput.value = nextId;
-            setupFormMode('edit');
-            if (form) form.style.display = 'block';
-            if (loadingMessage) loadingMessage.style.display = 'none';
-            
-            // Initialize empty form with current user and timestamp
-            userNameInput.value = "Current User"; // Replace with actual user
-            const now = new Date();
-            incidentDateInput.value = formatDate(now.toISOString());
-            incidentTimeInput.value = formatTime(now.toISOString());
-            return;
-        } catch (error) {
-            showError("Failed to initialize new alert: " + error.message);
-            return;
-        }
-    }
-
-    // Existing validation for view/edit modes
-    if (!alertId || (action !== 'view' && action !== 'edit')) {
-        showError("Invalid URL parameters");
+    // Check authentication
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        // Not logged in, redirect to login page with redirect back to this page
+        const currentUrl = window.location.href;
+        window.location.href = `/html/auth.html?redirect=${encodeURIComponent(currentUrl)}`;
         return;
     }
 
-    try {
-        const alertData = await fetchAlertDetails(alertId);
+    // Fetch user profile to determine role
+    const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single();
+    if (profileError || !profile) {
+        showError('Could not fetch user profile.');
+        return;
+    }
+    const isQAAdmin = profile.is_admin;
 
-        if (alertData) {
-            populateForm(alertData);
-            setupFormMode(action); // Setup view or edit mode
-            if (form) form.style.display = 'block'; // Ensure form is displayed
-            if (loadingMessage) loadingMessage.style.display = 'none';
-        } else {
-            showError("Failed to load alert details.");
-        }
-    } catch (error) {
-        console.error("Unexpected error during data loading:", error);
-        showError("An unexpected error occurred while loading alert details.");
+    // Get alert ID from URL
+    const params = new URLSearchParams(window.location.search);
+    const alertId = params.get('id');
+    const action = params.get('action');
+    if (!alertId) {
+        showError('Invalid URL parameters.');
+        return;
     }
 
-    // Add event listener for the calculate button
-    
+    // Fetch alert data including recipient_edit_completed
+    const { data: alertData, error: alertError } = await supabase
+        .from('quality_alerts')
+        .select('*')
+        .eq('id', alertId)
+        .single();
+    if (alertError || !alertData) {
+        showError('Alert not found.');
+        return;
+    }
+
+    // Populate form fields as before (reuse your existing logic)
+    // ... (populate all fields from alertData) ...
+    // Example:
+    if (alertIdInput) alertIdInput.value = alertData.id || '';
+    if (alertIdDisplay) alertIdDisplay.value = alertData.id || '';
+    if (userNameInput) userNameInput.value = alertData.users ? alertData.users.full_name : 'Unknown';
+    if (incidentDateInput) incidentDateInput.value = formatDate(alertData.incidentdate);
+    if (incidentTimeInput) incidentTimeInput.value = formatTime(alertData.incidenttime || alertData.timestamp); // Use incidenttime if available, else try timestamp
+
+    // Editable fields
+    if (incidentTitleInput) incidentTitleInput.value = alertData.incidenttitle || '';
+    if (incidentDescInput) incidentDescInput.value = alertData.incidentdesc || '';
+    if (responsibleDeptInput) responsibleDeptInput.value = alertData.responsibledept || '';
+    if (statusActionSelect) statusActionSelect.value = alertData.statusaction || '';
+    if (severityInput) severityInput.value = alertData.severity || '';
+    if (detectionInput) detectionInput.value = alertData.detection || '';
+    if (frequencyInput) frequencyInput.value = alertData.frequency || '';
+    if (rpnInput) rpnInput.value = alertData.rpn || ''; // Populate existing RPN
+    if (rootCauseInput) rootCauseInput.value = alertData.root_cause || '';
+    if (correctiveActionsInput) correctiveActionsInput.value = alertData.corrective_actions || '';
+    if (remarksInput) remarksInput.value = alertData.remarks || '';
+    if (counterWhoInput) counterWhoInput.value = alertData.counter_who || '';
+    if (counterWhenInput) counterWhenInput.value = alertData.counter_when || '';
+    if (counterStatusInput) counterStatusInput.value = alertData.counter_status || '';
+
+    // Other read-only fields
+    if (locationAreaInput) locationAreaInput.value = alertData.locationarea || '';
+    if (abnormalityTypeInput) abnormalityTypeInput.value = alertData.abnormalitytype || ''; // Ensure this is populated
+    if (qualityRiskInput) qualityRiskInput.value = alertData.qualityrisk || '';
+    if (keptInViewInput) keptInViewInput.value = alertData.keptinview || '';
+    if (shiftInput) shiftInput.value = alertData.shift || '';
+    if (productCodeInput) productCodeInput.value = alertData.productcode || '';
+    if (rollIdInput) rollIdInput.value = alertData.rollid || '';
+    if (lotNoInput) lotNoInput.value = alertData.lotno || '';
+    if (rollPositionsInput) rollPositionsInput.value = alertData.rollpositions || '';
+    if (lotTimeInput) lotTimeInput.value = alertData.lottime || '';
+    if (actionTakenInput) actionTakenInput.value = alertData.actiontaken || '';
+    if (whoActionInput) whoActionInput.value = alertData.whoaction || '';
+    if (whenActionDateInput) whenActionDateInput.value = alertData.whenactiondate || '';
+    if (timestampInput) timestampInput.value = formatTimestampForDisplay(alertData.timestamp);
+    if (draftedAtInput) draftedAtInput.value = formatTimestampForDisplay(alertData.drafted_at);
+    if (repeatAlertSelect) repeatAlertSelect.value = alertData.repeat_alert || '';
+
+    // Display images
+    const imageDisplayContainer = document.getElementById('imageDisplayContainer');
+    if (imageDisplayContainer) {
+        imageDisplayContainer.innerHTML = ''; // Clear previous images
+
+        if (alertData.image_urls && alertData.image_urls.length > 0) {
+            let imagesProcessed = 0;
+            let successfulLoads = 0;
+            const totalImages = alertData.image_urls.length;
+
+            const checkCompletion = () => {
+                if (imagesProcessed === totalImages) {
+                    if (successfulLoads === 0) {
+                        imageDisplayContainer.innerHTML = '<p>No images uploaded for this alert.</p>';
+                    }
+                }
+            };
+
+            alertData.image_urls.forEach(url => {
+                const img = new Image(); // Use new Image() for better control over loading
+                img.src = url;
+                img.style.maxWidth = '200px';
+                img.style.margin = '10px';
+                img.style.borderRadius = '4px';
+
+                img.onload = () => {
+                    imageDisplayContainer.appendChild(img);
+                    successfulLoads++;
+                    imagesProcessed++;
+                    checkCompletion();
+                };
+
+                img.onerror = () => {
+                    console.warn(`Failed to load image: ${url}`);
+                    imagesProcessed++;
+                    checkCompletion();
+                };
+            });
+        } else {
+            imageDisplayContainer.innerHTML = '<p>No images uploaded for this alert.</p>';
+        }
+    }
+
+    // --- Ensure this logic exists ---
+    const kivDetailsSection = document.querySelector('.kiv-details');
+    if (kivDetailsSection) {
+        kivDetailsSection.style.display = alertData.keptinview === 'yes' ? 'block' : 'none';
+    }
+    // --- End of confirmation ---
+
+    // Set field editability
+    const editableForNonAdmin = !isQAAdmin && alertData.recipient_edit_completed === false;
+    // List of allowed editable field IDs for non-admins
+    const allowedFields = [
+        'actiontaken', 'whoaction', 'whenactiondate', 'statusaction',
+        'root_cause',
+        'corrective_actions', 'counter_who', 'counter_when', 'counter_status'
+    ];
+    // Set all fields to read-only by default for non-admins
+    if (!isQAAdmin) {
+        document.querySelectorAll('#alert-form input, #alert-form textarea, #alert-form select').forEach(el => {
+            el.readOnly = true;
+            el.disabled = true;
+        });
+        if (editableForNonAdmin) {
+            allowedFields.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.readOnly = false;
+                    el.disabled = false;
+                }
+            });
+        } else if (!editableForNonAdmin) {
+            // Show a message if not allowed to edit
+            showError('You are not authorized to edit this alert or editing is already completed.');
+        }
+    }
+    // QA admins: all fields editable (default behavior)
+    if (form) form.style.display = 'block';
+    if (loadingMessage) loadingMessage.style.display = 'none';
 });
 
 // --- Functions ---
