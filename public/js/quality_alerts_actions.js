@@ -1,5 +1,44 @@
 import { supabase } from '../supabase-config.js';
 
+// ------------------- NEW: Role Constants & Helpers -------------------
+const ROLE_QA_ADMIN = 'QA_ADMIN';
+const ROLE_DEPT_ADMIN = 'DEPT_ADMIN';
+const ROLE_EMPLOYEE = 'EMPLOYEE';
+let currentUserRole = null; // Filled after auth lookup
+let recipientEditCompleted = false; // Filled after alert fetch
+
+// Redirect unauthenticated users to login & bounce back here after login
+async function ensureAuthenticated() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    // Store current URL so auth page can send us back after login
+    sessionStorage.setItem('redirectAfterLogin', window.location.href);
+    window.location.href = '/public/html/auth.html';
+    return null; // Stop further execution
+  }
+  return user;
+}
+
+// Determine role from users table
+async function determineUserRole(userId) {
+  try {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('is_admin, department')
+      .eq('id', userId)
+      .single();
+    if (!profile) return ROLE_EMPLOYEE; // Fallback
+    if (profile.is_admin && profile.department === 'Quality Assurance') return ROLE_QA_ADMIN;
+    if (profile.is_admin) return ROLE_DEPT_ADMIN;
+    return ROLE_EMPLOYEE;
+  } catch (e) {
+    console.error('Error determining user role:', e);
+    return ROLE_EMPLOYEE;
+  }
+}
+// ---------------------------------------------------------------------
+
+
 const form = document.getElementById('alert-form');
 const formTitle = document.getElementById('form-title');
 const alertIdInput = document.getElementById('alertId'); // Hidden input
@@ -131,13 +170,18 @@ document.getElementById('sendAlertButton').addEventListener('click', async funct
   body += 'Root Cause Analysis\n(Describe here)\n\n';
   body += 'Corrective Actions\n1. \n2. \n\n';
   body += '------------------------------------------------------------\n\n';
+  // Determine whether '/public' segment is needed (present when server root is project root)
+  const needsPublic = window.location.pathname.includes('/public/');
+  const basePath = needsPublic ? '/public' : '';
+  const alertLink = `${window.location.origin}${basePath}/html/quality_alerts_actions.html?id=${alertId}&action=edit`;
+  body += `Please use the following link to fill in immediate actions and corrective measures:\n${alertLink}\n\n`;
   body += 'Thank you,\nQuality Assurance Team';
 
   window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 });
 const draftedAtInput = document.getElementById('drafted_at');
 
-const saveButton = document.getElementById('saveButton');
+// saveButton is already declared earlier in the file – avoid redeclaration
 const loadingMessage = document.getElementById('loading-message');
 const errorMessage = document.getElementById('error-message');
 
@@ -180,17 +224,33 @@ function formatTimestampForDisplay(timestampString) {
 }
 
 // --- Main Logic ---
+
 document.addEventListener('DOMContentLoaded', async () => {
+    // Ensure user is logged in or redirect
+    const user = await ensureAuthenticated();
+    if (!user) return; // Redirected
+
+    currentUserRole = await determineUserRole(user.id);
+
     if (form) form.style.display = 'none';
     if (errorMessage) errorMessage.style.display = 'none';
     if (loadingMessage) loadingMessage.style.display = 'block';
 
     const params = new URLSearchParams(window.location.search);
     const alertId = params.get('id');
-    const action = params.get('action'); // 'view', 'edit', or 'new'
+    const actionParam = params.get('action'); // 'view', 'edit', etc.
 
-    // Handle new alert creation
-    if (action === 'new') {
+    if (!alertId) {
+        showError('Invalid URL parameters');
+        return;
+    }
+
+    // Handle new alert creation (QA Admin only)
+    if (actionParam === 'new') {
+        if (currentUserRole !== ROLE_QA_ADMIN) {
+            showError('Only QA Admins can create new alerts.');
+            return;
+        }
         try {
             const nextId = await getNextAlertId();
             alertIdDisplay.value = nextId;
@@ -198,43 +258,50 @@ document.addEventListener('DOMContentLoaded', async () => {
             setupFormMode('edit');
             if (form) form.style.display = 'block';
             if (loadingMessage) loadingMessage.style.display = 'none';
-            
+
             // Initialize empty form with current user and timestamp
-            userNameInput.value = "Current User"; // Replace with actual user
+            userNameInput.value = user.email || 'Current User';
             const now = new Date();
             incidentDateInput.value = formatDate(now.toISOString());
             incidentTimeInput.value = formatTime(now.toISOString());
             return;
-        } catch (error) {
-            showError("Failed to initialize new alert: " + error.message);
+        } catch (err) {
+            showError('Failed to initialize new alert: ' + err.message);
             return;
         }
     }
 
-    // Existing validation for view/edit modes
-    if (!alertId || (action !== 'view' && action !== 'edit')) {
-        showError("Invalid URL parameters");
-        return;
-    }
-
     try {
         const alertData = await fetchAlertDetails(alertId);
-
-        if (alertData) {
-            populateForm(alertData);
-            setupFormMode(action); // Setup view or edit mode
-            if (form) form.style.display = 'block'; // Ensure form is displayed
-            if (loadingMessage) loadingMessage.style.display = 'none';
-        } else {
-            showError("Failed to load alert details.");
+        if (!alertData) {
+            showError('Failed to load alert details.');
+            return;
         }
-    } catch (error) {
-        console.error("Unexpected error during data loading:", error);
-        showError("An unexpected error occurred while loading alert details.");
-    }
+        recipientEditCompleted = !!alertData.recipient_edit_completed;
+        populateForm(alertData);
 
-    // Add event listener for the calculate button
-    
+        // Determine page mode based on role & completion flag
+        if (currentUserRole === ROLE_QA_ADMIN) {
+            const desiredMode = actionParam === 'edit' ? 'edit' : 'view';
+            setupFormMode(desiredMode); // Full permissions
+        } else if (currentUserRole === ROLE_DEPT_ADMIN) {
+            if (recipientEditCompleted) {
+                setupDeptAdminMode(true); // read-only
+            } else {
+                setupDeptAdminMode(false); // limited edit
+            }
+        } else {
+            // Employee / unauthorized
+            showError('You are not authorized to view this page.');
+            return;
+        }
+
+        if (form) form.style.display = 'block';
+        if (loadingMessage) loadingMessage.style.display = 'none';
+    } catch (error) {
+        console.error('Unexpected error during data loading:', error);
+        showError('An unexpected error occurred while loading alert details.');
+    }
 });
 
 // --- Functions ---
@@ -434,9 +501,126 @@ function setupFormMode(action) {
     }
 }
 
+function setupDeptAdminMode(isReadOnly) {
+    const isEditMode = !isReadOnly;
+    formTitle.textContent = isEditMode ? 'Edit Quality Alert Details' : 'View Quality Alert Details';
 
+    // Define which fields are *always* read-only
+    const alwaysReadOnlyFields = [
+        userNameInput, incidentDateInput, incidentTimeInput,
+        keptInViewInput,
+        timestampInput, draftedAtInput,
+        rpnInput,
+        severityInput, detectionInput, frequencyInput,
+        remarksInput,
+    ];
+
+    // Set readOnly/disabled for always read-only fields
+    alwaysReadOnlyFields.forEach(field => {
+        if (field) { // Check if field is not null
+            if (field.tagName === 'SELECT') field.disabled = true;
+            else field.readOnly = true;
+        }
+    });
+
+    // Set readOnly/disabled for alertIdDisplay based on mode
+    if (alertIdDisplay) {
+        alertIdDisplay.readOnly = !isEditMode;
+    }
+
+    // Fields Dept Admin is allowed to edit when editable
+    const allowedEditableFields = [
+        statusActionSelect,
+        actionTakenInput, whoActionInput, whenActionDateInput,
+        rootCauseInput,
+        correctiveActionsInput,
+        counterWhoInput, counterWhenInput, counterStatusInput,
+    ];
+
+    // First, set everything in the form to read-only / disabled
+    document.querySelectorAll('#alert-form input, #alert-form textarea, #alert-form select').forEach(el => {
+        if (el.tagName === 'SELECT') el.disabled = true;
+        else el.readOnly = true;
+    });
+
+    // Then re-enable only the allowed fields if in edit mode
+    if (isEditMode) {
+        allowedEditableFields.forEach(field => {
+            if (!field) return;
+            if (field.tagName === 'SELECT') field.disabled = false;
+            else field.readOnly = false;
+        });
+    }
+
+    // Lock repeat_alert dropdown in view mode
+    if (repeatAlertSelect) {
+        repeatAlertSelect.disabled = !isEditMode;
+    }
+
+    // Show/hide save button and attach/detach submit listener
+    if (isEditMode) {
+        if (saveButton) saveButton.classList.remove('hidden');
+        if (form) form.addEventListener('submit', handleFormSubmit);
+        // Hide admin-only buttons
+        if (deleteButton) deleteButton.classList.add('hidden');
+        const sendAlertButton = document.getElementById('sendAlertButton');
+        if (sendAlertButton) sendAlertButton.style.display = 'none';
+    } else {
+        if (saveButton) saveButton.classList.add('hidden');
+        if (form) form.removeEventListener('submit', handleFormSubmit);
+        if (deleteButton) deleteButton.classList.add('hidden');
+        const sendAlertButton = document.getElementById('sendAlertButton');
+        if (sendAlertButton) sendAlertButton.style.display = 'none';
+    }
+}
+
+// ---------------- Handle Save for Dept Admin ------------------
+async function handleDeptAdminSubmit(event) {
+    event.preventDefault();
+    saveButton.disabled = true;
+    saveButton.textContent = 'Saving...';
+
+    const originalId = alertIdInput.value;
+    const updatedData = {
+        statusaction: statusActionSelect.value,
+        actiontaken: actionTakenInput.value,
+        whoaction: whoActionInput.value,
+        whenactiondate: whenActionDateInput.value || null,
+        root_cause: rootCauseInput.value,
+        corrective_actions: correctiveActionsInput.value,
+        counter_who: counterWhoInput.value,
+        counter_when: counterWhenInput.value,
+        counter_status: counterStatusInput.value,
+        recipient_edit_completed: true,
+    };
+
+    try {
+        const { error } = await supabase
+            .from('quality_alerts')
+            .update(updatedData)
+            .eq('id', originalId);
+
+        if (error) throw error;
+        alert('Changes saved successfully!');
+        window.history.replaceState({}, '', `?id=${originalId}&action=view`);
+        setTimeout(() => window.location.reload(), 300);
+    } catch (error) {
+        console.error('Error saving changes:', error);
+        alert(`Error saving changes: ${error.message}`);
+    } finally {
+        saveButton.disabled = false;
+        saveButton.textContent = 'Save Changes';
+    }
+}
+
+// Adjust existing handler to branch by role
 
 async function handleFormSubmit(event) {
+    if (currentUserRole === ROLE_DEPT_ADMIN) {
+        // Dept Admin uses separate handler
+        return handleDeptAdminSubmit(event);
+    }
+
     event.preventDefault();
     saveButton.disabled = true;
     saveButton.textContent = 'Saving...';
@@ -605,4 +789,3 @@ async function getNextAlertId() {
     const nextSerial = String(maxSerial + 1).padStart(2, '0');
     return `${prefix}-${nextSerial}`;
 }
-yes
