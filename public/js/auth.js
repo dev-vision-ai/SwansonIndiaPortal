@@ -153,7 +153,7 @@ document.getElementById("logoutBtn")?.addEventListener("click", async () => {
         localStorage.removeItem('supabase.auth.session');
         sessionStorage.removeItem('supabase.auth.session');
         const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
-        window.location.href = `${basePath}/html/auth.html`;
+        window.location.replace(`${basePath}/html/auth.html`);
     } catch (error) {
         console.error("Error logging out:", error);
         alert("Error logging out. Please try again.");

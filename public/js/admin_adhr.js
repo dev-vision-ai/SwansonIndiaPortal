@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     } else {
                         console.log('Logout successful, redirecting...'); // Debug log
                         // Redirect to login page after successful logout
-                        window.location.href = '../html/auth.html'; // Adjust path if needed
+                        window.location.replace('../html/auth.html'); // Adjust path if needed
                     }
                 } catch (err) {
                     console.error('Exception during logout:', err);

@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (error) {
                 console.error('Error logging out:', error.message);
             } else {
-                window.location.href = 'auth.html'; // Redirect to login page after logout
+                window.location.replace('../html/auth.html');
             }
         });
     }

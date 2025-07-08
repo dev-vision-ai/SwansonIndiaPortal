@@ -352,7 +352,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         alert('Logout failed. Please try again.');
                     } else {
                         console.log('Logout successful, redirecting...'); // Debug log
-                        window.location.href = '../html/auth.html'; // Redirect after successful logout
+                        window.location.replace('../html/auth.html'); // Redirect after successful logout
                     }
                 } catch (err) {
                     console.error('Exception during logout:', err);

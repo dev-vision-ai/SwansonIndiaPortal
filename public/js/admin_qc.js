@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error logging out:', error);
             alert('Logout failed. Please try again.');
           } else {
-            window.location.href = '../html/auth.html';
+            window.location.replace('../html/auth.html');
           }
         } catch (err) {
           console.error('Exception during logout:', err);
