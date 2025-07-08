@@ -93,12 +93,17 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         console.log("Fetched department:", `"${department}"`, "(Type:", typeof department, ")"); // Log department with quotes to see spaces
         // ---- End Debugging Logs ----
 
-        // After successful login and before role-based redirects, check for stored redirect URL
+        // After successful login check for stored redirect URL.
+        // Only honor it if the user is an ADMIN (QA or Dept). Regular employees should NOT be taken to admin pages.
         const storedRedirect = sessionStorage.getItem('redirectAfterLogin');
         if (storedRedirect) {
+            if (isAdmin === true) {
+                sessionStorage.removeItem('redirectAfterLogin');
+                window.location.href = storedRedirect;
+                return; // Skip normal redirects
+            }
+            // Non-admin: ignore the stored redirect so they land on their dashboard
             sessionStorage.removeItem('redirectAfterLogin');
-            window.location.href = storedRedirect;
-            return; // Skip the rest of the default redirection logic
         }
 
         // Determine base path depending on deployment (local dev adds '/public')
