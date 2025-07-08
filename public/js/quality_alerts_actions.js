@@ -138,6 +138,16 @@ document.getElementById('sendAlertButton').addEventListener('click', async funct
   function padLabel(label, width) {
     return label.padEnd(width, ' ');
   }
+  function formatDateDDMMYYYY(dateString) {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    } catch (e) { return dateString; }
+  }
   const labelWidth = 18; // Adjust for best alignment
 
   const subject = `Internal Quality Alert Notification!`;
@@ -145,7 +155,7 @@ document.getElementById('sendAlertButton').addEventListener('click', async funct
   body += 'Dear Team,\n\n';
   body += 'Please find below the details of a new Quality Alert:\n\n';
   body += '------------------------------------------------------------\n';
-  body += `${padLabel('Date', labelWidth)}: ${incidentDate}\n`;
+  body += `${padLabel('Date', labelWidth)}: ${formatDateDDMMYYYY(incidentDate)}\n`;
   body += `${padLabel('Reported By', labelWidth)}: ${userName}\n`;
   body += `${padLabel('Time', labelWidth)}: ${incidentTime}\n\n`;
   body += 'Incident Details:\n';
