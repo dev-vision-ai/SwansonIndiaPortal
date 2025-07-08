@@ -13,7 +13,8 @@ async function ensureAuthenticated() {
   if (!user) {
     // Store current URL so auth page can send us back after login
     sessionStorage.setItem('redirectAfterLogin', window.location.href);
-    window.location.href = '/public/html/auth.html';
+    const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
+    window.location.href = `${basePath}/html/auth.html`;
     return null; // Stop further execution
   }
   return user;

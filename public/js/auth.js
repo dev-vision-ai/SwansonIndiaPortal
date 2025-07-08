@@ -101,22 +101,25 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
             return; // Skip the rest of the default redirection logic
         }
 
+        // Determine base path depending on deployment (local dev adds '/public')
+        const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
+
         // Redirect based on role and department
         if (isAdmin === true) { 
             console.log("User is admin. Checking department..."); 
             // Update the string here to match the database value
             if (department === 'Human Resources') { 
                 console.log("Department matches 'Human Resources'. Redirecting to admin_adhr."); 
-                window.location.href = "/public/html/admin_adhr.html"; 
+                window.location.href = `${basePath}/html/admin_adhr.html`; 
             } else if (department === 'Quality Assurance') {
                 console.log("Department matches 'Quality Assurance'. Redirecting to admin_qa."); // Log successful match
-                window.location.href = "/public/html/admin_qa.html";
+                window.location.href = `${basePath}/html/admin_qa.html`;
             } else if (department === 'IQA') { // <-- Add this else if block
                 console.log("Department matches 'IQA'. Redirecting to admin_iqa."); 
-                window.location.href = "/public/html/admin_iqa.html";
+                window.location.href = `${basePath}/html/admin_iqa.html`;
             } else if (department === 'QC' || department === 'Quality Control') {
                 console.log("Department matches 'QC' or 'Quality Control'. Redirecting to admin_qc.");
-                window.location.href = "/public/html/admin_qc.html";
+                window.location.href = `${basePath}/html/admin_qc.html`;
             } else {
                 // Fallback for admins with unexpected departments
                 console.warn("Admin user has an unrecognized department:", department);
@@ -127,7 +130,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         } else {
             // User is not an admin (is_admin is FALSE or null)
             console.log("User is not admin. Redirecting to dashboard."); // Log non-admin redirect
-            window.location.href = "/public/html/employee_dashboard.html";
+            window.location.href = `${basePath}/html/employee_dashboard.html`;
         }
 
     } catch (error) {
@@ -144,7 +147,8 @@ document.getElementById("logoutBtn")?.addEventListener("click", async () => {
         // Remove session from both storages
         localStorage.removeItem('supabase.auth.session');
         sessionStorage.removeItem('supabase.auth.session');
-        window.location.href = "/public/html/auth.html";
+        const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
+        window.location.href = `${basePath}/html/auth.html`;
     } catch (error) {
         console.error("Error logging out:", error);
         alert("Error logging out. Please try again.");
