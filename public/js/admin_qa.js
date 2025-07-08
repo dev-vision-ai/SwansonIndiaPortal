@@ -159,16 +159,17 @@ function handleButtonActions(e) {
     const alertId = e.target.dataset.id;
     // Determine the target URL (absolute path from web root)
     const targetUrl = '../html/quality_alerts_actions.html';
+    const fromTable = '&from=table';
 
     // Check for the specific 'view-btn' or 'edit-btn' class
     if (e.target.classList.contains('view-btn')) {
       console.log(`Viewing alert ${alertId}`);
       // Navigate to the actions page with ID and action=view, and disable RPN calculation
-      window.location.href = `${targetUrl}?id=${alertId}&action=view&skip_rpn=true`;
+      window.location.href = `${targetUrl}?id=${alertId}&action=view&skip_rpn=true${fromTable}`;
     } else if (e.target.classList.contains('edit-btn')) {
       console.log(`Editing alert ${alertId}`);
       // Navigate to the actions page with ID and action=edit
-      window.location.href = `${targetUrl}?id=${alertId}&action=edit`;
+      window.location.href = `${targetUrl}?id=${alertId}&action=edit${fromTable}`;
     }
   }
 }

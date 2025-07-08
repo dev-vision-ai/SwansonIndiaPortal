@@ -799,13 +799,14 @@ function setupBackButton() {
     const buttons = document.querySelectorAll('.header-back-button, .btn-back-top, .btn-back');
     if (!buttons.length) return;
     const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
+    const params = new URLSearchParams(window.location.search);
+    const fromTable = params.get('from') === 'table';
     buttons.forEach(btn => {
-        // Remove any existing inline onclick (if present)
         btn.onclick = null;
         btn.addEventListener('click', e => {
             e.preventDefault();
             if (currentUserRole === ROLE_DEPT_ADMIN) {
-                let dest = '/html/employee_dashboard.html'; // default fallback
+                let dest = '/html/employee_dashboard.html';
                 switch ((currentUserDepartment || '').trim()) {
                     case 'Human Resources': dest = '/html/admin_adhr.html'; break;
                     case 'Quality Assurance': dest = '/html/admin_qa.html'; break;
@@ -816,7 +817,11 @@ function setupBackButton() {
                 }
                 window.location.href = `${basePath}${dest}`;
             } else if (currentUserRole === ROLE_QA_ADMIN) {
-                window.location.href = `${basePath}/html/admin_qa.html`;
+                if (fromTable) {
+                    window.location.href = `${basePath}/html/quality_alerts_table.html`;
+                } else {
+                    window.location.href = `${basePath}/html/admin_qa.html`;
+                }
             } else {
                 window.history.back();
             }
