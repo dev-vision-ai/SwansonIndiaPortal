@@ -815,8 +815,9 @@ function setupBackButton() {
                     default: dest = '/html/employee_dashboard.html';
                 }
                 window.location.href = `${basePath}${dest}`;
+            } else if (currentUserRole === ROLE_QA_ADMIN) {
+                window.location.href = `${basePath}/html/admin_qa.html`;
             } else {
-                // QA admin or others: keep old behaviour
                 window.history.back();
             }
         });
