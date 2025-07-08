@@ -168,17 +168,11 @@ document.getElementById('sendAlertButton').addEventListener('click', async funct
   }
 
   body += '\n------------------------------------------------------------\n';
-  body += 'Please reply with the following details:\n\n';
-  body += 'Immediate Action(s) Taken\n1. \n2. \n\n';
-  body += 'Root Cause Analysis\n(Describe here)\n\n';
-  body += 'Corrective Actions\n1. \n2. \n\n';
-  body += '------------------------------------------------------------\n\n';
   // Determine whether '/public' segment is needed (present when server root is project root)
   const needsPublic = window.location.pathname.includes('/public/');
   const basePath = needsPublic ? '/public' : '';
   const alertLink = `${window.location.origin}${basePath}/html/quality_alerts_actions.html?id=${alertId}&action=edit`;
   body += `Please use the following link to fill in immediate actions and corrective measures:\n${alertLink}\n\n`;
-  body += 'Thank you,\nQuality Assurance Team';
 
   window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 });
