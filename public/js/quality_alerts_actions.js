@@ -6,6 +6,7 @@ const ROLE_DEPT_ADMIN = 'DEPT_ADMIN';
 const ROLE_EMPLOYEE = 'EMPLOYEE';
 let currentUserRole = null; // Filled after auth lookup
 let recipientEditCompleted = false; // Filled after alert fetch
+let currentUserDepartment = null; // store department for redirects
 
 // Redirect unauthenticated users to login & bounce back here after login
 async function ensureAuthenticated() {
@@ -29,6 +30,7 @@ async function determineUserRole(userId) {
       .eq('id', userId)
       .single();
     if (!profile) return ROLE_EMPLOYEE; // Fallback
+    currentUserDepartment = profile.department || null; // store
     if (profile.is_admin && profile.department === 'Quality Assurance') return ROLE_QA_ADMIN;
     if (profile.is_admin) return ROLE_DEPT_ADMIN;
     return ROLE_EMPLOYEE;
@@ -303,6 +305,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Unexpected error during data loading:', error);
         showError('An unexpected error occurred while loading alert details.');
     }
+    // Setup custom back button behaviour
+    setupBackButton();
 });
 
 // --- Functions ---
@@ -789,4 +793,32 @@ async function getNextAlertId() {
     }
     const nextSerial = String(maxSerial + 1).padStart(2, '0');
     return `${prefix}-${nextSerial}`;
+}
+
+function setupBackButton() {
+    const buttons = document.querySelectorAll('.header-back-button, .btn-back-top, .btn-back');
+    if (!buttons.length) return;
+    const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
+    buttons.forEach(btn => {
+        // Remove any existing inline onclick (if present)
+        btn.onclick = null;
+        btn.addEventListener('click', e => {
+            e.preventDefault();
+            if (currentUserRole === ROLE_DEPT_ADMIN) {
+                let dest = '/html/employee_dashboard.html'; // default fallback
+                switch ((currentUserDepartment || '').trim()) {
+                    case 'Human Resources': dest = '/html/admin_adhr.html'; break;
+                    case 'Quality Assurance': dest = '/html/admin_qa.html'; break;
+                    case 'IQA': dest = '/html/admin_iqa.html'; break;
+                    case 'QC':
+                    case 'Quality Control': dest = '/html/admin_qc.html'; break;
+                    default: dest = '/html/employee_dashboard.html';
+                }
+                window.location.href = `${basePath}${dest}`;
+            } else {
+                // QA admin or others: keep old behaviour
+                window.history.back();
+            }
+        });
+    });
 }
