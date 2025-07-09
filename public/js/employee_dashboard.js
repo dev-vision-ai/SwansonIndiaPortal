@@ -335,6 +335,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (document.getElementById('alertsBody')) {
         await fetchLatestAlerts(); 
+        // Add delegated click handler for 'View Actions' links
+        document.getElementById('alertsBody').addEventListener('click', function(e) {
+            const target = e.target;
+            if (target.classList.contains('action-link') && target.textContent.includes('View Actions')) {
+                sessionStorage.setItem('empViewAccess', 'true');
+            }
+        });
     }
    
     const logoutButton = document.getElementById('logoutButton');

@@ -297,6 +297,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 setupDeptAdminMode(false); // limited edit
             }
+        } else if (actionParam === 'view' && sessionStorage.getItem('empViewAccess') === 'true') {
+            // Employee came from emp table, allow view-only
+            setupFormMode('view');
         } else {
             // Employee / unauthorized
             showError('You are not authorized to view this page.');
