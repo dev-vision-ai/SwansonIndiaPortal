@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <table class="rtcis-label-table">
                 <tr>
                   <br>
-                  <td colspan="2" class="rtcis-label-header" style="font-size:11pt;">Swanson Plastics (India) Private Limited, Bhuimpal, Goa</td>
+                  <td colspan="2" class="rtcis-label-header" style="font-size:11pt;">Swanson Plastics (India) Private Limited, Bhuipal, Goa</td>
                   <td colspan="2" class="rtcis-label-supplier">
                     <span class="label">Supplier Product:</span> <span class="value" id="label-product"></span><br>
                     <span class="label">IRMS GCAS:</span> <span class="value" id="label-gcas-head"></span><br>
@@ -478,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         body: [
                             // Header row
                             [
-                                { text: 'Swanson Plastics (India) Private Limited, Bhuimpal, Goa', colSpan: 2, style: 'headerLeft', alignment: 'left', border: [true, true, true, true], margin: [4, 5, 0, 5] }, {},
+                                { text: 'Swanson Plastics (India) Private Limited, Bhuipal, Goa', colSpan: 2, style: 'headerLeft', alignment: 'left', border: [true, true, true, true], margin: [4, 5, 0, 5] }, {},
                                 { text: `Supplier Product: ${labelData.product_code}\nIRMS GCAS: ${labelData.irms_gcas}\nProd Date: ${formatDateToDDMMMYYYY(labelData.production_date)}`, colSpan: 2, style: 'headerRight', alignment: 'left', border: [true, true, true, true], margin: [4, 5, 4, 5] }, {}
                             ],
                             // ITEM row
