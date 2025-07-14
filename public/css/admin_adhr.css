@@ -243,3 +243,136 @@ body {
   font-weight: 500;
   color: #002E7D;
 }
+
+/* --- Begin copied from admin_qa.css --- */
+/* Import Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary-gradient: linear-gradient(45deg, #002E7D, #0046C7);
+    --accent-color: #002E7D;
+    --bg-color: #f5f5f5;
+    --card-bg: #ffffff;
+    --text-dark: #2D3436;
+    --text-light: #666666;
+    --border-color: #eee;
+    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.15);
+    --transition: all 0.3s ease-in-out;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    background-color: #eaf1fa;
+    background-image: url('data:image/svg+xml;utf8,<svg width="60" height="30" viewBox="0 0 60 30" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><circle cx="45" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><line x1="25" y1="15" x2="35" y2="15" stroke="%2399aabb" stroke-width="1" opacity="0.10"/></svg>');
+    background-size: 60px 30px;
+    background-repeat: repeat;
+    min-height: fixed;
+}
+
+/* ... (rest of admin_qa.css content) ... */
+/* --- End copied from admin_qa.css --- */
+
+/* --- Begin mobile responsive rules copied from admin_qa.css --- */
+@media (max-width: 600px) {
+    body, .form-container, .form-group, .form-group label, .form-group input, .form-group textarea, .form-group select, .rpn-table, .rpn-table th, .rpn-table td, .repeat-alert-table, .repeat-alert-table th, .repeat-alert-table td {
+        font-size: 0.92rem !important;
+    }
+    label, .form-group label {
+        font-size: 0.90rem !important;
+    }
+    .quick-action-grid {
+        flex-direction: column;
+        align-items: center;
+    }
+    .header-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: var(--accent-color);
+        padding: 20px 10px;
+        margin: 0;
+        border-radius: 0;
+        border-bottom: 5px solid #e4c829;
+        height: 70px;
+        box-sizing: border-box;
+        padding-left: 56px;
+    }
+    .header-back-button {
+        position: fixed;
+        top: 18px;
+        left: 10px;
+        z-index: 1100;
+        padding: 8px 12px;
+        font-size: 0.95rem;
+        background-color: #e4c829;
+        color: #002E7D;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+    }
+    .header-title {
+        position: absolute;
+        left: 50%;
+        top: 48%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 1.10rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-align: center;
+        width: 100%;
+        pointer-events: none;
+    }
+    .company-logo {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        margin-left: 0;
+    }
+    .company-logo img {
+        height: 38px;
+        border: 3.0px solid white;
+    }
+    .immediate-action-row-scroll {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    .immediate-action-row-scroll .form-group {
+        flex-wrap: nowrap;
+        min-width: 700px;
+        gap: 0;
+    }
+    .immediate-action-row-scroll .immediate-action-field {
+        margin-right: 12px;
+    }
+    .immediate-action-row-scroll .immediate-action-field:last-child {
+        margin-right: 0;
+    }
+    .immediate-action-row-scroll textarea {
+        min-width: 120px;
+        max-width: none;
+    }
+    .kiv-details .form-row {
+        flex-direction: column !important;
+    }
+}
+/* --- End mobile responsive rules --- */

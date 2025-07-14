@@ -106,7 +106,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="action-card js-hide" data-department="All" onclick="location.href='../html/emp_quality_alerts_table.html'">
+                    <div class="action-card js-hide" data-department="All" onclick="sessionStorage.setItem('myFormsJustArrived','1'); sessionStorage.setItem('myFormsPrevPage', window.location.href); location.href='../html/my_forms.html'">
                         <div class="action-card-icon-circle">
                         <i class="fas fa-clipboard-list"></i>
                         </div>
@@ -129,6 +129,19 @@
                             </div>
                             <div class="action-card-description">
                         <p>Access Prestore & Film Inspection Forms</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="action-card js-hide desktop-only" data-department="Quality Control,Quality Assurance,IQA" onclick="location.href='../html/inline_inspection_form.html'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-search-plus"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>Inline Inspection Form</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Submit/View Inline Inspection Forms</p>
                             </div>
                         </div>
                     </div>

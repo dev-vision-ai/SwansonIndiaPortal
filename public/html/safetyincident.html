@@ -17,49 +17,45 @@
     </style>
 </head>
 <body>
-    <div class="container page-fade-in">
-        <div class="incident-section">
+    <main>
+        <section class="incident-section auth-form">
             <div class="header-container">
-                <h1 class="header-title">Safety Incident Report</h1>
+                <div class="header-title">Safety Incident Report</div>
                 <div class="company-logo">
-                    <img src="../assets/logo.png" alt="Company Logo">
+                    <img src="../assets/logo.png" alt="Company Logo" class="auth-logo">
                 </div>
             </div>
-            <form class="auth-form" id="safetyIncidentForm">
-                <div class="form-group">
-                    <label for="incidentType">Incident Category</label>
-                    <select id="incidentType" required>
-                        <option value="">Select Category</option>
-                        <option>Near Miss</option>
-                        <option>Unsafe Condition</option>
-                        <option>Unsafe Act</option>
-                        <option>First Aid Case</option>
-                        <option>Medical Treatment</option>
-                        <option>Lost Time Accident</option>
-                        <option>Property Damage</option>
-                    </select>
-                </div>
-                <div class="split-container">
-                    <div class="split-item">
-                        <div class="form-group">
+            <div class="container page-fade-in">
+                <form id="safetyIncidentForm">
+                    <div class="form-group">
+                        <label for="incidentType">Incident Category</label>
+                        <select id="incidentType" required>
+                            <option value="">Select Category</option>
+                            <option>Near Miss</option>
+                            <option>Unsafe Condition</option>
+                            <option>Unsafe Act</option>
+                            <option>First Aid Case</option>
+                            <option>Medical Treatment</option>
+                            <option>Lost Time Accident</option>
+                            <option>Property Damage</option>
+                        </select>
+                    </div>
+                    <div class="split-container">
+                        <div class="split-item form-group">
                             <label for="incidentDate">Date of Occurrence</label>
                             <input type="date" id="incidentDate" required>
                         </div>
-                    </div>
-                    <div class="split-item">
-                        <div class="form-group">
+                        <div class="split-item form-group">
                             <label for="incidentTime">Time of Occurrence</label>
                             <input type="time" id="incidentTime" required>
                         </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="description">Incident Description</label>
-                    <textarea id="description" placeholder="Detailed sequence of events, conditions, and immediate observations" required></textarea>
-                </div>
-                <div class="split-container hazard-section">
-                    <div class="split-item">
-                        <div class="form-group">
+                    <div class="form-group">
+                        <label for="description">Incident Description</label>
+                        <textarea id="description" placeholder="Detailed sequence of events, conditions, and immediate observations" required></textarea>
+                    </div>
+                    <div class="split-container">
+                        <div class="split-item form-group">
                             <label for="hazardType">Primary Hazard</label>
                             <select id="hazardType" required>
                                 <option value="">Select Hazard Source</option>
@@ -70,9 +66,7 @@
                                 <option>Environmental</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="split-item">
-                        <div class="form-group">
+                        <div class="split-item form-group">
                             <label for="ppeUsed">PPE Being Worn</label>
                             <select id="ppeUsed" required>
                                 <option value="">Select PPE Status</option>
@@ -83,15 +77,13 @@
                             </select>
                         </div>
                     </div>
-                    <div class="split-item">
-                        <div class="form-group">
+                    <div class="split-container">
+                        <div class="split-item form-group">
                             <label for="location">Exact Location</label>
                             <input type="text" id="location" placeholder="Building/Room Number" required>
                         </div>
-                    </div>
-                    <div class="split-item">
-                        <div class="form-group">
-                            <label for="department">Responsible Department</label>
+                        <div class="split-item form-group">
+                            <label for="department">Responsible Dept.</label>
                             <select id="department" required>
                                 <option value="">Select Department</option>
                                 <option>Production</option>
@@ -110,9 +102,21 @@
                             </select>
                         </div>
                     </div>
-                    <div class="split-item">
-                        <div class="form-group">
-                            <label for="severity">Severity Level<i class="fas fa-info-circle" title="Minor: A small issue that probably won't cause much trouble&#10;Moderate: A problem that needs someone to take a look&#10;Major: Significant problem needing immediate attention&#10;Critical: Very serious situation requiring urgent action"></i></label>
+                    <div class="split-container">
+                        <div class="split-item form-group">
+                            <label for="severity">
+                                Severity Level
+                                <span class="info-tooltip">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="tooltip-text">Minor: A small issue that probably won't cause much trouble
+
+Moderate: A problem that needs someone to take a look
+
+Major: Significant problem needing immediate attention
+
+Critical: Very serious situation requiring urgent action</span>
+                                </span>
+                            </label>
                             <select id="severity" required>
                                 <option value="">Select Severity</option>
                                 <option>Minor</option>
@@ -121,9 +125,7 @@
                                 <option>Critical</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="split-item">
-                        <div class="form-group">
+                        <div class="split-item form-group">
                             <label for="injuryType">Injuries Reported</label>
                             <select id="injuryType" required>
                                 <option value="">Select Injury Status</option>
@@ -134,45 +136,60 @@
                             </select>
                         </div>
                     </div>
-                </div>
-                <div class="split-container">
-                    <div class="split-item">
-                        <div class="form-group">
-                            <label for="immediateAction">Immediate Action Taken</label>
-                            <textarea id="immediateAction" rows="3" placeholder="Describe the immediate response actions taken" required></textarea>
+                    <div id="actionFieldsContainer">
+                        <div class="immediate-action-row">
+                            <div class="form-group">
+                                <label>Immediate Action</label>
+                                <textarea id="immediateAction" placeholder="Describe action"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="whoAction">Who:</label>
+                                <textarea id="whoAction" placeholder="Enter name"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="whenActionDate">When:</label>
+                                <textarea id="whenActionDate" placeholder="Enter date"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="statusAction">Status:</label>
+                                <textarea id="statusAction" placeholder="Enter status"></textarea>
+                            </div>
                         </div>
                     </div>
-                    <div class="split-item">
-                        <div class="form-group">
-                            <label for="investigationLevel">Investigation Required</label>
-                            <select id="investigationLevel" required>
-                                <option value="">Select Level</option>
-                                <option>Immediate Supervisor Review</option>
-                                <option>Departmental Investigation</option>
-                                <option>Safety Committee Analysis</option>
-                                <option>Root Cause Analysis (RCA)</option>
-                                <option>Manager-Level Review</option>
-                                <option>Regulatory Agency Notification</option>
-                                <option>24-Hour Time-Bound Review</option>
-                                <option>Not Required</option>
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label for="investigationLevel">Investigation Required</label>
+                        <select id="investigationLevel" required>
+                            <option value="">Select Level</option>
+                            <option>Immediate Supervisor Review</option>
+                            <option>Departmental Investigation</option>
+                            <option>Safety Committee Analysis</option>
+                            <option>Root Cause Analysis (RCA)</option>
+                            <option>Manager-Level Review</option>
+                            <option>Regulatory Agency Notification</option>
+                            <option>24-Hour Time-Bound Review</option>
+                            <option>Not Required</option>
+                        </select>
                     </div>
-                </div>
-                <div class="split-container"></div>
-                <div id="imageUploadContainer">
-                    <label for="imageUpload" class="upload-label">
-                        <button type="button" class="upload-btn">Upload Images</button>
-                    </label>
-                    <input type="file" id="imageUpload" accept="image/*" multiple style="display: none;">
-                </div>
-                <div class="button-container">
-                    <button type="submit" class="submit-btn">Submit</button>
-                    <button type="button" class="draft-btn">Save Draft</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <script type="module" src="../js/safetyincident.js"></script>
+                    <div id="imageUploadContainer">
+                        <label for="imageUpload">
+                            <button type="button" id="chooseImageBtn">
+                                <i class="fas fa-camera"></i> Choose Images/Files
+                            </button>
+                        </label>
+                        <input type="file" id="imageUpload" accept="image/*" multiple style="display: none;">
+                        <div id="imagePreviews"></div>
+                    </div>
+                    <div class="button-container">
+                        <button type="submit" class="submit-btn">Submit</button>
+                        <button type="button" class="draft-btn">Save Draft</button>
+                    </div>
+                </form>
+                <div class="submission-message-overlay"></div>
+                <div class="submission-message"></div>
+            </div>
+        </section>
+    </main>
+<script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.0/dist/browser-image-compression.js"></script>
+<script type="module" src="../js/safetyincident.js"></script>
 </body>
 </html>
