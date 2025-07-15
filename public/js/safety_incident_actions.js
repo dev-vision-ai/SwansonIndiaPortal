@@ -3,7 +3,7 @@ import { supabase } from '../supabase-config.js';
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const incidentId = urlParams.get('id');
-    const action = urlParams.get('action');
+    const mode = urlParams.get('mode'); // Get mode from URL
 
     if (!incidentId) {
         showError('No incident ID provided');
@@ -11,6 +11,67 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     await loadIncidentDetails(incidentId);
+
+    // --- MODE HANDLING ---
+    const form = document.getElementById('incident-form');
+    const saveButton = document.getElementById('saveButton');
+    const deleteButton = document.getElementById('deleteButton');
+    if (mode !== 'edit') {
+        // Make all inputs, selects, textareas read-only/disabled
+        if (form) {
+            Array.from(form.elements).forEach(el => {
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
+                    el.setAttribute('readonly', 'readonly');
+                    el.setAttribute('disabled', 'disabled');
+                }
+            });
+        }
+        if (saveButton) {
+            saveButton.style.display = 'none';
+            saveButton.classList.add('hidden');
+        }
+        if (deleteButton) {
+            deleteButton.style.display = 'none';
+            deleteButton.classList.add('hidden');
+        }
+    } else {
+        // Enable editing
+        if (form) {
+            Array.from(form.elements).forEach(el => {
+                el.removeAttribute('readonly');
+                el.removeAttribute('disabled');
+            });
+        }
+        if (saveButton) {
+            saveButton.style.display = '';
+            saveButton.classList.remove('hidden');
+        }
+        if (deleteButton) {
+            deleteButton.style.display = '';
+            deleteButton.classList.remove('hidden');
+            deleteButton.onclick = async function() {
+                if (confirm('Are you sure you want to delete this safety incident? This action cannot be undone.')) {
+                    const incidentId = document.getElementById('incidentId').value;
+                    const { error } = await supabase
+                        .from('safety_incident_form')
+                        .delete()
+                        .eq('id', incidentId);
+                    if (error) {
+                        showError('Error deleting incident: ' + error.message);
+                    } else {
+                        alert('Incident deleted successfully.');
+                        window.location.href = 'safety_incidents_table.html';
+                    }
+                }
+            };
+        }
+        // --- Always disable these fields for integrity ---
+        document.getElementById('user_name')?.setAttribute('readonly', 'readonly');
+        document.getElementById('incident_date')?.setAttribute('readonly', 'readonly');
+        document.getElementById('incident_time')?.setAttribute('readonly', 'readonly');
+    }
+    // --- END MODE HANDLING ---
+
     setupEventListeners();
 });
 
@@ -108,6 +169,17 @@ async function populateFormFields(data) {
     document.getElementById('when_action_date').value = data.when_action_date || '';
     document.getElementById('status_action').value = data.status_action || '';
 
+    // HR/ADHR action fields
+    document.getElementById('hr_investigation').value = data.hr_investigation || '';
+    document.getElementById('corrective_actions').value = data.corrective_actions || '';
+    document.getElementById('follow_up_required').value = data.follow_up_required || '';
+    document.getElementById('status').value = data.status || '';
+    document.getElementById('remarks').value = data.remarks || '';
+    // Add these for corrective action who/when/status
+    document.getElementById('corrective_who').value = data.corrective_action_who || '';
+    document.getElementById('corrective_when').value = data.corrective_action_when || '';
+    document.getElementById('corrective_status').value = data.corrective_action_status || '';
+
     // Display images if any
     displayImages(data.image_urls);
 }
@@ -172,6 +244,9 @@ async function saveChanges() {
         const incidentId = document.getElementById('incidentId').value;
         const hrInvestigation = document.getElementById('hr_investigation').value;
         const correctiveActions = document.getElementById('corrective_actions').value;
+        const correctiveActionWho = document.getElementById('corrective_who').value;
+        const correctiveActionWhen = document.getElementById('corrective_when').value;
+        const correctiveActionStatus = document.getElementById('corrective_status').value;
         const followUpRequired = document.getElementById('follow_up_required').value;
         const status = document.getElementById('status').value;
         const remarks = document.getElementById('remarks').value;
@@ -182,6 +257,9 @@ async function saveChanges() {
             .update({
                 hr_investigation: hrInvestigation,
                 corrective_actions: correctiveActions,
+                corrective_action_who: correctiveActionWho,
+                corrective_action_when: correctiveActionWhen,
+                corrective_action_status: correctiveActionStatus,
                 follow_up_required: followUpRequired,
                 status: status,
                 remarks: remarks,
@@ -193,7 +271,9 @@ async function saveChanges() {
             throw error;
         }
 
-        showSuccess('Changes saved successfully');
+        alert('Changes saved successfully');
+        // Reload the latest data
+        await loadIncidentDetails(incidentId);
         
     } catch (error) {
         console.error('Error saving changes:', error);
@@ -202,28 +282,6 @@ async function saveChanges() {
         saveButton.disabled = false;
         saveButton.textContent = originalText;
     }
-}
-
-function showSuccess(message) {
-    const successDiv = document.createElement('div');
-    successDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background-color: #d4edda;
-        color: #155724;
-        padding: 15px;
-        border-radius: 5px;
-        border: 1px solid #c3e6cb;
-        z-index: 1000;
-        max-width: 300px;
-    `;
-    successDiv.textContent = message;
-    document.body.appendChild(successDiv);
-
-    setTimeout(() => {
-        document.body.removeChild(successDiv);
-    }, 3000);
 }
 
 function showError(message) {

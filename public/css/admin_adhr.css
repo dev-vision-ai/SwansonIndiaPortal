@@ -376,3 +376,216 @@ body {
     }
 }
 /* --- End mobile responsive rules --- */
+
+/* --- Table and related styles copied from admin_qa.css for consistent admin table appearance --- */
+
+.recent-alerts-container {
+    margin-top: 100px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 0;
+    overflow: visible;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+th, td {
+    padding: 18px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
+}
+
+th:last-child,
+td:last-child {
+    border-right: none;
+}
+
+th:first-child,
+td:first-child {
+    border-left: 1px solid #e5e7eb;
+    width: 110px;
+}
+
+th {
+    background-color: #1e293b;
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+    border-right-color: #374151;
+}
+
+tr:hover td {
+    background-color: #f8fafc;
+}
+
+tbody tr td:last-child {
+    white-space: nowrap;
+}
+
+.loading-row td {
+    padding: 20px;
+    text-align: center;
+    color: #64748b;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+.filter-input,
+.filter-select {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  transition: var(--transition);
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  border-color: var(--accent-color);
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 46, 125, 0.3);
+}
+
+.filter-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding-top: 0.5rem;
+}
+
+.filter-controls span {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  color: var(--text-dark);
+  margin-right: 0.5rem;
+}
+
+.filter-btn { 
+   background-color: #ffe342; 
+   color: #000000; 
+   padding: 0.5rem 1rem; 
+   border: 1px solid #ccc; 
+   border-radius: 4px; 
+   cursor: pointer; 
+   transition: all 0.3s ease; 
+}
+
+.filter-btn:hover { 
+   background-color: #e0e0e0; 
+}
+
+/* --- Button styles for table actions (copied from admin_qa.css) --- */
+.action-btn {
+    padding: 8px 16px;
+    margin-right: 8px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: var(--transition);
+    text-decoration: none !important;
+}
+
+.view-btn {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.view-btn:hover {
+    background-color: #001f4d;
+}
+
+.edit-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+.edit-btn:hover {
+    background-color: #218838;
+}
+
+.recent-alerts-container {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #ccc;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.recent-alerts-container h2 {
+    text-align: center;
+    width: 100%;
+}
+/* --- End of copied styles --- */
+
+/* --- Table header and cell centering, wrapping, and actions cell fixes --- */
+
+/* Center table headers and allow wrapping */
+table th {
+    text-align: center !important;
+    vertical-align: middle !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
+/* Center all table cell content and allow wrapping */
+table td {
+    text-align: center !important;
+    vertical-align: middle !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    max-width: 180px;
+    padding: 8px 6px;
+    box-sizing: border-box;
+}
+
+/* Special styling for the Actions cell to center and wrap buttons */
+table td.actions-cell {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 120px;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
+/* Ensure action buttons do not overflow and wrap if needed */
+.action-btn {
+    min-width: 60px;
+    padding: 6px 16px;
+    font-size: 15px;
+    white-space: nowrap;
+    margin: 2px 0;
+    box-sizing: border-box;
+}
+
+/* Make sure description and other long text cells wrap */
+td.description-cell {
+    max-width: 220px;
+    white-space: normal !important;
+    word-break: break-word !important;
+    text-align: left !important;
+}

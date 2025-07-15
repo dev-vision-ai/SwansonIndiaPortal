@@ -26,6 +26,9 @@ function renderTable(data) {
         return;
     }
 
+    // Detect if this is the employee table (emp_safety_incidents_table.html)
+    const isEmployeeTable = window.location.pathname.includes('emp_safety_incidents_table.html');
+
     tbody.innerHTML = data.map((incident, idx) => {
         const incidentDate = incident.incident_date ? new Date(incident.incident_date).toLocaleDateString() : 'N/A';
         const incidentNo = getIncidentNo(incident, idx);
@@ -34,12 +37,15 @@ function renderTable(data) {
                 <td>${incidentNo}</td>
                 <td>${incidentDate}</td>
                 <td>${incident.user_name || 'Unknown'}</td>
+                <td>${incident.users && incident.users.department ? incident.users.department : 'N/A'}</td>
                 <td>${incident.incident_type || 'N/A'}</td>
                 <td class="description-cell">${incident.description || 'No Description'}</td>
                 <td>${incident.department || 'N/A'}</td>
-                <td>${incident.severity || 'N/A'}</td>
-                <td>${incident.status || 'N/A'}</td>
-                <td><a href="${incident.status === 'Draft' ? 'safetyincident.html' : 'safety_incident_actions.html'}?id=${incident.id}&action=${incident.status === 'Draft' ? 'edit' : 'view'}" class="action-link">${incident.status === 'Draft' ? 'Edit Draft' : 'View Actions'}</a></td>
+                <td>${incident.incident_type || 'N/A'}</td>
+                <td class="actions-cell">
+                  <a href="safety_incident_actions.html?id=${incident.id}&mode=view" class="action-btn view-btn">View</a>
+                  ${!isEmployeeTable ? `<a href="safety_incident_actions.html?id=${incident.id}&mode=edit" class="action-btn edit-btn">Edit</a>` : ''}
+                </td>
             </tr>
         `;
     }).join('');
@@ -181,9 +187,9 @@ async function fetchLatestIncidents() {
                 description,
                 severity,
                 user_id,
-                users ( full_name )
+                users ( full_name, department )
             `)
-            .eq('user_id', userId) 
+            // .eq('user_id', userId) // REMOVED to fetch all incidents
             .order('created_at', { ascending: false });
 
         console.log("Fetched safety incidents:", data); // Debug log
