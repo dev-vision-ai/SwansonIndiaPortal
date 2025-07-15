@@ -1116,10 +1116,3 @@ body {
     vertical-align: middle;
     word-break: break-word;
 }
-
-@media (min-width: 601px) {
-  .quick-action-grid {
-    justify-content: flex-start !important;
-    margin-left: 20px;
-  }
-}
