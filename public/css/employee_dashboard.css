@@ -962,16 +962,17 @@ body {
 }
 
 @media (max-width: 600px) {
-    .quick-action-grid {
-    flex-direction: row !important;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
+  .quick-action-grid {
+    gap: 5px;
   }
   .action-card {
-    width: 48% !important;
-    min-width: 140px;
-    margin: 0 1%;
+    width: 48%;
+    min-width: 120px;
+    margin-left: 0;
+    margin-right: 0;
+    height: 90px;
+    min-height: 90px;
+    max-height: 90px;
   }
 }
 
