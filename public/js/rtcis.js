@@ -478,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         body: [
                             // Header row
                             [
-                                { text: 'Swanson Plastics (India) Private Limited, Bhuimpal, Goa', colSpan: 2, style: 'headerLeft', alignment: 'left', border: [true, true, true, true], margin: [4, 5, 0, 5] }, {},
+                                { text: 'Swanson Plastics (India) Private Limited, Bhuipal, Goa', colSpan: 2, style: 'headerLeft', alignment: 'left', border: [true, true, true, true], margin: [4, 5, 0, 5] }, {},
                                 { text: `Supplier Product: ${labelData.product_code}\nIRMS GCAS: ${labelData.irms_gcas}\nProd Date: ${formatDateToDDMMMYYYY(labelData.production_date)}`, colSpan: 2, style: 'headerRight', alignment: 'left', border: [true, true, true, true], margin: [4, 5, 4, 5] }, {}
                             ],
                             // ITEM row
@@ -589,7 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 item: { fontSize: 12, bold: true },
                 tableHeading: { fontSize: 12, bold: true },
                 tableValue: { fontSize: 12, bold: true },
-                barcodeLabel: { fontSize: 15, bold: true },
+                barcodeLabel: { fontSize: 14, bold: true },
                 barcodeHuman: { fontSize: 12, alignment: 'center', bold: true }
             },
             info: {

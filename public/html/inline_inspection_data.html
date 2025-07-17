@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Inline Inspection Data Entry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/employee_dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; font-weight: 500; }
+        .vertical-header {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            white-space: nowrap;
+            text-align: left;
+            vertical-align: bottom;
+            font-size: 13px;
+            padding: 4px 2px;
+        }
+        table, th, td {
+            font-size: 13px;
+            border-radius: 0 !important;
+        }
+        .bg-white, .rounded-xl, .rounded-lg, .rounded-none, .rounded {
+            border-radius: 0 !important;
+        }
+        tbody tr:nth-child(even) {
+            background: #fff;
+        }
+        tbody tr:nth-child(odd) {
+            background: #f6f8fa;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
+    <div class="header-container">
+        <button type="button" class="header-back-button">Back</button>
+        <div class="header-title">Inline Inspection Form (Data Entry)</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+    <main class="flex flex-col w-full min-h-screen pt-32 page-fade-in gap-8 p-0">
+        <div class="bg-white rounded-none shadow-2xl w-full h-full min-h-[calc(100vh-96px)] p-8">
+        <!-- Header Details Section -->
+        <section class="mb-8 border border-gray-200 rounded-lg p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                <div>
+                    <div class="mb-2"><span class="font-semibold">Customer:</span> <span id="customer">[Customer]</span></div>
+                    <div class="mb-2"><span class="font-semibold">Production No.:</span> <span id="production_no">[Production No.]</span></div>
+                    <div class="mb-2"><span class="font-semibold">Prod. Code:</span> <span id="prod_code">[Prod. Code]</span></div>
+                    <div class="mb-2"><span class="font-semibold">Spec:</span> <span id="spec">[Spec]</span></div>
+                </div>
+                <div>
+                    <div class="mb-2 flex items-center gap-4">
+                        <span class="font-semibold">Printed:</span> <input type="checkbox" id="printed" disabled>
+                        <span class="font-semibold">Non-Printed:</span> <input type="checkbox" id="non_printed" disabled>
+                        <span class="font-semibold">CT:</span> <input type="checkbox" id="ct" disabled>
+                    </div>
+                    <div class="mb-2 flex gap-4">
+                        <div><span class="font-semibold">Year:</span> <span id="year">[Year]</span></div>
+                        <div><span class="font-semibold">Month:</span> <span id="month">[Month]</span></div>
+                        <div><span class="font-semibold">Date:</span> <span id="date">[Date]</span></div>
+                        <div><span class="font-semibold">M/C No.:</span> <span id="mc_no">[M/C No.]</span></div>
+                        <div><span class="font-semibold">Shift:</span> <span id="shift">[Shift]</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Roll Entry Grid Placeholder -->
+        <section>
+            <h2 class="text-xl font-semibold mb-4">Roll Entry Grid</h2>
+                <div class="flex justify-between items-center mb-2">
+                    <div>
+                        <span id="rowCountDisplay" class="text-sm font-bold text-gray-700">Rows: 0</span>
+                        <input id="numRowsInput" type="number" min="1" value="1" class="w-16 px-2 py-1 border rounded text-sm" style="height:28px;" title="Number of rows to add" />
+                        <button id="clearRowsBtn" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-sm">Delete Rows</button>
+                        <button id="addNewRowsBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm">Add New Rows</button>
+                        <button id="saveTableBtn" class="bg-green-600 hover:bg-green-800 text-white font-bold py-1 px-2 rounded text-sm ml-2">Save</button>
+                    </div>
+                </div>
+            <div class="border border-gray-200 rounded-lg p-0 bg-gray-50 overflow-x-auto">
+                    <table class="min-w-[1800px] w-full text-xs text-center border-collapse" id="dataEntryTable">
+                    <thead>
+                        <tr>
+                                <th colspan="2" class="border border-gray-300 px-2 py-1">Time</th>
+                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:40px; min-width:40px; max-width:40px;">Lot No.</th>
+                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:40px; min-width:40px; max-width:40px;">Roll Position</th>
+                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:40px; min-width:40px; max-width:40px;">Arm</th>
+                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:60px; min-width:60px; max-width:60px;">
+                                    Roll Weight
+                                    <span style="display: inline-block; transform: rotate(-180deg); writing-mode: initial;">
+                                        <input type="checkbox" id="rollWeightLock" style="vertical-align: middle; margin-left: 4px; margin-bottom: 40px;">
+                                        <span style="font-size: 16px; vertical-align: top; margin-left: 2px;">🔒</span>
+                                    </span>
+                                </th>
+                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:60px; min-width:60px; max-width:60px;">Roll Width (mm)</th>
+                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:60px; min-width:60px; max-width:60px;">Film Weight (GSM)</th>
+                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:60px; min-width:60px; max-width:60px;">Thickness</th>
+                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:60px; min-width:60px; max-width:60px;">
+                                    Roll θ
+                                    <span style="display: inline-block; transform: rotate(-180deg); writing-mode: initial;">
+                                        <input type="checkbox" id="rollThetaLock" style="vertical-align: middle; margin-left: 4px; margin-bottom: 80px;">
+                                        <span style="font-size: 16px; vertical-align: top; margin-left: 2px;">🔒</span>
+                                    </span>
+                                </th>
+                            <th colspan="2" class="border border-gray-300 px-2 py-1">Paper Core θ</th>
+                            <th colspan="6" class="border border-gray-300 px-2 py-1">Film Appearance</th>
+                            <th colspan="6" class="border border-gray-300 px-2 py-1">Printing</th>
+                                <th colspan="4" class="border border-gray-300 px-2 py-1">Roll Appearance</th>
+                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header">Others</th>
+                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:75px; min-width:75px; max-width:75px;">Accept / Reject</th>
+                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header">Defect Name</th>
+                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header">Inspected By</th>
+                        </tr>
+                        <tr>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:40px; min-width:40px; max-width:40px;">Hour</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:40px; min-width:40px; max-width:40px;">Minutes</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:50px; min-width:50px; max-width:50px;">ID</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:50px; min-width:50px; max-width:50px;">OD</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Lines/Strips</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Glossy</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Film Color</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Pin Hole</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Patch Mark</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Odour</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">CT</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Print Color</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Mis Print</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Dirty Print</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Tape Test</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Centralization</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Wrinkles</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">PRS</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Roll Curve</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Core Misalignment</th>
+                        </tr>
+                    </thead>
+                        <tbody id="dataEntryTableBody">
+                            <!-- Dynamic rows will be inserted here by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        </div>
+    </main>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const backBtn = document.querySelector('.header-back-button');
+        if (backBtn) {
+          backBtn.addEventListener('click', function() {
+            window.location.href = 'employee_dashboard.html';
+          });
+        }
+      });
+    </script>
+    <script src="../js/inline_inspection_data.js"></script>
+</body>
+</html> 
