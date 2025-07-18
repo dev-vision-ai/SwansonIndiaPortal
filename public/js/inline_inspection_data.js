@@ -220,7 +220,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (i === 0) {
                 // First row: add merged cells for indices 0,1,2,4,31 with rowspan=n
                 for (let col = 0; col < totalColumns; col++) {
-                    if (mergedIndices.includes(col)) {
+                    if (col === 31) { // Remarks column (last column)
+                        tr.appendChild(createCell(true, 1, false, col));
+                    } else if (mergedIndices.includes(col)) {
                         tr.appendChild(createCell(true, n, false, col));
                     } else if (col === 3) { // Roll Position (not merged)
                         const td = createCell(true, 1, false, col);
@@ -235,7 +237,9 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 // For subsequent rows, skip merged cells, but add Roll Position and others
                 for (let col = 0; col < totalColumns; col++) {
-                    if (col === 3) { // Roll Position
+                    if (col === 31) { // Remarks column (last column)
+                        tr.appendChild(createCell(true, 1, false, col));
+                    } else if (col === 3) { // Roll Position
                         const td = createCell(true, 1, false, col);
                         td.textContent = (i + 1).toString();
                         tr.appendChild(td);
@@ -564,6 +568,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const allTables = tablesContainer.querySelectorAll('table');
         if (allTables.length > 0) {
             const lastTable = allTables[allTables.length - 1];
+            // Remove Inspected By value for this table from localStorage
+            const idx = allTables.length - 1;
+            localStorage.removeItem(`inspectedBy_${idx}`);
             // Remove Save button and separator before the table (if present)
             let prev = lastTable.previousSibling;
             // Remove Save button
@@ -577,6 +584,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             lastTable.remove();
         }
+        // Re-index Inspected By values for all remaining tables
+        const tables = tablesContainer.querySelectorAll('table');
+        const inspectedByValues = [];
+        tables.forEach((table, i) => {
+            const td = table.querySelector('td[data-custom-inspected-by-editable]');
+            if (td) inspectedByValues.push(td.textContent);
+        });
+        // Clear all old keys
+        let i = 0;
+        while (localStorage.getItem(`inspectedBy_${i}`) !== null) {
+            localStorage.removeItem(`inspectedBy_${i}`);
+            i++;
+        }
+        // Set new keys
+        inspectedByValues.forEach((val, i) => {
+            localStorage.setItem(`inspectedBy_${i}`, val);
+        });
         // If no tables remain, create a new empty table
         if (tablesContainer.querySelectorAll('table').length === 0) {
             const newTable = document.createElement('table');
@@ -652,6 +676,23 @@ document.addEventListener('DOMContentLoaded', function() {
         table.style.borderCollapse = 'collapse';
         // Clone thead from the first table
         const thead = origTable ? origTable.querySelector('thead').cloneNode(true) : document.querySelector('thead').cloneNode(true);
+        // Remove any existing custom row from thead
+        const existingCustomRow = thead.querySelector('tr[data-custom-inspected-by]');
+        if (existingCustomRow) thead.removeChild(existingCustomRow);
+        // Insert custom top row at the start of thead
+        const customRow = document.createElement('tr');
+        customRow.setAttribute('data-custom-inspected-by', 'true');
+        const th1 = document.createElement('th');
+        th1.colSpan = 3;
+        th1.style.textAlign = 'center';
+        th1.textContent = 'Inspected By';
+        const td2 = document.createElement('td');
+        td2.colSpan = 3;
+        td2.contentEditable = 'true';
+        td2.setAttribute('data-custom-inspected-by-editable', 'true');
+        customRow.appendChild(th1);
+        customRow.appendChild(td2);
+        thead.insertBefore(customRow, thead.firstChild);
         table.appendChild(thead);
         // Create tbody
         const tbody = document.createElement('tbody');
@@ -659,7 +700,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const tr = document.createElement('tr');
             if (i === 0) {
                 for (let col = 0; col < totalColumns; col++) {
-                    if (mergedIndices.includes(col)) {
+                    if (col === 31) { // Remarks column (last column)
+                        tr.appendChild(createCell(true, 1, false, col));
+                    } else if (mergedIndices.includes(col)) {
                         tr.appendChild(createCell(true, n, false, col));
                     } else if (col === 3) {
                         const td = createCell(true, 1, false, col);
@@ -673,7 +716,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else {
                 for (let col = 0; col < totalColumns; col++) {
-                    if (col === 3) {
+                    if (col === 31) { // Remarks column (last column)
+                        tr.appendChild(createCell(true, 1, false, col));
+                    } else if (col === 3) {
                         const td = createCell(true, 1, false, col);
                         td.textContent = (i + 1).toString();
                         tr.appendChild(td);
@@ -687,6 +732,8 @@ document.addEventListener('DOMContentLoaded', function() {
             tbody.appendChild(tr);
         }
         table.appendChild(tbody);
+        // After appending table, call addInspectedByCapitalization
+        setTimeout(addInspectedByCapitalizationAndPersistence, 0);
         return table;
     }
 
@@ -763,6 +810,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Call after restoring all tables
     restoreAllTables();
+    // Insert custom top row for every table after restore
+    tablesContainer.querySelectorAll('table').forEach(table => {
+        const thead = table.querySelector('thead');
+        if (thead) {
+            // Remove any existing custom row
+            const existingCustomRow = thead.querySelector('tr[data-custom-inspected-by]');
+            if (existingCustomRow) thead.removeChild(existingCustomRow);
+            // Insert custom row
+            const customRow = document.createElement('tr');
+            customRow.setAttribute('data-custom-inspected-by', 'true');
+            const th1 = document.createElement('th');
+            th1.colSpan = 3;
+            th1.style.textAlign = 'center';
+            th1.textContent = 'Inspected By';
+            const td2 = document.createElement('td');
+            td2.colSpan = 3;
+            td2.contentEditable = 'true';
+            td2.setAttribute('data-custom-inspected-by-editable', 'true');
+            customRow.appendChild(th1);
+            customRow.appendChild(td2);
+            thead.insertBefore(customRow, thead.firstChild);
+        }
+    });
+    addInspectedByCapitalizationAndPersistence(); // Call this after restoring tables
     addSaveListenersToAllTables();
     updateTableSpacing();
     // Only add default rows if table is empty after loading
@@ -968,4 +1039,161 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial fast entry setup
     updateFastEntryTabOrder();
+
+    // Add capitalizeWords logic to the editable Inspected By cell in every table
+    function addInspectedByCapitalization() {
+        tablesContainer.querySelectorAll('td[data-custom-inspected-by-editable]').forEach(td => {
+            td.removeEventListener('input', td._capitalizeListener);
+            td._capitalizeListener = function(e) {
+                const selection = window.getSelection();
+                const range = selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+                const caretOffset = range ? range.startOffset : null;
+                const oldText = td.textContent;
+                const newText = capitalizeWords(oldText);
+                if (oldText !== newText) {
+                    td.textContent = newText;
+                    // Restore caret position
+                    if (range && td.childNodes.length > 0) {
+                        const newRange = document.createRange();
+                        newRange.setStart(td.childNodes[0], Math.min(caretOffset, td.childNodes[0].length));
+                        newRange.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(newRange);
+                    }
+                }
+            };
+            td.addEventListener('input', td._capitalizeListener);
+        });
+    }
+
+    // Add persistence logic to the editable Inspected By cell in every table
+    function addInspectedByPersistence() {
+        tablesContainer.querySelectorAll('td[data-custom-inspected-by-editable]').forEach((td, idx) => {
+            const key = `inspectedBy_${idx}`;
+            const saved = localStorage.getItem(key);
+            if (saved !== null) td.textContent = saved;
+            td.addEventListener('input', function(e) {
+                localStorage.setItem(key, td.textContent);
+            });
+        });
+    }
+
+    // Combine capitalization and persistence logic
+    function addInspectedByCapitalizationAndPersistence() {
+        addInspectedByCapitalization();
+        addInspectedByPersistence();
+    }
+
+    // --- SUMMARY TABLE LOGIC ---
+    function updateSummaryTable() {
+        // Indices for Accept/Reject and Roll Weight columns
+        const ACCEPT_COL = 29; // Accept / Reject
+        const WEIGHT_COL = 5;  // Roll Weight
+        // Initialize counters
+        let acceptedCount = 0, acceptedWeight = 0;
+        let rejectedCount = 0, rejectedWeight = 0;
+        let reworkCount = 0, reworkWeight = 0;
+        let kivCount = 0, kivWeight = 0;
+        // Loop through all tables
+        document.querySelectorAll('#tablesContainer table').forEach(table => {
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            const rows = Array.from(tbody.rows);
+            // Build a visual grid for the table body
+            const grid = [];
+            for (let r = 0; r < rows.length; r++) {
+                const row = rows[r];
+                let col = 0;
+                if (!grid[r]) grid[r] = [];
+                for (let c = 0; c < row.children.length; c++) {
+                    // Skip filled cells (from rowspan)
+                    while (grid[r][col]) col++;
+                    const cell = row.children[c];
+                    const colspan = parseInt(cell.getAttribute('colspan') || 1);
+                    const rowspan = parseInt(cell.getAttribute('rowspan') || 1);
+                    for (let rs = 0; rs < rowspan; rs++) {
+                        for (let cs = 0; cs < colspan; cs++) {
+                            if (!grid[r + rs]) grid[r + rs] = [];
+                            grid[r + rs][col + cs] = cell;
+                        }
+                    }
+                    col += colspan;
+                }
+            }
+            // Now, for each row, get the correct cells by visual index
+            for (let r = 0; r < grid.length; r++) {
+                const acceptCell = grid[r][ACCEPT_COL];
+                const weightCell = grid[r][WEIGHT_COL];
+                // Get dropdown value
+                let status = '';
+                if (acceptCell) {
+                    const select = acceptCell.querySelector('select');
+                    if (select) status = select.value.trim();
+                }
+                // Get weight value
+                let weight = 0;
+                if (weightCell) {
+                    const val = weightCell.textContent.trim();
+                    weight = parseFloat(val) || 0;
+                }
+                // Tally
+                if (status === 'Accept') {
+                    acceptedCount++;
+                    acceptedWeight += weight;
+                } else if (status === 'Reject') {
+                    rejectedCount++;
+                    rejectedWeight += weight;
+                } else if (status === 'Rework') {
+                    reworkCount++;
+                    reworkWeight += weight;
+                } else if (status === 'KIV') {
+                    kivCount++;
+                    kivWeight += weight;
+                }
+            }
+        });
+        // Totals
+        const totalCount = acceptedCount + rejectedCount + reworkCount + kivCount;
+        const totalWeight = acceptedWeight + rejectedWeight + reworkWeight + kivWeight;
+        // Update summary table
+        document.getElementById('acceptedCount').textContent = acceptedCount + ' Rolls';
+        document.getElementById('acceptedWeight').textContent = acceptedWeight.toFixed(2) + ' Kgs';
+        document.getElementById('rejectedCount').textContent = rejectedCount + ' Rolls';
+        document.getElementById('rejectedWeight').textContent = rejectedWeight.toFixed(2) + ' Kgs';
+        document.getElementById('reworkCount').textContent = reworkCount + ' Rolls';
+        document.getElementById('reworkWeight').textContent = reworkWeight.toFixed(2) + ' Kgs';
+        document.getElementById('kivCount').textContent = kivCount + ' Rolls';
+        document.getElementById('kivWeight').textContent = kivWeight.toFixed(2) + ' Kgs';
+        document.getElementById('totalCount').textContent = totalCount + ' Rolls';
+        document.getElementById('totalWeight').textContent = totalWeight.toFixed(2) + ' Kgs';
+    }
+
+    // Hook summary update to all relevant events
+    function hookSummaryTableUpdates() {
+        // On any cell edit or dropdown change
+        document.getElementById('tablesContainer').addEventListener('input', updateSummaryTable, true);
+        document.getElementById('tablesContainer').addEventListener('change', updateSummaryTable, true);
+        // After table add/delete
+        const origAddRows2 = addRows;
+        addRows = function(n) {
+            origAddRows2(n);
+            updateSummaryTable();
+        };
+        const origClearRows2 = clearRows;
+        clearRows = function() {
+            origClearRows2();
+            updateSummaryTable();
+        };
+        // After new table added
+        const origCreateNewTable = createNewTable;
+        createNewTable = function(n) {
+            const tbl = origCreateNewTable(n);
+            setTimeout(updateSummaryTable, 0);
+            return tbl;
+        };
+    }
+
+    // Call on page load
+    hookSummaryTableUpdates();
+    updateSummaryTable();
 }); 

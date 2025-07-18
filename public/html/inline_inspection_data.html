@@ -31,6 +31,65 @@
         tbody tr:nth-child(odd) {
             background: #f6f8fa;
         }
+        thead tr[data-custom-inspected-by] > th,
+        thead tr[data-custom-inspected-by] > td {
+            height: 20px;
+            min-height: 20px;
+            padding-top: 6px;
+            padding-bottom: 6px;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+        thead tr[data-custom-inspected-by] {
+            border-bottom: 2px solid #000 !important;
+        }
+        #summaryTable tr {
+            border-bottom: 1px solid #bbb;
+        }
+        #summaryTable tr:last-child {
+            border-bottom: 2px solid #000;
+        }
+        #summaryTable tr:nth-child(even) {
+            background: #f6f8fa;
+        }
+        #summaryTable tr:nth-child(odd) {
+            background: #fff;
+        }
+        #summaryTable td {
+            padding: 6px 8px;
+        }
+        #summaryTable td, #summaryTable th {
+            border-right: 1px solid #bbb;
+        }
+        #summaryTable td:last-child, #summaryTable th:last-child {
+            border-right: none;
+        }
+        #summaryTable td:first-child {
+            width: 120px;
+            min-width: 100px;
+            max-width: 160px;
+        }
+        #summaryTable td:nth-child(2),
+        #summaryTable td:nth-child(3) {
+            width: 60px;
+            min-width: 50px;
+            max-width: 80px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        #summaryTable td:last-child {
+            width: 40px;
+            min-width: 30px;
+            max-width: 60px;
+        }
+        #tablesContainer table tbody tr:hover {
+            background-color: #d0e7ff !important;
+            transition: background 0.2s;
+        }
+        #tablesContainer table td[rowspan] {
+            background-color: #f8fafc !important;
+            transition: background 0.2s;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
@@ -41,7 +100,7 @@
             <img src="../assets/logo.png" alt="Company Logo">
         </div>
     </div>
-    <main class="flex flex-col w-full min-h-screen pt-32 page-fade-in gap-8 p-0">
+    <main class="flex flex-col w-full min-h-screen pt-20 gap-8 p-0">
         <div class="bg-white rounded-none shadow-2xl w-full h-full min-h-[calc(100vh-96px)] p-8">
         <!-- Header Details Section -->
         <section class="mb-8 border border-gray-200 rounded-lg p-6">
@@ -106,19 +165,19 @@
                                     </span>
                                 </th>
                             <th colspan="2" class="border border-gray-300 px-2 py-1">Paper Core θ</th>
-                            <th colspan="6" class="border border-gray-300 px-2 py-1">Film Appearance</th>
-                            <th colspan="6" class="border border-gray-300 px-2 py-1">Printing</th>
+                            <th colspan="7" class="border border-gray-300 px-2 py-1">Film Appearance</th>
+                            <th colspan="5" class="border border-gray-300 px-2 py-1">Printing</th>
                                 <th colspan="4" class="border border-gray-300 px-2 py-1">Roll Appearance</th>
-                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header">Others</th>
+                                <th rowspan="2" class="border border-gray-300 px-2 py-1">Others</th>
                                 <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:75px; min-width:75px; max-width:75px;">Accept / Reject</th>
-                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header">Defect Name</th>
-                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header">Inspected By</th>
+                                <th rowspan="2" class="border border-gray-300 px-2 py-1">Defect Name</th>
+                                <th rowspan="2" class="border border-gray-300 px-2 py-1">Remarks</th>
                         </tr>
                         <tr>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:40px; min-width:40px; max-width:40px;">Hour</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:40px; min-width:40px; max-width:40px;">Minutes</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:50px; min-width:50px; max-width:50px;">ID</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:50px; min-width:50px; max-width:50px;">OD</th>
+                                <th class="border border-gray-300 px-2 py-1" style="width:40px; min-width:40px; max-width:40px;">Hr.</th>
+                                <th class="border border-gray-300 px-2 py-1" style="width:40px; min-width:40px; max-width:40px;">Min.</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:50px; min-width:50px; max-width:50px;">Paper Core θ (ID)</th>
+                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:50px; min-width:50px; max-width:50px;">Paper Core θ (OD)</th>
                                 <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Lines/Strips</th>
                                 <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Glossy</th>
                                 <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Film Color</th>
@@ -142,6 +201,18 @@
                     </tbody>
                 </table>
             </div>
+        </section>
+        <!-- Updated Summary Table Placeholder -->
+        <section id="summaryTableSection" class="flex justify-center mt-8">
+            <table id="summaryTable" class="min-w-[400px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white">
+                <tbody>
+                    <tr><td>Accepted Rolls</td><td id="acceptedCount">0 Rolls</td><td id="acceptedWeight">0 KG</td></tr>
+                    <tr><td>Rejected Rolls</td><td id="rejectedCount">0 Rolls</td><td id="rejectedWeight">0 KG</td></tr>
+                    <tr><td>Reject for Rework Rolls</td><td id="reworkCount">0 Rolls</td><td id="reworkWeight">0 KG</td></tr>
+                    <tr><td>KIV Rolls</td><td id="kivCount">0 Rolls</td><td id="kivWeight">0 KG</td></tr>
+                    <tr><td><b>Total Rolls</b></td><td id="totalCount">0 Rolls</td><td id="totalWeight">0 KG</td></tr>
+                </tbody>
+            </table>
         </section>
         </div>
     </main>
