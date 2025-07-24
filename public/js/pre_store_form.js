@@ -1,6 +1,6 @@
 import { supabase } from '../supabase-config.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const preStoreForm = document.getElementById('preStoreForm');
     let formId = null; // To store the ID if we are editing
 

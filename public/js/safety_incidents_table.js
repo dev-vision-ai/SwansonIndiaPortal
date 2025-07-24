@@ -2,6 +2,7 @@ import { supabase } from '../supabase-config.js';
 
 let incidentsData = []; // Define globally
 let currentSort = { column: 'id', direction: 'asc' }; // Define globally
+const isEmployeeTable = window.location.pathname.includes('emp_safety_incidents_table.html');
 
 // Helper to generate incident number in YYMM-serial format
 function getIncidentNo(incident, index) {
@@ -25,9 +26,6 @@ function renderTable(data) {
         tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4">No incidents found for the current criteria.</td></tr>';
         return;
     }
-
-    // Detect if this is the employee table (emp_safety_incidents_table.html)
-    const isEmployeeTable = window.location.pathname.includes('emp_safety_incidents_table.html');
 
     tbody.innerHTML = data.map((incident, idx) => {
         const incidentDate = incident.incident_date ? new Date(incident.incident_date).toLocaleDateString() : 'N/A';
@@ -177,7 +175,7 @@ async function fetchLatestIncidents() {
         const userId = user.id;
         console.log("Current userId:", userId); // Debug log
 
-        const { data, error } = await supabase
+        let query = supabase
             .from('safety_incident_form')
             .select(`
                 id,
@@ -188,9 +186,11 @@ async function fetchLatestIncidents() {
                 severity,
                 user_id,
                 users ( full_name, department )
-            `)
-            // .eq('user_id', userId) // REMOVED to fetch all incidents
-            .order('created_at', { ascending: false });
+            `);
+        if (isEmployeeTable) {
+            query = query.eq('user_id', userId); // Only filter for employee table
+        }
+        const { data, error } = await query.order('created_at', { ascending: false });
 
         console.log("Fetched safety incidents:", data); // Debug log
 

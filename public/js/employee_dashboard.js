@@ -328,6 +328,15 @@ function setupEventListeners() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Redirect shift-a/b/c users to inline_inspection_form.html
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user && user.email) {
+        const username = user.email.split('@')[0].toLowerCase();
+        if (username.includes('shift-a') || username.includes('shift-b') || username.includes('shift-c')) {
+            window.location.href = '../html/inline_inspection_form.html';
+            return;
+        }
+    }
 
     loadNotifications(); 
     setupEventListeners(); 

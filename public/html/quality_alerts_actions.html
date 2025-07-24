@@ -184,7 +184,19 @@
       <div class="form-row">
         <div class="form-group">
           <label for="responsibledept">Responsible Dept. for Incident:</label> 
-          <input type="text" id="responsibledept">
+          <select id="responsibledept">
+            <option>Select Department</option>
+            <option>Production</option>
+            <option>Quality Control</option>
+            <option>Administration</option>
+            <option>Quality Assurance</option>
+            <option>Sales</option>
+            <option>Human Resource</option>
+            <option>Warehouse</option>
+            <option>Logistics</option>
+            <option>Purchase</option>
+            <option>Maintenance</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="locationarea">Location Occured / Machine:</label> 
@@ -197,11 +209,36 @@
       <div class="form-row">
         <div class="form-group">
           <label for="abnormalitytype">Type of Abnormality:</label> 
-          <input type="text" id="abnormalitytype">
+          <select id="abnormalitytype" required>
+            <option value="">Select Type</option>
+            <option value="Safety">Safety</option>
+            <option value="Personal">Personal</option>
+            <option value="Raw/Sub Material">Raw/Sub Material</option>
+            <option value="Documents/Records">Documents/Records</option>
+            <option value="SOP Deviation">SOP Deviation</option>
+            <option value="Packing Material">Packing Material</option>
+            <option value="Insects/Pests">Insects/Pests</option>
+            <option value="Machine/Equipment">Machine/Equipment</option>
+            <option value="Semi/Finished Goods">Semi/Finished Goods</option>
+            <option value="Environment/ Facility">Environment/ Facility</option>
+            <option value="Process">Process</option>
+            <option value="Labelling">Labelling</option>
+            <option value="Other">Other</option>
+          </select>
         </div>
         <div class="form-group">
           <label for="qualityrisk">Potential Quality Risk:</label> 
-          <input type="text" id="qualityrisk">
+          <select id="qualityrisk">
+            <option value="">Select Risk</option>
+            <option value="Poor Appearance">Poor Appearance</option>
+            <option value="Print defect">Print defect</option>
+            <option value="MP Changes">MP Changes</option>
+            <option value="Damage">Damage</option>
+            <option value="Contamination">Contamination</option>
+            <option value="Injury/ Hazardous">Injury/ Hazardous</option>
+            <option value="MMM">MMM</option>
+            <option value="Others">Others</option>
+          </select>
         </div>
       </div>
       <!-- End Abnormality/Risk form-row -->

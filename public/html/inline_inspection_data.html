@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Inline Inspection Data Entry</title>
+    <title>Inline Inspection Form</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../css/employee_dashboard.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
@@ -31,18 +31,7 @@
         tbody tr:nth-child(odd) {
             background: #f6f8fa;
         }
-        thead tr[data-custom-inspected-by] > th,
-        thead tr[data-custom-inspected-by] > td {
-            height: 20px;
-            min-height: 20px;
-            padding-top: 6px;
-            padding-bottom: 6px;
-            vertical-align: middle;
-            font-size: 14px;
-        }
-        thead tr[data-custom-inspected-by] {
-            border-bottom: 2px solid #000 !important;
-        }
+
         #summaryTable tr {
             border-bottom: 1px solid #bbb;
         }
@@ -95,7 +84,7 @@
 <body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
     <div class="header-container">
         <button type="button" class="header-back-button">Back</button>
-        <div class="header-title">Inline Inspection Form (Data Entry)</div>
+        <div class="header-title">Inline Inspection Form</div>
         <div class="company-logo">
             <img src="../assets/logo.png" alt="Company Logo">
         </div>
@@ -104,25 +93,57 @@
         <div class="bg-white rounded-none shadow-2xl w-full h-full min-h-[calc(100vh-96px)] p-8">
         <!-- Header Details Section -->
         <section class="mb-8 border border-gray-200 rounded-lg p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                <div>
-                    <div class="mb-2"><span class="font-semibold">Customer:</span> <span id="customer">[Customer]</span></div>
-                    <div class="mb-2"><span class="font-semibold">Production No.:</span> <span id="production_no">[Production No.]</span></div>
-                    <div class="mb-2"><span class="font-semibold">Prod. Code:</span> <span id="prod_code">[Prod. Code]</span></div>
-                    <div class="mb-2"><span class="font-semibold">Spec:</span> <span id="spec">[Spec]</span></div>
-                </div>
-                <div>
-                    <div class="mb-2 flex items-center gap-4">
-                        <span class="font-semibold">Printed:</span> <input type="checkbox" id="printed" disabled>
-                        <span class="font-semibold">Non-Printed:</span> <input type="checkbox" id="non_printed" disabled>
-                        <span class="font-semibold">CT:</span> <input type="checkbox" id="ct" disabled>
+            <div class="flex flex-col md:flex-row items-start md:justify-center gap-36 w-full">
+                <!-- Left column: Details (reduced width) -->
+                <div class="flex flex-col items-start w-full md:w-[420px] max-w-[450px]">
+                    <div class="flex items-center w-full mb-2">
+                        <span class="font-semibold w-32">Customer :</span>
+                        <span id="customer" class="flex-1 border-b border-gray-300 ml-2">[Customer]</span>
                     </div>
-                    <div class="mb-2 flex gap-4">
-                        <div><span class="font-semibold">Year:</span> <span id="year">[Year]</span></div>
-                        <div><span class="font-semibold">Month:</span> <span id="month">[Month]</span></div>
-                        <div><span class="font-semibold">Date:</span> <span id="date">[Date]</span></div>
-                        <div><span class="font-semibold">M/C No.:</span> <span id="mc_no">[M/C No.]</span></div>
-                        <div><span class="font-semibold">Shift:</span> <span id="shift">[Shift]</span></div>
+                    <div class="flex items-center w-full mb-2">
+                        <span class="font-semibold w-32">Production No.:</span>
+                        <span id="production_no" class="flex-1 border-b border-gray-300 ml-2">[Production No.]</span>
+                    </div>
+                    <div class="flex items-center w-full mb-2">
+                        <span class="font-semibold w-32">Prod. Code:</span>
+                        <span id="prod_code" class="flex-1 border-b border-gray-300 ml-2">[Prod. Code]</span>
+                    </div>
+                    <div class="flex items-center w-full mb-2">
+                        <span class="font-semibold w-32">Spec:</span>
+                        <span id="spec" class="flex-1 border-b border-gray-300 ml-2">[Spec]</span>
+                    </div>
+                </div>
+                <!-- Right column: Centered year table, checkboxes below -->
+                <div class="flex flex-col items-center justify-center w-full md:w-[520px] max-w-[600px]">
+                    <table class="border border-gray-400 mb-2 min-w-[340px] mx-auto" style="font-size:2rem; font-weight:700;">
+                        <tr>
+                            <td class="border border-gray-400 px-4 py-2 text-center" style="width:100px; min-width:100px; max-width:100px;">Year</td>
+                            <td class="border border-gray-400 px-4 py-2 text-center" style="width:100px; min-width:100px; max-width:100px;">Month</td>
+                            <td class="border border-gray-400 px-4 py-2 text-center" style="width:100px; min-width:100px; max-width:100px;">Date</td>
+                            <td class="border border-gray-400 px-4 py-2 text-center" style="width:100px; min-width:100px; max-width:100px;">M/C No.</td>
+                            <td class="border border-gray-400 px-4 py-2 text-center" style="width:100px; min-width:100px; max-width:100px;">Shift</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-gray-400 px-4 py-2 text-center"><span id="year" style="font-size:1rem; font-weight:700;">[Year]</span></td>
+                            <td class="border border-gray-400 px-4 py-2 text-center"><span id="month" style="font-size:1rem; font-weight:700;">[Month]</span></td>
+                            <td class="border border-gray-400 px-4 py-2 text-center"><span id="date" style="font-size:1rem; font-weight:700;">[Date]</span></td>
+                            <td class="border border-gray-400 px-4 py-2 text-center"><span id="mc_no" style="font-size:1rem; font-weight:700;">[M/C No.]</span></td>
+                            <td class="border border-gray-400 px-4 py-2 text-center"><span id="shift" style="font-size:1rem; font-weight:700;">[Shift]</span></td>
+                        </tr>
+                    </table>
+                    <div class="flex flex-row items-center gap-6 justify-center w-full bg-gray-50 border border-gray-400 rounded-lg px-8 py-3 mt-2">
+                        <div class="flex items-center gap-2">
+                            <span class="font-semibold">Printed</span>
+                            <input type="checkbox" id="printed" disabled class="accent-black">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-semibold">Non-Printed</span>
+                            <input type="checkbox" id="non_printed" disabled class="accent-black">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-semibold">CT</span>
+                            <input type="checkbox" id="ct" disabled class="accent-black">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -136,84 +157,14 @@
                         <input id="numRowsInput" type="number" min="1" value="1" class="w-16 px-2 py-1 border rounded text-sm" style="height:28px;" title="Number of rows to add" />
                         <button id="clearRowsBtn" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-sm">Delete Rows</button>
                         <button id="addNewRowsBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm">Add New Rows</button>
-                        <button id="saveTableBtn" class="bg-green-600 hover:bg-green-800 text-white font-bold py-1 px-2 rounded text-sm ml-2">Save</button>
                     </div>
                 </div>
-            <div class="border border-gray-200 rounded-lg p-0 bg-gray-50 overflow-x-auto">
-                    <table class="min-w-[1800px] w-full text-xs text-center border-collapse" id="dataEntryTable">
-                    <thead>
-                        <tr>
-                                <th colspan="2" class="border border-gray-300 px-2 py-1">Time</th>
-                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:40px; min-width:40px; max-width:40px;">Lot No.</th>
-                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:40px; min-width:40px; max-width:40px;">Roll Position</th>
-                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:40px; min-width:40px; max-width:40px;">Arm</th>
-                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:60px; min-width:60px; max-width:60px;">
-                                    Roll Weight
-                                    <span style="display: inline-block; transform: rotate(-180deg); writing-mode: initial;">
-                                        <input type="checkbox" id="rollWeightLock" style="vertical-align: middle; margin-left: 4px; margin-bottom: 40px;">
-                                        <span style="font-size: 16px; vertical-align: top; margin-left: 2px;">🔒</span>
-                                    </span>
-                                </th>
-                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:60px; min-width:60px; max-width:60px;">Roll Width (mm)</th>
-                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:60px; min-width:60px; max-width:60px;">Film Weight (GSM)</th>
-                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:60px; min-width:60px; max-width:60px;">Thickness</th>
-                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:60px; min-width:60px; max-width:60px;">
-                                    Roll θ
-                                    <span style="display: inline-block; transform: rotate(-180deg); writing-mode: initial;">
-                                        <input type="checkbox" id="rollThetaLock" style="vertical-align: middle; margin-left: 4px; margin-bottom: 80px;">
-                                        <span style="font-size: 16px; vertical-align: top; margin-left: 2px;">🔒</span>
-                                    </span>
-                                </th>
-                            <th colspan="2" class="border border-gray-300 px-2 py-1">Paper Core θ</th>
-                            <th colspan="7" class="border border-gray-300 px-2 py-1">Film Appearance</th>
-                            <th colspan="5" class="border border-gray-300 px-2 py-1">Printing</th>
-                                <th colspan="4" class="border border-gray-300 px-2 py-1">Roll Appearance</th>
-                                <th rowspan="2" class="border border-gray-300 px-2 py-1">Others</th>
-                                <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:75px; min-width:75px; max-width:75px;">Accept / Reject</th>
-                                <th rowspan="2" class="border border-gray-300 px-2 py-1">Defect Name</th>
-                                <th rowspan="2" class="border border-gray-300 px-2 py-1">Remarks</th>
-                        </tr>
-                        <tr>
-                                <th class="border border-gray-300 px-2 py-1" style="width:40px; min-width:40px; max-width:40px;">Hr.</th>
-                                <th class="border border-gray-300 px-2 py-1" style="width:40px; min-width:40px; max-width:40px;">Min.</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:50px; min-width:50px; max-width:50px;">Paper Core θ (ID)</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:50px; min-width:50px; max-width:50px;">Paper Core θ (OD)</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Lines/Strips</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Glossy</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Film Color</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Pin Hole</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Patch Mark</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Odour</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">CT</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Print Color</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Mis Print</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Dirty Print</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Tape Test</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Centralization</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Wrinkles</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">PRS</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Roll Curve</th>
-                                <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:33px; min-width:33px; max-width:33px;">Core Misalignment</th>
-                        </tr>
-                    </thead>
-                        <tbody id="dataEntryTableBody">
-                            <!-- Dynamic rows will be inserted here by JS -->
-                    </tbody>
-                </table>
+            <div class="border border-gray-200 rounded-lg p-0 bg-gray-50 overflow-x-auto" id="tablesContainer">
+                <!-- Dynamic tables will be inserted here by JS -->
             </div>
         </section>
         <!-- Updated Summary Table Placeholder -->
-        <section id="summaryTableSection" class="flex justify-center mt-8">
-            <table id="summaryTable" class="min-w-[400px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white">
-                <tbody>
-                    <tr><td>Accepted Rolls</td><td id="acceptedCount">0 Rolls</td><td id="acceptedWeight">0 KG</td></tr>
-                    <tr><td>Rejected Rolls</td><td id="rejectedCount">0 Rolls</td><td id="rejectedWeight">0 KG</td></tr>
-                    <tr><td>Reject for Rework Rolls</td><td id="reworkCount">0 Rolls</td><td id="reworkWeight">0 KG</td></tr>
-                    <tr><td>KIV Rolls</td><td id="kivCount">0 Rolls</td><td id="kivWeight">0 KG</td></tr>
-                    <tr><td><b>Total Rolls</b></td><td id="totalCount">0 Rolls</td><td id="totalWeight">0 KG</td></tr>
-                </tbody>
-            </table>
-        </section>
+        <div id="dynamicSummaryTableContainer" class="flex justify-center mt-8"></div>
         </div>
     </main>
     <script>
@@ -221,11 +172,11 @@
         const backBtn = document.querySelector('.header-back-button');
         if (backBtn) {
           backBtn.addEventListener('click', function() {
-            window.location.href = 'employee_dashboard.html';
+            window.location.href = 'inline_inspection_form.html';
           });
         }
       });
     </script>
-    <script src="../js/inline_inspection_data.js"></script>
+    <script type="module" src="../js/inline_inspection_data_simple.js"></script>
 </body>
 </html> 
