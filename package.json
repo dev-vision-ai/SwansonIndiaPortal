@@ -1,0 +1,25 @@
+{
+  "name": "swansonindiaportal",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dev-vision-ai/SwansonIndiaPortal.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dev-vision-ai/SwansonIndiaPortal/issues"
+  },
+  "homepage": "https://github.com/dev-vision-ai/SwansonIndiaPortal#readme",
+  "description": "",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.52.1",
+    "exceljs": "^4.4.0",
+    "express": "^5.1.0"
+  }
+}

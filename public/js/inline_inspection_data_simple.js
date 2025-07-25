@@ -89,6 +89,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ===== LOAD FORM DATA IF FORM ID PROVIDED =====
     const urlParams = new URLSearchParams(window.location.search);
     const traceabilityCode = urlParams.get('traceability_code');
+    const lotLetter = urlParams.get('lot_letter');
     console.log('DEBUG: traceabilityCode from URL:', traceabilityCode);
     
     if (traceabilityCode) {
@@ -98,6 +99,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 .from('inline_inspection_form_master')
                 .select('*')
                 .eq('traceability_code', traceabilityCode)
+                .eq('lot_letter', lotLetter)
                 .order('created_at', { ascending: true });
             
             if (error) {
@@ -152,6 +154,18 @@ document.addEventListener('DOMContentLoaded', async function() {
                         updateRowCount();
                         applyColorCodingToTable();
                         updateSummaryTable();
+                        // Ensure 'Inspected By' is displayed in the first row after reload
+                        if (formData.inspection_data && formData.inspection_data.inspected_by) {
+                            const firstTable = tablesContainer.querySelector('table');
+                            if (firstTable) {
+                                const firstRow = firstTable.querySelector('tbody tr');
+                                if (firstRow) {
+                                    const inspectedByCell = firstRow.lastElementChild;
+                                    console.log('Setting Inspected By cell (last cell):', inspectedByCell, 'to', formData.inspection_data.inspected_by);
+                                    inspectedByCell.textContent = formData.inspection_data.inspected_by;
+                                }
+                            }
+                        }
                     }, 100);
                 }
             }
@@ -728,7 +742,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         clearRows();
         
         // Clear JSONB inspection data from Supabase
-        if (traceabilityCode) {
+        if (traceabilityCode && lotLetter) {
             try {
                 const { error } = await supabase
                     .from('inline_inspection_form_master')
@@ -736,7 +750,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                         inspection_data: null,
                         updated_at: new Date().toISOString()
                     })
-                    .eq('traceability_code', traceabilityCode);
+                    .eq('traceability_code', traceabilityCode)
+                    .eq('lot_letter', lotLetter);
                 
                 if (error) {
                     console.error('Error clearing inspection data from Supabase:', error);
@@ -788,7 +803,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 <tbody>
                     <tr style="height: 30px;"><td>Accepted Rolls</td><td>${summary.acceptedCount} Rolls</td><td>${summary.acceptedWeight} KG</td></tr>
                     <tr style="height: 30px;"><td>Rejected Rolls</td><td>${summary.rejectedCount} Rolls</td><td>${summary.rejectedWeight} KG</td></tr>
-                    <tr style="height: 30px;"><td>Reject for Rework Rolls</td><td>${summary.reworkCount} Rolls</td><td>${summary.reworkWeight} KG</td></tr>
+                    <tr style="height: 30px;"><td>Rolls Rejected for Rework</td><td>${summary.reworkCount} Rolls</td><td>${summary.reworkWeight} KG</td></tr>
                     <tr style="height: 30px;"><td>KIV Rolls</td><td>${summary.kivCount} Rolls</td><td>${summary.kivWeight} KG</td></tr>
                     <tr style="height: 30px;"><td><b>Total Rolls</b></td><td>${summary.totalCount} Rolls</td><td>${summary.totalWeight} KG</td></tr>
                 </tbody>
@@ -1021,7 +1036,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             const { data: lots, error } = await supabase
                 .from('inline_inspection_form_master')
                 .select('*')
-                .eq('traceability_code', traceabilityCode);
+                .eq('traceability_code', traceabilityCode)
+                .eq('lot_letter', lotLetter);
 
             if (lots && lots.length > 0) {
                 lots.forEach(lot => {
@@ -1266,6 +1282,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             .insert([{
                 form_id: form_id,
                 traceability_code: traceabilityCode,
+                lot_letter: lotLetter,
                 inspection_data: { rolls: rolls, summary: calculateSummary(rolls) },
                 status: 'draft',
                 created_at: new Date().toISOString(),
@@ -1458,6 +1475,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 .from('inline_inspection_form_master')
                 .select('*')
                 .eq('traceability_code', traceabilityCode)
+                .eq('lot_letter', lotLetter)
                 .not('row_number', 'is', null)
                 .order('row_number');
             
@@ -1538,7 +1556,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                         inspection_data: lotData,
                         updated_at: new Date().toISOString()
                     })
-                    .eq('traceability_code', traceabilityCode);
+                    .eq('traceability_code', traceabilityCode)
+                    .eq('lot_letter', lotLetter);
                 
                 if (saveError) {
                     console.error('Error saving migrated data:', saveError);
@@ -1550,6 +1569,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         .from('inline_inspection_form_master')
                         .delete()
                         .eq('traceability_code', traceabilityCode)
+                        .eq('lot_letter', lotLetter)
                         .not('row_number', 'is', null);
                     
                     if (deleteError) {
@@ -1572,7 +1592,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const { data, error } = await supabase
                     .from('inline_inspection_form_master')
                     .select('inspection_data')
-                    .eq('traceability_code', traceabilityCode);
+                    .eq('traceability_code', traceabilityCode)
+                    .eq('lot_letter', lotLetter);
                 
                 if (!error && data && !data.inspection_data) {
                     // No JSONB data found, check if we have old individual rows
@@ -1580,6 +1601,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         .from('inline_inspection_form_master')
                         .select('row_number')
                         .eq('traceability_code', traceabilityCode)
+                        .eq('lot_letter', lotLetter)
                         .not('row_number', 'is', null);
                     
                     if (!oldError && oldRows && oldRows.length > 0) {
@@ -1626,7 +1648,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                 ];
                 targetIndices.forEach(idx => {
                     const td = cells[idx];
-                    if (td && td.isContentEditable && !td.querySelector('select') && !td.querySelector('input')) {
+                    if (
+                        td &&
+                        td.isContentEditable &&
+                        !td.querySelector('select') &&
+                        !td.querySelector('input') &&
+                        td.textContent.trim() === ''
+                    ) {
                         td.textContent = 'O';
                         td.dispatchEvent(new Event('input', { bubbles: true }));
                     }
@@ -1686,6 +1714,17 @@ document.addEventListener('DOMContentLoaded', async function() {
                 tr.appendChild(td);
             }
             tbody.appendChild(tr);
+        }
+        // After filling all cells, set Inspected By in the first row's last cell
+        if (lot.inspection_data && lot.inspection_data.inspected_by) {
+            setTimeout(() => {
+                const firstRow = tbody.querySelector('tr');
+                if (firstRow) {
+                    const inspectedByCell = firstRow.lastElementChild;
+                    console.log('Setting Inspected By cell (last cell):', inspectedByCell, 'to', lot.inspection_data.inspected_by);
+                    inspectedByCell.textContent = lot.inspection_data.inspected_by;
+                }
+            }, 200);
         }
         table.appendChild(tbody);
         tablesContainer.appendChild(table);
@@ -1752,6 +1791,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             .from('inline_inspection_form_master')
             .select('*')
             .eq('traceability_code', traceabilityCode)
+            .eq('lot_letter', lotLetter)
             .order('created_at', { ascending: true });
         console.log('Fetched lots:', lots);
         if (error) {
@@ -1766,6 +1806,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 .insert([{
                     form_id: form_id,
                     traceability_code: traceabilityCode,
+                    lot_letter: lotLetter,
                     inspection_data: { rolls: [], summary: {} },
                     created_at: new Date().toISOString(),
                     updated_at: new Date().toISOString()
@@ -1799,6 +1840,78 @@ document.addEventListener('DOMContentLoaded', async function() {
                 addRowsBtn.disabled = true;
             }
         }
+        // After all lots are loaded and tables are rendered, show defects summary
+        // 1. Aggregate all rolls from all lots
+        let allRolls = [];
+        lots.forEach(lot => {
+            if (lot.inspection_data && Array.isArray(lot.inspection_data.rolls)) {
+                allRolls = allRolls.concat(lot.inspection_data.rolls);
+            }
+        });
+        // 2. Count occurrences of each unique defect_name (ignore empty/blank)
+        const defectCounts = {};
+        allRolls.forEach(roll => {
+            const defect = (roll.defect_name || '').trim();
+            if (defect) {
+                defectCounts[defect] = (defectCounts[defect] || 0) + 1;
+            }
+        });
+        // 3. Render the summary table beside the summary table, inside the same parent container
+        let summaryTable = document.getElementById('defectsSummaryTable');
+        let summaryTableContainer = document.getElementById('summaryTableContainer');
+        if (!summaryTableContainer) {
+            // Find the parent of the existing summary table (if any)
+            const existingSummary = document.querySelector('#dynamicSummaryTableContainer')?.parentNode;
+            summaryTableContainer = document.createElement('div');
+            summaryTableContainer.id = 'summaryTableContainer';
+            summaryTableContainer.style.display = 'flex';
+            summaryTableContainer.style.justifyContent = 'center';
+            summaryTableContainer.style.gap = '48px';
+            summaryTableContainer.style.margin = '32px auto 0 auto';
+            // Move the existing summary table into the container
+            const dynamicSummary = document.getElementById('dynamicSummaryTableContainer');
+            if (dynamicSummary && existingSummary) {
+                existingSummary.replaceChild(summaryTableContainer, dynamicSummary);
+                summaryTableContainer.appendChild(dynamicSummary);
+            } else {
+                document.body.appendChild(summaryTableContainer);
+            }
+        }
+        if (!summaryTable) {
+            summaryTable = document.createElement('table');
+            summaryTable.id = 'defectsSummaryTable';
+            summaryTable.className = 'min-w-[300px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white';
+        }
+        let html = '<thead><tr style="height: 30px;"><th>Defect Name</th><th>Count</th></tr></thead><tbody>';
+        if (Object.keys(defectCounts).length === 0) {
+            html += '<tr style="height: 30px;"><td colspan="2">No defects found in this shift.</td></tr>';
+        } else {
+            Object.entries(defectCounts).forEach(([defect, count]) => {
+                html += `<tr style="height: 30px;"><td>${defect}</td><td>${count}</td></tr>`;
+            });
+        }
+        html += '</tbody>';
+        summaryTable.innerHTML = html;
+        // Append the defects summary table to the container if not already present
+        if (!summaryTableContainer.contains(summaryTable)) {
+            summaryTableContainer.appendChild(summaryTable);
+        }
+        // Add separator between summary tables if not present
+        let separator = document.getElementById('summaryTableSeparator');
+        if (!separator) {
+            separator = document.createElement('div');
+            separator.id = 'summaryTableSeparator';
+            separator.style.width = '2px';
+            separator.style.background = '#bbb';
+            separator.style.margin = '0 24px';
+            separator.style.alignSelf = 'stretch';
+            // Insert separator between the two tables
+            if (summaryTableContainer.children.length === 1) {
+                summaryTableContainer.appendChild(separator);
+            } else if (summaryTableContainer.children.length === 2 && !summaryTableContainer.contains(separator)) {
+                summaryTableContainer.insertBefore(separator, summaryTableContainer.children[1]);
+            }
+        }
     }
 
     // On initial load
@@ -1806,4 +1919,167 @@ document.addEventListener('DOMContentLoaded', async function() {
     addSaveListeners(); // <-- Ensure new table cells are hooked up for saving
 
     // ===== MULTI-LOT SUPPORT END =====
+
+    // Add this after loadAllLots and after tables are rendered
+    function renderDefectsSummaryTable() {
+        // Aggregate all rolls from all lots in the DOM
+        let allRolls = [];
+        const tables = tablesContainer.querySelectorAll('table');
+        tables.forEach(table => {
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            Array.from(tbody.rows).forEach(row => {
+                const rollData = {};
+                row.querySelectorAll('td[data-field]').forEach(cell => {
+                    const field = cell.dataset.field;
+                    if (field) rollData[field] = cell.textContent.trim();
+                });
+                allRolls.push(rollData);
+            });
+        });
+        // Count occurrences of each unique defect_name (ignore empty/blank)
+        const defectCounts = {};
+        allRolls.forEach(roll => {
+            const defect = (roll.defect_name || '').trim();
+            if (defect) {
+                defectCounts[defect] = (defectCounts[defect] || 0) + 1;
+            }
+        });
+        // Render the summary table beside the summary table, inside the same parent container
+        let summaryTable = document.getElementById('defectsSummaryTable');
+        let summaryTableContainer = document.getElementById('summaryTableContainer');
+        if (!summaryTableContainer) {
+            // Find the parent of the existing summary table (if any)
+            const existingSummary = document.querySelector('#dynamicSummaryTableContainer')?.parentNode;
+            summaryTableContainer = document.createElement('div');
+            summaryTableContainer.id = 'summaryTableContainer';
+            summaryTableContainer.style.display = 'flex';
+            summaryTableContainer.style.justifyContent = 'center';
+            summaryTableContainer.style.gap = '48px';
+            summaryTableContainer.style.margin = '32px auto 0 auto';
+            // Move the existing summary table into the container
+            const dynamicSummary = document.getElementById('dynamicSummaryTableContainer');
+            if (dynamicSummary && existingSummary) {
+                existingSummary.replaceChild(summaryTableContainer, dynamicSummary);
+                summaryTableContainer.appendChild(dynamicSummary);
+            } else {
+                document.body.appendChild(summaryTableContainer);
+            }
+        }
+        if (!summaryTable) {
+            summaryTable = document.createElement('table');
+            summaryTable.id = 'defectsSummaryTable';
+            summaryTable.className = 'min-w-[300px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white';
+        }
+        let html = '<thead><tr style="height: 30px;"><th>Defect Name</th><th>Count</th></tr></thead><tbody>';
+        if (Object.keys(defectCounts).length === 0) {
+            html += '<tr style="height: 30px;"><td colspan="2">No defects found in this shift.</td></tr>';
+        } else {
+            Object.entries(defectCounts).forEach(([defect, count]) => {
+                html += `<tr style="height: 30px;"><td>${defect}</td><td>${count}</td></tr>`;
+            });
+        }
+        html += '</tbody>';
+        summaryTable.innerHTML = html;
+        if (!summaryTableContainer.contains(summaryTable)) {
+            summaryTableContainer.appendChild(summaryTable);
+        }
+    }
+    // Call this after loadAllLots
+    renderDefectsSummaryTable();
+    // Attach dynamic update on input/change in defect_name cells
+    if (tablesContainer) {
+        tablesContainer.addEventListener('input', function(e) {
+            if (e.target && e.target.dataset && e.target.dataset.field === 'defect_name') {
+                renderDefectsSummaryTable();
+            }
+        }, true);
+    }
+
+    // 1. Fetch all defects from Supabase on page load
+    let defectSuggestions = [];
+    (async function fetchAllDefects() {
+        const { data, error } = await supabase.from('all_defects').select('defect_name').eq('is_active', true);
+        if (!error && data) {
+            defectSuggestions = data.map(d => d.defect_name);
+        }
+    })();
+
+    // 2. Autocomplete logic for defect_name cells
+    function showDefectAutocomplete(cell) {
+        // Remove any existing dropdown
+        document.querySelectorAll('.defect-autocomplete-dropdown').forEach(el => el.remove());
+        const inputValue = cell.textContent.trim().toLowerCase();
+        if (inputValue.length === 0) return; // Only show dropdown if user has typed something
+        const matches = defectSuggestions.filter(d => d.toLowerCase().startsWith(inputValue) && d.trim() !== '');
+        if (matches.length === 0) return;
+        const cellRect = cell.getBoundingClientRect();
+        const dropdown = document.createElement('div');
+        dropdown.className = 'defect-autocomplete-dropdown';
+        dropdown.style.position = 'fixed';
+        dropdown.style.left = cellRect.left + 'px';
+        dropdown.style.top = cellRect.bottom + 'px';
+        dropdown.style.minWidth = cellRect.width + 'px';
+        dropdown.style.background = '#eaf4fb'; // Light blue background
+        dropdown.style.border = '1px solid #bbb';
+        dropdown.style.zIndex = 10000;
+        dropdown.style.maxHeight = '180px';
+        dropdown.style.overflowY = 'auto';
+        dropdown.style.fontSize = '14px'; // Match table cell font size
+        matches.forEach(defect => {
+            const item = document.createElement('div');
+            item.textContent = defect;
+            item.style.padding = '6px 12px';
+            item.style.cursor = 'pointer';
+            item.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                cell.textContent = defect;
+                cell.dispatchEvent(new Event('input', { bubbles: true }));
+                // Close dropdown immediately on selection
+                document.querySelectorAll('.defect-autocomplete-dropdown').forEach(el => el.remove());
+            });
+            item.style.background = '#eaf4fb'; // Light blue by default
+            item.addEventListener('mouseenter', function() {
+                item.style.background = '#b3d8f5'; // Slightly darker blue on hover
+            });
+            item.addEventListener('mouseleave', function() {
+                item.style.background = '#eaf4fb'; // Revert to light blue
+            });
+            dropdown.appendChild(item);
+        });
+        document.body.appendChild(dropdown);
+        // Remove dropdown on blur or click elsewhere
+        function removeDropdown(e) {
+            if (!dropdown.contains(e.target) && e.target !== cell) {
+                dropdown.remove();
+                document.removeEventListener('mousedown', removeDropdown);
+            }
+        }
+        setTimeout(() => {
+            document.addEventListener('mousedown', removeDropdown);
+        }, 0);
+    }
+
+    // 3. Attach event listeners to tablesContainer for defect_name cells
+    if (tablesContainer) {
+        tablesContainer.addEventListener('focusin', function(e) {
+            if (e.target && e.target.dataset && e.target.dataset.field === 'defect_name') {
+                showDefectAutocomplete(e.target);
+            }
+        });
+        tablesContainer.addEventListener('input', function(e) {
+            if (e.target && e.target.dataset && e.target.dataset.field === 'defect_name') {
+                showDefectAutocomplete(e.target);
+            }
+        });
+        // Optional: Hide dropdown on scroll
+        window.addEventListener('scroll', function() {
+            document.querySelectorAll('.defect-autocomplete-dropdown').forEach(el => el.remove());
+        });
+    }
+
+    // Ensure tablesContainer has position: relative in CSS
+    if (tablesContainer) {
+        tablesContainer.style.position = 'relative';
+    }
 }); 
