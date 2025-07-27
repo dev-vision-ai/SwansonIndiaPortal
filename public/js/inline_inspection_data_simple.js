@@ -66,9 +66,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Assign all DOM elements at the very top
     const rowCountDisplay = document.getElementById('rowCountDisplay');
     const addRowsBtn = document.getElementById('addNewRowsBtn');
-    const clearRowsBtn = document.getElementById('clearRowsBtn');
     const numRowsInput = document.getElementById('numRowsInput');
-    if (!rowCountDisplay || !addRowsBtn || !clearRowsBtn || !numRowsInput) {
+    if (!rowCountDisplay || !addRowsBtn || !numRowsInput) {
         alert('Error: One or more required DOM elements are missing.');
         return;
     }
@@ -90,7 +89,29 @@ document.addEventListener('DOMContentLoaded', async function() {
     const urlParams = new URLSearchParams(window.location.search);
     const traceabilityCode = urlParams.get('traceability_code');
     const lotLetter = urlParams.get('lot_letter');
+    const viewMode = urlParams.get('mode') === 'view';
     console.log('DEBUG: traceabilityCode from URL:', traceabilityCode);
+    console.log('DEBUG: viewMode from URL:', viewMode);
+    
+    // If in view mode, disable all editing functionality
+    if (viewMode) {
+        console.log('View mode detected - will disable editing after tables load');
+        // Add view-only indicator immediately
+        const viewOnlyIndicator = document.createElement('div');
+        viewOnlyIndicator.id = 'viewOnlyIndicator';
+        viewOnlyIndicator.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 text-center';
+        viewOnlyIndicator.innerHTML = `
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                <span class="font-semibold">VIEW ONLY MODE</span>
+            </div>
+            <div class="text-sm mt-1">This form is in read-only mode. No changes can be made.</div>
+        `;
+        document.body.appendChild(viewOnlyIndicator);
+    }
     
     if (traceabilityCode) {
         try {
@@ -111,6 +132,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (lots && lots.length > 0) {
                 // Use the oldest lot for header section
                 const formData = lots[0];
+                
                 document.getElementById('customer').textContent = formData.customer || '[Customer]';
                 document.getElementById('production_no').textContent = formData.production_no || '[Production No.]';
                 document.getElementById('prod_code').textContent = formData.prod_code || '[Prod. Code]';
@@ -186,6 +208,43 @@ document.addEventListener('DOMContentLoaded', async function() {
         window.isLoadingData = true;
         await loadInspectionData(traceabilityCode);
         window.isLoadingData = false;
+        
+        // If in view mode, disable all editing after data is loaded
+        if (viewMode) {
+            console.log('View mode detected - disabling all editing after data load');
+            setTimeout(() => {
+                // Disable all contenteditable cells
+                const editableCells = document.querySelectorAll('td[contenteditable="true"]');
+                editableCells.forEach(cell => {
+                    cell.contentEditable = false;
+                });
+                
+                // Disable all select dropdowns
+                const selectDropdowns = document.querySelectorAll('select');
+                selectDropdowns.forEach(select => {
+                    select.disabled = true;
+                });
+                
+                // Disable all input fields
+                const inputFields = document.querySelectorAll('input');
+                inputFields.forEach(input => {
+                    input.disabled = true;
+                });
+                
+                // Disable all buttons except back button
+                const buttons = document.querySelectorAll('button');
+                buttons.forEach(button => {
+                    if (!button.classList.contains('header-back-button')) {
+                        button.disabled = true;
+                    }
+                });
+                
+                console.log('View mode: Disabled', editableCells.length, 'editable cells');
+                console.log('View mode: Disabled', selectDropdowns.length, 'select dropdowns');
+                console.log('View mode: Disabled', inputFields.length, 'input fields');
+                console.log('View mode: Disabled', buttons.length, 'buttons');
+            }, 500); // Small delay to ensure all elements are rendered
+        }
     }
 
     function updateRowCount(tbody) {
@@ -242,6 +301,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
             
             select.addEventListener('change', function(e) {
+                if (viewMode) {
+                    console.log('Select change blocked - in view mode');
+                    e.preventDefault();
+                    return;
+                }
+                
                 const table = select.closest('table');
                 const formId = table?.dataset?.formId;
                 const allTables = Array.from(document.querySelectorAll('#tablesContainer table'));
@@ -256,23 +321,171 @@ document.addEventListener('DOMContentLoaded', async function() {
             td.contentEditable = 'true';
             td.spellcheck = false;
             
-            // Capitalize first letter while typing
+            // Apply character limits and formatting based on field type
             td.addEventListener('input', function(e) {
+                if (viewMode) {
+                    console.log('Input blocked - in view mode');
+                    e.preventDefault();
+                    return;
+                }
+                
                 const table = td.closest('table');
                 const formId = table?.dataset?.formId;
                 const allTables = Array.from(document.querySelectorAll('#tablesContainer table'));
                 const tableIndex = allTables.indexOf(table);
                 console.log('[DEBUG] Cell input event in table:', { formId, tableIndex });
-                const text = td.textContent;
-                const capitalizedText = capitalizeText(text);
                 
+                const field = td.dataset.field;
+                let text = td.textContent;
+                
+                // Apply character limits and formatting based on field type
+                if (field === 'roll_weight') {
+                    // Roll Weight - format: XX.XX (2 digits before decimal, 2 after)
+                    text = text.replace(/[^0-9.]/g, ''); // Only allow numbers and decimal
+                    
+                    // Ensure only one decimal point
+                    const parts = text.split('.');
+                    if (parts.length > 2) {
+                        text = parts[0] + '.' + parts.slice(1).join('');
+                    }
+                    
+                    // Limit to 2 digits before decimal and 2 after
+                    if (parts.length === 2) {
+                        const beforeDecimal = parts[0].substring(0, 2); // Max 2 digits before decimal
+                        const afterDecimal = parts[1].substring(0, 2); // Max 2 digits after decimal
+                        text = beforeDecimal + '.' + afterDecimal;
+                    } else if (parts.length === 1) {
+                        // No decimal point yet, limit to 2 digits
+                        text = parts[0].substring(0, 2);
+                    }
+                    
+                    // Remove leading zeros (except for decimal numbers like 0.25)
+                    if (text.startsWith('0') && !text.startsWith('0.')) {
+                        text = text.substring(1);
+                    }
+                } else if (field === 'roll_width_mm') {
+                    // Roll Width (mm) - format: XXX (3 digits, no decimal)
+                    text = text.replace(/[^0-9]/g, ''); // Only allow numbers
+                    text = text.substring(0, 3); // Max 3 digits
+                    // Remove leading zeros
+                    if (text.startsWith('0') && text.length > 1) {
+                        text = text.substring(1);
+                    }
+                } else if (field === 'film_weight_gsm') {
+                    // Film Weight (GSM) - format: XX.X (2 digits before, 1 after decimal)
+                    text = text.replace(/[^0-9.]/g, ''); // Only allow numbers and decimal
+                    
+                    // Ensure only one decimal point
+                    const parts = text.split('.');
+                    if (parts.length > 2) {
+                        text = parts[0] + '.' + parts.slice(1).join('');
+                    }
+                    
+                    // Limit to 2 digits before decimal and 1 after
+                    if (parts.length === 2) {
+                        const beforeDecimal = parts[0].substring(0, 2); // Max 2 digits before decimal
+                        const afterDecimal = parts[1].substring(0, 1); // Max 1 digit after decimal
+                        text = beforeDecimal + '.' + afterDecimal;
+                    } else if (parts.length === 1) {
+                        // No decimal point yet, limit to 2 digits
+                        text = parts[0].substring(0, 2);
+                    }
+                    
+                    // Remove leading zeros (except for decimal numbers like 0.5)
+                    if (text.startsWith('0') && !text.startsWith('0.')) {
+                        text = text.substring(1);
+                    }
+                } else if (field === 'thickness') {
+                    // Thickness - format: XX (2 digits, no decimal)
+                    text = text.replace(/[^0-9]/g, ''); // Only allow numbers
+                    text = text.substring(0, 2); // Max 2 digits
+                    // Remove leading zeros
+                    if (text.startsWith('0') && text.length > 1) {
+                        text = text.substring(1);
+                    }
+                } else if (field === 'roll_dia') {
+                    // Roll θ - format: XXX (3 digits, no decimal)
+                    text = text.replace(/[^0-9]/g, ''); // Only allow numbers
+                    text = text.substring(0, 3); // Max 3 digits
+                    // Remove leading zeros
+                    if (text.startsWith('0') && text.length > 1) {
+                        text = text.substring(1);
+                    }
+                } else if (field === 'paper_core_dia_id') {
+                    // Paper Core θ (ID) - format: XX.X (2 digits before, 1 after decimal)
+                    text = text.replace(/[^0-9.]/g, ''); // Only allow numbers and decimal
+                    
+                    // Ensure only one decimal point
+                    const parts = text.split('.');
+                    if (parts.length > 2) {
+                        text = parts[0] + '.' + parts.slice(1).join('');
+                    }
+                    
+                    // Limit to 2 digits before decimal and 1 after
+                    if (parts.length === 2) {
+                        const beforeDecimal = parts[0].substring(0, 2); // Max 2 digits before decimal
+                        const afterDecimal = parts[1].substring(0, 1); // Max 1 digit after decimal
+                        text = beforeDecimal + '.' + afterDecimal;
+                    } else if (parts.length === 1) {
+                        // No decimal point yet, limit to 2 digits
+                        text = parts[0].substring(0, 2);
+                    }
+                    
+                    // Remove leading zeros (except for decimal numbers like 0.5)
+                    if (text.startsWith('0') && !text.startsWith('0.')) {
+                        text = text.substring(1);
+                    }
+                } else if (field === 'paper_core_dia_od') {
+                    // Paper Core θ (OD) - format: XX (2 digits, no decimal)
+                    text = text.replace(/[^0-9]/g, ''); // Only allow numbers
+                    text = text.substring(0, 2); // Max 2 digits
+                    // Remove leading zeros
+                    if (text.startsWith('0') && text.length > 1) {
+                        text = text.substring(1);
+                    }
+                } else if (field === 'hour') {
+                    // Hour - 2 characters (00-23)
+                    text = text.replace(/[^0-9]/g, ''); // Only allow numbers
+                    if (text.length > 2) text = text.substring(0, 2);
+                    if (parseInt(text) > 23) text = '23';
+                } else if (field === 'minute') {
+                    // Minute - 2 characters (00-59)
+                    text = text.replace(/[^0-9]/g, ''); // Only allow numbers
+                    if (text.length > 2) text = text.substring(0, 2);
+                    if (parseInt(text) > 59) text = '59';
+                } else if (field === 'lot_no' || field === 'roll_position') {
+                    // Lot No. and Roll Position - 2 characters (01-99)
+                    text = text.replace(/[^0-9]/g, ''); // Only allow numbers
+                    if (text.length > 2) text = text.substring(0, 2);
+                } else if (field === 'arm') {
+                    // Arm - 1 character (A-Z)
+                    text = text.replace(/[^A-Za-z]/g, '').toUpperCase(); // Only allow letters
+                    if (text.length > 1) text = text.substring(0, 1);
+                } else if (field === 'lines_strips' || field === 'film_color' || field === 'pin_hole' || 
+                          field === 'patch_mark' || field === 'odour' || field === 'ct' || 
+                          field === 'print_color' || field === 'mis_print' || field === 'dirty_print' || 
+                          field === 'tape_test' || field === 'centralization' || field === 'wrinkles' || 
+                          field === 'prs' || field === 'roll_curve' || field === 'core_misalignment' || 
+                          field === 'other') {
+                    // These fields only allow O or X (uppercase)
+                    text = text.replace(/[^OXox]/g, '').toUpperCase(); // Only allow O and X
+                    if (text.length > 1) text = text.substring(0, 1);
+                } else {
+                    // For other fields, apply normal capitalization
+                    const capitalizedText = capitalizeText(text);
                 if (text !== capitalizedText) {
+                        text = capitalizedText;
+                    }
+                }
+                
+                // Update cell content if changed
+                if (td.textContent !== text) {
                     // Preserve cursor position
                     const selection = window.getSelection();
                     const range = selection.getRangeAt(0);
                     const cursorOffset = range.startOffset;
                     
-                    td.textContent = capitalizedText;
+                    td.textContent = text;
                     
                     // Restore cursor position
                     try {
@@ -299,6 +512,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             // Also capitalize when user finishes typing (blur event)
             td.addEventListener('blur', function(e) {
+                if (viewMode) {
+                    console.log('Blur blocked - in view mode');
+                    return;
+                }
+                
                 const table = td.closest('table');
                 const formId = table?.dataset?.formId;
                 const allTables = Array.from(document.querySelectorAll('#tablesContainer table'));
@@ -421,9 +639,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     let saveTimeout = null;
     
     function debouncedSave(table) {
-        if (saveTimeout) {
-            clearTimeout(saveTimeout);
+        if (viewMode) {
+            console.log('Save blocked - in view mode');
+            return;
         }
+        
+        clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => {
             if (!table) table = document.querySelector('#tablesContainer table');
             if (table) saveLotToSupabase(table);
@@ -432,6 +653,11 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Defensive saveLotToSupabase
     async function saveLotToSupabase(table) {
+        if (viewMode) {
+            console.log('Save blocked - in view mode');
+            return;
+        }
+        
         if (!table || !table.dataset || !table.dataset.formId) {
             console.warn('saveLotToSupabase: No table or formId provided!', table);
             return;
@@ -575,12 +801,30 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // ===== BACKWARD COMPATIBILITY - OLD SAVE FUNCTION =====
     async function saveCellToSupabase(event) {
-        // This is now deprecated - use saveLotToSupabase instead
-        console.log('Individual cell saving is deprecated. Use saveLotToSupabase instead.');
+        if (viewMode) {
+            console.log('Save blocked - in view mode');
+            return;
+        }
+        
+        // ... existing save logic ...
+    }
+    
+    async function saveTable() {
+        if (viewMode) {
+            console.log('Save blocked - in view mode');
+            return;
+        }
+        
+        // ... existing save logic ...
     }
 
     // ===== BACKWARD COMPATIBILITY - OLD TABLE SAVE =====
     async function saveTable() {
+        if (viewMode) {
+            console.log('Save blocked - in view mode');
+            return;
+        }
+        
         // This is now deprecated - use saveLotToSupabase instead
         console.log('Table save is deprecated. Use saveLotToSupabase instead.');
         await saveLotToSupabase();
@@ -737,36 +981,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
 
-    clearRowsBtn.addEventListener('click', async () => {
-        // Clear all rows from the table
-        clearRows();
-        
-        // Clear JSONB inspection data from Supabase
-        if (traceabilityCode && lotLetter) {
-            try {
-                const { error } = await supabase
-                    .from('inline_inspection_form_master')
-                    .update({ 
-                        inspection_data: null,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('traceability_code', traceabilityCode)
-                    .eq('lot_letter', lotLetter);
-                
-                if (error) {
-                    console.error('Error clearing inspection data from Supabase:', error);
-                } else {
-                    console.log('Inspection data cleared from Supabase');
-                }
-            } catch (error) {
-                console.error('Error clearing data:', error);
-            }
-        }
-        
-        // Update UI
-        afterTableStructureChange();
-        updateSummaryTable();
-    });
+
 
     // Defensive global Save button
     const saveTableBtn = document.getElementById('saveTableBtn');
@@ -1349,66 +1564,93 @@ document.addEventListener('DOMContentLoaded', async function() {
         return data;
     }
 
-    // Change Delete Rows button to Delete Table
-    clearRowsBtn.textContent = 'Delete Table';
 
-    // Replace clearRowsBtn click handler to delete the last table (most recent)
-    clearRowsBtn.removeEventListener('click', clearRows); // Remove old handler if any
-    clearRowsBtn.addEventListener('click', async function() {
-        const allTables = tablesContainer.querySelectorAll('table');
-        if (allTables.length > 0) {
-            const lastTable = allTables[allTables.length - 1];
-            // Remove Save button and separator before the table (if present)
-            let prev = lastTable.previousSibling;
-            // Remove Save button
-            if (prev && prev.classList && prev.classList.contains('dynamic-save-btn')) {
-                prev.remove();
-                prev = lastTable.previousSibling;
-            }
-            // Remove dotted separator
-            if (prev && prev.classList && prev.classList.contains('table-separator')) {
-                prev.remove();
-            }
-            // Delete from Supabase using formId
-            const formId = lastTable.dataset.formId;
-            if (formId) {
-                const { error } = await supabase
-                    .from('inline_inspection_form_master')
-                    .delete()
-                    .eq('form_id', formId);
-                if (error) {
-                    alert('Error deleting lot from Supabase: ' + error.message);
-                }
-            }
-            lastTable.remove();
-        }
-        // If no tables remain, create a new empty table
-        if (tablesContainer.querySelectorAll('table').length === 0) {
-            const newTable = document.createElement('table');
-            newTable.className = 'w-full border-collapse';
-            // Clone thead from the previous table if possible, else use thead from controls
-            let thead = null;
-            if (typeof origTable !== 'undefined' && origTable && origTable.querySelector('thead')) {
-                thead = origTable.querySelector('thead').cloneNode(true);
-            } else if (document.querySelector('thead')) {
-                thead = document.querySelector('thead').cloneNode(true);
-            }
-            if (thead) newTable.appendChild(thead);
-            const tbody = document.createElement('tbody');
-            newTable.appendChild(tbody);
-            tablesContainer.insertBefore(newTable, addNewTableBtn);
-            window.tableBody = tbody;
-            // REMOVE: addRows(1);
-        }
-        updateTableSpacing();
-    });
 
     // Initial visibility check
     // updateAddTableBtnVisibility(); // REMOVE THIS LINE
 
     // Call updateTableSpacing after any table add/remove/restore
     addNewTableBtn.addEventListener('click', updateTableSpacing);
-    clearRowsBtn.addEventListener('click', updateTableSpacing);
+
+    // ===== KEYBOARD NAVIGATION FUNCTIONALITY =====
+    function setupKeyboardNavigation() {
+        if (viewMode) {
+            console.log('Keyboard navigation disabled - in view mode');
+            return;
+        }
+        
+        document.addEventListener('keydown', function(e) {
+            const activeElement = document.activeElement;
+            
+            // Only handle arrow keys when a table cell is focused
+            if (!activeElement || !activeElement.matches('td[contenteditable="true"]')) {
+                return;
+            }
+            
+            const currentCell = activeElement;
+            const currentRow = currentCell.closest('tr');
+            const currentTable = currentRow.closest('table');
+            const tbody = currentTable.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const currentRowIndex = rows.indexOf(currentRow);
+            const cells = Array.from(currentRow.querySelectorAll('td'));
+            const currentCellIndex = cells.indexOf(currentCell);
+            
+            let targetCell = null;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                    if (currentRowIndex > 0) {
+                        const targetRow = rows[currentRowIndex - 1];
+                        const targetCells = Array.from(targetRow.querySelectorAll('td'));
+                        if (targetCells[currentCellIndex]) {
+                            targetCell = targetCells[currentCellIndex];
+                        }
+                    }
+                    break;
+                    
+                case 'ArrowDown':
+                    if (currentRowIndex < rows.length - 1) {
+                        const targetRow = rows[currentRowIndex + 1];
+                        const targetCells = Array.from(targetRow.querySelectorAll('td'));
+                        if (targetCells[currentCellIndex]) {
+                            targetCell = targetCells[currentCellIndex];
+                        }
+                    }
+                    break;
+                    
+                case 'ArrowLeft':
+                    if (currentCellIndex > 0) {
+                        targetCell = cells[currentCellIndex - 1];
+                    }
+                    break;
+                    
+                case 'ArrowRight':
+                    if (currentCellIndex < cells.length - 1) {
+                        targetCell = cells[currentCellIndex + 1];
+                    }
+                    break;
+            }
+            
+            if (targetCell && targetCell.isContentEditable) {
+                e.preventDefault();
+                targetCell.focus();
+                
+                // Place cursor at the end of the text
+                const range = document.createRange();
+                const selection = window.getSelection();
+                range.selectNodeContents(targetCell);
+                range.collapse(false);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        });
+    }
+    
+    // Initialize keyboard navigation
+    setupKeyboardNavigation();
+
+
 
     // ===== FILL O FUNCTIONALITY =====
     const fillOBtn = document.getElementById('fillOBtn');
@@ -1662,6 +1904,50 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
         };
         tablesContainer.appendChild(fillOButton);
+
+        // Add Delete Table button
+        const deleteTableButton = document.createElement('button');
+        deleteTableButton.textContent = 'Delete Table';
+        deleteTableButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm ml-2';
+        deleteTableButton.style.marginBottom = '8px';
+        deleteTableButton.onclick = async function() {
+            if (confirm('Are you sure you want to delete this table? This action cannot be undone.')) {
+                // Delete from Supabase using formId
+                const formId = table.dataset.formId;
+                if (formId) {
+                    const { error } = await supabase
+                        .from('inline_inspection_form_master')
+                        .delete()
+                        .eq('form_id', formId);
+                    if (error) {
+                        alert('Error deleting table from Supabase: ' + error.message);
+                        return;
+                    }
+                }
+                
+                // Remove the table and its associated elements from UI
+                table.remove();
+                
+                // Remove the Fill O button and Delete Table button
+                fillOButton.remove();
+                deleteTableButton.remove();
+                
+                // Remove the separator if it exists
+                const separator = tablesContainer.querySelector('div[style*="dotted"]');
+                if (separator) {
+                    separator.remove();
+                }
+                
+                // Update table spacing
+                updateTableSpacing();
+                
+                // Update summary table
+                updateSummaryTable();
+                
+                alert('Table deleted successfully!');
+            }
+        };
+        tablesContainer.appendChild(deleteTableButton);
         const table = document.createElement('table');
         table.className = 'w-full border-collapse mt-6';
         table.style.border = '2px solid #000';
@@ -1728,6 +2014,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         table.appendChild(tbody);
         tablesContainer.appendChild(table);
+        
+
+        
         return table;
     }
 
@@ -2005,6 +2294,15 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     })();
 
+    // 2. Fetch all users from Supabase on page load
+    let userSuggestions = [];
+    (async function fetchAllUsers() {
+        const { data, error } = await supabase.from('users').select('full_name');
+        if (!error && data) {
+            userSuggestions = data.map(u => u.full_name).filter(name => name && name.trim() !== '');
+        }
+    })();
+
     // 2. Autocomplete logic for defect_name cells
     function showDefectAutocomplete(cell) {
         // Remove any existing dropdown
@@ -2060,21 +2358,82 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, 0);
     }
 
-    // 3. Attach event listeners to tablesContainer for defect_name cells
+    // 3. Autocomplete logic for inspected_by cells
+    function showInspectorAutocomplete(cell) {
+        // Remove any existing dropdown
+        document.querySelectorAll('.inspector-autocomplete-dropdown').forEach(el => el.remove());
+        const inputValue = cell.textContent.trim().toLowerCase();
+        if (inputValue.length === 0) return; // Only show dropdown if user has typed something
+        const matches = userSuggestions.filter(u => u.toLowerCase().includes(inputValue) && u.trim() !== '');
+        if (matches.length === 0) return;
+        const cellRect = cell.getBoundingClientRect();
+        const dropdown = document.createElement('div');
+        dropdown.className = 'inspector-autocomplete-dropdown';
+        dropdown.style.position = 'fixed';
+        dropdown.style.left = cellRect.left + 'px';
+        dropdown.style.top = cellRect.bottom + 'px';
+        dropdown.style.minWidth = cellRect.width + 'px';
+        dropdown.style.background = '#eaf4fb'; // Light blue background
+        dropdown.style.border = '1px solid #bbb';
+        dropdown.style.zIndex = 10000;
+        dropdown.style.maxHeight = '180px';
+        dropdown.style.overflowY = 'auto';
+        dropdown.style.fontSize = '14px'; // Match table cell font size
+        matches.forEach(user => {
+            const item = document.createElement('div');
+            item.textContent = user;
+            item.style.padding = '6px 12px';
+            item.style.cursor = 'pointer';
+            item.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                cell.textContent = user;
+                cell.dispatchEvent(new Event('input', { bubbles: true }));
+                // Close dropdown immediately on selection
+                document.querySelectorAll('.inspector-autocomplete-dropdown').forEach(el => el.remove());
+            });
+            item.style.background = '#eaf4fb'; // Light blue by default
+            item.addEventListener('mouseenter', function() {
+                item.style.background = '#b3d8f5'; // Slightly darker blue on hover
+            });
+            item.addEventListener('mouseleave', function() {
+                item.style.background = '#eaf4fb'; // Revert to light blue
+            });
+            dropdown.appendChild(item);
+        });
+        document.body.appendChild(dropdown);
+        // Remove dropdown on blur or click elsewhere
+        function removeDropdown(e) {
+            if (!dropdown.contains(e.target) && e.target !== cell) {
+                dropdown.remove();
+                document.removeEventListener('mousedown', removeDropdown);
+            }
+        }
+        setTimeout(() => {
+            document.addEventListener('mousedown', removeDropdown);
+        }, 0);
+    }
+
+    // 3. Attach event listeners to tablesContainer for defect_name and inspected_by cells
     if (tablesContainer) {
         tablesContainer.addEventListener('focusin', function(e) {
             if (e.target && e.target.dataset && e.target.dataset.field === 'defect_name') {
                 showDefectAutocomplete(e.target);
+            }
+            if (e.target && e.target.dataset && e.target.dataset.field === 'inspected_by') {
+                showInspectorAutocomplete(e.target);
             }
         });
         tablesContainer.addEventListener('input', function(e) {
             if (e.target && e.target.dataset && e.target.dataset.field === 'defect_name') {
                 showDefectAutocomplete(e.target);
             }
+            if (e.target && e.target.dataset && e.target.dataset.field === 'inspected_by') {
+                showInspectorAutocomplete(e.target);
+            }
         });
         // Optional: Hide dropdown on scroll
         window.addEventListener('scroll', function() {
-            document.querySelectorAll('.defect-autocomplete-dropdown').forEach(el => el.remove());
+            document.querySelectorAll('.defect-autocomplete-dropdown, .inspector-autocomplete-dropdown').forEach(el => el.remove());
         });
     }
 
