@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>RTCIS Label Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- JsBarcode Library - Placed in head as it's needed early -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="../css/employee_dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        /* Base font for the entire body */
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+        }
+
+        /* Styles for elements when printed */
+        @media print {
+            @page {
+                size: auto; /* Let browser pick height */
+                margin: 2mm; /* Equal margin on all sides */
+            }
+            .print-label-size, .a4-sheet, .rtcis-label-table {
+                width: 185mm !important;
+                height: auto !important;
+                margin: 0 auto !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            body {
+                background: #fff !important;
+            }
+            .print-label-size .font-bold {
+                font-size: 10pt; /* Approximate 3.5mm */
+            }
+            .print-label-size strong {
+                font-size: 14pt; /* Approximate 5mm */
+            }
+            /* This will make the container visible during print */
+            /* #staticLabelPrintContainer {
+                 display: block !important;
+            } */
+            /* Hide other page elements during print if desired */
+            main, .header-container {
+                display: none;
+            }
+        }
+        /* Style for the static label preview when displayed on screen */
+        .rtcis-label-table {
+            width: auto !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+        }
+        #label-print-area, .a4-sheet {
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+        }
+        .page-fade-in {
+            opacity: 0;
+            animation: pageFadeIn 1.5s ease forwards;
+        }
+        @keyframes pageFadeIn {
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
+    <!-- This div will temporarily hold the label content before conversion to PDF -->
+    <div id="staticLabelPrintContainer" style="position: absolute; left: -9999px;"></div>
+    <div class="header-container">
+        <button type="button" class="header-back-button">Back</button>
+        <div class="header-title">Generate/Print RTCIS Labels</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+
+    <main class="flex-1 flex items-start justify-center p-3 w-full min-h-screen pt-24 md:pt-28 lg:pt-32 page-fade-in">
+        <div class="bg-white rounded-xl shadow-2xl flex max-w-5xl w-full overflow-hidden">
+            <div class="w-1/4 bg-[#002E7D] p-8 flex flex-col items-center justify-center rounded-l-xl relative">
+                <div class="absolute inset-0 bg-pattern opacity-10"></div>
+                <div class="bg-white bg-opacity-20 rounded-full p-6 mb-6 shadow-2xl relative z-10 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <rect x="2" y="4" width="2" height="16" fill="currentColor"/>
+                    <rect x="6" y="4" width="1" height="16" fill="currentColor"/>
+                    <rect x="9" y="4" width="2" height="16" fill="currentColor"/>
+                    <rect x="13" y="4" width="1" height="16" fill="currentColor"/>
+                    <rect x="16" y="4" width="2" height="16" fill="currentColor"/>
+                    <rect x="20" y="4" width="1" height="16" fill="currentColor"/>
+                  </svg>
+                  <span class="absolute bottom-2 right-2 bg-[#002E7D] rounded-full p-1 flex items-center justify-center shadow-md">
+                    <i class="fas fa-print text-white text-lg"></i>
+                  </span>
+                </div>
+                <h2 class="text-white text-3xl font-extrabold text-center relative z-10">Label Print</h2>
+            </div>
+
+            <div class="w-3/4 p-4 md:p-10">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">Product Details</h3>
+                <form id="rtcisForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5">
+
+
+                    <div>
+                        <label for="irms_gcas" class="block text-sm font-semibold text-gray-700 mb-1">IRMS/GCAS:</label>
+                        <select id="irms_gcas" name="irms_gcas" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                          <option value="">Loading...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="lot_number" class="block text-sm font-semibold text-gray-700 mb-1">LOT No:</label>
+                        <input type="text" id="lot_number" name="lot_number" maxlength="8" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                    </div>
+                    <div>
+                        <label for="quantity" class="block text-sm font-semibold text-gray-700 mb-1">No. of Rolls / Pallet:</label>
+                        <input type="text" id="quantity" name="quantity" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                    </div>
+                     <div>
+                         <label for="production_date" class="block text-sm font-semibold text-gray-700 mb-1">Production Date:</label>
+                        <input type="date" id="production_date" name="production_date" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                    </div>
+
+                    <div>
+                        <label for="height" class="block text-sm font-semibold text-gray-700 mb-1">Height (mm):</label>
+                        <input type="text" id="height" name="height" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                    </div>
+                    <div>
+                        <label for="gross_weight" class="block text-sm font-semibold text-gray-700 mb-1">Gross Weight (Kgs):</label>
+                        <input type="text" id="gross_weight" name="gross_weight" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                    </div>
+                    <div>
+                        <label for="sequence_number" class="block text-sm font-semibold text-gray-700 mb-1">Sequence Number:</label>
+                        <input type="text" id="sequence_number" name="sequence_number" maxlength="9" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                    </div>
+
+                    <div>
+                        <label for="pi_number" class="block text-sm font-semibold text-gray-700 mb-1">PI Number:</label>
+                        <input type="text" id="pi_number" name="pi_number" maxlength="10" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                    </div>
+                    <div>
+                        <label for="pallet_number" class="block text-sm font-semibold text-gray-700 mb-1">Pallet Number:</label>
+                        <input type="text" id="pallet_number" name="pallet_number" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                    </div>
+                    <div>
+                        <label for="pallet_type" class="block text-sm font-semibold text-gray-700 mb-1">Pallet Type:</label>
+                        <input type="text" id="pallet_type" name="pallet_type" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                    </div>
+                    <div class="md:col-span-3 flex justify-end mt-6">
+                        <button type="submit" class="inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                            Generate Label
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- html2canvas and jspdf are loaded at the end of the body, which is good practice -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Add html2pdf.js for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Your custom script, ensure this path is correct -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script type="module" src="../js/rtcis.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const backBtn = document.querySelector('.header-back-button');
+        if (backBtn) {
+          backBtn.addEventListener('click', function() {
+            window.location.href = 'employee_dashboard.html';
+          });
+        }
+        // Disable future dates for production date input
+        const prodDateInput = document.getElementById('production_date');
+        if (prodDateInput) {
+          const today = new Date();
+          const yyyy = today.getFullYear();
+          const mm = String(today.getMonth() + 1).padStart(2, '0');
+          const dd = String(today.getDate()).padStart(2, '0');
+          const maxDate = `${yyyy}-${mm}-${dd}`;
+          prodDateInput.setAttribute('max', maxDate);
+        }
+        // Prevent Enter key from submitting the form
+        const form = document.getElementById('rtcisForm');
+        if (form) {
+          form.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+              e.preventDefault();
+              // Move focus to next field
+              const focusable = Array.from(form.querySelectorAll('input, select, textarea, button'))
+                .filter(el => !el.disabled && el.type !== 'hidden' && el.offsetParent !== null);
+              const index = focusable.indexOf(e.target);
+              if (index > -1 && index < focusable.length - 1) {
+                focusable[index + 1].focus();
+              }
+            }
+          });
+        }
+      });
+    </script>
+</body>
+</html>

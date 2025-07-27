@@ -1,0 +1,307 @@
+/* General Body and Layout */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f6;
+}
+
+.back-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: #333;
+    text-decoration: none;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.back-button i {
+    margin-right: 5px;
+}
+
+.main-content {
+    /* padding: 20px; /* REMOVE or comment out this line */
+    padding: 20px 15px; /* <<< Keep top/bottom, add 15px left/right padding */
+    /* max-width: 1200px; /* Still removed */
+    /* margin: 20px auto; /* Still removed */
+    margin: 20px 0; /* Keep top/bottom margin */
+    width: 100%; 
+    box-sizing: border-box; /* Important: ensures padding is included within the 100% width */
+}
+
+/* Section Styling */
+#add-job-section, 
+#job-list-section {
+    background-color: #fff;
+    padding: 20px;
+    margin-bottom: 20px; /* Keep bottom margin */
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Remove margin-left/right auto if it was here */
+}
+
+/* Add this new rule specifically for the add job section */
+#add-job-section {
+    max-width: 900px; /* <<< Set a maximum width for the form section */
+    margin-left: auto;  /* <<< Center the section horizontally */
+    margin-right: auto; /* <<< Center the section horizontally */
+}
+
+h2 {
+    color: #333;
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* Form Styling */
+.user-form, 
+#add-job-form { 
+    /* background-color is handled by #add-job-section */
+    padding: 25px; /* Keep padding if needed inside the section */
+    margin-top: 15px; 
+}
+
+.form-group {
+    margin-bottom: 1rem; 
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-dark, #2D3436);
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="date"],
+.form-group input[type="number"], /* <<< ADD THIS LINE */
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color, #ddd); 
+    border-radius: 4px;
+    box-sizing: border-box; 
+    font-family: inherit; 
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: var(--accent-color, #002E7D);
+    outline: none; 
+    box-shadow: 0 0 0 2px rgba(0, 46, 125, 0.2); 
+}
+
+.form-group textarea {
+    resize: vertical; 
+    min-height: 80px;
+}
+
+/* General Button Styles */
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, opacity 0.2s ease-in-out;
+    color: white;
+    line-height: 1.5; /* Ensure consistent height */
+}
+
+.btn:hover {
+    opacity: 0.9;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Primary Button (Includes form submit) */
+.btn-primary,
+#add-job-form button[type="submit"] { 
+    background-color: var(--accent-color, #002E7D);
+    color: white;
+}
+
+/* Secondary Button */
+.btn-secondary {
+    background-color: #6c757d; 
+    color: white;
+}
+
+/* Warning Button (Used for Edit in table) */
+.btn-warning {
+    background-color: #ffc107;
+    color: #212529; 
+}
+.btn-warning:hover {
+    background-color: #e0a800;
+}
+
+/* Danger Button (Used for Delete in table) */
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+/* Form Action Button Container */
+.form-actions {
+    margin-top: 20px; 
+    display: flex; 
+    gap: 10px; 
+}
+
+/* Table Styling - Updated to match Quality Alerts Table */
+.table-container {
+    /* overflow-x: auto; */ /* <<< REMOVE this line */
+    padding: 0; 
+    margin-top: 20px;
+}
+
+table.job-table { 
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #e5e7eb;
+    margin-top: 0; 
+    background: white; 
+    box-shadow: none;
+    table-layout: fixed; /* <<< Changed to fixed for predictable widths */
+    box-sizing: border-box;
+}
+
+table.job-table th,
+table.job-table td {
+    padding: 0.75rem 1rem; 
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb; 
+    border-right: 1px solid #e5e7eb;  
+    vertical-align: top; 
+    white-space: normal; 
+    word-break: break-word; 
+    font-size: 0.85rem; /* <<< Added/Adjusted font size */
+}
+
+/* --- START: Approximate Column Widths (Adjust percentages as needed) --- */
+table.job-table th:nth-child(1), table.job-table td:nth-child(1) { width: 10%; } /* Title */
+table.job-table th:nth-child(2), table.job-table td:nth-child(2) { width: 6%; }  /* Location */
+table.job-table th:nth-child(3), table.job-table td:nth-child(3) { width: 8%; }  /* Salary */
+table.job-table th:nth-child(4), table.job-table td:nth-child(4) { width: 15%; } /* Experience */
+table.job-table th:nth-child(5), table.job-table td:nth-child(5) { width: 18%; } /* Qualification */
+table.job-table th:nth-child(6), table.job-table td:nth-child(6) { width: 7%; }  /* Vacant Positions */
+table.job-table th:nth-child(7), table.job-table td:nth-child(7) { width: 8%; }  /* Enrollment Type */
+table.job-table th:nth-child(8), table.job-table td:nth-child(8) { width: 7%; }  /* Department */
+table.job-table th:nth-child(9), table.job-table td:nth-child(9) { width: 6%; }  /* Duration */
+table.job-table th:nth-child(10), table.job-table td:nth-child(10){ width: 5%; }  /* Status */
+table.job-table th:nth-child(11), table.job-table td:nth-child(11){ width: 7%; }  /* Apply Before */
+table.job-table th:nth-child(12), table.job-table td:nth-child(12){ width: 7%; }  /* Created At */
+table.job-table th:nth-child(13), table.job-table td:nth-child(13){ width: 5%; }  /* Actions */
+/* --- END: Approximate Column Widths --- */
+
+
+/* Remove right border from last column */
+table.job-table th:last-child,
+table.job-table td:last-child {
+    border-right: none;
+}
+
+/* Add left border to first column */
+table.job-table th:first-child,
+table.job-table td:first-child {
+    border-left: 1px solid #e5e7eb; /* Match QA border */
+}
+
+table.job-table th {
+    background-color: #1e293b; 
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem; /* <<< Further reduced header font size */
+    letter-spacing: 0.5px;
+    border-right-color: #374151; 
+    position: sticky;
+    top: 0; 
+    z-index: 2;
+    vertical-align: bottom; 
+}
+
+table.job-table tbody tr:nth-child(even) {
+    background-color: #f8fafc; /* Zebra striping (QA style) */
+}
+
+table.job-table tbody tr:hover td { /* Apply hover to td for consistency */
+    background-color: #f1f1f1; /* Slightly different hover, adjust if needed */
+}
+
+/* REMOVE these rules as wrapping is now default */
+/*
+table.job-table td.description-cell, 
+table.job-table td.qualification-cell { 
+    white-space: normal;
+}
+*/
+
+/* Specific styles for buttons inside table cells */
+table.job-table td .btn {
+    padding: 0.3rem 0.6rem; 
+    font-size: 0.85rem; 
+    margin-right: 5px;
+    /* white-space: nowrap; */ /* <<< REMOVE this if you want button text to wrap (unlikely) */
+}
+
+table.job-table td .btn:last-child {
+    margin-right: 0;
+}
+
+/* Loading/Empty States */
+#job-list-table-container p {
+    color: #777;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+}
+
+/* REMOVED Redundant section/main styles from the end */
+
+/* Add this to job_posting_mgmt.css or ensure it's in admin_adhr.css */
+.header-back-button {
+  padding: 6px 12px; 
+  font-size: 0.9rem;
+  background-color: #e4c829; /* Yellow background */
+  color: #000000; /* Black text */
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-right: 15px; /* Adjust spacing as needed */
+  font-weight: 600; 
+  /* Position it correctly - might need adjustment based on header layout */
+  order: -1; /* Try to place it first in flex/grid layout */
+  align-self: center; /* Align vertically if header is flex */
+}
+
+.header-back-button:hover {
+  background-color: #d3b725; /* Darker yellow on hover */
+}
+
+/* Ensure header-container uses flexbox for proper alignment */
+.header-container {
+    display: flex; /* Make sure flexbox is enabled */
+    align-items: center; /* Vertically align items */
+    justify-content: space-between; /* Adjust as needed */
+    /* other existing header styles */
+}
+

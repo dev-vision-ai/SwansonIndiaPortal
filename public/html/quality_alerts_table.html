@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quality Alerts Table</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <link rel="stylesheet" href="../css/admin_qa.css">
+  <link rel="stylesheet" href="../css/header.css">
+  <!-- Add styles for the back button -->
+  <style>
+    .header-container { 
+      display: flex;
+      align-items: center;
+      /* Add other necessary header styles if not already in admin_qa.css */
+      /* e.g., justify-content: space-between; padding: 10px 20px; */
+    }
+    .header-back-button {
+      padding: 6px 12px; 
+      font-size: 0.9rem;
+      background-color: #e4c829; /* Yellow background */
+      color: #000000; /* Black text */
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-right: 15px; /* Space between button and title */
+      font-weight: 600; 
+    }
+    .header-back-button:hover {
+      background-color: #d3b725; /* Darker yellow on hover */
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <!-- Pasted Header -->
+  <div class="header-container bg-white shadow-md p-4 flex justify-between items-center">
+    <!-- Changed Back Button Action -->
+    <button type="button" class="header-back-button" onclick="window.location.href='admin_qa.html';">Back</button>
+    
+    <div class="header-title text-2xl font-bold">Quality Alerts Table</div>
+    <div class="company-logo">
+      <!-- Adjust logo path relative to this file's location -->
+      <img src="../assets/logo.png" class="auth-logo h-10" alt="Logo"/>
+    </div>
+  </div>
+  <!-- End Pasted Header -->
+
+    <div class="recent-alerts-container p-6">
+        <h2 class="text-xl font-semibold mb-4 text-center">All Quality Alerts</h2>
+
+        <!-- Filter Controls -->
+        <div class="filter-controls mb-4 flex justify-center space-x-4">
+            <span class="text-sm font-medium">Sort or Filter Alerts:</span>
+            <input type="date" id="filterDate" class="filter-input border rounded px-2 py-1">
+            <select id="filterDept" class="filter-select border rounded px-2 py-1">
+                <option value="">Filter by Responsible Dept.</option>
+                <option value="Production">Production</option>
+                <option value="Quality Control">Quality Control</option>
+                <option value="Administration">Administration</option>
+                <option value="Quality Assurance">Quality Assurance</option>
+                <option value="Sales">Sales</option>
+                <option value="Human Resource">Human Resource</option>
+                <option value="Warehouse">Warehouse</option>
+                <option value="Logistics">Logistics</option>
+                <option value="Purchase">Purchase</option>
+                <option value="Maintenance">Maintenance</option>
+            </select>
+            <select id="filterAbnormality" class="filter-select border rounded px-2 py-1">
+                <option value="">Filter by Type of Abnormality</option>
+                <option value="Safety">Safety</option>
+                <option value="Raw/Sub Material">Raw/Sub Material</option>
+                <option value="Documents/Records">Documents/Records</option>
+                <option value="SOP Deviation">SOP Deviation</option>
+                <option value="Packing Material">Packing Material</option>
+                <option value="Insects/Pests">Insects/Pests</option>
+                <option value="Machine/Equipment">Machine/Equipment</option>
+                <option value="Semi/Finished Goods">Semi/Finished Goods</option>
+                <option value="Environment/Facility">Environment/Facility</option>
+                <option value="Process">Process</option>
+                <option value="Labelling">Labelling</option>
+                <option value="Other">Other</option>
+            </select>
+            <button id="clearFilters" class="filter-btn">Clear Filters</button>
+            <button id="showStats" class="filter-btn">Stats</button>
+        </div>
+        <!-- End Filter Controls -->
+
+        <table class="min-w-full bg-white shadow-md rounded">
+      <thead>
+        <tr class="bg-gray-200 text-left">
+          <!-- Add data-sort attributes matching the keys in dashboard_qa.js -->
+          <th class="py-2 px-4" data-sort="id">Alert No.</th>
+          <th class="py-2 px-4" data-sort="incidentdate">Date</th>
+          <th class="py-2 px-4" data-sort="user_name">Reported By</th>
+          <th class="py-2 px-4" data-sort="user_department">Reporter Dept.</th> <!-- Added new header -->
+          <th class="py-2 px-4" data-sort="incidenttitle">Title</th>
+          <th class="py-2 px-4" data-sort="incidentdesc">Description</th>
+          <th class="py-2 px-4" data-sort="responsibledept">Responsible Dept.</th>
+          <th class="py-2 px-4" data-sort="abnormalitytype">Type of Abnormality</th> 
+          <th class="py-2 px-4">Actions</th> 
+        </tr>
+      </thead>
+      <tbody id="alertsBody">
+          <tr class="loading-row">
+              <td colspan="9" class="text-center py-4">Loading alerts...</td> <!-- Updated colspan -->
+          </tr>
+      </tbody>
+    </table>
+  </div>
+  <script type="module" src="../js/admin_qa.js"></script>
+</body>
+</html>

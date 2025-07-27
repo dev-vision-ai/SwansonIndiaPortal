@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin IQA Dashboard</title> <!-- Changed title -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <link rel="stylesheet" href="../css/admin_iqa.css"> <!-- Changed CSS file -->
+</head>
+<body>
+  <div class="header-container bg-white shadow-md p-4 flex justify-between items-center">
+    <div class="user-info flex items-center">
+      <span class="user-name text-gray-800 mr-2"></span> <!-- Ensure this is text-gray-800 -->
+    </div>
+    <div class="header-title text-2xl font-bold text-white">Admin IQA Dashboard</div> <!-- Changed header text -->
+    <div class="company-logo">
+      <img src="../assets/logo.png" class="auth-logo h-10" alt="Logo"/>
+    </div>
+  </div>
+  <main class="iqa-container">
+    <!-- New section for Quick Actions -->
+    <div class="quick-actions">
+      <div class="action-card" onclick="location.href='../html/map.html'">
+        <!-- <i class="fas fa-exclamation-circle"></i> --> <!-- Old Icon -->
+        <i class="fas fa-list-alt"></i> <!-- New Icon: Example using fa-list-alt -->
+        <h3>Management Action Plan</h3>
+        <p>View, Edit, Upload</p>
+      </div>
+    </div>
+  </main> <!-- End of main content -->
+  <script type="module" src="../js/admin_iqa.js"></script> <!-- Changed JS file -->
+</body>
+</html>
