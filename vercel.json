@@ -1,16 +1,6 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/public/$1"
-    }
-  ],
-  "outputDirectory": "public"
+  "buildCommand": "echo 'No build required for static site'",
+  "outputDirectory": "public",
+  "installCommand": "echo 'No dependencies to install'"
 } 
