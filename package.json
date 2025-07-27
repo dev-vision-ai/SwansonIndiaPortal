@@ -1,21 +1,14 @@
 {
-  "name": "swanson-backend",
+  "name": "swanson-india-portal",
   "version": "1.0.0",
-  "main": "server.js",
+  "description": "Swanson India Portal - Employee Management System",
+  "main": "index.html",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "build": "echo 'Build completed successfully'",
+    "start": "echo 'Static site - serve from public directory'",
+    "vercel-build": "echo 'Vercel build completed'"
   },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.52.1",
-    "exceljs": "^4.4.0",
-    "express": "^5.1.0",
-    "cors": "^2.8.5"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+  "keywords": ["static", "html", "css", "javascript"],
+  "author": "Swanson India",
+  "license": "ISC"
 } 
