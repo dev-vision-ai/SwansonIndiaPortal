@@ -4,9 +4,9 @@
   "description": "Swanson India Portal - Employee Management System",
   "main": "index.html",
   "scripts": {
-    "build": "echo 'Static site - no build required'",
+    "build": "echo 'Build completed successfully'",
     "start": "echo 'Static site - serve from public directory'",
-    "vercel-build": "echo 'Static site - no build required'"
+    "vercel-build": "echo 'Vercel build completed'"
   },
   "keywords": ["static", "html", "css", "javascript"],
   "author": "Swanson India",
