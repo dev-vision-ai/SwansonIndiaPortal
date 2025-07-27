@@ -3,5 +3,4 @@
   "buildCommand": "echo 'No build required for static site'",
   "outputDirectory": "public",
   "installCommand": "echo 'No dependencies to install'"
-  // Trigger redeployment
 } 
