@@ -5,7 +5,8 @@
   "main": "index.html",
   "scripts": {
     "build": "echo 'Static site - no build required'",
-    "start": "echo 'Static site - serve from public directory'"
+    "start": "echo 'Static site - serve from public directory'",
+    "vercel-build": "echo 'Static site - no build required'"
   },
   "keywords": ["static", "html", "css", "javascript"],
   "author": "Swanson India",
