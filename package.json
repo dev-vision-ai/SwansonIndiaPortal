@@ -1,0 +1,41 @@
+{
+  "name": "swanson-india-portal",
+  "version": "1.0.0",
+  "description": "Swanson Plastics India Portal - Employee Management and Quality Control System",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "build": "echo 'Build completed'",
+    "vercel-build": "echo 'Vercel build completed'"
+  },
+  "keywords": [
+    "swanson",
+    "plastics",
+    "india",
+    "portal",
+    "employee",
+    "quality",
+    "management"
+  ],
+  "author": "Swanson Plastics India Pvt Ltd",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "multer": "^1.4.5-lts.1",
+    "xlsx": "^0.18.5",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dev-vision-ai/SwansonIndiaPortal.git"
+  },
+  "homepage": "https://swanson-ind-git-aaaf01-swanson-plastics-india-pvt-ltds-projects.vercel.app"
+} 
