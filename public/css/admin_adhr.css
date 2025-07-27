@@ -1,0 +1,591 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary-gradient: linear-gradient(45deg, #002E7D, #0046C7);
+    --accent-color: #002E7D;
+    --bg-color: #f5f5f5; 
+    --card-bg: #ffffff;
+    --text-dark: #2D3436; 
+    --text-light: #666666;
+    --border-color: #eee;
+    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.15); 
+    --transition: all 0.3s ease-in-out; 
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background-color: #eaf1fa;
+    background-image: url('data:image/svg+xml;utf8,<svg width="60" height="30" viewBox="0 0 60 30" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><circle cx="45" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><line x1="25" y1="15" x2="35" y2="15" stroke="%2399aabb" stroke-width="1" opacity="0.10"/></svg>');
+    background-size: 60px 30px;
+    background-repeat: repeat;
+    min-height: 100vh; 
+    color: #333;
+    padding-top: 70px; 
+}
+
+.quick-action-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    justify-content: flex-start;
+    margin: 48px 0 0 2.5rem;
+    padding: 0;
+}
+
+.action-card {
+    background: #fff;
+    padding: 0;
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    transition: box-shadow 0.18s;
+    border: 2px solid #e4c829;
+    width: 270px;
+    height: 120px;
+    min-height: 120px;
+    max-height: 120px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin-left: 1.2rem;
+    overflow: visible;
+    text-align: left;
+}
+
+.action-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 46, 125, 0.18);
+}
+
+.action-card-icon-circle {
+    position: absolute;
+    left: -32px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 64px;
+    height: 64px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,46,125,0.18);
+    z-index: 2;
+    border: 4px solid #fff;
+}
+
+.action-card-icon-circle i {
+    color: #fff;
+    font-size: 2rem;
+}
+
+.action-card-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+}
+
+.action-card-heading {
+    background: linear-gradient(135deg, rgba(0,46,125,0.92) 60%, rgba(0,70,199,0.85) 100%);
+    color: #fff;
+    flex: 1 1 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top-right-radius: 16px;
+    border-top-left-radius: 16px;
+    font-size: 0.98rem;
+    font-weight: 600;
+    margin: 0;
+    height: 50%;
+    text-align: center;
+    word-break: break-word;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 8px 0 rgba(0,46,125,0.08);
+    position: relative;
+}
+
+.action-card-heading::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+    border-top-right-radius: 16px;
+    border-top-left-radius: 16px;
+    pointer-events: none;
+}
+
+.action-card-heading h3 {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+.action-card-description {
+    background: #f5f5f5;
+    color: var(--text-light);
+    flex: 1 1 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom-right-radius: 16px;
+    border-bottom-left-radius: 16px;
+    font-size: 0.89rem;
+    margin: 0;
+    height: 50%;
+    text-align: center;
+}
+
+.action-card-description p {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+.action-card h3, .action-card p {
+    margin: 0;
+    padding: 0;
+}
+
+.action-card:nth-child(n) {
+    background: #fff;
+}
+
+.logout-button {
+    padding: 8px 15px; /* Match back button padding */
+    font-size: 0.9rem;  /* Match back button font size */
+    background-color: #fcfcfc; /* Yellow background */
+    color: #000000; /* Blue text */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px; /* Space between button and name */
+    font-weight: 600; /* Make text bold like back button */
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .logout-button:hover {
+    background-color: #dfc532; /* Darker yellow on hover */
+    color: #000000; /* Darker blue on hover */
+  }
+  
+  .user-name {
+    color: white;
+}
+
+.js-hide {
+  display: none !important;
+}
+
+@keyframes cardFadeInPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.03) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.action-card:not(.js-hide) {
+  animation: cardFadeInPop 1.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Full page fade-in (excluding header) */
+.page-fade-in {
+  opacity: 0;
+  animation: pageFadeIn 1.5s ease forwards;
+}
+
+@keyframes pageFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Header fade-in (no movement, just opacity) */
+.header-fade-in {
+  opacity: 0;
+  animation: headerFadeIn 1.2s ease forwards;
+}
+
+@keyframes headerFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.designer-watermark {
+  position: fixed;
+  right: 14px;
+  bottom: 8px;
+  width: auto;
+  text-align: right;
+  padding: 0.5px 1px;
+  font-size: 0.5rem;
+  color: #aaa;
+  letter-spacing: 0.3px;
+  background: rgba(255,255,255,0.65);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  z-index: 100;
+  user-select: none;
+}
+.designer-watermark span {
+  font-weight: 500;
+  color: #002E7D;
+}
+
+/* --- Begin copied from admin_qa.css --- */
+/* Import Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary-gradient: linear-gradient(45deg, #002E7D, #0046C7);
+    --accent-color: #002E7D;
+    --bg-color: #f5f5f5;
+    --card-bg: #ffffff;
+    --text-dark: #2D3436;
+    --text-light: #666666;
+    --border-color: #eee;
+    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.15);
+    --transition: all 0.3s ease-in-out;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    background-color: #eaf1fa;
+    background-image: url('data:image/svg+xml;utf8,<svg width="60" height="30" viewBox="0 0 60 30" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><circle cx="45" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><line x1="25" y1="15" x2="35" y2="15" stroke="%2399aabb" stroke-width="1" opacity="0.10"/></svg>');
+    background-size: 60px 30px;
+    background-repeat: repeat;
+    min-height: fixed;
+}
+
+/* ... (rest of admin_qa.css content) ... */
+/* --- End copied from admin_qa.css --- */
+
+/* --- Begin mobile responsive rules copied from admin_qa.css --- */
+@media (max-width: 600px) {
+    body, .form-container, .form-group, .form-group label, .form-group input, .form-group textarea, .form-group select, .rpn-table, .rpn-table th, .rpn-table td, .repeat-alert-table, .repeat-alert-table th, .repeat-alert-table td {
+        font-size: 0.92rem !important;
+    }
+    label, .form-group label {
+        font-size: 0.90rem !important;
+    }
+    .quick-action-grid {
+        flex-direction: column;
+        align-items: center;
+    }
+    .header-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: var(--accent-color);
+        padding: 20px 10px;
+        margin: 0;
+        border-radius: 0;
+        border-bottom: 5px solid #e4c829;
+        height: 70px;
+        box-sizing: border-box;
+        padding-left: 56px;
+    }
+    .header-back-button {
+        position: fixed;
+        top: 18px;
+        left: 10px;
+        z-index: 1100;
+        padding: 8px 12px;
+        font-size: 0.95rem;
+        background-color: #e4c829;
+        color: #002E7D;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+    }
+    .header-title {
+        position: absolute;
+        left: 50%;
+        top: 48%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 1.10rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-align: center;
+        width: 100%;
+        pointer-events: none;
+    }
+    .company-logo {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        margin-left: 0;
+    }
+    .company-logo img {
+        height: 38px;
+        border: 3.0px solid white;
+    }
+    .immediate-action-row-scroll {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    .immediate-action-row-scroll .form-group {
+        flex-wrap: nowrap;
+        min-width: 700px;
+        gap: 0;
+    }
+    .immediate-action-row-scroll .immediate-action-field {
+        margin-right: 12px;
+    }
+    .immediate-action-row-scroll .immediate-action-field:last-child {
+        margin-right: 0;
+    }
+    .immediate-action-row-scroll textarea {
+        min-width: 120px;
+        max-width: none;
+    }
+    .kiv-details .form-row {
+        flex-direction: column !important;
+    }
+}
+/* --- End mobile responsive rules --- */
+
+/* --- Table and related styles copied from admin_qa.css for consistent admin table appearance --- */
+
+.recent-alerts-container {
+    margin-top: 100px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 0;
+    overflow: visible;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+th, td {
+    padding: 18px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
+}
+
+th:last-child,
+td:last-child {
+    border-right: none;
+}
+
+th:first-child,
+td:first-child {
+    border-left: 1px solid #e5e7eb;
+    width: 110px;
+}
+
+th {
+    background-color: #1e293b;
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+    border-right-color: #374151;
+}
+
+tr:hover td {
+    background-color: #f8fafc;
+}
+
+tbody tr td:last-child {
+    white-space: nowrap;
+}
+
+.loading-row td {
+    padding: 20px;
+    text-align: center;
+    color: #64748b;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+.filter-input,
+.filter-select {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  transition: var(--transition);
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  border-color: var(--accent-color);
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 46, 125, 0.3);
+}
+
+.filter-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding-top: 0.5rem;
+}
+
+.filter-controls span {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  color: var(--text-dark);
+  margin-right: 0.5rem;
+}
+
+.filter-btn { 
+   background-color: #ffe342; 
+   color: #000000; 
+   padding: 0.5rem 1rem; 
+   border: 1px solid #ccc; 
+   border-radius: 4px; 
+   cursor: pointer; 
+   transition: all 0.3s ease; 
+}
+
+.filter-btn:hover { 
+   background-color: #e0e0e0; 
+}
+
+/* --- Button styles for table actions (copied from admin_qa.css) --- */
+.action-btn {
+    padding: 8px 16px;
+    margin-right: 8px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: var(--transition);
+    text-decoration: none !important;
+}
+
+.view-btn {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.view-btn:hover {
+    background-color: #001f4d;
+}
+
+.edit-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+.edit-btn:hover {
+    background-color: #218838;
+}
+
+.recent-alerts-container {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #ccc;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.recent-alerts-container h2 {
+    text-align: center;
+    width: 100%;
+}
+/* --- End of copied styles --- */
+
+/* --- Table header and cell centering, wrapping, and actions cell fixes --- */
+
+/* Center table headers and allow wrapping */
+table th {
+    text-align: center !important;
+    vertical-align: middle !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
+/* Center all table cell content and allow wrapping */
+table td {
+    text-align: center !important;
+    vertical-align: middle !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    max-width: 180px;
+    padding: 8px 6px;
+    box-sizing: border-box;
+}
+
+/* Special styling for the Actions cell to center and wrap buttons */
+table td.actions-cell {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 120px;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
+/* Ensure action buttons do not overflow and wrap if needed */
+.action-btn {
+    min-width: 60px;
+    padding: 6px 16px;
+    font-size: 15px;
+    white-space: nowrap;
+    margin: 2px 0;
+    box-sizing: border-box;
+}
+
+/* Make sure description and other long text cells wrap */
+td.description-cell {
+    max-width: 220px;
+    white-space: normal !important;
+    word-break: break-word !important;
+    text-align: left !important;
+}

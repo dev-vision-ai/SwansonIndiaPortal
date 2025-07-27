@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Inline Inspection Form - Entry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/employee_dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; font-weight: 500; }
+        html, body {
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
+    <div class="header-container">
+        <button type="button" class="header-back-button">Back</button>
+        <div class="header-title">All Inline Inspection Forms</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+    <!-- Overlay for Inline Inspection Form -->
+    <div id="inspectionFormOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
+      <main class="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-4 md:p-6 flex flex-col items-center max-h-[95vh] overflow-y-auto relative mt-20">
+        <button id="closeInspectionFormOverlay" class="absolute top-4 right-4 text-2xl text-red-500 hover:text-red-700 font-bold bg-white rounded-full w-10 h-10 flex items-center justify-center shadow transition">&times;</button>
+            <div class="w-full p-2 md:p-4">
+                <h3 class="text-2xl font-bold text-gray-800 mb-5 text-center">Enter Inline Inspection Form Details</h3>
+                <div class="bg-[#002E7D] h-1 w-24 mx-auto rounded mb-5"></div>
+                <form id="inlineInspectionEntryForm" class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mb-5">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Customer:</label>
+                            <input type="text" name="customer" class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Production No.:</label>
+                            <input type="text" name="production_no" class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mb-5">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Prod. Code:</label>
+                            <input type="text" name="prod_code" class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Spec:</label>
+                            <input type="text" name="spec" class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mb-5">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Production Date:</label>
+                            <input type="date" name="production_date" class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Emboss Type:</label>
+                            <select name="emboss_type" class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                                <option value="">Select</option>
+                                <option value="Random">Random</option>
+                                <option value="Matte">Matte</option>
+                                <option value="Micro">Micro</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-row items-center gap-10 border border-gray-200 bg-gray-50 rounded-lg px-4 py-3 w-fit mb-5">
+                        <label class="inline-flex items-center text-sm font-semibold text-gray-700">
+                            <input type="checkbox" name="printed" class="h-5 w-5 text-[#002E7D] border-gray-300 rounded mr-2"> Printed
+                        </label>
+                        <label class="inline-flex items-center text-sm font-semibold text-gray-700">
+                            <input type="checkbox" name="non_printed" class="h-5 w-5 text-[#002E7D] border-gray-300 rounded mr-2"> Non-Printed
+                        </label>
+                        <label class="inline-flex items-center text-sm font-semibold text-gray-700">
+                            <input type="checkbox" name="ct" class="h-5 w-5 text-[#002E7D] border-gray-300 rounded mr-2"> CT
+                        </label>
+                    </div>
+                    <div class="p-2 border border-gray-200 rounded-lg flex flex-row gap-2 justify-center mx-auto mb-5">
+                        <div class="flex items-center mr-4">
+                            <label class="block text-base font-semibold text-gray-700">Lot ID:</label>
+                        </div>
+                        <div class="flex flex-col w-20">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Year</label>
+                            <input type="text" name="year" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        </div>
+                        <div class="flex flex-col w-20">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Month</label>
+                            <input type="text" name="month" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        </div>
+                        <div class="flex flex-col w-20">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Date</label>
+                            <input type="text" name="date" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        </div>
+                        <div class="flex flex-col w-20">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">M/C No.</label>
+                            <input type="text" name="mc_no" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        </div>
+                        <div class="flex flex-col w-20">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Shift</label>
+                            <select name="shift" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="p-2 border border-gray-200 rounded-lg flex flex-row gap-2 justify-center mx-auto mb-5">
+                        <div class="flex items-center mr-4">
+                            <label class="block text-base font-semibold text-gray-700">Team:</label>
+                        </div>
+                        <div class="flex flex-col w-28">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Supervisor</label>
+                            <input type="text" name="supervisor" placeholder="Supervisor 1" class="block w-full px-2 py-2 h-10 mb-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <input type="text" name="supervisor2" placeholder="Supervisor 2" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        </div>
+                        <div class="flex flex-col w-28">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Line Leader</label>
+                            <input type="text" name="line_leader" placeholder="Line Leader 1" class="block w-full px-2 py-2 h-10 mb-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <input type="text" name="line_leader2" placeholder="Line Leader 2" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        </div>
+                        <div class="flex flex-col w-28">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Operator</label>
+                            <input type="text" name="operator" placeholder="Operator 1" class="block w-full px-2 py-2 h-10 mb-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <input type="text" name="operator2" placeholder="Operator 2" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        </div>
+                        <div class="flex flex-col w-28">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">QC Inspector</label>
+                            <input type="text" name="qc_inspector" placeholder="QC Inspector 1" class="block w-full px-2 py-2 h-10 mb-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <input type="text" name="qc_inspector2" placeholder="QC Inspector 2" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        </div>
+                    </div>
+                    <div class="flex justify-center mb-5">
+                        <button type="submit" class="inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 mx-auto">
+                            Create Inline Inspection Form
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    <!-- Create Film Inspection Form Button -->
+    <div class="flex justify-center w-full mt-32 mb-2">
+      <button id="showInspectionFormOverlay" type="button" class="bg-[#002E7D] hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl shadow text-lg transition-all duration-200">
+        + Create Film Inspection Form
+      </button>
+    </div>
+    <!-- Inline Inspection Forms Table -->
+    <div class="w-full flex justify-center mt-8">
+      <div class="w-full overflow-x-auto">
+        <table class="w-full bg-white shadow-md rounded table-fixed">
+                    <thead>
+          <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center text-sm">
+            <th class="py-2 px-4 border-r border-gray-300 w-16 whitespace-normal break-words">Sr No</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-32 whitespace-normal break-words">Production Date</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-56 whitespace-normal break-words">Product</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-20 whitespace-normal break-words">M/C No</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-20 whitespace-normal break-words">Shift</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-32 whitespace-normal break-words">Operator</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-32 whitespace-normal break-words">Supervisor</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-32 whitespace-normal break-words">Line Leader</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-32 whitespace-normal break-words">QC Inspector</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-28 whitespace-normal break-words">Status</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-40 whitespace-normal break-words">Action</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-24 whitespace-normal break-words">Download In-Line</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+          <!-- Data rows will go here -->
+                    </tbody>
+                </table>
+      </div>
+    </div>
+    <style>
+      /* Striped rows and hover for tbody */
+      table tbody tr { background-color: #ffffff; }
+      table tbody tr:hover { background-color: #e2e8f0; }
+      table tbody tr { border-bottom: 1px solid #d1d5db; }
+    </style>
+    <script type="module" src="../js/inline_inspection_form.js"></script>
+</body>
+</html>
