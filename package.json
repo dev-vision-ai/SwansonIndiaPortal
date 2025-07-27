@@ -1,25 +1,13 @@
 {
-  "name": "swansonindiaportal",
+  "name": "swanson-india-portal",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Swanson India Portal - Employee Management System",
+  "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "echo 'Static site - no build required'",
+    "start": "echo 'Static site - serve from public directory'"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/dev-vision-ai/SwansonIndiaPortal.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/dev-vision-ai/SwansonIndiaPortal/issues"
-  },
-  "homepage": "https://github.com/dev-vision-ai/SwansonIndiaPortal#readme",
-  "description": "",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.52.1",
-    "exceljs": "^4.4.0",
-    "express": "^5.1.0"
-  }
+  "keywords": ["static", "html", "css", "javascript"],
+  "author": "Swanson India",
+  "license": "ISC"
 }
