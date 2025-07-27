@@ -147,30 +147,35 @@
     </div>
     <!-- Inline Inspection Forms Table -->
     <div class="w-full flex justify-center mt-8">
-      <table class="min-w-full bg-white shadow-md rounded">
+      <div class="w-full overflow-x-auto">
+        <table class="w-full bg-white shadow-md rounded table-fixed">
                     <thead>
-          <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center">
-            <th class="py-2 px-4 border-r border-gray-300">Sr No</th>
-            <th class="py-2 px-4 border-r border-gray-300">Production Date</th>
-            <th class="py-2 px-4 border-r border-gray-300">Product</th>
-            <th class="py-2 px-4 border-r border-gray-300">M/C No</th>
-            <th class="py-2 px-4 border-r border-gray-300">Shift</th>
-            <th class="py-2 px-4 border-r border-gray-300">Operator</th>
-            <th class="py-2 px-4 border-r border-gray-300">Supervisor</th>
-            <th class="py-2 px-4 border-r border-gray-300">Line Leader</th>
-            <th class="py-2 px-4 border-r border-gray-300">QC Inspector</th>
-            <th class="py-2 px-4">Action</th>
+          <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center text-sm">
+            <th class="py-2 px-4 border-r border-gray-300 w-16 whitespace-normal break-words">Sr No</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-32 whitespace-normal break-words">Production Date</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-56 whitespace-normal break-words">Product</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-20 whitespace-normal break-words">M/C No</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-20 whitespace-normal break-words">Shift</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-32 whitespace-normal break-words">Operator</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-32 whitespace-normal break-words">Supervisor</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-32 whitespace-normal break-words">Line Leader</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-32 whitespace-normal break-words">QC Inspector</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-28 whitespace-normal break-words">Status</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-40 whitespace-normal break-words">Action</th>
+            <th class="py-2 px-4 border-r border-gray-300 w-24 whitespace-normal break-words">Download In-Line</th>
                         </tr>
                     </thead>
                     <tbody>
           <!-- Data rows will go here -->
                     </tbody>
                 </table>
-            </div>
+      </div>
+    </div>
     <style>
       /* Striped rows and hover for tbody */
-      table tbody tr:nth-child(even) { background-color: #f8f9fa; }
-      table tbody tr:hover { background-color: #e9ecef; }
+      table tbody tr { background-color: #ffffff; }
+      table tbody tr:hover { background-color: #e2e8f0; }
+      table tbody tr { border-bottom: 1px solid #d1d5db; }
     </style>
     <script type="module" src="../js/inline_inspection_form.js"></script>
 </body>

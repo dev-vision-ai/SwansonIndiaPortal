@@ -1,30 +1,93 @@
 const express = require('express');
 const ExcelJS = require('exceljs');
 const path = require('path');
+const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-// Add CORS support for local testing
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Expose-Headers', 'Content-Disposition');
+// CORS configuration for frontend
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://127.0.0.1:5505',
+    'http://localhost:5505',
+    'https://swanson-india-portal.vercel.app',
+    'https://swanson-india-portal-9achzdpnx.vercel.app',
+    process.env.FRONTEND_URL
+  ].filter(Boolean),
+  credentials: true
+}));
+
+app.use(express.json());
+
+// Supabase configuration from environment variables
+const supabase = createClient(
+  process.env.SUPABASE_URL || 'https://ufczydnvscaicygwlmhz.supabase.co',
+  process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3p5ZG52c2NhaWN5Z3dsbWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyMTg5NDYsImV4cCI6MjA1OTc5NDk0Nn0.0TUriXYvPuml-Jzr9v1jvcuzKjh-cZgnZhYKkQEj3t0'
+);
+
+// Server-side keep-alive scheduling (IST timezone - 90 min intervals)
+let dailyPingCount = 0;
+let lastPingDate = null;
+
+function scheduleKeepAlive() {
+  const now = new Date();
+  const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000)); // Convert to IST (UTC+5:30)
+  const istHour = istTime.getHours();
+  const istMinute = istTime.getMinutes();
   
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
+  // Custom ping windows (morning, afternoon, evening)
+  const pingWindows = [
+    { start: 5.5, end: 7, name: 'Morning' },    // 5:30 AM - 7:00 AM
+    { start: 13.5, end: 15, name: 'Afternoon' }, // 1:30 PM - 3:00 PM  
+    { start: 21.5, end: 23, name: 'Evening' }    // 9:30 PM - 11:00 PM
+  ];
+  
+  // Check if current time is within any ping window
+  for (const window of pingWindows) {
+    if (istHour >= window.start && istHour < window.end) {
+      console.log(`🟢 ${window.name} ping at ${istHour}:${istMinute} IST`);
+      return true;
+    }
   }
+  
+  console.log(`🔴 Outside ping windows (${istHour}:${istMinute} IST)`);
+  return false;
+}
+
+// Check ping windows every 30 minutes
+setInterval(() => {
+  if (scheduleKeepAlive()) {
+    console.log('✅ Server keeping warm during active window');
+  }
+}, 30 * 60 * 1000); // Every 30 minutes
+
+// Initial check after 30 seconds
+setTimeout(() => {
+  if (scheduleKeepAlive()) {
+    console.log('✅ Initial server warm-up');
+  }
+}, 30000); // Check after 30 seconds
+
+// Keep-alive endpoint to prevent cold starts
+app.get('/ping', (req, res) => {
+  res.json({ 
+    status: 'alive', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
 });
 
-// Replace with your actual Supabase project URL and service role key
-const supabase = createClient(
-  'https://ufczydnvscaicygwlmhz.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3p5ZG52c2NhaWN5Z3dsbWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyMTg5NDYsImV4cCI6MjA1OTc5NDk0Nn0.0TUriXYvPuml-Jzr9v1jvcuzKjh-cZgnZhYKkQEj3t0'
-);
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    message: 'Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
 
 app.get('/export', async (req, res) => {
   try {
@@ -51,7 +114,7 @@ app.get('/export', async (req, res) => {
     }
 
     // 2. Load the client's Excel template
-    const templatePath = path.join(__dirname, 'Inline_inspection_form.xlsx');
+    const templatePath = path.join(__dirname, 'templates', 'Inline_inspection_form.xlsx');
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(templatePath);
 
@@ -566,6 +629,8 @@ app.get('/export', async (req, res) => {
     const productionDate = firstLot.production_date ? formatDateToDDMMYYYY(firstLot.production_date) : '';
     const prodCode = firstLot.prod_code || '';
     const shiftNumber = firstLot.shift || '';
+    const customer = firstLot.customer || '';
+    const mcNo = firstLot.mc_no || '';
     
     // Convert shift number to letter
     let shiftLetter = '';
@@ -574,11 +639,16 @@ app.get('/export', async (req, res) => {
     else if (shiftNumber === '3') shiftLetter = 'C';
     else shiftLetter = shiftNumber; // Keep original if not 1, 2, or 3
     
-    const filename = `In-Line Inspection Form-${firstLot.traceability_code}-${prodCode}.xlsx`;
+    // Create a simple filename with traceability code and product code
+    const filename = `In-Line_Inspection_Form_${firstLot.traceability_code}_${prodCode}.xlsx`;
+    
+    console.log('Generated filename:', filename); // Debug log
     
     // 12. Send the buffer as a response
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+    console.log('Content-Disposition header set:', `attachment; filename="${filename}"`); // Debug log
     res.send(buffer);
 
   } catch (error) {
@@ -599,4 +669,4 @@ function formatDateToDDMMYYYY(dateString) {
 
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
-});
+}); 
