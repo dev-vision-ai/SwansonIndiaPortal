@@ -7,14 +7,12 @@ const { createClient } = require('@supabase/supabase-js');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// CORS configuration for frontend
+// CORS configuration for frontend - only production URLs
 app.use(cors({
   origin: [
-    'http://localhost:3000',
-    'http://127.0.0.1:5505',
-    'http://localhost:5505',
     'https://swanson-india-portal.vercel.app',
     'https://swanson-india-portal-9achzdpnx.vercel.app',
+    'https://swanson-ind-git-aaaf01-swanson-plastics-india-pvt-ltds-projects.vercel.app',
     process.env.FRONTEND_URL
   ].filter(Boolean),
   credentials: true
