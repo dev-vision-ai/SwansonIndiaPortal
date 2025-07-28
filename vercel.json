@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "swanson-india-portal",
   "builds": [
     {
       "src": "backend/server.js",
@@ -17,16 +16,15 @@
       "dest": "backend/server.js"
     },
     {
+      "src": "/",
+      "dest": "public/index.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "public/$1"
     }
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "functions": {
-    "backend/server.js": {
-      "maxDuration": 30
-    }
   }
 } 
