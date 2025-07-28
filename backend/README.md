@@ -20,7 +20,7 @@ npm install
 ```
 SUPABASE_URL=your_supabase_url
 SUPABASE_ANON_KEY=your_supabase_anon_key
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=https://swanson-ind-git-aaaf01-swanson-plastics-india-pvt-ltds-projects.vercel.app
 PORT=3000
 ```
 

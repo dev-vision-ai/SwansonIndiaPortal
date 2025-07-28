@@ -72,7 +72,7 @@ SwansonIndiaPortal/
 
 4. **Open in browser**
    ```
-   http://localhost:3000
+   https://swanson-ind-git-aaaf01-swanson-plastics-india-pvt-ltds-projects.vercel.app
    ```
 
 ## 📦 Deployment

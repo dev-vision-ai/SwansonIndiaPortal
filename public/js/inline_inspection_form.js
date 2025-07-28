@@ -489,8 +489,9 @@ window.downloadFormExcel = async function(traceability_code, lot_letter, buttonE
     showProgressIndicator('Connecting to server...');
 
     // Call the Node.js export server with specific form parameters
-    // Always use Render URL for both online and offline servers
-    const backendUrl = 'https://swanson-backend.onrender.com';
+    // Use localhost for IDE testing, Render URL for production
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
     const exportUrl = `${backendUrl}/export?traceability_code=${encodeURIComponent(traceability_code)}&lot_letter=${encodeURIComponent(lot_letter)}`;
 
     // Add timeout for slow connections (increased for cold starts)
