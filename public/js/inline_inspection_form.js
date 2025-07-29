@@ -112,23 +112,42 @@ function setupFilterHandlers() {
   }
 }
 
+// Populate filter dropdowns with unique values from forms
+function populateFilterDropdowns() {
+  const productSelect = document.getElementById('filterProduct');
+  const machineSelect = document.getElementById('filterMachine');
+  
+  if (!productSelect || !machineSelect) return;
+  
+  // Get unique products and machines from all forms
+  const uniqueProducts = [...new Set(allForms.map(form => form.prod_code).filter(Boolean))].sort();
+  const uniqueMachines = [...new Set(allForms.map(form => form.mc_no).filter(Boolean))].sort();
+  
+  // Populate product dropdown
+  productSelect.innerHTML = '<option value="">All Products</option>';
+  uniqueProducts.forEach(product => {
+    const option = document.createElement('option');
+    option.value = product;
+    option.textContent = product;
+    productSelect.appendChild(option);
+  });
+  
+  // Populate machine dropdown
+  machineSelect.innerHTML = '<option value="">All Machines</option>';
+  uniqueMachines.forEach(machine => {
+    const option = document.createElement('option');
+    option.value = machine;
+    option.textContent = machine;
+    machineSelect.appendChild(option);
+  });
+}
+
 async function applyFilters() {
   const fromDate = document.getElementById('filterFromDate').value;
   const toDate = document.getElementById('filterToDate').value;
-  const product = document.getElementById('filterProduct').value.toLowerCase();
-  const machine = document.getElementById('filterMachine').value.toLowerCase();
-  const shift1 = document.getElementById('filterShift1').checked;
-  const shift2 = document.getElementById('filterShift2').checked;
-  const shift3 = document.getElementById('filterShift3').checked;
-  
-  // Get selected shifts
-  const selectedShifts = [];
-  if (shift1) selectedShifts.push(1);
-  if (shift2) selectedShifts.push(2);
-  if (shift3) selectedShifts.push(3);
-  
-  // If no shifts selected, show all
-  const shiftsToFilter = selectedShifts.length > 0 ? selectedShifts : [1, 2, 3];
+  const product = document.getElementById('filterProduct').value;
+  const machine = document.getElementById('filterMachine').value;
+  const shift = document.getElementById('filterShift').value;
   
   // Filter the forms
   filteredForms = allForms.filter(form => {
@@ -150,16 +169,18 @@ async function applyFilters() {
     
     // Product filter
     if (product && form.prod_code) {
-      if (!form.prod_code.toLowerCase().includes(product)) return false;
+      if (form.prod_code !== product) return false;
     }
     
     // Machine filter
     if (machine && form.mc_no) {
-      if (!form.mc_no.toLowerCase().includes(machine)) return false;
+      if (form.mc_no !== machine) return false;
     }
     
     // Shift filter
-    if (!shiftsToFilter.includes(parseInt(form.shift))) return false;
+    if (shift && form.shift) {
+      if (parseInt(form.shift) !== parseInt(shift)) return false;
+    }
     
     return true;
   });
@@ -177,9 +198,7 @@ function clearFilters() {
   document.getElementById('filterToDate').value = '';
   document.getElementById('filterProduct').value = '';
   document.getElementById('filterMachine').value = '';
-  document.getElementById('filterShift1').checked = false;
-  document.getElementById('filterShift2').checked = false;
-  document.getElementById('filterShift3').checked = false;
+  document.getElementById('filterShift').value = '';
   
   // Reset to show all forms
   filteredForms = [...allForms];
@@ -504,6 +523,7 @@ async function loadFormsTable() {
     allForms = validForms; // Store all forms for filtering
     filteredForms = validForms; // Initialize filtered forms with all valid forms
     await updateFormsTable(validForms);
+    populateFilterDropdowns(); // Populate dropdowns after loading forms
   } catch (error) {
     console.error('Error:', error);
   }
