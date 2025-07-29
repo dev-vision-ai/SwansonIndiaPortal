@@ -1570,7 +1570,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         table.appendChild(tbody);
         // Ensure every table has a data-formId attribute
         if (!table.dataset.formId) {
-            table.dataset.formId = crypto.randomUUID();
+            // Get the formId from the main table (first table)
+            const mainTable = tablesContainer.querySelector('table');
+            const mainFormId = mainTable ? mainTable.dataset.formId : null;
+            table.dataset.formId = mainFormId || crypto.randomUUID();
         }
         return table;
     }
@@ -2210,6 +2213,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Apply Accept/Reject row disable state to a table
     async function applyAcceptRejectRowDisable(table) {
+        console.log('Applying Accept/Reject row disable to table:', table, 'formId:', table.dataset.formId);
+        
         const rows = table.querySelectorAll('tbody tr');
         rows.forEach(async (row) => {
             const acceptRejectSelect = row.querySelector('select');
@@ -2239,7 +2244,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     }
                 }
                 
-                console.log('CT Checkbox found:', !!formId, 'CT Checked:', isCTChecked);
+                console.log('Table formId:', formId, 'CT Checked:', isCTChecked);
                 
                 if (selectedValue === 'Accept' || selectedValue === 'Reject' || selectedValue === 'Rework') {
                     // Disable all X/O input cells in this row
@@ -2456,6 +2461,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 summaryTableContainer.insertBefore(separator, summaryTableContainer.children[1]);
             }
         }
+        // After all lots are loaded and tables are rendered, apply CT column logic
+        setTimeout(async () => {
+            await applyCTColumnLogicToAllTables();
+        }, 500);
     }
 
     // On initial load
@@ -2978,4 +2987,19 @@ document.addEventListener('DOMContentLoaded', async function() {
             overlay.classList.add('hidden');
         });
     }
+
+    // Function to apply CT column logic to all tables
+    async function applyCTColumnLogicToAllTables() {
+        const tables = tablesContainer.querySelectorAll('table');
+        console.log('Applying CT column logic to all tables:', tables.length);
+        
+        for (const table of tables) {
+            await applyAcceptRejectRowDisable(table);
+        }
+    }
+    
+    // Apply CT column logic to all tables on page load
+    setTimeout(async () => {
+        await applyCTColumnLogicToAllTables();
+    }, 1000);
 }); 
