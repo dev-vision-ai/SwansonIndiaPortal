@@ -98,6 +98,7 @@ window.addEventListener('DOMContentLoaded', async function() {
 
 let allForms = []; // Store all forms for filtering
 let filteredForms = []; // Store filtered forms
+let currentFilters = {}; // Store current filter state
 
 function setupFilterHandlers() {
   const applyFilterBtn = document.getElementById('applyFilter');
@@ -110,36 +111,151 @@ function setupFilterHandlers() {
   if (clearFilterBtn) {
     clearFilterBtn.addEventListener('click', clearFilters);
   }
+  
+  // Add event listeners to all filter inputs to auto-apply filters
+  const filterInputs = [
+    'filterFromDate', 'filterToDate', 'filterProduct', 'filterMachine', 
+    'filterShift', 'filterOperator', 'filterSupervisor', 'filterLineLeader', 'filterQCInspector'
+  ];
+  
+  filterInputs.forEach(inputId => {
+    const input = document.getElementById(inputId);
+    if (input) {
+      input.addEventListener('change', applyFilters);
+    }
+  });
 }
 
-// Populate filter dropdowns with unique values from forms
+// Populate filter dropdowns with unique values
 function populateFilterDropdowns() {
-  const productSelect = document.getElementById('filterProduct');
-  const machineSelect = document.getElementById('filterMachine');
+  if (!allForms || allForms.length === 0) return;
   
-  if (!productSelect || !machineSelect) return;
+  // Get unique values for each filter
+  const products = [...new Set(allForms.map(form => form.prod_code).filter(Boolean))].sort();
+  const machines = [...new Set(allForms.map(form => form.mc_no).filter(Boolean))].sort();
+  const operators = [...new Set(allForms.flatMap(form => [form.operator, form.operator2]).filter(Boolean))].sort();
+  const supervisors = [...new Set(allForms.flatMap(form => [form.supervisor, form.supervisor2]).filter(Boolean))].sort();
+  const lineLeaders = [...new Set(allForms.flatMap(form => [form.line_leader, form.line_leader2]).filter(Boolean))].sort();
+  const qcInspectors = [...new Set(allForms.flatMap(form => [form.qc_inspector, form.qc_inspector2]).filter(Boolean))].sort();
   
-  // Get unique products and machines from all forms
-  const uniqueProducts = [...new Set(allForms.map(form => form.prod_code).filter(Boolean))].sort();
-  const uniqueMachines = [...new Set(allForms.map(form => form.mc_no).filter(Boolean))].sort();
+  // Populate all dropdowns using populateSelect
+  populateSelect('filterProduct', products);
+  populateSelect('filterMachine', machines);
+  populateSelect('filterOperator', operators);
+  populateSelect('filterSupervisor', supervisors);
+  populateSelect('filterLineLeader', lineLeaders);
+  populateSelect('filterQCInspector', qcInspectors);
   
-  // Populate product dropdown
-  productSelect.innerHTML = '<option value="">All Products</option>';
-  uniqueProducts.forEach(product => {
-    const option = document.createElement('option');
-    option.value = product;
-    option.textContent = product;
-    productSelect.appendChild(option);
+  // Restore previous filter state if exists
+  restoreFilterState();
+}
+
+// Helper function to populate datalist options
+function populateDatalist(datalistId, options) {
+  const datalist = document.getElementById(datalistId);
+  if (!datalist) return;
+  
+  // Clear existing options except "All"
+  datalist.innerHTML = '<option value="">All</option>';
+  
+  // Add new options
+  options.forEach(option => {
+    const optionElement = document.createElement('option');
+    optionElement.value = option;
+    datalist.appendChild(optionElement);
   });
+}
+
+// Helper function to populate select dropdown
+function populateSelect(selectId, options) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
   
-  // Populate machine dropdown
-  machineSelect.innerHTML = '<option value="">All Machines</option>';
-  uniqueMachines.forEach(machine => {
-    const option = document.createElement('option');
-    option.value = machine;
-    option.textContent = machine;
-    machineSelect.appendChild(option);
+  // Clear existing options except "All"
+  select.innerHTML = '<option value="">All</option>';
+  
+  // Add new options
+  options.forEach(option => {
+    const optionElement = document.createElement('option');
+    optionElement.value = option;
+    optionElement.textContent = option;
+    select.appendChild(optionElement);
   });
+}
+
+// Save current filter state
+function saveFilterState() {
+  currentFilters = {
+    fromDate: document.getElementById('filterFromDate').value,
+    toDate: document.getElementById('filterToDate').value,
+    product: document.getElementById('filterProduct').value,
+    machine: document.getElementById('filterMachine').value,
+    shift: document.getElementById('filterShift').value,
+    operator: document.getElementById('filterOperator').value,
+    supervisor: document.getElementById('filterSupervisor').value,
+    lineLeader: document.getElementById('filterLineLeader').value,
+    qcInspector: document.getElementById('filterQCInspector').value
+  };
+  localStorage.setItem('inlineInspectionFilters', JSON.stringify(currentFilters));
+}
+
+// Restore filter state from localStorage
+function restoreFilterState() {
+  const savedFilters = localStorage.getItem('inlineInspectionFilters');
+  if (savedFilters) {
+    currentFilters = JSON.parse(savedFilters);
+    
+    // Restore filter values
+    document.getElementById('filterFromDate').value = currentFilters.fromDate || '';
+    document.getElementById('filterToDate').value = currentFilters.toDate || '';
+    document.getElementById('filterProduct').value = currentFilters.product || '';
+    document.getElementById('filterMachine').value = currentFilters.machine || '';
+    document.getElementById('filterShift').value = currentFilters.shift || '';
+    document.getElementById('filterOperator').value = currentFilters.operator || '';
+    document.getElementById('filterSupervisor').value = currentFilters.supervisor || '';
+    document.getElementById('filterLineLeader').value = currentFilters.lineLeader || '';
+    document.getElementById('filterQCInspector').value = currentFilters.qcInspector || '';
+    
+    // Update filter status
+    updateFilterStatus();
+    
+    // Apply the restored filters
+    applyFilters();
+  } else {
+    // Update filter status to show Off if no saved filters
+    updateFilterStatus();
+  }
+}
+
+// Update filter status indicator
+function updateFilterStatus() {
+  const filterStatus = document.getElementById('filterStatus');
+  const filterContainer = document.getElementById('filterContainer');
+  if (!filterStatus || !filterContainer) return;
+  
+  const fromDate = document.getElementById('filterFromDate').value;
+  const toDate = document.getElementById('filterToDate').value;
+  const product = document.getElementById('filterProduct').value;
+  const machine = document.getElementById('filterMachine').value;
+  const shift = document.getElementById('filterShift').value;
+  const operator = document.getElementById('filterOperator').value;
+  const supervisor = document.getElementById('filterSupervisor').value;
+  const lineLeader = document.getElementById('filterLineLeader').value;
+  const qcInspector = document.getElementById('filterQCInspector').value;
+  
+  const hasFilters = fromDate || toDate || product || machine || shift || operator || supervisor || lineLeader || qcInspector;
+  
+  if (hasFilters) {
+    filterStatus.textContent = 'On';
+    filterStatus.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-green-200 text-green-700';
+    // Highlight filter section when active
+    filterContainer.className = 'bg-green-50 border-2 border-green-300 rounded-lg shadow-md p-4';
+  } else {
+    filterStatus.textContent = 'Off';
+    filterStatus.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700';
+    // Remove highlighting when no filters
+    filterContainer.className = 'bg-white rounded-lg shadow-md p-4';
+  }
 }
 
 async function applyFilters() {
@@ -148,6 +264,16 @@ async function applyFilters() {
   const product = document.getElementById('filterProduct').value;
   const machine = document.getElementById('filterMachine').value;
   const shift = document.getElementById('filterShift').value;
+  const operator = document.getElementById('filterOperator').value;
+  const supervisor = document.getElementById('filterSupervisor').value;
+  const lineLeader = document.getElementById('filterLineLeader').value;
+  const qcInspector = document.getElementById('filterQCInspector').value;
+  
+  // Save current filter state
+  saveFilterState();
+  
+  // Update filter status
+  updateFilterStatus();
   
   // Filter the forms
   filteredForms = allForms.filter(form => {
@@ -182,14 +308,37 @@ async function applyFilters() {
       if (parseInt(form.shift) !== parseInt(shift)) return false;
     }
     
+    // Operator filter
+    if (operator && (form.operator || form.operator2)) {
+      if (form.operator !== operator && form.operator2 !== operator) return false;
+    }
+    
+    // Supervisor filter
+    if (supervisor && (form.supervisor || form.supervisor2)) {
+      if (form.supervisor !== supervisor && form.supervisor2 !== supervisor) return false;
+    }
+    
+    // Line Leader filter
+    if (lineLeader && (form.line_leader || form.line_leader2)) {
+      if (form.line_leader !== lineLeader && form.line_leader2 !== lineLeader) return false;
+    }
+    
+    // QC Inspector filter
+    if (qcInspector && (form.qc_inspector || form.qc_inspector2)) {
+      if (form.qc_inspector !== qcInspector && form.qc_inspector2 !== qcInspector) return false;
+    }
+    
     return true;
   });
   
   // Update the table with filtered results
   await updateFormsTable(filteredForms);
   
-  // Show notification
-  showNotification(`Filtered to ${filteredForms.length} forms`, 'info');
+  // Show notification only if filters are applied
+  const hasFilters = fromDate || toDate || product || machine || shift || operator || supervisor || lineLeader || qcInspector;
+  if (hasFilters) {
+    showNotification(`Filtered to ${filteredForms.length} forms`, 'info');
+  }
 }
 
 function clearFilters() {
@@ -199,6 +348,17 @@ function clearFilters() {
   document.getElementById('filterProduct').value = '';
   document.getElementById('filterMachine').value = '';
   document.getElementById('filterShift').value = '';
+  document.getElementById('filterOperator').value = '';
+  document.getElementById('filterSupervisor').value = '';
+  document.getElementById('filterLineLeader').value = '';
+  document.getElementById('filterQCInspector').value = '';
+  
+  // Clear saved filter state
+  currentFilters = {};
+  localStorage.removeItem('inlineInspectionFilters');
+  
+  // Update filter status
+  updateFilterStatus();
   
   // Reset to show all forms
   filteredForms = [...allForms];
