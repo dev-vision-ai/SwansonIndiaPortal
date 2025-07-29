@@ -306,7 +306,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 select.appendChild(option);
             });
             
-            select.addEventListener('change', function(e) {
+            select.addEventListener('change', async function(e) {
                 if (viewMode) {
                     console.log('Select change blocked - in view mode');
                     e.preventDefault();
@@ -323,14 +323,44 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const selectedValue = select.value;
                 const row = select.closest('tr');
                 
+                // Check if CT checkbox is checked for this table
+                // Get CT state from the form data stored in the database
+                let isCTChecked = false;
+                
+                if (formId) {
+                    // Try to get CT state from the form data
+                    try {
+                        const { data: formData, error } = await supabase
+                            .from('inline_inspection_form_master')
+                            .select('ct')
+                            .eq('form_id', formId)
+                            .single();
+                        
+                        if (!error && formData) {
+                            isCTChecked = formData.ct === true;
+                        }
+                    } catch (err) {
+                        console.log('Could not fetch CT state from database:', err);
+                    }
+                }
+                
+                console.log('CT Checkbox found:', !!formId, 'CT Checked:', isCTChecked);
+                
                 if (selectedValue === 'Accept') {
                     // For Accept: Disable X/O cells and Defect Name (client can't edit when Accept)
                     const cells = row.querySelectorAll('td[data-field]');
                     cells.forEach(cell => {
                         const fieldName = cell.dataset.field;
-                        // Disable X/O fields and Defect Name (not Accept/Reject, Remarks, Inspected By)
-                        if (fieldName && !['accept_reject', 'remarks', 'inspected_by'].includes(fieldName)) {
-                            cell.contentEditable = false;
+                        // Always keep Glossy enabled, CT enabled only if checkbox checked
+                        // Disable other X/O fields and Defect Name (not Accept/Reject, Remarks, Inspected By)
+                        if (fieldName && !['accept_reject', 'remarks', 'inspected_by', 'glossy'].includes(fieldName)) {
+                            // Special handling for CT column
+                            if (fieldName === 'ct_appearance') {
+                                cell.contentEditable = isCTChecked; // Only enable if CT checkbox is checked
+                                console.log('CT column cell:', fieldName, 'CT Checked:', isCTChecked, 'Enabled:', cell.contentEditable);
+                            } else {
+                                cell.contentEditable = false;
+                            }
                         }
                     });
                 } else if (selectedValue === 'Reject' || selectedValue === 'Rework') {
@@ -341,8 +371,14 @@ document.addEventListener('DOMContentLoaded', async function() {
                         // Enable Defect Name and Remarks, disable X/O fields
                         if (fieldName === 'defect_name' || fieldName === 'remarks') {
                             cell.contentEditable = true;
-                        } else if (fieldName && !['accept_reject', 'inspected_by'].includes(fieldName)) {
-                            cell.contentEditable = false;
+                        } else if (fieldName && !['accept_reject', 'inspected_by', 'glossy'].includes(fieldName)) {
+                            // Special handling for CT column
+                            if (fieldName === 'ct_appearance') {
+                                cell.contentEditable = isCTChecked; // Only enable if CT checkbox is checked
+                                console.log('CT column cell:', fieldName, 'CT Checked:', isCTChecked, 'Enabled:', cell.contentEditable);
+                            } else {
+                                cell.contentEditable = false;
+                            }
                         }
                     });
                 } else {
@@ -352,7 +388,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                         const fieldName = cell.dataset.field;
                         // Re-enable X/O fields and Defect Name
                         if (fieldName && !['accept_reject', 'remarks', 'inspected_by'].includes(fieldName)) {
-                            cell.contentEditable = true;
+                            // Special handling for CT column
+                            if (fieldName === 'ct_appearance') {
+                                cell.contentEditable = isCTChecked; // Only enable if CT checkbox is checked
+                                console.log('CT column cell:', fieldName, 'CT Checked:', isCTChecked, 'Enabled:', cell.contentEditable);
+                            } else {
+                                cell.contentEditable = true;
+                            }
                         }
                     });
                 }
@@ -1324,6 +1366,18 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateFastEntryTabOrder();
     addLockCheckboxListeners();
     
+    // Add CT checkbox event listener
+    const ctCheckbox = document.querySelector('input[name="ct"]');
+    if (ctCheckbox) {
+        ctCheckbox.addEventListener('change', async function() {
+            // Update CT column state in all tables when checkbox is toggled
+            const tables = tablesContainer.querySelectorAll('table');
+            for (const table of tables) {
+                await applyAcceptRejectRowDisable(table);
+            }
+        });
+    }
+    
     // Add tab navigation listener
     tablesContainer.addEventListener('keydown', handleTabNavigation);
     
@@ -2142,8 +2196,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         tablesContainer.appendChild(table);
         
         // Apply Accept/Reject row disable state after table is loaded
-        setTimeout(() => {
-            applyAcceptRejectRowDisable(table);
+        setTimeout(async () => {
+            await applyAcceptRejectRowDisable(table);
         }, 300);
         
         // Update IPQC table after this table is loaded
@@ -2155,21 +2209,51 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Apply Accept/Reject row disable state to a table
-    function applyAcceptRejectRowDisable(table) {
+    async function applyAcceptRejectRowDisable(table) {
         const rows = table.querySelectorAll('tbody tr');
-        rows.forEach(row => {
+        rows.forEach(async (row) => {
             const acceptRejectSelect = row.querySelector('select');
             if (acceptRejectSelect) {
                 const selectedValue = acceptRejectSelect.value;
                 const cells = row.querySelectorAll('td[data-field]');
                 
+                // Check if CT checkbox is checked for this table
+                // Get CT state from the form data stored in the database
+                const formId = table.dataset.formId;
+                let isCTChecked = false;
+                
+                if (formId) {
+                    // Try to get CT state from the form data
+                    try {
+                        const { data: formData, error } = await supabase
+                            .from('inline_inspection_form_master')
+                            .select('ct')
+                            .eq('form_id', formId)
+                            .single();
+                        
+                        if (!error && formData) {
+                            isCTChecked = formData.ct === true;
+                        }
+                    } catch (err) {
+                        console.log('Could not fetch CT state from database:', err);
+                    }
+                }
+                
+                console.log('CT Checkbox found:', !!formId, 'CT Checked:', isCTChecked);
+                
                 if (selectedValue === 'Accept' || selectedValue === 'Reject' || selectedValue === 'Rework') {
                     // Disable all X/O input cells in this row
                     cells.forEach(cell => {
                         const fieldName = cell.dataset.field;
+                        // Always keep Glossy enabled, CT enabled only if checkbox checked
                         // Only disable X/O fields (not Accept/Reject, Defect Name, Remarks, Inspected By)
-                        if (fieldName && !['accept_reject', 'defect_name', 'remarks', 'inspected_by'].includes(fieldName)) {
-                            cell.contentEditable = false;
+                        if (fieldName && !['accept_reject', 'defect_name', 'remarks', 'inspected_by', 'glossy'].includes(fieldName)) {
+                            // Special handling for CT column
+                            if (fieldName === 'ct_appearance') {
+                                cell.contentEditable = isCTChecked; // Only enable if CT checkbox is checked
+                            } else {
+                                cell.contentEditable = false;
+                            }
                         }
                     });
                 } else {
@@ -2178,7 +2262,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                         const fieldName = cell.dataset.field;
                         // Only re-enable X/O fields
                         if (fieldName && !['accept_reject', 'defect_name', 'remarks', 'inspected_by'].includes(fieldName)) {
-                            cell.contentEditable = true;
+                            // Special handling for CT column
+                            if (fieldName === 'ct_appearance') {
+                                cell.contentEditable = isCTChecked; // Only enable if CT checkbox is checked
+                            } else {
+                                cell.contentEditable = true;
+                            }
                         }
                     });
                 }

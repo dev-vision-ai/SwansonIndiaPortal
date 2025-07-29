@@ -65,6 +65,30 @@ window.addEventListener('DOMContentLoaded', async function() {
       if (nonPrinted.checked) printed.checked = false;
     });
   }
+  
+  // Auto-capitalization for Team section input fields
+  const teamInputs = [
+    'supervisor', 'supervisor2', 
+    'line_leader', 'line_leader2', 
+    'operator', 'operator2', 
+    'qc_inspector', 'qc_inspector2'
+  ];
+  
+  teamInputs.forEach(inputName => {
+    const input = document.querySelector(`input[name="${inputName}"]`);
+    if (input) {
+      input.addEventListener('input', function(e) {
+        const value = e.target.value;
+        if (value.length > 0) {
+          // Capitalize first letter and keep rest as typed
+          const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+          if (capitalized !== value) {
+            e.target.value = capitalized;
+          }
+        }
+      });
+    }
+  });
 });
 
 // ===== STEP 1: FORM CREATION AND SAVING =====
