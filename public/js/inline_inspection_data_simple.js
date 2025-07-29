@@ -1128,11 +1128,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         container.innerHTML = `
             <table class="min-w-[400px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white">
                 <tbody>
-                    <tr style="height: 30px;"><td>Accepted Rolls</td><td>${summary.acceptedCount} Rolls</td><td>${summary.acceptedWeight} KG</td></tr>
-                    <tr style="height: 30px;"><td>Rejected Rolls</td><td>${summary.rejectedCount} Rolls</td><td>${summary.rejectedWeight} KG</td></tr>
-                    <tr style="height: 30px;"><td>Rolls Rejected for Rework</td><td>${summary.reworkCount} Rolls</td><td>${summary.reworkWeight} KG</td></tr>
-                    <tr style="height: 30px;"><td>KIV Rolls</td><td>${summary.kivCount} Rolls</td><td>${summary.kivWeight} KG</td></tr>
-                    <tr style="height: 30px;"><td><b>Total Rolls</b></td><td>${summary.totalCount} Rolls</td><td>${summary.totalWeight} KG</td></tr>
+                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">Accepted Rolls</td><td style="border: 1px solid #9ca3af;">${summary.acceptedCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.acceptedWeight} KG</td></tr>
+                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">Rejected Rolls</td><td style="border: 1px solid #9ca3af;">${summary.rejectedCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.rejectedWeight} KG</td></tr>
+                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">Rolls Rejected for Rework</td><td style="border: 1px solid #9ca3af;">${summary.reworkCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.reworkWeight} KG</td></tr>
+                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">KIV Rolls</td><td style="border: 1px solid #9ca3af;">${summary.kivCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.kivWeight} KG</td></tr>
+                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;"><b>Total Rolls</b></td><td style="border: 1px solid #9ca3af;">${summary.totalCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.totalWeight} KG</td></tr>
                 </tbody>
             </table>
         `;
@@ -2427,12 +2427,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             summaryTable.id = 'defectsSummaryTable';
             summaryTable.className = 'min-w-[300px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white';
         }
-        let html = '<thead><tr style="height: 30px;"><th>Defect Name</th><th>Count</th></tr></thead><tbody>';
+        let html = '<thead><tr style="height: 30px;"><th style="border: 1px solid #9ca3af;">Total Defects</th><th style="border: 1px solid #9ca3af;">Count</th></tr></thead><tbody>';
         if (Object.keys(defectCounts).length === 0) {
-            html += '<tr style="height: 30px;"><td colspan="2">No defects found in this shift.</td></tr>';
+            html += '<tr style="height: 30px;"><td colspan="2" style="border: 1px solid #9ca3af;">No defects found in this shift.</td></tr>';
         } else {
             Object.entries(defectCounts).forEach(([defect, count]) => {
-                html += `<tr style="height: 30px;"><td>${defect}</td><td>${count}</td></tr>`;
+                html += `<tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">${defect}</td><td style="border: 1px solid #9ca3af;">${count}</td></tr>`;
             });
         }
         html += '</tbody>';
@@ -2518,12 +2518,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             summaryTable.id = 'defectsSummaryTable';
             summaryTable.className = 'min-w-[300px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white';
         }
-        let html = '<thead><tr style="height: 30px;"><th>Total Defects</th><th>Count</th></tr></thead><tbody>';
+        let html = '<thead><tr style="height: 30px;"><th style="border: 1px solid #9ca3af;">Total Defects</th><th style="border: 1px solid #9ca3af;">Count</th></tr></thead><tbody>';
         if (Object.keys(defectCounts).length === 0) {
-            html += '<tr style="height: 30px;"><td colspan="2">No defects found in this shift.</td></tr>';
+            html += '<tr style="height: 30px;"><td colspan="2" style="border: 1px solid #9ca3af;">No defects found in this shift.</td></tr>';
         } else {
             Object.entries(defectCounts).forEach(([defect, count]) => {
-                html += `<tr style="height: 30px;"><td>${defect}</td><td>${count}</td></tr>`;
+                html += `<tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">${defect}</td><td style="border: 1px solid #9ca3af;">${count}</td></tr>`;
             });
         }
         html += '</tbody>';
@@ -2534,42 +2534,30 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Render IPQC Defects Table - defects found by QC personnel
+    let ipqcUpdateTimeout = null;
     async function renderIPQCDefectsTable() {
+        // Debounce the function to prevent excessive updates
+        if (ipqcUpdateTimeout) {
+            clearTimeout(ipqcUpdateTimeout);
+        }
+        
+        ipqcUpdateTimeout = setTimeout(() => {
+            renderIPQCDefectsTableInternal();
+        }, 300); // 300ms debounce
+    }
+    
+    async function renderIPQCDefectsTableInternal() {
         // Aggregate all rolls from all lots in the DOM
         let allRolls = [];
         const tables = tablesContainer.querySelectorAll('table');
-        console.log('Found tables in container:', tables.length);
-        
-        tables.forEach((table, tableIndex) => {
-            const tbody = table.querySelector('tbody');
-            if (!tbody) {
-                console.log(`Table ${tableIndex}: No tbody found`);
-                return;
-            }
-            const rows = Array.from(tbody.rows);
-            console.log(`Table ${tableIndex}: Found ${rows.length} rows`);
-            
-            rows.forEach((row, rowIndex) => {
-                const rollData = {};
-                const cells = row.querySelectorAll('td[data-field]');
-                console.log(`Table ${tableIndex}, Row ${rowIndex}: Found ${cells.length} cells with data-field`);
-                
-                cells.forEach(cell => {
-                    const field = cell.dataset.field;
-                    if (field) rollData[field] = cell.textContent.trim();
-                });
-                allRolls.push(rollData);
-                console.log(`Table ${tableIndex}, Row ${rowIndex}: Roll data:`, rollData);
-            });
-        });
-        
-        // Use cached QC inspectors instead of querying database every time
-        const qcInspectors = qcInspectorsCache;
-        console.log('QC Inspectors Cache:', qcInspectors);
-        console.log('All Rolls:', allRolls);
         
         // Count defects from tables where first row inspector is from Quality Control department
         const ipqcDefectCounts = {};
+        
+        // Use cached QC inspectors instead of querying database every time
+        const qcInspectors = qcInspectorsCache;
+        
+        console.log('QC Inspectors Cache:', qcInspectors); // Debug log
         
         // Process each table separately to check first row inspector
         tables.forEach((table, tableIndex) => {
@@ -2583,12 +2571,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             const firstRow = rows[0];
             const firstRowInspector = firstRow.querySelector('td[data-field="inspected_by"]')?.textContent.trim() || '';
             
-            console.log(`Table ${tableIndex}: First row inspector:`, firstRowInspector);
-            console.log(`Table ${tableIndex}: Is QC inspector:`, qcInspectors.includes(firstRowInspector));
+            console.log(`Table ${tableIndex} - First row inspector: "${firstRowInspector}"`); // Debug log
             
             // Only process this table's defects if first row inspector is from QC department
             if (firstRowInspector && qcInspectors.includes(firstRowInspector)) {
-                console.log(`Table ${tableIndex}: Including defects from this table`);
+                console.log(`Processing table ${tableIndex} - Inspector "${firstRowInspector}" is QC`); // Debug log
                 
                 // Process all rows in this table
                 rows.forEach((row, rowIndex) => {
@@ -2600,19 +2587,19 @@ document.addEventListener('DOMContentLoaded', async function() {
                     
                     const defect = (rollData.defect_name || '').trim();
                     if (defect) {
+                        console.log(`Found defect in table ${tableIndex}, row ${rowIndex}: "${defect}"`); // Debug log
                         if (!ipqcDefectCounts[defect]) {
                             ipqcDefectCounts[defect] = 0;
                         }
                         ipqcDefectCounts[defect]++;
-                        console.log(`Table ${tableIndex}, Row ${rowIndex}: Added defect "${defect}"`);
                     }
                 });
             } else {
-                console.log(`Table ${tableIndex}: Excluding defects from this table (not QC inspector)`);
+                console.log(`Skipping table ${tableIndex} - Inspector "${firstRowInspector}" is not QC`); // Debug log
             }
         });
         
-        console.log('IPQC Defect Counts:', ipqcDefectCounts);
+        console.log('IPQC Defect Counts:', ipqcDefectCounts); // Debug log
         
         // Render the IPQC defects table
         let ipqcTable = document.getElementById('ipqcDefectsTable');
@@ -2624,17 +2611,38 @@ document.addEventListener('DOMContentLoaded', async function() {
             ipqcTable.className = 'min-w-[300px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white';
         }
         
-        let html = '<thead><tr style="height: 30px;"><th>IPQC Defects</th><th>Count</th></tr></thead><tbody>';
+        let html = '<thead><tr style="height: 30px;"><th style="border: 1px solid #9ca3af;">IPQC Defects</th><th style="border: 1px solid #9ca3af;">Count</th></tr></thead><tbody>';
         if (Object.keys(ipqcDefectCounts).length === 0) {
-            html += '<tr style="height: 30px;"><td colspan="2">No QC defects found in this shift.</td></tr>';
+            html += '<tr style="height: 30px;"><td colspan="2" style="border: 1px solid #9ca3af;">No QC defects found in this shift.</td></tr>';
         } else {
             Object.entries(ipqcDefectCounts).forEach(([defect, count]) => {
-                html += `<tr style="height: 30px;"><td>${defect}</td><td>${count}</td></tr>`;
+                html += `<tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">${defect}</td><td style="border: 1px solid #9ca3af;">${count}</td></tr>`;
             });
         }
         html += '</tbody>';
-        console.log('IPQC Table HTML:', html);
         ipqcTable.innerHTML = html;
+        
+        // Ensure summaryTableContainer exists
+        if (!summaryTableContainer) {
+            // Create summaryTableContainer if it doesn't exist
+            const existingSummary = document.querySelector('#dynamicSummaryTableContainer')?.parentNode;
+            summaryTableContainer = document.createElement('div');
+            summaryTableContainer.id = 'summaryTableContainer';
+            summaryTableContainer.style.display = 'flex';
+            summaryTableContainer.style.justifyContent = 'center';
+            summaryTableContainer.style.gap = '48px';
+            summaryTableContainer.style.margin = '32px auto 0 auto';
+            
+            if (existingSummary) {
+                const dynamicSummary = document.getElementById('dynamicSummaryTableContainer');
+                if (dynamicSummary) {
+                    existingSummary.replaceChild(summaryTableContainer, dynamicSummary);
+                    summaryTableContainer.appendChild(dynamicSummary);
+                }
+            } else {
+                document.body.appendChild(summaryTableContainer);
+            }
+        }
         
         // Add to the same container as the main defects table
         if (summaryTableContainer && !summaryTableContainer.contains(ipqcTable)) {
@@ -2647,12 +2655,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             summaryTableContainer.appendChild(ipqcTable);
             summaryTableContainer.insertBefore(separator, ipqcTable);
-            console.log('IPQC table and separator added to container');
-        } else {
-            console.log('IPQC table container issue:', { 
-                summaryTableContainer: !!summaryTableContainer, 
-                containsTable: summaryTableContainer?.contains(ipqcTable) 
-            });
         }
     }
     // Call this after loadAllLots
@@ -2661,25 +2663,86 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Render IPQC table after all tables are loaded and user data is fetched
     setTimeout(() => {
         renderIPQCDefectsTable();
+        renderStatisticsTable();
     }, 2000);
     
-    // Attach dynamic update on input/change in defect_name cells
+    // Also render IPQC table after user data is fetched
+    setTimeout(() => {
+        renderIPQCDefectsTable();
+        renderStatisticsTable();
+    }, 3000);
+    
+    // Optimized event listeners for IPQC table updates
+    let defectUpdateTimeout = null;
+    let inspectorUpdateTimeout = null;
+    
+    // Attach dynamic update on input/change in defect_name cells with debouncing
     if (tablesContainer) {
         tablesContainer.addEventListener('input', function(e) {
             if (e.target && e.target.dataset && e.target.dataset.field === 'defect_name') {
-                renderDefectsSummaryTable();
-                renderIPQCDefectsTable();
+                // Debounce defect name updates
+                if (defectUpdateTimeout) {
+                    clearTimeout(defectUpdateTimeout);
+                }
+                defectUpdateTimeout = setTimeout(() => {
+                    renderDefectsSummaryTable();
+                    renderIPQCDefectsTable();
+                    renderStatisticsTable();
+                }, 500); // 500ms debounce for defect updates
             }
-        }, true);
-    }
-    
-    // Also update IPQC table when inspected_by changes
-    if (tablesContainer) {
-        tablesContainer.addEventListener('input', function(e) {
+            
+            // Also update IPQC table when inspector changes
             if (e.target && e.target.dataset && e.target.dataset.field === 'inspected_by') {
-                renderIPQCDefectsTable();
+                if (inspectorUpdateTimeout) {
+                    clearTimeout(inspectorUpdateTimeout);
+                }
+                inspectorUpdateTimeout = setTimeout(() => {
+                    renderIPQCDefectsTable();
+                }, 500); // 500ms debounce for inspector updates
             }
-        }, true);
+            
+            // Update statistics table when roll data changes
+            if (e.target && e.target.dataset && ['roll_weight', 'roll_width_mm', 'film_weight_gsm', 'roll_dia', 'thickness'].includes(e.target.dataset.field)) {
+                if (defectUpdateTimeout) {
+                    clearTimeout(defectUpdateTimeout);
+                }
+                defectUpdateTimeout = setTimeout(() => {
+                    renderStatisticsTable();
+                }, 500);
+            }
+        });
+        
+        tablesContainer.addEventListener('change', function(e) {
+            if (e.target && e.target.dataset && e.target.dataset.field === 'defect_name') {
+                if (defectUpdateTimeout) {
+                    clearTimeout(defectUpdateTimeout);
+                }
+                defectUpdateTimeout = setTimeout(() => {
+                    renderDefectsSummaryTable();
+                    renderIPQCDefectsTable();
+                    renderStatisticsTable();
+                }, 500);
+            }
+            
+            if (e.target && e.target.dataset && e.target.dataset.field === 'inspected_by') {
+                if (inspectorUpdateTimeout) {
+                    clearTimeout(inspectorUpdateTimeout);
+                }
+                inspectorUpdateTimeout = setTimeout(() => {
+                    renderIPQCDefectsTable();
+                }, 500);
+            }
+            
+            // Update statistics table when roll data changes
+            if (e.target && e.target.dataset && ['roll_weight', 'roll_width_mm', 'film_weight_gsm', 'roll_dia', 'thickness'].includes(e.target.dataset.field)) {
+                if (defectUpdateTimeout) {
+                    clearTimeout(defectUpdateTimeout);
+                }
+                defectUpdateTimeout = setTimeout(() => {
+                    renderStatisticsTable();
+                }, 500);
+            }
+        });
     }
 
     // 1. Fetch all defects from Supabase on page load
@@ -2698,10 +2761,20 @@ document.addEventListener('DOMContentLoaded', async function() {
         const { data, error } = await supabase.from('users').select('full_name, department');
         if (!error && data) {
             userSuggestions = data.map(u => u.full_name).filter(name => name && name.trim() !== '');
-            // Cache QC inspectors
+            // Cache QC inspectors with more flexible department matching
             qcInspectorsCache = data
-                .filter(user => user.department && user.department.toLowerCase().includes('quality control'))
+                .filter(user => {
+                    if (!user.department) return false;
+                    const dept = user.department.toLowerCase();
+                    return dept.includes('quality control') || 
+                           dept.includes('qc') || 
+                           dept.includes('quality') ||
+                           dept.includes('ipqc') ||
+                           dept.includes('inspection');
+                })
                 .map(user => user.full_name);
+            
+            console.log('QC Inspectors found:', qcInspectorsCache); // Debug log
         }
     })();
 
@@ -3052,4 +3125,179 @@ document.addEventListener('DOMContentLoaded', async function() {
     setTimeout(() => {
         updateAddNextLotButtonState();
     }, 200);
+
+    // Manual trigger for IPQC table (for debugging)
+    window.triggerIPQCTable = function() {
+        console.log('Manually triggering IPQC table render...');
+        renderIPQCDefectsTable();
+    };
+    
+    // Debug function to check QC inspectors
+    window.checkQCInspectors = function() {
+        console.log('QC Inspectors Cache:', qcInspectorsCache);
+        console.log('All tables:', document.querySelectorAll('#tablesContainer table').length);
+        document.querySelectorAll('#tablesContainer table').forEach((table, index) => {
+            const firstRow = table.querySelector('tbody tr');
+            const inspector = firstRow?.querySelector('td[data-field="inspected_by"]')?.textContent.trim();
+            console.log(`Table ${index}: Inspector = "${inspector}"`);
+        });
+    };
+
+    // Calculate and display min, max, average values for roll weight, cut width, GSM
+    function renderStatisticsTable() {
+        const tables = tablesContainer.querySelectorAll('table');
+        const allRolls = [];
+        
+        // Collect all roll data from all tables
+        tables.forEach(table => {
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            
+            const rows = Array.from(tbody.rows);
+            rows.forEach(row => {
+                const rollData = {};
+                row.querySelectorAll('td[data-field]').forEach(cell => {
+                    const field = cell.dataset.field;
+                    if (field) rollData[field] = cell.textContent.trim();
+                });
+                
+                // Only include rolls with valid data
+                if (rollData.roll_weight || rollData.roll_width_mm || rollData.film_weight_gsm) {
+                    allRolls.push(rollData);
+                }
+            });
+        });
+        
+        // Calculate statistics
+        const rollWeights = allRolls.map(r => parseFloat(r.roll_weight)).filter(w => !isNaN(w) && w > 0);
+        const cutWidths = allRolls.map(r => parseFloat(r.roll_width_mm)).filter(w => !isNaN(w) && w > 0);
+        const gsmValues = allRolls.map(r => parseFloat(r.film_weight_gsm)).filter(g => !isNaN(g) && g > 0);
+        const rollDiameters = allRolls.map(r => parseFloat(r.roll_dia)).filter(d => !isNaN(d) && d > 0);
+        const thicknessValues = allRolls.map(r => parseFloat(r.thickness)).filter(t => !isNaN(t) && t > 0);
+        
+        const stats = {
+            roll_weight: {
+                min: rollWeights.length > 0 ? Math.min(...rollWeights) : 0,
+                max: rollWeights.length > 0 ? Math.max(...rollWeights) : 0,
+                avg: rollWeights.length > 0 ? (rollWeights.reduce((a, b) => a + b, 0) / rollWeights.length) : 0,
+                count: rollWeights.length
+            },
+            cut_width: {
+                min: cutWidths.length > 0 ? Math.min(...cutWidths) : 0,
+                max: cutWidths.length > 0 ? Math.max(...cutWidths) : 0,
+                avg: cutWidths.length > 0 ? (cutWidths.reduce((a, b) => a + b, 0) / cutWidths.length) : 0,
+                count: cutWidths.length
+            },
+            gsm: {
+                min: gsmValues.length > 0 ? Math.min(...gsmValues) : 0,
+                max: gsmValues.length > 0 ? Math.max(...gsmValues) : 0,
+                avg: gsmValues.length > 0 ? (gsmValues.reduce((a, b) => a + b, 0) / gsmValues.length) : 0,
+                count: gsmValues.length
+            },
+            roll_dia: {
+                min: rollDiameters.length > 0 ? Math.min(...rollDiameters) : 0,
+                max: rollDiameters.length > 0 ? Math.max(...rollDiameters) : 0,
+                avg: rollDiameters.length > 0 ? (rollDiameters.reduce((a, b) => a + b, 0) / rollDiameters.length) : 0,
+                count: rollDiameters.length
+            },
+            thickness: {
+                min: thicknessValues.length > 0 ? Math.min(...thicknessValues) : 0,
+                max: thicknessValues.length > 0 ? Math.max(...thicknessValues) : 0,
+                avg: thicknessValues.length > 0 ? (thicknessValues.reduce((a, b) => a + b, 0) / thicknessValues.length) : 0,
+                count: thicknessValues.length
+            }
+        };
+        
+        // Create or update statistics table
+        let statsTable = document.getElementById('statisticsTable');
+        if (!statsTable) {
+            statsTable = document.createElement('table');
+            statsTable.id = 'statisticsTable';
+            statsTable.className = 'min-w-[300px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white';
+        }
+        
+        let html = `
+            <thead>
+                <tr style="height: 30px;">
+                    <th colspan="4" style="background-color: #f3f4f6; font-weight: bold; border: 1px solid #9ca3af;">Roll Statistics</th>
+                </tr>
+                <tr style="height: 25px;">
+                    <th style="width: 80px; border: 1px solid #9ca3af;">Parameter</th>
+                    <th style="width: 60px; border: 1px solid #9ca3af;">Min</th>
+                    <th style="width: 60px; border: 1px solid #9ca3af;">Max</th>
+                    <th style="width: 60px; border: 1px solid #9ca3af;">Avg</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="height: 25px;">
+                    <td style="font-weight: bold; border: 1px solid #9ca3af;">Roll Weight</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.roll_weight.min.toFixed(2)}</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.roll_weight.max.toFixed(2)}</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.roll_weight.avg.toFixed(2)}</td>
+                </tr>
+                <tr style="height: 25px;">
+                    <td style="font-weight: bold; border: 1px solid #9ca3af;">Cut Width</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.cut_width.min.toFixed(0)}</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.cut_width.max.toFixed(0)}</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.cut_width.avg.toFixed(0)}</td>
+                </tr>
+                <tr style="height: 25px;">
+                    <td style="font-weight: bold; border: 1px solid #9ca3af;">GSM</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.gsm.min.toFixed(2)}</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.gsm.max.toFixed(2)}</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.gsm.avg.toFixed(2)}</td>
+                </tr>
+                <tr style="height: 25px;">
+                    <td style="font-weight: bold; border: 1px solid #9ca3af;">Roll θ</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.roll_dia.min.toFixed(0)}</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.roll_dia.max.toFixed(0)}</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.roll_dia.avg.toFixed(0)}</td>
+                </tr>
+                <tr style="height: 25px;">
+                    <td style="font-weight: bold; border: 1px solid #9ca3af;">Thickness</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.thickness.min.toFixed(2)}</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.thickness.max.toFixed(2)}</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.thickness.avg.toFixed(2)}</td>
+                </tr>
+            </tbody>
+        `;
+        
+        statsTable.innerHTML = html;
+        
+        // Add to summary table container
+        let summaryTableContainer = document.getElementById('summaryTableContainer');
+        if (!summaryTableContainer) {
+            // Create summaryTableContainer if it doesn't exist
+            const existingSummary = document.querySelector('#dynamicSummaryTableContainer')?.parentNode;
+            summaryTableContainer = document.createElement('div');
+            summaryTableContainer.id = 'summaryTableContainer';
+            summaryTableContainer.style.display = 'flex';
+            summaryTableContainer.style.justifyContent = 'center';
+            summaryTableContainer.style.gap = '48px';
+            summaryTableContainer.style.margin = '32px auto 0 auto';
+            
+            if (existingSummary) {
+                const dynamicSummary = document.getElementById('dynamicSummaryTableContainer');
+                if (dynamicSummary) {
+                    existingSummary.replaceChild(summaryTableContainer, dynamicSummary);
+                    summaryTableContainer.appendChild(dynamicSummary);
+                }
+            } else {
+                document.body.appendChild(summaryTableContainer);
+            }
+        }
+        
+        // Add statistics table at the end (right side) with separator
+        if (summaryTableContainer && !summaryTableContainer.contains(statsTable)) {
+            // Add vertical separator before statistics table
+            const separator = document.createElement('div');
+            separator.style.width = '2px';
+            separator.style.backgroundColor = '#9ca3af';
+            separator.style.margin = '0 24px';
+            separator.style.alignSelf = 'stretch';
+            
+            summaryTableContainer.appendChild(separator);
+            summaryTableContainer.appendChild(statsTable);
+        }
+    }
 }); 
