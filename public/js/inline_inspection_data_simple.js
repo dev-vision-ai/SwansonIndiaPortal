@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Removed capitalizeWords function to prevent typing issues
 
-    function createCell(contentEditable = true, rowspan = 1, isDropdown = false, colIndex = null) {
+    function createCell(contentEditable = true, rowspan = 1, isDropdown = false, colIndex = null, isFirstRow = false) {
         const td = document.createElement('td');
         td.className = 'border border-gray-300 px-1 py-1';
         // Add word wrap and text center
@@ -278,6 +278,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                 28: 'others', 29: 'accept_reject', 30: 'defect_name', 31: 'remarks', 32: 'inspected_by'
             };
             td.dataset.field = fieldMap[colIndex];
+        }
+        
+        // Special handling for "Inspected By" column (32) - only first row should be editable
+        if (colIndex === 32 && !isFirstRow) {
+            contentEditable = false;
+            td.style.backgroundColor = '#f3f4f6'; // Light gray background for read-only
+            td.style.color = '#6b7280'; // Gray text for read-only
         }
         
         if (colIndex !== null && fixedWidthIndices[colIndex]) {
@@ -685,10 +692,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!appendOnly) clearRows(tbody);
         for (let i = 0; i < n; i++) {
             const tr = document.createElement('tr');
-                for (let col = 0; col < totalColumns; col++) {
-                const td = createCell(true, 1, col === dropdownIndex, col);
+            const isFirstRow = (tbody.rows.length === 0); // First row in the table
+            for (let col = 0; col < totalColumns; col++) {
+                const td = createCell(true, 1, col === dropdownIndex, col, isFirstRow);
                 if (col === 3) td.textContent = (tbody.rows.length + 1).toString();
-                        tr.appendChild(td);
+                tr.appendChild(td);
             }
             tbody.appendChild(tr);
         }
@@ -1470,36 +1478,37 @@ document.addEventListener('DOMContentLoaded', async function() {
         const tbody = document.createElement('tbody');
         for (let i = 0; i < n; i++) {
             const tr = document.createElement('tr');
+            const isFirstRow = (i === 0); // First row in this table
             if (i === 0) {
                 // First row: add merged cells
                 for (let col = 0; col < totalColumns; col++) {
                     if (col === 31 || col === 32) {
-                        tr.appendChild(createCell(true, 1, false, col));
+                        tr.appendChild(createCell(true, 1, false, col, isFirstRow));
                     } else if (mergedIndices.includes(col)) {
-                        tr.appendChild(createCell(true, n, false, col));
+                        tr.appendChild(createCell(true, n, false, col, isFirstRow));
                     } else if (col === 3) {
-                        const td = createCell(true, 1, false, col);
+                        const td = createCell(true, 1, false, col, isFirstRow);
                         td.textContent = '1';
                         tr.appendChild(td);
                     } else if (col === dropdownIndex) {
-                        tr.appendChild(createCell(false, 1, true, col));
+                        tr.appendChild(createCell(false, 1, true, col, isFirstRow));
                     } else if (col > 4 && col < 31 && col !== dropdownIndex) {
-                        tr.appendChild(createCell(true, 1, false, col));
+                        tr.appendChild(createCell(true, 1, false, col, isFirstRow));
                     }
                 }
             } else {
                 // Subsequent rows: skip merged cells
                 for (let col = 0; col < totalColumns; col++) {
                     if (col === 31 || col === 32) {
-                        tr.appendChild(createCell(true, 1, false, col));
+                        tr.appendChild(createCell(true, 1, false, col, isFirstRow));
                     } else if (col === 3) {
-                        const td = createCell(true, 1, false, col);
+                        const td = createCell(true, 1, false, col, isFirstRow);
                         td.textContent = (i + 1).toString();
                         tr.appendChild(td);
                     } else if (col === dropdownIndex) {
-                        tr.appendChild(createCell(false, 1, true, col));
+                        tr.appendChild(createCell(false, 1, true, col, isFirstRow));
                     } else if (!mergedIndices.includes(col) && col > 4 && col < 31 && col !== dropdownIndex) {
-                        tr.appendChild(createCell(true, 1, false, col));
+                        tr.appendChild(createCell(true, 1, false, col, isFirstRow));
                     }
                 }
             }
@@ -2082,8 +2091,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Always add the correct number of rows
         for (let i = 0; i < numRows; i++) {
             const tr = document.createElement('tr');
+            const isFirstRow = (i === 0); // First row in this table
             for (let col = 0; col < totalColumns; col++) {
-                const td = createCell(true, 1, col === dropdownIndex, col);
+                const td = createCell(true, 1, col === dropdownIndex, col, isFirstRow);
                 if (col === 3) td.textContent = (i + 1).toString();
                 // If there is data for this row, fill it
                 if (rolls[i]) {
