@@ -29,55 +29,25 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3p5ZG52c2NhaWN5Z3dsbWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyMTg5NDYsImV4cCI6MjA1OTc5NDk0Nn0.0TUriXYvPuml-Jzr9v1jvcuzKjh-cZgnZhYKkQEj3t0'
 );
 
-// Server-side keep-alive scheduling (IST timezone - 90 min intervals)
-let dailyPingCount = 0;
-let lastPingDate = null;
-
-function scheduleKeepAlive() {
-  const now = new Date();
-  const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000)); // Convert to IST (UTC+5:30)
-  const istHour = istTime.getHours();
-  const istMinute = istTime.getMinutes();
-  
-  // Custom ping windows (morning, afternoon, evening)
-  const pingWindows = [
-    { start: 5.5, end: 7, name: 'Morning' },    // 5:30 AM - 7:00 AM
-    { start: 13.5, end: 15, name: 'Afternoon' }, // 1:30 PM - 3:00 PM  
-    { start: 21.5, end: 23, name: 'Evening' }    // 9:30 PM - 11:00 PM
-  ];
-  
-  // Check if current time is within any ping window
-  for (const window of pingWindows) {
-    if (istHour >= window.start && istHour < window.end) {
-      console.log(`🟢 ${window.name} ping at ${istHour}:${istMinute} IST`);
-      return true;
-    }
-  }
-  
-  console.log(`🔴 Outside ping windows (${istHour}:${istMinute} IST)`);
-  return false;
-}
-
-// Check ping windows every 30 minutes
+// 24/7 Keep-alive ping (every 15 minutes)
 setInterval(() => {
-  if (scheduleKeepAlive()) {
-    console.log('✅ Server keeping warm during active window');
-  }
-}, 30 * 60 * 1000); // Every 30 minutes
-
-// Initial check after 30 seconds
-setTimeout(() => {
-  if (scheduleKeepAlive()) {
-    console.log('✅ Initial server warm-up');
-  }
-}, 30000); // Check after 30 seconds
+  console.log('🔄 24/7 Keep-alive ping - Server staying warm');
+}, 15 * 60 * 1000); // Every 15 minutes
 
 // Keep-alive endpoint to prevent cold starts
 app.get('/ping', (req, res) => {
+  const uptime = process.uptime();
+  const days = Math.floor(uptime / 86400);
+  const hours = Math.floor((uptime % 86400) / 3600);
+  const minutes = Math.floor((uptime % 3600) / 60);
+  
   res.json({ 
     status: 'alive', 
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    uptimeFormatted: `${days} days, ${hours} hours, ${minutes} minutes`,
+    server: 'Swanson India Portal Backend',
+    version: '1.0.0'
   });
 });
 
@@ -141,25 +111,164 @@ app.get('/export', async (req, res) => {
     // 5. Insert data into the template (fine-tuned mapping for merged cells)
     // Map header data from the first lot (all lots share same header info)
     const firstLot = data[0];
+    
+    // Debug: Log the first lot data to see what fields are available
+    console.log('First lot data:', JSON.stringify(firstLot, null, 2));
+    console.log('First lot prod_code:', firstLot?.prod_code);
+    console.log('First lot shift:', firstLot?.shift);
+    console.log('First lot traceability_code:', firstLot?.traceability_code);
+    
+    // Initialize header variables
+    let customer = '';
+    let production_no = '';
+    let prod_code = '';
+    let spec = '';
+    let year = '';
+    let month = '';
+    let date = '';
+    let mc_no = '';
+    let shift = '';
+    let production_date = '';
+    let printed = false;
+    let non_printed = false;
+    let ct = false;
+    let emboss_type = '';
+    
     if (firstLot) {
-      worksheet.getCell('D5').value = firstLot.customer || '';
-      worksheet.getCell('D6').value = firstLot.production_no || '';
-      worksheet.getCell('D7').value = firstLot.prod_code || '';
-      worksheet.getCell('D8').value = firstLot.spec || '';
-      worksheet.getCell('N7').value = firstLot.year || '';
-      worksheet.getCell('P7').value = firstLot.month || '';
-      worksheet.getCell('R7').value = firstLot.date || '';
-      worksheet.getCell('T7').value = firstLot.mc_no || '';
-      worksheet.getCell('V7').value = firstLot.shift || '';
-      worksheet.getCell('AE6').value = firstLot.production_date ? formatDateToDDMMYYYY(firstLot.production_date) : '';
-      worksheet.getCell('AE7').value = firstLot.shift || '';
-      worksheet.getCell('AE8').value = firstLot.mc_no || '';
-      worksheet.getCell('L6').value = firstLot.printed ? '✔' : '';
-      worksheet.getCell('L7').value = firstLot.non_printed ? '✔' : '';
-      worksheet.getCell('L8').value = firstLot.ct ? '✔' : '';
-      worksheet.getCell('F10').value = firstLot.emboss_type === 'Random' ? '✔' : '';
-      worksheet.getCell('I10').value = firstLot.emboss_type === 'Matte' ? '✔' : '';
-      worksheet.getCell('L10').value = firstLot.emboss_type === 'Micro' ? '✔' : '';
+      // Try to get header data from main fields first, then fall back to inspection_data
+      customer = firstLot.customer || '';
+      production_no = firstLot.production_no || '';
+      prod_code = firstLot.prod_code || '';
+      spec = firstLot.spec || '';
+      year = firstLot.year || '';
+      month = firstLot.month || '';
+      date = firstLot.date || '';
+      mc_no = firstLot.mc_no || '';
+      shift = firstLot.shift || '';
+      production_date = firstLot.production_date || '';
+      printed = firstLot.printed || false;
+      non_printed = firstLot.non_printed || false;
+      ct = firstLot.ct || false;
+      emboss_type = firstLot.emboss_type || '';
+      
+      // If main fields are null, try to find data from other forms with same traceability_code
+      if (!customer || !production_no || !prod_code || !spec || !shift || !mc_no) {
+        try {
+          const { data: otherForms, error } = await supabase
+            .from('inline_inspection_form_master')
+            .select('customer, production_no, prod_code, spec, shift, mc_no, production_date, emboss_type, printed, non_printed, ct')
+            .eq('traceability_code', firstLot.traceability_code)
+            .not('customer', 'is', null)
+            .limit(1);
+
+          if (!error && otherForms && otherForms.length > 0) {
+            const otherForm = otherForms[0];
+            if (!customer) customer = otherForm.customer || '';
+            if (!production_no) production_no = otherForm.production_no || '';
+            if (!prod_code) prod_code = otherForm.prod_code || '';
+            if (!spec) spec = otherForm.spec || '';
+            if (!shift) shift = otherForm.shift || '';
+            if (!mc_no) mc_no = otherForm.mc_no || '';
+            if (!production_date) production_date = otherForm.production_date || '';
+            if (!emboss_type) emboss_type = otherForm.emboss_type || '';
+            if (!printed) printed = otherForm.printed || false;
+            if (!non_printed) non_printed = otherForm.non_printed || false;
+            if (!ct) ct = otherForm.ct || false;
+            
+            console.log('  Found header data from other forms:', {
+              customer, production_no, prod_code, spec, shift, mc_no, emboss_type
+            });
+          }
+        } catch (err) {
+          console.log('  Error searching for header data in other forms:', err.message);
+        }
+      }
+      
+      // Map to Excel cells
+      worksheet.getCell('D5').value = customer;
+      worksheet.getCell('D6').value = production_no;
+      worksheet.getCell('D7').value = prod_code;
+      worksheet.getCell('D8').value = spec;
+      worksheet.getCell('N7').value = year;
+      worksheet.getCell('P7').value = month;
+      worksheet.getCell('R7').value = date;
+      worksheet.getCell('T7').value = mc_no;
+      worksheet.getCell('V7').value = shift;
+      worksheet.getCell('AE6').value = production_date ? formatDateToDDMMYYYY(production_date) : '';
+      worksheet.getCell('AE7').value = shift;
+      worksheet.getCell('AE8').value = mc_no;
+      worksheet.getCell('L6').value = printed ? '✔' : '';
+      worksheet.getCell('L7').value = non_printed ? '✔' : '';
+      worksheet.getCell('L8').value = ct ? '✔' : '';
+      worksheet.getCell('F10').value = emboss_type === 'Random' ? '✔' : '';
+      worksheet.getCell('I10').value = emboss_type === 'Matte' ? '✔' : '';
+      worksheet.getCell('L10').value = emboss_type === 'Micro' ? '✔' : '';
+      
+      // Set default values if still empty
+      if (!customer) customer = 'CUSTOMER';
+      if (!production_no) production_no = 'PROD-NO';
+      if (!prod_code) prod_code = 'PROD-CODE';
+      if (!spec) spec = 'SPEC';
+      if (!shift) shift = '1';
+      if (!mc_no) mc_no = 'MC-NO';
+      if (!emboss_type) emboss_type = '';
+      
+      // Set year, month, date from production_date or current date
+      if (production_date) {
+        const dateObj = new Date(production_date);
+        year = dateObj.getFullYear().toString().slice(-2); // Get last 2 digits (25 instead of 2025)
+        month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+        date = dateObj.getDate().toString().padStart(2, '0');
+      } else {
+        // Use current date as fallback
+        const now = new Date();
+        year = now.getFullYear().toString().slice(-2); // Get last 2 digits (25 instead of 2025)
+        month = (now.getMonth() + 1).toString().padStart(2, '0');
+        date = now.getDate().toString().padStart(2, '0');
+      }
+      
+      // Debug: Log what header data we're using
+      console.log('Header mapping debug:');
+      console.log('  customer:', customer);
+      console.log('  production_no:', production_no);
+      console.log('  prod_code:', prod_code);
+      console.log('  spec:', spec);
+      console.log('  shift:', shift);
+      console.log('  mc_no:', mc_no);
+      console.log('  emboss_type:', emboss_type);
+      console.log('  printed:', printed);
+      console.log('  non_printed:', non_printed);
+      console.log('  ct:', ct);
+      console.log('  year:', year);
+      console.log('  month:', month);
+      console.log('  date:', date);
+    }
+    
+    // Function to apply header mapping to any worksheet
+    const applyHeaderMapping = (worksheet) => {
+      worksheet.getCell('D5').value = customer;
+      worksheet.getCell('D6').value = production_no;
+      worksheet.getCell('D7').value = prod_code;
+      worksheet.getCell('D8').value = spec;
+      worksheet.getCell('N7').value = year;
+      worksheet.getCell('P7').value = month;
+      worksheet.getCell('R7').value = date;
+      worksheet.getCell('T7').value = mc_no;
+      worksheet.getCell('V7').value = shift;
+      worksheet.getCell('AE6').value = production_date ? formatDateToDDMMYYYY(production_date) : '';
+      worksheet.getCell('AE7').value = shift;
+      worksheet.getCell('AE8').value = mc_no;
+      worksheet.getCell('L6').value = printed ? '✔' : '';
+      worksheet.getCell('L7').value = non_printed ? '✔' : '';
+      worksheet.getCell('L8').value = ct ? '✔' : '';
+      worksheet.getCell('F10').value = emboss_type === 'Random' ? '✔' : '';
+      worksheet.getCell('I10').value = emboss_type === 'Matte' ? '✔' : '';
+      worksheet.getCell('L10').value = emboss_type === 'Micro' ? '✔' : '';
+    };
+    
+    // Apply header mapping to the first worksheet
+    if (firstLot) {
+      applyHeaderMapping(worksheet);
     }
     
     // Sort lots by lot_no numerically before mapping
@@ -320,25 +429,8 @@ app.get('/export', async (req, res) => {
       const page2Worksheet = workbook.getWorksheet('Page2');
       
       if (page2Worksheet) {
-        // Add header info to Page2
-        page2Worksheet.getCell('D5').value = firstLot.customer || '';
-        page2Worksheet.getCell('D6').value = firstLot.production_no || '';
-        page2Worksheet.getCell('D7').value = firstLot.prod_code || '';
-        page2Worksheet.getCell('D8').value = firstLot.spec || '';
-        page2Worksheet.getCell('N7').value = firstLot.year || '';
-        page2Worksheet.getCell('P7').value = firstLot.month || '';
-        page2Worksheet.getCell('R7').value = firstLot.date || '';
-        page2Worksheet.getCell('T7').value = firstLot.mc_no || '';
-        page2Worksheet.getCell('V7').value = firstLot.shift || '';
-        page2Worksheet.getCell('AE6').value = firstLot.production_date ? formatDateToDDMMYYYY(firstLot.production_date) : '';
-        page2Worksheet.getCell('AE7').value = firstLot.shift || '';
-        page2Worksheet.getCell('AE8').value = firstLot.mc_no || '';
-        page2Worksheet.getCell('L6').value = firstLot.printed ? '✔' : '';
-        page2Worksheet.getCell('L7').value = firstLot.non_printed ? '✔' : '';
-        page2Worksheet.getCell('L8').value = firstLot.ct ? '✔' : '';
-        page2Worksheet.getCell('F10').value = firstLot.emboss_type === 'Random' ? '✔' : '';
-        page2Worksheet.getCell('I10').value = firstLot.emboss_type === 'Matte' ? '✔' : '';
-        page2Worksheet.getCell('L10').value = firstLot.emboss_type === 'Micro' ? '✔' : '';
+        // Apply header mapping to Page2 using the same function
+        applyHeaderMapping(page2Worksheet);
 
         // Map data to Page2
         let page2CurrentRow = DATA_START_ROW;
@@ -455,25 +547,8 @@ app.get('/export', async (req, res) => {
       const page3Worksheet = workbook.getWorksheet('Page3');
       
       if (page3Worksheet) {
-        // Add header info to Page3
-        page3Worksheet.getCell('D5').value = firstLot.customer || '';
-        page3Worksheet.getCell('D6').value = firstLot.production_no || '';
-        page3Worksheet.getCell('D7').value = firstLot.prod_code || '';
-        page3Worksheet.getCell('D8').value = firstLot.spec || '';
-        page3Worksheet.getCell('N7').value = firstLot.year || '';
-        page3Worksheet.getCell('P7').value = firstLot.month || '';
-        page3Worksheet.getCell('R7').value = firstLot.date || '';
-        page3Worksheet.getCell('T7').value = firstLot.mc_no || '';
-        page3Worksheet.getCell('V7').value = firstLot.shift || '';
-        page3Worksheet.getCell('AE6').value = firstLot.production_date ? formatDateToDDMMYYYY(firstLot.production_date) : '';
-        page3Worksheet.getCell('AE7').value = firstLot.shift || '';
-        page3Worksheet.getCell('AE8').value = firstLot.mc_no || '';
-        page3Worksheet.getCell('L6').value = firstLot.printed ? '✔' : '';
-        page3Worksheet.getCell('L7').value = firstLot.non_printed ? '✔' : '';
-        page3Worksheet.getCell('L8').value = firstLot.ct ? '✔' : '';
-        page3Worksheet.getCell('F10').value = firstLot.emboss_type === 'Random' ? '✔' : '';
-        page3Worksheet.getCell('I10').value = firstLot.emboss_type === 'Matte' ? '✔' : '';
-        page3Worksheet.getCell('L10').value = firstLot.emboss_type === 'Micro' ? '✔' : '';
+        // Apply header mapping to Page3 using the same function
+        applyHeaderMapping(page3Worksheet);
 
         // Map data to Page3
         let page3CurrentRow = DATA_START_ROW;
@@ -627,21 +702,92 @@ app.get('/export', async (req, res) => {
     const buffer = await workbook.xlsx.writeBuffer();
 
     // Generate filename with all required information
-    const productionDate = firstLot.production_date ? formatDateToDDMMYYYY(firstLot.production_date) : '';
-    const prodCode = firstLot.prod_code || '';
-    const shiftNumber = firstLot.shift || '';
-    const customer = firstLot.customer || '';
-    const mcNo = firstLot.mc_no || '';
+    // Try to get data from main fields first, then fall back to inspection_data
+    let productionDate = firstLot.production_date ? formatDateToDDMMYYYY(firstLot.production_date) : '';
+    let prodCode = firstLot.prod_code || '';
+    let shiftNumber = firstLot.shift || '';
+    let mcNo = firstLot.mc_no || '';
+    
+    // If main fields are null, try to extract from inspection_data
+    if (!prodCode && firstLot.inspection_data) {
+      // Try to get from inspection_data
+      prodCode = firstLot.inspection_data.prod_code || '';
+    }
+    
+    if (!shiftNumber && firstLot.inspection_data) {
+      // Try to get shift from inspection_data
+      shiftNumber = firstLot.inspection_data.shift || '';
+    }
+    
+    // If still no prod_code, try to find it from other forms with same traceability_code
+    if (!prodCode) {
+      try {
+        const { data: otherForms, error } = await supabase
+          .from('inline_inspection_form_master')
+          .select('prod_code')
+          .eq('traceability_code', firstLot.traceability_code)
+          .not('prod_code', 'is', null)
+          .limit(1);
+        
+        if (!error && otherForms && otherForms.length > 0) {
+          prodCode = otherForms[0].prod_code;
+          console.log('  Found prod_code from other forms:', prodCode);
+        } else {
+          prodCode = 'PROD-CODE'; // Default value
+          console.log('  No prod_code found in other forms, using default');
+        }
+      } catch (err) {
+        console.log('  Error searching for prod_code in other forms:', err.message);
+        prodCode = 'PROD-CODE'; // Default value
+      }
+    }
+    
+    // If still no shift, try to find it from other forms with same traceability_code
+    if (!shiftNumber) {
+      try {
+        const { data: otherForms, error } = await supabase
+          .from('inline_inspection_form_master')
+          .select('shift')
+          .eq('traceability_code', firstLot.traceability_code)
+          .not('shift', 'is', null)
+          .limit(1);
+        
+        if (!error && otherForms && otherForms.length > 0) {
+          shiftNumber = otherForms[0].shift;
+          console.log('  Found shift from other forms:', shiftNumber);
+        } else {
+          shiftNumber = '1'; // Default to shift 1
+          console.log('  No shift found in other forms, using default');
+        }
+      } catch (err) {
+        console.log('  Error searching for shift in other forms:', err.message);
+        shiftNumber = '1'; // Default value
+      }
+    }
+    
+    // Debug: Log the values being used for filename
+    console.log('Filename generation debug:');
+    console.log('  firstLot.traceability_code:', firstLot.traceability_code);
+    console.log('  prodCode:', prodCode);
+    console.log('  shiftNumber:', shiftNumber);
+    console.log('  firstLot object keys:', Object.keys(firstLot));
+    console.log('  inspection_data keys:', firstLot.inspection_data ? Object.keys(firstLot.inspection_data) : 'null');
+    if (firstLot.inspection_data) {
+      console.log('  inspection_data.prod_code:', firstLot.inspection_data.prod_code);
+      console.log('  inspection_data.shift:', firstLot.inspection_data.shift);
+    }
     
     // Convert shift number to letter
     let shiftLetter = '';
-    if (shiftNumber === '1') shiftLetter = 'A';
-    else if (shiftNumber === '2') shiftLetter = 'B';
-    else if (shiftNumber === '3') shiftLetter = 'C';
+    if (shiftNumber === '1' || shiftNumber === 1) shiftLetter = 'A';
+    else if (shiftNumber === '2' || shiftNumber === 2) shiftLetter = 'B';
+    else if (shiftNumber === '3' || shiftNumber === 3) shiftLetter = 'C';
     else shiftLetter = shiftNumber; // Keep original if not 1, 2, or 3
     
-    // Create a simple filename with traceability code and product code
-    const filename = `In-Line_Inspection_Form_${firstLot.traceability_code}_${prodCode}.xlsx`;
+    console.log('  shiftLetter:', shiftLetter);
+    
+    // Create filename with format: ILIF-trace code-prod code-Shift-A-B-C.xlsx
+    const filename = `ILIF-${firstLot.traceability_code}-${prodCode}-Shift-${shiftLetter}.xlsx`;
     
     console.log('Generated filename:', filename); // Debug log
     
@@ -669,5 +815,10 @@ function formatDateToDDMMYYYY(dateString) {
 }
 
 app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+  console.log(`🚀 Swanson India Portal Backend Server Started!`);
+  console.log(`📡 Server listening on port ${PORT}`);
+  console.log(`⏰ Keep-alive system active for 31-day continuous operation`);
+  console.log(`🌐 Health check: http://localhost:${PORT}/health`);
+  console.log(`🔗 Ping endpoint: http://localhost:${PORT}/ping`);
+  console.log(`📊 Excel export: http://localhost:${PORT}/export`);
 }); 

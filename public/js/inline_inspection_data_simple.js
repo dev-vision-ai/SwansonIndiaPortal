@@ -312,6 +312,81 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const allTables = Array.from(document.querySelectorAll('#tablesContainer table'));
                 const tableIndex = allTables.indexOf(table);
                 console.log('[DEBUG] Cell change event in table:', { formId, tableIndex });
+                
+                // Handle Accept/Reject → Disable Row functionality
+                const selectedValue = select.value;
+                const row = select.closest('tr');
+                
+                if (selectedValue === 'Accept') {
+                    // For Accept: Disable X/O cells and Defect Name (client can't edit when Accept)
+                    const cells = row.querySelectorAll('td[data-field]');
+                    cells.forEach(cell => {
+                        const fieldName = cell.dataset.field;
+                        // Disable X/O fields and Defect Name (not Accept/Reject, Remarks, Inspected By)
+                        if (fieldName && !['accept_reject', 'remarks', 'inspected_by'].includes(fieldName)) {
+                            cell.contentEditable = false;
+                        }
+                    });
+                } else if (selectedValue === 'Reject' || selectedValue === 'Rework') {
+                    // For Reject/Rework: Enable Defect Name and Remarks (client needs to enter defect info)
+                    const cells = row.querySelectorAll('td[data-field]');
+                    cells.forEach(cell => {
+                        const fieldName = cell.dataset.field;
+                        // Enable Defect Name and Remarks, disable X/O fields
+                        if (fieldName === 'defect_name' || fieldName === 'remarks') {
+                            cell.contentEditable = true;
+                        } else if (fieldName && !['accept_reject', 'inspected_by'].includes(fieldName)) {
+                            cell.contentEditable = false;
+                        }
+                    });
+                } else {
+                    // When cleared: Re-enable all cells
+                    const cells = row.querySelectorAll('td[data-field]');
+                    cells.forEach(cell => {
+                        const fieldName = cell.dataset.field;
+                        // Re-enable X/O fields and Defect Name
+                        if (fieldName && !['accept_reject', 'remarks', 'inspected_by'].includes(fieldName)) {
+                            cell.contentEditable = true;
+                        }
+                    });
+                }
+                
+                // Auto-clear defect name and remarks when changing to Accept
+                if (selectedValue === 'Accept') {
+                    const defectNameCell = row.querySelector('td[data-field="defect_name"]');
+                    const remarksCell = row.querySelector('td[data-field="remarks"]');
+                    
+                    if (defectNameCell) {
+                        defectNameCell.textContent = '';
+                        defectNameCell.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                    
+                    if (remarksCell) {
+                        remarksCell.textContent = '';
+                        remarksCell.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                    
+                    // Change all X values to O in this row when Accept is selected
+                    const cells = row.querySelectorAll('td[data-field]');
+                    cells.forEach(cell => {
+                        const fieldName = cell.dataset.field;
+                        // Only change X/O fields (not Accept/Reject, Defect Name, Remarks, Inspected By)
+                        if (fieldName && !['accept_reject', 'defect_name', 'remarks', 'inspected_by'].includes(fieldName)) {
+                            if (cell.textContent.trim() === 'X') {
+                                cell.textContent = 'O';
+                                cell.dispatchEvent(new Event('input', { bubbles: true }));
+                            }
+                        }
+                    });
+                    
+                    console.log('Auto-cleared defect name, remarks, and changed X to O for Accept status');
+                }
+                
+                // Save the Accept/Reject selection to database immediately
+                setTimeout(() => {
+                    saveLotTableToSupabase(table);
+                }, 100);
+                
                 applyColorCodingToTable();
                 updateSummaryTable();
             });
@@ -1875,7 +1950,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Add Fill O button
         const fillOButton = document.createElement('button');
         fillOButton.textContent = 'Fill O';
-        fillOButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm';
+        fillOButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm mr-2';
         fillOButton.style.marginBottom = '8px';
         fillOButton.onclick = function() {
             const rows = table.querySelectorAll('tbody tr');
@@ -1892,18 +1967,71 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const td = cells[idx];
                     if (
                         td &&
-                        td.isContentEditable &&
                         !td.querySelector('select') &&
                         !td.querySelector('input') &&
                         td.textContent.trim() === ''
                     ) {
+                        // Temporarily enable cell for Fill O operation
+                        const wasEditable = td.contentEditable;
+                        td.contentEditable = 'true';
                         td.textContent = 'O';
+                        // Trigger save event for this cell
                         td.dispatchEvent(new Event('input', { bubbles: true }));
+                        // Restore original editable state
+                        td.contentEditable = wasEditable;
                     }
                 });
             });
+            
+            // Save the table after filling O values
+            setTimeout(() => {
+                saveLotTableToSupabase(table);
+            }, 100);
         };
         tablesContainer.appendChild(fillOButton);
+        
+        // Add Clear O button
+        const clearOButton = document.createElement('button');
+        clearOButton.textContent = 'Clear O';
+        clearOButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm';
+        clearOButton.style.marginBottom = '8px';
+        clearOButton.onclick = function() {
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                // Only clear Lines/Strips (12), Film Appearance (13-19), Printing (20-24), Roll Appearance (25-28)
+                const targetIndices = [
+                    12,                    // Lines/Strips
+                    13, 14, 15, 16, 17, 18, 19, // Film Appearance
+                    20, 21, 22, 23, 24,         // Printing
+                    25, 26, 27, 28              // Roll Appearance
+                ];
+                targetIndices.forEach(idx => {
+                    const td = cells[idx];
+                    if (
+                        td &&
+                        !td.querySelector('select') &&
+                        !td.querySelector('input') &&
+                        td.textContent.trim() === 'O'
+                    ) {
+                        // Temporarily enable cell for Clear O operation
+                        const wasEditable = td.contentEditable;
+                        td.contentEditable = 'true';
+                        td.textContent = '';
+                        // Trigger save event for this cell
+                        td.dispatchEvent(new Event('input', { bubbles: true }));
+                        // Restore original editable state
+                        td.contentEditable = wasEditable;
+                    }
+                });
+            });
+            
+            // Save the table after clearing O values
+            setTimeout(() => {
+                saveLotTableToSupabase(table);
+            }, 100);
+        };
+        tablesContainer.appendChild(clearOButton);
 
         // Add Delete Table button
         const deleteTableButton = document.createElement('button');
@@ -1928,8 +2056,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Remove the table and its associated elements from UI
                 table.remove();
                 
-                // Remove the Fill O button and Delete Table button
+                // Remove the Fill O button, Clear O button, and Delete Table button
                 fillOButton.remove();
+                clearOButton.remove();
                 deleteTableButton.remove();
                 
                 // Remove the separator if it exists
@@ -2015,9 +2144,49 @@ document.addEventListener('DOMContentLoaded', async function() {
         table.appendChild(tbody);
         tablesContainer.appendChild(table);
         
-
+        // Apply Accept/Reject row disable state after table is loaded
+        setTimeout(() => {
+            applyAcceptRejectRowDisable(table);
+        }, 300);
+        
+        // Update IPQC table after this table is loaded
+        setTimeout(() => {
+            renderIPQCDefectsTable();
+        }, 500);
         
         return table;
+    }
+
+    // Apply Accept/Reject row disable state to a table
+    function applyAcceptRejectRowDisable(table) {
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const acceptRejectSelect = row.querySelector('select');
+            if (acceptRejectSelect) {
+                const selectedValue = acceptRejectSelect.value;
+                const cells = row.querySelectorAll('td[data-field]');
+                
+                if (selectedValue === 'Accept' || selectedValue === 'Reject' || selectedValue === 'Rework') {
+                    // Disable all X/O input cells in this row
+                    cells.forEach(cell => {
+                        const fieldName = cell.dataset.field;
+                        // Only disable X/O fields (not Accept/Reject, Defect Name, Remarks, Inspected By)
+                        if (fieldName && !['accept_reject', 'defect_name', 'remarks', 'inspected_by'].includes(fieldName)) {
+                            cell.contentEditable = false;
+                        }
+                    });
+                } else {
+                    // Re-enable all X/O input cells in this row
+                    cells.forEach(cell => {
+                        const fieldName = cell.dataset.field;
+                        // Only re-enable X/O fields
+                        if (fieldName && !['accept_reject', 'defect_name', 'remarks', 'inspected_by'].includes(fieldName)) {
+                            cell.contentEditable = true;
+                        }
+                    });
+                }
+            }
+        });
     }
 
     // Save a specific lot table to Supabase using its form_id
@@ -2064,9 +2233,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             .update({ inspection_data: lotData, updated_at: new Date().toISOString() })
             .eq('form_id', formId);
         if (error) {
-            alert('Error saving lot: ' + error.message);
+            console.error('Error saving lot: ' + error.message);
         } else {
-            alert('Lot saved!');
+            console.log('Lot saved successfully');
         }
     }
 
@@ -2260,7 +2429,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             summaryTable.id = 'defectsSummaryTable';
             summaryTable.className = 'min-w-[300px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white';
         }
-        let html = '<thead><tr style="height: 30px;"><th>Defect Name</th><th>Count</th></tr></thead><tbody>';
+        let html = '<thead><tr style="height: 30px;"><th>Total Defects</th><th>Count</th></tr></thead><tbody>';
         if (Object.keys(defectCounts).length === 0) {
             html += '<tr style="height: 30px;"><td colspan="2">No defects found in this shift.</td></tr>';
         } else {
@@ -2274,13 +2443,152 @@ document.addEventListener('DOMContentLoaded', async function() {
             summaryTableContainer.appendChild(summaryTable);
         }
     }
+
+    // Render IPQC Defects Table - defects found by QC personnel
+    async function renderIPQCDefectsTable() {
+        // Aggregate all rolls from all lots in the DOM
+        let allRolls = [];
+        const tables = tablesContainer.querySelectorAll('table');
+        console.log('Found tables in container:', tables.length);
+        
+        tables.forEach((table, tableIndex) => {
+            const tbody = table.querySelector('tbody');
+            if (!tbody) {
+                console.log(`Table ${tableIndex}: No tbody found`);
+                return;
+            }
+            const rows = Array.from(tbody.rows);
+            console.log(`Table ${tableIndex}: Found ${rows.length} rows`);
+            
+            rows.forEach((row, rowIndex) => {
+                const rollData = {};
+                const cells = row.querySelectorAll('td[data-field]');
+                console.log(`Table ${tableIndex}, Row ${rowIndex}: Found ${cells.length} cells with data-field`);
+                
+                cells.forEach(cell => {
+                    const field = cell.dataset.field;
+                    if (field) rollData[field] = cell.textContent.trim();
+                });
+                allRolls.push(rollData);
+                console.log(`Table ${tableIndex}, Row ${rowIndex}: Roll data:`, rollData);
+            });
+        });
+        
+        // Use cached QC inspectors instead of querying database every time
+        const qcInspectors = qcInspectorsCache;
+        console.log('QC Inspectors Cache:', qcInspectors);
+        console.log('All Rolls:', allRolls);
+        
+        // Count defects from tables where first row inspector is from Quality Control department
+        const ipqcDefectCounts = {};
+        
+        // Process each table separately to check first row inspector
+        tables.forEach((table, tableIndex) => {
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            
+            const rows = Array.from(tbody.rows);
+            if (rows.length === 0) return;
+            
+            // Check if first row's inspector is from Quality Control department
+            const firstRow = rows[0];
+            const firstRowInspector = firstRow.querySelector('td[data-field="inspected_by"]')?.textContent.trim() || '';
+            
+            console.log(`Table ${tableIndex}: First row inspector:`, firstRowInspector);
+            console.log(`Table ${tableIndex}: Is QC inspector:`, qcInspectors.includes(firstRowInspector));
+            
+            // Only process this table's defects if first row inspector is from QC department
+            if (firstRowInspector && qcInspectors.includes(firstRowInspector)) {
+                console.log(`Table ${tableIndex}: Including defects from this table`);
+                
+                // Process all rows in this table
+                rows.forEach((row, rowIndex) => {
+                    const rollData = {};
+                    row.querySelectorAll('td[data-field]').forEach(cell => {
+                        const field = cell.dataset.field;
+                        if (field) rollData[field] = cell.textContent.trim();
+                    });
+                    
+                    const defect = (rollData.defect_name || '').trim();
+                    if (defect) {
+                        if (!ipqcDefectCounts[defect]) {
+                            ipqcDefectCounts[defect] = 0;
+                        }
+                        ipqcDefectCounts[defect]++;
+                        console.log(`Table ${tableIndex}, Row ${rowIndex}: Added defect "${defect}"`);
+                    }
+                });
+            } else {
+                console.log(`Table ${tableIndex}: Excluding defects from this table (not QC inspector)`);
+            }
+        });
+        
+        console.log('IPQC Defect Counts:', ipqcDefectCounts);
+        
+        // Render the IPQC defects table
+        let ipqcTable = document.getElementById('ipqcDefectsTable');
+        let summaryTableContainer = document.getElementById('summaryTableContainer');
+        
+        if (!ipqcTable) {
+            ipqcTable = document.createElement('table');
+            ipqcTable.id = 'ipqcDefectsTable';
+            ipqcTable.className = 'min-w-[300px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white';
+        }
+        
+        let html = '<thead><tr style="height: 30px;"><th>IPQC Defects</th><th>Count</th></tr></thead><tbody>';
+        if (Object.keys(ipqcDefectCounts).length === 0) {
+            html += '<tr style="height: 30px;"><td colspan="2">No QC defects found in this shift.</td></tr>';
+        } else {
+            Object.entries(ipqcDefectCounts).forEach(([defect, count]) => {
+                html += `<tr style="height: 30px;"><td>${defect}</td><td>${count}</td></tr>`;
+            });
+        }
+        html += '</tbody>';
+        console.log('IPQC Table HTML:', html);
+        ipqcTable.innerHTML = html;
+        
+        // Add to the same container as the main defects table
+        if (summaryTableContainer && !summaryTableContainer.contains(ipqcTable)) {
+            // Add vertical separator between Total Defects and IPQC Defects tables
+            const separator = document.createElement('div');
+            separator.style.width = '2px';
+            separator.style.backgroundColor = '#9ca3af';
+            separator.style.margin = '0 24px';
+            separator.style.alignSelf = 'stretch';
+            
+            summaryTableContainer.appendChild(ipqcTable);
+            summaryTableContainer.insertBefore(separator, ipqcTable);
+            console.log('IPQC table and separator added to container');
+        } else {
+            console.log('IPQC table container issue:', { 
+                summaryTableContainer: !!summaryTableContainer, 
+                containsTable: summaryTableContainer?.contains(ipqcTable) 
+            });
+        }
+    }
     // Call this after loadAllLots
     renderDefectsSummaryTable();
+    
+    // Render IPQC table after all tables are loaded and user data is fetched
+    setTimeout(() => {
+        renderIPQCDefectsTable();
+    }, 2000);
+    
     // Attach dynamic update on input/change in defect_name cells
     if (tablesContainer) {
         tablesContainer.addEventListener('input', function(e) {
             if (e.target && e.target.dataset && e.target.dataset.field === 'defect_name') {
                 renderDefectsSummaryTable();
+                renderIPQCDefectsTable();
+            }
+        }, true);
+    }
+    
+    // Also update IPQC table when inspected_by changes
+    if (tablesContainer) {
+        tablesContainer.addEventListener('input', function(e) {
+            if (e.target && e.target.dataset && e.target.dataset.field === 'inspected_by') {
+                renderIPQCDefectsTable();
             }
         }, true);
     }
@@ -2296,10 +2604,15 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // 2. Fetch all users from Supabase on page load
     let userSuggestions = [];
+    let qcInspectorsCache = []; // Cache for QC inspectors
     (async function fetchAllUsers() {
-        const { data, error } = await supabase.from('users').select('full_name');
+        const { data, error } = await supabase.from('users').select('full_name, department');
         if (!error && data) {
             userSuggestions = data.map(u => u.full_name).filter(name => name && name.trim() !== '');
+            // Cache QC inspectors
+            qcInspectorsCache = data
+                .filter(user => user.department && user.department.toLowerCase().includes('quality control'))
+                .map(user => user.full_name);
         }
     })();
 

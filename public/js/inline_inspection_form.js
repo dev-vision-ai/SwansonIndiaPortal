@@ -68,18 +68,25 @@ window.addEventListener('DOMContentLoaded', async function() {
 });
 
 // ===== STEP 1: FORM CREATION AND SAVING =====
-window.addEventListener('DOMContentLoaded', function() {
-  const form = document.getElementById('inlineInspectionEntryForm');
-  const overlay = document.getElementById('inspectionFormOverlay');
-  const createFormBtn = document.getElementById('showInspectionFormOverlay');
-  const closeBtn = document.getElementById('closeInspectionFormOverlay');
 
-  async function handleCreateForm(e) {
+// Global function for form submission
+async function handleFormSubmit(e) {
+  console.log('=== FORM SUBMISSION TRIGGERED ===');
     e.preventDefault();
+  const form = document.getElementById('inlineInspectionEntryForm');
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Creating...';
+  const isEditMode = form.dataset.isEditMode === 'true';
+  
+  console.log('Form submission details:', {
+    isEditMode,
+    submitButtonText: submitBtn.textContent,
+    formDataset: Object.fromEntries(Object.entries(form.dataset))
+  });
+  
+  submitBtn.textContent = isEditMode ? 'Updating...' : 'Creating...';
     submitBtn.disabled = true;
+  
     try {
       const formData = new FormData(form);
       const year = formData.get('year') || '';
@@ -88,6 +95,83 @@ window.addEventListener('DOMContentLoaded', function() {
       const machine = formData.get('mc_no') || '';
       const shift = formData.get('shift') || '';
       const traceability_code = `${year}${month}${date}${machine}${shift}`;
+      
+      if (isEditMode) {
+        // Update existing form using record ID (like the old working code)
+        const editRecordId = form.dataset.editRecordId;
+        
+        console.log('=== UPDATE DEBUG ===');
+        console.log('Edit Mode Debug:', {
+          isEditMode,
+          editRecordId,
+          formData: Object.fromEntries(formData.entries())
+        });
+        
+        // Check if the record we're trying to update actually exists
+        const { data: checkRecord, error: checkError } = await supabase
+          .from('inline_inspection_form_master')
+          .select('*')
+          .eq('id', editRecordId);
+          
+        console.log('Record to update:', checkRecord);
+        console.log('Check error:', checkError);
+        
+        const updateObject = {
+          customer: formData.get('customer'),
+          production_no: formData.get('production_no'),
+          prod_code: formData.get('prod_code'),
+          spec: formData.get('spec'),
+          production_date: formData.get('production_date'),
+          emboss_type: formData.get('emboss_type'),
+          printed: formData.get('printed') === 'on',
+          non_printed: formData.get('non_printed') === 'on',
+          ct: formData.get('ct') === 'on',
+          year: formData.get('year'),
+          month: formData.get('month'),
+          date: formData.get('date'),
+          mc_no: formData.get('mc_no'),
+          shift: parseInt(formData.get('shift')),
+          supervisor: formData.get('supervisor'),
+          supervisor2: formData.get('supervisor2'),
+          line_leader: formData.get('line_leader'),
+          line_leader2: formData.get('line_leader2'),
+          operator: formData.get('operator'),
+          operator2: formData.get('operator2'),
+          qc_inspector: formData.get('qc_inspector'),
+          qc_inspector2: formData.get('qc_inspector2'),
+          updated_at: new Date().toISOString()
+        };
+        
+        console.log('Update Object:', updateObject);
+        console.log('Update Query:', {
+          table: 'inline_inspection_form_master',
+          recordId: editRecordId
+        });
+        
+        console.log('About to execute update query...');
+        const { data, error } = await supabase
+          .from('inline_inspection_form_master')
+          .update(updateObject)
+          .eq('id', editRecordId)
+          .select();
+        
+        console.log('Update query executed. Error:', error);
+        console.log('Update query result:', data);
+          
+        if (error) {
+          console.error('Error updating form:', error);
+          alert('Error updating form: ' + error.message);
+          return;
+        }
+        
+        console.log('Update Result:', data);
+        console.log('Updated record count:', data ? data.length : 0);
+        
+        // Show success message
+        showNotification('✅ Form updated successfully!', 'success');
+        alert('✅ Form updated successfully!');
+      } else {
+        // Create new form
       const form_id = crypto.randomUUID();
 
       // --- Determine next available lot_letter ---
@@ -174,28 +258,55 @@ window.addEventListener('DOMContentLoaded', function() {
         kiv_rolls: 0,
         created_at: new Date().toISOString()
       };
+        
       const { data, error } = await supabase
         .from('inline_inspection_form_master')
         .insert([formObject])
         .select();
+          
       if (error) {
         console.error('Error saving form:', error);
         alert('Error creating form: ' + error.message);
         return;
       }
+        
+        // Success message removed for form creation
+      }
+      
+      const overlay = document.getElementById('inspectionFormOverlay');
       overlay.style.display = 'none';
       form.reset();
-      showNotification('Form created successfully!', 'success');
+      
+      // Reset form mode and UI
+      form.dataset.isEditMode = 'false';
+      delete form.dataset.editRecordId;
+      
+      // Reset modal title and button
+      const modalTitle = overlay.querySelector('h3');
+      if (modalTitle) {
+        modalTitle.textContent = 'Enter Inline Inspection Form Details';
+      }
+      if (submitBtn) {
+        submitBtn.textContent = 'Create Inline Inspection Form';
+      }
+      
       loadFormsTable();
     } catch (error) {
       console.error('Error:', error);
-      alert('Error creating form: ' + error.message);
+      alert('Error ' + (isEditMode ? 'updating' : 'creating') + ' form: ' + error.message);
     } finally {
       const submitBtn = form.querySelector('button[type="submit"]');
       submitBtn.textContent = originalText;
       submitBtn.disabled = false;
     }
   }
+
+  // DOMContentLoaded event listener
+  window.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('inlineInspectionEntryForm');
+    const overlay = document.getElementById('inspectionFormOverlay');
+    const createFormBtn = document.getElementById('showInspectionFormOverlay');
+    const closeBtn = document.getElementById('closeInspectionFormOverlay');
 
   if (form) {
     // Remove the old addEventListener if present
@@ -207,7 +318,7 @@ window.addEventListener('DOMContentLoaded', function() {
       if (form) {
         const submitBtn = form.querySelector('button[type="submit"]');
         if (submitBtn) submitBtn.textContent = 'Create Inline Inspection Form';
-        form.onsubmit = handleCreateForm;
+        form.onsubmit = handleFormSubmit;
       }
       overlay.style.display = 'flex';
     });
@@ -230,6 +341,28 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // Load forms table on page load
   loadFormsTable();
+  
+  // Add event listeners for delete confirmation overlays
+  const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+  const cancelFinalDeleteBtn = document.getElementById('cancelFinalDeleteBtn');
+  const confirmFinalDeleteBtn = document.getElementById('confirmFinalDeleteBtn');
+  
+  if (cancelDeleteBtn) {
+    cancelDeleteBtn.addEventListener('click', cancelDelete);
+  }
+  
+  if (confirmDeleteBtn) {
+    confirmDeleteBtn.addEventListener('click', confirmDelete);
+  }
+  
+  if (cancelFinalDeleteBtn) {
+    cancelFinalDeleteBtn.addEventListener('click', cancelFinalDelete);
+  }
+  
+  if (confirmFinalDeleteBtn) {
+    confirmFinalDeleteBtn.addEventListener('click', confirmFinalDelete);
+  }
 });
 
 // ===== LOAD FORMS TABLE =====
@@ -315,6 +448,15 @@ async function updateFormsTable(forms) {
     const lineLeaderDisplay = [form.line_leader, form.line_leader2].filter(Boolean).join(' / ');
     const qcInspectorDisplay = [form.qc_inspector, form.qc_inspector2].filter(Boolean).join(' / ');
     
+    // Convert shift number to letter for display
+    const shiftDisplay = form.shift ? 
+      (form.shift === '1' || form.shift === 1 ? 'A' : 
+       form.shift === '2' || form.shift === 2 ? 'B' : 
+       form.shift === '3' || form.shift === 3 ? 'C' : form.shift) : '-';
+    
+    // Debug: Log the shift conversion
+    console.log(`Shift conversion: ${form.shift} (${typeof form.shift}) → ${shiftDisplay}`);
+    
     // Check if form status is "submit" - if so, only show eye icon
     const isSubmitted = form.status === 'submit';
     
@@ -333,7 +475,7 @@ async function updateFormsTable(forms) {
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${formatDate(form.production_date)}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${form.prod_code || '-'}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${form.mc_no || '-'}</td>
-      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${form.shift}</td>
+      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${shiftDisplay}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${operatorDisplay || '-'}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${supervisorDisplay || '-'}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${lineLeaderDisplay || '-'}</td>
@@ -395,54 +537,195 @@ function viewForm(traceability_code, lot_letter) {
 }
 
 async function editForm(traceability_code, lot_letter) {
-  // Fetch the form data for the given traceability_code (oldest by created_at)
-  const { data, error } = await supabase
+  console.log('EditForm called with:', { traceability_code, lot_letter });
+  
+  // Find the record with actual form data for this traceability_code
+  const { data: allData, error: listError } = await supabase
     .from('inline_inspection_form_master')
     .select('*')
-    .eq('traceability_code', traceability_code)
-    .order('created_at', { ascending: true });
-  if (error || !data || data.length === 0) {
+    .eq('traceability_code', traceability_code);
+    
+  if (listError) {
+    console.error('Error listing forms:', listError);
     alert('Error loading form for editing.');
     return;
   }
-  const formData = data[0];
+  
+  console.log('All forms for traceability_code:', allData);
+  
+  // Find the form with actual data (customer, production_no, etc.)
+  const formData = allData.find(form => form.customer || form.production_no || form.prod_code || form.spec);
+  
+  if (!formData) {
+    console.error('No form with data found for traceability_code:', traceability_code);
+    alert('No form data found for editing.');
+    return;
+  }
+  
+  console.log('Found form with data:', formData);
+  
+  console.log('Fetched form data for editing:', formData);
+  console.log('All formData keys:', Object.keys(formData));
+  console.log('FormData values:', Object.entries(formData).filter(([key, value]) => value !== null && value !== ''));
+  console.log('Non-null form fields:', Object.entries(formData).filter(([key, value]) => value !== null && value !== '' && !['id', 'created_at', 'updated_at', 'inspection_data'].includes(key)));
   
   const overlay = document.getElementById('inspectionFormOverlay');
   const form = document.getElementById('inlineInspectionEntryForm');
-  if (!overlay || !form) return;
+  const modalTitle = overlay.querySelector('h3');
+  const submitButton = form.querySelector('button[type="submit"]');
   
-  // Fill all fields
-  form.customer.value = formData.customer || '';
-  form.production_no.value = formData.production_no || '';
-  form.prod_code.value = formData.prod_code || '';
-  form.spec.value = formData.spec || '';
-  form.production_date.value = formData.production_date || '';
-  form.emboss_type.value = formData.emboss_type || '';
-  form.printed.checked = !!formData.printed;
-  form.non_printed.checked = !!formData.non_printed;
-  form.ct.checked = !!formData.ct;
-  form.year.value = formData.year || '';
-  form.month.value = formData.month || '';
-  form.date.value = formData.date || '';
-  form.mc_no.value = formData.mc_no || '';
-  form.shift.value = formData.shift || '';
-  form.supervisor.value = formData.supervisor || '';
-  form.supervisor2.value = formData.supervisor2 || '';
-  form.line_leader.value = formData.line_leader || '';
-  form.line_leader2.value = formData.line_leader2 || '';
-  form.operator.value = formData.operator || '';
-  form.operator2.value = formData.operator2 || '';
-  form.qc_inspector.value = formData.qc_inspector || '';
-  form.qc_inspector2.value = formData.qc_inspector2 || '';
+  if (!overlay || !form) {
+    console.error('Overlay or form not found');
+    return;
+  }
+  
+  // Update modal title and button for edit mode
+  if (modalTitle) {
+    modalTitle.textContent = 'Edit Inline Inspection Form Details';
+  }
+  if (submitButton) {
+    submitButton.textContent = 'Update Inline Inspection Form';
+  }
+  
+  // Store the record ID for update (like the old working code)
+  form.dataset.editRecordId = formData.id;
+  form.dataset.isEditMode = 'true';
+  
+  console.log('Storing in form dataset:', {
+    recordId: formData.id,
+    storedRecordId: form.dataset.editRecordId
+  });
+  
+  console.log('Edit Form Debug:', {
+    traceability_code,
+    lot_letter,
+    storedTraceabilityCode: form.dataset.editTraceabilityCode,
+    storedLotLetter: form.dataset.editLotLetter,
+    isEditMode: form.dataset.isEditMode
+  });
+  
+  // Extract data from inspection_data JSON if available, otherwise use direct fields
+  const inspectionData = formData.inspection_data || {};
+  console.log('Full inspection_data:', inspectionData);
+  
+  // The form data is likely stored in the inspection_data.summary or similar structure
+  const summary = inspectionData.summary || {};
+  const rolls = inspectionData.rolls || [];
+  
+  console.log('Summary data:', summary);
+  console.log('First roll data:', rolls[0]);
+  console.log('All rolls:', rolls);
+  
+  const dataToUse = {
+    customer: formData.customer || summary.customer || '',
+    production_no: formData.production_no || summary.production_no || '',
+    prod_code: formData.prod_code || summary.prod_code || '',
+    spec: formData.spec || summary.spec || '',
+    production_date: formData.production_date || summary.date || summary.production_date || '',
+    emboss_type: formData.emboss_type || summary.emboss_type || '',
+    printed: formData.printed || summary.printed || false,
+    non_printed: formData.non_printed || summary.non_printed || false,
+    ct: formData.ct || summary.ct || false,
+    year: formData.year || summary.year || '',
+    month: formData.month || summary.month || '',
+    date: formData.date || summary.date || '',
+    mc_no: formData.mc_no || summary.machine || summary.mc_no || '',
+    shift: formData.shift || summary.shift || '',
+    supervisor: formData.supervisor || summary.supervisor || '',
+    supervisor2: formData.supervisor2 || summary.supervisor2 || '',
+    line_leader: formData.line_leader || summary.line_leader || '',
+    line_leader2: formData.line_leader2 || summary.line_leader2 || '',
+    operator: formData.operator || summary.operator || '',
+    operator2: formData.operator2 || summary.operator2 || '',
+    qc_inspector: formData.qc_inspector || summary.qc_inspector || '',
+    qc_inspector2: formData.qc_inspector2 || summary.qc_inspector2 || ''
+  };
+  
+  console.log('Filling form fields with data:', dataToUse);
+  console.log('Original formData:', formData);
+  console.log('Inspection data:', inspectionData);
+  
+  // Check if form fields exist
+  console.log('Form field checks:', {
+    customerField: !!form.customer,
+    productionNoField: !!form.production_no,
+    prodCodeField: !!form.prod_code,
+    specField: !!form.spec,
+    productionDateField: !!form.production_date,
+    embossTypeField: !!form.emboss_type,
+    printedField: !!form.printed,
+    nonPrintedField: !!form.non_printed,
+    ctField: !!form.ct,
+    yearField: !!form.year,
+    monthField: !!form.month,
+    dateField: !!form.date,
+    mcNoField: !!form.mc_no,
+    shiftField: !!form.shift,
+    supervisorField: !!form.supervisor,
+    supervisor2Field: !!form.supervisor2,
+    lineLeaderField: !!form.line_leader,
+    lineLeader2Field: !!form.line_leader2,
+    operatorField: !!form.operator,
+    operator2Field: !!form.operator2,
+    qcInspectorField: !!form.qc_inspector,
+    qcInspector2Field: !!form.qc_inspector2
+  });
+  
+  form.customer.value = dataToUse.customer;
+  form.production_no.value = dataToUse.production_no;
+  form.prod_code.value = dataToUse.prod_code;
+  form.spec.value = dataToUse.spec;
+  form.production_date.value = dataToUse.production_date;
+  form.emboss_type.value = dataToUse.emboss_type;
+  form.printed.checked = !!dataToUse.printed;
+  form.non_printed.checked = !!dataToUse.non_printed;
+  form.ct.checked = !!dataToUse.ct;
+  form.year.value = dataToUse.year;
+  form.month.value = dataToUse.month;
+  form.date.value = dataToUse.date;
+  form.mc_no.value = dataToUse.mc_no;
+  form.shift.value = dataToUse.shift;
+  form.supervisor.value = dataToUse.supervisor;
+  form.supervisor2.value = dataToUse.supervisor2;
+  form.line_leader.value = dataToUse.line_leader;
+  form.line_leader2.value = dataToUse.line_leader2;
+  form.operator.value = dataToUse.operator;
+  form.operator2.value = dataToUse.operator2;
+  form.qc_inspector.value = dataToUse.qc_inspector;
+  form.qc_inspector2.value = dataToUse.qc_inspector2;
   
   // Show the overlay for editing form details
   overlay.style.display = 'flex';
+  
+  // Ensure form submission handler is attached
+  if (form) {
+    form.onsubmit = handleFormSubmit;
+  }
 }
 
 async function deleteForm(traceability_code, lot_letter) {
-  if (!confirm('Are you sure you want to delete this form?')) {
-    return;
-  }
+  // Store the form details for deletion
+  window.pendingDeleteForm = { traceability_code, lot_letter };
+  
+  // Show first confirmation overlay
+  const deleteOverlay = document.getElementById('deleteConfirmationOverlay');
+  const deleteMessage = document.getElementById('deleteConfirmationMessage');
+  deleteMessage.textContent = 'Are you sure you want to delete this inline form?';
+  deleteOverlay.style.display = 'flex';
+}
+
+async function confirmDelete() {
+  // Hide first confirmation overlay
+  const deleteOverlay = document.getElementById('deleteConfirmationOverlay');
+  deleteOverlay.style.display = 'none';
+  
+  // Show final warning overlay
+  const finalWarningOverlay = document.getElementById('finalDeleteWarningOverlay');
+  finalWarningOverlay.style.display = 'flex';
+}
+
+async function confirmFinalDelete() {
+  const { traceability_code, lot_letter } = window.pendingDeleteForm;
   
   try {
     const { error } = await supabase
@@ -463,7 +746,32 @@ async function deleteForm(traceability_code, lot_letter) {
   } catch (error) {
     console.error('Error:', error);
     alert('Error deleting form: ' + error.message);
+  } finally {
+    // Hide final warning overlay
+    const finalWarningOverlay = document.getElementById('finalDeleteWarningOverlay');
+    finalWarningOverlay.style.display = 'none';
+    
+    // Clear pending delete data
+    delete window.pendingDeleteForm;
   }
+}
+
+function cancelDelete() {
+  // Hide first confirmation overlay
+  const deleteOverlay = document.getElementById('deleteConfirmationOverlay');
+  deleteOverlay.style.display = 'none';
+  
+  // Clear pending delete data
+  delete window.pendingDeleteForm;
+}
+
+function cancelFinalDelete() {
+  // Hide final warning overlay
+  const finalWarningOverlay = document.getElementById('finalDeleteWarningOverlay');
+  finalWarningOverlay.style.display = 'none';
+  
+  // Clear pending delete data
+  delete window.pendingDeleteForm;
 }
 
 // Make form actions globally accessible for onclick handlers
@@ -471,6 +779,10 @@ window.enterData = enterData;
 window.viewForm = viewForm;
 window.editForm = editForm;
 window.deleteForm = deleteForm;
+window.confirmDelete = confirmDelete;
+window.confirmFinalDelete = confirmFinalDelete;
+window.cancelDelete = cancelDelete;
+window.cancelFinalDelete = cancelFinalDelete;
 
 // Add a placeholder for the download function
 window.downloadFormExcel = async function(traceability_code, lot_letter, buttonElement) {
