@@ -2701,14 +2701,24 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }, 500); // 500ms debounce for inspector updates
             }
             
-            // Update statistics table when roll data changes
-            if (e.target && e.target.dataset && ['roll_weight', 'roll_width_mm', 'film_weight_gsm', 'roll_dia', 'thickness'].includes(e.target.dataset.field)) {
+            // Update statistics table when Accept/Reject/KIV/Rework status changes
+            if (e.target && e.target.dataset && ['accept_reject'].includes(e.target.dataset.field)) {
                 if (defectUpdateTimeout) {
                     clearTimeout(defectUpdateTimeout);
                 }
                 defectUpdateTimeout = setTimeout(() => {
                     renderStatisticsTable();
-                }, 500);
+                }, 100); // Faster response for Accept/Reject changes
+            }
+            
+            // Also update when Accept/Reject dropdown is cleared or reset
+            if (e.target && e.target.tagName === 'SELECT' && e.target.closest('td[data-field="accept_reject"]')) {
+                if (defectUpdateTimeout) {
+                    clearTimeout(defectUpdateTimeout);
+                }
+                defectUpdateTimeout = setTimeout(() => {
+                    renderStatisticsTable();
+                }, 100);
             }
         });
         
@@ -2733,14 +2743,24 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }, 500);
             }
             
-            // Update statistics table when roll data changes
-            if (e.target && e.target.dataset && ['roll_weight', 'roll_width_mm', 'film_weight_gsm', 'roll_dia', 'thickness'].includes(e.target.dataset.field)) {
+            // Update statistics table when Accept/Reject/KIV/Rework status changes
+            if (e.target && e.target.dataset && ['accept_reject'].includes(e.target.dataset.field)) {
                 if (defectUpdateTimeout) {
                     clearTimeout(defectUpdateTimeout);
                 }
                 defectUpdateTimeout = setTimeout(() => {
                     renderStatisticsTable();
-                }, 500);
+                }, 100); // Faster response for Accept/Reject changes
+            }
+            
+            // Also update when Accept/Reject dropdown is cleared or reset
+            if (e.target && e.target.tagName === 'SELECT' && e.target.closest('td[data-field="accept_reject"]')) {
+                if (defectUpdateTimeout) {
+                    clearTimeout(defectUpdateTimeout);
+                }
+                defectUpdateTimeout = setTimeout(() => {
+                    renderStatisticsTable();
+                }, 100);
             }
         });
     }
@@ -3158,12 +3178,24 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const rollData = {};
                 row.querySelectorAll('td[data-field]').forEach(cell => {
                     const field = cell.dataset.field;
-                    if (field) rollData[field] = cell.textContent.trim();
+                    if (field) {
+                        // Check if it's a dropdown (select element)
+                        const select = cell.querySelector('select');
+                        if (select) {
+                            rollData[field] = select.value.trim();
+                        } else {
+                            rollData[field] = cell.textContent.trim();
+                        }
+                    }
                 });
                 
-                // Only include rolls with valid data
-                if (rollData.roll_weight || rollData.roll_width_mm || rollData.film_weight_gsm) {
-                    allRolls.push(rollData);
+                // Only include rolls that have Accept/Reject/KIV/Rework status selected
+                const acceptRejectStatus = rollData.accept_reject;
+                if (acceptRejectStatus && ['Accept', 'Reject', 'Rework', 'KIV'].includes(acceptRejectStatus)) {
+                    // Only include rolls with valid data and selected status
+                    if (rollData.roll_weight || rollData.roll_width_mm || rollData.film_weight_gsm || rollData.roll_dia || rollData.thickness) {
+                        allRolls.push(rollData);
+                    }
                 }
             });
         });
