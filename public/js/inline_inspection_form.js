@@ -89,7 +89,104 @@ window.addEventListener('DOMContentLoaded', async function() {
       });
     }
   });
+  
+  // Filter functionality
+  setupFilterHandlers();
 });
+
+// ===== FILTER FUNCTIONALITY =====
+
+let allForms = []; // Store all forms for filtering
+let filteredForms = []; // Store filtered forms
+
+function setupFilterHandlers() {
+  const applyFilterBtn = document.getElementById('applyFilter');
+  const clearFilterBtn = document.getElementById('clearFilter');
+  
+  if (applyFilterBtn) {
+    applyFilterBtn.addEventListener('click', applyFilters);
+  }
+  
+  if (clearFilterBtn) {
+    clearFilterBtn.addEventListener('click', clearFilters);
+  }
+}
+
+async function applyFilters() {
+  const fromDate = document.getElementById('filterFromDate').value;
+  const toDate = document.getElementById('filterToDate').value;
+  const product = document.getElementById('filterProduct').value.toLowerCase();
+  const machine = document.getElementById('filterMachine').value.toLowerCase();
+  const shift1 = document.getElementById('filterShift1').checked;
+  const shift2 = document.getElementById('filterShift2').checked;
+  const shift3 = document.getElementById('filterShift3').checked;
+  
+  // Get selected shifts
+  const selectedShifts = [];
+  if (shift1) selectedShifts.push(1);
+  if (shift2) selectedShifts.push(2);
+  if (shift3) selectedShifts.push(3);
+  
+  // If no shifts selected, show all
+  const shiftsToFilter = selectedShifts.length > 0 ? selectedShifts : [1, 2, 3];
+  
+  // Filter the forms
+  filteredForms = allForms.filter(form => {
+    // Date filter
+    if (fromDate && toDate) {
+      const formDate = new Date(form.production_date);
+      const fromDateObj = new Date(fromDate);
+      const toDateObj = new Date(toDate);
+      if (formDate < fromDateObj || formDate > toDateObj) return false;
+    } else if (fromDate) {
+      const formDate = new Date(form.production_date);
+      const fromDateObj = new Date(fromDate);
+      if (formDate < fromDateObj) return false;
+    } else if (toDate) {
+      const formDate = new Date(form.production_date);
+      const toDateObj = new Date(toDate);
+      if (formDate > toDateObj) return false;
+    }
+    
+    // Product filter
+    if (product && form.prod_code) {
+      if (!form.prod_code.toLowerCase().includes(product)) return false;
+    }
+    
+    // Machine filter
+    if (machine && form.mc_no) {
+      if (!form.mc_no.toLowerCase().includes(machine)) return false;
+    }
+    
+    // Shift filter
+    if (!shiftsToFilter.includes(parseInt(form.shift))) return false;
+    
+    return true;
+  });
+  
+  // Update the table with filtered results
+  await updateFormsTable(filteredForms);
+  
+  // Show notification
+  showNotification(`Filtered to ${filteredForms.length} forms`, 'info');
+}
+
+function clearFilters() {
+  // Clear all filter inputs
+  document.getElementById('filterFromDate').value = '';
+  document.getElementById('filterToDate').value = '';
+  document.getElementById('filterProduct').value = '';
+  document.getElementById('filterMachine').value = '';
+  document.getElementById('filterShift1').checked = false;
+  document.getElementById('filterShift2').checked = false;
+  document.getElementById('filterShift3').checked = false;
+  
+  // Reset to show all forms
+  filteredForms = [...allForms];
+  updateFormsTable(filteredForms);
+  
+  showNotification('Filters cleared', 'info');
+}
 
 // ===== STEP 1: FORM CREATION AND SAVING =====
 
@@ -404,6 +501,8 @@ async function loadFormsTable() {
 
     // Only show forms with a non-null and non-empty customer value
     const validForms = data.filter(form => form.customer !== null && form.customer !== '');
+    allForms = validForms; // Store all forms for filtering
+    filteredForms = validForms; // Initialize filtered forms with all valid forms
     await updateFormsTable(validForms);
   } catch (error) {
     console.error('Error:', error);
@@ -452,10 +551,15 @@ async function updateFormsTable(forms) {
   tbody.innerHTML = '';
 
   if (forms.length === 0) {
+    const isFiltered = filteredForms.length !== allForms.length;
+    const message = isFiltered 
+      ? 'No forms match the current filter criteria. Try adjusting your filters.'
+      : 'No forms created yet. Click "Create Film Inspection Form" to get started.';
+    
     tbody.innerHTML = `
       <tr>
         <td colspan="12" class="py-4 text-center text-gray-500">
-          No forms created yet. Click "Create Film Inspection Form" to get started.
+          ${message}
         </td>
       </tr>
     `;
