@@ -3219,7 +3219,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         let html = `
             <thead>
                 <tr style="height: 30px;">
-                    <th colspan="4" style="background-color: #f3f4f6; font-weight: bold; border: 1px solid #9ca3af;">Roll Statistics</th>
+                    <th colspan="4" style="background-color: #f3f4f6; font-weight: bold; border: 1px solid #9ca3af;">Statistics</th>
                 </tr>
                 <tr style="height: 25px;">
                     <th style="width: 80px; border: 1px solid #9ca3af;">Parameter</th>
