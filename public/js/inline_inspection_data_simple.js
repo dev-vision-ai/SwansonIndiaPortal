@@ -2038,43 +2038,31 @@ document.addEventListener('DOMContentLoaded', async function() {
         deleteTableButton.textContent = 'Delete Table';
         deleteTableButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm ml-2';
         deleteTableButton.style.marginBottom = '8px';
-        deleteTableButton.onclick = async function() {
-            if (confirm('Are you sure you want to delete this table? This action cannot be undone.')) {
-                // Delete from Supabase using formId
-                const formId = table.dataset.formId;
-                if (formId) {
-                    const { error } = await supabase
-                        .from('inline_inspection_form_master')
-                        .delete()
-                        .eq('form_id', formId);
-                    if (error) {
-                        alert('Error deleting table from Supabase: ' + error.message);
-                        return;
-                    }
-                }
-                
-                // Remove the table and its associated elements from UI
-                table.remove();
-                
-                // Remove the Fill O button, Clear O button, and Delete Table button
-                fillOButton.remove();
-                clearOButton.remove();
-                deleteTableButton.remove();
-                
-                // Remove the separator if it exists
-                const separator = tablesContainer.querySelector('div[style*="dotted"]');
-                if (separator) {
-                    separator.remove();
-                }
-                
-                // Update table spacing
-                updateTableSpacing();
-                
-                // Update summary table
-                updateSummaryTable();
-                
-                alert('Table deleted successfully!');
+        deleteTableButton.onclick = function() {
+            // Store the table reference for the overlay
+            window.currentDeleteTable = table;
+            window.currentDeleteTableButton = deleteTableButton;
+            window.currentFillOButton = fillOButton;
+            window.currentClearOButton = clearOButton;
+            
+            // Show the custom overlay
+            const overlay = document.getElementById('deleteTableConfirmationOverlay');
+            const title = document.getElementById('deleteTableConfirmationTitle');
+            const message = document.getElementById('deleteTableConfirmationMessage');
+            
+            // Check if this is the main table (first table)
+            const tables = tablesContainer.querySelectorAll('table');
+            const isMainTable = tables.length > 0 && table === tables[0];
+            
+            if (isMainTable) {
+                title.textContent = 'Confirm Main Table Clear';
+                message.textContent = 'Are you sure you want to clear all rows from the main table? This action cannot be undone.';
+            } else {
+                title.textContent = 'Confirm Table Deletion';
+                message.textContent = 'Are you sure you want to delete this table? This action cannot be undone.';
             }
+            
+            overlay.classList.remove('hidden');
         };
         tablesContainer.appendChild(deleteTableButton);
         const table = document.createElement('table');
@@ -2753,5 +2741,143 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Ensure tablesContainer has position: relative in CSS
     if (tablesContainer) {
         tablesContainer.style.position = 'relative';
+    }
+
+    // Add event listeners for delete table overlay
+    const cancelDeleteTableBtn = document.getElementById('cancelDeleteTableBtn');
+    const confirmDeleteTableBtn = document.getElementById('confirmDeleteTableBtn');
+    
+    // Function to show success message overlay
+    function showSuccessMessage(title, message) {
+        const overlay = document.getElementById('successMessageOverlay');
+        const titleElement = document.getElementById('successMessageTitle');
+        const messageElement = document.getElementById('successMessageText');
+        
+        titleElement.textContent = title;
+        messageElement.textContent = message;
+        overlay.classList.remove('hidden');
+    }
+    
+    // Add event listener for success message close button
+    const closeSuccessMessageBtn = document.getElementById('closeSuccessMessageBtn');
+    if (closeSuccessMessageBtn) {
+        closeSuccessMessageBtn.addEventListener('click', function() {
+            const overlay = document.getElementById('successMessageOverlay');
+            overlay.classList.add('hidden');
+        });
+    }
+    
+    if (cancelDeleteTableBtn) {
+        cancelDeleteTableBtn.addEventListener('click', function() {
+            const overlay = document.getElementById('deleteTableConfirmationOverlay');
+            overlay.classList.add('hidden');
+        });
+    }
+    
+    if (confirmDeleteTableBtn) {
+        confirmDeleteTableBtn.addEventListener('click', async function() {
+            const table = window.currentDeleteTable;
+            const deleteTableButton = window.currentDeleteTableButton;
+            const fillOButton = window.currentFillOButton;
+            const clearOButton = window.currentClearOButton;
+            
+            if (!table) return;
+            
+            // Check if this is the main table (first table)
+            const tables = tablesContainer.querySelectorAll('table');
+            const isMainTable = tables.length > 0 && table === tables[0];
+            
+            if (isMainTable) {
+                // For main table, only clear the rows
+                const tbody = table.querySelector('tbody');
+                if (tbody) {
+                    // Clear all rows completely (like newly added table)
+                    tbody.innerHTML = '';
+                    
+                    // Clear all Supabase data to zero (like newly added table)
+                    const formId = table.dataset.formId;
+                    if (formId) {
+                        const { error } = await supabase
+                            .from('inline_inspection_form_master')
+                            .update({
+                                inspection_data: {
+                                    rolls: [],
+                                    summary: {
+                                        total_rolls: 0,
+                                        accepted_rolls: 0,
+                                        rejected_rolls: 0,
+                                        accepted_weight: 0,
+                                        rejected_weight: 0,
+                                        kiv_rolls: 0,
+                                        kiv_weight: 0,
+                                        rework_rolls: 0,
+                                        rework_weight: 0
+                                    }
+                                },
+                                total_rolls: 0,
+                                accepted_rolls: 0,
+                                rejected_rolls: 0,
+                                accepted_weight: 0,
+                                rejected_weight: 0,
+                                kiv_rolls: 0,
+                                kiv_weight: 0,
+                                rework_rolls: 0,
+                                rework_weight: 0,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('form_id', formId);
+                        
+                        if (error) {
+                            console.error('Error clearing Supabase data:', error);
+                        }
+                    }
+                    
+                    // Update summary table
+                    updateSummaryTable();
+                    
+                    showSuccessMessage('Success!', 'Main table rows cleared successfully!');
+                }
+            } else {
+                // For other tables, delete the entire table
+                // Delete from Supabase using formId
+                const formId = table.dataset.formId;
+                if (formId) {
+                    const { error } = await supabase
+                        .from('inline_inspection_form_master')
+                        .delete()
+                        .eq('form_id', formId);
+                    if (error) {
+                        alert('Error deleting table from Supabase: ' + error.message);
+                        return;
+                    }
+                }
+                
+                // Remove the table and its associated elements from UI
+                table.remove();
+                
+                // Remove the Fill O button, Clear O button, and Delete Table button
+                if (fillOButton) fillOButton.remove();
+                if (clearOButton) clearOButton.remove();
+                if (deleteTableButton) deleteTableButton.remove();
+                
+                // Remove the separator if it exists
+                const separator = tablesContainer.querySelector('div[style*="dotted"]');
+                if (separator) {
+                    separator.remove();
+                }
+                
+                // Update table spacing
+                updateTableSpacing();
+                
+                // Update summary table
+                updateSummaryTable();
+                
+                showSuccessMessage('Success!', 'Table deleted successfully!');
+            }
+            
+            // Hide the overlay
+            const overlay = document.getElementById('deleteTableConfirmationOverlay');
+            overlay.classList.add('hidden');
+        });
     }
 }); 

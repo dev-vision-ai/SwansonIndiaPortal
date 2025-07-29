@@ -798,7 +798,7 @@ window.downloadFormExcel = async function(traceability_code, lot_letter, buttonE
   try {
 
     // Show progress indicator
-    showProgressIndicator('Connecting to server...');
+    showProgressIndicator('Fetching data...');
 
     // Call the Node.js export server with specific form parameters
     // Use localhost for IDE testing, Render URL for production
@@ -810,10 +810,11 @@ window.downloadFormExcel = async function(traceability_code, lot_letter, buttonE
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 60000); // 1 minute timeout
 
+    // Start countdown after showing "Fetching data..."
+    startCountdown();
+    
     // Wait for countdown to complete (5 seconds) before making the request
     await new Promise(resolve => setTimeout(resolve, 5000));
-
-    updateProgressIndicator('Connecting to server...');
 
     const response = await fetch(exportUrl, {
       method: 'GET',
@@ -829,16 +830,6 @@ window.downloadFormExcel = async function(traceability_code, lot_letter, buttonE
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-
-    updateProgressIndicator('Generating Excel file...');
-    
-    setTimeout(() => {
-      updateProgressIndicator('Applying formatting and protection...');
-    }, 2000);
-    
-    setTimeout(() => {
-      updateProgressIndicator('Finalizing document...');
-    }, 5000);
 
     const blob = await response.blob();
     
@@ -926,6 +917,7 @@ function showProgressIndicator(message) {
   }
   progressDiv.innerHTML = `
     <div style="margin-bottom: 20px;">
+      <div style="font-size: 18px; font-weight: 600; margin-bottom: 15px; color: #002E7D;">Downloading...</div>
       <div class="spinner" style="
         border: 3px solid rgba(0,46,125,0.3);
         border-top: 3px solid #002E7D;
@@ -935,28 +927,22 @@ function showProgressIndicator(message) {
         animation: spin 1s linear infinite;
         margin: 0 auto 20px;
       "></div>
-      <div style="font-size: 18px; font-weight: 600; margin-bottom: 15px; color: #002E7D;">Downloading...</div>
       <div id="countdown-message" style="font-size: 14px; opacity: 0.8; margin-bottom: 20px; color: #666;">${message}</div>
-      <div style="background: rgba(0,46,125,0.1); height: 4px; border-radius: 2px; overflow: hidden;">
-        <div class="progress-bar" style="
-          background: linear-gradient(90deg, #002E7D, #1e40af);
-          height: 100%;
-          width: 0%;
-          transition: width 0.3s ease;
-          animation: progress 3s ease-in-out infinite;
-        "></div>
-      </div>
-      <div class="zebra-line" style="
-        height: 3px;
+      <div class="diagonal-progress" style="
+        height: 6px;
         background: repeating-linear-gradient(
-          90deg,
+          45deg,
           #002E7D 0px,
-          #002E7D 10px,
-          transparent 10px,
-          transparent 20px
+          #002E7D 8px,
+          #1e40af 8px,
+          #1e40af 16px,
+          transparent 16px,
+          transparent 24px
         );
-        margin-top: 15px;
-        animation: zebraMove 2s linear infinite;
+        margin-top: 35px;
+        border-radius: 3px;
+        border: 1px solid #002E7D;
+        animation: diagonalMove 1.5s linear infinite;
       "></div>
     </div>
     <style>
@@ -964,20 +950,15 @@ function showProgressIndicator(message) {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
       }
-      @keyframes progress {
-        0% { width: 0%; }
-        50% { width: 70%; }
-        100% { width: 100%; }
-      }
-      @keyframes zebraMove {
+      @keyframes diagonalMove {
         0% { background-position: 0px 0px; }
         100% { background-position: 40px 0px; }
       }
     </style>
   `;
   
-  // Start countdown if message is "Connecting to server..."
-  if (message === 'Connecting to server...') {
+  // Start countdown if message is "Fetching data..."
+  if (message === 'Fetching data...') {
     startCountdown();
   }
 }
@@ -993,7 +974,7 @@ function startCountdown() {
       count--;
     } else {
       clearInterval(countdownInterval);
-      countdownElement.textContent = 'Connecting to server...';
+      countdownElement.textContent = 'Starting download...';
     }
   }, 1000);
 }
