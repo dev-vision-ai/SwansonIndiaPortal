@@ -176,6 +176,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                         updateRowCount();
                         applyColorCodingToTable();
                         updateSummaryTable();
+                        // Ensure first table has lot number "01"
+                        ensureFirstTableHasLotNumber();
                         // Ensure 'Inspected By' is displayed in the first row after reload
                         if (formData.inspection_data && formData.inspection_data.inspected_by) {
                             const firstTable = tablesContainer.querySelector('table');
@@ -306,7 +308,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 select.appendChild(option);
             });
             
-            select.addEventListener('change', async function(e) {
+            select.addEventListener('change', function(e) {
                 if (viewMode) {
                     console.log('Select change blocked - in view mode');
                     e.preventDefault();
@@ -324,27 +326,18 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const row = select.closest('tr');
                 
                 // Check if CT checkbox is checked for this table
-                // Get CT state from the form data stored in the database
-                // Use the main form's CT state for all tables
-                const isCTChecked = await getCTStateFromMainForm();
-                
-                console.log('CT Checkbox found: true, CT Checked:', isCTChecked);
+                const ctCheckbox = table.querySelector('input[name="ct"]');
+                const isCTChecked = ctCheckbox ? ctCheckbox.checked : false;
                 
                 if (selectedValue === 'Accept') {
                     // For Accept: Disable X/O cells and Defect Name (client can't edit when Accept)
                     const cells = row.querySelectorAll('td[data-field]');
                     cells.forEach(cell => {
                         const fieldName = cell.dataset.field;
-                        // Always keep Glossy enabled, CT enabled only if checkbox checked
-                        // Disable other X/O fields and Defect Name (not Accept/Reject, Remarks, Inspected By)
-                        if (fieldName && !['accept_reject', 'remarks', 'inspected_by', 'glossy'].includes(fieldName)) {
-                            // Special handling for CT column
-                            if (fieldName === 'ct_appearance') {
-                                cell.contentEditable = isCTChecked; // Only enable if CT checkbox is checked
-                                console.log('CT column cell:', fieldName, 'CT Checked:', isCTChecked, 'Enabled:', cell.contentEditable);
-                            } else {
-                                cell.contentEditable = false;
-                            }
+                        // Always keep Glossy and CT enabled at all times
+                        // Disable other X/O fields and Defect Name (not Accept/Reject, Remarks, Inspected By, Glossy, CT)
+                        if (fieldName && !['accept_reject', 'remarks', 'inspected_by', 'glossy', 'ct_appearance'].includes(fieldName)) {
+                            cell.contentEditable = false;
                         }
                     });
                 } else if (selectedValue === 'Reject' || selectedValue === 'Rework') {
@@ -352,17 +345,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const cells = row.querySelectorAll('td[data-field]');
                     cells.forEach(cell => {
                         const fieldName = cell.dataset.field;
-                        // Enable Defect Name and Remarks, disable X/O fields
+                        // Enable Defect Name and Remarks, disable X/O fields except Glossy and CT
                         if (fieldName === 'defect_name' || fieldName === 'remarks') {
                             cell.contentEditable = true;
-                        } else if (fieldName && !['accept_reject', 'inspected_by', 'glossy'].includes(fieldName)) {
-                            // Special handling for CT column
-                            if (fieldName === 'ct_appearance') {
-                                cell.contentEditable = isCTChecked; // Only enable if CT checkbox is checked
-                                console.log('CT column cell:', fieldName, 'CT Checked:', isCTChecked, 'Enabled:', cell.contentEditable);
-                            } else {
-                                cell.contentEditable = false;
-                            }
+                        } else if (fieldName && !['accept_reject', 'inspected_by', 'glossy', 'ct_appearance'].includes(fieldName)) {
+                            cell.contentEditable = false;
                         }
                     });
                 } else {
@@ -372,13 +359,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         const fieldName = cell.dataset.field;
                         // Re-enable X/O fields and Defect Name
                         if (fieldName && !['accept_reject', 'remarks', 'inspected_by'].includes(fieldName)) {
-                            // Special handling for CT column
-                            if (fieldName === 'ct_appearance') {
-                                cell.contentEditable = isCTChecked; // Only enable if CT checkbox is checked
-                                console.log('CT column cell:', fieldName, 'CT Checked:', isCTChecked, 'Enabled:', cell.contentEditable);
-                            } else {
-                                cell.contentEditable = true;
-                            }
+                            cell.contentEditable = true;
                         }
                     });
                 }
@@ -715,12 +696,29 @@ document.addEventListener('DOMContentLoaded', async function() {
         const tbody = firstTable.querySelector('tbody');
         if (!tbody) return;
         if (!appendOnly) clearRows(tbody);
+        
+        // Determine lot number for this table
+        const tables = tablesContainer.querySelectorAll('table');
+        let lotNumber = '01'; // Default for first table
+        
+        // If this is the first table and it's empty, always use "01"
+        if (tables.length === 1 && tbody.rows.length === 0) {
+            lotNumber = '01';
+        } else if (tables.length > 1) {
+            // This is not the first table, get the next lot number
+            lotNumber = getNextLotNumber();
+        }
+        
         for (let i = 0; i < n; i++) {
             const tr = document.createElement('tr');
             const isFirstRow = (tbody.rows.length === 0); // First row in the table
             for (let col = 0; col < totalColumns; col++) {
                 const td = createCell(true, 1, col === dropdownIndex, col, isFirstRow);
                 if (col === 3) td.textContent = (tbody.rows.length + 1).toString();
+                // Set lot number only for the first row of the table
+                if (col === 2 && isFirstRow) {
+                    td.textContent = lotNumber;
+                }
                 tr.appendChild(td);
             }
             tbody.appendChild(tr);
@@ -738,6 +736,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!tbody) return;
         while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
         updateRowCount(tbody);
+        // Update Add Next Lot button state after clearing rows
+        updateAddNextLotButtonState();
     }
     
     // ===== INSPECTED BY ROW FUNCTION =====
@@ -1071,6 +1071,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         const n = parseInt(numRowsInput.value, 10) || 1;
         addRows(n);
         afterTableStructureChange();
+        // Ensure first table has lot number "01"
+        ensureFirstTableHasLotNumber();
+        // Update Add Next Lot button state
+        updateAddNextLotButtonState();
         // Disable Add Rows button after adding rows
         addRowsBtn.disabled = true;
         // Only save if we're not loading data and have a traceability_code
@@ -1350,17 +1354,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateFastEntryTabOrder();
     addLockCheckboxListeners();
     
-    // Add CT checkbox event listener
-    const ctCheckbox = document.querySelector('input[name="ct"]');
-    if (ctCheckbox) {
-        ctCheckbox.addEventListener('change', async function() {
-            // Update CT column state in all tables when checkbox is toggled
-            const tables = tablesContainer.querySelectorAll('table');
-            for (const table of tables) {
-                await applyAcceptRejectRowDisable(table);
-            }
-        });
-    }
+    // Update Add Next Lot button state on page load
+    updateAddNextLotButtonState();
     
     // Add tab navigation listener
     tablesContainer.addEventListener('keydown', handleTabNavigation);
@@ -1456,6 +1451,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     addNewTableBtn.style.padding = addRowsBtnStyles.padding;
     addNewTableBtn.style.borderRadius = addRowsBtnStyles.borderRadius;
     addNewTableBtn.style.margin = '10px 0 0 0'; // Keep margin for separation
+    
+    // Initially disable the button
+    addNewTableBtn.disabled = true;
+    addNewTableBtn.style.opacity = '0.5';
+    addNewTableBtn.style.cursor = 'not-allowed';
 
     // Initially append the button after the first table
     tablesContainer.appendChild(addNewTableBtn);
@@ -1560,14 +1560,49 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Add this function near the top of the file or before the Add Next Lot handler
-    function buildEmptyRoll(position) {
+    function getNextLotNumber() {
+        const tables = tablesContainer.querySelectorAll('table');
+        if (tables.length === 0) {
+            return '01'; // First table gets 01
+        }
+        
+        // Find the highest lot number from existing tables
+        let maxLotNumber = 0;
+        tables.forEach(table => {
+            const tbody = table.querySelector('tbody');
+            if (tbody) {
+                const firstRow = tbody.querySelector('tr');
+                if (firstRow) {
+                    const cells = firstRow.querySelectorAll('td');
+                    if (cells.length > 2) { // lot_no is at index 2
+                        const lotNoCell = cells[2];
+                        const lotNo = parseInt(lotNoCell.textContent) || 0;
+                        if (lotNo > maxLotNumber) {
+                            maxLotNumber = lotNo;
+                        }
+                    }
+                }
+            }
+        });
+        
+        // If no lot numbers found, start with 01
+        if (maxLotNumber === 0) {
+            return '01';
+        }
+        
+        // Return next lot number as 2-digit string
+        return (maxLotNumber + 1).toString().padStart(2, '0');
+    }
+
+    // Add this function near the top of the file or before the Add Next Lot handler
+    function buildEmptyRoll(position, lotNumber = '01') {
         return {
             arm: "",
             prs: "",
             hour: "",
             odour: "",
             glossy: "",
-            lot_no: "",
+            lot_no: lotNumber,
             minute: "",
             others: "",
             remarks: "",
@@ -1606,12 +1641,18 @@ document.addEventListener('DOMContentLoaded', async function() {
             const tbody = mainTable.querySelector('tbody');
             if (tbody) rowCount = tbody.rows.length;
         }
+        
+        // Get the next lot number
+        const nextLotNumber = getNextLotNumber();
+        
         const rolls = [];
         for (let i = 1; i <= rowCount; i++) {
-            rolls.push(buildEmptyRoll(i));
+            rolls.push(buildEmptyRoll(i, nextLotNumber));
         }
+        
         // Generate new form_id
         const form_id = crypto.randomUUID();
+        
         // Insert new row in Supabase
         const { error } = await supabase
             .from('inline_inspection_form_master')
@@ -1628,9 +1669,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             alert('Error creating new lot: ' + error.message);
             return;
         }
+        
         // Reload all lots (to show the new table)
         await loadAllLots();
         addSaveListeners(); // <-- Ensure new table cells are hooked up for saving
+        // Update Add Next Lot button state after creating new table
+        updateAddNextLotButtonState();
+        
         // Scroll to the new lot's table
         setTimeout(() => {
             const tables = tablesContainer.querySelectorAll('table');
@@ -2145,7 +2190,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                         28: 'others', 29: 'accept_reject', 30: 'defect_name', 31: 'remarks', 32: 'inspected_by'
                     };
                     const fieldName = fieldMap[col];
-                    const value = rolls[i][fieldName] || '';
+                    let value = rolls[i][fieldName] || '';
+                    
+                    // Only show lot number in the first row
+                    if (col === 2 && !isFirstRow) {
+                        value = ''; // Clear lot number for non-first rows
+                    }
+                    
                     if (td.querySelector('select')) {
                         td.querySelector('select').value = value;
                         const event = new Event('change');
@@ -2180,8 +2231,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         tablesContainer.appendChild(table);
         
         // Apply Accept/Reject row disable state after table is loaded
-        setTimeout(async () => {
-            await applyAcceptRejectRowDisable(table);
+        setTimeout(() => {
+            applyAcceptRejectRowDisable(table);
         }, 300);
         
         // Update IPQC table after this table is loaded
@@ -2193,51 +2244,22 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Apply Accept/Reject row disable state to a table
-    async function applyAcceptRejectRowDisable(table) {
+    function applyAcceptRejectRowDisable(table) {
         const rows = table.querySelectorAll('tbody tr');
-        rows.forEach(async (row) => {
+        rows.forEach(row => {
             const acceptRejectSelect = row.querySelector('select');
             if (acceptRejectSelect) {
                 const selectedValue = acceptRejectSelect.value;
                 const cells = row.querySelectorAll('td[data-field]');
                 
-                // Check if CT checkbox is checked for this table
-                // Get CT state from the form data stored in the database
-                const formId = table.dataset.formId;
-                let isCTChecked = false;
-                
-                if (formId) {
-                    // Try to get CT state from the form data
-                    try {
-                        const { data: formData, error } = await supabase
-                            .from('inline_inspection_form_master')
-                            .select('ct')
-                            .eq('form_id', formId)
-                            .single();
-                        
-                        if (!error && formData) {
-                            isCTChecked = formData.ct === true;
-                        }
-                    } catch (err) {
-                        console.log('Could not fetch CT state from database:', err);
-                    }
-                }
-                
-                console.log('CT Checkbox found:', !!formId, 'CT Checked:', isCTChecked);
-                
                 if (selectedValue === 'Accept' || selectedValue === 'Reject' || selectedValue === 'Rework') {
-                    // Disable all X/O input cells in this row
+                    // Disable all X/O input cells in this row except Glossy and CT
                     cells.forEach(cell => {
                         const fieldName = cell.dataset.field;
-                        // Always keep Glossy enabled, CT enabled only if checkbox checked
-                        // Only disable X/O fields (not Accept/Reject, Defect Name, Remarks, Inspected By)
-                        if (fieldName && !['accept_reject', 'defect_name', 'remarks', 'inspected_by', 'glossy'].includes(fieldName)) {
-                            // Special handling for CT column
-                            if (fieldName === 'ct_appearance') {
-                                cell.contentEditable = isCTChecked; // Only enable if CT checkbox is checked
-                            } else {
-                                cell.contentEditable = false;
-                            }
+                        // Always keep Glossy and CT enabled at all times
+                        // Only disable X/O fields (not Accept/Reject, Defect Name, Remarks, Inspected By, Glossy, CT)
+                        if (fieldName && !['accept_reject', 'defect_name', 'remarks', 'inspected_by', 'glossy', 'ct_appearance'].includes(fieldName)) {
+                            cell.contentEditable = false;
                         }
                     });
                 } else {
@@ -2246,12 +2268,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         const fieldName = cell.dataset.field;
                         // Only re-enable X/O fields
                         if (fieldName && !['accept_reject', 'defect_name', 'remarks', 'inspected_by'].includes(fieldName)) {
-                            // Special handling for CT column
-                            if (fieldName === 'ct_appearance') {
-                                cell.contentEditable = isCTChecked; // Only enable if CT checkbox is checked
-                            } else {
-                                cell.contentEditable = true;
-                            }
+                            cell.contentEditable = true;
                         }
                     });
                 }
@@ -2445,6 +2462,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     // On initial load
     await loadAllLots();
     addSaveListeners(); // <-- Ensure new table cells are hooked up for saving
+    // Update Add Next Lot button state after loading all lots
+    updateAddNextLotButtonState();
 
     // ===== MULTI-LOT SUPPORT END =====
 
@@ -2846,6 +2865,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         closeSuccessMessageBtn.addEventListener('click', function() {
             const overlay = document.getElementById('successMessageOverlay');
             overlay.classList.add('hidden');
+            // Auto-refresh the page after clicking OK on success message
+            window.location.reload();
         });
     }
     
@@ -2918,6 +2939,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                     updateSummaryTable();
                     
                     showSuccessMessage('Success!', 'Main table rows cleared successfully!');
+                    
+                    // Page will refresh when user clicks OK on success message
                 }
             } else {
                 // For other tables, delete the entire table
@@ -2948,13 +2971,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                     separator.remove();
                 }
                 
-                // Update table spacing
-                updateTableSpacing();
-                
-                // Update summary table
-                updateSummaryTable();
-                
                 showSuccessMessage('Success!', 'Table deleted successfully!');
+                
+                // Page will refresh when user clicks OK on success message
             }
             
             // Hide the overlay
@@ -2963,29 +2982,74 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Helper function to get CT state from the main form
-    async function getCTStateFromMainForm() {
-        try {
-            // Try to get CT state from URL parameters or stored form data
-            const urlParams = new URLSearchParams(window.location.search);
-            const traceabilityCode = urlParams.get('traceability_code');
-            const lotLetter = urlParams.get('lot_letter');
+    // Add this function to ensure first table gets lot number "01"
+    function ensureFirstTableHasLotNumber() {
+        const tables = tablesContainer.querySelectorAll('table');
+        if (tables.length === 0) return;
+        
+        const firstTable = tables[0];
+        const tbody = firstTable.querySelector('tbody');
+        if (!tbody || tbody.rows.length === 0) return;
+        
+        // Check if the first table has a lot number in the first row
+        const firstRow = tbody.querySelector('tr');
+        if (!firstRow) return;
+        
+        const cells = firstRow.querySelectorAll('td');
+        if (cells.length > 2) {
+            const lotNoCell = cells[2];
+            const currentLotNo = lotNoCell.textContent.trim();
             
-            if (traceabilityCode && lotLetter) {
-                const { data: formData, error } = await supabase
-                    .from('inline_inspection_form_master')
-                    .select('ct')
-                    .eq('traceability_code', traceabilityCode)
-                    .eq('lot_letter', lotLetter)
-                    .single();
-                
-                if (!error && formData) {
-                    return formData.ct === true;
+            // If no lot number is set in first row, set it to "01"
+            if (!currentLotNo || currentLotNo === '') {
+                lotNoCell.textContent = '01';
+            }
+            
+            // Clear lot number from all other rows
+            const allRows = tbody.querySelectorAll('tr');
+            for (let i = 1; i < allRows.length; i++) {
+                const row = allRows[i];
+                const rowCells = row.querySelectorAll('td');
+                if (rowCells.length > 2) {
+                    rowCells[2].textContent = ''; // Clear lot number from non-first rows
                 }
             }
-        } catch (err) {
-            console.log('Could not fetch CT state from database:', err);
+            
+            // Trigger save to update the database
+            setTimeout(() => {
+                const tableRef = tbody.closest('table');
+                if (tableRef && tableRef.dataset && tableRef.dataset.formId) {
+                    saveLotToSupabase(tableRef);
+                }
+            }, 100);
         }
-        return false;
     }
+
+    // Add this function to enable/disable Add Next Lot button based on main table rows
+    function updateAddNextLotButtonState() {
+        const mainTable = tablesContainer.querySelector('table');
+        if (!mainTable) return;
+        
+        const tbody = mainTable.querySelector('tbody');
+        if (!tbody) return;
+        
+        const rowCount = tbody.rows.length;
+        
+        if (rowCount > 0) {
+            // Enable the button if main table has rows
+            addNewTableBtn.disabled = false;
+            addNewTableBtn.style.opacity = '1';
+            addNewTableBtn.style.cursor = 'pointer';
+        } else {
+            // Disable the button if main table is empty
+            addNewTableBtn.disabled = true;
+            addNewTableBtn.style.opacity = '0.5';
+            addNewTableBtn.style.cursor = 'not-allowed';
+        }
+    }
+
+    // Update Add Next Lot button state after data is loaded
+    setTimeout(() => {
+        updateAddNextLotButtonState();
+    }, 200);
 }); 
