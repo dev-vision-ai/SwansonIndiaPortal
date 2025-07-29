@@ -806,24 +806,14 @@ window.downloadFormExcel = async function(traceability_code, lot_letter, buttonE
     const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
     const exportUrl = `${backendUrl}/export?traceability_code=${encodeURIComponent(traceability_code)}&lot_letter=${encodeURIComponent(lot_letter)}`;
 
-    // Add timeout for slow connections (increased for cold starts)
+    // Add timeout for slow connections
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minutes timeout for cold starts
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 1 minute timeout
+
+    // Wait for countdown to complete (5 seconds) before making the request
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     updateProgressIndicator('Connecting to server...');
-    
-    // Show longer loading sequence for cold starts
-    setTimeout(() => {
-      updateProgressIndicator('Server is starting up...');
-    }, 3000);
-    
-    setTimeout(() => {
-      updateProgressIndicator('Fetching data from database...');
-    }, 8000);
-    
-    setTimeout(() => {
-      updateProgressIndicator('Processing Excel template...');
-    }, 15000);
 
     const response = await fetch(exportUrl, {
       method: 'GET',
@@ -945,8 +935,8 @@ function showProgressIndicator(message) {
         animation: spin 1s linear infinite;
         margin: 0 auto 20px;
       "></div>
-      <div style="font-size: 18px; font-weight: 600; margin-bottom: 15px; color: #002E7D;">Excel Generation in Progress</div>
-      <div style="font-size: 14px; opacity: 0.8; margin-bottom: 20px; color: #666;">${message}</div>
+      <div style="font-size: 18px; font-weight: 600; margin-bottom: 15px; color: #002E7D;">Downloading...</div>
+      <div id="countdown-message" style="font-size: 14px; opacity: 0.8; margin-bottom: 20px; color: #666;">${message}</div>
       <div style="background: rgba(0,46,125,0.1); height: 4px; border-radius: 2px; overflow: hidden;">
         <div class="progress-bar" style="
           background: linear-gradient(90deg, #002E7D, #1e40af);
@@ -956,6 +946,18 @@ function showProgressIndicator(message) {
           animation: progress 3s ease-in-out infinite;
         "></div>
       </div>
+      <div class="zebra-line" style="
+        height: 3px;
+        background: repeating-linear-gradient(
+          90deg,
+          #002E7D 0px,
+          #002E7D 10px,
+          transparent 10px,
+          transparent 20px
+        );
+        margin-top: 15px;
+        animation: zebraMove 2s linear infinite;
+      "></div>
     </div>
     <style>
       @keyframes spin {
@@ -967,8 +969,33 @@ function showProgressIndicator(message) {
         50% { width: 70%; }
         100% { width: 100%; }
       }
+      @keyframes zebraMove {
+        0% { background-position: 0px 0px; }
+        100% { background-position: 40px 0px; }
+      }
     </style>
   `;
+  
+  // Start countdown if message is "Connecting to server..."
+  if (message === 'Connecting to server...') {
+    startCountdown();
+  }
+}
+
+function startCountdown() {
+  const countdownElement = document.getElementById('countdown-message');
+  if (!countdownElement) return;
+  
+  let count = 5;
+  const countdownInterval = setInterval(() => {
+    if (count > 0) {
+      countdownElement.textContent = `${count}`;
+      count--;
+    } else {
+      clearInterval(countdownInterval);
+      countdownElement.textContent = 'Connecting to server...';
+    }
+  }, 1000);
 }
 
 function updateProgressIndicator(message) {
