@@ -325,26 +325,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 // Check if CT checkbox is checked for this table
                 // Get CT state from the form data stored in the database
-                let isCTChecked = false;
+                // Use the main form's CT state for all tables
+                const isCTChecked = await getCTStateFromMainForm();
                 
-                if (formId) {
-                    // Try to get CT state from the form data
-                    try {
-                        const { data: formData, error } = await supabase
-                            .from('inline_inspection_form_master')
-                            .select('ct')
-                            .eq('form_id', formId)
-                            .single();
-                        
-                        if (!error && formData) {
-                            isCTChecked = formData.ct === true;
-                        }
-                    } catch (err) {
-                        console.log('Could not fetch CT state from database:', err);
-                    }
-                }
-                
-                console.log('CT Checkbox found:', !!formId, 'CT Checked:', isCTChecked);
+                console.log('CT Checkbox found: true, CT Checked:', isCTChecked);
                 
                 if (selectedValue === 'Accept') {
                     // For Accept: Disable X/O cells and Defect Name (client can't edit when Accept)
@@ -1570,10 +1554,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         table.appendChild(tbody);
         // Ensure every table has a data-formId attribute
         if (!table.dataset.formId) {
-            // Get the formId from the main table (first table)
-            const mainTable = tablesContainer.querySelector('table');
-            const mainFormId = mainTable ? mainTable.dataset.formId : null;
-            table.dataset.formId = mainFormId || crypto.randomUUID();
+            table.dataset.formId = crypto.randomUUID();
         }
         return table;
     }
@@ -2213,8 +2194,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Apply Accept/Reject row disable state to a table
     async function applyAcceptRejectRowDisable(table) {
-        console.log('Applying Accept/Reject row disable to table:', table, 'formId:', table.dataset.formId);
-        
         const rows = table.querySelectorAll('tbody tr');
         rows.forEach(async (row) => {
             const acceptRejectSelect = row.querySelector('select');
@@ -2244,7 +2223,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     }
                 }
                 
-                console.log('Table formId:', formId, 'CT Checked:', isCTChecked);
+                console.log('CT Checkbox found:', !!formId, 'CT Checked:', isCTChecked);
                 
                 if (selectedValue === 'Accept' || selectedValue === 'Reject' || selectedValue === 'Rework') {
                     // Disable all X/O input cells in this row
@@ -2461,10 +2440,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 summaryTableContainer.insertBefore(separator, summaryTableContainer.children[1]);
             }
         }
-        // After all lots are loaded and tables are rendered, apply CT column logic
-        setTimeout(async () => {
-            await applyCTColumnLogicToAllTables();
-        }, 500);
     }
 
     // On initial load
@@ -2988,18 +2963,29 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Function to apply CT column logic to all tables
-    async function applyCTColumnLogicToAllTables() {
-        const tables = tablesContainer.querySelectorAll('table');
-        console.log('Applying CT column logic to all tables:', tables.length);
-        
-        for (const table of tables) {
-            await applyAcceptRejectRowDisable(table);
+    // Helper function to get CT state from the main form
+    async function getCTStateFromMainForm() {
+        try {
+            // Try to get CT state from URL parameters or stored form data
+            const urlParams = new URLSearchParams(window.location.search);
+            const traceabilityCode = urlParams.get('traceability_code');
+            const lotLetter = urlParams.get('lot_letter');
+            
+            if (traceabilityCode && lotLetter) {
+                const { data: formData, error } = await supabase
+                    .from('inline_inspection_form_master')
+                    .select('ct')
+                    .eq('traceability_code', traceabilityCode)
+                    .eq('lot_letter', lotLetter)
+                    .single();
+                
+                if (!error && formData) {
+                    return formData.ct === true;
+                }
+            }
+        } catch (err) {
+            console.log('Could not fetch CT state from database:', err);
         }
+        return false;
     }
-    
-    // Apply CT column logic to all tables on page load
-    setTimeout(async () => {
-        await applyCTColumnLogicToAllTables();
-    }, 1000);
 }); 
