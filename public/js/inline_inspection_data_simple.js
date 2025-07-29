@@ -283,8 +283,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Special handling for "Inspected By" column (32) - only first row should be editable
         if (colIndex === 32 && !isFirstRow) {
             contentEditable = false;
-            td.style.backgroundColor = '#f3f4f6'; // Light gray background for read-only
-            td.style.color = '#6b7280'; // Gray text for read-only
+            // No gray styling - keep it looking normal but uneditable
         }
         
         if (colIndex !== null && fixedWidthIndices[colIndex]) {
