@@ -116,7 +116,7 @@ function setupEventListeners() {
 
     const logoutButton = document.getElementById('logoutButton'); // Get the button by its ID
 
-    // --- Updated Logout Button Listener with Confirmation --- 
+    // --- Updated Logout Button Listener with Confirmation and Back Button Prevention --- 
     if (logoutButton) {
         logoutButton.addEventListener('click', async (e) => { // Added async and event object 'e'
             e.preventDefault(); // Prevent default button behavior if any
@@ -129,6 +129,31 @@ function setupEventListeners() {
                         console.error('Error logging out:', error);
                         alert('Logout failed. Please try again.');
                     } else {
+                        // Remove session from both storages
+                        localStorage.removeItem('supabase.auth.session');
+                        sessionStorage.removeItem('supabase.auth.session');
+                        
+                        // Clear all browser history and prevent back navigation
+                        window.history.pushState(null, '', window.location.href);
+                        window.onpopstate = function() {
+                            window.history.pushState(null, '', window.location.href);
+                        };
+                        
+                        // Clear all session storage and local storage except essential items
+                        const essentialKeys = ['rememberedEmpCode', 'rememberedPassword'];
+                        for (let i = sessionStorage.length - 1; i >= 0; i--) {
+                            const key = sessionStorage.key(i);
+                            if (!essentialKeys.includes(key)) {
+                                sessionStorage.removeItem(key);
+                            }
+                        }
+                        for (let i = localStorage.length - 1; i >= 0; i--) {
+                            const key = localStorage.key(i);
+                            if (!essentialKeys.includes(key)) {
+                                localStorage.removeItem(key);
+                            }
+                        }
+                        
                         console.log('Logout successful, redirecting...'); // Debug log
                         window.location.replace('../html/auth.html'); // Redirect after successful logout
                     }

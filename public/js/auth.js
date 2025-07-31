@@ -1,76 +1,8 @@
 import { supabase } from "../supabase-config.js";
 
-// Check if user is already logged in on page load
-document.addEventListener('DOMContentLoaded', async () => {
-    // Hide the form initially to prevent flash
-    const loginForm = document.getElementById('loginForm');
-    const message = document.getElementById('message');
-    
-    if (loginForm) {
-        loginForm.style.display = 'none';
-    }
-    if (message) {
-        message.textContent = 'Checking login status...';
-        message.className = 'text-blue-600 text-center mt-4 text-sm';
-    }
-    
-    // Check for existing session
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (session) {
-        console.log("User already logged in, redirecting...");
-        // User is already logged in, redirect them appropriately
-        try {
-            const { data: userProfile, error: profileError } = await supabase
-                .from('users') 
-                .select('is_admin, department') 
-                .eq('id', session.user.id)
-                .single();
+// Classic Remember Me: Prefill credentials if saved
 
-            if (!profileError && userProfile) {
-                const isAdmin = userProfile.is_admin;
-                const department = userProfile.department;
-                const username = session.user.email.split('@')[0].toLowerCase();
-                
-                // Check if user is a shift user
-                if (username.includes('shift-a') || username.includes('shift-b') || username.includes('shift-c')) {
-                    console.log("Shift user detected. Redirecting directly to inline inspection form.");
-                    const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
-                    window.location.href = `${basePath}/html/inline_inspection_form.html`;
-                    return;
-                }
-
-                // Redirect based on role and department
-                const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
-                if (isAdmin === true) {
-                    if (department === 'Human Resources') {
-                        window.location.href = `${basePath}/html/admin_adhr.html`;
-                    } else if (department === 'Quality Assurance') {
-                        window.location.href = `${basePath}/html/admin_qa.html`;
-                    } else if (department === 'IQA') {
-                        window.location.href = `${basePath}/html/admin_iqa.html`;
-                    } else if (department === 'QC' || department === 'Quality Control') {
-                        window.location.href = `${basePath}/html/admin_qc.html`;
-                    }
-                } else {
-                    window.location.href = `${basePath}/html/employee_dashboard.html`;
-                }
-            }
-        } catch (error) {
-            console.error("Error checking user session:", error);
-        }
-    } else {
-        // No session found, show the login form
-        if (loginForm) {
-            loginForm.style.display = 'block';
-        }
-        if (message) {
-            message.textContent = '';
-            message.className = 'error-msg text-red-600 text-center mt-4 text-sm';
-        }
-    }
-
-    // Classic Remember Me: Prefill credentials if saved
+document.addEventListener('DOMContentLoaded', () => {
     const empCodeInput = document.getElementById('empcode');
     const passwordInput = document.getElementById('password');
     const rememberMe = document.getElementById('rememberMe');
@@ -229,6 +161,28 @@ document.getElementById("logoutBtn")?.addEventListener("click", async () => {
         // Remove session from both storages
         localStorage.removeItem('supabase.auth.session');
         sessionStorage.removeItem('supabase.auth.session');
+        
+        // Clear all browser history and prevent back navigation
+        window.history.pushState(null, '', window.location.href);
+        window.onpopstate = function() {
+            window.history.pushState(null, '', window.location.href);
+        };
+        
+        // Clear all session storage and local storage except essential items
+        const essentialKeys = ['rememberedEmpCode', 'rememberedPassword'];
+        for (let i = sessionStorage.length - 1; i >= 0; i--) {
+            const key = sessionStorage.key(i);
+            if (!essentialKeys.includes(key)) {
+                sessionStorage.removeItem(key);
+            }
+        }
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+            const key = localStorage.key(i);
+            if (!essentialKeys.includes(key)) {
+                localStorage.removeItem(key);
+            }
+        }
+        
         const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
         window.location.replace(`${basePath}/html/auth.html`);
     } catch (error) {

@@ -484,3 +484,42 @@ async function filterQuickActionsByDepartment(user) {
         console.error('Unexpected error in filterQuickActionsByDepartment:', error);
     }
 }
+
+// Logout functionality with back button prevention
+document.getElementById("logoutButton")?.addEventListener("click", async () => {
+    try {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+        
+        // Remove session from both storages
+        localStorage.removeItem('supabase.auth.session');
+        sessionStorage.removeItem('supabase.auth.session');
+        
+        // Clear all browser history and prevent back navigation
+        window.history.pushState(null, '', window.location.href);
+        window.onpopstate = function() {
+            window.history.pushState(null, '', window.location.href);
+        };
+        
+        // Clear all session storage and local storage except essential items
+        const essentialKeys = ['rememberedEmpCode', 'rememberedPassword'];
+        for (let i = sessionStorage.length - 1; i >= 0; i--) {
+            const key = sessionStorage.key(i);
+            if (!essentialKeys.includes(key)) {
+                sessionStorage.removeItem(key);
+            }
+        }
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+            const key = localStorage.key(i);
+            if (!essentialKeys.includes(key)) {
+                localStorage.removeItem(key);
+            }
+        }
+        
+        const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
+        window.location.replace(`${basePath}/html/auth.html`);
+    } catch (error) {
+        console.error("Error logging out:", error);
+        alert("Error logging out. Please try again.");
+    }
+});
