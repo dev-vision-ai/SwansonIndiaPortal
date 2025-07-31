@@ -93,6 +93,15 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         console.log("Fetched department:", `"${department}"`, "(Type:", typeof department, ")"); // Log department with quotes to see spaces
         // ---- End Debugging Logs ----
 
+        // Check if user is a shift user (shift-a, shift-b, shift-c) and redirect directly to inline inspection form
+        const username = user.email.split('@')[0].toLowerCase();
+        if (username.includes('shift-a') || username.includes('shift-b') || username.includes('shift-c')) {
+            console.log("Shift user detected. Redirecting directly to inline inspection form.");
+            const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
+            window.location.href = `${basePath}/html/inline_inspection_form.html`;
+            return; // Skip all other redirection logic
+        }
+
         // After successful login check for stored redirect URL.
         // Only honor it if the user is an ADMIN (QA or Dept). Regular employees should NOT be taken to admin pages.
         const storedRedirect = sessionStorage.getItem('redirectAfterLogin');

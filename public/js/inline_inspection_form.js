@@ -1,7 +1,22 @@
 import { supabase } from '../supabase-config.js';
 
-// Server handles keep-alive scheduling automatically
-// No client-side ping logic needed
+// ===== CONFIGURATION =====
+const MAX_FORMS_DISPLAY = 6; // Maximum number of forms to display
+
+// Client-side keep-alive ping (every 8 minutes for redundancy)
+setInterval(async () => {
+  try {
+    const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
+    const response = await fetch(`${basePath}/ping`);
+    if (response.ok) {
+      console.log('🔄 Client keep-alive ping successful');
+    } else {
+      console.warn('⚠️ Client keep-alive ping failed');
+    }
+  } catch (error) {
+    console.warn('⚠️ Client keep-alive ping error:', error);
+  }
+}, 8 * 60 * 1000); // Every 8 minutes (more frequent than server-side)
 
 // Back button and mutually exclusive checkboxes logic
 window.addEventListener('DOMContentLoaded', async function() {
@@ -28,8 +43,20 @@ window.addEventListener('DOMContentLoaded', async function() {
     if (isShiftUser) {
       backBtn.textContent = 'Logout';
       backBtn.onclick = async function() {
+        // Add confirmation dialog for shift users
+        if (window.confirm("Are you sure you want to log out?")) {
+          console.log('Logout confirmed, signing out...'); // Debug log
+          try {
         await supabase.auth.signOut();
+            console.log('Logout successful, redirecting...'); // Debug log
         window.location.replace('auth.html');
+          } catch (err) {
+            console.error('Exception during logout:', err);
+            alert('An unexpected error occurred during logout.');
+          }
+        } else {
+          console.log('Logout cancelled by user.'); // Debug log (optional)
+        }
       };
       // Add shift label after the Logout button
       let shiftLabel = '';
@@ -101,12 +128,7 @@ let filteredForms = []; // Store filtered forms
 let currentFilters = {}; // Store current filter state
 
 function setupFilterHandlers() {
-  const applyFilterBtn = document.getElementById('applyFilter');
   const clearFilterBtn = document.getElementById('clearFilter');
-  
-  if (applyFilterBtn) {
-    applyFilterBtn.addEventListener('click', applyFilters);
-  }
   
   if (clearFilterBtn) {
     clearFilterBtn.addEventListener('click', clearFilters);
@@ -331,13 +353,16 @@ async function applyFilters() {
     return true;
   });
   
-  // Update the table with filtered results
-  await updateFormsTable(filteredForms);
+  // Check if date filters are applied
+  const hasDateFilters = fromDate || toDate;
   
-  // Show notification only if filters are applied
+  // Update the table with filtered results
+  await updateFormsTable(filteredForms, hasDateFilters);
+  
+  // Check if filters are applied
   const hasFilters = fromDate || toDate || product || machine || shift || operator || supervisor || lineLeader || qcInspector;
   if (hasFilters) {
-    showNotification(`Filtered to ${filteredForms.length} forms`, 'info');
+    // Filter applied successfully
   }
 }
 
@@ -362,9 +387,9 @@ function clearFilters() {
   
   // Reset to show all forms
   filteredForms = [...allForms];
-  updateFormsTable(filteredForms);
+  updateFormsTable(filteredForms, false); // false = show limited forms when no date filters
   
-  showNotification('Filters cleared', 'info');
+  // Filters cleared successfully
 }
 
 // ===== STEP 1: FORM CREATION AND SAVING =====
@@ -468,7 +493,6 @@ async function handleFormSubmit(e) {
         console.log('Updated record count:', data ? data.length : 0);
         
         // Show success message
-        showNotification('✅ Form updated successfully!', 'success');
         alert('✅ Form updated successfully!');
       } else {
         // Create new form
@@ -682,7 +706,7 @@ async function loadFormsTable() {
     const validForms = data.filter(form => form.customer !== null && form.customer !== '');
     allForms = validForms; // Store all forms for filtering
     filteredForms = validForms; // Initialize filtered forms with all valid forms
-    await updateFormsTable(validForms);
+    await updateFormsTable(validForms, false); // false = show limited forms initially
     populateFilterDropdowns(); // Populate dropdowns after loading forms
   } catch (error) {
     console.error('Error:', error);
@@ -724,7 +748,7 @@ function hasEditDeletePermission(userDepartment, formStatus) {
 }
 
 // ===== UPDATE FORMS TABLE =====
-async function updateFormsTable(forms) {
+async function updateFormsTable(forms, showAllForDateFilters = false) {
   const tbody = document.querySelector('table tbody');
   if (!tbody) return;
 
@@ -746,10 +770,13 @@ async function updateFormsTable(forms) {
     return;
   }
 
+    // Limit to maximum entries (unless date filters are applied)
+  const limitedForms = showAllForDateFilters ? forms : forms.slice(0, MAX_FORMS_DISPLAY);
+
   // Get user department once for all forms
   const userDepartment = await getCurrentUserDepartment();
 
-  forms.forEach((form, index) => {
+  limitedForms.forEach((form, index) => {
     // Combine names with '/'
     const supervisorDisplay = [form.supervisor, form.supervisor2].filter(Boolean).join(' / ');
     const operatorDisplay = [form.operator, form.operator2].filter(Boolean).join(' / ');
@@ -776,13 +803,22 @@ async function updateFormsTable(forms) {
       (form.status === 'submit' ? 'Submitted' : form.status.charAt(0).toUpperCase() + form.status.slice(1)) : '-';
     const statusColor = form.status === 'submit' ? 'text-green-600 font-semibold' : 'text-orange-600 font-semibold';
     
+    // Add color coding for M/C No
+    const mcNo = form.mc_no || '-';
+    let mcNoColor = '';
+    if (mcNo === '1' || mcNo === 1) {
+      mcNoColor = 'text-red-600 font-semibold';
+    } else if (mcNo === '2' || mcNo === 2) {
+      mcNoColor = 'text-green-600 font-semibold';
+    }
+    
     const row = document.createElement('tr');
     row.className = 'hover:bg-gray-50 transition-colors';
     row.innerHTML = `
-      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${forms.length - index}</td>
+      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${showAllForDateFilters ? (forms.length - index) : (limitedForms.length - index)}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${formatDate(form.production_date)}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${form.prod_code || '-'}</td>
-      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${form.mc_no || '-'}</td>
+      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words ${mcNoColor}">${mcNo}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${shiftDisplay}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${operatorDisplay || '-'}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${supervisorDisplay || '-'}</td>
@@ -833,6 +869,23 @@ async function updateFormsTable(forms) {
     `;
     tbody.appendChild(row);
   });
+
+  // Show message at bottom of table if there are more forms than the limit (only when not showing all for date filters)
+  if (!showAllForDateFilters && forms.length > MAX_FORMS_DISPLAY) {
+    const remainingCount = forms.length - MAX_FORMS_DISPLAY;
+    const messageRow = document.createElement('tr');
+    messageRow.innerHTML = `
+      <td colspan="12" class="py-4 text-center text-sm text-gray-600 bg-gray-50 border-t border-gray-200">
+        <div class="flex items-center justify-center space-x-2">
+          <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span class="font-medium text-gray-700">Showing ${MAX_FORMS_DISPLAY} of ${forms.length} forms. Use filters above to find forms not listed here.</span>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(messageRow);
+  }
 }
 
 // ===== FORM ACTIONS =====
@@ -1050,7 +1103,6 @@ async function confirmFinalDelete() {
       return;
     }
     
-    showNotification('Form deleted successfully!', 'success');
     loadFormsTable();
     
   } catch (error) {
@@ -1342,20 +1394,39 @@ function formatDate(dateString) {
   return date.toLocaleDateString('en-GB');
 }
 
-function showNotification(message, type = 'info') {
-  // Create notification element
-  const notification = document.createElement('div');
-  notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-    type === 'success' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'
-  }`;
-  notification.textContent = message;
+
+
+
+
+// ===== DOWNLOAD EXCEL FUNCTION =====
+function downloadFormExcel(traceability_code, lot_letter, buttonElement) {
+  // Show loading state on button
+  const originalContent = buttonElement.innerHTML;
+  buttonElement.innerHTML = `
+    <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+    </svg>
+  `;
+  buttonElement.disabled = true;
   
-  document.body.appendChild(notification);
+  // Create download URL
+  const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
+  const serverPort = window.location.hostname === 'localhost' ? '3000' : '';
+  const downloadUrl = `http://${window.location.hostname}${serverPort ? ':' + serverPort : ''}/export?traceability_code=${encodeURIComponent(traceability_code)}&lot_letter=${encodeURIComponent(lot_letter)}`;
   
-  // Remove after 3 seconds
+  // Create temporary link and trigger download
+  const link = document.createElement('a');
+  link.href = downloadUrl;
+  link.download = `ILIF-${traceability_code}-${lot_letter}.xlsx`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  // Reset button after a short delay
   setTimeout(() => {
-    notification.remove();
-  }, 3000);
+    buttonElement.innerHTML = originalContent;
+    buttonElement.disabled = false;
+  }, 2000);
 }
 
 // ===== OVERLAY CONTROLS =====
