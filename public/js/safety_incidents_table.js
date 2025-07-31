@@ -35,11 +35,11 @@ function renderTable(data) {
                 <td>${incidentNo}</td>
                 <td>${incidentDate}</td>
                 <td>${incident.user_name || 'Unknown'}</td>
-                <td>${incident.users && incident.users.department ? incident.users.department : 'N/A'}</td>
                 <td>${incident.incident_type || 'N/A'}</td>
                 <td class="description-cell">${incident.description || 'No Description'}</td>
                 <td>${incident.department || 'N/A'}</td>
-                <td>${incident.incident_type || 'N/A'}</td>
+                <td>${incident.severity || 'N/A'}</td>
+                <td>${incident.status || 'N/A'}</td>
                 <td class="actions-cell">
                   <a href="safety_incident_actions.html?id=${incident.id}&mode=view" class="action-btn view-btn">View</a>
                   ${!isEmployeeTable ? `<a href="safety_incident_actions.html?id=${incident.id}&mode=edit" class="action-btn edit-btn">Edit</a>` : ''}
