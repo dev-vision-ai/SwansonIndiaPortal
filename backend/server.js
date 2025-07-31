@@ -1,8 +1,11 @@
 const express = require('express');
 const ExcelJS = require('exceljs');
 const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
+
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -29,10 +32,16 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3p5ZG52c2NhaWN5Z3dsbWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyMTg5NDYsImV4cCI6MjA1OTc5NDk0Nn0.0TUriXYvPuml-Jzr9v1jvcuzKjh-cZgnZhYKkQEj3t0'
 );
 
-// 24/7 Keep-alive ping (every 15 minutes)
+// 24/7 Keep-alive ping (every 8 minutes for maximum reliability)
 setInterval(() => {
+  try {
   console.log('🔄 24/7 Keep-alive ping - Server staying warm');
-}, 15 * 60 * 1000); // Every 15 minutes
+    console.log(`⏰ Keep-alive at: ${new Date().toISOString()}`);
+    console.log('✅ Server is active and responding');
+  } catch (error) {
+    console.log('❌ Keep-alive ping error:', error.message);
+  }
+}, 8 * 60 * 1000); // Every 8 minutes (more frequent for maximum reliability)
 
 // Keep-alive endpoint to prevent cold starts
 app.get('/ping', (req, res) => {
@@ -41,13 +50,29 @@ app.get('/ping', (req, res) => {
   const hours = Math.floor((uptime % 86400) / 3600);
   const minutes = Math.floor((uptime % 3600) / 60);
   
+  // Log the ping request for monitoring
+  console.log(`📡 Ping request received at: ${new Date().toISOString()}`);
+  
   res.json({ 
     status: 'alive', 
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     uptimeFormatted: `${days} days, ${hours} hours, ${minutes} minutes`,
     server: 'Swanson India Portal Backend',
-    version: '1.0.0'
+    version: '1.0.0',
+    memory: process.memoryUsage(),
+    platform: process.platform,
+    nodeVersion: process.version
+  });
+});
+
+// Additional keep-alive endpoint for external services
+app.get('/keep-alive', (req, res) => {
+  console.log(`🔋 Keep-alive request received at: ${new Date().toISOString()}`);
+  res.json({ 
+    status: 'awake', 
+    message: 'Server is actively kept alive',
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -65,12 +90,15 @@ app.get('/export', async (req, res) => {
     // Get query parameters for specific form
     const { traceability_code, lot_letter } = req.query;
     
+    console.log('Export request received:', { traceability_code, lot_letter });
+    
     // 1. Fetch data from Supabase - filter by specific form if parameters provided
     let query = supabase.from('inline_inspection_form_master').select('*');
     
     if (traceability_code && lot_letter) {
       // Export specific form
       query = query.eq('traceability_code', traceability_code).eq('lot_letter', lot_letter);
+      console.log('Filtering by traceability_code and lot_letter:', { traceability_code, lot_letter });
     }
     // If no parameters, export all forms (existing behavior)
     
@@ -80,20 +108,44 @@ app.get('/export', async (req, res) => {
       return res.status(500).send('Error fetching data');
     }
 
+    console.log('Data fetched:', data ? data.length : 0, 'records');
+    if (data && data.length > 0) {
+      console.log('First record keys:', Object.keys(data[0]));
+      console.log('First record lot_letter:', data[0].lot_letter);
+    }
+
     if (!data || data.length === 0) {
       return res.status(404).send('No data found for the specified form');
     }
 
     // 2. Load the client's Excel template
     const templatePath = path.join(__dirname, 'templates', 'Inline_inspection_form.xlsx');
+    console.log('Template path:', templatePath);
+    
+    // Check if template file exists
+    if (!fs.existsSync(templatePath)) {
+      console.error('Template file not found:', templatePath);
+      return res.status(500).send('Excel template file not found');
+    }
+    
     const workbook = new ExcelJS.Workbook();
+    try {
     await workbook.xlsx.readFile(templatePath);
+      console.log('Template loaded successfully');
+    } catch (templateError) {
+      console.error('Error loading template:', templateError);
+      console.error('Template error details:', templateError.message);
+      return res.status(500).send(`Error loading Excel template: ${templateError.message}`);
+    }
 
     // 3. Get the first worksheet (or specify by name if needed)
+    console.log('Workbook worksheets count:', workbook.worksheets.length);
     const worksheet = workbook.worksheets[0];
     if (!worksheet) {
+      console.error('No worksheets found in template');
       return res.status(500).send('Template worksheet not found');
     }
+    console.log('Worksheet found:', worksheet.name);
 
     // 4. Find the starting row for data insertion (you may need to adjust this based on template)
     // Let's assume data starts after headers, around row 10
@@ -109,14 +161,20 @@ app.get('/export', async (req, res) => {
     }
 
     // 5. Insert data into the template (fine-tuned mapping for merged cells)
-    // Map header data from the first lot (all lots share same header info)
-    const firstLot = data[0];
+    // Map header data from the specific lot being exported (not just the first lot)
+    console.log('Looking for lot_letter:', lot_letter);
+    console.log('Available lot_letters in data:', data.map(d => d.lot_letter));
     
-    // Debug: Log the first lot data to see what fields are available
-    console.log('First lot data:', JSON.stringify(firstLot, null, 2));
-    console.log('First lot prod_code:', firstLot?.prod_code);
-    console.log('First lot shift:', firstLot?.shift);
-    console.log('First lot traceability_code:', firstLot?.traceability_code);
+    const targetLot = data.find(lot => lot.lot_letter === lot_letter) || data[0];
+    
+    console.log('Selected targetLot lot_letter:', targetLot?.lot_letter);
+    
+    // Debug: Log the target lot data to see what fields are available
+    console.log('Target lot data:', JSON.stringify(targetLot, null, 2));
+    console.log('Target lot prod_code:', targetLot?.prod_code);
+    console.log('Target lot shift:', targetLot?.shift);
+    console.log('Target lot traceability_code:', targetLot?.traceability_code);
+    console.log('Target lot lot_letter:', targetLot?.lot_letter);
     
     // Initialize header variables
     let customer = '';
@@ -134,30 +192,31 @@ app.get('/export', async (req, res) => {
     let ct = false;
     let emboss_type = '';
     
-    if (firstLot) {
+    if (targetLot) {
       // Try to get header data from main fields first, then fall back to inspection_data
-      customer = firstLot.customer || '';
-      production_no = firstLot.production_no || '';
-      prod_code = firstLot.prod_code || '';
-      spec = firstLot.spec || '';
-      year = firstLot.year || '';
-      month = firstLot.month || '';
-      date = firstLot.date || '';
-      mc_no = firstLot.mc_no || '';
-      shift = firstLot.shift || '';
-      production_date = firstLot.production_date || '';
-      printed = firstLot.printed || false;
-      non_printed = firstLot.non_printed || false;
-      ct = firstLot.ct || false;
-      emboss_type = firstLot.emboss_type || '';
+      customer = targetLot.customer || '';
+      production_no = targetLot.production_no || '';
+      prod_code = targetLot.prod_code || '';
+      spec = targetLot.spec || '';
+      year = targetLot.year || '';
+      month = targetLot.month || '';
+      date = targetLot.date || '';
+      mc_no = targetLot.mc_no || '';
+      shift = targetLot.shift || '';
+      production_date = targetLot.production_date || '';
+      printed = targetLot.printed || false;
+      non_printed = targetLot.non_printed || false;
+      ct = targetLot.ct || false;
+      emboss_type = targetLot.emboss_type || '';
       
-      // If main fields are null, try to find data from other forms with same traceability_code
+      // If main fields are null, try to find data from other forms with same traceability_code and lot_letter
       if (!customer || !production_no || !prod_code || !spec || !shift || !mc_no) {
         try {
           const { data: otherForms, error } = await supabase
             .from('inline_inspection_form_master')
             .select('customer, production_no, prod_code, spec, shift, mc_no, production_date, emboss_type, printed, non_printed, ct')
-            .eq('traceability_code', firstLot.traceability_code)
+            .eq('traceability_code', targetLot.traceability_code)
+            .eq('lot_letter', targetLot.lot_letter)
             .not('customer', 'is', null)
             .limit(1);
 
@@ -175,7 +234,7 @@ app.get('/export', async (req, res) => {
             if (!non_printed) non_printed = otherForm.non_printed || false;
             if (!ct) ct = otherForm.ct || false;
             
-            console.log('  Found header data from other forms:', {
+            console.log('  Found header data from other forms with same lot_letter:', {
               customer, production_no, prod_code, spec, shift, mc_no, emboss_type
             });
           }
@@ -267,7 +326,7 @@ app.get('/export', async (req, res) => {
     };
     
     // Apply header mapping to the first worksheet
-    if (firstLot) {
+    if (targetLot) {
       applyHeaderMapping(worksheet);
     }
     
@@ -703,20 +762,20 @@ app.get('/export', async (req, res) => {
 
     // Generate filename with all required information
     // Try to get data from main fields first, then fall back to inspection_data
-    let productionDate = firstLot.production_date ? formatDateToDDMMYYYY(firstLot.production_date) : '';
-    let prodCode = firstLot.prod_code || '';
-    let shiftNumber = firstLot.shift || '';
-    let mcNo = firstLot.mc_no || '';
+    let productionDate = targetLot.production_date ? formatDateToDDMMYYYY(targetLot.production_date) : '';
+    let prodCode = targetLot.prod_code || '';
+    let shiftNumber = targetLot.shift || '';
+    let mcNo = targetLot.mc_no || '';
     
     // If main fields are null, try to extract from inspection_data
-    if (!prodCode && firstLot.inspection_data) {
+    if (!prodCode && targetLot.inspection_data) {
       // Try to get from inspection_data
-      prodCode = firstLot.inspection_data.prod_code || '';
+      prodCode = targetLot.inspection_data.prod_code || '';
     }
     
-    if (!shiftNumber && firstLot.inspection_data) {
+    if (!shiftNumber && targetLot.inspection_data) {
       // Try to get shift from inspection_data
-      shiftNumber = firstLot.inspection_data.shift || '';
+      shiftNumber = targetLot.inspection_data.shift || '';
     }
     
     // If still no prod_code, try to find it from other forms with same traceability_code
@@ -725,7 +784,8 @@ app.get('/export', async (req, res) => {
         const { data: otherForms, error } = await supabase
           .from('inline_inspection_form_master')
           .select('prod_code')
-          .eq('traceability_code', firstLot.traceability_code)
+          .eq('traceability_code', targetLot.traceability_code)
+          .eq('lot_letter', targetLot.lot_letter)
           .not('prod_code', 'is', null)
           .limit(1);
         
@@ -748,7 +808,8 @@ app.get('/export', async (req, res) => {
         const { data: otherForms, error } = await supabase
           .from('inline_inspection_form_master')
           .select('shift')
-          .eq('traceability_code', firstLot.traceability_code)
+          .eq('traceability_code', targetLot.traceability_code)
+          .eq('lot_letter', targetLot.lot_letter)
           .not('shift', 'is', null)
           .limit(1);
         
@@ -767,14 +828,15 @@ app.get('/export', async (req, res) => {
     
     // Debug: Log the values being used for filename
     console.log('Filename generation debug:');
-    console.log('  firstLot.traceability_code:', firstLot.traceability_code);
+    console.log('  targetLot.traceability_code:', targetLot.traceability_code);
+    console.log('  targetLot.lot_letter:', targetLot.lot_letter);
     console.log('  prodCode:', prodCode);
     console.log('  shiftNumber:', shiftNumber);
-    console.log('  firstLot object keys:', Object.keys(firstLot));
-    console.log('  inspection_data keys:', firstLot.inspection_data ? Object.keys(firstLot.inspection_data) : 'null');
-    if (firstLot.inspection_data) {
-      console.log('  inspection_data.prod_code:', firstLot.inspection_data.prod_code);
-      console.log('  inspection_data.shift:', firstLot.inspection_data.shift);
+    console.log('  targetLot object keys:', Object.keys(targetLot));
+    console.log('  inspection_data keys:', targetLot.inspection_data ? Object.keys(targetLot.inspection_data) : 'null');
+    if (targetLot.inspection_data) {
+      console.log('  inspection_data.prod_code:', targetLot.inspection_data.prod_code);
+      console.log('  inspection_data.shift:', targetLot.inspection_data.shift);
     }
     
     // Convert shift number to letter
@@ -787,7 +849,7 @@ app.get('/export', async (req, res) => {
     console.log('  shiftLetter:', shiftLetter);
     
     // Create filename with format: ILIF-trace code-prod code-Shift-A-B-C.xlsx
-    const filename = `ILIF-${firstLot.traceability_code}-${prodCode}-Shift-${shiftLetter}.xlsx`;
+    const filename = `ILIF-${targetLot.traceability_code}-${prodCode}-Shift-${shiftLetter}.xlsx`;
     
     console.log('Generated filename:', filename); // Debug log
     
@@ -800,7 +862,8 @@ app.get('/export', async (req, res) => {
 
   } catch (error) {
     console.error('Error exporting inspection report:', error);
-    res.status(500).send('Error exporting inspection report');
+    console.error('Error stack:', error.stack);
+    res.status(500).send(`Error exporting inspection report: ${error.message}`);
   }
 });
 
@@ -817,8 +880,10 @@ function formatDateToDDMMYYYY(dateString) {
 app.listen(PORT, () => {
   console.log(`🚀 Swanson India Portal Backend Server Started!`);
   console.log(`📡 Server listening on port ${PORT}`);
-  console.log(`⏰ Keep-alive system active for 31-day continuous operation`);
+  console.log(`⏰ Keep-alive system active - pinging every 8 minutes for 24/7 operation`);
   console.log(`🌐 Health check: http://localhost:${PORT}/health`);
   console.log(`🔗 Ping endpoint: http://localhost:${PORT}/ping`);
+  console.log(`🔋 Keep-alive endpoint: http://localhost:${PORT}/keep-alive`);
   console.log(`📊 Excel export: http://localhost:${PORT}/export`);
+  console.log(`🔄 Client-side keep-alive also active for redundancy`);
 }); 
