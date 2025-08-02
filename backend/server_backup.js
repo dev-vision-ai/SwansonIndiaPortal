@@ -332,9 +332,9 @@ app.get('/export', async (req, res) => {
     
     // Sort lots by lot_no numerically before mapping
     data.sort((a, b) => {
-      // Use lot_no for sorting to get correct sequence (01, 02, 03, etc.)
-      const aNo = a.lot_no ? parseInt(a.lot_no, 10) : 0;
-      const bNo = b.lot_no ? parseInt(b.lot_no, 10) : 0;
+      // Use lot_letter for sorting instead of lot_no from inspection_data
+      const aNo = a.lot_letter ? parseInt(a.lot_letter, 10) : 0;
+      const bNo = b.lot_letter ? parseInt(b.lot_letter, 10) : 0;
       return aNo - bNo;
     });
 
@@ -454,26 +454,12 @@ app.get('/export', async (req, res) => {
           // Get remarks
           const remarks = lot.remarks_data?.[rollPosition] || '';
           
-          // Map to Excel cells - All lot-associated data only in first row of each lot
-          if (rollIndex === 0) {
-            // First row of the lot - include all lot-associated data
-            worksheet.getCell(`A${currentRow}`).value = hour;
-            worksheet.getCell(`B${currentRow}`).value = minute;
-            worksheet.getCell(`C${currentRow}`).value = lot.lot_no ? lot.lot_no.toString().padStart(2, '0') : '';
-            worksheet.getCell(`D${currentRow}`).value = rollPosition;
-            worksheet.getCell(`E${currentRow}`).value = lot.arm || '';
-            worksheet.getCell(`AF${currentRow}`).value = lot.inspected_by || '';
-          } else {
-            // Other rows of the lot - leave all lot-associated data empty
-            worksheet.getCell(`A${currentRow}`).value = '';
-            worksheet.getCell(`B${currentRow}`).value = '';
-            worksheet.getCell(`C${currentRow}`).value = '';
-            worksheet.getCell(`D${currentRow}`).value = rollPosition;
-            worksheet.getCell(`E${currentRow}`).value = '';
-            worksheet.getCell(`AF${currentRow}`).value = '';
-          }
-          
-          // Common fields for all rows
+          // Map to Excel cells
+          worksheet.getCell(`A${currentRow}`).value = hour;
+          worksheet.getCell(`B${currentRow}`).value = minute;
+          worksheet.getCell(`C${currentRow}`).value = lot.lot_no ? lot.lot_no.toString().padStart(2, '0') : '';
+          worksheet.getCell(`D${currentRow}`).value = rollPosition;
+          worksheet.getCell(`E${currentRow}`).value = lot.arm || '';
           worksheet.getCell(`F${currentRow}`).value = rollWeight;
           worksheet.getCell(`G${currentRow}`).value = rollWidth;
           worksheet.getCell(`H${currentRow}`).value = filmWeightGsm;
@@ -509,6 +495,11 @@ app.get('/export', async (req, res) => {
           worksheet.getCell(`AD${currentRow}`).value = acceptRejectStatus === 'Accept' ? 'O' : (acceptRejectStatus === 'Reject' || acceptRejectStatus === 'Rework' ? 'X' : '');
           
           worksheet.getCell(`AE${currentRow}`).value = defectName;
+          
+          // Inspected By - populate for first roll of each lot
+          if (rollIndex === 0) {
+            worksheet.getCell(`AF${currentRow}`).value = lot.inspected_by || '';
+          }
           
           currentRow++;
         }
@@ -622,26 +613,12 @@ app.get('/export', async (req, res) => {
               const acceptRejectStatus = lot.accept_reject_status?.[rollPosition] || '';
               const defectName = lot.defect_names?.[rollPosition] || '';
               
-                            // Map to Excel cells - All lot-associated data only in first row of each lot
-              if (rollIndex === 0) {
-                // First row of the lot - include all lot-associated data
-                page2Worksheet.getCell(`A${page2CurrentRow}`).value = hour;
-                page2Worksheet.getCell(`B${page2CurrentRow}`).value = minute;
-                page2Worksheet.getCell(`C${page2CurrentRow}`).value = lot.lot_no ? lot.lot_no.toString().padStart(2, '0') : '';
-                page2Worksheet.getCell(`D${page2CurrentRow}`).value = rollPosition;
-                page2Worksheet.getCell(`E${page2CurrentRow}`).value = lot.arm || '';
-                page2Worksheet.getCell(`AF${page2CurrentRow}`).value = lot.inspected_by || '';
-              } else {
-                // Other rows of the lot - leave all lot-associated data empty
-                page2Worksheet.getCell(`A${page2CurrentRow}`).value = '';
-                page2Worksheet.getCell(`B${page2CurrentRow}`).value = '';
-                page2Worksheet.getCell(`C${page2CurrentRow}`).value = '';
-                page2Worksheet.getCell(`D${page2CurrentRow}`).value = rollPosition;
-                page2Worksheet.getCell(`E${page2CurrentRow}`).value = '';
-                page2Worksheet.getCell(`AF${page2CurrentRow}`).value = '';
-              }
-              
-              // Common fields for all rows
+              // Map to Excel cells
+              page2Worksheet.getCell(`A${page2CurrentRow}`).value = hour;
+              page2Worksheet.getCell(`B${page2CurrentRow}`).value = minute;
+                          page2Worksheet.getCell(`C${page2CurrentRow}`).value = lot.lot_no ? lot.lot_no.toString().padStart(2, '0') : '';
+            page2Worksheet.getCell(`D${page2CurrentRow}`).value = rollPosition;
+            page2Worksheet.getCell(`E${page2CurrentRow}`).value = lot.arm || '';
               page2Worksheet.getCell(`F${page2CurrentRow}`).value = rollWeight;
               page2Worksheet.getCell(`G${page2CurrentRow}`).value = rollWidth;
               page2Worksheet.getCell(`H${page2CurrentRow}`).value = filmWeightGsm;
@@ -799,26 +776,12 @@ app.get('/export', async (req, res) => {
               const acceptRejectStatus = lot.accept_reject_status?.[rollPosition] || '';
               const defectName = lot.defect_names?.[rollPosition] || '';
               
-              // Map to Excel cells - All lot-associated data only in first row of each lot
-              if (rollIndex === 0) {
-                // First row of the lot - include all lot-associated data
-                page3Worksheet.getCell(`A${page3CurrentRow}`).value = hour;
-                page3Worksheet.getCell(`B${page3CurrentRow}`).value = minute;
-                page3Worksheet.getCell(`C${page3CurrentRow}`).value = lot.lot_no ? lot.lot_no.toString().padStart(2, '0') : '';
-                page3Worksheet.getCell(`D${page3CurrentRow}`).value = rollPosition;
-                page3Worksheet.getCell(`E${page3CurrentRow}`).value = lot.arm || '';
-                page3Worksheet.getCell(`AF${page3CurrentRow}`).value = lot.inspected_by || '';
-              } else {
-                // Other rows of the lot - leave all lot-associated data empty
-                page3Worksheet.getCell(`A${page3CurrentRow}`).value = '';
-                page3Worksheet.getCell(`B${page3CurrentRow}`).value = '';
-                page3Worksheet.getCell(`C${page3CurrentRow}`).value = '';
-                page3Worksheet.getCell(`D${page3CurrentRow}`).value = rollPosition;
-                page3Worksheet.getCell(`E${page3CurrentRow}`).value = '';
-                page3Worksheet.getCell(`AF${page3CurrentRow}`).value = '';
-              }
-              
-              // Common fields for all rows
+              // Map to Excel cells
+              page3Worksheet.getCell(`A${page3CurrentRow}`).value = hour;
+              page3Worksheet.getCell(`B${page3CurrentRow}`).value = minute;
+                          page3Worksheet.getCell(`C${page3CurrentRow}`).value = lot.lot_no ? lot.lot_no.toString().padStart(2, '0') : '';
+            page3Worksheet.getCell(`D${page3CurrentRow}`).value = rollPosition;
+            page3Worksheet.getCell(`E${page3CurrentRow}`).value = lot.arm || '';
               page3Worksheet.getCell(`F${page3CurrentRow}`).value = rollWeight;
               page3Worksheet.getCell(`G${page3CurrentRow}`).value = rollWidth;
               page3Worksheet.getCell(`H${page3CurrentRow}`).value = filmWeightGsm;
@@ -854,6 +817,12 @@ app.get('/export', async (req, res) => {
               page3Worksheet.getCell(`AD${page3CurrentRow}`).value = acceptRejectStatus === 'Accept' ? 'O' : (acceptRejectStatus === 'Reject' || acceptRejectStatus === 'Rework' ? 'X' : '');
               
               page3Worksheet.getCell(`AE${page3CurrentRow}`).value = defectName;
+              
+              // Inspected By - populate for first roll of each lot
+              if (rollIndex === 0) {
+                const headerData = lot.header_data || {};
+                page3Worksheet.getCell(`AF${page3CurrentRow}`).value = lot.inspected_by || '';
+              }
               
               page3CurrentRow++;
             }

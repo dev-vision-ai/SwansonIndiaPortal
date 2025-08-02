@@ -33,10 +33,28 @@ window.addEventListener('DOMContentLoaded', async function() {
       }
     }
   } catch (e) {}
+  
+  // Check if user is authenticated
   if (isShiftUser && !user) {
+    // Clear any remaining session data
+    localStorage.removeItem('supabase.auth.session');
+    sessionStorage.removeItem('supabase.auth.session');
     window.location.replace('auth.html');
     return;
   }
+  
+  // Prevent back navigation after logout
+  window.history.pushState(null, '', window.location.href);
+  window.onpopstate = function() {
+    // Check if user is still authenticated
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) {
+        window.location.replace('auth.html');
+      } else {
+        window.history.pushState(null, '', window.location.href);
+      }
+    });
+  };
   // Back button and mutually exclusive checkboxes logic
   const backBtn = document.querySelector('.header-back-button');
   if (backBtn) {
@@ -48,6 +66,33 @@ window.addEventListener('DOMContentLoaded', async function() {
           console.log('Logout confirmed, signing out...'); // Debug log
           try {
         await supabase.auth.signOut();
+            console.log('Logout successful, clearing session...'); // Debug log
+            
+            // Remove session from both storages
+            localStorage.removeItem('supabase.auth.session');
+            sessionStorage.removeItem('supabase.auth.session');
+            
+            // Clear all browser history and prevent back navigation
+            window.history.pushState(null, '', window.location.href);
+            window.onpopstate = function() {
+              window.history.pushState(null, '', window.location.href);
+            };
+            
+            // Clear all session storage and local storage except essential items
+            const essentialKeys = ['rememberedEmpCode', 'rememberedPassword'];
+            for (let i = sessionStorage.length - 1; i >= 0; i--) {
+              const key = sessionStorage.key(i);
+              if (!essentialKeys.includes(key)) {
+                sessionStorage.removeItem(key);
+              }
+            }
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+              const key = localStorage.key(i);
+              if (!essentialKeys.includes(key)) {
+                localStorage.removeItem(key);
+              }
+            }
+            
             console.log('Logout successful, redirecting...'); // Debug log
         window.location.replace('auth.html');
           } catch (err) {
@@ -434,8 +479,15 @@ async function handleFormSubmit(e) {
         
         // Check if the record we're trying to update actually exists
         const { data: checkRecord, error: checkError } = await supabase
-          .from('inline_inspection_form_master')
-          .select('*')
+          .from('inline_inspection_form_master_2')
+          .select(`
+            id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
+            production_date, emboss_type, printed, non_printed, ct, year, month, date,
+            mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
+            operator, operator2, qc_inspector, qc_inspector2, status,
+            total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
+            created_at, updated_at
+          `)
           .eq('id', editRecordId);
           
         console.log('Record to update:', checkRecord);
@@ -469,13 +521,13 @@ async function handleFormSubmit(e) {
         
         console.log('Update Object:', updateObject);
         console.log('Update Query:', {
-          table: 'inline_inspection_form_master',
+          table: 'inline_inspection_form_master_2',
           recordId: editRecordId
         });
         
         console.log('About to execute update query...');
         const { data, error } = await supabase
-          .from('inline_inspection_form_master')
+          .from('inline_inspection_form_master_2')
           .update(updateObject)
           .eq('id', editRecordId)
           .select();
@@ -498,19 +550,37 @@ async function handleFormSubmit(e) {
         // Create new form
       const form_id = crypto.randomUUID();
 
-      // --- Determine next available lot_letter ---
+      // --- Determine next available lot_letter based on same shift, machine, and date ---
       let lot_letter = 'A';
       try {
+        const currentShift = parseInt(formData.get('shift'));
+        const currentMachine = formData.get('mc_no');
+        const currentDate = formData.get('production_date');
+        
+        console.log('Checking for existing forms with:', {
+          shift: currentShift,
+          machine: currentMachine,
+          date: currentDate
+        });
+        
         const { data: existingForms, error: fetchError } = await supabase
-          .from('inline_inspection_form_master')
-          .select('lot_letter')
-          .eq('traceability_code', traceability_code);
+          .from('inline_inspection_form_master_2')
+          .select('lot_letter, shift, mc_no, production_date')
+          .eq('shift', currentShift)
+          .eq('mc_no', currentMachine)
+          .eq('production_date', currentDate);
+          
         if (!fetchError && existingForms && existingForms.length > 0) {
+          console.log('Found existing forms for same shift/machine/date:', existingForms);
+          
           // Collect used letters
           const usedLetters = existingForms
             .map(f => f.lot_letter)
             .filter(l => l && typeof l === 'string')
             .map(l => l.toUpperCase());
+            
+          console.log('Used lot letters:', usedLetters);
+          
           // Find next available letter
           const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
           for (let i = 0; i < alphabet.length; i++) {
@@ -519,6 +589,10 @@ async function handleFormSubmit(e) {
               break;
             }
           }
+          
+          console.log('Assigned lot letter:', lot_letter);
+        } else {
+          console.log('No existing forms found for same shift/machine/date, using A');
         }
       } catch (err) {
         console.warn('Could not determine next lot_letter, defaulting to A.', err);
@@ -552,29 +626,7 @@ async function handleFormSubmit(e) {
         qc_inspector: formData.get('qc_inspector'),
         qc_inspector2: formData.get('qc_inspector2'),
         status: 'draft',
-        inspection_data: {
-          customer: formData.get('customer'),
-          production_no: formData.get('production_no'),
-          prod_code: formData.get('prod_code'),
-          spec: formData.get('spec'),
-          shift: parseInt(formData.get('shift')),
-          machine: formData.get('mc_no'),
-          date: formData.get('production_date'),
-          emboss_type: formData.get('emboss_type'),
-          printed: formData.get('printed') === 'on',
-          non_printed: formData.get('non_printed') === 'on',
-          ct: formData.get('ct') === 'on',
-          supervisor: formData.get('supervisor'),
-          line_leader: formData.get('line_leader'),
-          operator: formData.get('operator'),
-          qc_inspector: formData.get('qc_inspector'),
-          inspected_by: '',
-          rolls: [],
-          supervisor2: formData.get('supervisor2'),
-          line_leader2: formData.get('line_leader2'),
-          operator2: formData.get('operator2'),
-          qc_inspector2: formData.get('qc_inspector2'),
-        },
+        // inspection_data removed - using direct columns instead
         total_rolls: 0,
         accepted_rolls: 0,
         rejected_rolls: 0,
@@ -584,7 +636,7 @@ async function handleFormSubmit(e) {
       };
         
       const { data, error } = await supabase
-        .from('inline_inspection_form_master')
+        .from('inline_inspection_form_master_2')
         .insert([formObject])
         .select();
           
@@ -693,8 +745,15 @@ async function handleFormSubmit(e) {
 async function loadFormsTable() {
   try {
     const { data, error } = await supabase
-      .from('inline_inspection_form_master')
-      .select('*')
+      .from('inline_inspection_form_master_2')
+      .select(`
+        id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
+        production_date, emboss_type, printed, non_printed, ct, year, month, date,
+        mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
+        operator, operator2, qc_inspector, qc_inspector2, status,
+        total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
+        created_at, updated_at
+      `)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -904,8 +963,15 @@ async function editForm(traceability_code, lot_letter) {
   
   // Find the record with actual form data for this traceability_code
   const { data: allData, error: listError } = await supabase
-    .from('inline_inspection_form_master')
-    .select('*')
+    .from('inline_inspection_form_master_2')
+    .select(`
+      id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
+      production_date, emboss_type, printed, non_printed, ct, year, month, date,
+      mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
+      operator, operator2, qc_inspector, qc_inspector2, status,
+      total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
+      created_at, updated_at
+    `)
     .eq('traceability_code', traceability_code);
     
   if (listError) {
@@ -930,7 +996,7 @@ async function editForm(traceability_code, lot_letter) {
   console.log('Fetched form data for editing:', formData);
   console.log('All formData keys:', Object.keys(formData));
   console.log('FormData values:', Object.entries(formData).filter(([key, value]) => value !== null && value !== ''));
-  console.log('Non-null form fields:', Object.entries(formData).filter(([key, value]) => value !== null && value !== '' && !['id', 'created_at', 'updated_at', 'inspection_data'].includes(key)));
+  console.log('Non-null form fields:', Object.entries(formData).filter(([key, value]) => value !== null && value !== '' && !['id', 'created_at', 'updated_at'].includes(key)));
   
   const overlay = document.getElementById('inspectionFormOverlay');
   const form = document.getElementById('inlineInspectionEntryForm');
@@ -967,46 +1033,34 @@ async function editForm(traceability_code, lot_letter) {
     isEditMode: form.dataset.isEditMode
   });
   
-  // Extract data from inspection_data JSON if available, otherwise use direct fields
-  const inspectionData = formData.inspection_data || {};
-  console.log('Full inspection_data:', inspectionData);
-  
-  // The form data is likely stored in the inspection_data.summary or similar structure
-  const summary = inspectionData.summary || {};
-  const rolls = inspectionData.rolls || [];
-  
-  console.log('Summary data:', summary);
-  console.log('First roll data:', rolls[0]);
-  console.log('All rolls:', rolls);
-  
+  // Use direct fields only - inspection_data column has been removed
   const dataToUse = {
-    customer: formData.customer || summary.customer || '',
-    production_no: formData.production_no || summary.production_no || '',
-    prod_code: formData.prod_code || summary.prod_code || '',
-    spec: formData.spec || summary.spec || '',
-    production_date: formData.production_date || summary.date || summary.production_date || '',
-    emboss_type: formData.emboss_type || summary.emboss_type || '',
-    printed: formData.printed || summary.printed || false,
-    non_printed: formData.non_printed || summary.non_printed || false,
-    ct: formData.ct || summary.ct || false,
-    year: formData.year || summary.year || '',
-    month: formData.month || summary.month || '',
-    date: formData.date || summary.date || '',
-    mc_no: formData.mc_no || summary.machine || summary.mc_no || '',
-    shift: formData.shift || summary.shift || '',
-    supervisor: formData.supervisor || summary.supervisor || '',
-    supervisor2: formData.supervisor2 || summary.supervisor2 || '',
-    line_leader: formData.line_leader || summary.line_leader || '',
-    line_leader2: formData.line_leader2 || summary.line_leader2 || '',
-    operator: formData.operator || summary.operator || '',
-    operator2: formData.operator2 || summary.operator2 || '',
-    qc_inspector: formData.qc_inspector || summary.qc_inspector || '',
-    qc_inspector2: formData.qc_inspector2 || summary.qc_inspector2 || ''
+    customer: formData.customer || '',
+    production_no: formData.production_no || '',
+    prod_code: formData.prod_code || '',
+    spec: formData.spec || '',
+    production_date: formData.production_date || '',
+    emboss_type: formData.emboss_type || '',
+    printed: formData.printed || false,
+    non_printed: formData.non_printed || false,
+    ct: formData.ct || false,
+    year: formData.year || '',
+    month: formData.month || '',
+    date: formData.date || '',
+    mc_no: formData.mc_no || '',
+    shift: formData.shift || '',
+    supervisor: formData.supervisor || '',
+    supervisor2: formData.supervisor2 || '',
+    line_leader: formData.line_leader || '',
+    line_leader2: formData.line_leader2 || '',
+    operator: formData.operator || '',
+    operator2: formData.operator2 || '',
+    qc_inspector: formData.qc_inspector || '',
+    qc_inspector2: formData.qc_inspector2 || ''
   };
   
   console.log('Filling form fields with data:', dataToUse);
   console.log('Original formData:', formData);
-  console.log('Inspection data:', inspectionData);
   
   // Check if form fields exist
   console.log('Form field checks:', {
@@ -1092,7 +1146,7 @@ async function confirmFinalDelete() {
   
   try {
     const { error } = await supabase
-      .from('inline_inspection_form_master')
+      .from('inline_inspection_form_master_2')
       .delete()
       .eq('traceability_code', traceability_code)
       .eq('lot_letter', lot_letter);

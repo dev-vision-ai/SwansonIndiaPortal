@@ -3,11 +3,6 @@ import { supabase } from '../supabase-config.js';
 // Move this to the very top of the file
 const tablesContainer = document.getElementById('tablesContainer');
 
-// Global variables that need to be declared early
-let addNewTableBtn = null;
-let ipqcUpdateTimeout = null;
-let qcInspectorsCache = [];
-
 const lotTheadHTML = `
 <thead>
 <tr>
@@ -122,7 +117,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         try {
             // Load all lots for this traceability_code, order by created_at ascending to get the oldest first
             const { data: lots, error } = await supabase
-                .from('inline_inspection_form_master_2')
+                .from('inline_inspection_form_master')
                 .select('*')
                 .eq('traceability_code', traceabilityCode)
                 .eq('lot_letter', lotLetter)
@@ -150,8 +145,53 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.getElementById('date').textContent = formData.date || '[Date]';
                 document.getElementById('mc_no').textContent = formData.mc_no || '[M/C No.]';
                 document.getElementById('shift').textContent = formData.shift || '[Shift]';
-                // Data loading is now handled by loadAllLots() function
-                console.log('Form data loaded - using loadAllLots() for data population');
+                // Load rolls into the editable grid
+                if (formData.inspection_data && formData.inspection_data.rolls) {
+                    addRows(formData.inspection_data.rolls.length);
+                    setTimeout(() => {
+                        const tables = tablesContainer.querySelectorAll('table');
+                        tables.forEach(table => {
+                            const tbody = table.querySelector('tbody');
+                            if (!tbody) return;
+                            const rolls = formData.inspection_data.rolls;
+                            rolls.forEach((roll, index) => {
+                                const row = tbody.rows[index];
+                            if (!row) return;
+                            const cells = row.querySelectorAll('td[data-field]');
+                            cells.forEach(cell => {
+                                const fieldName = cell.dataset.field;
+                                if (!fieldName) return;
+                                const value = roll[fieldName] || '';
+                                if (cell.querySelector('select')) {
+                                    cell.querySelector('select').value = value;
+                                    const event = new Event('change');
+                                    cell.querySelector('select').dispatchEvent(event);
+                                } else {
+                                    cell.textContent = value;
+                                    applyXOColorCoding(cell);
+                                }
+                                });
+                            });
+                        });
+                        updateRowCount();
+                        applyColorCodingToTable();
+                        updateSummaryTable();
+                        // Ensure first table has lot number "01"
+                        ensureFirstTableHasLotNumber();
+                        // Ensure 'Inspected By' is displayed in the first row after reload
+                        if (formData.inspection_data && formData.inspection_data.inspected_by) {
+                            const firstTable = tablesContainer.querySelector('table');
+                            if (firstTable) {
+                                const firstRow = firstTable.querySelector('tbody tr');
+                                if (firstRow) {
+                                    const inspectedByCell = firstRow.lastElementChild;
+                                    console.log('Setting Inspected By cell (last cell):', inspectedByCell, 'to', formData.inspection_data.inspected_by);
+                                    inspectedByCell.textContent = formData.inspection_data.inspected_by;
+                                }
+                            }
+                        }
+                    }, 100);
+                }
             }
         } catch (error) {
             console.error('Error:', error);
@@ -168,7 +208,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (traceabilityCode) {
         console.log('Loading data for traceability_code:', traceabilityCode);
         window.isLoadingData = true;
-        await loadAllLots();
+        await loadInspectionData(traceabilityCode);
         window.isLoadingData = false;
         
         // If in view mode, disable all editing after data is loaded
@@ -286,12 +326,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const row = select.closest('tr');
                 
                 // Check if CT checkbox is checked for this table
-                const ctCheckbox = table ? table.querySelector('input[name="ct"]') : null;
+                const ctCheckbox = table.querySelector('input[name="ct"]');
                 const isCTChecked = ctCheckbox ? ctCheckbox.checked : false;
                 
                 if (selectedValue === 'Accept') {
                     // For Accept: Disable X/O cells and Defect Name (client can't edit when Accept)
-                    const cells = row ? row.querySelectorAll('td[data-field]') : [];
+                    const cells = row.querySelectorAll('td[data-field]');
                     cells.forEach(cell => {
                         const fieldName = cell.dataset.field;
                         // Always keep Glossy and CT enabled at all times
@@ -302,7 +342,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     });
                 } else if (selectedValue === 'Reject' || selectedValue === 'Rework') {
                     // For Reject/Rework: Enable Defect Name and Remarks (client needs to enter defect info)
-                    const cells = row ? row.querySelectorAll('td[data-field]') : [];
+                    const cells = row.querySelectorAll('td[data-field]');
                     cells.forEach(cell => {
                         const fieldName = cell.dataset.field;
                         // Enable Defect Name and Remarks, disable X/O fields except Glossy and CT
@@ -314,7 +354,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     });
                 } else {
                     // When cleared: Re-enable all cells
-                    const cells = row ? row.querySelectorAll('td[data-field]') : [];
+                    const cells = row.querySelectorAll('td[data-field]');
                     cells.forEach(cell => {
                         const fieldName = cell.dataset.field;
                         // Re-enable X/O fields and Defect Name
@@ -326,8 +366,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 // Auto-clear defect name and remarks when changing to Accept
                 if (selectedValue === 'Accept') {
-                    const defectNameCell = row ? row.querySelector('td[data-field="defect_name"]') : null;
-                    const remarksCell = row ? row.querySelector('td[data-field="remarks"]') : null;
+                    const defectNameCell = row.querySelector('td[data-field="defect_name"]');
+                    const remarksCell = row.querySelector('td[data-field="remarks"]');
                     
                     if (defectNameCell) {
                         defectNameCell.textContent = '';
@@ -340,7 +380,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     }
                     
                     // Change all X values to O in this row when Accept is selected
-                    const cells = row ? row.querySelectorAll('td[data-field]') : [];
+                    const cells = row.querySelectorAll('td[data-field]');
                     cells.forEach(cell => {
                         const fieldName = cell.dataset.field;
                         // Only change X/O fields (not Accept/Reject, Defect Name, Remarks, Inspected By)
@@ -672,14 +712,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         for (let i = 0; i < n; i++) {
             const tr = document.createElement('tr');
             const isFirstRow = (tbody.rows.length === 0); // First row in the table
-                for (let col = 0; col < totalColumns; col++) {
+            for (let col = 0; col < totalColumns; col++) {
                 const td = createCell(true, 1, col === dropdownIndex, col, isFirstRow);
                 if (col === 3) td.textContent = (tbody.rows.length + 1).toString();
                 // Set lot number only for the first row of the table
                 if (col === 2 && isFirstRow) {
                     td.textContent = lotNumber;
                 }
-                        tr.appendChild(td);
+                tr.appendChild(td);
             }
             tbody.appendChild(tr);
         }
@@ -697,9 +737,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
         updateRowCount(tbody);
         // Update Add Next Lot button state after clearing rows
-        if (addNewTableBtn) {
-            updateAddNextLotButtonState();
-        }
+        updateAddNextLotButtonState();
     }
     
     // ===== INSPECTED BY ROW FUNCTION =====
@@ -721,7 +759,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, 1000);
     }
 
-    // Defensive saveLotToSupabase - Updated for individual JSONB columns
+    // Defensive saveLotToSupabase
     async function saveLotToSupabase(table) {
         if (viewMode) {
             console.log('Save blocked - in view mode');
@@ -744,36 +782,16 @@ document.addEventListener('DOMContentLoaded', async function() {
         const tbody = table.querySelector('tbody');
         if (!tbody) return;
         const rows = tbody.rows;
-        
-        // Initialize JSONB objects for individual columns
-        const rollWeights = {};
-        const rollWidths = {};
-        const filmWeightsGsm = {};
-        const thicknessData = {};
-        const rollDiameters = {};
-        const acceptRejectStatus = {};
-        const defectNames = {};
-        const filmAppearance = {};
-        const printingQuality = {};
-        const rollAppearance = {};
-        const paperCoreData = {};
-        const timeData = {};
-        const remarksData = {};
-        
+        const rolls = [];
         let inspectedBy = '';
-        let armValue = '';
-        let totalRolls = 0;
-        
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const cells = row.querySelectorAll('td[data-field]');
-            const rollPosition = (i + 1).toString();
+            const rollData = { roll_position: i + 1 };
             let isEmpty = true;
-            
             cells.forEach(cell => {
                 const fieldName = cell.dataset.field;
                 if (!fieldName) return;
-                
                 let value = '';
                 if (cell.querySelector('select')) {
                     value = cell.querySelector('select').value;
@@ -782,144 +800,44 @@ document.addEventListener('DOMContentLoaded', async function() {
                 } else {
                     value = cell.textContent;
                 }
-                
                 if (fieldName === 'inspected_by' && i === 0) {
                     inspectedBy = value;
-                } else if (fieldName === 'arm' && i === 0) {
-                    armValue = value;
                 } else {
-                    // Map field names to JSONB columns
-                    switch (fieldName) {
-                        case 'roll_weight':
-                            rollWeights[rollPosition] = value;
-                            break;
-                        case 'roll_width_mm':
-                            rollWidths[rollPosition] = value;
-                            break;
-                        case 'film_weight_gsm':
-                            filmWeightsGsm[rollPosition] = value;
-                            break;
-                        case 'thickness':
-                            thicknessData[rollPosition] = value;
-                            break;
-                        case 'roll_dia':
-                            rollDiameters[rollPosition] = value;
-                            break;
-                        case 'accept_reject':
-                            acceptRejectStatus[rollPosition] = value;
-                            break;
-                        case 'defect_name':
-                            defectNames[rollPosition] = value;
-                            break;
-                        case 'remarks':
-                            remarksData[rollPosition] = value;
-                            break;
-                        // Film appearance fields
-                        case 'lines_strips':
-                        case 'glossy':
-                        case 'film_color':
-                        case 'pin_hole':
-                        case 'patch_mark':
-                        case 'odour':
-                        case 'ct_appearance':
-                            if (!filmAppearance[rollPosition]) {
-                                filmAppearance[rollPosition] = {};
-                            }
-                            filmAppearance[rollPosition][fieldName] = value;
-                            break;
-                        // Printing quality fields
-                        case 'print_color':
-                        case 'mis_print':
-                        case 'dirty_print':
-                        case 'tape_test':
-                        case 'centralization':
-                            if (!printingQuality[rollPosition]) {
-                                printingQuality[rollPosition] = {};
-                            }
-                            printingQuality[rollPosition][fieldName] = value;
-                            break;
-                        // Roll appearance fields
-                        case 'wrinkles':
-                        case 'prs':
-                        case 'roll_curve':
-                        case 'core_misalignment':
-                        case 'others':
-                            if (!rollAppearance[rollPosition]) {
-                                rollAppearance[rollPosition] = {};
-                            }
-                            rollAppearance[rollPosition][fieldName] = value;
-                            break;
-                        // Paper core fields
-                        case 'paper_core_dia_id':
-                        case 'paper_core_dia_od':
-                            if (!paperCoreData[rollPosition]) {
-                                paperCoreData[rollPosition] = {};
-                            }
-                            paperCoreData[rollPosition][fieldName === 'paper_core_dia_id' ? 'id' : 'od'] = value;
-                            break;
-                        // Time fields
-                        case 'hour':
-                        case 'minute':
-                            if (!timeData[rollPosition]) {
-                                timeData[rollPosition] = {};
-                            }
-                            timeData[rollPosition][fieldName] = value;
-                            break;
-                    }
+                    rollData[fieldName] = value;
                 }
-                
                 if (value && value !== '') isEmpty = false;
             });
-            
-            if (!isEmpty) {
-                totalRolls++;
-            }
+            // Always push the rollData, even if empty
+            rolls.push(rollData);
         }
-        
-        // Calculate summary from the extracted data
-        const summary = calculateSummaryFromJSONB({
-            rollWeights,
-            rollWidths,
-            acceptRejectStatus
-        });
-        
+        // Debug: Log the rolls array before saving
+        console.log('Saving rolls:', rolls);
+        // Build lotData
+        const lotData = {
+            rolls: rolls,
+            inspected_by: inspectedBy,
+            summary: calculateSummary(rolls)
+        };
+        const summary = lotData.summary;
         // Debug: Log the update payload
-        console.log('Saving to individual JSONB columns:', {
-            roll_weights: rollWeights,
-            roll_widths: rollWidths,
-            film_weights_gsm: filmWeightsGsm,
-            thickness_data: thicknessData,
-            roll_diameters: rollDiameters,
-            accept_reject_status: acceptRejectStatus,
-            defect_names: defectNames,
-            film_appearance: filmAppearance,
-            printing_quality: printingQuality,
-            roll_appearance: rollAppearance,
-            paper_core_data: paperCoreData,
-            time_data: timeData,
-            remarks_data: remarksData,
-            summary: summary
+        console.log({
+            inspection_data: lotData,
+            updated_at: new Date().toISOString(),
+            accepted_rolls: summary.accepted_rolls,
+            rejected_rolls: summary.rejected_rolls,
+            rework_rolls: summary.rework_rolls,
+            kiv_rolls: summary.kiv_rolls,
+            total_rolls: summary.total_rolls,
+            accepted_weight: summary.accepted_weight,
+            rejected_weight: summary.rejected_weight,
+            rework_weight: summary.rework_weight,
+            kiv_weight: summary.kiv_weight
         });
-        
-        // Update row in Supabase with individual JSONB columns
+        // Update row in Supabase
         const { error } = await supabase
-            .from('inline_inspection_form_master_2')
+            .from('inline_inspection_form_master')
             .update({ 
-                roll_weights: rollWeights,
-                roll_widths: rollWidths,
-                film_weights_gsm: filmWeightsGsm,
-                thickness_data: thicknessData,
-                roll_diameters: rollDiameters,
-                accept_reject_status: acceptRejectStatus,
-                defect_names: defectNames,
-                film_appearance: filmAppearance,
-                printing_quality: printingQuality,
-                roll_appearance: rollAppearance,
-                paper_core_data: paperCoreData,
-                time_data: timeData,
-                remarks_data: remarksData,
-                inspected_by: inspectedBy,
-                arm: armValue,
+                inspection_data: lotData, 
                 updated_at: new Date().toISOString(),
                 accepted_rolls: summary.accepted_rolls,
                 rejected_rolls: summary.rejected_rolls,
@@ -935,7 +853,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (error) {
             alert('Error saving lot: ' + error.message);
         } else {
-            console.log('Lot saved to individual JSONB columns!');
+            console.log('Lot saved!');
         }
     }
     
@@ -966,51 +884,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             rework_rolls: rework,
             kiv_rolls: kiv,
             total_rolls: rolls.length,
-            accepted_weight: +accepted_weight.toFixed(2),
-            rejected_weight: +rejected_weight.toFixed(2),
-            rework_weight: +rework_weight.toFixed(2),
-            kiv_weight: +kiv_weight.toFixed(2)
-        };
-    }
-
-    // Calculate summary from individual JSONB columns
-    function calculateSummaryFromJSONB(jsonbData) {
-        const { rollWeights, rollWidths, acceptRejectStatus } = jsonbData;
-        let accepted = 0, rejected = 0, rework = 0, kiv = 0;
-        let accepted_weight = 0, rejected_weight = 0, rework_weight = 0, kiv_weight = 0;
-        let total_rolls = 0;
-        
-        // Iterate through all roll positions
-        const rollPositions = Object.keys(acceptRejectStatus);
-        rollPositions.forEach(position => {
-            const status = acceptRejectStatus[position];
-            const weight = parseFloat(rollWeights[position]) || 0;
-            
-            if (status === 'Accept') {
-                accepted++;
-                accepted_weight += weight;
-            } else if (status === 'Reject') {
-                rejected++;
-                rejected_weight += weight;
-            } else if (status === 'Rework') {
-                rework++;
-                rework_weight += weight;
-            } else if (status === 'KIV') {
-                kiv++;
-                kiv_weight += weight;
-            }
-            
-            if (status && status !== '') {
-                total_rolls++;
-            }
-        });
-        
-        return {
-            accepted_rolls: accepted,
-            rejected_rolls: rejected,
-            rework_rolls: rework,
-            kiv_rolls: kiv,
-            total_rolls: total_rolls,
             accepted_weight: +accepted_weight.toFixed(2),
             rejected_weight: +rejected_weight.toFixed(2),
             rework_weight: +rework_weight.toFixed(2),
@@ -1201,9 +1074,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Ensure first table has lot number "01"
         ensureFirstTableHasLotNumber();
         // Update Add Next Lot button state
-        if (addNewTableBtn) {
-            updateAddNextLotButtonState();
-        }
+        updateAddNextLotButtonState();
         // Disable Add Rows button after adding rows
         addRowsBtn.disabled = true;
         // Only save if we're not loading data and have a traceability_code
@@ -1484,9 +1355,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     addLockCheckboxListeners();
     
     // Update Add Next Lot button state on page load
-    if (addNewTableBtn) {
-        updateAddNextLotButtonState();
-    }
+    updateAddNextLotButtonState();
     
     // Add tab navigation listener
     tablesContainer.addEventListener('keydown', handleTabNavigation);
@@ -1495,7 +1364,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (traceabilityCode) {
         try {
             const { data: lots, error } = await supabase
-                .from('inline_inspection_form_master_2')
+                .from('inline_inspection_form_master')
                 .select('*')
                 .eq('traceability_code', traceabilityCode)
                 .eq('lot_letter', lotLetter);
@@ -1568,7 +1437,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ===== ADD NEW TABLE FUNCTIONALITY =====
     
     // Create and style the "Add Next Lot" button
-    addNewTableBtn = document.createElement('button');
+    const addNewTableBtn = document.createElement('button');
     addNewTableBtn.textContent = 'Add Next Lot';
     addNewTableBtn.style.margin = '10px 0 20px 10px';
     // Match Add New Rows button style exactly
@@ -1708,11 +1577,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                     if (cells.length > 2) { // lot_no is at index 2
                         const lotNoCell = cells[2];
                         const lotNo = parseInt(lotNoCell.textContent) || 0;
-                    if (lotNo > maxLotNumber) {
-                        maxLotNumber = lotNo;
+                        if (lotNo > maxLotNumber) {
+                            maxLotNumber = lotNo;
+                        }
                     }
-            }
-        }
+                }
             }
         });
         
@@ -1784,36 +1653,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Generate new form_id
         const form_id = crypto.randomUUID();
         
-        // Insert new row in Supabase with individual JSONB columns
+        // Insert new row in Supabase
         const { error } = await supabase
-            .from('inline_inspection_form_master_2')
+            .from('inline_inspection_form_master')
             .insert([{
                 form_id: form_id,
                 traceability_code: traceabilityCode,
                 lot_letter: lotLetter,
-                lot_no: nextLotNumber,
-                roll_weights: {},
-                roll_widths: {},
-                film_weights_gsm: {},
-                thickness_data: {},
-                roll_diameters: {},
-                accept_reject_status: {},
-                defect_names: {},
-                film_appearance: {},
-                printing_quality: {},
-                roll_appearance: {},
-                paper_core_data: {},
-                time_data: {},
-                remarks_data: {},
-                total_rolls: rowCount, // Store the row count
-                accepted_rolls: 0,
-                rejected_rolls: 0,
-                rework_rolls: 0,
-                kiv_rolls: 0,
-                accepted_weight: 0,
-                rejected_weight: 0,
-                rework_weight: 0,
-                kiv_weight: 0,
+                inspection_data: { rolls: rolls, summary: calculateSummary(rolls) },
                 status: 'draft',
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
@@ -1824,23 +1671,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         
         // Reload all lots (to show the new table)
-        console.log('Reloading lots after creating new lot...');
         await loadAllLots();
-        
-        // Ensure new table is properly set up
-        setTimeout(() => {
         addSaveListeners(); // <-- Ensure new table cells are hooked up for saving
-            updateAddNextLotButtonState();
-            
+        // Update Add Next Lot button state after creating new table
+        updateAddNextLotButtonState();
+        
         // Scroll to the new lot's table
+        setTimeout(() => {
             const tables = tablesContainer.querySelectorAll('table');
             if (tables.length > 0) {
-                const newTable = tables[tables.length - 1];
-                console.log('New table found:', newTable);
-                newTable.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                saveLotToSupabase(newTable);
+                tables[tables.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                saveLotToSupabase(tables[tables.length - 1]);
             }
-        }, 500); // Increased timeout to ensure everything is loaded
+        }, 300);
     });
 
     // Helper to update spacing between tables
@@ -2037,7 +1880,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             // Load all old individual row data
             const { data: oldData, error } = await supabase
-                .from('inline_inspection_form_master_2')
+                .from('inline_inspection_form_master')
                 .select('*')
                 .eq('traceability_code', traceabilityCode)
                 .eq('lot_letter', lotLetter)
@@ -2114,8 +1957,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                     summary: calculateSummary(rolls)
                 };
                 
-                // Migration function deprecated - now using individual JSONB columns
-                console.log('Migration function deprecated - using new JSONB structure');
+                // Save as JSONB
+                const { error: saveError } = await supabase
+                    .from('inline_inspection_form_master')
+                    .update({ 
+                        inspection_data: lotData,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('traceability_code', traceabilityCode)
+                    .eq('lot_letter', lotLetter);
                 
                 if (saveError) {
                     console.error('Error saving migrated data:', saveError);
@@ -2124,7 +1974,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     
                     // Delete old individual rows
                     const { error: deleteError } = await supabase
-                        .from('inline_inspection_form_master_2')
+                        .from('inline_inspection_form_master')
                         .delete()
                         .eq('traceability_code', traceabilityCode)
                         .eq('lot_letter', lotLetter)
@@ -2145,8 +1995,34 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ===== AUTO-MIGRATION ON LOAD =====
     // If we have old data format, migrate it automatically
     if (traceabilityCode) {
-        // Migration logic removed - now using individual JSONB columns
-        console.log('Using new JSONB structure - no migration needed');
+        setTimeout(async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('inline_inspection_form_master')
+                    .select('inspection_data')
+                    .eq('traceability_code', traceabilityCode)
+                    .eq('lot_letter', lotLetter);
+                
+                if (!error && data && !data.inspection_data) {
+                    // No JSONB data found, check if we have old individual rows
+                    const { data: oldRows, error: oldError } = await supabase
+                        .from('inline_inspection_form_master')
+                        .select('row_number')
+                        .eq('traceability_code', traceabilityCode)
+                        .eq('lot_letter', lotLetter)
+                        .not('row_number', 'is', null);
+                    
+                    if (!oldError && oldRows && oldRows.length > 0) {
+                        console.log('Found old data format, migrating to JSONB...');
+                        await migrateOldDataToJSONB();
+                        // Reload the data after migration
+                        await loadInspectionData(traceabilityCode);
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking for migration:', error);
+            }
+        }, 1000); // Wait 1 second after page load
     }
 
     // ===== MULTI-LOT SUPPORT START =====
@@ -2289,60 +2165,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         const thead = document.createElement('thead');
         thead.innerHTML = lotTheadHTML.replace(/<thead>|<\/thead>/g, '');
         table.appendChild(thead);
-        // Build tbody - Updated for individual JSONB columns
+        // Build tbody
         const tbody = document.createElement('tbody');
-        
-        // Reconstruct rolls from individual JSONB columns
-        const rollPositions = Object.keys(lot.accept_reject_status || {});
-        const rolls = [];
-        rollPositions.forEach(position => {
-            const roll = {
-                roll_position: parseInt(position),
-                roll_weight: lot.roll_weights?.[position] || '',
-                roll_width_mm: lot.roll_widths?.[position] || '',
-                film_weight_gsm: lot.film_weights_gsm?.[position] || '',
-                thickness: lot.thickness_data?.[position] || '',
-                roll_dia: lot.roll_diameters?.[position] || '',
-                accept_reject: lot.accept_reject_status?.[position] || '',
-                defect_name: lot.defect_names?.[position] || '',
-                remarks: lot.remarks_data?.[position] || '',
-                // Film appearance fields
-                lines_strips: lot.film_appearance?.[position]?.lines_strips || '',
-                glossy: lot.film_appearance?.[position]?.glossy || '',
-                film_color: lot.film_appearance?.[position]?.film_color || '',
-                pin_hole: lot.film_appearance?.[position]?.pin_hole || '',
-                patch_mark: lot.film_appearance?.[position]?.patch_mark || '',
-                odour: lot.film_appearance?.[position]?.odour || '',
-                ct_appearance: lot.film_appearance?.[position]?.ct_appearance || '',
-                // Printing quality fields
-                print_color: lot.printing_quality?.[position]?.print_color || '',
-                mis_print: lot.printing_quality?.[position]?.mis_print || '',
-                dirty_print: lot.printing_quality?.[position]?.dirty_print || '',
-                tape_test: lot.printing_quality?.[position]?.tape_test || '',
-                centralization: lot.printing_quality?.[position]?.centralization || '',
-                // Roll appearance fields
-                wrinkles: lot.roll_appearance?.[position]?.wrinkles || '',
-                prs: lot.roll_appearance?.[position]?.prs || '',
-                roll_curve: lot.roll_appearance?.[position]?.roll_curve || '',
-                core_misalignment: lot.roll_appearance?.[position]?.core_misalignment || '',
-                others: lot.roll_appearance?.[position]?.others || '',
-                // Paper core fields
-                paper_core_dia_id: lot.paper_core_data?.[position]?.id || '',
-                paper_core_dia_od: lot.paper_core_data?.[position]?.od || '',
-                // Time fields
-                hour: lot.time_data?.[position]?.hour || '',
-                minute: lot.time_data?.[position]?.minute || '',
-                // Lot number and other fields
-                lot_no: lot.lot_no || '',
-                arm: lot.arm || '',
-                inspected_by: lot.inspected_by || ''
-            };
-            rolls.push(roll);
-        });
-        
-        console.log('Rolls reconstructed from JSONB:', rolls);
+        const rolls = lot.inspection_data && lot.inspection_data.rolls ? lot.inspection_data.rolls : [];
+        console.log('Rolls to render:', rolls);
         const numRows = Math.max(rolls.length, nRows);
-        
         // Always add the correct number of rows
         for (let i = 0; i < numRows; i++) {
             const tr = document.createElement('tr');
@@ -2350,14 +2177,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             for (let col = 0; col < totalColumns; col++) {
                 const td = createCell(true, 1, col === dropdownIndex, col, isFirstRow);
                 if (col === 3) td.textContent = (i + 1).toString();
-                
-                // Set lot number for first row if no rolls data (new lot)
-                if (col === 2 && isFirstRow && rolls.length === 0) {
-                    td.textContent = lot.lot_no || '';
-                    console.log('Setting lot number for new table:', lot.lot_no);
-                }
                 // If there is data for this row, fill it
-                else if (rolls[i]) {
+                if (rolls[i]) {
                     const fieldMap = {
                         0: 'hour', 1: 'minute', 2: 'lot_no', 3: 'roll_position', 4: 'arm',
                         5: 'roll_weight', 6: 'roll_width_mm', 7: 'film_weight_gsm', 8: 'thickness',
@@ -2376,37 +2197,18 @@ document.addEventListener('DOMContentLoaded', async function() {
                         value = ''; // Clear lot number for non-first rows
                     }
                     
-                    // Only show inspected_by in the first row
-                    if (col === 32 && !isFirstRow) {
-                        value = ''; // Clear inspected_by for non-first rows
-                    }
-                    
-                    // Only show arm in the first row
-                    if (col === 4 && !isFirstRow) {
-                        value = ''; // Clear arm for non-first rows
-                    }
-                    
-                    if (td && td.querySelector('select')) {
-                        const select = td.querySelector('select');
-                        if (select) {
-                            select.value = value;
+                    if (td.querySelector('select')) {
+                        td.querySelector('select').value = value;
                         const event = new Event('change');
-                            select.dispatchEvent(event);
-                        }
-                    } else if (td && td.querySelector('input[type="checkbox"]')) {
-                        const checkbox = td.querySelector('input[type="checkbox"]');
-                        if (checkbox) {
-                            checkbox.checked = !!value;
-                        }
-                    } else if (td && td.querySelector('input[type="text"]')) {
-                        const input = td.querySelector('input[type="text"]');
-                        if (input) {
-                            input.value = value;
-                        }
-                    } else if (td && (td.isContentEditable || td.contentEditable === 'true')) {
+                        td.querySelector('select').dispatchEvent(event);
+                    } else if (td.querySelector('input[type="checkbox"]')) {
+                        td.querySelector('input[type="checkbox"]').checked = !!value;
+                    } else if (td.querySelector('input[type="text"]')) {
+                        td.querySelector('input[type="text"]').value = value;
+                    } else if (td.isContentEditable || td.contentEditable === 'true') {
                         td.textContent = value;
                         applyXOColorCoding(td);
-                    } else if (td) {
+                    } else {
                         td.textContent = value;
                     }
                 }
@@ -2415,13 +2217,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             tbody.appendChild(tr);
         }
         // After filling all cells, set Inspected By in the first row's last cell
-        if (lot.inspected_by) {
+        if (lot.inspection_data && lot.inspection_data.inspected_by) {
             setTimeout(() => {
                 const firstRow = tbody.querySelector('tr');
                 if (firstRow) {
                     const inspectedByCell = firstRow.lastElementChild;
-                    console.log('Setting Inspected By cell (last cell):', inspectedByCell, 'to', lot.inspected_by);
-                    inspectedByCell.textContent = lot.inspected_by;
+                    console.log('Setting Inspected By cell (last cell):', inspectedByCell, 'to', lot.inspection_data.inspected_by);
+                    inspectedByCell.textContent = lot.inspection_data.inspected_by;
                 }
             }, 200);
         }
@@ -2429,7 +2231,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         tablesContainer.appendChild(table);
         
         // Apply Accept/Reject row disable state after table is loaded
-            setTimeout(() => {
+        setTimeout(() => {
             applyAcceptRejectRowDisable(table);
         }, 300);
         
@@ -2457,7 +2259,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         // Always keep Glossy and CT enabled at all times
                         // Only disable X/O fields (not Accept/Reject, Defect Name, Remarks, Inspected By, Glossy, CT)
                         if (fieldName && !['accept_reject', 'defect_name', 'remarks', 'inspected_by', 'glossy', 'ct_appearance'].includes(fieldName)) {
-                    cell.contentEditable = false;
+                            cell.contentEditable = false;
                         }
                     });
                 } else {
@@ -2474,41 +2276,22 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Save a specific lot table to Supabase using its form_id - Updated for individual JSONB columns
+    // Save a specific lot table to Supabase using its form_id
     async function saveLotTableToSupabase(table) {
-        if (!table) return;
         const formId = table.dataset.formId;
         if (!formId) return;
         const tbody = table.querySelector('tbody');
         if (!tbody) return;
         const rows = tbody.rows;
-        
-        // Initialize JSONB objects for individual columns
-        const rollWeights = {};
-        const rollWidths = {};
-        const filmWeightsGsm = {};
-        const thicknessData = {};
-        const rollDiameters = {};
-        const acceptRejectStatus = {};
-        const defectNames = {};
-        const filmAppearance = {};
-        const printingQuality = {};
-        const rollAppearance = {};
-        const paperCoreData = {};
-        const timeData = {};
-        const remarksData = {};
-        
+        const rolls = [];
         let inspectedBy = '';
-        
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const cells = row.querySelectorAll('td[data-field]');
-            const rollPosition = (i + 1).toString();
-            
+            const rollData = { roll_position: i + 1 };
             cells.forEach(cell => {
                 const fieldName = cell.dataset.field;
                 if (!fieldName) return;
-                
                 let value = '';
                 if (cell.querySelector('select')) {
                     value = cell.querySelector('select').value;
@@ -2517,229 +2300,73 @@ document.addEventListener('DOMContentLoaded', async function() {
                 } else {
                     value = cell.textContent;
                 }
-                
                 if (fieldName === 'inspected_by' && i === 0) {
                     inspectedBy = value;
-                } else if (fieldName === 'arm' && i === 0) {
-                    armValue = value;
                 } else {
-                    // Map field names to JSONB columns
-                    switch (fieldName) {
-                        case 'roll_weight':
-                            rollWeights[rollPosition] = value;
-                            break;
-                        case 'roll_width_mm':
-                            rollWidths[rollPosition] = value;
-                            break;
-                        case 'film_weight_gsm':
-                            filmWeightsGsm[rollPosition] = value;
-                            break;
-                        case 'thickness':
-                            thicknessData[rollPosition] = value;
-                            break;
-                        case 'roll_dia':
-                            rollDiameters[rollPosition] = value;
-                            break;
-                        case 'accept_reject':
-                            acceptRejectStatus[rollPosition] = value;
-                            break;
-                        case 'defect_name':
-                            defectNames[rollPosition] = value;
-                            break;
-                        case 'remarks':
-                            remarksData[rollPosition] = value;
-                            break;
-                        // Film appearance fields
-                        case 'lines_strips':
-                        case 'glossy':
-                        case 'film_color':
-                        case 'pin_hole':
-                        case 'patch_mark':
-                        case 'odour':
-                        case 'ct_appearance':
-                            if (!filmAppearance[rollPosition]) {
-                                filmAppearance[rollPosition] = {};
-                            }
-                            filmAppearance[rollPosition][fieldName] = value;
-                            break;
-                        // Printing quality fields
-                        case 'print_color':
-                        case 'mis_print':
-                        case 'dirty_print':
-                        case 'tape_test':
-                        case 'centralization':
-                            if (!printingQuality[rollPosition]) {
-                                printingQuality[rollPosition] = {};
-                            }
-                            printingQuality[rollPosition][fieldName] = value;
-                            break;
-                        // Roll appearance fields
-                        case 'wrinkles':
-                        case 'prs':
-                        case 'roll_curve':
-                        case 'core_misalignment':
-                        case 'others':
-                            if (!rollAppearance[rollPosition]) {
-                                rollAppearance[rollPosition] = {};
-                            }
-                            rollAppearance[rollPosition][fieldName] = value;
-                            break;
-                        // Paper core fields
-                        case 'paper_core_dia_id':
-                        case 'paper_core_dia_od':
-                            if (!paperCoreData[rollPosition]) {
-                                paperCoreData[rollPosition] = {};
-                            }
-                            paperCoreData[rollPosition][fieldName === 'paper_core_dia_id' ? 'id' : 'od'] = value;
-                            break;
-                        // Time fields
-                        case 'hour':
-                        case 'minute':
-                            if (!timeData[rollPosition]) {
-                                timeData[rollPosition] = {};
-                            }
-                            timeData[rollPosition][fieldName] = value;
-                            break;
-                    }
+                    rollData[fieldName] = value;
                 }
             });
+            rolls.push(rollData);
         }
-        
-        // Calculate summary from the extracted data
-        const summary = calculateSummaryFromJSONB({
-            rollWeights,
-            rollWidths,
-            acceptRejectStatus
-        });
-        
-        // Update row in Supabase with individual JSONB columns
+        // Build lotData
+        const lotData = {
+            rolls: rolls,
+            inspected_by: inspectedBy,
+            summary: calculateSummary(rolls)
+        };
+        // Update row in Supabase
         const { error } = await supabase
-            .from('inline_inspection_form_master_2')
-            .update({ 
-                roll_weights: rollWeights,
-                roll_widths: rollWidths,
-                film_weights_gsm: filmWeightsGsm,
-                thickness_data: thicknessData,
-                roll_diameters: rollDiameters,
-                accept_reject_status: acceptRejectStatus,
-                defect_names: defectNames,
-                film_appearance: filmAppearance,
-                printing_quality: printingQuality,
-                roll_appearance: rollAppearance,
-                paper_core_data: paperCoreData,
-                time_data: timeData,
-                remarks_data: remarksData,
-                inspected_by: inspectedBy,
-                arm: armValue,
-                updated_at: new Date().toISOString(),
-                accepted_rolls: summary.accepted_rolls,
-                rejected_rolls: summary.rejected_rolls,
-                rework_rolls: summary.rework_rolls,
-                kiv_rolls: summary.kiv_rolls,
-                total_rolls: summary.total_rolls,
-                accepted_weight: summary.accepted_weight,
-                rejected_weight: summary.rejected_weight,
-                rework_weight: summary.rework_weight,
-                kiv_weight: summary.kiv_weight
-            })
+            .from('inline_inspection_form_master')
+            .update({ inspection_data: lotData, updated_at: new Date().toISOString() })
             .eq('form_id', formId);
         if (error) {
             console.error('Error saving lot: ' + error.message);
         } else {
-            console.log('Lot saved successfully to individual JSONB columns');
+            console.log('Lot saved successfully');
         }
     }
 
-    // On page load, fetch all lots for this traceability_code and render tables - Updated for individual JSONB columns
+    // On page load, fetch all lots for this traceability_code and render tables
     async function loadAllLots() {
         if (!traceabilityCode) return;
         // Clear existing tables
         tablesContainer.innerHTML = '';
         // Fetch all lots
         const { data: lots, error } = await supabase
-            .from('inline_inspection_form_master_2')
+            .from('inline_inspection_form_master')
             .select('*')
             .eq('traceability_code', traceabilityCode)
             .eq('lot_letter', lotLetter)
             .order('created_at', { ascending: true });
         console.log('Fetched lots:', lots);
-        console.log('Number of lots found:', lots ? lots.length : 0);
         if (error) {
             alert('Error loading lots: ' + error.message);
             return;
         }
         if (!lots || lots.length === 0) {
-            // No lots found, create a new one with empty JSONB columns
+            // No lots found, create a new one
             const form_id = crypto.randomUUID();
             await supabase
-                .from('inline_inspection_form_master_2')
+                .from('inline_inspection_form_master')
                 .insert([{
                     form_id: form_id,
                     traceability_code: traceabilityCode,
                     lot_letter: lotLetter,
-                    lot_no: '01', // Set initial lot number to 01
-                    roll_weights: {},
-                    roll_widths: {},
-                    film_weights_gsm: {},
-                    thickness_data: {},
-                    roll_diameters: {},
-                    accept_reject_status: {},
-                    defect_names: {},
-                    film_appearance: {},
-                    printing_quality: {},
-                    roll_appearance: {},
-                    paper_core_data: {},
-                    time_data: {},
-                    remarks_data: {},
-                    total_rolls: 0,
-                    accepted_rolls: 0,
-                    rejected_rolls: 0,
-                    rework_rolls: 0,
-                    kiv_rolls: 0,
-                    accepted_weight: 0,
-                    rejected_weight: 0,
-                    rework_weight: 0,
-                    kiv_weight: 0,
+                    inspection_data: { rolls: [], summary: {} },
                     created_at: new Date().toISOString(),
                     updated_at: new Date().toISOString()
                 }]);
             // Now reload to show the new table
             return await loadAllLots();
         }
-        // Fix existing lots that have null lot_no
-        for (const lot of lots) {
-            if (!lot.lot_no || lot.lot_no === null) {
-                console.log('Fixing lot with null lot_no:', lot.id);
-                // Update the lot to have lot_no '01' if it's the first lot
-                const lotIndex = lots.indexOf(lot);
-                const newLotNo = (lotIndex + 1).toString().padStart(2, '0');
-                await supabase
-                    .from('inline_inspection_form_master_2')
-                    .update({ lot_no: newLotNo })
-                    .eq('id', lot.id);
-                // Update the lot object for rendering
-                lot.lot_no = newLotNo;
-            }
-        }
-        
         // Clear the container before repopulating
         tablesContainer.innerHTML = '';
-        lots.forEach((lot, index) => {
-            console.log(`Rendering lot ${index + 1}:`, lot);
-            // Calculate number of rolls from JSONB data
-            let rollCount = Object.keys(lot.accept_reject_status || {}).length;
-            
-            // If this is a new lot (empty JSONB data), use total_rolls field
-            if (rollCount === 0 && lot.total_rolls > 0) {
-                rollCount = lot.total_rolls;
-                console.log('New lot detected, using total_rolls:', rollCount);
-            }
-            
-            console.log(`Creating table for lot ${index + 1} with ${rollCount} rows`);
-            createLotTable(lot, rollCount);
+        lots.forEach(lot => {
+            console.log('Rendering lot:', lot);
+            createLotTable(lot, lot.inspection_data && lot.inspection_data.rolls ? lot.inspection_data.rolls.length : 0);
         });
         // Ensure Add Next Lot button is only appended once at the end
-        if (addNewTableBtn && addNewTableBtn.parentNode !== tablesContainer) {
+        if (addNewTableBtn.parentNode !== tablesContainer) {
             tablesContainer.appendChild(addNewTableBtn);
         }
         // Fix: Apply color coding and update summary after reload
@@ -2759,51 +2386,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
         // After all lots are loaded and tables are rendered, show defects summary
-        // 1. Aggregate all rolls from all lots using JSONB data
+        // 1. Aggregate all rolls from all lots
         let allRolls = [];
         lots.forEach(lot => {
-            // Reconstruct rolls from individual JSONB columns
-            const rollPositions = Object.keys(lot.accept_reject_status || {});
-            rollPositions.forEach(position => {
-                const roll = {
-                    roll_position: parseInt(position),
-                    roll_weight: lot.roll_weights?.[position] || '',
-                    roll_width_mm: lot.roll_widths?.[position] || '',
-                    film_weight_gsm: lot.film_weights_gsm?.[position] || '',
-                    thickness: lot.thickness_data?.[position] || '',
-                    roll_dia: lot.roll_diameters?.[position] || '',
-                    accept_reject: lot.accept_reject_status?.[position] || '',
-                    defect_name: lot.defect_names?.[position] || '',
-                    remarks: lot.remarks_data?.[position] || '',
-                    // Film appearance fields
-                    lines_strips: lot.film_appearance?.[position]?.lines_strips || '',
-                    glossy: lot.film_appearance?.[position]?.glossy || '',
-                    film_color: lot.film_appearance?.[position]?.film_color || '',
-                    pin_hole: lot.film_appearance?.[position]?.pin_hole || '',
-                    patch_mark: lot.film_appearance?.[position]?.patch_mark || '',
-                    odour: lot.film_appearance?.[position]?.odour || '',
-                    ct_appearance: lot.film_appearance?.[position]?.ct_appearance || '',
-                    // Printing quality fields
-                    print_color: lot.printing_quality?.[position]?.print_color || '',
-                    mis_print: lot.printing_quality?.[position]?.mis_print || '',
-                    dirty_print: lot.printing_quality?.[position]?.dirty_print || '',
-                    tape_test: lot.printing_quality?.[position]?.tape_test || '',
-                    centralization: lot.printing_quality?.[position]?.centralization || '',
-                    // Roll appearance fields
-                    wrinkles: lot.roll_appearance?.[position]?.wrinkles || '',
-                    prs: lot.roll_appearance?.[position]?.prs || '',
-                    roll_curve: lot.roll_appearance?.[position]?.roll_curve || '',
-                    core_misalignment: lot.roll_appearance?.[position]?.core_misalignment || '',
-                    others: lot.roll_appearance?.[position]?.others || '',
-                    // Paper core fields
-                    paper_core_dia_id: lot.paper_core_data?.[position]?.id || '',
-                    paper_core_dia_od: lot.paper_core_data?.[position]?.od || '',
-                    // Time fields
-                    hour: lot.time_data?.[position]?.hour || '',
-                    minute: lot.time_data?.[position]?.minute || ''
-                };
-                allRolls.push(roll);
-            });
+            if (lot.inspection_data && Array.isArray(lot.inspection_data.rolls)) {
+                allRolls = allRolls.concat(lot.inspection_data.rolls);
+            }
         });
         // 2. Count occurrences of each unique defect_name (ignore empty/blank)
         const defectCounts = {};
@@ -2946,6 +2534,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Render IPQC Defects Table - defects found by QC personnel
+    let ipqcUpdateTimeout = null;
     async function renderIPQCDefectsTable() {
         // Debounce the function to prevent excessive updates
         if (ipqcUpdateTimeout) {
@@ -3096,7 +2685,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     clearTimeout(defectUpdateTimeout);
                 }
                 defectUpdateTimeout = setTimeout(() => {
-                renderDefectsSummaryTable();
+                    renderDefectsSummaryTable();
                     renderIPQCDefectsTable();
                     renderStatisticsTable();
                 }, 500); // 500ms debounce for defect updates
@@ -3185,29 +2774,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     })();
 
-    // 2. Fetch users from specific departments for "Inspected By" field
+    // 2. Fetch all users from Supabase on page load
     let userSuggestions = [];
+    let qcInspectorsCache = []; // Cache for QC inspectors
     (async function fetchAllUsers() {
         const { data, error } = await supabase.from('users').select('full_name, department');
         if (!error && data) {
-            // Filter users by specific departments: Quality Control, Production, Quality Assurance
-            const allowedDepartments = [
-                'quality control',
-                'production', 
-                'quality assurance',
-                'qc',
-                'qa'
-            ];
-            
-            userSuggestions = data
-                .filter(user => {
-                    if (!user.department || !user.full_name) return false;
-                    const dept = user.department.toLowerCase();
-                    return allowedDepartments.some(allowed => dept.includes(allowed));
-                })
-                .map(u => u.full_name)
-                .filter(name => name && name.trim() !== '');
-            
+            userSuggestions = data.map(u => u.full_name).filter(name => name && name.trim() !== '');
             // Cache QC inspectors with more flexible department matching
             qcInspectorsCache = data
                 .filter(user => {
@@ -3221,7 +2794,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 })
                 .map(user => user.full_name);
             
-            console.log('Filtered users for "Inspected By":', userSuggestions); // Debug log
             console.log('QC Inspectors found:', qcInspectorsCache); // Debug log
         }
     })();
@@ -3422,31 +2994,31 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const formId = table.dataset.formId;
                     if (formId) {
                         const { error } = await supabase
-                            .from('inline_inspection_form_master_2')
+                            .from('inline_inspection_form_master')
                             .update({
-                                roll_weights: {},
-                                roll_widths: {},
-                                film_weights_gsm: {},
-                                thickness_data: {},
-                                roll_diameters: {},
-                                accept_reject_status: {},
-                                defect_names: {},
-                                film_appearance: {},
-                                printing_quality: {},
-                                roll_appearance: {},
-                                paper_core_data: {},
-                                time_data: {},
-                                remarks_data: {},
+                                inspection_data: {
+                                    rolls: [],
+                                    summary: {
+                                        total_rolls: 0,
+                                        accepted_rolls: 0,
+                                        rejected_rolls: 0,
+                                        accepted_weight: 0,
+                                        rejected_weight: 0,
+                                        kiv_rolls: 0,
+                                        kiv_weight: 0,
+                                        rework_rolls: 0,
+                                        rework_weight: 0
+                                    }
+                                },
                                 total_rolls: 0,
                                 accepted_rolls: 0,
                                 rejected_rolls: 0,
-                                rework_rolls: 0,
-                                kiv_rolls: 0,
                                 accepted_weight: 0,
                                 rejected_weight: 0,
-                                rework_weight: 0,
+                                kiv_rolls: 0,
                                 kiv_weight: 0,
-                                lot_no: null, // Reset lot number to null when no rows
+                                rework_rolls: 0,
+                                rework_weight: 0,
                                 updated_at: new Date().toISOString()
                             })
                             .eq('form_id', formId);
@@ -3469,7 +3041,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const formId = table.dataset.formId;
                 if (formId) {
                     const { error } = await supabase
-                        .from('inline_inspection_form_master_2')
+                        .from('inline_inspection_form_master')
                         .delete()
                         .eq('form_id', formId);
                     if (error) {
@@ -3492,9 +3064,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                     separator.remove();
                 }
                 
-                // Reorder lot numbers after deletion
-                await reorderLotNumbers();
-                
                 showSuccessMessage('Success!', 'Table deleted successfully!');
                 
                 // Page will refresh when user clicks OK on success message
@@ -3504,42 +3073,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             const overlay = document.getElementById('deleteTableConfirmationOverlay');
             overlay.classList.add('hidden');
         });
-    }
-
-    // Reorder lot numbers after table deletion
-    async function reorderLotNumbers() {
-        try {
-            // Fetch all lots for this traceability_code and lot_letter
-            const { data: lots, error } = await supabase
-                .from('inline_inspection_form_master_2')
-                .select('*')
-                .eq('traceability_code', traceabilityCode)
-                .eq('lot_letter', lotLetter)
-                .order('created_at', { ascending: true });
-            
-            if (error) {
-                console.error('Error fetching lots for reordering:', error);
-                return;
-            }
-            
-            // Update lot numbers sequentially
-            for (let i = 0; i < lots.length; i++) {
-                const lot = lots[i];
-                const newLotNo = (i + 1).toString().padStart(2, '0');
-                
-                if (lot.lot_no !== newLotNo) {
-                    console.log(`Updating lot ${lot.id} from ${lot.lot_no} to ${newLotNo}`);
-                    await supabase
-                        .from('inline_inspection_form_master_2')
-                        .update({ lot_no: newLotNo })
-                        .eq('id', lot.id);
-                }
-            }
-            
-            console.log('Lot numbers reordered successfully');
-        } catch (error) {
-            console.error('Error reordering lot numbers:', error);
-        }
     }
 
     // Add this function to ensure first table gets lot number "01"
@@ -3575,23 +3108,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
             }
             
-            // Update database with lot number "01"
-            setTimeout(async () => {
+            // Trigger save to update the database
+            setTimeout(() => {
                 const tableRef = tbody.closest('table');
                 if (tableRef && tableRef.dataset && tableRef.dataset.formId) {
-                    // Update the database to set lot_no to "01"
-                    const { error } = await supabase
-                        .from('inline_inspection_form_master_2')
-                        .update({ lot_no: '01' })
-                        .eq('form_id', tableRef.dataset.formId);
-                    
-                    if (error) {
-                        console.error('Error updating lot number:', error);
-                    } else {
-                        console.log('Lot number updated to 01 in database');
-                    }
-                    
-                    // Also save the table data
                     saveLotToSupabase(tableRef);
                 }
             }, 100);
@@ -3607,8 +3127,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!tbody) return;
         
         const rowCount = tbody.rows.length;
-        
-        if (!addNewTableBtn) return; // Exit if button not yet created
         
         if (rowCount > 0) {
             // Enable the button if main table has rows
