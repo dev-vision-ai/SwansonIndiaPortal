@@ -697,6 +697,11 @@ async function handleFormSubmit(e) {
         form.onsubmit = handleFormSubmit;
       }
       overlay.style.display = 'flex';
+      
+      // Setup autocomplete for personnel fields
+      setTimeout(() => {
+        setupPersonnelAutocomplete();
+      }, 100);
     });
   }
 
@@ -1485,6 +1490,131 @@ function downloadFormExcel(traceability_code, lot_letter, buttonElement) {
     buttonElement.innerHTML = originalContent;
     buttonElement.disabled = false;
   }, 2000);
+}
+
+// Add autocomplete functionality for personnel fields
+async function setupPersonnelAutocomplete() {
+    console.log('🔍 Setting up personnel autocomplete...');
+    
+    // Fetch all users from the database
+    const { data: users, error } = await supabase
+        .from('users')
+        .select('full_name, department')
+        .order('full_name');
+    
+    if (error) {
+        console.error('❌ Error fetching users:', error);
+        return;
+    }
+    
+    console.log('📊 Fetched users:', users);
+    
+    // Filter users by department
+    const productionUsers = users.filter(user => 
+        user.department === 'Production'
+    );
+    const qcUsers = users.filter(user => 
+        user.department === 'Quality Control' || user.department === 'Quality Assurance'
+    );
+    
+    console.log('🏭 Production users:', productionUsers);
+    console.log('🔬 QC users:', qcUsers);
+    
+    // Setup autocomplete for each field
+    const personnelFields = [
+        { name: 'supervisor', users: productionUsers },
+        { name: 'supervisor2', users: productionUsers },
+        { name: 'line_leader', users: productionUsers },
+        { name: 'line_leader2', users: productionUsers },
+        { name: 'operator', users: productionUsers },
+        { name: 'operator2', users: productionUsers },
+        { name: 'qc_inspector', users: qcUsers },
+        { name: 'qc_inspector2', users: qcUsers }
+    ];
+    
+    personnelFields.forEach(field => {
+        const input = document.querySelector(`input[name="${field.name}"]`);
+        console.log(`🔍 Looking for field: ${field.name}`, input);
+        if (input) {
+            console.log(`✅ Found field: ${field.name}, setting up autocomplete`);
+            setupAutocompleteForField(input, field.users);
+        } else {
+            console.log(`❌ Field not found: ${field.name}`);
+        }
+    });
+}
+
+function setupAutocompleteForField(input, users) {
+    console.log(`🎯 Setting up autocomplete for ${input.name} with ${users.length} users`);
+    let dropdown = null;
+    
+    input.addEventListener('input', function() {
+        const value = this.value.toLowerCase();
+        console.log(`📝 Input value: "${value}"`);
+        
+        // Remove existing dropdown
+        if (dropdown) {
+            dropdown.remove();
+            dropdown = null;
+        }
+        
+        if (value.length < 1) return;
+        
+        // Filter users based on input
+        const matches = users.filter(user => 
+            user.full_name.toLowerCase().includes(value)
+        ).slice(0, 5); // Limit to 5 suggestions
+        
+        console.log(`🔍 Matches found:`, matches);
+        
+        if (matches.length === 0) return;
+        
+        // Create dropdown
+        dropdown = document.createElement('div');
+        dropdown.className = 'absolute z-50 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto';
+        dropdown.style.top = '100%';
+        dropdown.style.left = '0';
+        
+        matches.forEach(user => {
+            const item = document.createElement('div');
+            item.className = 'px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm';
+            item.textContent = user.full_name;
+            item.addEventListener('click', function() {
+                input.value = user.full_name;
+                dropdown.remove();
+                dropdown = null;
+                console.log(`✅ Selected: ${user.full_name}`);
+            });
+            dropdown.appendChild(item);
+        });
+        
+        // Position dropdown
+        const rect = input.getBoundingClientRect();
+        dropdown.style.width = rect.width + 'px';
+        
+        // Add to DOM
+        input.parentNode.style.position = 'relative';
+        input.parentNode.appendChild(dropdown);
+        console.log(`📋 Dropdown created with ${matches.length} items`);
+    });
+    
+    // Remove dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (dropdown && !input.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.remove();
+            dropdown = null;
+        }
+    });
+    
+    // Remove dropdown on blur
+    input.addEventListener('blur', function() {
+        setTimeout(() => {
+            if (dropdown) {
+                dropdown.remove();
+                dropdown = null;
+            }
+        }, 150);
+    });
 }
 
 // ===== OVERLAY CONTROLS =====
