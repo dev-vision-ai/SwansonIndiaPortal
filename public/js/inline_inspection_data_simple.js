@@ -68,6 +68,10 @@ const lotTheadHTML = `
 `;
 
 document.addEventListener('DOMContentLoaded', async function() {
+    // Get URL parameters first
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewMode = urlParams.get('mode') === 'view';
+    
     // Assign all DOM elements at the very top
     const rowCountDisplay = document.getElementById('rowCountDisplay');
     const addRowsBtn = document.getElementById('addNewRowsBtn');
@@ -76,7 +80,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         alert('Error: One or more required DOM elements are missing.');
         return;
     }
-    if (addRowsBtn) addRowsBtn.textContent = 'Add Rows';
+    if (addRowsBtn) {
+        addRowsBtn.textContent = 'Add Rows';
+        // Hide Add Rows button in view mode
+        if (viewMode) {
+            addRowsBtn.style.display = 'none';
+        }
+    }
     // Move all config/constants here
     const totalColumns = 33;
     const mergedIndices = [0, 1, 2, 4, 31]; // Hour, Minutes, Lot No., Arm, Remarks
@@ -91,10 +101,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     // All code that uses these variables goes below this line
     
     // ===== LOAD FORM DATA IF FORM ID PROVIDED =====
-    const urlParams = new URLSearchParams(window.location.search);
     const traceabilityCode = urlParams.get('traceability_code');
     const lotLetter = urlParams.get('lot_letter');
-    const viewMode = urlParams.get('mode') === 'view';
     console.log('DEBUG: traceabilityCode from URL:', traceabilityCode);
     console.log('DEBUG: viewMode from URL:', viewMode);
     
@@ -116,6 +124,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             <div class="text-sm mt-1">This form is in read-only mode. No changes can be made.</div>
         `;
         document.body.appendChild(viewOnlyIndicator);
+        
+        // In view mode, ensure summary tables are rendered after data loads
+        setTimeout(() => {
+            renderDefectsSummaryTable();
+            renderIPQCDefectsTable();
+            renderStatisticsTable();
+        }, 3000);
     }
     
     if (traceabilityCode) {
@@ -1777,29 +1792,31 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // ===== ADD NEW TABLE FUNCTIONALITY =====
     
-    // Create and style the "Add Next Lot" button
-    addNewTableBtn = document.createElement('button');
-    addNewTableBtn.textContent = 'Add Next Lot';
-    addNewTableBtn.style.margin = '10px 0 20px 10px';
-    // Match Add New Rows button style exactly
-    addNewTableBtn.className = addRowsBtn.className;
-    // Copy all inline styles from Add New Rows button
-    const addRowsBtnStyles = window.getComputedStyle(addRowsBtn);
-    addNewTableBtn.style.cssText = addRowsBtn.style.cssText;
-    // Optionally, copy computed styles for padding, font, etc.
-    addNewTableBtn.style.height = addRowsBtnStyles.height;
-    addNewTableBtn.style.fontSize = addRowsBtnStyles.fontSize;
-    addNewTableBtn.style.padding = addRowsBtnStyles.padding;
-    addNewTableBtn.style.borderRadius = addRowsBtnStyles.borderRadius;
-    addNewTableBtn.style.margin = '10px 0 0 0'; // Keep margin for separation
-    
-    // Initially disable the button
-    addNewTableBtn.disabled = true;
-    addNewTableBtn.style.opacity = '0.5';
-    addNewTableBtn.style.cursor = 'not-allowed';
+    // Create and style the "Add Next Lot" button (only in edit mode)
+    if (!viewMode) {
+        addNewTableBtn = document.createElement('button');
+        addNewTableBtn.textContent = 'Add Next Lot';
+        addNewTableBtn.style.margin = '10px 0 20px 10px';
+        // Match Add New Rows button style exactly
+        addNewTableBtn.className = addRowsBtn.className;
+        // Copy all inline styles from Add New Rows button
+        const addRowsBtnStyles = window.getComputedStyle(addRowsBtn);
+        addNewTableBtn.style.cssText = addRowsBtn.style.cssText;
+        // Optionally, copy computed styles for padding, font, etc.
+        addNewTableBtn.style.height = addRowsBtnStyles.height;
+        addNewTableBtn.style.fontSize = addRowsBtnStyles.fontSize;
+        addNewTableBtn.style.padding = addRowsBtnStyles.padding;
+        addNewTableBtn.style.borderRadius = addRowsBtnStyles.borderRadius;
+        addNewTableBtn.style.margin = '10px 0 0 0'; // Keep margin for separation
+        
+        // Initially disable the button
+        addNewTableBtn.disabled = true;
+        addNewTableBtn.style.opacity = '0.5';
+        addNewTableBtn.style.cursor = 'not-allowed';
 
-    // Initially append the button after the first table
-    tablesContainer.appendChild(addNewTableBtn);
+        // Initially append the button after the first table
+        tablesContainer.appendChild(addNewTableBtn);
+    }
 
     // Add global table border styles for all tables
     if (!document.getElementById('custom-table-borders')) {
@@ -2438,124 +2455,127 @@ document.addEventListener('DOMContentLoaded', async function() {
             separator.style.width = '100%';
             tablesContainer.appendChild(separator);
         }
-        // Add Fill O button
-        const fillOButton = document.createElement('button');
-        fillOButton.textContent = 'Fill O';
-        fillOButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm mr-2';
-        fillOButton.style.marginBottom = '8px';
-        fillOButton.onclick = function() {
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                // Only fill Lines/Strips (12), Film Appearance (13-19), Printing (20-24), Roll Appearance (25-28)
-                const targetIndices = [
-                    12,                    // Lines/Strips
-                    13, 14, 15, 16, 17, 18, 19, // Film Appearance
-                    20, 21, 22, 23, 24,         // Printing
-                    25, 26, 27, 28              // Roll Appearance
-                ];
-                targetIndices.forEach(idx => {
-                    const td = cells[idx];
-                    if (
-                        td &&
-                        !td.querySelector('select') &&
-                        !td.querySelector('input') &&
-                        td.textContent.trim() === ''
-                    ) {
-                        // Temporarily enable cell for Fill O operation
-                        const wasEditable = td.contentEditable;
-                        td.contentEditable = 'true';
-                        td.textContent = 'O';
-                        // Trigger save event for this cell
-                        td.dispatchEvent(new Event('input', { bubbles: true }));
-                        // Restore original editable state
-                        td.contentEditable = wasEditable;
-                    }
-                });
-            });
-            
-            // Save the table after filling O values
-            setTimeout(() => {
-                saveLotTableToSupabase(table);
-            }, 100);
-        };
-        tablesContainer.appendChild(fillOButton);
-        
-        // Add Clear O button
-        const clearOButton = document.createElement('button');
-        clearOButton.textContent = 'Clear O';
-        clearOButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm';
-        clearOButton.style.marginBottom = '8px';
-        clearOButton.onclick = function() {
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                // Only clear Lines/Strips (12), Film Appearance (13-19), Printing (20-24), Roll Appearance (25-28)
-                const targetIndices = [
-                    12,                    // Lines/Strips
-                    13, 14, 15, 16, 17, 18, 19, // Film Appearance
-                    20, 21, 22, 23, 24,         // Printing
-                    25, 26, 27, 28              // Roll Appearance
-                ];
-                targetIndices.forEach(idx => {
-                    const td = cells[idx];
-                    if (
-                        td &&
-                        !td.querySelector('select') &&
-                        !td.querySelector('input') &&
-                        td.textContent.trim() === 'O'
-                    ) {
-                        // Temporarily enable cell for Clear O operation
-                        const wasEditable = td.contentEditable;
-                        td.contentEditable = 'true';
-                        td.textContent = '';
-                        // Trigger save event for this cell
-                        td.dispatchEvent(new Event('input', { bubbles: true }));
-                        // Restore original editable state
-                        td.contentEditable = wasEditable;
-                    }
-                });
-            });
-            
-            // Save the table after clearing O values
-            setTimeout(() => {
-                saveLotTableToSupabase(table);
-            }, 100);
-        };
-        tablesContainer.appendChild(clearOButton);
 
-        // Add Delete Table button
-        const deleteTableButton = document.createElement('button');
-        deleteTableButton.textContent = 'Delete Table';
-        deleteTableButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm ml-2';
-        deleteTableButton.style.marginBottom = '8px';
-        deleteTableButton.onclick = function() {
-            // Store the table reference for the overlay
-            window.currentDeleteTable = table;
-            window.currentDeleteTableButton = deleteTableButton;
-            window.currentFillOButton = fillOButton;
-            window.currentClearOButton = clearOButton;
+        // Add Fill O button (only in edit mode)
+        if (!viewMode) {
+            const fillOButton = document.createElement('button');
+            fillOButton.textContent = 'Fill O';
+            fillOButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm mr-2';
+            fillOButton.style.marginBottom = '8px';
+            fillOButton.onclick = function() {
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    // Only fill Lines/Strips (12), Film Appearance (13-19), Printing (20-24), Roll Appearance (25-28)
+                    const targetIndices = [
+                        12,                    // Lines/Strips
+                        13, 14, 15, 16, 17, 18, 19, // Film Appearance
+                        20, 21, 22, 23, 24,         // Printing
+                        25, 26, 27, 28              // Roll Appearance
+                    ];
+                    targetIndices.forEach(idx => {
+                        const td = cells[idx];
+                        if (
+                            td &&
+                            !td.querySelector('select') &&
+                            !td.querySelector('input') &&
+                            td.textContent.trim() === ''
+                        ) {
+                            // Temporarily enable cell for Fill O operation
+                            const wasEditable = td.contentEditable;
+                            td.contentEditable = 'true';
+                            td.textContent = 'O';
+                            // Trigger save event for this cell
+                            td.dispatchEvent(new Event('input', { bubbles: true }));
+                            // Restore original editable state
+                            td.contentEditable = wasEditable;
+                        }
+                    });
+                });
+                
+                // Save the table after filling O values
+                setTimeout(() => {
+                    saveLotTableToSupabase(table);
+                }, 100);
+            };
+            tablesContainer.appendChild(fillOButton);
             
-            // Show the custom overlay
-            const overlay = document.getElementById('deleteTableConfirmationOverlay');
-            const title = document.getElementById('deleteTableConfirmationTitle');
-            const message = document.getElementById('deleteTableConfirmationMessage');
-            
-            // Check if this is the main table (first table)
-            const tables = tablesContainer.querySelectorAll('table');
-            const isMainTable = tables.length > 0 && table === tables[0];
-            
-            if (isMainTable) {
-                title.textContent = 'Confirm Main Table Clear';
-                message.textContent = 'Are you sure you want to clear all rows from the main table? This action cannot be undone.';
-            } else {
-                title.textContent = 'Confirm Table Deletion';
-                message.textContent = 'Are you sure you want to delete this table? This action cannot be undone.';
-            }
-            
-            overlay.classList.remove('hidden');
-        };
-        tablesContainer.appendChild(deleteTableButton);
+            // Add Clear O button
+            const clearOButton = document.createElement('button');
+            clearOButton.textContent = 'Clear O';
+            clearOButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm';
+            clearOButton.style.marginBottom = '8px';
+            clearOButton.onclick = function() {
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    // Only clear Lines/Strips (12), Film Appearance (13-19), Printing (20-24), Roll Appearance (25-28)
+                    const targetIndices = [
+                        12,                    // Lines/Strips
+                        13, 14, 15, 16, 17, 18, 19, // Film Appearance
+                        20, 21, 22, 23, 24,         // Printing
+                        25, 26, 27, 28              // Roll Appearance
+                    ];
+                    targetIndices.forEach(idx => {
+                        const td = cells[idx];
+                        if (
+                            td &&
+                            !td.querySelector('select') &&
+                            !td.querySelector('input') &&
+                            td.textContent.trim() === 'O'
+                        ) {
+                            // Temporarily enable cell for Clear O operation
+                            const wasEditable = td.contentEditable;
+                            td.contentEditable = 'true';
+                            td.textContent = '';
+                            // Trigger save event for this cell
+                            td.dispatchEvent(new Event('input', { bubbles: true }));
+                            // Restore original editable state
+                            td.contentEditable = wasEditable;
+                        }
+                    });
+                });
+                
+                // Save the table after clearing O values
+                setTimeout(() => {
+                    saveLotTableToSupabase(table);
+                }, 100);
+            };
+            tablesContainer.appendChild(clearOButton);
+
+            // Add Delete Table button
+            const deleteTableButton = document.createElement('button');
+            deleteTableButton.textContent = 'Delete Table';
+            deleteTableButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm ml-2';
+            deleteTableButton.style.marginBottom = '8px';
+            deleteTableButton.onclick = function() {
+                // Store the table reference for the overlay
+                window.currentDeleteTable = table;
+                window.currentDeleteTableButton = deleteTableButton;
+                window.currentFillOButton = fillOButton;
+                window.currentClearOButton = clearOButton;
+                
+                // Show the custom overlay
+                const overlay = document.getElementById('deleteTableConfirmationOverlay');
+                const title = document.getElementById('deleteTableConfirmationTitle');
+                const message = document.getElementById('deleteTableConfirmationMessage');
+                
+                // Check if this is the main table (first table)
+                const tables = tablesContainer.querySelectorAll('table');
+                const isMainTable = tables.length > 0 && table === tables[0];
+                
+                if (isMainTable) {
+                    title.textContent = 'Confirm Main Table Clear';
+                    message.textContent = 'Are you sure you want to clear all rows from the main table? This action cannot be undone.';
+                } else {
+                    title.textContent = 'Confirm Table Deletion';
+                    message.textContent = 'Are you sure you want to delete this table? This action cannot be undone.';
+                }
+                
+                overlay.classList.remove('hidden');
+            };
+            tablesContainer.appendChild(deleteTableButton);
+        }
         const table = document.createElement('table');
         table.className = 'w-full border-collapse mt-6';
         table.style.border = '2px solid #000';
@@ -3092,22 +3112,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!summaryTableContainer.contains(summaryTable)) {
             summaryTableContainer.appendChild(summaryTable);
         }
-        // Add separator between summary tables if not present
-        let separator = document.getElementById('summaryTableSeparator');
-        if (!separator) {
-            separator = document.createElement('div');
-            separator.id = 'summaryTableSeparator';
-            separator.style.width = '2px';
-            separator.style.background = '#bbb';
-            separator.style.margin = '0 24px';
-            separator.style.alignSelf = 'stretch';
-            // Insert separator between the two tables
-            if (summaryTableContainer.children.length === 1) {
-                summaryTableContainer.appendChild(separator);
-            } else if (summaryTableContainer.children.length === 2 && !summaryTableContainer.contains(separator)) {
-                summaryTableContainer.insertBefore(separator, summaryTableContainer.children[1]);
-            }
-        }
+
     }
 
     // On initial load
@@ -3115,6 +3120,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     addSaveListeners(); // <-- Ensure new table cells are hooked up for saving
     // Update Add Next Lot button state after loading all lots
     updateAddNextLotButtonState();
+    
+    // Render summary tables after data is loaded
+    setTimeout(() => {
+        renderDefectsSummaryTable();
+        renderIPQCDefectsTable();
+        renderStatisticsTable();
+    }, 1000);
 
     // ===== MULTI-LOT SUPPORT END =====
 
@@ -3296,15 +3308,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Add to the same container as the main defects table
         if (summaryTableContainer && !summaryTableContainer.contains(ipqcTable)) {
-            // Add vertical separator between Total Defects and IPQC Defects tables
-            const separator = document.createElement('div');
-            separator.style.width = '2px';
-            separator.style.backgroundColor = '#9ca3af';
-            separator.style.margin = '0 24px';
-            separator.style.alignSelf = 'stretch';
-            
             summaryTableContainer.appendChild(ipqcTable);
-            summaryTableContainer.insertBefore(separator, ipqcTable);
         }
     }
     // Call this after loadAllLots
@@ -3748,6 +3752,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                     separator.remove();
                 }
                 
+
+                
                 // Reorder lot numbers after deletion
                 await reorderLotNumbers();
                 
@@ -4057,16 +4063,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
         
-        // Add statistics table at the end (right side) with separator
+        // Add statistics table at the end (right side)
         if (summaryTableContainer && !summaryTableContainer.contains(statsTable)) {
-            // Add vertical separator before statistics table
-            const separator = document.createElement('div');
-            separator.style.width = '2px';
-            separator.style.backgroundColor = '#9ca3af';
-            separator.style.margin = '0 24px';
-            separator.style.alignSelf = 'stretch';
-            
-            summaryTableContainer.appendChild(separator);
             summaryTableContainer.appendChild(statsTable);
         }
     }
