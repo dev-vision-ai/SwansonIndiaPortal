@@ -6,56 +6,31 @@
 }
 
 /* ===== SUMMARY TABLES CONTAINER FIX ===== */
-#dynamicSummaryTableContainer {
+#summaryTableContainer {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin: 32px auto 0 auto;
     width: 100%;
     max-width: 100%;
     padding: 0;
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 
-#dynamicSummaryTableContainer > div {
-    display: flex;
-    justify-content: center;
-    gap: 32px;
-    margin-bottom: 32px;
-}
-
-#dynamicSummaryTableContainer > div:last-child {
-    margin-bottom: 0;
-}
-
-#summaryTableWrapper,
-#statisticsTableWrapper,
-#defectsTableWrapper,
-#ipqcDefectsTableWrapper {
-    flex: 1;
-    max-width: 400px;
-}
-
-#summaryTableWrapper table,
-#statisticsTableWrapper table,
-#defectsTableWrapper table,
-#ipqcDefectsTableWrapper table {
+#summaryTable {
     min-width: 300px;
-    max-width: 350px;
-    font-size: 11px;
+    max-width: 400px;
+    font-size: 12px;
     border-collapse: collapse;
     border: 1px solid #9ca3af;
     background: white;
-    width: 100%;
+    flex-shrink: 0;
+    flex: 1;
 }
 
-#summaryTableWrapper table th,
-#summaryTableWrapper table td,
-#statisticsTableWrapper table th,
-#statisticsTableWrapper table td,
-#defectsTableWrapper table th,
-#defectsTableWrapper table td,
-#ipqcDefectsTableWrapper table th,
-#ipqcDefectsTableWrapper table td {
+#summaryTable th,
+#summaryTable td {
     border: 1px solid #9ca3af;
     padding: 6px 8px;
     text-align: center;
@@ -63,10 +38,7 @@
     overflow-wrap: break-word;
 }
 
-#summaryTableWrapper table th,
-#statisticsTableWrapper table th,
-#defectsTableWrapper table th,
-#ipqcDefectsTableWrapper table th {
+#summaryTable th {
     background: #f3f4f6;
     font-weight: bold;
 }
@@ -97,28 +69,43 @@
         font-size: 13px;
     }
     
-    #dynamicSummaryTableContainer > div {
+    #summaryTableContainer {
         gap: 15px;
+        padding: 0;
+        width: 100%;
     }
     
-    #summaryTableWrapper,
-    #statisticsTableWrapper,
-    #defectsTableWrapper,
-    #ipqcDefectsTableWrapper {
-        max-width: 350px;
-    }
-    
-    #summaryTableWrapper table,
-    #statisticsTableWrapper table,
-    #defectsTableWrapper table,
-    #ipqcDefectsTableWrapper table {
+    #summaryTable {
         min-width: 250px;
         max-width: 350px;
         font-size: 11px;
+        flex: 1;
     }
 }
 
-
+/* ===== LAPTOP RESPONSIVE (1024px - 1440px) ===== */
+@media (min-width: 1024px) and (max-width: 1440px) {
+    main {
+        padding: 0;
+    }
+    
+    #tablesContainer table {
+        font-size: 12px;
+        min-width: 1150px;
+    }
+    
+    #summaryTableContainer {
+        gap: 20px;
+        padding: 0;
+        width: 100%;
+    }
+    
+    #summaryTable {
+        min-width: 300px;
+        max-width: 400px;
+        flex: 1;
+    }
+}
 
 /* ===== DESKTOP RESPONSIVE (> 1440px) ===== */
 @media (min-width: 1440px) {
@@ -133,24 +120,17 @@
         min-width: 1200px;
     }
     
-    #dynamicSummaryTableContainer > div {
+    #summaryTableContainer {
         gap: 30px;
+        padding: 0;
+        width: 100%;
     }
     
-    #summaryTableWrapper,
-    #statisticsTableWrapper,
-    #defectsTableWrapper,
-    #ipqcDefectsTableWrapper {
-        max-width: 500px;
-    }
-    
-    #summaryTableWrapper table,
-    #statisticsTableWrapper table,
-    #defectsTableWrapper table,
-    #ipqcDefectsTableWrapper table {
+    #summaryTable {
         min-width: 350px;
         max-width: 500px;
         font-size: 13px;
+        flex: 1;
     }
 }
 
@@ -175,7 +155,7 @@
         font-size: 10px !important;
     }
     
-    #dynamicSummaryTableContainer > div {
+    #summaryTableContainer {
         flex-direction: column !important;
         gap: 20px !important;
     }
