@@ -3723,11 +3723,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         ipqcWrapper.id = 'ipqcDefectsTableWrapper';
         ipqcWrapper.innerHTML = ipqcHtml;
         
-        // Append to rows
-        topRow.appendChild(summaryWrapper);
-        topRow.appendChild(statsWrapper);
-        bottomRow.appendChild(defectsWrapper);
-        bottomRow.appendChild(ipqcWrapper);
+        // Append to rows in the correct order
+        topRow.appendChild(summaryWrapper);      // Summary Table
+        topRow.appendChild(statsWrapper);       // Statistics Table
+        bottomRow.appendChild(defectsWrapper);  // Total Defects
+        bottomRow.appendChild(ipqcWrapper);     // IPQC Defects
         
         // Append rows to container
         container.appendChild(topRow);
