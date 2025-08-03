@@ -3692,19 +3692,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Clear any existing content first
         container.innerHTML = '';
         
-        // Create the layout with explicit styles
-        const topRow = document.createElement('div');
-        topRow.style.display = 'flex';
-        topRow.style.gap = '24px';
-        topRow.style.marginBottom = '24px';
-        topRow.style.justifyContent = 'center';
-        topRow.style.width = '100%';
-        
-        const bottomRow = document.createElement('div');
-        bottomRow.style.display = 'flex';
-        bottomRow.style.gap = '24px';
-        bottomRow.style.justifyContent = 'center';
-        bottomRow.style.width = '100%';
+        // Create single row layout
+        const singleRow = document.createElement('div');
+        singleRow.style.display = 'flex';
+        singleRow.style.gap = '20px';
+        singleRow.style.justifyContent = 'center';
+        singleRow.style.width = '100%';
+        singleRow.style.flexWrap = 'nowrap';
         
         // Create wrapper divs
         const summaryWrapper = document.createElement('div');
@@ -3723,15 +3717,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         ipqcWrapper.id = 'ipqcDefectsTableWrapper';
         ipqcWrapper.innerHTML = ipqcHtml;
         
-        // Append to rows in the correct order
-        topRow.appendChild(summaryWrapper);      // Summary Table
-        topRow.appendChild(statsWrapper);       // Statistics Table
-        bottomRow.appendChild(defectsWrapper);  // Total Defects
-        bottomRow.appendChild(ipqcWrapper);     // IPQC Defects
+        // Append all tables to single row
+        singleRow.appendChild(summaryWrapper);      // Summary Table
+        singleRow.appendChild(statsWrapper);       // Statistics Table
+        singleRow.appendChild(defectsWrapper);     // Total Defects
+        singleRow.appendChild(ipqcWrapper);        // IPQC Defects
         
-        // Append rows to container
-        container.appendChild(topRow);
-        container.appendChild(bottomRow);
+        // Append single row to container
+        container.appendChild(singleRow);
         
         console.log('Summary tables layout applied:', {
             container: container.id,

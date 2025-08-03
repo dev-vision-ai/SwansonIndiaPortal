@@ -8,7 +8,7 @@
 /* ===== SUMMARY TABLES CONTAINER FIX ===== */
 #dynamicSummaryTableContainer {
     width: 100%;
-    max-width: 800px;
+    max-width: 100%;
     padding: 0;
     overflow: hidden;
     display: flex;
@@ -40,8 +40,8 @@
 #defectsTableWrapper table,
 #ipqcDefectsTableWrapper table {
     min-width: 300px;
-    max-width: 400px;
-    font-size: 12px;
+    max-width: 350px;
+    font-size: 11px;
     border-collapse: collapse;
     border: 1px solid #9ca3af;
     background: white;
