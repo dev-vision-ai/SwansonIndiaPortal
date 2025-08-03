@@ -7,8 +7,36 @@
     <link rel="stylesheet" href="../css/employee_dashboard.css">
     <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .summary-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .summary-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .refresh-button {
+            background: #002E7D;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .refresh-button:hover {
+            background: #001f5c;
+        }
+        .refresh-button:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
-<body>
+<body class="bg-gray-100">
     <div class="container page-fade-in">
         <header class="header-container header-fade-in">
             <div class="left-section">
@@ -22,10 +50,148 @@
                 <img src="../assets/logo.png" alt="Company Logo" class="auth-logo">
             </div>
         </header>
-        <main>
-
+        
+        <main class="p-6">
+            <!-- Live Report Section -->
+            <div class="max-w-7xl mx-auto">
+                <!-- Header with Controls -->
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Live Production Report</h1>
+                        <p class="text-gray-600 mt-1">Real-time production data and summaries</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <!-- Last Updated Time -->
+                        <div class="flex items-center text-sm text-gray-600">
+                            <span id="lastUpdated">Last updated: Just now</span>
+                        </div>
+                        <!-- Refresh Button -->
+                        <button id="refreshButton" class="refresh-button">
+                            <i class="fas fa-sync-alt mr-2"></i>Refresh
+                        </button>
+                    </div>
                 </div>
-            </section>
+
+                <!-- Filters Section -->
+                <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Filters</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+                            <input type="date" id="filterFromDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+                            <input type="date" id="filterToDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Shift</label>
+                            <select id="filterShift" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Shifts</option>
+                                <option value="1">Shift A</option>
+                                <option value="2">Shift B</option>
+                                <option value="3">Shift C</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Machine</label>
+                            <select id="filterMachine" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Machines</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex justify-end">
+                        <button id="applyFilters" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                            Apply Filters
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Summary Tables Container -->
+                <div id="summaryTablesContainer" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Total Defects Summary -->
+                    <div class="summary-card p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Total Defects Summary</h3>
+                        <div id="totalDefectsTable" class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="px-3 py-2 text-left font-medium text-gray-700">Defect Type</th>
+                                        <th class="px-3 py-2 text-center font-medium text-gray-700">Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="totalDefectsBody">
+                                    <tr><td colspan="2" class="text-center text-gray-500 py-4">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- IPQC Defects Summary -->
+                    <div class="summary-card p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">IPQC Defects Summary</h3>
+                        <div id="ipqcDefectsTable" class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="px-3 py-2 text-left font-medium text-gray-700">Defect Type</th>
+                                        <th class="px-3 py-2 text-center font-medium text-gray-700">Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ipqcDefectsBody">
+                                    <tr><td colspan="2" class="text-center text-gray-500 py-4">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Summary -->
+                    <div class="summary-card p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Statistics Summary</h3>
+                        <div id="statisticsTable" class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="px-3 py-2 text-left font-medium text-gray-700">Status</th>
+                                        <th class="px-3 py-2 text-center font-medium text-gray-700">Count</th>
+                                        <th class="px-3 py-2 text-center font-medium text-gray-700">Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="statisticsBody">
+                                    <tr><td colspan="3" class="text-center text-gray-500 py-4">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Production No Summary -->
+                    <div class="summary-card p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Production No Summary</h3>
+                        <div id="productionNoTable" class="overflow-x-auto">
+                            <table class="min-w-full text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="px-3 py-2 text-left font-medium text-gray-700">Production No</th>
+                                        <th class="px-3 py-2 text-center font-medium text-gray-700">Rolls</th>
+                                        <th class="px-3 py-2 text-center font-medium text-gray-700">Total Kgs</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productionNoBody">
+                                    <tr><td colspan="3" class="text-center text-gray-500 py-4">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading Indicator -->
+                <div id="loadingIndicator" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <span class="text-gray-700">Loading data...</span>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
     <script type="module" src="../js/production_report.js"></script>
