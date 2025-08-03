@@ -130,6 +130,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             renderDefectsSummaryTable();
             renderIPQCDefectsTable();
             renderStatisticsTable();
+            renderProductionNoSummaryTable();
         }, 3000);
     }
     
@@ -242,6 +243,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         td.style.wordBreak = 'break-word';
         td.style.textAlign = 'center';
         
+        // In view mode, always make cells non-editable
+        if (viewMode) {
+            contentEditable = false;
+        }
+        
         // Add data-field attribute for simple mapping
         if (colIndex !== null) {
             const fieldMap = {
@@ -276,6 +282,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             select.style.minWidth = '0';
             select.style.padding = '0';
             select.style.margin = '0';
+            
+            // In view mode, disable the dropdown
+            if (viewMode) {
+                select.disabled = true;
+            }
             dropdownOptions.forEach(opt => {
                 const option = document.createElement('option');
                 option.value = opt;
@@ -1795,27 +1806,27 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Create and style the "Add Next Lot" button (only in edit mode)
     if (!viewMode) {
         addNewTableBtn = document.createElement('button');
-        addNewTableBtn.textContent = 'Add Next Lot';
-        addNewTableBtn.style.margin = '10px 0 20px 10px';
-        // Match Add New Rows button style exactly
-        addNewTableBtn.className = addRowsBtn.className;
-        // Copy all inline styles from Add New Rows button
-        const addRowsBtnStyles = window.getComputedStyle(addRowsBtn);
-        addNewTableBtn.style.cssText = addRowsBtn.style.cssText;
-        // Optionally, copy computed styles for padding, font, etc.
-        addNewTableBtn.style.height = addRowsBtnStyles.height;
-        addNewTableBtn.style.fontSize = addRowsBtnStyles.fontSize;
-        addNewTableBtn.style.padding = addRowsBtnStyles.padding;
-        addNewTableBtn.style.borderRadius = addRowsBtnStyles.borderRadius;
-        addNewTableBtn.style.margin = '10px 0 0 0'; // Keep margin for separation
+    addNewTableBtn.textContent = 'Add Next Lot';
+    addNewTableBtn.style.margin = '10px 0 20px 10px';
+    // Match Add New Rows button style exactly
+    addNewTableBtn.className = addRowsBtn.className;
+    // Copy all inline styles from Add New Rows button
+    const addRowsBtnStyles = window.getComputedStyle(addRowsBtn);
+    addNewTableBtn.style.cssText = addRowsBtn.style.cssText;
+    // Optionally, copy computed styles for padding, font, etc.
+    addNewTableBtn.style.height = addRowsBtnStyles.height;
+    addNewTableBtn.style.fontSize = addRowsBtnStyles.fontSize;
+    addNewTableBtn.style.padding = addRowsBtnStyles.padding;
+    addNewTableBtn.style.borderRadius = addRowsBtnStyles.borderRadius;
+    addNewTableBtn.style.margin = '10px 0 0 0'; // Keep margin for separation
         
         // Initially disable the button
         addNewTableBtn.disabled = true;
         addNewTableBtn.style.opacity = '0.5';
         addNewTableBtn.style.cursor = 'not-allowed';
 
-        // Initially append the button after the first table
-        tablesContainer.appendChild(addNewTableBtn);
+    // Initially append the button after the first table
+    tablesContainer.appendChild(addNewTableBtn);
     }
 
     // Add global table border styles for all tables
@@ -1990,7 +2001,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         };
     }
 
-    // Add event listener to the button
+    // Add event listener to the button (only if it exists)
+    if (addNewTableBtn) {
     addNewTableBtn.addEventListener('click', async function() {
         // Get the number of rows in the main table (first table)
         const mainTable = tablesContainer.querySelector('table');
@@ -2068,7 +2080,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 saveLotToSupabase(newTable);
             }
         }, 500); // Increased timeout to ensure everything is loaded
-    });
+        });
+    }
 
     // Helper to update spacing between tables
     function updateTableSpacing() {
@@ -2120,7 +2133,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // updateAddTableBtnVisibility(); // REMOVE THIS LINE
 
     // Call updateTableSpacing after any table add/remove/restore
+    if (addNewTableBtn) {
     addNewTableBtn.addEventListener('click', updateTableSpacing);
+    }
 
     // ===== KEYBOARD NAVIGATION FUNCTIONALITY =====
     function setupKeyboardNavigation() {
@@ -2458,47 +2473,47 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Add Fill O button (only in edit mode)
         if (!viewMode) {
-            const fillOButton = document.createElement('button');
-            fillOButton.textContent = 'Fill O';
+        const fillOButton = document.createElement('button');
+        fillOButton.textContent = 'Fill O';
             fillOButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm mr-2';
-            fillOButton.style.marginBottom = '8px';
-            fillOButton.onclick = function() {
-                const rows = table.querySelectorAll('tbody tr');
-                rows.forEach(row => {
-                    const cells = row.querySelectorAll('td');
-                    // Only fill Lines/Strips (12), Film Appearance (13-19), Printing (20-24), Roll Appearance (25-28)
-                    const targetIndices = [
-                        12,                    // Lines/Strips
-                        13, 14, 15, 16, 17, 18, 19, // Film Appearance
-                        20, 21, 22, 23, 24,         // Printing
-                        25, 26, 27, 28              // Roll Appearance
-                    ];
-                    targetIndices.forEach(idx => {
-                        const td = cells[idx];
-                        if (
-                            td &&
-                            !td.querySelector('select') &&
-                            !td.querySelector('input') &&
-                            td.textContent.trim() === ''
-                        ) {
+        fillOButton.style.marginBottom = '8px';
+        fillOButton.onclick = function() {
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                // Only fill Lines/Strips (12), Film Appearance (13-19), Printing (20-24), Roll Appearance (25-28)
+                const targetIndices = [
+                    12,                    // Lines/Strips
+                    13, 14, 15, 16, 17, 18, 19, // Film Appearance
+                    20, 21, 22, 23, 24,         // Printing
+                    25, 26, 27, 28              // Roll Appearance
+                ];
+                targetIndices.forEach(idx => {
+                    const td = cells[idx];
+                    if (
+                        td &&
+                        !td.querySelector('select') &&
+                        !td.querySelector('input') &&
+                        td.textContent.trim() === ''
+                    ) {
                             // Temporarily enable cell for Fill O operation
                             const wasEditable = td.contentEditable;
                             td.contentEditable = 'true';
-                            td.textContent = 'O';
+                        td.textContent = 'O';
                             // Trigger save event for this cell
-                            td.dispatchEvent(new Event('input', { bubbles: true }));
+                        td.dispatchEvent(new Event('input', { bubbles: true }));
                             // Restore original editable state
                             td.contentEditable = wasEditable;
-                        }
-                    });
+                    }
                 });
+            });
                 
                 // Save the table after filling O values
                 setTimeout(() => {
                     saveLotTableToSupabase(table);
                 }, 100);
-            };
-            tablesContainer.appendChild(fillOButton);
+        };
+        tablesContainer.appendChild(fillOButton);
             
             // Add Clear O button
             const clearOButton = document.createElement('button');
@@ -2543,11 +2558,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             };
             tablesContainer.appendChild(clearOButton);
 
-            // Add Delete Table button
-            const deleteTableButton = document.createElement('button');
-            deleteTableButton.textContent = 'Delete Table';
-            deleteTableButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm ml-2';
-            deleteTableButton.style.marginBottom = '8px';
+        // Add Delete Table button
+        const deleteTableButton = document.createElement('button');
+        deleteTableButton.textContent = 'Delete Table';
+        deleteTableButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm ml-2';
+        deleteTableButton.style.marginBottom = '8px';
             deleteTableButton.onclick = function() {
                 // Store the table reference for the overlay
                 window.currentDeleteTable = table;
@@ -2573,8 +2588,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
                 
                 overlay.classList.remove('hidden');
-            };
-            tablesContainer.appendChild(deleteTableButton);
+        };
+        tablesContainer.appendChild(deleteTableButton);
         }
         const table = document.createElement('table');
         table.className = 'w-full border-collapse mt-6';
@@ -3126,6 +3141,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         renderDefectsSummaryTable();
         renderIPQCDefectsTable();
         renderStatisticsTable();
+        renderProductionNoSummaryTable();
     }, 1000);
 
     // ===== MULTI-LOT SUPPORT END =====
@@ -4066,6 +4082,132 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Add statistics table at the end (right side)
         if (summaryTableContainer && !summaryTableContainer.contains(statsTable)) {
             summaryTableContainer.appendChild(statsTable);
+        }
+    }
+
+    // Render Production No Summary Table
+    function renderProductionNoSummaryTable() {
+        // Get the main Production No from the form header
+        const mainProductionNo = document.getElementById('production_no')?.textContent?.trim() || '';
+        
+        // Extract additional Production Nos from remarks and track continuous process
+        const productionNoData = {};
+        const tables = tablesContainer.querySelectorAll('table');
+        
+        // Initialize with main Production No if it exists
+        if (mainProductionNo && mainProductionNo !== '[Production No.]') {
+            productionNoData[mainProductionNo] = { rolls: 0, totalKg: 0 };
+        }
+        
+        // Process all tables sequentially to track Production No changes across the entire shift
+        let currentProductionNo = mainProductionNo;
+        let totalRollsProcessed = 0;
+        
+        // Process all tables in order (shift-wide continuous tracking)
+        tables.forEach((table, tableIndex) => {
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            
+            const rows = Array.from(tbody.rows);
+            console.log(`Processing Table ${tableIndex + 1} with ${rows.length} rows, current Production No: ${currentProductionNo}`);
+            
+            // Process each row in the table
+            rows.forEach((row, rowIndex) => {
+                const cells = row.querySelectorAll('td[data-field]');
+                let rollWeight = 0;
+                let remarks = '';
+                let productionNoChanged = false;
+                
+                // Check for Production No change in remarks first
+                cells.forEach(cell => {
+                    const field = cell.dataset.field;
+                    if (!field) return;
+                    
+                    if (field === 'remarks') {
+                        remarks = cell.textContent.trim();
+                        // Look for Production No patterns in remarks
+                        const patterns = [
+                            /PRD:\s*([A-Z0-9]+)/i,           // PRD: UBS25PR026
+                            /Production:\s*([A-Z0-9]+)/i,     // Production: UBS25PR026
+                            /Prod:\s*([A-Z0-9]+)/i,          // Prod: UBS25PR026
+                            /([A-Z]{2,3}\d{2}[A-Z]{2}\d{3})/ // Direct format like UBS25PR026
+                        ];
+                        
+                        for (const pattern of patterns) {
+                            const match = remarks.match(pattern);
+                            if (match && match[1] !== currentProductionNo) {
+                                console.log(`Production No changed from ${currentProductionNo} to ${match[1]} at Table ${tableIndex + 1}, Row ${rowIndex + 1}`);
+                                currentProductionNo = match[1];
+                                productionNoChanged = true;
+                                break;
+                            }
+                        }
+                    } else if (field === 'roll_weight') {
+                        rollWeight = parseFloat(cell.textContent.trim()) || 0;
+                    }
+                });
+                
+                // Count roll for current Production No (if weight > 0)
+                if (currentProductionNo && currentProductionNo !== '[Production No.]' && rollWeight > 0) {
+                    if (!productionNoData[currentProductionNo]) {
+                        productionNoData[currentProductionNo] = { rolls: 0, totalKg: 0 };
+                    }
+                    productionNoData[currentProductionNo].rolls++;
+                    productionNoData[currentProductionNo].totalKg += rollWeight;
+                    totalRollsProcessed++;
+                    
+                    console.log(`Added roll to ${currentProductionNo}: weight=${rollWeight}, total rolls=${productionNoData[currentProductionNo].rolls}, total kg=${productionNoData[currentProductionNo].totalKg.toFixed(2)}`);
+                }
+            });
+        });
+        
+        console.log('Production No Summary - Total rolls processed:', totalRollsProcessed);
+        console.log('Production No Data:', productionNoData);
+        
+        // Render the Production No summary table
+        let productionNoTable = document.getElementById('productionNoSummaryTable');
+        let summaryTableContainer = document.getElementById('summaryTableContainer');
+        
+        if (!productionNoTable) {
+            productionNoTable = document.createElement('table');
+            productionNoTable.id = 'productionNoSummaryTable';
+            productionNoTable.className = 'min-w-[300px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white';
+        }
+        
+        let html = `
+            <thead>
+                <tr style="height: 30px;">
+                    <th colspan="3" style="background-color: #f3f4f6; font-weight: bold; border: 1px solid #9ca3af;">Production No Summary</th>
+                </tr>
+                <tr style="height: 25px;">
+                    <th style="width: 120px; border: 1px solid #9ca3af;">Production No</th>
+                    <th style="width: 60px; border: 1px solid #9ca3af;">Rolls</th>
+                    <th style="width: 80px; border: 1px solid #9ca3af;">Total KG</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+        
+        if (Object.keys(productionNoData).length === 0) {
+            html += '<tr style="height: 25px;"><td colspan="3" style="border: 1px solid #9ca3af;">No Production No data found.</td></tr>';
+        } else {
+            Object.entries(productionNoData).forEach(([productionNo, data]) => {
+                html += `
+                    <tr style="height: 25px;">
+                        <td style="border: 1px solid #9ca3af;">${productionNo}</td>
+                        <td style="border: 1px solid #9ca3af;">${data.rolls}</td>
+                        <td style="border: 1px solid #9ca3af;">${data.totalKg.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+        }
+        
+        html += '</tbody>';
+        productionNoTable.innerHTML = html;
+        
+        // Add to summary table container
+        if (summaryTableContainer && !summaryTableContainer.contains(productionNoTable)) {
+            summaryTableContainer.appendChild(productionNoTable);
         }
     }
 });
