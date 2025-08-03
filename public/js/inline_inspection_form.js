@@ -862,13 +862,15 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
       (form.status === 'submit' ? 'Submitted' : form.status.charAt(0).toUpperCase() + form.status.slice(1)) : '-';
     const statusColor = form.status === 'submit' ? 'text-green-600 font-semibold' : 'text-orange-600 font-semibold';
     
-    // Add color coding for M/C No
+    // Add circle styling for M/C No
     const mcNo = form.mc_no || '-';
-    let mcNoColor = '';
+    let mcNoStyle = '';
     if (mcNo === '1' || mcNo === 1) {
-      mcNoColor = 'text-red-600 font-semibold';
+      mcNoStyle = 'bg-red-500 text-white font-semibold rounded-full w-8 h-8 flex items-center justify-center mx-auto';
     } else if (mcNo === '2' || mcNo === 2) {
-      mcNoColor = 'text-green-600 font-semibold';
+      mcNoStyle = 'bg-green-500 text-white font-semibold rounded-full w-8 h-8 flex items-center justify-center mx-auto';
+    } else {
+      mcNoStyle = 'bg-gray-500 text-white font-semibold rounded-full w-8 h-8 flex items-center justify-center mx-auto';
     }
     
     const row = document.createElement('tr');
@@ -877,7 +879,9 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${showAllForDateFilters ? (forms.length - index) : (limitedForms.length - index)}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${formatDate(form.production_date)}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${form.prod_code || '-'}</td>
-      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words ${mcNoColor}">${mcNo}</td>
+      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">
+        <div class="${mcNoStyle}">${mcNo}</div>
+      </td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${shiftDisplay}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${operatorDisplay || '-'}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${supervisorDisplay || '-'}</td>

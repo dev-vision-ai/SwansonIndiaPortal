@@ -24,11 +24,12 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "@supabase/supabase-js": "^2.53.0",
     "cors": "^2.8.5",
+    "express": "^4.18.2",
     "multer": "^1.4.5-lts.1",
-    "xlsx": "^0.18.5",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
@@ -38,4 +39,4 @@
     "url": "https://github.com/dev-vision-ai/SwansonIndiaPortal.git"
   },
   "homepage": "https://swanson-ind-git-aaaf01-swanson-plastics-india-pvt-ltds-projects.vercel.app"
-} 
+}

@@ -289,6 +289,18 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const ctCheckbox = table ? table.querySelector('input[name="ct"]') : null;
                 const isCTChecked = ctCheckbox ? ctCheckbox.checked : false;
                 
+                // Handle manual Accept/Reject change → Clear X/O values if changing from Reject
+                if (selectedValue !== 'Reject' && selectedValue !== 'Rework') {
+                    // If changing from Reject to Accept or empty, clear all X values
+                    clearXValuesInRow(row);
+                }
+                
+                // Handle manual Accept/Reject change → Clear all X/O values if changing to default
+                if (selectedValue === '') {
+                    // If changing to default/empty, clear all X and O values
+                    clearAllXOValuesInRow(row);
+                }
+                
                 if (selectedValue === 'Accept') {
                     // For Accept: Disable X/O cells and Defect Name (client can't edit when Accept)
                     const cells = row ? row.querySelectorAll('td[data-field]') : [];
@@ -1180,10 +1192,208 @@ document.addEventListener('DOMContentLoaded', async function() {
                 tbody.removeEventListener('change', tbody._saveHandler, true);
             }
             // Create a new handler that always saves this table
-            tbody._saveHandler = function() { debouncedSave(table); };
+            tbody._saveHandler = function(event) { 
+                // Handle automatic Accept/Reject based on X/O input
+                handleXOInput(event);
+                debouncedSave(table); 
+            };
             tbody.addEventListener('input', tbody._saveHandler, true);
             tbody.addEventListener('change', tbody._saveHandler, true);
         });
+    }
+
+    // ===== AUTOMATIC ACCEPT/REJECT BASED ON X/O INPUT =====
+    function handleXOInput(event) {
+        const cell = event.target;
+        if (!cell || !cell.dataset || !cell.dataset.field) return;
+        
+        // Define X/O fields that should trigger automatic Accept/Reject
+        const xoFields = [
+            'lines_strips', 'glossy', 'film_color', 'pin_hole', 'patch_mark', 'odour',
+            'print_color', 'mis_print', 'dirty_print', 'tape_test', 'centralization',
+            'wrinkles', 'prs', 'roll_curve', 'core_misalignment', 'others'
+        ];
+        
+        const fieldName = cell.dataset.field;
+        if (!xoFields.includes(fieldName)) return;
+        
+        const inputValue = cell.textContent.trim().toUpperCase();
+        const row = cell.closest('tr');
+        if (!row) return;
+        
+        // Find the Accept/Reject dropdown in the same row
+        const acceptRejectCell = row.querySelector('td[data-field="accept_reject"]');
+        if (!acceptRejectCell) return;
+        
+        const acceptRejectSelect = acceptRejectCell.querySelector('select');
+        if (!acceptRejectSelect) return;
+        
+        // Check ALL X/O fields in the row to determine Accept/Reject
+        let hasX = false;
+        let hasO = false;
+        let totalXOFilled = 0;
+        let xFieldName = null; // Track which field has X
+        
+        // Check all X/O fields in this row
+        xoFields.forEach(field => {
+            const fieldCell = row.querySelector(`td[data-field="${field}"]`);
+            if (fieldCell) {
+                const value = fieldCell.textContent.trim().toUpperCase();
+                if (value === 'X') {
+                    hasX = true;
+                    totalXOFilled++;
+                } else if (value === 'O') {
+                    hasO = true;
+                    totalXOFilled++;
+                }
+            }
+        });
+        
+        // Use the field that was actually changed (the one that triggered this event)
+        if (inputValue === 'X') {
+            xFieldName = fieldName;
+        }
+        
+        // Auto-update Accept/Reject based on ALL X/O fields in the row
+        if (hasX) {
+            // If ANY field has X, set to Reject
+            acceptRejectSelect.value = 'Reject';
+            acceptRejectSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            // Auto-fill defect name based on the X field
+            if (xFieldName) {
+                autoFillDefectName(row, xFieldName);
+            }
+            
+            // Re-apply color coding to show red background for X values
+            const table = row.closest('table');
+            if (table) {
+                applyColorCodingToTable(table);
+            }
+        } else if (hasO && totalXOFilled > 0) {
+            // If ALL filled fields are O (no X found), set to Accept
+            acceptRejectSelect.value = 'Accept';
+            acceptRejectSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        } else {
+            // If no X/O fields are filled, reset to default
+            acceptRejectSelect.value = '';
+            acceptRejectSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+
+    // ===== CLEAR X VALUES WHEN MANUALLY CHANGING FROM REJECT =====
+    function clearXValuesInRow(row) {
+        if (!row) return;
+        
+        // Define X/O fields that should be cleared
+        const xoFields = [
+            'lines_strips', 'glossy', 'film_color', 'pin_hole', 'patch_mark', 'odour',
+            'print_color', 'mis_print', 'dirty_print', 'tape_test', 'centralization',
+            'wrinkles', 'prs', 'roll_curve', 'core_misalignment', 'others'
+        ];
+        
+        // Clear all X values in X/O fields
+        xoFields.forEach(field => {
+            const fieldCell = row.querySelector(`td[data-field="${field}"]`);
+            if (fieldCell && fieldCell.textContent.trim().toUpperCase() === 'X') {
+                fieldCell.textContent = '';
+            }
+        });
+        
+        // Re-apply color coding to remove red background styling
+        const table = row.closest('table');
+        if (table) {
+            applyColorCodingToTable(table);
+        }
+    }
+
+    // ===== CLEAR ALL X/O VALUES WHEN MANUALLY CHANGING TO DEFAULT =====
+    function clearAllXOValuesInRow(row) {
+        if (!row) return;
+        
+        // Define X/O fields that should be cleared
+        const xoFields = [
+            'lines_strips', 'glossy', 'film_color', 'pin_hole', 'patch_mark', 'odour',
+            'print_color', 'mis_print', 'dirty_print', 'tape_test', 'centralization',
+            'wrinkles', 'prs', 'roll_curve', 'core_misalignment', 'others'
+        ];
+        
+        // Clear all X and O values in X/O fields
+        xoFields.forEach(field => {
+            const fieldCell = row.querySelector(`td[data-field="${field}"]`);
+            if (fieldCell) {
+                const value = fieldCell.textContent.trim().toUpperCase();
+                if (value === 'X' || value === 'O') {
+                    fieldCell.textContent = '';
+                }
+            }
+        });
+        
+        // Re-apply color coding to remove red background styling
+        const table = row.closest('table');
+        if (table) {
+            applyColorCodingToTable(table);
+        }
+    }
+
+    // ===== AUTO-FILL DEFECT NAME BASED ON X FIELD =====
+    function autoFillDefectName(row, xFieldName) {
+        if (!row) return;
+        
+        // Find the defect name cell in the same row
+        const defectNameCell = row.querySelector('td[data-field="defect_name"]');
+        if (!defectNameCell) return;
+        
+        // Define field to defect name mappings
+        const fieldToDefectMappings = {
+            'mis_print': 'Mis Print',
+            'dirty_print': 'Dirty Print', 
+            'pin_hole': 'Pinhole',
+            'core_misalignment': 'Core Misalignment',
+            'prs': 'PRS'
+        };
+        
+        // Check if this X field has a direct mapping
+        if (fieldToDefectMappings[xFieldName]) {
+            // Use the exact defect name from mapping
+            defectNameCell.textContent = fieldToDefectMappings[xFieldName];
+            // Trigger input event to ensure save
+            defectNameCell.dispatchEvent(new Event('input', { bubbles: true }));
+        } else if (xFieldName === 'wrinkles') {
+            // For wrinkles, show defect suggestions from database
+            showWrinkleDefectSuggestions(defectNameCell);
+        } else {
+            // For other fields, show all defect suggestions filtered by field name
+            showDefectSuggestionsForField(defectNameCell, xFieldName);
+        }
+    }
+
+    // ===== SHOW WRINKLE DEFECT SUGGESTIONS =====
+    function showWrinkleDefectSuggestions(defectNameCell) {
+        // Use the existing defect autocomplete system with wrinkle filter
+        showDefectAutocomplete(defectNameCell, 'wrinkle');
+    }
+
+    // ===== SHOW DEFECT SUGGESTIONS FOR SPECIFIC FIELD =====
+    function showDefectSuggestionsForField(defectNameCell, fieldName) {
+        // Map field names to search terms for defect suggestions
+        const fieldToSearchTerms = {
+            'lines_strips': 'line',
+            'glossy': 'gloss',
+            'film_color': 'color',
+            'pin_hole': 'hole',
+            'patch_mark': 'patch',
+            'odour': 'odor',
+            'print_color': 'print',
+            'tape_test': 'tape',
+            'centralization': 'central',
+            'prs': 'prs',
+            'roll_curve': 'curve',
+            'others': 'other'
+        };
+        
+        const searchTerm = fieldToSearchTerms[fieldName] || fieldName;
+        showDefectAutocomplete(defectNameCell, searchTerm);
     }
 
     // ===== LOCK CHECKBOX FUNCTIONALITY =====
@@ -2154,6 +2364,72 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Helper to create a table for a lot, given its data and form_id
     function createLotTable(lot, nRows = 0) {
         console.log('createLotTable called with lot:', lot);
+        
+        // Reconstruct rolls array from individual JSONB columns
+        const rolls = [];
+        const maxRolls = Math.max(
+            Object.keys(lot.roll_weights || {}).length,
+            Object.keys(lot.roll_widths || {}).length,
+            Object.keys(lot.film_weights_gsm || {}).length,
+            Object.keys(lot.thickness_data || {}).length,
+            Object.keys(lot.roll_diameters || {}).length,
+            Object.keys(lot.accept_reject_status || {}).length,
+            Object.keys(lot.defect_names || {}).length,
+            Object.keys(lot.remarks_data || {}).length,
+            Object.keys(lot.film_appearance || {}).length,
+            Object.keys(lot.printing_quality || {}).length,
+            Object.keys(lot.roll_appearance || {}).length,
+            Object.keys(lot.paper_core_data || {}).length,
+            Object.keys(lot.time_data || {}).length
+        );
+        
+        for (let i = 1; i <= maxRolls; i++) {
+            const rollKey = i.toString();
+            const roll = {
+                roll_position: i,
+                roll_weight: lot.roll_weights?.[rollKey] || '',
+                roll_width_mm: lot.roll_widths?.[rollKey] || '',
+                film_weight_gsm: lot.film_weights_gsm?.[rollKey] || '',
+                thickness: lot.thickness_data?.[rollKey] || '',
+                roll_dia: lot.roll_diameters?.[rollKey] || '',
+                accept_reject: lot.accept_reject_status?.[rollKey] || '',
+                defect_name: lot.defect_names?.[rollKey] || '',
+                remarks: lot.remarks_data?.[rollKey] || '',
+                hour: lot.time_data?.[rollKey]?.hour || '',
+                minute: lot.time_data?.[rollKey]?.minute || '',
+                // Film appearance fields
+                lines_strips: lot.film_appearance?.[rollKey]?.lines_strips || '',
+                glossy: lot.film_appearance?.[rollKey]?.glossy || '',
+                film_color: lot.film_appearance?.[rollKey]?.film_color || '',
+                pin_hole: lot.film_appearance?.[rollKey]?.pin_hole || '',
+                patch_mark: lot.film_appearance?.[rollKey]?.patch_mark || '',
+                odour: lot.film_appearance?.[rollKey]?.odour || '',
+                ct_appearance: lot.film_appearance?.[rollKey]?.ct_appearance || '',
+                // Printing quality fields
+                print_color: lot.printing_quality?.[rollKey]?.print_color || '',
+                mis_print: lot.printing_quality?.[rollKey]?.mis_print || '',
+                dirty_print: lot.printing_quality?.[rollKey]?.dirty_print || '',
+                tape_test: lot.printing_quality?.[rollKey]?.tape_test || '',
+                centralization: lot.printing_quality?.[rollKey]?.centralization || '',
+                // Roll appearance fields
+                wrinkles: lot.roll_appearance?.[rollKey]?.wrinkles || '',
+                prs: lot.roll_appearance?.[rollKey]?.prs || '',
+                roll_curve: lot.roll_appearance?.[rollKey]?.roll_curve || '',
+                core_misalignment: lot.roll_appearance?.[rollKey]?.core_misalignment || '',
+                others: lot.roll_appearance?.[rollKey]?.others || '',
+                // Paper core fields
+                paper_core_dia_id: lot.paper_core_data?.[rollKey]?.id || '',
+                paper_core_dia_od: lot.paper_core_data?.[rollKey]?.od || '',
+                // Lot-level fields (same for all rows in this lot)
+                lot_no: lot.lot_no || '',
+                arm: lot.arm || '',
+                inspected_by: lot.inspected_by || ''
+            };
+            rolls.push(roll);
+        }
+        
+        console.log('Reconstructed rolls:', rolls);
+        
         // Insert a dotted separator before each table except the first
         if (tablesContainer.childElementCount > 0) {
             const separator = document.createElement('div');
@@ -2292,54 +2568,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Build tbody - Updated for individual JSONB columns
         const tbody = document.createElement('tbody');
         
-        // Reconstruct rolls from individual JSONB columns
-        const rollPositions = Object.keys(lot.accept_reject_status || {});
-        const rolls = [];
-        rollPositions.forEach(position => {
-            const roll = {
-                roll_position: parseInt(position),
-                roll_weight: lot.roll_weights?.[position] || '',
-                roll_width_mm: lot.roll_widths?.[position] || '',
-                film_weight_gsm: lot.film_weights_gsm?.[position] || '',
-                thickness: lot.thickness_data?.[position] || '',
-                roll_dia: lot.roll_diameters?.[position] || '',
-                accept_reject: lot.accept_reject_status?.[position] || '',
-                defect_name: lot.defect_names?.[position] || '',
-                remarks: lot.remarks_data?.[position] || '',
-                // Film appearance fields
-                lines_strips: lot.film_appearance?.[position]?.lines_strips || '',
-                glossy: lot.film_appearance?.[position]?.glossy || '',
-                film_color: lot.film_appearance?.[position]?.film_color || '',
-                pin_hole: lot.film_appearance?.[position]?.pin_hole || '',
-                patch_mark: lot.film_appearance?.[position]?.patch_mark || '',
-                odour: lot.film_appearance?.[position]?.odour || '',
-                ct_appearance: lot.film_appearance?.[position]?.ct_appearance || '',
-                // Printing quality fields
-                print_color: lot.printing_quality?.[position]?.print_color || '',
-                mis_print: lot.printing_quality?.[position]?.mis_print || '',
-                dirty_print: lot.printing_quality?.[position]?.dirty_print || '',
-                tape_test: lot.printing_quality?.[position]?.tape_test || '',
-                centralization: lot.printing_quality?.[position]?.centralization || '',
-                // Roll appearance fields
-                wrinkles: lot.roll_appearance?.[position]?.wrinkles || '',
-                prs: lot.roll_appearance?.[position]?.prs || '',
-                roll_curve: lot.roll_appearance?.[position]?.roll_curve || '',
-                core_misalignment: lot.roll_appearance?.[position]?.core_misalignment || '',
-                others: lot.roll_appearance?.[position]?.others || '',
-                // Paper core fields
-                paper_core_dia_id: lot.paper_core_data?.[position]?.id || '',
-                paper_core_dia_od: lot.paper_core_data?.[position]?.od || '',
-                // Time fields
-                hour: lot.time_data?.[position]?.hour || '',
-                minute: lot.time_data?.[position]?.minute || '',
-                // Lot number and other fields
-                lot_no: lot.lot_no || '',
-                arm: lot.arm || '',
-                inspected_by: lot.inspected_by || ''
-            };
-            rolls.push(roll);
-        });
-        
         console.log('Rolls reconstructed from JSONB:', rolls);
         const numRows = Math.max(rolls.length, nRows);
         
@@ -2355,6 +2583,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (col === 2 && isFirstRow && rolls.length === 0) {
                     td.textContent = lot.lot_no || '';
                     console.log('Setting lot number for new table:', lot.lot_no);
+                }
+                // Set arm for first row if no rolls data (new lot)
+                else if (col === 4 && isFirstRow && rolls.length === 0) {
+                    td.textContent = lot.arm || '';
+                    console.log('Setting arm for new table:', lot.arm);
                 }
                 // If there is data for this row, fill it
                 else if (rolls[i]) {
@@ -2374,16 +2607,22 @@ document.addEventListener('DOMContentLoaded', async function() {
                     // Only show lot number in the first row
                     if (col === 2 && !isFirstRow) {
                         value = ''; // Clear lot number for non-first rows
+                    } else if (col === 2 && isFirstRow) {
+                        value = lot.lot_no || value; // Use lot.lot_no for first row
                     }
                     
                     // Only show inspected_by in the first row
                     if (col === 32 && !isFirstRow) {
                         value = ''; // Clear inspected_by for non-first rows
+                    } else if (col === 32 && isFirstRow) {
+                        value = lot.inspected_by || value; // Use lot.inspected_by for first row
                     }
                     
                     // Only show arm in the first row
                     if (col === 4 && !isFirstRow) {
                         value = ''; // Clear arm for non-first rows
+                    } else if (col === 4 && isFirstRow) {
+                        value = lot.arm || value; // Use lot.arm for first row
                     }
                     
                     if (td && td.querySelector('select')) {
@@ -3227,13 +3466,30 @@ document.addEventListener('DOMContentLoaded', async function() {
     })();
 
     // 2. Autocomplete logic for defect_name cells
-    function showDefectAutocomplete(cell) {
+    function showDefectAutocomplete(cell, filter = null) {
         // Remove any existing dropdown
         document.querySelectorAll('.defect-autocomplete-dropdown').forEach(el => el.remove());
         const inputValue = cell.textContent.trim().toLowerCase();
+        
+        // If filter is provided and cell is empty, show filtered suggestions
+        if (filter && inputValue.length === 0) {
+            const filteredMatches = defectSuggestions.filter(d => 
+                d.toLowerCase().includes(filter.toLowerCase()) && d.trim() !== ''
+            );
+            if (filteredMatches.length === 0) return;
+            showDefectDropdown(cell, filteredMatches);
+            return;
+        }
+        
+        // Normal autocomplete behavior
         if (inputValue.length === 0) return; // Only show dropdown if user has typed something
         const matches = defectSuggestions.filter(d => d.toLowerCase().startsWith(inputValue) && d.trim() !== '');
         if (matches.length === 0) return;
+        showDefectDropdown(cell, matches);
+    }
+    
+    // Helper function to show defect dropdown
+    function showDefectDropdown(cell, matches) {
         const cellRect = cell.getBoundingClientRect();
         const dropdown = document.createElement('div');
         dropdown.className = 'defect-autocomplete-dropdown';
@@ -3814,4 +4070,4 @@ document.addEventListener('DOMContentLoaded', async function() {
             summaryTableContainer.appendChild(statsTable);
         }
     }
-}); 
+});
