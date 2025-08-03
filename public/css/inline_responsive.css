@@ -1,0 +1,209 @@
+/* ===== INLINE INSPECTION FORM RESPONSIVE CSS ===== */
+
+/* ===== BASE RESPONSIVE SETTINGS ===== */
+* {
+    box-sizing: border-box;
+}
+
+/* ===== SUMMARY TABLES CONTAINER FIX ===== */
+#dynamicSummaryTableContainer {
+    width: 100%;
+    max-width: 800px;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#dynamicSummaryTableContainer > div {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 32px;
+}
+
+#dynamicSummaryTableContainer > div:last-child {
+    margin-bottom: 0;
+}
+
+#summaryTableWrapper,
+#statisticsTableWrapper,
+#defectsTableWrapper,
+#ipqcDefectsTableWrapper {
+    flex: 1;
+    max-width: 400px;
+}
+
+#summaryTableWrapper table,
+#statisticsTableWrapper table,
+#defectsTableWrapper table,
+#ipqcDefectsTableWrapper table {
+    min-width: 300px;
+    max-width: 400px;
+    font-size: 12px;
+    border-collapse: collapse;
+    border: 1px solid #9ca3af;
+    background: white;
+    width: 100%;
+}
+
+#summaryTableWrapper table th,
+#summaryTableWrapper table td,
+#statisticsTableWrapper table th,
+#statisticsTableWrapper table td,
+#defectsTableWrapper table th,
+#defectsTableWrapper table td,
+#ipqcDefectsTableWrapper table th,
+#ipqcDefectsTableWrapper table td {
+    border: 1px solid #9ca3af;
+    padding: 6px 8px;
+    text-align: center;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+#summaryTableWrapper table th,
+#statisticsTableWrapper table th,
+#defectsTableWrapper table th,
+#ipqcDefectsTableWrapper table th {
+    background: #f3f4f6;
+    font-weight: bold;
+}
+
+
+
+/* ===== TABLET RESPONSIVE (768px - 1024px) ===== */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .header-container {
+        padding: 12px 15px;
+    }
+    
+    .header-title {
+        font-size: 17px;
+    }
+    
+    main {
+        padding: 0;
+    }
+    
+    #tablesContainer table {
+        font-size: 11px;
+        min-width: 1100px;
+    }
+    
+    .btn {
+        padding: 7px 14px;
+        font-size: 13px;
+    }
+    
+    #dynamicSummaryTableContainer > div {
+        gap: 15px;
+    }
+    
+    #summaryTableWrapper,
+    #statisticsTableWrapper,
+    #defectsTableWrapper,
+    #ipqcDefectsTableWrapper {
+        max-width: 350px;
+    }
+    
+    #summaryTableWrapper table,
+    #statisticsTableWrapper table,
+    #defectsTableWrapper table,
+    #ipqcDefectsTableWrapper table {
+        min-width: 250px;
+        max-width: 350px;
+        font-size: 11px;
+    }
+}
+
+
+
+/* ===== DESKTOP RESPONSIVE (> 1440px) ===== */
+@media (min-width: 1440px) {
+    main {
+        padding: 0;
+        max-width: none;
+        margin: 0;
+    }
+    
+    #tablesContainer table {
+        font-size: 13px;
+        min-width: 1200px;
+    }
+    
+    #dynamicSummaryTableContainer > div {
+        gap: 30px;
+    }
+    
+    #summaryTableWrapper,
+    #statisticsTableWrapper,
+    #defectsTableWrapper,
+    #ipqcDefectsTableWrapper {
+        max-width: 500px;
+    }
+    
+    #summaryTableWrapper table,
+    #statisticsTableWrapper table,
+    #defectsTableWrapper table,
+    #ipqcDefectsTableWrapper table {
+        min-width: 350px;
+        max-width: 500px;
+        font-size: 13px;
+    }
+}
+
+/* ===== PRINT RESPONSIVE ===== */
+@media print {
+    .header-container {
+        background: white !important;
+        color: black !important;
+        position: static !important;
+    }
+    
+    .btn {
+        display: none !important;
+    }
+    
+    #tablesContainer {
+        overflow: visible !important;
+    }
+    
+    #tablesContainer table {
+        min-width: auto !important;
+        font-size: 10px !important;
+    }
+    
+    #dynamicSummaryTableContainer > div {
+        flex-direction: column !important;
+        gap: 20px !important;
+    }
+    
+    main {
+        margin-top: 0 !important;
+    }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ===== FOCUS STATES FOR ACCESSIBILITY ===== */
+.btn:focus,
+select:focus,
+input:focus,
+textarea:focus {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+/* Remove focus outline from back button */
+.header-back-button:focus {
+    outline: none;
+} 
