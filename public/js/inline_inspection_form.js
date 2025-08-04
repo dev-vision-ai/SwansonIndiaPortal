@@ -1144,6 +1144,9 @@ async function editForm(traceability_code, lot_letter) {
   // Show the overlay for editing form details
   overlay.style.display = 'flex';
   
+  // Setup personnel autocomplete for edit mode
+  setupPersonnelAutocomplete();
+  
   // Ensure form submission handler is attached
   if (form) {
     form.onsubmit = handleFormSubmit;
@@ -1653,6 +1656,9 @@ document.addEventListener('DOMContentLoaded', function() {
         form.onsubmit = null; // Reset to default handler
       }
       overlay.style.display = 'flex';
+      
+      // Setup personnel autocomplete for create mode
+      setupPersonnelAutocomplete();
     });
   }
   

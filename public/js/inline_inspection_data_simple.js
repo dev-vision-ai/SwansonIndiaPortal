@@ -223,6 +223,77 @@ document.addEventListener('DOMContentLoaded', async function() {
                 console.log('View mode: Disabled', selectDropdowns.length, 'select dropdowns');
                 console.log('View mode: Disabled', inputFields.length, 'input fields');
                 console.log('View mode: Disabled', buttons.length, 'buttons');
+                
+                // Apply color coding for X/O values in view mode
+                console.log('View mode: Applying color coding for X/O values');
+                
+                // Apply Accept/Reject color coding to tables
+                applyColorCodingToTable();
+                
+                // Apply X/O color coding to all cells
+                const allCells = document.querySelectorAll('td');
+                allCells.forEach(cell => {
+                    applyXOColorCoding(cell);
+                });
+                
+                // Ensure Accept/Reject and Roll Position cells get proper color coding in view mode
+                const tables = document.querySelectorAll('table');
+                tables.forEach(table => {
+                    const tbody = table.querySelector('tbody');
+                    if (!tbody) return;
+                    
+                    const rows = tbody.rows;
+                    for (let r = 0; r < rows.length; r++) {
+                        const row = rows[r];
+                        const acceptRejectCell = row.querySelector('td[data-field="accept_reject"]');
+                        const rollPosCell = row.querySelector('td[data-field="roll_position"]');
+                        
+                        if (acceptRejectCell) {
+                            const select = acceptRejectCell.querySelector('select');
+                            if (select) {
+                                const value = select.value;
+                                let bgColor = '';
+                                let fgColor = '#fff';
+                                
+                                if (value === 'Accept') {
+                                    bgColor = '#218838'; // dark green
+                                } else if (value === 'Reject') {
+                                    bgColor = '#c82333'; // dark red
+                                } else if (value === 'KIV') {
+                                    bgColor = '#0056b3'; // dark blue
+                                } else if (value === 'Rework') {
+                                    bgColor = '#e6b800'; // dark yellow
+                                }
+                                
+                                // Apply colors to Accept/Reject cell and dropdown (same as main table)
+                                if (bgColor) {
+                                    acceptRejectCell.style.backgroundColor = bgColor;
+                                    acceptRejectCell.style.color = fgColor;
+                                    select.style.backgroundColor = bgColor;
+                                    select.style.color = fgColor;
+                                    
+                                    // Also apply to Roll Position cell
+                                    if (rollPosCell) {
+                                        rollPosCell.style.backgroundColor = bgColor;
+                                        rollPosCell.style.color = fgColor;
+                                    }
+                                } else {
+                                    // Reset colors if no status
+                                    acceptRejectCell.style.backgroundColor = '';
+                                    acceptRejectCell.style.color = '';
+                                    select.style.backgroundColor = '';
+                                    select.style.color = '';
+                                    if (rollPosCell) {
+                                        rollPosCell.style.backgroundColor = '';
+                                        rollPosCell.style.color = '';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                console.log('View mode: Color coding applied');
             }, 500); // Small delay to ensure all elements are rendered
         }
     }
