@@ -1144,8 +1144,9 @@ async function editForm(traceability_code, lot_letter) {
   // Show the overlay for editing form details
   overlay.style.display = 'flex';
   
-  // Setup personnel autocomplete for edit mode
+  // Setup autocomplete for edit mode
   setupPersonnelAutocomplete();
+  setupProductAutocomplete();
   
   // Ensure form submission handler is attached
   if (form) {
@@ -1568,6 +1569,42 @@ async function setupPersonnelAutocomplete() {
     });
 }
 
+async function setupProductAutocomplete() {
+    console.log('🔍 Setting up product autocomplete...');
+    
+    // Fetch all products from the database
+    const { data: products, error } = await supabase
+        .from('inline_products_master')
+        .select('customer, prod_code, spec')
+        .eq('is_active', true)
+        .order('customer');
+    
+    if (error) {
+        console.error('❌ Error fetching products:', error);
+        return;
+    }
+    
+    console.log('📊 Fetched products:', products);
+    
+    // Setup autocomplete for product fields
+    const productFields = [
+        { name: 'customer', field: 'customer', products: products },
+        { name: 'prod_code', field: 'prod_code', products: products },
+        { name: 'spec', field: 'spec', products: products }
+    ];
+    
+    productFields.forEach(field => {
+        const input = document.querySelector(`input[name="${field.name}"]`);
+        console.log(`🔍 Looking for field: ${field.name}`, input);
+        if (input) {
+            console.log(`✅ Found field: ${field.name}, setting up autocomplete`);
+            setupProductAutocompleteForField(input, field.products, field.field);
+        } else {
+            console.log(`❌ Field not found: ${field.name}`);
+        }
+    });
+}
+
 function setupAutocompleteForField(input, users) {
     console.log(`🎯 Setting up autocomplete for ${input.name} with ${users.length} users`);
     let dropdown = null;
@@ -1641,6 +1678,123 @@ function setupAutocompleteForField(input, users) {
     });
 }
 
+function setupProductAutocompleteForField(input, products, fieldType) {
+    console.log(`🎯 Setting up product autocomplete for ${input.name} with ${products.length} products`);
+    let dropdown = null;
+    
+    input.addEventListener('input', function() {
+        const value = this.value.toLowerCase();
+        console.log(`📝 Input value: "${value}"`);
+        
+        // Remove existing dropdown
+        if (dropdown) {
+            dropdown.remove();
+            dropdown = null;
+        }
+        
+        if (value.length < 1) return;
+        
+        // Filter products based on input and field type
+        let matches = products.filter(product => 
+            product[fieldType].toLowerCase().includes(value)
+        );
+        
+        // For customer field, show only unique customers
+        if (fieldType === 'customer') {
+            const uniqueCustomers = [...new Set(matches.map(product => product.customer))];
+            matches = uniqueCustomers.map(customer => ({ customer }));
+        }
+        
+        // No limit - show all matches since there aren't many products
+        
+        console.log(`🔍 Matches found:`, matches);
+        
+        if (matches.length === 0) return;
+        
+        // Create dropdown
+        dropdown = document.createElement('div');
+        dropdown.className = 'absolute z-50 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto';
+        dropdown.style.top = '100%';
+        dropdown.style.left = '0';
+        
+        matches.forEach(product => {
+            const item = document.createElement('div');
+            item.className = 'px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm';
+            
+            // Show different information based on field type
+            let displayText = '';
+            if (fieldType === 'customer') {
+                displayText = product.customer;
+            } else if (fieldType === 'prod_code') {
+                displayText = `${product.prod_code} (${product.customer})`;
+            } else if (fieldType === 'spec') {
+                displayText = `${product.spec} (${product.customer} - ${product.prod_code})`;
+            }
+            
+            item.textContent = displayText;
+            item.addEventListener('click', function() {
+                input.value = product[fieldType];
+                dropdown.remove();
+                dropdown = null;
+                console.log(`✅ Selected: ${product[fieldType]}`);
+                
+                // Auto-fill related fields if they exist
+                if (fieldType === 'customer') {
+                    const prodCodeInput = document.querySelector('input[name="prod_code"]');
+                    const specInput = document.querySelector('input[name="spec"]');
+                    
+                    // Find matching products for this customer
+                    const customerProducts = products.filter(p => p.customer === product.customer);
+                    if (customerProducts.length === 1) {
+                        if (prodCodeInput) prodCodeInput.value = customerProducts[0].prod_code;
+                        if (specInput) specInput.value = customerProducts[0].spec;
+                    }
+                } else if (fieldType === 'prod_code') {
+                    const customerInput = document.querySelector('input[name="customer"]');
+                    const specInput = document.querySelector('input[name="spec"]');
+                    
+                    if (customerInput) customerInput.value = product.customer;
+                    if (specInput) specInput.value = product.spec;
+                } else if (fieldType === 'spec') {
+                    const customerInput = document.querySelector('input[name="customer"]');
+                    const prodCodeInput = document.querySelector('input[name="prod_code"]');
+                    
+                    if (customerInput) customerInput.value = product.customer;
+                    if (prodCodeInput) prodCodeInput.value = product.prod_code;
+                }
+            });
+            dropdown.appendChild(item);
+        });
+        
+        // Position dropdown
+        const rect = input.getBoundingClientRect();
+        dropdown.style.width = rect.width + 'px';
+        
+        // Add to DOM
+        input.parentNode.style.position = 'relative';
+        input.parentNode.appendChild(dropdown);
+        console.log(`📋 Dropdown created with ${matches.length} items`);
+    });
+    
+    // Remove dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (dropdown && !input.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.remove();
+            dropdown = null;
+        }
+    });
+    
+    // Remove dropdown on blur
+    input.addEventListener('blur', function() {
+        setTimeout(() => {
+            if (dropdown) {
+                dropdown.remove();
+                dropdown = null;
+            }
+        }, 150);
+    });
+}
+
 // ===== OVERLAY CONTROLS =====
 document.addEventListener('DOMContentLoaded', function() {
   const createFormBtn = document.getElementById('showInspectionFormOverlay');
@@ -1657,8 +1811,9 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       overlay.style.display = 'flex';
       
-      // Setup personnel autocomplete for create mode
+      // Setup autocomplete for create mode
       setupPersonnelAutocomplete();
+      setupProductAutocomplete();
     });
   }
   
