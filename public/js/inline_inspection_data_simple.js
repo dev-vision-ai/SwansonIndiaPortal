@@ -155,7 +155,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const formData = lots[0];
                 
                 document.getElementById('customer').textContent = formData.customer || '[Customer]';
-                document.getElementById('production_no').textContent = formData.production_no || '[Production No.]';
+                // Combine production_no and production_no_2 with comma separator
+                const combinedProductionNo = [formData.production_no, formData.production_no_2].filter(Boolean).join(', ');
+                document.getElementById('production_no').textContent = combinedProductionNo || '[Production No.]';
                 document.getElementById('prod_code').textContent = formData.prod_code || '[Prod. Code]';
                 document.getElementById('spec').textContent = formData.spec || '[Spec]';
                 document.getElementById('printed').checked = formData.printed || false;
@@ -498,7 +500,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         text = text.substring(1);
                     }
                 } else if (field === 'paper_core_dia_id') {
-                    // Paper Core θ (ID) - format: XX.X (2 digits before, 1 after decimal)
+                    // Paper Core θ (ID) - format: XXX.X (3 digits before, 1 after decimal)
                     text = text.replace(/[^0-9.]/g, ''); // Only allow numbers and decimal
                     
                     // Ensure only one decimal point
@@ -507,14 +509,14 @@ document.addEventListener('DOMContentLoaded', async function() {
                         text = parts[0] + '.' + parts.slice(1).join('');
                     }
                     
-                    // Limit to 2 digits before decimal and 1 after
+                    // Limit to 3 digits before decimal and 1 after
                     if (parts.length === 2) {
-                        const beforeDecimal = parts[0].substring(0, 2); // Max 2 digits before decimal
+                        const beforeDecimal = parts[0].substring(0, 3); // Max 3 digits before decimal
                         const afterDecimal = parts[1].substring(0, 1); // Max 1 digit after decimal
                         text = beforeDecimal + '.' + afterDecimal;
                     } else if (parts.length === 1) {
-                        // No decimal point yet, limit to 2 digits
-                        text = parts[0].substring(0, 2);
+                        // No decimal point yet, limit to 3 digits
+                        text = parts[0].substring(0, 3);
                     }
                     
                     // Remove leading zeros (except for decimal numbers like 0.5)
@@ -522,9 +524,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                         text = text.substring(1);
                     }
                 } else if (field === 'paper_core_dia_od') {
-                    // Paper Core θ (OD) - format: XX (2 digits, no decimal)
+                    // Paper Core θ (OD) - format: XXX (3 digits, no decimal)
                     text = text.replace(/[^0-9]/g, ''); // Only allow numbers
-                    text = text.substring(0, 2); // Max 2 digits
+                    text = text.substring(0, 3); // Max 3 digits
                     // Remove leading zeros
                     if (text.startsWith('0') && text.length > 1) {
                         text = text.substring(1);

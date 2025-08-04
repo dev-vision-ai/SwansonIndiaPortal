@@ -3,7 +3,8 @@ import { supabase } from '../supabase-config.js';
 // ===== CONFIGURATION =====
 const MAX_FORMS_DISPLAY = 6; // Maximum number of forms to display
 
-// Client-side keep-alive ping (every 8 minutes for redundancy)
+// Enhanced client-side keep-alive ping to prevent cold starts
+// Multiple intervals for maximum reliability
 setInterval(async () => {
   try {
     const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
@@ -16,7 +17,22 @@ setInterval(async () => {
   } catch (error) {
     console.warn('⚠️ Client keep-alive ping error:', error);
   }
-}, 8 * 60 * 1000); // Every 8 minutes (more frequent than server-side)
+}, 4 * 60 * 1000); // Every 4 minutes (more aggressive for cold start prevention)
+
+// Secondary client-side keep-alive for redundancy
+setInterval(async () => {
+  try {
+    const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
+    const response = await fetch(`${basePath}/health`);
+    if (response.ok) {
+      console.log('🔄 Client health check successful');
+    } else {
+      console.warn('⚠️ Client health check failed');
+    }
+  } catch (error) {
+    console.warn('⚠️ Client health check error:', error);
+  }
+}, 6 * 60 * 1000); // Every 6 minutes
 
 // Back button and mutually exclusive checkboxes logic
 window.addEventListener('DOMContentLoaded', async function() {
@@ -496,6 +512,7 @@ async function handleFormSubmit(e) {
         const updateObject = {
           customer: formData.get('customer'),
           production_no: formData.get('production_no'),
+          production_no_2: formData.get('production_no_2'),
           prod_code: formData.get('prod_code'),
           spec: formData.get('spec'),
           production_date: formData.get('production_date'),
@@ -605,6 +622,7 @@ async function handleFormSubmit(e) {
         lot_letter: lot_letter,
         customer: formData.get('customer'),
         production_no: formData.get('production_no'),
+        production_no_2: formData.get('production_no_2'),
         prod_code: formData.get('prod_code'),
         spec: formData.get('spec'),
         production_date: formData.get('production_date'),
@@ -759,6 +777,7 @@ async function loadFormsTable() {
         total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
         created_at, updated_at
       `)
+      .order('production_date', { ascending: false })
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -974,7 +993,7 @@ async function editForm(traceability_code, lot_letter) {
   const { data: allData, error: listError } = await supabase
     .from('inline_inspection_form_master_2')
     .select(`
-      id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
+      id, traceability_code, lot_letter, customer, production_no, production_no_2, prod_code, spec,
       production_date, emboss_type, printed, non_printed, ct, year, month, date,
       mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
       operator, operator2, qc_inspector, qc_inspector2, status,
@@ -1046,6 +1065,7 @@ async function editForm(traceability_code, lot_letter) {
   const dataToUse = {
     customer: formData.customer || '',
     production_no: formData.production_no || '',
+    production_no_2: formData.production_no_2 || '',
     prod_code: formData.prod_code || '',
     spec: formData.spec || '',
     production_date: formData.production_date || '',
@@ -1099,6 +1119,7 @@ async function editForm(traceability_code, lot_letter) {
   
   form.customer.value = dataToUse.customer;
   form.production_no.value = dataToUse.production_no;
+  form.production_no_2.value = dataToUse.production_no_2;
   form.prod_code.value = dataToUse.prod_code;
   form.spec.value = dataToUse.spec;
   form.production_date.value = dataToUse.production_date;

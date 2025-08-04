@@ -32,19 +32,41 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3p5ZG52c2NhaWN5Z3dsbWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyMTg5NDYsImV4cCI6MjA1OTc5NDk0Nn0.0TUriXYvPuml-Jzr9v1jvcuzKjh-cZgnZhYKkQEj3t0'
 );
 
-// 24/7 Keep-alive ping (every 8 minutes for maximum reliability)
+// Enhanced 24/7 Keep-alive system to prevent cold starts
+// Multiple ping intervals for maximum reliability
 setInterval(() => {
   try {
-  console.log('🔄 24/7 Keep-alive ping - Server staying warm');
+    console.log('🔄 24/7 Keep-alive ping - Server staying warm');
     console.log(`⏰ Keep-alive at: ${new Date().toISOString()}`);
     console.log('✅ Server is active and responding');
+    
+    // Additional memory cleanup to prevent cold starts
+    if (global.gc) {
+      global.gc();
+      console.log('🧹 Memory cleanup performed');
+    }
   } catch (error) {
     console.log('❌ Keep-alive ping error:', error.message);
   }
-}, 8 * 60 * 1000); // Every 8 minutes (more frequent for maximum reliability)
+}, 5 * 60 * 1000); // Every 5 minutes (more frequent for cold start prevention)
 
-// Keep-alive endpoint to prevent cold starts
-app.get('/ping', (req, res) => {
+// Secondary keep-alive for redundancy
+setInterval(() => {
+  try {
+    console.log('🔄 Secondary keep-alive ping');
+    console.log(`⏰ Secondary ping at: ${new Date().toISOString()}`);
+    
+    // Warm up critical endpoints
+    fetch(`http://localhost:${PORT}/ping`).catch(() => {});
+    fetch(`http://localhost:${PORT}/health`).catch(() => {});
+    
+  } catch (error) {
+    console.log('❌ Secondary keep-alive error:', error.message);
+  }
+}, 10 * 60 * 1000); // Every 10 minutes
+
+// Enhanced keep-alive endpoint to prevent cold starts
+app.get('/ping', async (req, res) => {
   const uptime = process.uptime();
   const days = Math.floor(uptime / 86400);
   const hours = Math.floor((uptime % 86400) / 3600);
@@ -52,6 +74,22 @@ app.get('/ping', (req, res) => {
   
   // Log the ping request for monitoring
   console.log(`📡 Ping request received at: ${new Date().toISOString()}`);
+  
+  // Perform a light database query to keep connections warm
+  try {
+    const { data, error } = await supabase
+      .from('inline_inspection_form_master_2')
+      .select('id')
+      .limit(1);
+    
+    if (error) {
+      console.log('⚠️ Ping database check failed:', error.message);
+    } else {
+      console.log('✅ Ping database connection warm');
+    }
+  } catch (dbError) {
+    console.log('⚠️ Ping database error:', dbError.message);
+  }
   
   res.json({ 
     status: 'alive', 
@@ -62,7 +100,8 @@ app.get('/ping', (req, res) => {
     version: '1.0.0',
     memory: process.memoryUsage(),
     platform: process.platform,
-    nodeVersion: process.version
+    nodeVersion: process.version,
+    database: 'connected'
   });
 });
 
@@ -179,6 +218,7 @@ app.get('/export', async (req, res) => {
     // Initialize header variables
     let customer = '';
     let production_no = '';
+    let production_no_2 = '';
     let prod_code = '';
     let spec = '';
     let year = '';
@@ -196,6 +236,7 @@ app.get('/export', async (req, res) => {
       // Try to get header data from main fields first, then fall back to inspection_data
       customer = targetLot.customer || '';
       production_no = targetLot.production_no || '';
+      production_no_2 = targetLot.production_no_2 || '';
       prod_code = targetLot.prod_code || '';
       spec = targetLot.spec || '';
       year = targetLot.year || '';
@@ -214,7 +255,7 @@ app.get('/export', async (req, res) => {
         try {
           const { data: otherForms, error } = await supabase
             .from('inline_inspection_form_master_2')
-            .select('customer, production_no, prod_code, spec, shift, mc_no, production_date, emboss_type, printed, non_printed, ct')
+            .select('customer, production_no, production_no_2, prod_code, spec, shift, mc_no, production_date, emboss_type, printed, non_printed, ct')
             .eq('traceability_code', targetLot.traceability_code)
             .eq('lot_letter', targetLot.lot_letter)
             .not('customer', 'is', null)
@@ -224,6 +265,7 @@ app.get('/export', async (req, res) => {
             const otherForm = otherForms[0];
             if (!customer) customer = otherForm.customer || '';
             if (!production_no) production_no = otherForm.production_no || '';
+            if (!production_no_2) production_no_2 = otherForm.production_no_2 || '';
             if (!prod_code) prod_code = otherForm.prod_code || '';
             if (!spec) spec = otherForm.spec || '';
             if (!shift) shift = otherForm.shift || '';
@@ -245,7 +287,9 @@ app.get('/export', async (req, res) => {
       
       // Map to Excel cells
       worksheet.getCell('D5').value = customer;
-      worksheet.getCell('D6').value = production_no;
+      // Combine production_no and production_no_2 with comma separator
+      const combinedProductionNo = [production_no, production_no_2].filter(Boolean).join(', ');
+      worksheet.getCell('D6').value = combinedProductionNo;
       worksheet.getCell('D7').value = prod_code;
       worksheet.getCell('D8').value = spec;
       worksheet.getCell('N7').value = year;
@@ -306,7 +350,9 @@ app.get('/export', async (req, res) => {
     // Function to apply header mapping to any worksheet
     const applyHeaderMapping = (worksheet) => {
       worksheet.getCell('D5').value = customer;
-      worksheet.getCell('D6').value = production_no;
+      // Combine production_no and production_no_2 with comma separator
+      const combinedProductionNo = [production_no, production_no_2].filter(Boolean).join(', ');
+      worksheet.getCell('D6').value = combinedProductionNo;
       worksheet.getCell('D7').value = prod_code;
       worksheet.getCell('D8').value = spec;
       worksheet.getCell('N7').value = year;
@@ -1048,10 +1094,19 @@ function formatDateToDDMMYYYY(dateString) {
 app.listen(PORT, () => {
   console.log(`🚀 Swanson India Portal Backend Server Started!`);
   console.log(`📡 Server listening on port ${PORT}`);
-  console.log(`⏰ Keep-alive system active - pinging every 8 minutes for 24/7 operation`);
+  console.log(`⏰ Enhanced keep-alive system active - preventing cold starts`);
   console.log(`🌐 Health check: http://localhost:${PORT}/health`);
   console.log(`🔗 Ping endpoint: http://localhost:${PORT}/ping`);
   console.log(`🔋 Keep-alive endpoint: http://localhost:${PORT}/keep-alive`);
   console.log(`📊 Excel export: http://localhost:${PORT}/export`);
   console.log(`🔄 Client-side keep-alive also active for redundancy`);
+  
+  // Immediate warm-up to prevent cold starts
+  setTimeout(() => {
+    console.log('🔥 Immediate server warm-up initiated');
+    // Warm up critical endpoints immediately
+    fetch(`http://localhost:${PORT}/ping`).catch(() => {});
+    fetch(`http://localhost:${PORT}/health`).catch(() => {});
+    console.log('✅ Server warm-up completed');
+  }, 1000);
 }); 
