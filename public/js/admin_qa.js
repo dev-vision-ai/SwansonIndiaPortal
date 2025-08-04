@@ -3,12 +3,25 @@ import { supabase } from '../supabase-config.js';
 let currentSort = { column: 'id', direction: 'asc' };
 let alertsData = []; // Store fetched alerts globally for sorting and filtering
 
+function formatDateToDDMMYYYY(dateString) {
+  if (!dateString) return 'N/A';
+  
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return 'Invalid Date';
+  
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  
+  return `${day}/${month}/${year}`;
+}
+
 function renderTable(data) {
   const tbody = document.getElementById('alertsBody');
   tbody.innerHTML = data.map(alert => `
     <tr>
       <td>${alert.id}</td>
-      <td>${new Date(alert.incidentdate).toLocaleDateString()}</td>
+      <td>${formatDateToDDMMYYYY(alert.incidentdate)}</td>
       <td>${alert.user_name || 'Unknown'}</td>
       <td>${alert.user_department || 'N/A'}</td>
       <td>${alert.incidenttitle}</td>

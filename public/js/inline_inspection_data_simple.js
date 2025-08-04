@@ -2798,12 +2798,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const cells = row.querySelectorAll('td[data-field]');
                 
                 if (selectedValue === 'Accept' || selectedValue === 'Reject' || selectedValue === 'Rework') {
-                    // Disable all X/O input cells in this row except Glossy and CT
+                    // Disable all X/O input cells in this row except Glossy, CT, and GSM
                     cells.forEach(cell => {
                         const fieldName = cell.dataset.field;
-                        // Always keep Glossy and CT enabled at all times
-                        // Only disable X/O fields (not Accept/Reject, Defect Name, Remarks, Inspected By, Glossy, CT)
-                        if (fieldName && !['accept_reject', 'defect_name', 'remarks', 'inspected_by', 'glossy', 'ct_appearance'].includes(fieldName)) {
+                        // Always keep Glossy, CT, and GSM enabled at all times
+                        // Only disable X/O fields (not Accept/Reject, Defect Name, Remarks, Inspected By, Glossy, CT, GSM)
+                        if (fieldName && !['accept_reject', 'defect_name', 'remarks', 'inspected_by', 'glossy', 'ct_appearance', 'film_weight_gsm'].includes(fieldName)) {
                     cell.contentEditable = false;
                         }
                     });
