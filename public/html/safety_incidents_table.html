@@ -5,8 +5,9 @@
   <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Safety Incidents Table</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="../css/admin_adhr.css">
+  <link rel="stylesheet" href="../css/admin_qa.css">
   <link rel="stylesheet" href="../css/header.css">
   <style>
     .header-back-button {
@@ -26,14 +27,21 @@
     }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-900">
-  <div class="header-container bg-white shadow-md p-4 flex justify-between items-center">
-    <button type="button" class="header-back-button" onclick="window.location.href='admin_adhr.html';">Back</button>
-    <div class="header-title text-2xl font-bold">Safety Incidents Table</div>
-    <div class="company-logo">
-      <img src="../assets/logo.png" class="auth-logo h-10" alt="Logo"/>
+<body>
+  <div class="container page-fade-in">
+    <section class="dashboard-section">
+      <div class="header-container header-fade-in">
+        <!-- Back button first -->
+        <button type="button" class="header-back-button" onclick="window.location.href='admin_adhr.html';">Back</button>
+        
+        <!-- Header title second -->
+        <div class="header-title">Safety Incidents Table</div> 
+        
+        <!-- Logo last -->
+        <div class="company-logo">
+          <img src="../assets/logo.png" class="auth-logo" alt="Logo"/>
+        </div>
     </div>
-  </div>
   <div class="recent-alerts-container p-6">
     <h2 class="text-xl font-semibold mb-4 text-center">All Safety Incidents</h2>
     <!-- Filter Controls -->
@@ -90,6 +98,10 @@
       </tbody>
     </table>
   </div>
+  </section>
+  <footer class="designer-watermark">
+    <i class="bi bi-gear-fill" style="margin-right:6px;"></i> Designed by <span>GGC</span>
+  </footer>
   <script type="module" src="../js/safety_incidents_table.js"></script>
 </body>
 </html> 
