@@ -1736,14 +1736,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // ===== TAB KEY HANDLER =====
-    function handleTabNavigation(e) {
-        if (e.key === 'Tab') {
+    // ===== ENTER KEY HANDLER =====
+    function handleEnterNavigation(e) {
+        if (e.key === 'Enter') {
             const currentCell = e.target.closest('td');
             if (!currentCell) return;
             
             const currentTabIndex = parseInt(currentCell.getAttribute('tabindex') || '0');
-            const nextTabIndex = e.shiftKey ? currentTabIndex - 1 : currentTabIndex + 1;
+            const nextTabIndex = currentTabIndex + 1;
             
             const nextCell = tablesContainer.querySelector(`td[tabindex="${nextTabIndex}"]`);
             if (nextCell) {
@@ -1797,8 +1797,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         updateAddNextLotButtonState();
     }
     
-    // Add tab navigation listener
-    tablesContainer.addEventListener('keydown', handleTabNavigation);
+    // Add enter key navigation listener
+    tablesContainer.addEventListener('keydown', handleEnterNavigation);
     
     // On page load, fetch and render all lots for the current traceability_code
     if (traceabilityCode) {
