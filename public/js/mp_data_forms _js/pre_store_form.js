@@ -1,8 +1,46 @@
-import { supabase } from '../supabase-config.js';
+import { supabase } from '../../supabase-config.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const preStoreForm = document.getElementById('preStoreForm');
     let formId = null; // To store the ID if we are editing
+
+    // Function to load customers from master table
+    async function loadCustomers() {
+        try {
+            console.log('Loading customers from customers_master...');
+            const { data: customers, error } = await supabase
+                .from('customers_master')
+                .select('customer_name')
+                .order('customer_name');
+
+            if (error) {
+                console.error('Error fetching customers:', error.message);
+                return;
+            }
+
+            console.log('Customers loaded:', customers);
+
+            // Get the customer dropdown
+            const customerSelect = document.getElementById('customer');
+            if (!customerSelect) return;
+
+            // Clear existing options except the first one
+            customerSelect.innerHTML = '<option value="">Select Customer</option>';
+
+            // Add customers to dropdown
+            customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.customer_name;
+                option.textContent = customer.customer_name;
+                customerSelect.appendChild(option);
+            });
+
+            console.log('Customers added to dropdown');
+
+        } catch (error) {
+            console.error('Error loading customers:', error);
+        }
+    }
 
     // Function to pre-populate form fields
     function prePopulateForm(data) {
@@ -48,11 +86,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Check if there's an ID in the URL (for editing)
     formId = getUrlParameter('id');
 
+    // Load customers when page loads
+    await loadCustomers();
+
     if (formId) {
         // Fetch existing data for the form
         async function fetchFormData() {
-            const { data, error } = await supabase
-                .from('prestore_and_film_inspection_form')
+            // Try to fetch from the specific product table first
+            let { data, error } = await supabase
+                .from('ape_168_16_cp_table')
                 .select('*')
                 .eq('id', formId)
                 .single();
@@ -139,18 +181,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         console.log('Submitting data:', finalData);
 
+        // Determine the table name based on the selected product
+        let tableName = 'ape_168_16_cp_table'; // default table for pre-store form
+        if (finalData.product_code) {
+            // Map product codes to their specific tables
+            const productTableMap = {
+                'APE-168(16)C': 'ape_168_16_cp_table',
+                'APE-168(16)CP(KRANTI)': 'ape_168_16_cp_table'
+                // Add more product-specific tables as they are created
+            };
+            tableName = productTableMap[finalData.product_code] || 'ape_168_16_cp_table';
+        }
+        console.log('Selected product:', finalData.product_code);
+        console.log('Target table:', tableName);
+
         let upsertError = null;
         if (formId) {
             // Update existing record
             const { error } = await supabase
-                .from('prestore_and_film_inspection_form')
+                .from(tableName)
                 .update(finalData)
                 .eq('id', formId);
             upsertError = error;
         } else {
             // Insert new record
             const { error } = await supabase
-                .from('prestore_and_film_inspection_form')
+                .from(tableName)
                 .insert([finalData]);
             upsertError = error;
         }

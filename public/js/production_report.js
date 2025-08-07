@@ -103,7 +103,8 @@ async function loadLiveReportData() {
                 total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
                 created_at, updated_at
             `)
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .order('mc_no', { ascending: true });
         
         if (error) {
             console.error('❌ Error fetching forms:', error);

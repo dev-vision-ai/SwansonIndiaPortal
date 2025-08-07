@@ -8,6 +8,115 @@ let addNewTableBtn = null;
 let ipqcUpdateTimeout = null;
 let qcInspectorsCache = [];
 
+// ===== MEMORY LEAK PREVENTION =====
+// Track all event listeners for cleanup
+const eventListeners = new Map();
+const intervals = new Set();
+const timeouts = new Set();
+
+// Cleanup function to prevent memory leaks
+function cleanupResources() {
+    try {
+        // Clear all intervals
+        intervals.forEach(interval => {
+            try {
+                clearInterval(interval);
+            } catch (e) {
+                console.warn('Failed to clear interval:', e);
+            }
+        });
+        intervals.clear();
+        
+        // Clear all timeouts
+        timeouts.forEach(timeout => {
+            try {
+                clearTimeout(timeout);
+            } catch (e) {
+                console.warn('Failed to clear timeout:', e);
+            }
+        });
+        timeouts.clear();
+        
+        // Remove all tracked event listeners
+        eventListeners.forEach((listener, element) => {
+            try {
+                if (element && element.removeEventListener) {
+                    element.removeEventListener('input', listener);
+                    element.removeEventListener('change', listener);
+                    element.removeEventListener('keydown', listener);
+                    element.removeEventListener('blur', listener);
+                }
+            } catch (e) {
+                console.warn('Failed to remove event listener:', e);
+            }
+        });
+        eventListeners.clear();
+        
+
+    } catch (error) {
+        console.error('❌ Error during cleanup:', error);
+    }
+}
+
+// Enhanced session management
+let sessionCheckInterval = null;
+let lastSessionCheck = Date.now();
+
+// Session validation function
+async function validateSession() {
+    try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) {
+    
+            window.location.replace('auth.html');
+            return false;
+        }
+        lastSessionCheck = Date.now();
+        return true;
+    } catch (error) {
+        console.error('Session validation error:', error);
+        return false;
+    }
+}
+
+// Periodic session check
+function startSessionMonitoring() {
+    if (sessionCheckInterval) {
+        clearInterval(sessionCheckInterval);
+    }
+    
+    sessionCheckInterval = setInterval(async () => {
+        const isValid = await validateSession();
+        if (!isValid) {
+            cleanupResources();
+        }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+    
+    intervals.add(sessionCheckInterval);
+}
+
+// Enhanced debounced save with memory management
+let saveTimeout = null;
+
+function debouncedSave(table) {
+    if (viewMode) {
+        return;
+    }
+    
+    if (saveTimeout) {
+        clearTimeout(saveTimeout);
+        timeouts.delete(saveTimeout);
+    }
+    
+    saveTimeout = setTimeout(() => {
+        if (!table) table = document.querySelector('#tablesContainer table');
+        if (table) saveLotToSupabase(table);
+        saveTimeout = null;
+    }, 1000);
+    
+    timeouts.add(saveTimeout);
+}
+
 const lotTheadHTML = `
 <thead>
 <tr>
@@ -68,6 +177,9 @@ const lotTheadHTML = `
 `;
 
 document.addEventListener('DOMContentLoaded', async function() {
+    // Start session monitoring
+    startSessionMonitoring();
+    
     // Get URL parameters first
     const urlParams = new URLSearchParams(window.location.search);
     const viewMode = urlParams.get('mode') === 'view';
@@ -103,12 +215,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ===== LOAD FORM DATA IF FORM ID PROVIDED =====
     const traceabilityCode = urlParams.get('traceability_code');
     const lotLetter = urlParams.get('lot_letter');
-    console.log('DEBUG: traceabilityCode from URL:', traceabilityCode);
-    console.log('DEBUG: viewMode from URL:', viewMode);
-    
     // If in view mode, disable all editing functionality
     if (viewMode) {
-        console.log('View mode detected - will disable editing after tables load');
         // Add view-only indicator immediately
         const viewOnlyIndicator = document.createElement('div');
         viewOnlyIndicator.id = 'viewOnlyIndicator';
@@ -169,7 +277,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.getElementById('mc_no').textContent = formData.mc_no || '[M/C No.]';
                 document.getElementById('shift').textContent = formData.shift || '[Shift]';
                 // Data loading is now handled by loadAllLots() function
-                console.log('Form data loaded - using loadAllLots() for data population');
             }
         } catch (error) {
             console.error('Error:', error);
@@ -184,14 +291,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Load existing inspection data for this form
     if (traceabilityCode) {
-        console.log('Loading data for traceability_code:', traceabilityCode);
         window.isLoadingData = true;
         await loadAllLots();
         window.isLoadingData = false;
         
         // If in view mode, disable all editing after data is loaded
         if (viewMode) {
-            console.log('View mode detected - disabling all editing after data load');
             setTimeout(() => {
                 // Disable all contenteditable cells
                 const editableCells = document.querySelectorAll('td[contenteditable="true"]');
@@ -435,19 +540,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                     });
                 }
                 
-                // Auto-clear defect name and remarks when changing to Accept
+                // Auto-clear defect name when changing to Accept (remarks are preserved)
                 if (selectedValue === 'Accept') {
                     const defectNameCell = row ? row.querySelector('td[data-field="defect_name"]') : null;
-                    const remarksCell = row ? row.querySelector('td[data-field="remarks"]') : null;
                     
                     if (defectNameCell) {
                         defectNameCell.textContent = '';
                         defectNameCell.dispatchEvent(new Event('input', { bubbles: true }));
-                    }
-                    
-                    if (remarksCell) {
-                        remarksCell.textContent = '';
-                        remarksCell.dispatchEvent(new Event('input', { bubbles: true }));
                     }
                     
                     // Change all X values to O in this row when Accept is selected
@@ -463,7 +562,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         }
                     });
                     
-                    console.log('Auto-cleared defect name, remarks, and changed X to O for Accept status');
+                    console.log('Auto-cleared defect name and changed X to O for Accept status (remarks preserved)');
                 }
                 
                 // Save the Accept/Reject selection to database immediately
@@ -1799,6 +1898,31 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Add enter key navigation listener
     tablesContainer.addEventListener('keydown', handleEnterNavigation);
+    
+    // ===== PAGE UNLOAD CLEANUP =====
+    // Use beforeunload for cleanup (more reliable than unload)
+    window.addEventListener('beforeunload', function() {
+        cleanupResources();
+    });
+    
+    // Use pagehide instead of unload for better browser compatibility
+    window.addEventListener('pagehide', function() {
+        cleanupResources();
+    });
+    
+    // Additional cleanup on visibility change (when user switches tabs)
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden') {
+            // Optional: cleanup when user switches away from the page
+            // cleanupResources();
+        }
+    });
+    
+    // ===== FORCE REDIRECT ON BACK BUTTON =====
+    window.onpopstate = function() {
+        // Immediately redirect to login if back button is pressed
+        window.location.replace('auth.html');
+    };
     
     // On page load, fetch and render all lots for the current traceability_code
     if (traceabilityCode) {

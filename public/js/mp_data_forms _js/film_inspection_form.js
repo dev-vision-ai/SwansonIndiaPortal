@@ -1,0 +1,414 @@
+import { supabase } from '../../supabase-config.js';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const formId = urlParams.get('id');
+
+    // Modal controls
+    const createFormBtn = document.getElementById('showFilmInspectionFormOverlay');
+    const overlay = document.getElementById('filmInspectionFormOverlay');
+    const closeBtn = document.getElementById('closeFilmInspectionFormOverlay');
+    const clearFormBtn = document.getElementById('clearFilmInspectionForm');
+    const form = document.getElementById('filmInspectionForm');
+    const productCodeInput = document.getElementById('product_code');
+    const productSuggestions = document.getElementById('productSuggestions');
+    let allProducts = []; // Store all products for autocomplete
+
+    // Function to close modal
+    function closeModal() {
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+        if (form) {
+            form.reset();
+        }
+        // Hide suggestions when modal closes
+        if (productSuggestions) {
+            productSuggestions.classList.add('hidden');
+        }
+    }
+
+    // Function to clear form
+    function clearForm() {
+        if (form) {
+            form.reset();
+        }
+    }
+
+    // Setup modal controls
+    if (createFormBtn) {
+        createFormBtn.addEventListener('click', function() {
+            if (form) {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.textContent = 'Create Film Inspection Form';
+                form.onsubmit = null; // Reset to default handler
+            }
+            overlay.style.display = 'flex';
+            loadProducts(); // Load products when modal opens
+            loadCustomers(); // Load customers when modal opens
+        });
+    }
+
+    // Close button functionality
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            closeModal();
+        });
+    }
+
+    // Cancel button functionality
+    if (clearFormBtn) {
+        clearFormBtn.addEventListener('click', function() {
+            clearForm();
+        });
+    }
+
+    // ESC key functionality
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && overlay && overlay.style.display === 'flex') {
+            closeModal();
+        }
+    });
+
+    // Function to load products from fif_products_master table
+    async function loadProducts() {
+        try {
+            console.log('Loading products from fif_products_master...');
+            const { data: products, error } = await supabase
+                .from('fif_products_master')
+                .select('prod_code, customer, spec')
+                .order('prod_code');
+
+            if (error) {
+                console.error('Error fetching products:', error.message);
+                return;
+            }
+
+            console.log('Products loaded:', products);
+
+            // Store all products for autocomplete
+            allProducts = products;
+
+            console.log('Products stored for autocomplete');
+
+        } catch (error) {
+            console.error('Error loading products:', error);
+        }
+    }
+
+    // Function to load customers from master table
+    async function loadCustomers() {
+        try {
+            console.log('Loading customers from customers_master...');
+            const { data: customers, error } = await supabase
+                .from('customers_master')
+                .select('customer_name')
+                .order('customer_name');
+
+            if (error) {
+                console.error('Error fetching customers:', error.message);
+                return;
+            }
+
+            console.log('Customers loaded:', customers);
+
+            // Get the customer dropdown
+            const customerSelect = document.getElementById('customer');
+            if (!customerSelect) return;
+
+            // Clear existing options except the first one
+            customerSelect.innerHTML = '<option value="">Select Customer</option>';
+
+            // Add customers to dropdown
+            customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.customer_name;
+                option.textContent = customer.customer_name;
+                customerSelect.appendChild(option);
+            });
+
+            console.log('Customers added to dropdown');
+
+        } catch (error) {
+            console.error('Error loading customers:', error);
+        }
+    }
+
+    // Function to load specification based on selected product
+    async function loadSpecification(selectedProduct) {
+        const specificationInput = document.getElementById('specification');
+        
+        if (!selectedProduct || !specificationInput) {
+            return;
+        }
+
+        try {
+            console.log('Loading specification for product:', selectedProduct);
+            const { data: product, error } = await supabase
+                .from('fif_products_master')
+                .select('spec')
+                .eq('prod_code', selectedProduct)
+                .single();
+
+            if (error) {
+                console.error('Error fetching specification:', error.message);
+                return;
+            }
+
+            if (product && product.spec) {
+                console.log('Specification loaded:', product.spec);
+                specificationInput.value = product.spec;
+            }
+
+        } catch (error) {
+            console.error('Error loading specification:', error);
+        }
+    }
+
+    // Function to show product suggestions
+    function showProductSuggestions(searchTerm) {
+        if (!productSuggestions || !allProducts.length) return;
+
+        const filteredProducts = allProducts.filter(product => 
+            product.prod_code.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        if (filteredProducts.length === 0) {
+            productSuggestions.classList.add('hidden');
+            return;
+        }
+
+        productSuggestions.innerHTML = '';
+        filteredProducts.forEach(product => {
+            const suggestionItem = document.createElement('div');
+            suggestionItem.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm';
+            suggestionItem.textContent = product.prod_code;
+            suggestionItem.addEventListener('click', () => {
+                productCodeInput.value = product.prod_code;
+                productSuggestions.classList.add('hidden');
+                loadSpecification(product.prod_code);
+            });
+            productSuggestions.appendChild(suggestionItem);
+        });
+
+        productSuggestions.classList.remove('hidden');
+    }
+
+    // Add event listeners for autocomplete
+    if (productCodeInput) {
+        productCodeInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value;
+            if (searchTerm.length >= 1) {
+                showProductSuggestions(searchTerm);
+            } else {
+                productSuggestions.classList.add('hidden');
+            }
+        });
+
+        productCodeInput.addEventListener('focus', (e) => {
+            const searchTerm = e.target.value;
+            if (searchTerm.length >= 1) {
+                showProductSuggestions(searchTerm);
+            }
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!productCodeInput.contains(e.target) && !productSuggestions.contains(e.target)) {
+                productSuggestions.classList.add('hidden');
+            }
+        });
+    }
+
+    // Load products when modal opens
+    if (createFormBtn) {
+        createFormBtn.addEventListener('click', function() {
+            if (form) {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.textContent = 'Create Film Inspection Form';
+                form.onsubmit = null; // Reset to default handler
+            }
+            overlay.style.display = 'flex';
+            loadProducts(); // Load products when modal opens
+        });
+    }
+
+    if (formId) {
+        // Fetch existing data for the form
+        const { data, error } = await supabase
+            .from('prestore_and_film_inspection_form')
+            .select('*')
+            .eq('id', formId)
+            .single();
+
+        if (error) {
+            console.error('Error fetching form data:', error.message);
+            alert('Error loading form data for editing.');
+            return;
+        }
+
+        if (data) {
+            // Populate form fields with fetched data
+            for (const key in data) {
+                const input = document.getElementById(key);
+                if (input) {
+                    input.value = data[key];
+                }
+            }
+        }
+    }
+
+    if (form) {
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            
+            console.log('Form data being submitted:', data);
+
+            // Get the logged-in user's email
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError) {
+                console.error('Error fetching user:', userError.message);
+                alert('Could not retrieve user information. Please try again.');
+                return;
+            }
+            
+            // Add the user's email to the data object
+            if (user && user.id) {
+                data.prepared_by = user.id;
+            } else {
+                data.prepared_by = 'unknown'; // Fallback if user ID is not available
+            }
+
+            // Convert specific fields to numbers if necessary
+            // The 'PO' field (now 'purchase_order'), 'Prod. Order' (production_order), and 'Lot. No' (lot_no) are intended to be text.
+            // No explicit conversion needed here as they are already strings from formData.get().
+            // Convert specific fields to numbers if necessary
+            // The 'PO' field (now 'purchase_order') and 'Prod. Order' (production_order) are intended to be numbers.
+            // The 'Lot. No' field (lot_no) is also intended to be a number.
+            // product_code and machine_no can be strings or numbers, no explicit conversion needed here.
+            data.product_code = data.product_code;
+            data.machine_no = data.machine_no;
+
+            // Convert quantity to an integer
+            if (data.quantity) {
+                data.quantity = parseInt(data.quantity);
+            }
+
+            // Inside your form submission handler, before inserting data:
+            let lotNo = formData.get('lot_no');
+            // Add 'SWIN' prefix to lot_no if it doesn't already have it
+            if (lotNo && !lotNo.startsWith('SWIN')) {
+                lotNo = 'SWIN' + lotNo;
+            }
+            data.lot_no = lotNo;
+
+            // Determine the table name based on the selected product
+            let tableName = 'prestore_and_film_inspection_form'; // default table
+            
+            if (data.product_code) {
+                // Map product codes to their specific tables
+                const productTableMap = {
+                    'APE-168(16)C': 'ape_168_16_cp_table',
+                    'APE-168(16)CP(KRANTI)': 'ape_168_16_cp_table' // Using same table for testing
+                    // Add more product-specific tables as they are created
+                    // 'WHITE-234(18)': 'white_234_18_table',
+                    // 'APE-176(18)CP(LCC+WW)BS': 'ape_176_18_cp_lcc_ww_bs_table',
+                    // 'APE-168(18)CP(KRANTI)': 'ape_168_18_cp_kranti_table',
+                    // 'APE-168(18)C': 'ape_168_18_c_table',
+                    // 'WHITE-214(18)': 'white_214_18_table',
+                    // 'APE-102(18)C': 'ape_102_18_c_table',
+                    // 'INUE1C18-290NP(AB-QR)': 'inue1c18_290np_ab_qr_table',
+                    // 'INUE1C18-250W(BF-QR)': 'inue1c18_250w_bf_qr_table',
+                    // 'INUE1C18-250P(AB-QR)': 'inue1c18_250p_ab_qr_table',
+                    // 'INUE1C18-210W(BF-QR)': 'inue1c18_210w_bf_qr_table',
+                    // 'INUE1C18-290P(AB-QR)': 'inue1c18_290p_ab_qr_table',
+                    // 'UWF3-WHITE-214(18)-WW': 'uwf3_white_214_18_ww_table'
+                };
+                
+                tableName = productTableMap[data.product_code] || 'prestore_and_film_inspection_form';
+            }
+            
+            console.log('Selected product:', data.product_code);
+            console.log('Target table:', tableName);
+
+            let dbOperation;
+            if (formId) {
+                // Update existing record
+                dbOperation = supabase
+                    .from(tableName)
+                    .update(data)
+                    .eq('id', formId);
+            } else {
+                // Check for uniqueness before submission (only for new entries)
+                const { data: existingLots, error: checkError } = await supabase
+                    .from(tableName)
+                    .select('lot_no')
+                    .eq('lot_no', lotNo)
+                    .limit(1);
+
+                if (checkError) {
+                    console.error('Error checking LOT NO uniqueness:', checkError.message);
+                    alert('An error occurred while validating LOT NO. Please try again.');
+                    return;
+                }
+
+                if (existingLots && existingLots.length > 0) {
+                    alert('Error: LOT NO already exists. Please enter a unique LOT NO.');
+                    return;
+                }
+
+                // Insert new record into the product-specific table
+                // Note: Only inserting the basic form fields, not the additional columns
+                // that are specific to the default table structure
+                
+                // Add prestore_forms column with default value (commented out until column is created)
+                // data.prestore_forms = 'n-a';
+
+                dbOperation = supabase
+                    .from(tableName)
+                    .insert([data])
+                    .select('*');
+            }
+
+            const { data: resultData, error } = await dbOperation;
+            if (error) {
+                if (error.code === '23505') { // PostgreSQL unique violation error code
+                    alert('Error: This LOT NO already exists. Please use a unique LOT NO.');
+                } else {
+                    console.error('Error inserting data:', error.message);
+                    alert('An error occurred during form submission. Please try again.');
+                }
+                return;
+            }
+            console.log('Data inserted successfully:', resultData);
+            console.log('Type of resultData:', typeof resultData);
+            console.log('Length of resultData:', resultData ? resultData.length : 'N/A');
+            if (resultData && resultData.length > 0) {
+                const dataToStore = resultData[0];
+                sessionStorage.setItem('filmInspectionData', JSON.stringify(dataToStore));
+                console.log('Data stored in sessionStorage:', dataToStore);
+            } else {
+                sessionStorage.removeItem('filmInspectionData'); // Clear if no data was inserted
+                console.log('No data inserted, sessionStorage cleared.');
+            }
+            alert(`Film Inspection Form ${formId ? 'updated' : 'submitted'} successfully!`);
+            
+            // Close modal and refresh the list
+            closeModal();
+            
+            // Refresh the film inspection list
+            if (typeof loadFilmInspectionForms === 'function') {
+                loadFilmInspectionForms();
+            } else {
+                // Reload the page to refresh the list
+                window.location.reload();
+            }
+        });
+    }
+});

@@ -3,15 +3,143 @@ import { supabase } from '../supabase-config.js';
 // ===== CONFIGURATION =====
 const MAX_FORMS_DISPLAY = 6; // Maximum number of forms to display
 
+// ===== MEMORY LEAK PREVENTION =====
+// Track all intervals and timeouts for cleanup
+const intervals = new Set();
+const timeouts = new Set();
+const eventListeners = new Map();
+
+// Cleanup function to prevent memory leaks
+function cleanupResources() {
+    try {
+        // Clear all intervals
+        intervals.forEach(interval => {
+            try {
+                clearInterval(interval);
+            } catch (e) {
+                console.warn('Failed to clear interval:', e);
+            }
+        });
+        intervals.clear();
+        
+        // Clear all timeouts
+        timeouts.forEach(timeout => {
+            try {
+                clearTimeout(timeout);
+            } catch (e) {
+                console.warn('Failed to clear timeout:', e);
+            }
+        });
+        timeouts.clear();
+        
+        // Remove all tracked event listeners
+        eventListeners.forEach((listener, element) => {
+            try {
+                if (element && element.removeEventListener) {
+                    element.removeEventListener('input', listener);
+                    element.removeEventListener('change', listener);
+                    element.removeEventListener('click', listener);
+                    element.removeEventListener('blur', listener);
+                }
+            } catch (e) {
+                console.warn('Failed to remove event listener:', e);
+            }
+        });
+        eventListeners.clear();
+        
+        console.log('✅ Cleanup completed successfully');
+    } catch (error) {
+        console.error('❌ Error during cleanup:', error);
+    }
+}
+
+// Enhanced session management
+let sessionCheckInterval = null;
+let lastSessionCheck = Date.now();
+
+// Session validation function
+    async function validateSession() {
+        try {
+            const { data: { user }, error } = await supabase.auth.getUser();
+            if (error || !user) {
+                window.location.replace('auth.html');
+                return false;
+            }
+            lastSessionCheck = Date.now();
+            return true;
+        } catch (error) {
+            console.error('Session validation error:', error);
+            return false;
+        }
+    }
+
+// Enhanced cleanup function that's more robust
+function enhancedCleanup() {
+    try {
+        // Clear all intervals
+        intervals.forEach(interval => {
+            try {
+                clearInterval(interval);
+            } catch (e) {
+                console.warn('Failed to clear interval:', e);
+            }
+        });
+        intervals.clear();
+        
+        // Clear all timeouts
+        timeouts.forEach(timeout => {
+            try {
+                clearTimeout(timeout);
+            } catch (e) {
+                console.warn('Failed to clear timeout:', e);
+            }
+        });
+        timeouts.clear();
+        
+        // Remove all tracked event listeners
+        eventListeners.forEach((listener, element) => {
+            try {
+                if (element && element.removeEventListener) {
+                    element.removeEventListener('input', listener);
+                    element.removeEventListener('change', listener);
+                    element.removeEventListener('click', listener);
+                    element.removeEventListener('blur', listener);
+                }
+            } catch (e) {
+                console.warn('Failed to remove event listener:', e);
+            }
+        });
+        eventListeners.clear();
+        
+        console.log('✅ Enhanced cleanup completed successfully');
+    } catch (error) {
+        console.error('❌ Error during enhanced cleanup:', error);
+    }
+}
+
+// Periodic session check
+function startSessionMonitoring() {
+    if (sessionCheckInterval) {
+        clearInterval(sessionCheckInterval);
+    }
+    
+    sessionCheckInterval = setInterval(async () => {
+        const isValid = await validateSession();
+        if (!isValid) {
+            cleanupResources();
+        }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+    
+    intervals.add(sessionCheckInterval);
+}
+
 // Enhanced client-side keep-alive ping to prevent cold starts
 // Multiple intervals for maximum reliability
-setInterval(async () => {
+const keepAliveInterval1 = setInterval(async () => {
   try {
     const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
     const response = await fetch(`${basePath}/ping`);
-    if (response.ok) {
-      console.log('🔄 Client keep-alive ping successful');
-    } else {
+    if (!response.ok) {
       console.warn('⚠️ Client keep-alive ping failed');
     }
   } catch (error) {
@@ -19,14 +147,14 @@ setInterval(async () => {
   }
 }, 4 * 60 * 1000); // Every 4 minutes (more aggressive for cold start prevention)
 
+intervals.add(keepAliveInterval1);
+
 // Secondary client-side keep-alive for redundancy
-setInterval(async () => {
+const keepAliveInterval2 = setInterval(async () => {
   try {
     const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
     const response = await fetch(`${basePath}/health`);
-    if (response.ok) {
-      console.log('🔄 Client health check successful');
-    } else {
+    if (!response.ok) {
       console.warn('⚠️ Client health check failed');
     }
   } catch (error) {
@@ -34,8 +162,13 @@ setInterval(async () => {
   }
 }, 6 * 60 * 1000); // Every 6 minutes
 
+intervals.add(keepAliveInterval2);
+
 // Back button and mutually exclusive checkboxes logic
 window.addEventListener('DOMContentLoaded', async function() {
+  // Start session monitoring
+  startSessionMonitoring();
+  
   // Auth check: redirect to login if not authenticated (only for shift-a/b/c users)
   let isShiftUser = false;
   let user = null;
@@ -55,21 +188,15 @@ window.addEventListener('DOMContentLoaded', async function() {
     // Clear any remaining session data
     localStorage.removeItem('supabase.auth.session');
     sessionStorage.removeItem('supabase.auth.session');
+    cleanupResources();
     window.location.replace('auth.html');
     return;
   }
   
-  // Prevent back navigation after logout
-  window.history.pushState(null, '', window.location.href);
+  // FORCE REDIRECT ON BACK BUTTON
   window.onpopstate = function() {
-    // Check if user is still authenticated
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) {
-        window.location.replace('auth.html');
-      } else {
-        window.history.pushState(null, '', window.location.href);
-      }
-    });
+    // Immediately redirect to login if back button is pressed
+    window.location.replace('auth.html');
   };
   // Back button and mutually exclusive checkboxes logic
   const backBtn = document.querySelector('.header-back-button');
@@ -79,44 +206,32 @@ window.addEventListener('DOMContentLoaded', async function() {
       backBtn.onclick = async function() {
         // Add confirmation dialog for shift users
         if (window.confirm("Are you sure you want to log out?")) {
-          console.log('Logout confirmed, signing out...'); // Debug log
           try {
         await supabase.auth.signOut();
-            console.log('Logout successful, clearing session...'); // Debug log
+            
+            // Cleanup all resources before logout
+            cleanupResources();
             
             // Remove session from both storages
             localStorage.removeItem('supabase.auth.session');
             sessionStorage.removeItem('supabase.auth.session');
             
-            // Clear all browser history and prevent back navigation
-            window.history.pushState(null, '', window.location.href);
-            window.onpopstate = function() {
-              window.history.pushState(null, '', window.location.href);
-            };
+            // FORCE IMMEDIATE REDIRECT - NO HISTORY MANIPULATION
+            // Clear all storage first
+            localStorage.clear();
+            sessionStorage.clear();
             
-            // Clear all session storage and local storage except essential items
-            const essentialKeys = ['rememberedEmpCode', 'rememberedPassword'];
-            for (let i = sessionStorage.length - 1; i >= 0; i--) {
-              const key = sessionStorage.key(i);
-              if (!essentialKeys.includes(key)) {
-                sessionStorage.removeItem(key);
-              }
-            }
-            for (let i = localStorage.length - 1; i >= 0; i--) {
-              const key = localStorage.key(i);
-              if (!essentialKeys.includes(key)) {
-                localStorage.removeItem(key);
-              }
-            }
+            // Force immediate redirect
+            window.location.replace('auth.html');
             
-            console.log('Logout successful, redirecting...'); // Debug log
-        window.location.replace('auth.html');
+            // Force immediate redirect
+            window.location.replace('auth.html');
           } catch (err) {
             console.error('Exception during logout:', err);
             alert('An unexpected error occurred during logout.');
           }
         } else {
-          console.log('Logout cancelled by user.'); // Debug log (optional)
+          // Logout cancelled by user
         }
       };
       // Add shift label after the Logout button
@@ -777,8 +892,9 @@ async function loadFormsTable() {
         total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
         created_at, updated_at
       `)
+      .order('created_at', { ascending: false })
       .order('production_date', { ascending: false })
-      .order('created_at', { ascending: false });
+      .order('mc_no', { ascending: true });
 
     if (error) {
       console.error('Error loading forms:', error);
@@ -787,9 +903,35 @@ async function loadFormsTable() {
 
     // Only show forms with a non-null and non-empty customer value
     const validForms = data.filter(form => form.customer !== null && form.customer !== '');
-    allForms = validForms; // Store all forms for filtering
-    filteredForms = validForms; // Initialize filtered forms with all valid forms
-    await updateFormsTable(validForms, false); // false = show limited forms initially
+    
+    // Additional client-side sorting to ensure proper date ordering with machine alternation
+    const sortedForms = validForms.sort((a, b) => {
+      // Primary sort by created_at (newest first)
+      const aCreated = new Date(a.created_at || 0);
+      const bCreated = new Date(b.created_at || 0);
+      
+      if (aCreated.getTime() !== bCreated.getTime()) {
+        return bCreated.getTime() - aCreated.getTime();
+      }
+      
+      // Secondary sort by production_date (newest first)
+      const aProdDate = new Date(a.production_date || 0);
+      const bProdDate = new Date(b.production_date || 0);
+      
+      if (aProdDate.getTime() !== bProdDate.getTime()) {
+        return bProdDate.getTime() - aProdDate.getTime();
+      }
+      
+      // Tertiary sort by machine number (ascending) to create alternating pattern
+      const aMachine = parseInt(a.mc_no) || 0;
+      const bMachine = parseInt(b.mc_no) || 0;
+      
+      return aMachine - bMachine;
+    });
+    
+    allForms = sortedForms; // Store all forms for filtering
+    filteredForms = sortedForms; // Initialize filtered forms with all valid forms
+    await updateFormsTable(sortedForms, false); // false = show limited forms initially
     populateFilterDropdowns(); // Populate dropdowns after loading forms
   } catch (error) {
     console.error('Error:', error);
@@ -1481,6 +1623,25 @@ function formatDate(dateString) {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-GB');
 }
+
+// ===== PAGE UNLOAD CLEANUP =====
+// Use beforeunload for cleanup (more reliable than unload)
+window.addEventListener('beforeunload', function() {
+    cleanupResources();
+});
+
+// Use pagehide instead of unload for better browser compatibility
+window.addEventListener('pagehide', function() {
+    cleanupResources();
+});
+
+// Additional cleanup on visibility change (when user switches tabs)
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') {
+        // Optional: cleanup when user switches away from the page
+        // cleanupResources();
+    }
+});
 
 
 

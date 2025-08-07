@@ -3,6 +3,28 @@ import { supabase } from "../supabase-config.js";
 // Classic Remember Me: Prefill credentials if saved
 
 document.addEventListener('DOMContentLoaded', () => {
+    // AGGRESSIVE BACK NAVIGATION PREVENTION ON AUTH PAGE LOAD
+    // Clear existing history and set up multiple barriers
+    window.history.pushState(null, '', window.location.href);
+    window.history.pushState(null, '', window.location.href);
+    window.history.pushState(null, '', window.location.href);
+    window.history.pushState(null, '', window.location.href);
+    window.history.pushState(null, '', window.location.href);
+    
+    // Remove any existing handlers
+    window.onpopstate = null;
+    window.removeEventListener('popstate', window.authPagePopstateHandler);
+    
+    // Set up aggressive popstate handler for auth page
+    window.authPagePopstateHandler = function(event) {
+        // Immediately redirect to login if back button is pressed
+        window.location.replace(window.location.href);
+    };
+    
+    window.onpopstate = window.authPagePopstateHandler;
+    window.addEventListener('popstate', window.authPagePopstateHandler);
+    
+    // Prefill credentials if saved
     const empCodeInput = document.getElementById('empcode');
     const passwordInput = document.getElementById('password');
     const rememberMe = document.getElementById('rememberMe');
@@ -162,11 +184,26 @@ document.getElementById("logoutBtn")?.addEventListener("click", async () => {
         localStorage.removeItem('supabase.auth.session');
         sessionStorage.removeItem('supabase.auth.session');
         
-        // Clear all browser history and prevent back navigation
+        // AGGRESSIVE BACK NAVIGATION PREVENTION
+        // Clear all history and prevent back navigation completely
         window.history.pushState(null, '', window.location.href);
-        window.onpopstate = function() {
-            window.history.pushState(null, '', window.location.href);
+        window.history.pushState(null, '', window.location.href);
+        window.history.pushState(null, '', window.location.href);
+        window.history.pushState(null, '', window.location.href);
+        window.history.pushState(null, '', window.location.href);
+        
+        // Remove any existing handlers
+        window.onpopstate = null;
+        window.removeEventListener('popstate', window.authPopstateHandler);
+        
+        // Set up aggressive popstate handler
+        window.authPopstateHandler = function(event) {
+            // Immediately redirect to login if back button is pressed
+            window.location.replace(`${basePath}/html/auth.html`);
         };
+        
+        window.onpopstate = window.authPopstateHandler;
+        window.addEventListener('popstate', window.authPopstateHandler);
         
         // Clear all session storage and local storage except essential items
         const essentialKeys = ['rememberedEmpCode', 'rememberedPassword'];
