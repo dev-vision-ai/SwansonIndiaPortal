@@ -148,7 +148,7 @@ const lotTheadHTML = `
     <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header"" style="width:33px; min-width:33px; max-width:33px;">Others</th>
     <th rowspan="2" class="border border-gray-300 px-2 py-1" style="width:55px; min-width:55px; max-width:55px;">Accept / Reject</th>
     <th rowspan="2" class="border border-gray-300 px-2 py-1" style="width:100px; min-width:100px; max-width:100px;">Defect Name</th>
-    <th rowspan="2" class="border border-gray-300 px-2 py-1" style="width:100px; min-width:100px; max-width:100px;">Remarks</th>
+    <th rowspan="2" class="border border-gray-300 px-2 py-1" style="width:100px; min-width:100px; max-width:100px;">PI Changed</th>
     <th rowspan="2" class="border border-gray-300 px-2 py-1" style="width:100px; min-width:100px; max-width:100px;">Inspected By</th>
 </tr>
 <tr>
