@@ -1863,6 +1863,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             totalCount,
             totalWeight: totalWeight.toFixed(2)
         });
+        
+        // Update Production No Summary table live
+        renderProductionNoSummaryTable();
     }
 
     // Hook summary update to all relevant events
