@@ -1,5 +1,13 @@
 import { supabase } from '../supabase-config.js';
 
+// ===== IST TIMESTAMP UTILITY =====
+function getISTTimestamp() {
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+    const istTime = new Date(now.getTime() + istOffset);
+    return istTime.toISOString();
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const incidentId = urlParams.get('id');
@@ -263,7 +271,7 @@ async function saveChanges() {
                 follow_up_required: followUpRequired,
                 status: status,
                 remarks: remarks,
-                updated_at: new Date().toISOString()
+                updated_at: getISTTimestamp()
             })
             .eq('id', incidentId);
 

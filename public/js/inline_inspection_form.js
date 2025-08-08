@@ -3,6 +3,66 @@ import { supabase } from '../supabase-config.js';
 // ===== CONFIGURATION =====
 const MAX_FORMS_DISPLAY = 6; // Maximum number of forms to display
 
+// ===== IST TIMESTAMP UTILITY =====
+function getISTTimestamp() {
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+    const istTime = new Date(now.getTime() + istOffset);
+    return istTime.toISOString();
+}
+
+// ===== CLOCK FUNCTIONALITY =====
+let clockInterval = null;
+
+function updateClock() {
+    try {
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+        const timeString = `Time: ${hours}:${minutes}:${seconds}`;
+        
+        const timeElement = document.getElementById('currentTime');
+        if (timeElement) {
+            timeElement.textContent = timeString;
+        }
+    } catch (error) {
+        console.error('Error updating clock:', error);
+    }
+}
+
+function startClock() {
+    try {
+        // Clear existing interval if any
+        if (clockInterval) {
+            clearInterval(clockInterval);
+        }
+        
+        // Update immediately
+        updateClock();
+        
+        // Update every second
+        clockInterval = setInterval(updateClock, 1000);
+        intervals.add(clockInterval);
+        
+        console.log('✅ Clock started successfully');
+    } catch (error) {
+        console.error('❌ Error starting clock:', error);
+    }
+}
+
+function stopClock() {
+    try {
+        if (clockInterval) {
+            clearInterval(clockInterval);
+            clockInterval = null;
+        }
+        console.log('✅ Clock stopped successfully');
+    } catch (error) {
+        console.error('❌ Error stopping clock:', error);
+    }
+}
+
 // ===== MEMORY LEAK PREVENTION =====
 // Track all intervals and timeouts for cleanup
 const intervals = new Set();
@@ -12,6 +72,9 @@ const eventListeners = new Map();
 // Cleanup function to prevent memory leaks
 function cleanupResources() {
     try {
+        // Stop the clock
+        stopClock();
+        
         // Clear all intervals
         intervals.forEach(interval => {
             try {
@@ -168,6 +231,9 @@ intervals.add(keepAliveInterval2);
 window.addEventListener('DOMContentLoaded', async function() {
   // Start session monitoring
   startSessionMonitoring();
+  
+  // Start the clock
+  startClock();
   
   // Auth check: redirect to login if not authenticated (only for shift-a/b/c users)
   let isShiftUser = false;
@@ -648,7 +714,7 @@ async function handleFormSubmit(e) {
           operator2: formData.get('operator2'),
           qc_inspector: formData.get('qc_inspector'),
           qc_inspector2: formData.get('qc_inspector2'),
-          updated_at: new Date().toISOString()
+          updated_at: getISTTimestamp()
         };
         
         console.log('Update Object:', updateObject);
@@ -765,7 +831,7 @@ async function handleFormSubmit(e) {
         rejected_rolls: 0,
         rework_rolls: 0,
         kiv_rolls: 0,
-        created_at: new Date().toISOString()
+        created_at: getISTTimestamp()
       };
         
       const { data, error } = await supabase

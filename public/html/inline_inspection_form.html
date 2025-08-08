@@ -15,12 +15,36 @@
         html, body {
             overflow-y: auto;
         }
+        
+        /* Clock styling for header */
+        .header-clock {
+            display: flex;
+            align-items: center;
+            margin-left: 30px;
+        }
+        
+        .clock-display {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            color: #FFD700;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
     <div class="header-container">
         <button type="button" class="header-back-button">Back</button>
         <div class="header-title">All Inline Inspection Forms</div>
+        <div class="header-clock">
+            <div id="currentTime" class="clock-display">Time: --:--:--</div>
+        </div>
         <div class="company-logo">
             <img src="../assets/logo.png" alt="Company Logo">
         </div>

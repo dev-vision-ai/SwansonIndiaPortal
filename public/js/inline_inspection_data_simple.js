@@ -8,6 +8,101 @@ let addNewTableBtn = null;
 let ipqcUpdateTimeout = null;
 let qcInspectorsCache = [];
 
+// ===== IST TIMESTAMP UTILITY =====
+function getISTTimestamp() {
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+    const istTime = new Date(now.getTime() + istOffset);
+    return istTime.toISOString();
+}
+
+// ===== CLOCK FUNCTIONALITY =====
+let clockInterval = null;
+
+// ===== SHIFT DISPLAY FUNCTIONALITY =====
+function setShiftDisplay() {
+    try {
+        const shiftElement = document.getElementById('shiftDisplay');
+        if (!shiftElement) return;
+        
+        // Get user from session
+        supabase.auth.getUser().then(result => {
+            if (result.data.user && result.data.user.email) {
+                const username = result.data.user.email.split('@')[0].toLowerCase();
+                let shiftLabel = '';
+                
+                if (username.includes('shift-a')) {
+                    shiftLabel = 'Shift A';
+                } else if (username.includes('shift-b')) {
+                    shiftLabel = 'Shift B';
+                } else if (username.includes('shift-c')) {
+                    shiftLabel = 'Shift C';
+                } else {
+                    // No shift in email, don't show anything
+                    shiftLabel = '';
+                }
+                
+                shiftElement.textContent = shiftLabel;
+            }
+        }).catch(error => {
+            console.error('Error getting user for shift display:', error);
+            // Don't show shift if error
+            shiftElement.textContent = '';
+        });
+    } catch (error) {
+        console.error('Error setting shift display:', error);
+    }
+}
+
+function updateClock() {
+    try {
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+        const timeString = `Time: ${hours}:${minutes}:${seconds}`;
+        
+        const timeElement = document.getElementById('currentTime');
+        if (timeElement) {
+            timeElement.textContent = timeString;
+        }
+    } catch (error) {
+        console.error('Error updating clock:', error);
+    }
+}
+
+function startClock() {
+    try {
+        // Clear existing interval if any
+        if (clockInterval) {
+            clearInterval(clockInterval);
+        }
+        
+        // Update immediately
+        updateClock();
+        
+        // Update every second
+        clockInterval = setInterval(updateClock, 1000);
+        intervals.add(clockInterval);
+        
+        console.log('✅ Clock started successfully');
+    } catch (error) {
+        console.error('❌ Error starting clock:', error);
+    }
+}
+
+function stopClock() {
+    try {
+        if (clockInterval) {
+            clearInterval(clockInterval);
+            clockInterval = null;
+        }
+        console.log('✅ Clock stopped successfully');
+    } catch (error) {
+        console.error('❌ Error stopping clock:', error);
+    }
+}
+
 // ===== MEMORY LEAK PREVENTION =====
 // Track all event listeners for cleanup
 const eventListeners = new Map();
@@ -17,6 +112,9 @@ const timeouts = new Set();
 // Cleanup function to prevent memory leaks
 function cleanupResources() {
     try {
+        // Stop the clock
+        stopClock();
+        
         // Clear all intervals
         intervals.forEach(interval => {
             try {
@@ -179,6 +277,12 @@ const lotTheadHTML = `
 document.addEventListener('DOMContentLoaded', async function() {
     // Start session monitoring
     startSessionMonitoring();
+    
+    // Start the clock
+    startClock();
+    
+    // Set shift display based on user session
+    setShiftDisplay();
     
     // Get URL parameters first
     const urlParams = new URLSearchParams(window.location.search);
@@ -1130,7 +1234,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 remarks_data: remarksData,
                 inspected_by: inspectedBy,
                 arm: armValue,
-                updated_at: new Date().toISOString(),
+                updated_at: getISTTimestamp(),
                 accepted_rolls: summary.accepted_rolls,
                 rejected_rolls: summary.rejected_rolls,
                 rework_rolls: summary.rework_rolls,
@@ -2251,8 +2355,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 rework_weight: 0,
                 kiv_weight: 0,
                 status: 'draft',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
+                created_at: getISTTimestamp(),
+                updated_at: getISTTimestamp()
             }]);
         if (error) {
             alert('Error creating new lot: ' + error.message);
@@ -3102,7 +3206,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 remarks_data: remarksData,
                 inspected_by: inspectedBy,
                 arm: armValue,
-                updated_at: new Date().toISOString(),
+                updated_at: getISTTimestamp(),
                 accepted_rolls: summary.accepted_rolls,
                 rejected_rolls: summary.rejected_rolls,
                 rework_rolls: summary.rework_rolls,
@@ -3171,8 +3275,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                     rejected_weight: 0,
                     rework_weight: 0,
                     kiv_weight: 0,
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
+                    created_at: getISTTimestamp(),
+                    updated_at: getISTTimestamp()
                 }]);
             // Now reload to show the new table
             return await loadAllLots();
@@ -3920,7 +4024,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 rework_weight: 0,
                                 kiv_weight: 0,
                                 lot_no: null, // Reset lot number to null when no rows
-                                updated_at: new Date().toISOString()
+                                updated_at: getISTTimestamp()
                             })
                             .eq('form_id', formId);
                         
