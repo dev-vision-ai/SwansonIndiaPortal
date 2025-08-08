@@ -4388,8 +4388,16 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Render Production No Summary Table
     function renderProductionNoSummaryTable() {
-        // Get the main Production No from the form header
-        const mainProductionNo = document.getElementById('production_no')?.textContent?.trim() || '';
+        // Get the main Production No from the form header (only the first one, not production_no_2)
+        const productionNoElement = document.getElementById('production_no');
+        let mainProductionNo = '';
+        
+        if (productionNoElement && productionNoElement.textContent) {
+            const fullText = productionNoElement.textContent.trim();
+            // Split by comma and take only the first production number
+            const productionNumbers = fullText.split(',').map(p => p.trim()).filter(p => p && p !== '[Production No.]');
+            mainProductionNo = productionNumbers[0] || '';
+        }
         
         // Extract additional Production Nos from remarks and track continuous process
         const productionNoData = {};
