@@ -958,8 +958,8 @@ async function loadFormsTable() {
         total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
         created_at, updated_at
       `)
-      .order('created_at', { ascending: false })
       .order('production_date', { ascending: false })
+      .order('created_at', { ascending: false })
       .order('mc_no', { ascending: true });
 
     if (error) {
@@ -972,20 +972,20 @@ async function loadFormsTable() {
     
     // Additional client-side sorting to ensure proper date ordering with machine alternation
     const sortedForms = validForms.sort((a, b) => {
-      // Primary sort by created_at (newest first)
-      const aCreated = new Date(a.created_at || 0);
-      const bCreated = new Date(b.created_at || 0);
-      
-      if (aCreated.getTime() !== bCreated.getTime()) {
-        return bCreated.getTime() - aCreated.getTime();
-      }
-      
-      // Secondary sort by production_date (newest first)
+      // Primary sort by production_date (newest first)
       const aProdDate = new Date(a.production_date || 0);
       const bProdDate = new Date(b.production_date || 0);
       
       if (aProdDate.getTime() !== bProdDate.getTime()) {
         return bProdDate.getTime() - aProdDate.getTime();
+      }
+      
+      // Secondary sort by created_at (newest first)
+      const aCreated = new Date(a.created_at || 0);
+      const bCreated = new Date(b.created_at || 0);
+      
+      if (aCreated.getTime() !== bCreated.getTime()) {
+        return bCreated.getTime() - aCreated.getTime();
       }
       
       // Tertiary sort by machine number (ascending) to create alternating pattern
