@@ -307,6 +307,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     const totalColumns = 33;
     const mergedIndices = [0, 1, 2, 4, 31]; // Hour, Minutes, Lot No., Arm, Remarks
     const dropdownIndex = 29; // Accept / Reject column
+    
+    // Global variable to track if current form is non-printed
+    let isNonPrintedForm = false;
     const dropdownOptions = ["", "Accept", "Reject", "KIV", "Rework"];
     const fixedWidthIndices = {
         10: '40px', 11: '40px', 12: '33px', 13: '33px', 14: '33px', 15: '33px',
@@ -375,6 +378,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.getElementById('printed').checked = formData.printed || false;
                 document.getElementById('non_printed').checked = formData.non_printed || false;
                 document.getElementById('ct').checked = formData.ct || false;
+                
+                // Store the form type globally for use in table creation
+                isNonPrintedForm = formData.non_printed || false;
+                console.log('Form type detected - Non-printed:', isNonPrintedForm);
                 document.getElementById('year').textContent = formData.year || '[Year]';
                 document.getElementById('month').textContent = formData.month || '[Month]';
                 document.getElementById('date').textContent = formData.date || '[Date]';
@@ -543,6 +550,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                 28: 'others', 29: 'accept_reject', 30: 'defect_name', 31: 'remarks', 32: 'inspected_by'
             };
             td.dataset.field = fieldMap[colIndex];
+            
+            // Pre-fill NA values for non-printed forms in specific columns
+            const naColumns = [18, 19, 20, 21, 22, 23]; // ct_appearance, print_color, mis_print, dirty_print, tape_test, centralization
+            if (isNonPrintedForm && naColumns.includes(colIndex)) {
+                td.textContent = 'NA';
+                console.log(`Pre-filled NA in column ${colIndex} (${fieldMap[colIndex]})`);
+            }
         }
         
         // Special handling for "Inspected By" column (32) - only first row should be editable
@@ -1707,6 +1721,15 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Add event listeners
     addRowsBtn.addEventListener('click', async () => {
+        // Double-check form type from UI if not set from database
+        if (isNonPrintedForm === false) {
+            const nonPrintedCheckbox = document.getElementById('non_printed');
+            if (nonPrintedCheckbox && nonPrintedCheckbox.checked) {
+                isNonPrintedForm = true;
+                console.log('Form type updated from UI - Non-printed:', isNonPrintedForm);
+            }
+        }
+        console.log('Add Rows clicked - Current isNonPrintedForm:', isNonPrintedForm);
         const n = parseInt(numRowsInput.value, 10) || 1;
         addRows(n);
         afterTableStructureChange();
@@ -2267,8 +2290,43 @@ document.addEventListener('DOMContentLoaded', async function() {
         return (maxLotNumber + 1).toString().padStart(2, '0');
     }
 
+    // Function to fill NA values in existing tables for non-printed forms
+    function fillNAValuesForNonPrintedForm() {
+        const tables = tablesContainer.querySelectorAll('table');
+        const naFieldNames = ['ct_appearance', 'print_color', 'mis_print', 'dirty_print', 'tape_test', 'centralization'];
+        
+        tables.forEach(table => {
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            
+            let naFilledCount = 0;
+            Array.from(tbody.rows).forEach(row => {
+                naFieldNames.forEach(fieldName => {
+                    const cell = row.querySelector(`td[data-field="${fieldName}"]`);
+                    if (cell && cell.textContent.trim() === '') {
+                        cell.textContent = 'NA';
+                        naFilledCount++;
+                        console.log(`Filled NA for ${fieldName} in row ${row.rowIndex}`);
+                    }
+                });
+            });
+            
+            // If we filled any NA values, save the entire table
+            if (naFilledCount > 0) {
+                console.log(`Filled ${naFilledCount} NA values, triggering table save...`);
+                setTimeout(() => {
+                    saveLotTableToSupabase(table);
+                }, 100);
+            }
+        });
+    }
+
     // Add this function near the top of the file or before the Add Next Lot handler
     function buildEmptyRoll(position, lotNumber = '01') {
+        // For non-printed forms, pre-fill NA in printing-related columns
+        const naValue = isNonPrintedForm ? "NA" : "";
+        console.log('Building roll', position, '- Non-printed form:', isNonPrintedForm, '- NA value:', naValue);
+        
         return {
             arm: "",
             prs: "",
@@ -2282,22 +2340,22 @@ document.addEventListener('DOMContentLoaded', async function() {
             pin_hole: "",
             roll_dia: "",
             wrinkles: "",
-            mis_print: "",
-            tape_test: "",
+            mis_print: naValue,        // Pre-fill NA for non-printed
+            tape_test: naValue,        // Pre-fill NA for non-printed
             thickness: "",
             film_color: "",
             patch_mark: "",
             roll_curve: "",
             defect_name: "",
-            dirty_print: "",
-            print_color: "",
+            dirty_print: naValue,      // Pre-fill NA for non-printed
+            print_color: naValue,      // Pre-fill NA for non-printed
             roll_weight: "",
             lines_strips: "",
             accept_reject: "",
-            ct_appearance: "",
+            ct_appearance: naValue,    // Pre-fill NA for non-printed
             roll_position: position.toString(),
             roll_width_mm: "",
-            centralization: "",
+            centralization: naValue,   // Pre-fill NA for non-printed
             film_weight_gsm: "",
             core_misalignment: "",
             paper_core_dia_id: "",
@@ -2308,6 +2366,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Add event listener to the button (only if it exists)
     if (addNewTableBtn) {
     addNewTableBtn.addEventListener('click', async function() {
+        // Double-check form type from UI if not set from database
+        if (isNonPrintedForm === false) {
+            const nonPrintedCheckbox = document.getElementById('non_printed');
+            if (nonPrintedCheckbox && nonPrintedCheckbox.checked) {
+                isNonPrintedForm = true;
+                console.log('Form type updated from UI for Add Next Lot - Non-printed:', isNonPrintedForm);
+            }
+        }
+        
         // Get the number of rows in the main table (first table)
         const mainTable = tablesContainer.querySelector('table');
         let rowCount = 1;
@@ -2798,7 +2865,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         td &&
                         !td.querySelector('select') &&
                         !td.querySelector('input') &&
-                        td.textContent.trim() === ''
+                        td.textContent.trim() === '' // Only fill empty cells (NA cells will be skipped automatically)
                     ) {
                             // Temporarily enable cell for Fill O operation
                             const wasEditable = td.contentEditable;
@@ -2841,7 +2908,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                             td &&
                             !td.querySelector('select') &&
                             !td.querySelector('input') &&
-                            td.textContent.trim() === 'O'
+                            td.textContent.trim() === 'O' // Only clear O values (NA cells don't contain O)
                         ) {
                             // Temporarily enable cell for Clear O operation
                             const wasEditable = td.contentEditable;
@@ -3325,6 +3392,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         updateSummaryTable();
         updateFastEntryTabOrder(); // <-- Ensure tab order is set after reload
         addLockCheckboxListeners(); // <-- Ensure checkbox listeners are set after reload
+        
+        // ===== FILL NA VALUES FOR NON-PRINTED FORMS =====
+        // After tables are loaded, check if this is a non-printed form and fill NA values
+        if (isNonPrintedForm) {
+            console.log('Non-printed form detected - filling NA values in existing tables');
+            fillNAValuesForNonPrintedForm();
+        }
+        
         // In loadAllLots, after repopulating tables, re-enable Add Rows only for the first table if it is empty
         const tables = tablesContainer.querySelectorAll('table');
         if (tables.length > 0) {
