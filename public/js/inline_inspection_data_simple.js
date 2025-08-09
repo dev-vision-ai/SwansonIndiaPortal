@@ -614,9 +614,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const cells = row ? row.querySelectorAll('td[data-field]') : [];
                     cells.forEach(cell => {
                         const fieldName = cell.dataset.field;
-                        // Always keep Glossy and CT enabled at all times
-                        // Disable other X/O fields and Defect Name (not Accept/Reject, Remarks, Inspected By, Glossy, CT)
-                        if (fieldName && !['accept_reject', 'remarks', 'inspected_by', 'glossy', 'ct_appearance'].includes(fieldName)) {
+                        // Always keep Glossy, CT, Film Weight GSM, and Paper Core fields enabled at all times
+                        // Disable other X/O fields and Defect Name (not Accept/Reject, Remarks, Inspected By, Glossy, CT, GSM, Paper Core)
+                        if (fieldName && !['accept_reject', 'remarks', 'inspected_by', 'glossy', 'ct_appearance', 'film_weight_gsm', 'paper_core_dia_id', 'paper_core_dia_od'].includes(fieldName)) {
                             cell.contentEditable = false;
                         }
                     });
@@ -625,10 +625,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const cells = row ? row.querySelectorAll('td[data-field]') : [];
                     cells.forEach(cell => {
                         const fieldName = cell.dataset.field;
-                        // Enable Defect Name and Remarks, disable X/O fields except Glossy and CT
+                        // Enable Defect Name and Remarks, disable X/O fields except Glossy, CT, Film Weight GSM, and Paper Core fields
                         if (fieldName === 'defect_name' || fieldName === 'remarks') {
                             cell.contentEditable = true;
-                        } else if (fieldName && !['accept_reject', 'inspected_by', 'glossy', 'ct_appearance'].includes(fieldName)) {
+                        } else if (fieldName && !['accept_reject', 'inspected_by', 'glossy', 'ct_appearance', 'film_weight_gsm', 'paper_core_dia_id', 'paper_core_dia_od'].includes(fieldName)) {
                             cell.contentEditable = false;
                         }
                     });
@@ -3032,9 +3032,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                     // Disable all X/O input cells in this row except Glossy, CT, and GSM
                     cells.forEach(cell => {
                         const fieldName = cell.dataset.field;
-                        // Always keep Glossy, CT, and GSM enabled at all times
-                        // Only disable X/O fields (not Accept/Reject, Defect Name, Remarks, Inspected By, Glossy, CT, GSM)
-                        if (fieldName && !['accept_reject', 'defect_name', 'remarks', 'inspected_by', 'glossy', 'ct_appearance', 'film_weight_gsm'].includes(fieldName)) {
+                        // Always keep Glossy, CT, Film Weight GSM, and Paper Core fields enabled at all times
+                        // Only disable X/O fields (not Accept/Reject, Defect Name, Remarks, Inspected By, Glossy, CT, GSM, Paper Core)
+                        if (fieldName && !['accept_reject', 'defect_name', 'remarks', 'inspected_by', 'glossy', 'ct_appearance', 'film_weight_gsm', 'paper_core_dia_id', 'paper_core_dia_od'].includes(fieldName)) {
                     cell.contentEditable = false;
                         }
                     });
