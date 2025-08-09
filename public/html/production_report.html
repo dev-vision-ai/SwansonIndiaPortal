@@ -6,103 +6,24 @@
     <title>Production Report - Swanson Plastics India</title>
     <link rel="stylesheet" href="../css/employee_dashboard.css">
     <link rel="stylesheet" href="../css/header.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Override any existing container constraints */
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            font-weight: 500; 
+        }
+        
+        main {
+            margin-top: 100px;
+            padding: 0 20px;
+            width: 100%;
+        }
+        
         .container {
-            max-width: none !important;
-            width: 100% !important;
             padding: 0 !important;
             margin: 0 !important;
-        }
-        
-        .white-container {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin: 20px 10px 20px 10px !important;
-            min-height: 100px;
-            width: calc(100% - 20px) !important;
             max-width: none !important;
-        }
-        
-        .filter-container {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 15px;
-            margin: 80px 10px 10px 10px !important;
-            width: calc(100% - 20px) !important;
-            max-width: none !important;
-        }
-        
-        .summary-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            font-size: 12px;
-        }
-        .summary-table th,
-        .summary-table td {
-            border: 1px solid #e5e7eb;
-            padding: 6px 8px;
-            text-align: left;
-        }
-        .summary-table th {
-            background-color: #f9fafb;
-            font-weight: 600;
-            color: #374151;
-            font-size: 11px;
-        }
-        .summary-table td {
-            background-color: white;
-            font-size: 11px;
-        }
-        .summary-section {
-            margin-bottom: 20px;
-            min-width: 250px;
-            flex: 1;
-        }
-        .summary-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 8px;
-        }
-        .summary-grid {
-            display: flex;
-            gap: 20px;
-            overflow-x: auto;
-            padding-bottom: 10px;
-            width: 100%;
-            justify-content: space-between;
-        }
-        .summary-section {
-            flex: 1;
-            min-width: 250px;
-        }
-        .main-content {
             width: 100% !important;
-            padding: 0 !important;
-            max-width: none !important;
-            margin-top: 0 !important;
-        }
-        
-        /* Override any Tailwind max-width classes */
-        .max-w-7xl {
-            max-width: none !important;
-        }
-        
-        .mx-auto {
-            margin: 0 !important;
-        }
-        
-        /* Ensure header doesn't overlap content */
-        .header-container {
-            position: relative !important;
-            z-index: 10;
         }
     </style>
 </head>
@@ -121,201 +42,178 @@
             </div>
         </header>
         
-        <main class="main-content">
-            <!-- Filter Container -->
-            <div class="filter-container">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex-1"></div>
-                    <h3 class="text-base font-semibold text-gray-800 text-center flex-1">Find / Filter Forms</h3>
-                    <div class="flex items-center space-x-2 flex-1 justify-end">
-                        <span class="text-sm text-gray-600">Filter Status:</span>
-                        <span id="filterStatus" class="px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700">
-                            Off
-                        </span>
+        <main>
+            <!-- Filter Section -->
+            <div id="filterSection" style="width: 100%; display: flex; justify-content: center; margin-top: 1rem; margin-bottom: 1.5rem;">
+                <div id="filterContainer" class="bg-white rounded-lg shadow-md p-6" style="width: auto; margin: 0;">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex-1"></div>
+                        <h3 class="text-base font-semibold text-gray-800 text-center flex-1">Find / Filter Forms</h3>
+                        <div class="flex items-center space-x-2 flex-1 justify-end">
+                            <span class="text-sm text-gray-600">Filter Status:</span>
+                            <span id="filterStatus" class="px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700">
+                                Off
+                            </span>
+                        </div>
                     </div>
-                </div>
-                <div class="flex flex-wrap items-end justify-center gap-3">
-                    <!-- Machine Filter -->
-                    <div class="flex flex-col items-center">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">M/C No:</label>
-                        <select id="filterMachine" class="w-24 h-8 px-2 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
-                            <option value="">All</option>
-                        </select>
-                    </div>
-                    <!-- Product Filter -->
-                    <div class="flex flex-col items-center">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Product:</label>
-                        <select id="filterProduct" class="w-32 h-8 px-2 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
-                            <option value="">All</option>
-                        </select>
-                    </div>
-                    <!-- Date Range -->
-                    <div class="flex flex-col items-center">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">From Date:</label>
-                        <input type="date" id="filterFromDate" class="w-32 h-8 px-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">To Date:</label>
-                        <input type="date" id="filterToDate" class="w-32 h-8 px-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
-                    </div>
-                    <!-- Shift Filter -->
-                    <div class="flex flex-col items-center">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Shift:</label>
-                        <select id="filterShift" class="w-20 h-8 px-2 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
-                            <option value="">All</option>
-                            <option value="1">A</option>
-                            <option value="2">B</option>
-                            <option value="3">C</option>
-                        </select>
-                    </div>
-                    <!-- Filter Buttons -->
-                    <div class="flex flex-col items-center">
-                        <div class="h-5"></div> <!-- Spacer to align with inputs -->
-                        <div class="flex space-x-2">
-                            <button id="clearFilter" class="w-16 h-8 bg-gray-500 text-white text-xs font-semibold rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
-                                Clear
-                            </button>
+                    <div class="flex flex-wrap items-end justify-center gap-6">
+                        <!-- Date Range -->
+                        <div class="flex flex-col items-center">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">From Date:</label>
+                            <input type="date" id="filterFromDate" class="w-40 h-10 px-3 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">To Date:</label>
+                            <input type="date" id="filterToDate" class="w-40 h-10 px-3 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                        </div>
+                        <!-- Product Filter -->
+                        <div class="flex flex-col items-center">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Product:</label>
+                            <select id="filterProduct" class="w-40 h-10 px-3 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                                <option value="">All</option>
+                            </select>
+                        </div>
+                        <!-- Machine Filter -->
+                        <div class="flex flex-col items-center">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">M/C No:</label>
+                            <select id="filterMachine" class="w-32 h-10 px-3 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                                <option value="">All</option>
+                            </select>
+                        </div>
+                        <!-- Shift Filter -->
+                        <div class="flex flex-col items-center">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Shift:</label>
+                            <select id="filterShift" class="w-28 h-10 px-3 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                                <option value="">All</option>
+                                <option value="1">A</option>
+                                <option value="2">B</option>
+                                <option value="3">C</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Filter Buttons -->
+                        <div class="flex flex-col items-center">
+                            <div class="h-5"></div> <!-- Spacer to align with inputs -->
+                            <div class="flex space-x-2">
+                                <button id="clearFilter" class="w-20 h-10 bg-gray-500 text-white text-sm font-semibold rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                                    Clear
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+            
+            <!-- Results Section -->
+            <div class="w-full">
+                <!-- Summary Tables Container -->
+                <div id="summarySection" class="w-full mt-6 mb-6">
+                    <div class="bg-white rounded-lg shadow-md p-6 max-w-full mx-auto overflow-x-auto">
+                        <div class="flex justify-center gap-6 min-w-max">
+                            
+                            <!-- 1. Rolls Summary Table -->
+                            <div id="dynamicSummaryTableContainer" class="flex-shrink-0">
+                                <table class="text-xs text-center border-collapse border border-gray-700 bg-white">
+                                    <tbody>
+                                        <tr style="height: 30px;"><td style="border: 1px solid #9ca3af; padding: 4px 8px;">Accepted Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px;">0 Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00 KG</td></tr>
+                                        <tr style="height: 30px;"><td style="border: 1px solid #9ca3af; padding: 4px 8px;">Rejected Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px;">0 Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00 KG</td></tr>
+                                        <tr style="height: 30px;"><td style="border: 1px solid #9ca3af; padding: 4px 8px;">Rolls Rejected for Rework</td><td style="border: 1px solid #9ca3af; padding: 4px 8px;">0 Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00 KG</td></tr>
+                                        <tr style="height: 30px;"><td style="border: 1px solid #9ca3af; padding: 4px 8px;">KIV Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px;">0 Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00 KG</td></tr>
+                                        <tr style="height: 30px;"><td style="border: 1px solid #9ca3af; padding: 4px 8px; font-weight: bold;">Total Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px; font-weight: bold;">0 Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px; font-weight: bold;">0.00 KG</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
 
-            <!-- White Container - Full Width -->
-            <div class="white-container">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Production Data & Shifts, Machine Production etc.</h3>
-                
-                <!-- Summary Tables Grid - Horizontal Layout -->
-                <div class="summary-grid">
-                    
-                    <!-- Rolls Summary -->
-                    <div class="summary-section">
-                        <div class="summary-title">Rolls Summary</div>
-                        <table class="summary-table">
-                            <thead>
-                                <tr>
-                                    <th>Category</th>
-                                    <th>Rolls</th>
-                                    <th>KG</th>
-                                </tr>
-                            </thead>
-                            <tbody id="rollsSummaryBody">
-                                <tr>
-                                    <td>Accepted Rolls</td>
-                                    <td id="acceptedRollsCount">0</td>
-                                    <td id="acceptedRollsKG">0.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Rejected Rolls</td>
-                                    <td id="rejectedRollsCount">0</td>
-                                    <td id="rejectedRollsKG">0.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Rolls Rejected for Rework</td>
-                                    <td id="reworkRollsCount">0</td>
-                                    <td id="reworkRollsKG">0.00</td>
-                                </tr>
-                                <tr>
-                                    <td>KIV Rolls</td>
-                                    <td id="kivRollsCount">0</td>
-                                    <td id="kivRollsKG">0.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Total Rolls</td>
-                                    <td id="totalRollsCount">0</td>
-                                    <td id="totalRollsKG">0.00</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                            <!-- 2. Total Defects Table -->
+                            <div id="defectsSummaryTableContainer" class="flex-shrink-0">
+                                <table id="defectsSummaryTable" class="text-xs text-center border-collapse border border-gray-700 bg-white">
+                                    <thead>
+                                        <tr style="height: 30px;">
+                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Total Defects</th>
+                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="height: 30px;">
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;" colspan="2">No defects found in this shift.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- 3. Production No Summary Table -->
+                            <div id="productionNoSummaryTableContainer" class="flex-shrink-0">
+                                <table id="productionNoSummaryTable" class="text-xs text-center border-collapse border border-gray-700 bg-white">
+                                    <thead>
+                                        <tr style="height: 30px;">
+                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Production No Summary</th>
+                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Rolls</th>
+                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Total KG</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="height: 30px;">
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;" colspan="3">No production data found.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- 4. Statistics Table -->
+                            <div id="statisticsTableContainer" class="flex-shrink-0">
+                                <table id="statisticsTable" class="text-xs text-center border-collapse border border-gray-700 bg-white">
+                                    <thead>
+                                        <tr style="height: 30px;">
+                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Statistics</th>
+                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Parameter</th>
+                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Min</th>
+                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Max</th>
+                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Avg</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr style="height: 30px;">
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;" rowspan="5">Statistics</td>
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">Roll Weight</td>
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
+                                        </tr>
+                                        <tr style="height: 30px;">
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">Cut Width</td>
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0</td>
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0</td>
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0</td>
+                                        </tr>
+                                        <tr style="height: 30px;">
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">GSM</td>
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
+                                        </tr>
+                                        <tr style="height: 30px;">
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">Roll θ</td>
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0</td>
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0</td>
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0</td>
+                                        </tr>
+                                        <tr style="height: 30px;">
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">Thickness</td>
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
+                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
                     </div>
-
-                    <!-- Total Defects -->
-                    <div class="summary-section">
-                        <div class="summary-title">Total Defects</div>
-                        <table class="summary-table">
-                            <thead>
-                                <tr>
-                                    <th>Total Defects</th>
-                                    <th>Count</th>
-                                </tr>
-                            </thead>
-                            <tbody id="totalDefectsBody">
-                                <tr>
-                                    <td colspan="2" class="text-center text-gray-500 py-4">No defects found</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Production No Summary -->
-                    <div class="summary-section">
-                        <div class="summary-title">Production No Summary</div>
-                        <table class="summary-table">
-                            <thead>
-                                <tr>
-                                    <th>Production No</th>
-                                    <th>Rolls</th>
-                                    <th>Total KG</th>
-                                </tr>
-                            </thead>
-                            <tbody id="productionNoBody">
-                                <tr>
-                                    <td colspan="3" class="text-center text-gray-500 py-4">No production data found</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Statistics -->
-                    <div class="summary-section">
-                        <div class="summary-title">Statistics</div>
-                        <table class="summary-table">
-                            <thead>
-                                <tr>
-                                    <th>Parameter</th>
-                                    <th>Min</th>
-                                    <th>Max</th>
-                                    <th>Avg</th>
-                                </tr>
-                            </thead>
-                            <tbody id="statisticsBody">
-                                <tr>
-                                    <td>Roll Weight</td>
-                                    <td id="rollWeightMin">0.00</td>
-                                    <td id="rollWeightMax">0.00</td>
-                                    <td id="rollWeightAvg">0.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Cut Width</td>
-                                    <td id="cutWidthMin">0</td>
-                                    <td id="cutWidthMax">0</td>
-                                    <td id="cutWidthAvg">0</td>
-                                </tr>
-                                <tr>
-                                    <td>GSM</td>
-                                    <td id="gsmMin">0.00</td>
-                                    <td id="gsmMax">0.00</td>
-                                    <td id="gsmAvg">0.00</td>
-                                </tr>
-                                <tr>
-                                    <td>Roll θ</td>
-                                    <td id="rollThetaMin">0</td>
-                                    <td id="rollThetaMax">0</td>
-                                    <td id="rollThetaAvg">0</td>
-                                </tr>
-                                <tr>
-                                    <td>Thickness</td>
-                                    <td id="thicknessMin">0.00</td>
-                                    <td id="thicknessMax">0.00</td>
-                                    <td id="thicknessAvg">0.00</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
                 </div>
             </div>
         </main>
     </div>
+    
     <script type="module" src="../js/production_report.js"></script>
 </body>
 </html> 

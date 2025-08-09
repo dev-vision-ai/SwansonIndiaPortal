@@ -1664,7 +1664,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const fieldToDefectMappings = {
             'mis_print': 'Mis Print',
             'dirty_print': 'Dirty Print', 
-            'pin_hole': 'Pinhole',
+            'pin_hole': 'Pin Hole',
             'core_misalignment': 'Core Misalignment',
             'prs': 'PRS'
         };
