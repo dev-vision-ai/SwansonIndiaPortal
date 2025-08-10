@@ -142,6 +142,34 @@
             color: #dc2626;
         }
 
+        /* Defects Table Total Row - Same as Production Summary */
+        .defects-table .highlight-row {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            font-weight: 700;
+            color: #92400e;
+            border-top: 2px solid #f59e0e;
+        }
+
+        .defects-table .highlight-row:hover {
+            background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
+        }
+
+        /* Override defect-count color for total row */
+        .defects-table .highlight-row .defect-count {
+            color: #92400e !important;
+        }
+
+        /* Override metric-value color for total row */
+        .defects-table .highlight-row .metric-value {
+            color: #92400e !important;
+        }
+
+        /* Override metric-label color for total row */
+        .defects-table .highlight-row .metric-label {
+            color: #92400e !important;
+            font-weight: 700 !important;
+        }
+
         /* Table Container Styling */
         .table-container {
             background: white;
@@ -347,9 +375,9 @@
                                 </div>
                             </div>
 
-                            <!-- 2. Total Defects Table -->
+                            <!-- 2. Production Defects Table -->
                             <div class="table-wrapper">
-                                <div class="table-title">Quality Defects</div>
+                                <div class="table-title">Production Defects</div>
                                 <div id="defectsSummaryTableContainer">
                                     <table id="defectsSummaryTable" class="summary-table defects-table">
                                         <thead>
