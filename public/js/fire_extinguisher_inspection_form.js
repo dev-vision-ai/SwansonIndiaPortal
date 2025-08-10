@@ -34,37 +34,71 @@ document.addEventListener('DOMContentLoaded', async () => {
     setFormDefaults();
     await loadExistingFireExtinguisherData();
     setupEventListeners();
+    
+    // Additional security for public access
+    setupPublicAccessSecurity();
 });
 
 // Load user profile
 async function loadUserProfile() {
     const userNameElement = document.querySelector('.user-name');
-    if (!userNameElement) return;
+    const backButton = document.getElementById('backButton');
 
     try {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError) throw userError;
-
-        if (user) {
-            const { data: profile, error: profileError } = await supabase
-                .from('users')
-                .select('full_name')
-                .eq('id', user.id)
-                .single();
-
-            if (profileError) throw profileError;
-
-            if (profile && profile.full_name) {
-                userNameElement.textContent = 'Hi, ' + profile.full_name;
-            } else {
-                userNameElement.textContent = 'Hi, ' + (user.email || 'Admin');
+        
+        if (userError || !user) {
+            // User is not authenticated - public access mode
+            console.log('Public access mode - no authentication required');
+            
+            // Hide back button for public access
+            if (backButton) {
+                backButton.style.display = 'none';
             }
-        } else {
-            window.location.href = '../html/auth.html';
+            
+            // Remove user name display for public access
+            if (userNameElement) {
+                userNameElement.style.display = 'none';
+            }
+            
+            return; // Don't redirect - allow public access
+        }
+
+        // User is authenticated - show back button and user info
+        if (backButton) {
+            backButton.style.display = 'block';
+        }
+
+        if (userNameElement) {
+            try {
+                const { data: profile, error: profileError } = await supabase
+                    .from('users')
+                    .select('full_name')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profileError) throw profileError;
+
+                if (profile && profile.full_name) {
+                    userNameElement.textContent = 'Hi, ' + profile.full_name;
+                } else {
+                    userNameElement.textContent = 'Hi, ' + (user.email || 'Admin');
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+                userNameElement.textContent = 'Hi, Admin';
+            }
         }
     } catch (error) {
-        console.error('Error loading user profile:', error);
-        userNameElement.textContent = 'Error loading name';
+        console.error('Error checking authentication:', error);
+        
+        // On error, treat as public access
+        if (backButton) {
+            backButton.style.display = 'none';
+        }
+        if (userNameElement) {
+            userNameElement.style.display = 'none';
+        }
     }
 }
 
@@ -460,6 +494,55 @@ function showSuccessMessage(message) {
 // Show error message
 function showErrorMessage(message) {
     alert(message);
+}
+
+// Setup public access security
+function setupPublicAccessSecurity() {
+    // Prevent right-click context menu
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+    
+    // Prevent keyboard shortcuts for navigation
+    document.addEventListener('keydown', function(e) {
+        // Prevent F5 refresh
+        if (e.key === 'F5') {
+            e.preventDefault();
+        }
+        
+        // Prevent Ctrl+R refresh
+        if (e.ctrlKey && e.key === 'r') {
+            e.preventDefault();
+        }
+        
+        // Prevent Ctrl+Shift+R hard refresh
+        if (e.ctrlKey && e.shiftKey && e.key === 'R') {
+            e.preventDefault();
+        }
+        
+        // Prevent backspace navigation
+        if (e.key === 'Backspace' && !isInputField(e.target)) {
+            e.preventDefault();
+        }
+    });
+    
+    // Prevent drag and drop
+    document.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+    });
+    
+    // Prevent text selection (optional - comment out if you want to allow text selection)
+    // document.addEventListener('selectstart', function(e) {
+    //     e.preventDefault();
+    // });
+}
+
+// Check if element is an input field
+function isInputField(element) {
+    return element.tagName === 'INPUT' || 
+           element.tagName === 'TEXTAREA' || 
+           element.tagName === 'SELECT' ||
+           element.contentEditable === 'true';
 }
 
 // Download QR Code function
