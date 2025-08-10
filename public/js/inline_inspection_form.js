@@ -645,6 +645,79 @@ async function handleFormSubmit(e) {
     const originalText = submitBtn.textContent;
   const isEditMode = form.dataset.isEditMode === 'true';
   
+  // Validate required fields
+  const requiredFields = [
+    'prod_code',
+    'customer', 
+    'spec',
+    'production_date',
+    'emboss_type',
+    'year',
+    'month',
+    'date',
+    'mc_no',
+    'shift',
+    'supervisor',
+    'operator',
+    'qc_inspector'
+  ];
+  
+  // Validate checkboxes (at least one must be selected)
+  const printedCheckbox = form.querySelector('input[name="printed"]');
+  const nonPrintedCheckbox = form.querySelector('input[name="non_printed"]');
+  const ctCheckbox = form.querySelector('input[name="ct"]');
+  const checkboxGroup = form.querySelector('.flex.flex-row.items-center.gap-10.border.border-gray-200.bg-gray-50.rounded-lg.px-4.py-3.w-fit.mb-2');
+  
+  const isAnyCheckboxSelected = (printedCheckbox && printedCheckbox.checked) || 
+                               (nonPrintedCheckbox && nonPrintedCheckbox.checked) || 
+                               (ctCheckbox && ctCheckbox.checked);
+  
+  const missingFields = [];
+  
+  // Clear previous validation styling
+  form.querySelectorAll('input, select').forEach(field => {
+    field.classList.remove('required-field');
+  });
+  
+  // Clear checkbox group error styling
+  if (checkboxGroup) {
+    checkboxGroup.classList.remove('checkbox-group-error');
+  }
+  
+  requiredFields.forEach(fieldName => {
+    const field = form.querySelector(`[name="${fieldName}"]`);
+    if (!field || !field.value.trim()) {
+      missingFields.push(fieldName.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()));
+      if (field) {
+        field.classList.add('required-field');
+        field.focus();
+      }
+    }
+  });
+  
+  // Check if at least one checkbox is selected
+  const productTypeError = document.getElementById('productTypeError');
+  if (!isAnyCheckboxSelected) {
+    // Don't add to missingFields array - only show inline error
+    if (checkboxGroup) {
+      checkboxGroup.classList.add('checkbox-group-error');
+    }
+    if (productTypeError) {
+      productTypeError.classList.remove('hidden');
+    }
+    // Prevent form submission
+    return;
+  } else {
+    if (productTypeError) {
+      productTypeError.classList.add('hidden');
+    }
+  }
+  
+  if (missingFields.length > 0) {
+    alert(`Please fill in all required fields marked with *:\n\n${missingFields.join('\n')}`);
+    return;
+  }
+  
   console.log('Form submission details:', {
     isEditMode,
     submitButtonText: submitBtn.textContent,
@@ -897,12 +970,81 @@ async function handleFormSubmit(e) {
       }
       overlay.style.display = 'flex';
       
-      // Setup autocomplete for personnel fields
+      // Setup autocomplete for personnel and product fields
       setTimeout(() => {
         setupPersonnelAutocomplete();
+        setupProductAutocomplete();
       }, 100);
     });
   }
+
+  // Production Report button
+  const productionReportBtn = document.getElementById('openProductionReport');
+  if (productionReportBtn) {
+    productionReportBtn.addEventListener('click', function() {
+      // Open production report in new tab
+      window.open('production_report.html', '_blank');
+    });
+  }
+  
+  // Add real-time validation for required fields (without interfering with autocomplete)
+  const requiredFields = ['prod_code', 'customer', 'spec', 'production_date', 'emboss_type', 'year', 'month', 'date', 'mc_no', 'shift', 'supervisor', 'operator', 'qc_inspector'];
+  
+  requiredFields.forEach(fieldName => {
+    const field = document.querySelector(`[name="${fieldName}"]`);
+    if (field) {
+      // Use a debounced approach to avoid conflicts with autocomplete
+      let validationTimeout;
+      
+      field.addEventListener('input', function() {
+        clearTimeout(validationTimeout);
+        validationTimeout = setTimeout(() => {
+          if (this.value.trim()) {
+            this.classList.remove('required-field');
+          }
+        }, 100);
+      });
+      
+      field.addEventListener('change', function() {
+        if (this.value.trim()) {
+          this.classList.remove('required-field');
+        }
+      });
+      
+      // Also validate when autocomplete selection is made
+      field.addEventListener('blur', function() {
+        setTimeout(() => {
+          if (this.value.trim()) {
+            this.classList.remove('required-field');
+          }
+        }, 150);
+      });
+    }
+  });
+  
+  // Add real-time validation for checkboxes
+  const checkboxes = ['printed', 'non_printed', 'ct'];
+  const checkboxGroup = document.querySelector('.flex.flex-row.items-center.gap-10.border.border-gray-200.bg-gray-50.rounded-lg.px-4.py-3.w-fit.mb-2');
+  
+  checkboxes.forEach(checkboxName => {
+    const checkbox = document.querySelector(`input[name="${checkboxName}"]`);
+    if (checkbox) {
+      checkbox.addEventListener('change', function() {
+        const isAnySelected = checkboxes.some(name => {
+          const cb = document.querySelector(`input[name="${name}"]`);
+          return cb && cb.checked;
+        });
+        
+        if (isAnySelected && checkboxGroup) {
+          checkboxGroup.classList.remove('checkbox-group-error');
+          const productTypeError = document.getElementById('productTypeError');
+          if (productTypeError) {
+            productTypeError.classList.add('hidden');
+          }
+        }
+      });
+    }
+  });
 
   if (closeBtn) {
     closeBtn.addEventListener('click', function() {
@@ -1709,41 +1851,6 @@ document.addEventListener('visibilitychange', function() {
     }
 });
 
-
-
-
-
-// ===== DOWNLOAD EXCEL FUNCTION =====
-function downloadFormExcel(traceability_code, lot_letter, buttonElement) {
-  // Show loading state on button
-  const originalContent = buttonElement.innerHTML;
-  buttonElement.innerHTML = `
-    <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-    </svg>
-  `;
-  buttonElement.disabled = true;
-  
-  // Create download URL
-  const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
-  const serverPort = window.location.hostname === 'localhost' ? '3000' : '';
-  const downloadUrl = `http://${window.location.hostname}${serverPort ? ':' + serverPort : ''}/export?traceability_code=${encodeURIComponent(traceability_code)}&lot_letter=${encodeURIComponent(lot_letter)}`;
-  
-  // Create temporary link and trigger download
-  const link = document.createElement('a');
-  link.href = downloadUrl;
-  link.download = `ILIF-${traceability_code}-${lot_letter}.xlsx`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  // Reset button after a short delay
-  setTimeout(() => {
-    buttonElement.innerHTML = originalContent;
-    buttonElement.disabled = false;
-  }, 2000);
-}
-
 // Add autocomplete functionality for personnel fields
 async function setupPersonnelAutocomplete() {
     console.log('🔍 Setting up personnel autocomplete...');
@@ -2022,40 +2129,4 @@ function setupProductAutocompleteForField(input, products, fieldType) {
     });
 }
 
-// ===== OVERLAY CONTROLS =====
-document.addEventListener('DOMContentLoaded', function() {
-  const createFormBtn = document.getElementById('showInspectionFormOverlay');
-  const overlay = document.getElementById('inspectionFormOverlay');
-  const closeBtn = document.getElementById('closeInspectionFormOverlay');
-  const form = document.getElementById('inlineInspectionEntryForm');
-  
-  if (createFormBtn) {
-    createFormBtn.addEventListener('click', function() {
-      if (form) {
-        const submitBtn = form.querySelector('button[type="submit"]');
-        if (submitBtn) submitBtn.textContent = 'Create Inline Inspection Form';
-        form.onsubmit = null; // Reset to default handler
-      }
-      overlay.style.display = 'flex';
-      
-      // Setup autocomplete for create mode
-      setupPersonnelAutocomplete();
-      setupProductAutocomplete();
-    });
-  }
-  
-  if (closeBtn) {
-    closeBtn.addEventListener('click', function() {
-      overlay.style.display = 'none';
-    });
-  }
-  
-  // Close overlay when clicking outside
-  if (overlay) {
-    overlay.addEventListener('click', function(e) {
-      if (e.target === overlay) {
-        overlay.style.display = 'none';
-      }
-    });
-  }
-});
+

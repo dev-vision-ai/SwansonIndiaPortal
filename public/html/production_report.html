@@ -25,6 +25,206 @@
             max-width: none !important;
             width: 100% !important;
         }
+
+        /* Enhanced Table Styling */
+        .summary-table {
+            border-collapse: separate;
+            border-spacing: 0;
+            border: 2px solid #d1d5db;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            background: white;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .summary-table th {
+            background: linear-gradient(135deg, #002E7D 0%, #1e40af 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 10px 12px;
+            text-align: center;
+            border: none;
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
+        .summary-table th:last-child {
+            border-right: none;
+        }
+
+        .summary-table td {
+            padding: 12px 12px;
+            font-size: 14px;
+            text-align: center;
+            border: none;
+            border-bottom: 1px solid #e5e7eb;
+            border-right: 1px solid #e5e7eb;
+            transition: background-color 0.2s ease;
+            word-wrap: break-word;
+            white-space: normal;
+            line-height: 1.4;
+        }
+
+        .summary-table td:last-child {
+            border-right: none;
+        }
+
+        .summary-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .summary-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Enhanced visual separators */
+        .summary-table tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        .summary-table tbody tr:nth-child(even):hover {
+            background-color: #f1f5f9;
+        }
+
+        .summary-table .highlight-row {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            font-weight: 700;
+            color: #92400e;
+            border-top: 2px solid #f59e0b;
+        }
+
+        .summary-table .highlight-row:hover {
+            background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
+        }
+
+        .summary-table .metric-value {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 14px;
+        }
+
+        .summary-table .metric-label {
+            color: #6b7280;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        /* Statistics Table Specific Styling */
+        .statistics-table th {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        }
+
+        .statistics-table .parameter-cell {
+            background-color: #f0fdf4;
+            color: #065f46;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .statistics-table .value-cell {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 14px;
+        }
+
+        /* Defects Table Specific Styling */
+        .defects-table th {
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+        }
+
+        .defects-table .defect-count {
+            font-weight: 700;
+            color: #dc2626;
+        }
+
+        /* Table Container Styling */
+        .table-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+            margin: 0 auto;
+            max-width: 1700px;
+        }
+
+        .tables-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 0;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .table-wrapper {
+            flex-shrink: 0;
+            position: relative;
+            width: 480px;
+        }
+
+        .table-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #374151;
+            text-align: center;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .tables-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .table-wrapper {
+                width: 100%;
+                max-width: 480px;
+            }
+        }
+
+        /* Animation for table appearance */
+        .table-wrapper {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Enhanced filter section styling */
+        .filter-container {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-input {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .filter-input:focus {
+            border-color: #002E7D;
+            box-shadow: 0 0 0 3px rgba(0, 46, 125, 0.1);
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -45,10 +245,10 @@
         <main>
             <!-- Filter Section -->
             <div id="filterSection" style="width: 100%; display: flex; justify-content: center; margin-top: 1rem; margin-bottom: 1.5rem;">
-                <div id="filterContainer" class="bg-white rounded-lg shadow-md p-6" style="width: auto; margin: 0;">
+                <div id="filterContainer" class="filter-container p-6" style="width: 90%; max-width: 1600px; margin: 0;">
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex-1"></div>
-                        <h3 class="text-base font-semibold text-gray-800 text-center flex-1">Find / Filter Forms</h3>
+                        <h3 class="text-base font-semibold text-gray-800 text-center flex-1">Fetch Production Data</h3>
                         <div class="flex items-center space-x-2 flex-1 justify-end">
                             <span class="text-sm text-gray-600">Filter Status:</span>
                             <span id="filterStatus" class="px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700">
@@ -60,31 +260,31 @@
                         <!-- Date Range -->
                         <div class="flex flex-col items-center">
                             <label class="block text-sm font-semibold text-gray-700 mb-1">From Date:</label>
-                            <input type="date" id="filterFromDate" class="w-40 h-10 px-3 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                            <input type="date" id="filterFromDate" class="filter-input w-48 h-10 px-3 text-sm">
                         </div>
                         <div class="flex flex-col items-center">
                             <label class="block text-sm font-semibold text-gray-700 mb-1">To Date:</label>
-                            <input type="date" id="filterToDate" class="w-40 h-10 px-3 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                            <input type="date" id="filterToDate" class="filter-input w-48 h-10 px-3 text-sm">
                         </div>
                         <!-- Product Filter -->
                         <div class="flex flex-col items-center">
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Product:</label>
-                            <select id="filterProduct" class="w-40 h-10 px-3 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                            <select id="filterProduct" class="filter-input w-48 h-10 px-3 text-sm bg-white">
                                 <option value="">All</option>
                             </select>
                         </div>
                         <!-- Machine Filter -->
                         <div class="flex flex-col items-center">
                             <label class="block text-sm font-semibold text-gray-700 mb-1">M/C No:</label>
-                            <select id="filterMachine" class="w-32 h-10 px-3 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                            <select id="filterMachine" class="filter-input w-40 h-10 px-3 text-sm bg-white">
                                 <option value="">All</option>
                             </select>
                         </div>
                         <!-- Shift Filter -->
                         <div class="flex flex-col items-center">
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Shift:</label>
-                            <select id="filterShift" class="w-28 h-10 px-3 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
-                                <option value="">All</option>
+                            <select id="filterShift" class="filter-input w-36 h-10 px-3 text-sm bg-white">
+                                <option value="">All Shifts</option>
                                 <option value="1">A</option>
                                 <option value="2">B</option>
                                 <option value="3">C</option>
@@ -95,7 +295,7 @@
                         <div class="flex flex-col items-center">
                             <div class="h-5"></div> <!-- Spacer to align with inputs -->
                             <div class="flex space-x-2">
-                                <button id="clearFilter" class="w-20 h-10 bg-gray-500 text-white text-sm font-semibold rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                                <button id="clearFilter" class="w-20 h-10 bg-gray-500 text-white text-sm font-semibold rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
                                     Clear
                                 </button>
                             </div>
@@ -108,103 +308,113 @@
             <div class="w-full">
                 <!-- Summary Tables Container -->
                 <div id="summarySection" class="w-full mt-6 mb-6">
-                    <div class="bg-white rounded-lg shadow-md p-6 max-w-full mx-auto overflow-x-auto">
-                        <div class="flex justify-center gap-6 min-w-max">
+                    <div class="table-container">
+                        <div class="tables-grid">
                             
                             <!-- 1. Rolls Summary Table -->
-                            <div id="dynamicSummaryTableContainer" class="flex-shrink-0">
-                                <table class="text-xs text-center border-collapse border border-gray-700 bg-white">
-                                    <tbody>
-                                        <tr style="height: 30px;"><td style="border: 1px solid #9ca3af; padding: 4px 8px;">Accepted Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px;">0 Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00 KG</td></tr>
-                                        <tr style="height: 30px;"><td style="border: 1px solid #9ca3af; padding: 4px 8px;">Rejected Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px;">0 Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00 KG</td></tr>
-                                        <tr style="height: 30px;"><td style="border: 1px solid #9ca3af; padding: 4px 8px;">Rolls Rejected for Rework</td><td style="border: 1px solid #9ca3af; padding: 4px 8px;">0 Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00 KG</td></tr>
-                                        <tr style="height: 30px;"><td style="border: 1px solid #9ca3af; padding: 4px 8px;">KIV Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px;">0 Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00 KG</td></tr>
-                                        <tr style="height: 30px;"><td style="border: 1px solid #9ca3af; padding: 4px 8px; font-weight: bold;">Total Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px; font-weight: bold;">0 Rolls</td><td style="border: 1px solid #9ca3af; padding: 4px 8px; font-weight: bold;">0.00 KG</td></tr>
-                                    </tbody>
-                                </table>
+                            <div class="table-wrapper">
+                                <div class="table-title">Production Summary</div>
+                                <div id="dynamicSummaryTableContainer">
+                                    <table class="summary-table">
+                                        <tbody>
+                                            <tr>
+                                                <td class="metric-label">Accepted Rolls</td>
+                                                <td class="metric-value">0 Rolls</td>
+                                                <td class="metric-value">0.00 KG</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="metric-label">Rejected Rolls</td>
+                                                <td class="metric-value">0 Rolls</td>
+                                                <td class="metric-value">0.00 KG</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="metric-label">Rolls Rejected for Rework</td>
+                                                <td class="metric-value">0 Rolls</td>
+                                                <td class="metric-value">0.00 KG</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="metric-label">KIV Rolls</td>
+                                                <td class="metric-value">0 Rolls</td>
+                                                <td class="metric-value">0.00 KG</td>
+                                            </tr>
+                                            <tr class="highlight-row">
+                                                <td>Total Rolls</td>
+                                                <td>0 Rolls</td>
+                                                <td>0.00 KG</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
 
                             <!-- 2. Total Defects Table -->
-                            <div id="defectsSummaryTableContainer" class="flex-shrink-0">
-                                <table id="defectsSummaryTable" class="text-xs text-center border-collapse border border-gray-700 bg-white">
-                                    <thead>
-                                        <tr style="height: 30px;">
-                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Total Defects</th>
-                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Count</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr style="height: 30px;">
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;" colspan="2">No defects found in this shift.</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <div class="table-wrapper">
+                                <div class="table-title">Quality Defects</div>
+                                <div id="defectsSummaryTableContainer">
+                                    <table id="defectsSummaryTable" class="summary-table defects-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Defect Name</th>
+                                                <th>Count</th>
+                                                <th>KGS</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td colspan="3" class="metric-label">No defects found in this shift.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
 
-                            <!-- 3. Production No Summary Table -->
-                            <div id="productionNoSummaryTableContainer" class="flex-shrink-0">
-                                <table id="productionNoSummaryTable" class="text-xs text-center border-collapse border border-gray-700 bg-white">
-                                    <thead>
-                                        <tr style="height: 30px;">
-                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Production No Summary</th>
-                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Rolls</th>
-                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Total KG</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr style="height: 30px;">
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;" colspan="3">No production data found.</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <!-- 4. Statistics Table -->
-                            <div id="statisticsTableContainer" class="flex-shrink-0">
-                                <table id="statisticsTable" class="text-xs text-center border-collapse border border-gray-700 bg-white">
-                                    <thead>
-                                        <tr style="height: 30px;">
-                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Statistics</th>
-                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Parameter</th>
-                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Min</th>
-                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Max</th>
-                                            <th style="border: 1px solid #9ca3af; padding: 4px 8px;">Avg</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr style="height: 30px;">
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;" rowspan="5">Statistics</td>
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">Roll Weight</td>
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
-                                        </tr>
-                                        <tr style="height: 30px;">
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">Cut Width</td>
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0</td>
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0</td>
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0</td>
-                                        </tr>
-                                        <tr style="height: 30px;">
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">GSM</td>
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
-                                        </tr>
-                                        <tr style="height: 30px;">
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">Roll θ</td>
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0</td>
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0</td>
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0</td>
-                                        </tr>
-                                        <tr style="height: 30px;">
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">Thickness</td>
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
-                                            <td style="border: 1px solid #9ca3af; padding: 4px 8px;">0.00</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <!-- 3. Statistics Table -->
+                            <div class="table-wrapper">
+                                <div class="table-title">Production Statistics</div>
+                                <div id="statisticsTableContainer">
+                                    <table id="statisticsTable" class="summary-table statistics-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Parameter</th>
+                                                <th>Min</th>
+                                                <th>Max</th>
+                                                <th>Avg</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="parameter-cell">Roll Weight</td>
+                                                <td class="value-cell">0.00</td>
+                                                <td class="value-cell">0.00</td>
+                                                <td class="value-cell">0.00</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="parameter-cell">Cut Width</td>
+                                                <td class="value-cell">0</td>
+                                                <td class="value-cell">0</td>
+                                                <td class="value-cell">0</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="parameter-cell">GSM</td>
+                                                <td class="value-cell">0.00</td>
+                                                <td class="value-cell">0.00</td>
+                                                <td class="value-cell">0.00</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="parameter-cell">Roll θ</td>
+                                                <td class="value-cell">0</td>
+                                                <td class="value-cell">0</td>
+                                                <td class="value-cell">0</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="parameter-cell">Thickness</td>
+                                                <td class="value-cell">0.00</td>
+                                                <td class="value-cell">0.00</td>
+                                                <td class="value-cell">0.00</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
 
                         </div>

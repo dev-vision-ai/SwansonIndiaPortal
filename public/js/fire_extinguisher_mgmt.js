@@ -536,6 +536,11 @@ async function handleLogout(e) {
     }
 }
 
+// Open inspection form
+function openInspectionForm() {
+    window.open('fire_extinguisher_inspection_form.html', '_blank');
+}
+
 // Make functions globally available
 window.openAddModal = openAddModal;
 window.editExtinguisher = editExtinguisher;
@@ -547,3 +552,4 @@ window.downloadQRCode = downloadQRCode;
 window.printQRCode = printQRCode;
 window.addInspectionRow = addInspectionRow;
 window.removeInspectionRow = removeInspectionRow;
+window.openInspectionForm = openInspectionForm;

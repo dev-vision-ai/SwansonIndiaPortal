@@ -946,8 +946,7 @@ body {
         width: 100% !important;
         margin-bottom: 2px !important;
     }
-    .filter-btn,
-    #clearFilters {
+    .filter-btn {
         font-size: 0.95rem !important;
         padding: 0.4rem 0.5rem !important;
         height: 2.1rem !important;
@@ -1033,8 +1032,7 @@ body {
 .filter-controls span,
 .filter-input,
 .filter-select,
-.filter-btn,
-#clearFilters {
+.filter-btn {
   font-size: 1.6rem;
 }
 
@@ -1042,8 +1040,7 @@ body {
   .filter-controls span,
   .filter-input,
   .filter-select,
-  .filter-btn,
-  #clearFilters {
+  .filter-btn {
     font-size: 0.85rem !important;
   }
 }
@@ -1052,8 +1049,7 @@ body {
   .filter-controls span,
   .filter-input,
   .filter-select,
-  .filter-btn,
-  #clearFilters {
+  .filter-btn {
     font-size: 1rem;
     padding: 0.35rem 0.7rem;
     height: 2.2rem;

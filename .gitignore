@@ -124,3 +124,11 @@ uploads/
 # Build outputs
 build/
 dist/
+
+# Fire Extinguisher files
+public/html/fire_extinguisher_mgmt.html
+public/js/fire_extinguisher_inspection_form.js
+public/js/fire_extinguisher_mgmt.js
+public/html/fire_extinguisher_inspection_form.html
+public/html/fire_extinguisher*.html
+public/js/fire_extinguisher*.js

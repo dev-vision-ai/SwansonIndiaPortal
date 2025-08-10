@@ -36,6 +36,39 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
             color: #FFD700;
         }
+        
+        /* Required field styling */
+        .required-field {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+        }
+        
+        .required-field:focus {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+        }
+        
+        /* Error message styling */
+        .error-message {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+        
+        /* Checkbox validation styling */
+        .checkbox-group-error {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+        }
+        
+        .checkbox-error {
+            color: #ef4444 !important;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
@@ -106,18 +139,18 @@
                 <form id="inlineInspectionEntryForm" class="space-y-5">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mb-5">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Prod. Code:</label>
-                            <input type="text" name="prod_code" class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Prod. Code: <span class="text-red-500">*</span></label>
+                            <input type="text" name="prod_code" required class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Customer:</label>
-                            <input type="text" name="customer" class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Customer: <span class="text-red-500">*</span></label>
+                            <input type="text" name="customer" required class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mb-5">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Spec:</label>
-                            <input type="text" name="spec" class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Spec: <span class="text-red-500">*</span></label>
+                            <input type="text" name="spec" required class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Production No.:</label>
@@ -129,12 +162,12 @@
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mb-5">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Production Date:</label>
-                            <input type="date" name="production_date" class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Production Date: <span class="text-red-500">*</span></label>
+                            <input type="date" name="production_date" required class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Emboss Type:</label>
-                            <select name="emboss_type" class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Emboss Type: <span class="text-red-500">*</span></label>
+                            <select name="emboss_type" required class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                                 <option value="">Select</option>
                                 <option value="Random">Random</option>
                                 <option value="Matte">Matte</option>
@@ -142,40 +175,46 @@
                             </select>
                         </div>
                     </div>
-                    <div class="flex flex-row items-center gap-10 border border-gray-200 bg-gray-50 rounded-lg px-4 py-3 w-fit mb-5">
-                        <label class="inline-flex items-center text-sm font-semibold text-gray-700">
-                            <input type="checkbox" name="printed" class="h-5 w-5 text-[#002E7D] border-gray-300 rounded mr-2"> Printed
-                        </label>
-                        <label class="inline-flex items-center text-sm font-semibold text-gray-700">
-                            <input type="checkbox" name="non_printed" class="h-5 w-5 text-[#002E7D] border-gray-300 rounded mr-2"> Non-Printed
-                        </label>
-                        <label class="inline-flex items-center text-sm font-semibold text-gray-700">
-                            <input type="checkbox" name="ct" class="h-5 w-5 text-[#002E7D] border-gray-300 rounded mr-2"> CT
-                        </label>
+                    <div class="flex flex-col items-center">
+                        <div class="flex flex-row items-center gap-10 border border-gray-200 bg-gray-50 rounded-lg px-4 py-3 w-fit mb-2">
+                            <div class="flex items-center mr-2">
+                                <span class="text-sm font-semibold text-gray-700">Product Type: <span class="text-red-500">*</span></span>
+                            </div>
+                            <label class="inline-flex items-center text-sm font-semibold text-gray-700">
+                                <input type="checkbox" name="printed" class="h-5 w-5 text-[#002E7D] border-gray-300 rounded mr-2"> Printed
+                            </label>
+                            <label class="inline-flex items-center text-sm font-semibold text-gray-700">
+                                <input type="checkbox" name="non_printed" class="h-5 w-5 text-[#002E7D] border-gray-300 rounded mr-2"> Non-Printed
+                            </label>
+                            <label class="inline-flex items-center text-sm font-semibold text-gray-700">
+                                <input type="checkbox" name="ct" class="h-5 w-5 text-[#002E7D] border-gray-300 rounded mr-2"> CT
+                            </label>
+                        </div>
+                        <div id="productTypeError" class="text-red-500 text-sm font-medium hidden">Please select at least one product type</div>
                     </div>
                     <div class="p-2 border border-gray-200 rounded-lg flex flex-row gap-2 justify-center mx-auto mb-5">
                         <div class="flex items-center mr-4">
                             <label class="block text-base font-semibold text-gray-700">Lot ID:</label>
                         </div>
                         <div class="flex flex-col w-20">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Year</label>
-                            <input type="text" name="year" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Year <span class="text-red-500">*</span></label>
+                            <input type="text" name="year" required class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                         </div>
                         <div class="flex flex-col w-20">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Month</label>
-                            <input type="text" name="month" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Month <span class="text-red-500">*</span></label>
+                            <input type="text" name="month" required class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                         </div>
                         <div class="flex flex-col w-20">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Date</label>
-                            <input type="text" name="date" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Date <span class="text-red-500">*</span></label>
+                            <input type="text" name="date" required class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                         </div>
                         <div class="flex flex-col w-20">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">M/C No.</label>
-                            <input type="text" name="mc_no" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">M/C No. <span class="text-red-500">*</span></label>
+                            <input type="text" name="mc_no" required class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                         </div>
                         <div class="flex flex-col w-20">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Shift</label>
-                            <select name="shift" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Shift <span class="text-red-500">*</span></label>
+                            <select name="shift" required class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                                 <option value="1">1</option>
                                 <option value="2">2</option>
                                 <option value="3">3</option>
@@ -187,8 +226,8 @@
                             <label class="block text-base font-semibold text-gray-700">Team:</label>
                         </div>
                         <div class="flex flex-col w-44">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Supervisor</label>
-                            <input type="text" name="supervisor" placeholder="Supervisor 1" class="block w-full px-2 py-2 h-10 mb-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Supervisor <span class="text-red-500">*</span></label>
+                            <input type="text" name="supervisor" placeholder="Supervisor 1" required class="block w-full px-2 py-2 h-10 mb-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                             <input type="text" name="supervisor2" placeholder="Supervisor 2" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                         </div>
                         <div class="flex flex-col w-44">
@@ -197,13 +236,13 @@
                             <input type="text" name="line_leader2" placeholder="Line Leader 2" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                         </div>
                         <div class="flex flex-col w-44">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Operator</label>
-                            <input type="text" name="operator" placeholder="Operator 1" class="block w-full px-2 py-2 h-10 mb-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Operator <span class="text-red-500">*</span></label>
+                            <input type="text" name="operator" placeholder="Operator 1" required class="block w-full px-2 py-2 h-10 mb-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                             <input type="text" name="operator2" placeholder="Operator 2" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                         </div>
                         <div class="flex flex-col w-44">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">QC Inspector</label>
-                            <input type="text" name="qc_inspector" placeholder="QC Inspector 1" class="block w-full px-2 py-2 h-10 mb-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">QC Inspector <span class="text-red-500">*</span></label>
+                            <input type="text" name="qc_inspector" placeholder="QC Inspector 1" required class="block w-full px-2 py-2 h-10 mb-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                             <input type="text" name="qc_inspector2" placeholder="QC Inspector 2" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                         </div>
                     </div>
@@ -217,9 +256,12 @@
         </div>
     </main>
     <!-- Create Film Inspection Form Button -->
-    <div class="flex justify-center w-full mt-32 mb-2">
+    <div class="flex justify-center w-full mt-32 mb-2 gap-4">
       <button id="showInspectionFormOverlay" type="button" class="bg-[#002E7D] hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl shadow text-lg transition-all duration-200">
         + Create Inline Inspection Form
+      </button>
+      <button id="openProductionReport" type="button" class="bg-black hover:bg-gray-800 text-white font-bold py-3 px-8 rounded-xl shadow text-lg transition-all duration-200">
+        View All Production Reports
       </button>
     </div>
     
