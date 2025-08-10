@@ -724,9 +724,9 @@ function updateDefectsSummaryTable(shiftData) {
             tbody.innerHTML = Object.entries(defectData)
                 .sort(([,a], [,b]) => b.count - a.count) // Sort by count (highest to lowest)
                 .map(([defect, data]) => 
-                    `<tr><td class="metric-label">${defect}</td><td class="defect-count">${data.count}</td><td class="metric-value">${data.weight.toFixed(2)} KG</td></tr>`
+                    `<tr><td class="metric-label">${defect}</td><td class="defect-count">${data.count}</td><td class="metric-value">${data.weight.toFixed(2)}</td></tr>`
                 ).join('') + 
-                `<tr class="highlight-row"><td class="metric-label">Total</td><td class="defect-count">${totalCount}</td><td class="metric-value">${totalWeight.toFixed(2)} KG</td></tr>`;
+                `<tr class="highlight-row"><td class="metric-label">Total</td><td class="defect-count">${totalCount}</td><td class="metric-value">${totalWeight.toFixed(2)}</td></tr>`;
         }
     }
 }
