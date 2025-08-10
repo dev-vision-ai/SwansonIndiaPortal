@@ -722,6 +722,7 @@ function updateDefectsSummaryTable(shiftData) {
             const totalWeight = Object.values(defectData).reduce((sum, data) => sum + data.weight, 0);
             
             tbody.innerHTML = Object.entries(defectData)
+                .sort(([,a], [,b]) => b.count - a.count) // Sort by count (highest to lowest)
                 .map(([defect, data]) => 
                     `<tr><td class="metric-label">${defect}</td><td class="defect-count">${data.count}</td><td class="metric-value">${data.weight.toFixed(2)} KG</td></tr>`
                 ).join('') + 
