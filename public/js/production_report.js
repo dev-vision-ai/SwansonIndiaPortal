@@ -686,29 +686,24 @@ function updateDefectsSummaryTable(shiftData) {
     const defectData = {};
     
     shiftData.forEach(form => {
-        if (form.defect_names && typeof form.defect_names === 'object') {
-            // Get defect names
-            const defectNames = Object.values(form.defect_names);
+        if (form.defect_names && typeof form.defect_names === 'object' && 
+            form.roll_weights && typeof form.roll_weights === 'object') {
             
-            // Get roll weights for this form
-            let rollWeights = [];
-            if (form.roll_weights && typeof form.roll_weights === 'object') {
-                rollWeights = Object.values(form.roll_weights).map(w => parseFloat(w) || 0);
-            }
+            // Get roll positions that have defects
+            const defectPositions = Object.keys(form.defect_names);
             
-            // Calculate average weight per roll for this form
-            const avgWeightPerRoll = rollWeights.length > 0 ? 
-                rollWeights.reduce((sum, w) => sum + w, 0) / rollWeights.length : 0;
-            
-            defectNames.forEach((defectName) => {
-                if (defectName && defectName.trim() !== '') {
+            defectPositions.forEach(rollPosition => {
+                const defectName = form.defect_names[rollPosition];
+                const rollWeight = parseFloat(form.roll_weights[rollPosition]) || 0;
+                
+                if (defectName && defectName.trim() !== '' && rollWeight > 0) {
                     if (!defectData[defectName]) {
                         defectData[defectName] = { count: 0, weight: 0 };
                     }
                     defectData[defectName].count += 1;
                     
-                    // Add weight based on average roll weight for this form
-                    defectData[defectName].weight += avgWeightPerRoll;
+                    // Add the ACTUAL roll weight for this specific defect
+                    defectData[defectName].weight += rollWeight;
                 }
             });
         }
@@ -722,10 +717,15 @@ function updateDefectsSummaryTable(shiftData) {
         if (Object.keys(defectData).length === 0) {
             tbody.innerHTML = '<tr><td class="metric-label" colspan="3">No defects found in this shift.</td></tr>';
         } else {
+            // Calculate totals
+            const totalCount = Object.values(defectData).reduce((sum, data) => sum + data.count, 0);
+            const totalWeight = Object.values(defectData).reduce((sum, data) => sum + data.weight, 0);
+            
             tbody.innerHTML = Object.entries(defectData)
                 .map(([defect, data]) => 
                     `<tr><td class="metric-label">${defect}</td><td class="defect-count">${data.count}</td><td class="metric-value">${data.weight.toFixed(2)} KG</td></tr>`
-                ).join('');
+                ).join('') + 
+                `<tr class="highlight-row"><td class="metric-label">Total</td><td class="defect-count">${totalCount}</td><td class="metric-value">${totalWeight.toFixed(2)} KG</td></tr>`;
         }
     }
 }
