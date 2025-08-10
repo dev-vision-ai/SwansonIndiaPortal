@@ -28,7 +28,7 @@
       width: 100% !important;
     }
 
-    /* Fire Extinguisher Inspection Table Styling - Matching Inline Inspection Form */
+    /* Fire Extinguisher Inspection Table Styling - Improved Readability */
     .fire-inspection-table {
       width: 100%;
       border-collapse: collapse;
@@ -37,15 +37,25 @@
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     
     .fire-inspection-table th,
     .fire-inspection-table td {
-      padding: 12px 15px;
+      padding: 8px 12px;
       text-align: left;
       border-bottom: 1px solid #e5e7eb;
       border-right: 1px solid #e5e7eb;
       white-space: normal;
+      vertical-align: middle;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    
+    .fire-inspection-table td {
+      font-size: 14px;
+      color: #374151;
+      line-height: 1.4;
     }
     
     .fire-inspection-table th {
@@ -53,12 +63,13 @@
       color: white;
       font-weight: 600;
       text-transform: uppercase;
-      font-size: 0.875rem;
+      font-size: 14px;
       letter-spacing: 0.5px;
       border-right-color: #374151;
       position: sticky;
       top: 0;
       z-index: 2;
+      padding: 10px 12px;
     }
     
     .fire-inspection-table th:last-child,
@@ -69,6 +80,94 @@
     .fire-inspection-table th:first-child,
     .fire-inspection-table td:first-child {
       border-left: 1px solid #e5e7eb;
+    }
+    
+    /* Perfect column widths for optimal readability */
+    .fire-inspection-table th:nth-child(1),
+    .fire-inspection-table td:nth-child(1) {
+      width: 60px;
+      min-width: 60px;
+      max-width: 60px;
+      text-align: center;
+    }
+    
+    .fire-inspection-table th:nth-child(2),
+    .fire-inspection-table td:nth-child(2) {
+      width: 85px;
+      min-width: 85px;
+      max-width: 85px;
+      text-align: center;
+    }
+    
+    .fire-inspection-table th:nth-child(3),
+    .fire-inspection-table td:nth-child(3) {
+      width: 70px;
+      min-width: 70px;
+      max-width: 70px;
+      text-align: center;
+    }
+    
+    .fire-inspection-table th:nth-child(4),
+    .fire-inspection-table td:nth-child(4) {
+      width: 150px;
+      min-width: 150px;
+      max-width: 150px;
+    }
+    
+    .fire-inspection-table th:nth-child(5),
+    .fire-inspection-table td:nth-child(5) {
+      width: 80px;
+      min-width: 80px;
+      max-width: 80px;
+      text-align: center;
+    }
+    
+    .fire-inspection-table th:nth-child(6),
+    .fire-inspection-table td:nth-child(6) {
+      width: 85px;
+      min-width: 85px;
+      max-width: 85px;
+      text-align: center;
+    }
+    
+    .fire-inspection-table th:nth-child(7),
+    .fire-inspection-table td:nth-child(7) {
+      width: 85px;
+      min-width: 85px;
+      max-width: 85px;
+      text-align: center;
+    }
+    
+    .fire-inspection-table th:nth-child(8),
+    .fire-inspection-table td:nth-child(8) {
+      width: 85px;
+      min-width: 85px;
+      max-width: 85px;
+      text-align: center;
+    }
+    
+    .fire-inspection-table th:nth-child(9),
+    .fire-inspection-table td:nth-child(9) {
+      width: 90px;
+      min-width: 90px;
+      max-width: 90px;
+      text-align: center;
+    }
+    
+    .fire-inspection-table th:nth-child(10),
+    .fire-inspection-table td:nth-child(10) {
+      width: 170px;
+      min-width: 170px;
+      max-width: 170px;
+      text-align: center;
+    }
+    
+    .fire-inspection-table th:nth-child(11),
+    .fire-inspection-table td:nth-child(11) {
+      width: 100px;
+      min-width: 100px;
+      max-width: 100px;
+      text-align: center;
     }
     
     .fire-inspection-table tr:hover td {
@@ -85,41 +184,67 @@
     
     /* Status badges */
     .status-badge {
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 16px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: inline-block;
+      text-align: center;
+      min-width: 60px;
     }
     
     .status-active {
-      background-color: #d4edda;
-      color: #155724;
+      background-color: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
     }
     
     .status-expired {
-      background-color: #f8d7da;
-      color: #721c24;
+      background-color: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
     }
     
     .status-service-due {
-      background-color: #fff3cd;
-      color: #856404;
+      background-color: #fef3c7;
+      color: #d97706;
+      border: 1px solid #fed7aa;
+    }
+    
+    .status-no-inspection {
+      background-color: #f3f4f6;
+      color: #6b7280;
+      border: 1px solid #d1d5db;
     }
     
     /* Action buttons */
     .action-buttons {
       display: flex;
-      gap: 8px;
+      gap: 4px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: nowrap;
     }
     
     .btn-small {
-      padding: 4px 8px;
-      font-size: 12px;
+      padding: 6px 8px;
+      font-size: 11px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       text-decoration: none;
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-small:hover {
+      /* Hover effects removed */
     }
     
     .btn-edit {
@@ -139,6 +264,11 @@
     
     .btn-delete {
       background-color: #dc3545;
+      color: white;
+    }
+    
+    .btn-edit {
+      background-color: #f59e0b;
       color: white;
     }
     
@@ -206,8 +336,8 @@
       margin: 5% auto;
       padding: 20px;
       border: 1px solid #888;
-      width: 80%;
-      max-width: 800px;
+      width: 90%;
+      max-width: 1200px;
       border-radius: 8px;
       max-height: 90vh;
       overflow-y: auto;
@@ -260,7 +390,13 @@
 
     .form-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+      gap: 15px;
+    }
+
+    .form-row-6 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
       gap: 15px;
     }
 
@@ -354,24 +490,13 @@
     </header>
     
     <main>
-      <!-- Management Controls Section -->
-      <div class="management-controls">
-        <div class="management-title">Fire Extinguisher Inspection Management System</div>
-        <div class="management-description">
-          Manage, track, and monitor all fire extinguisher inspections across the facility
-        </div>
-        <div style="display: flex; justify-content: center; align-items: center;">
-          <button class="add-button" onclick="openAddInspectionModal()">
-            <i class="bi bi-plus"></i> Add New Inspection Record
-          </button>
-        </div>
-      </div>
+
 
       <!-- Statistics Cards -->
       <div class="stats-container">
         <div class="stat-card">
           <div class="stat-number" id="totalInspections">0</div>
-          <div class="stat-label">Total Inspections</div>
+          <div class="stat-label">Total Fire Extinguishers</div>
         </div>
         <div class="stat-card">
           <div class="stat-number" id="activeInspections">0</div>
@@ -387,67 +512,17 @@
         </div>
       </div>
 
-      <!-- Filter Section -->
-      <div id="filterSection" style="width: 100%; display: flex; justify-content: center; margin-top: 1rem; margin-bottom: 1.5rem;">
-        <div id="filterContainer" class="filter-container p-6" style="width: 90%; max-width: 1600px; margin: 0;">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex-1"></div>
-            <h3 class="text-base font-semibold text-gray-800 text-center flex-1">Search & Filter Inspection Records</h3>
-            <div class="flex items-center space-x-2 flex-1 justify-end">
-              <span class="text-sm text-gray-600">Filter Status:</span>
-              <span id="filterStatusIndicator" class="px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700">
-                Off
-              </span>
-            </div>
-          </div>
-          <div class="flex flex-wrap items-end justify-center gap-6">
-            <!-- Date Range -->
-            <div class="flex flex-col items-center">
-              <label class="block text-sm font-semibold text-gray-700 mb-1">To Date:</label>
-              <input type="date" id="filterToDate" class="filter-input w-48 h-10 px-3 text-sm">
-            </div>
-            <!-- Extinguisher Type Filter -->
-            <div class="flex flex-col items-center">
-              <label class="block text-sm font-semibold text-gray-700 mb-1">Type:</label>
-              <select id="filterType" class="filter-input w-48 h-10 px-3 text-sm bg-white">
-                <option value="">All Types</option>
-                <option value="ABC">ABC</option>
-                <option value="BC">BC</option>
-                <option value="CO2">CO2</option>
-                <option value="MECH FOAM">MECH FOAM</option>
-              </select>
-            </div>
-            <!-- Status Filter -->
-            <div class="flex flex-col items-center">
-              <label class="block text-sm font-semibold text-gray-700 mb-1">Status:</label>
-              <select id="filterStatus" class="filter-input w-48 h-10 px-3 text-sm bg-white">
-                <option value="">All Status</option>
-                <option value="Active">Active</option>
-                <option value="Expired">Expired</option>
-                <option value="Service Due">Service Due</option>
-              </select>
-            </div>
-            <!-- Location Filter -->
-            <div class="flex flex-col items-center">
-              <label class="block text-sm font-semibold text-gray-700 mb-1">Location:</label>
-              <input type="text" id="filterLocation" class="filter-input w-48 h-10 px-3 text-sm" placeholder="Search location...">
-            </div>
-            
-            <!-- Filter Buttons -->
-            <div class="flex flex-col items-center">
-              <div class="h-5"></div> <!-- Spacer to align with inputs -->
-              <div class="flex space-x-2">
-                <button id="clearFilter" class="w-20 h-10 bg-gray-500 text-white text-sm font-semibold rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
-                  Clear
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+
       
+      <!-- Add New Fire Extinguisher Button -->
+      <div class="w-full flex justify-center mt-8 mb-4">
+        <button class="add-button" onclick="openAddNewExtinguisherModal()">
+          <i class="bi bi-plus"></i> Add New Fire Extinguisher
+        </button>
+      </div>
+
       <!-- Fire Extinguisher Inspection Management Table -->
-      <div class="w-full flex justify-center mt-8">
+      <div class="w-full flex justify-center">
         <div class="w-full overflow-x-auto">
           <table class="fire-inspection-table">
             <thead>
@@ -460,13 +535,6 @@
                 <th>Expiry Date</th>
                 <th>Inspection Date</th>
                 <th>Next Due Date</th>
-                <th>Inspected By</th>
-                <th>Pin/Tamper Seal</th>
-                <th>Pressure</th>
-                <th>Hose/Nozzle</th>
-                <th>Handle/Nob</th>
-                <th>Dent/Rust/Leak</th>
-                <th>Easy Access</th>
                 <th>Status</th>
                 <th>Remarks</th>
                 <th>Management Actions</th>
@@ -481,6 +549,70 @@
     </main>
   </div>
 
+  <!-- Delete Options Modal -->
+  <div id="deleteOptionsModal" class="modal">
+    <div class="modal-content" style="width: 60%; max-width: 500px;">
+      <span class="close" onclick="closeDeleteOptionsModal()">&times;</span>
+      <h2 style="margin-bottom: 20px; color: #dc3545;">Delete Options</h2>
+      <p style="margin-bottom: 20px; color: #666;">Choose what you want to delete for <strong id="deleteOptionsExtinguisherNo"></strong>:</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+        <button onclick="deleteEntireExtinguisher()" style="background: #dc3545; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+          🗑️ Delete Fire Extinguisher
+        </button>
+        <button onclick="openClearInspectionDataModal()" style="background: #ffc107; color: #000; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+          🧹 Clear Inspection Data
+        </button>
+      </div>
+      
+      <div style="text-align: right;">
+        <button onclick="closeDeleteOptionsModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clear Inspection Data Modal -->
+  <div id="clearInspectionDataModal" class="modal">
+    <div class="modal-content" style="width: 60%; max-width: 500px;">
+      <span class="close" onclick="closeClearInspectionDataModal()">&times;</span>
+      <h2 style="margin-bottom: 20px; color: #ffc107;">Clear Inspection Data</h2>
+      <p style="margin-bottom: 20px; color: #666;">Select inspection records to clear for <strong id="clearInspectionDataExtinguisherNo"></strong>:</p>
+      
+      <div style="margin-bottom: 20px;">
+        <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-weight: 600;">
+          <input type="checkbox" id="selectAllInspections" onchange="toggleSelectAllInspections()">
+          Select All
+        </label>
+      </div>
+      
+      <div id="inspectionDataList" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;">
+        <!-- Inspection records will be populated here -->
+      </div>
+      
+      <div style="text-align: right;">
+        <button onclick="closeClearInspectionDataModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-right: 10px;">Cancel</button>
+        <button onclick="confirmClearSelectedInspections()" style="background: #ffc107; color: #000; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">Clear Selected</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Inspection Selection Modal -->
+  <div id="deleteSelectionModal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+      <span class="close" onclick="closeDeleteSelectionModal()">&times;</span>
+      <h2 style="margin-bottom: 20px; color: #dc3545;">Delete Inspection Records</h2>
+      
+      <div id="deleteSelectionContent">
+        <!-- Content will be populated by JavaScript -->
+      </div>
+      
+      <div style="margin-top: 20px; text-align: right;">
+        <button type="button" onclick="closeDeleteSelectionModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin-right: 10px; cursor: pointer;">Cancel</button>
+        <button type="button" onclick="confirmDeleteSelected()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Delete Selected</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Add/Edit Inspection Modal -->
   <div id="inspectionModal" class="modal">
     <div class="modal-content">
@@ -488,11 +620,10 @@
       <h2 id="modalTitle" style="margin-bottom: 20px; color: #002E7D;">Add New Inspection Record</h2>
       
       <form id="inspectionForm">
-        <div class="form-row">
+        <div class="form-row" style="grid-template-columns: 0.8fr 0.8fr 2fr 1fr 1fr;">
           <div class="form-group">
             <label for="extinguisherInput">Extinguisher No. *</label>
             <input type="number" id="extinguisherInput" placeholder="Enter Fire Extinguisher No. (e.g., 01, 02, 03, etc.)" min="0" max="99" required>
-            <small style="color: #666; font-size: 12px; margin-top: 4px; display: block;">Available: Loading...</small>
           </div>
           <div class="form-group">
             <label for="extinguisherType">Type *</label>
@@ -504,16 +635,17 @@
               <option value="MECH FOAM">MECH FOAM</option>
             </select>
           </div>
-        </div>
-
-        <div class="form-row">
           <div class="form-group">
             <label for="extinguisherLocation">Location *</label>
             <input type="text" id="extinguisherLocation" placeholder="Enter location (e.g., Building A - Floor 1)" list="locationDatalist" required>
           </div>
           <div class="form-group">
-            <label for="formDate">Form Date *</label>
-            <input type="date" id="formDate" required>
+            <label for="capacity">Capacity (kg) *</label>
+            <input type="number" id="capacity" placeholder="Enter capacity in kg" min="1" max="100" required>
+          </div>
+          <div class="form-group">
+            <label for="inspector">Inspected By *</label>
+            <input type="text" id="inspector" placeholder="Enter inspector name" required>
           </div>
         </div>
 
@@ -526,33 +658,21 @@
             <label for="expiryDate">Expiry Date *</label>
             <input type="date" id="expiryDate" required>
           </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="capacity">Capacity (kg) *</label>
-            <input type="number" id="capacity" placeholder="Enter capacity in kg" min="1" max="100" required>
-          </div>
           <div class="form-group">
             <label for="inspectionDate">Inspection Date *</label>
             <input type="date" id="inspectionDate" required>
           </div>
-        </div>
-
-        <div class="form-row">
           <div class="form-group">
             <label for="nextDueDate">Next Due Date *</label>
             <input type="date" id="nextDueDate" required>
           </div>
           <div class="form-group">
-            <label for="inspector">Inspected By *</label>
-            <input type="text" id="inspector" placeholder="Enter inspector name" required>
           </div>
         </div>
 
         <h3 style="margin: 20px 0 15px 0; color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px;">Inspection Checklist</h3>
         
-        <div class="form-row">
+        <div class="form-row-6">
           <div class="form-group">
             <label for="pinSeal">Pin/Tamper Seal</label>
             <select id="pinSeal">
@@ -569,9 +689,6 @@
               <option value="NA">- NA</option>
             </select>
           </div>
-        </div>
-
-        <div class="form-row">
           <div class="form-group">
             <label for="hoseNozzle">Hose/Nozzle</label>
             <select id="hoseNozzle">
@@ -588,9 +705,6 @@
               <option value="NA">- NA</option>
             </select>
           </div>
-        </div>
-
-        <div class="form-row">
           <div class="form-group">
             <label for="dentRustLeak">Dent/Rust/Leak</label>
             <select id="dentRustLeak">
@@ -634,7 +748,168 @@
       </form>
     </div>
   </div>
-  
-  <script type="module" src="../js/fire_extinguisher_inspection_form.js"></script>
+
+  <!-- Fire Extinguisher Edit Modal -->
+  <div id="fireExtinguisherModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeFireExtinguisherModal()">&times;</span>
+      <h2 id="fireExtinguisherModalTitle">Edit Fire Extinguisher</h2>
+      
+      <form id="fireExtinguisherForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="feExtinguisherNo">Extinguisher No. *</label>
+            <input type="number" id="feExtinguisherNo" min="0" max="99" required>
+            <small>Enter number from 00-99</small>
+          </div>
+          <div class="form-group">
+            <label for="feExtinguisherType">Type *</label>
+            <select id="feExtinguisherType" required>
+              <option value="">Select Type</option>
+              <option value="ABC">ABC</option>
+              <option value="BC">BC</option>
+              <option value="CO2">CO2</option>
+              <option value="MECH FOAM">MECH FOAM</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="feLocation">Location *</label>
+            <input type="text" id="feLocation" required>
+            <small>e.g., Office - Outside Plant Manager office</small>
+          </div>
+          <div class="form-group">
+            <label for="feCapacity">Capacity (kg) *</label>
+            <input type="number" id="feCapacity" min="1" max="100" step="0.1" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="feFormDate">Form Date *</label>
+            <input type="date" id="feFormDate" required>
+          </div>
+          <div class="form-group">
+            <label for="feExpiryDate">Expiry Date *</label>
+            <input type="date" id="feExpiryDate" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="feRefilledDate">Refilled Date</label>
+            <input type="date" id="feRefilledDate">
+          </div>
+          <div class="form-group">
+            <label for="feCheckedBy">Checked By</label>
+            <input type="text" id="feCheckedBy" placeholder="Enter name">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="feVerifiedBy">Verified By</label>
+            <input type="text" id="feVerifiedBy" placeholder="Enter name">
+          </div>
+        </div>
+
+        <div style="text-align: right; margin-top: 20px;">
+          <button type="button" class="btn-secondary" onclick="closeFireExtinguisherModal()">Cancel</button>
+          <button type="submit" class="btn-primary">Update Fire Extinguisher</button>
+        </div>
+      </form>
+        </div>
+  </div>
+
+  <!-- Add New Fire Extinguisher Modal -->
+  <div id="addNewExtinguisherModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeAddNewExtinguisherModal()">&times;</span>
+      <h2 style="margin-bottom: 20px; color: #002E7D;">Add New Fire Extinguisher</h2>
+      
+      <form id="addNewExtinguisherForm">
+        <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+          <div class="form-group">
+            <label for="newExtinguisherNo">Extinguisher No. *</label>
+            <input type="text" id="newExtinguisherNo" placeholder="Enter Fire Extinguisher No. (e.g., FE-001)" required>
+          </div>
+          <div class="form-group">
+            <label for="newExtinguisherType">Type *</label>
+            <select id="newExtinguisherType" required>
+              <option value="">Select Type</option>
+              <option value="ABC">ABC</option>
+              <option value="BC">BC</option>
+              <option value="CO2">CO2</option>
+              <option value="MECH FOAM">MECH FOAM</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+          <div class="form-group">
+            <label for="newLocation">Location *</label>
+            <input type="text" id="newLocation" placeholder="Enter location" required>
+          </div>
+          <div class="form-group">
+            <label for="newCapacity">Capacity (kg) *</label>
+            <input type="number" id="newCapacity" placeholder="Enter capacity in kg" min="1" max="100" required>
+          </div>
+        </div>
+        
+        <div style="margin-top: 20px; text-align: right;">
+          <button type="button" onclick="closeAddNewExtinguisherModal()" class="btn-secondary">Cancel</button>
+          <button type="submit" class="btn-primary">Add Fire Extinguisher</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Fire Extinguisher Modal -->
+  <div id="editExtinguisherModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeEditExtinguisherModal()">&times;</span>
+      <h2 id="editModalTitle" style="margin-bottom: 20px; color: #002E7D;">Edit Fire Extinguisher</h2>
+      
+      <form id="editExtinguisherForm">
+        <input type="hidden" id="editExtinguisherId">
+        <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+          <div class="form-group">
+            <label for="editExtinguisherNo">Extinguisher No. *</label>
+            <input type="text" id="editExtinguisherNo" placeholder="Enter Fire Extinguisher No." required>
+          </div>
+          <div class="form-group">
+            <label for="editExtinguisherType">Type *</label>
+            <select id="editExtinguisherType" required>
+              <option value="">Select Type</option>
+              <option value="ABC">ABC</option>
+              <option value="BC">BC</option>
+              <option value="CO2">CO2</option>
+              <option value="MECH FOAM">MECH FOAM</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+          <div class="form-group">
+            <label for="editLocation">Location *</label>
+            <input type="text" id="editLocation" placeholder="Enter location" required>
+          </div>
+          <div class="form-group">
+            <label for="editCapacity">Capacity (kg) *</label>
+            <input type="number" id="editCapacity" placeholder="Enter capacity in kg" min="1" max="100" required>
+          </div>
+        </div>
+        
+        <div style="margin-top: 20px; text-align: right;">
+          <button type="button" onclick="closeEditExtinguisherModal()" class="btn-secondary">Cancel</button>
+          <button type="submit" class="btn-primary">Update Fire Extinguisher</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="../js/fire_extinguisher_mgmt.js"></script>
 </body>
 </html>

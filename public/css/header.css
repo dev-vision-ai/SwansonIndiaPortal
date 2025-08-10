@@ -57,9 +57,7 @@
     font-weight: 600;
 }
 
-.header-back-button:hover {
-    background-color: #d3b725;
-}
+/* Removed hover effect for back button */
 
 @media (max-width: 768px) {
     .header-container {
