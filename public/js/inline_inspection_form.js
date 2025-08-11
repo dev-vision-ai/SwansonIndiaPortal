@@ -766,7 +766,6 @@ async function handleFormSubmit(e) {
         const updateObject = {
           customer: formData.get('customer'),
           production_no: formData.get('production_no'),
-          production_no_2: formData.get('production_no_2'),
           prod_code: formData.get('prod_code'),
           spec: formData.get('spec'),
           production_date: formData.get('production_date'),
@@ -876,7 +875,6 @@ async function handleFormSubmit(e) {
         lot_letter: lot_letter,
         customer: formData.get('customer'),
         production_no: formData.get('production_no'),
-        production_no_2: formData.get('production_no_2'),
         prod_code: formData.get('prod_code'),
         spec: formData.get('spec'),
         production_date: formData.get('production_date'),
@@ -1395,7 +1393,7 @@ async function editForm(traceability_code, lot_letter) {
   const { data: allData, error: listError } = await supabase
     .from('inline_inspection_form_master_2')
     .select(`
-      id, traceability_code, lot_letter, customer, production_no, production_no_2, prod_code, spec,
+      id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
       production_date, emboss_type, printed, non_printed, ct, year, month, date,
       mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
       operator, operator2, qc_inspector, qc_inspector2, status,
@@ -1473,7 +1471,6 @@ async function editForm(traceability_code, lot_letter) {
   const dataToUse = {
     customer: formData.customer || '',
     production_no: formData.production_no || '',
-    production_no_2: formData.production_no_2 || '',
     prod_code: formData.prod_code || '',
     spec: formData.spec || '',
     production_date: formData.production_date || '',
@@ -1527,7 +1524,6 @@ async function editForm(traceability_code, lot_letter) {
   
   form.customer.value = dataToUse.customer;
   form.production_no.value = dataToUse.production_no;
-  form.production_no_2.value = dataToUse.production_no_2;
   form.prod_code.value = dataToUse.prod_code;
   form.spec.value = dataToUse.spec;
   form.production_date.value = dataToUse.production_date;
