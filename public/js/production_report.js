@@ -92,21 +92,21 @@ function loadFilterState() {
             
             // Populate dropdowns and apply filters
             if (filterState.fromDate || filterState.toDate) {
-                populateProductDropdown(filterState.fromDate, filterState.toDate);
+                populateMachineDropdown(filterState.fromDate, filterState.toDate);
                 
-                // Wait a bit for dropdown population, then apply product filter
+                // Wait a bit for dropdown population, then apply machine filter
                 setTimeout(() => {
-                    if (filterState.product) {
-                        document.getElementById('filterProduct').value = filterState.product;
-                        currentFilters.product = filterState.product;
-                        populateMachineDropdown(filterState.fromDate, filterState.toDate, filterState.product);
+                    if (filterState.machine) {
+                        document.getElementById('filterMachine').value = filterState.machine;
+                        currentFilters.machine = filterState.machine;
+                        populateProductDropdown(filterState.fromDate, filterState.toDate, filterState.machine);
                         
-                        // Wait a bit more for machine dropdown population
+                        // Wait a bit more for product dropdown population
                         setTimeout(() => {
-                            if (filterState.machine) {
-                                document.getElementById('filterMachine').value = filterState.machine;
-                                currentFilters.machine = filterState.machine;
-                                populateShiftDropdown(filterState.fromDate, filterState.toDate, filterState.product, filterState.machine);
+                            if (filterState.product) {
+                                document.getElementById('filterProduct').value = filterState.product;
+                                currentFilters.product = filterState.product;
+                                populateShiftDropdown(filterState.fromDate, filterState.toDate, filterState.machine, filterState.product);
                                 
                                 // Wait for shift dropdown population
                                 setTimeout(() => {
@@ -175,12 +175,12 @@ function onDateChange() {
     currentFilters.toDate = toDate;
     
     // Reset dependent dropdowns
+    resetDropdown('filterMachine');
     resetDropdown('filterProduct');
-    resetDropdown('filterMachine'); 
     resetDropdown('filterShift');
     
     if (fromDate || toDate) {
-        populateProductDropdown(fromDate, toDate);
+        populateMachineDropdown(fromDate, toDate);
     }
     
     // Save filter state
@@ -189,50 +189,50 @@ function onDateChange() {
     // Date changed
 }
 
-// Step 2: Product selection changes  
-function onProductChange() {
-    const fromDate = document.getElementById('filterFromDate').value;
-    const toDate = document.getElementById('filterToDate').value;
-    const product = document.getElementById('filterProduct').value;
-    
-    // Update current filters
-    currentFilters.product = product;
-    
-    // Reset dependent dropdowns
-    resetDropdown('filterMachine');
-    resetDropdown('filterShift');
-    
-    if (product) {
-        populateMachineDropdown(fromDate, toDate, product);
-    }
-    
-    // Save filter state
-    saveFilterState();
-    
-    // Product changed
-}
-
-// Step 3: Machine selection changes
+// Step 2: Machine selection changes
 function onMachineChange() {
     const fromDate = document.getElementById('filterFromDate').value;
     const toDate = document.getElementById('filterToDate').value;
-    const product = document.getElementById('filterProduct').value;
     const machine = document.getElementById('filterMachine').value;
     
     // Update current filters
     currentFilters.machine = machine;
     
     // Reset dependent dropdowns
+    resetDropdown('filterProduct');
     resetDropdown('filterShift');
     
     if (machine) {
-        populateShiftDropdown(fromDate, toDate, product, machine);
+        populateProductDropdown(fromDate, toDate, machine);
     }
     
     // Save filter state
     saveFilterState();
     
     // Machine changed
+}
+
+// Step 3: Product selection changes  
+function onProductChange() {
+    const fromDate = document.getElementById('filterFromDate').value;
+    const toDate = document.getElementById('filterToDate').value;
+    const machine = document.getElementById('filterMachine').value;
+    const product = document.getElementById('filterProduct').value;
+    
+    // Update current filters
+    currentFilters.product = product;
+    
+    // Reset dependent dropdowns
+    resetDropdown('filterShift');
+    
+    if (product) {
+        populateShiftDropdown(fromDate, toDate, machine, product);
+    }
+    
+    // Save filter state
+    saveFilterState();
+    
+    // Product changed
 }
 
 // Step 4: Shift selection changes - GET PRODUCTION SHIFT DATA
@@ -425,34 +425,11 @@ async function loadFormsData() {
     }
 }
 
-// Populate Product dropdown based on date range
-function populateProductDropdown(fromDate, toDate) {
+// Populate Machine dropdown based on date range
+function populateMachineDropdown(fromDate, toDate) {
     const filteredData = allForms.filter(form => {
         if (fromDate && form.production_date && form.production_date < fromDate) return false;
         if (toDate && form.production_date && form.production_date > toDate) return false;
-        return form.prod_code; // Only include records with prod_code
-    });
-    
-    const products = [...new Set(filteredData.map(form => form.prod_code))];
-    const dropdown = document.getElementById('filterProduct');
-    
-    dropdown.innerHTML = '<option value="">Select Product</option>';
-    products.sort().forEach(product => {
-        const option = document.createElement('option');
-        option.value = product;
-        option.textContent = product;
-        dropdown.appendChild(option);
-    });
-    
-    // Found products for date range
-}
-
-// Populate Machine dropdown based on date + product  
-function populateMachineDropdown(fromDate, toDate, product) {
-    const filteredData = allForms.filter(form => {
-        if (fromDate && form.production_date && form.production_date < fromDate) return false;
-        if (toDate && form.production_date && form.production_date > toDate) return false;
-        if (form.prod_code !== product) return false;
         return form.mc_no; // Only include records with mc_no
     });
     
@@ -467,16 +444,39 @@ function populateMachineDropdown(fromDate, toDate, product) {
         dropdown.appendChild(option);
     });
     
-    // Found machines for product
+    // Found machines for date range
 }
 
-// Populate Shift dropdown based on date + product + machine
-function populateShiftDropdown(fromDate, toDate, product, machine) {
+// Populate Product dropdown based on date + machine  
+function populateProductDropdown(fromDate, toDate, machine) {
     const filteredData = allForms.filter(form => {
         if (fromDate && form.production_date && form.production_date < fromDate) return false;
         if (toDate && form.production_date && form.production_date > toDate) return false;
-        if (form.prod_code !== product) return false;
         if (String(form.mc_no) !== String(machine)) return false;
+        return form.prod_code; // Only include records with prod_code
+    });
+    
+    const products = [...new Set(filteredData.map(form => form.prod_code))];
+    const dropdown = document.getElementById('filterProduct');
+    
+    dropdown.innerHTML = '<option value="">Select Product</option>';
+    products.sort().forEach(product => {
+        const option = document.createElement('option');
+        option.value = product;
+        option.textContent = product;
+        dropdown.appendChild(option);
+    });
+    
+    // Found products for machine
+}
+
+// Populate Shift dropdown based on date + machine + product
+function populateShiftDropdown(fromDate, toDate, machine, product) {
+    const filteredData = allForms.filter(form => {
+        if (fromDate && form.production_date && form.production_date < fromDate) return false;
+        if (toDate && form.production_date && form.production_date > toDate) return false;
+        if (String(form.mc_no) !== String(machine)) return false;
+        if (form.prod_code !== product) return false;
         return form.shift; // Only include records with shift
     });
     
@@ -494,9 +494,9 @@ function populateShiftDropdown(fromDate, toDate, product, machine) {
         dropdown.appendChild(option);
     });
     
-    // Found shifts for machine
+    // Found shifts for product
     
-    // If we have data for this machine, trigger the shift change to get data
+    // If we have data for this product, trigger the shift change to get data
     if (shifts.length > 0) {
         // Trigger shift change to get data (either single shift or all shifts)
         onShiftChange();
