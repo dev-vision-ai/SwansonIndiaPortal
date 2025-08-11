@@ -938,6 +938,12 @@ async function handleFormSubmit(e) {
         submitBtn.textContent = 'Create Inline Inspection Form';
       }
       
+      // Reset warning message for create mode
+      const warningMessage = overlay.querySelector('p.text-red-600');
+      if (warningMessage) {
+        warningMessage.textContent = '*Note : Please ensure all entered details are correct before creating form';
+      }
+      
       loadFormsTable();
     } catch (error) {
       console.error('Error:', error);
@@ -968,6 +974,13 @@ async function handleFormSubmit(e) {
         if (submitBtn) submitBtn.textContent = 'Create Inline Inspection Form';
         form.onsubmit = handleFormSubmit;
       }
+      
+      // Reset warning message for create mode
+      const warningMessage = overlay.querySelector('p.text-red-600');
+      if (warningMessage) {
+        warningMessage.textContent = '*Note : Please ensure all entered details are correct before creating form';
+      }
+      
       overlay.style.display = 'flex';
       
       // Setup autocomplete for personnel and product fields
@@ -1090,6 +1103,41 @@ async function handleFormSubmit(e) {
 // ===== LOAD FORMS TABLE =====
 async function loadFormsTable() {
   try {
+    // Get current date and time
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentDay = now.getDate();
+    
+    // Determine which month's data to show based on shift timing
+    // If it's before 6:30 AM on the 1st of the month, show previous month's data
+    // (because night shift of previous month ends at 6:30 AM)
+    let targetYear = now.getFullYear();
+    let targetMonth = now.getMonth() + 1; // getMonth() returns 0-11, so add 1
+    
+    if (currentDay === 1 && currentHour < 6 || (currentDay === 1 && currentHour === 6 && currentMinute < 30)) {
+      // It's before 6:30 AM on the 1st, so show previous month's data
+      if (targetMonth === 1) {
+        // If it's January 1st before 6:30 AM, show December of previous year
+        targetYear = targetYear - 1;
+        targetMonth = 12;
+      } else {
+        targetMonth = targetMonth - 1;
+      }
+      console.log(`🌙 Before 6:30 AM on 1st - showing previous month's data (night shift still active)`);
+    }
+    
+    // Calculate start and end dates for target month
+    const startOfMonth = new Date(targetYear, targetMonth - 1, 1); // First day of target month
+    const endOfMonth = new Date(targetYear, targetMonth, 0); // Last day of target month
+    
+    // Format dates for database query (YYYY-MM-DD)
+    const startDate = startOfMonth.toISOString().split('T')[0];
+    const endDate = endOfMonth.toISOString().split('T')[0];
+    
+    console.log(`📅 Loading forms for target month: ${targetYear}-${targetMonth.toString().padStart(2, '0')} (${startDate} to ${endDate})`);
+    console.log(`⏰ Current time: ${now.toLocaleString()} - Shift timing applied`);
+    
     const { data, error } = await supabase
       .from('inline_inspection_form_master_2')
       .select(`
@@ -1100,6 +1148,8 @@ async function loadFormsTable() {
         total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
         created_at, updated_at
       `)
+      .gte('production_date', startDate)
+      .lte('production_date', endDate)
       .order('production_date', { ascending: false })
       .order('created_at', { ascending: false })
       .order('mc_no', { ascending: true });
@@ -1111,6 +1161,8 @@ async function loadFormsTable() {
 
     // Only show forms with a non-null and non-empty customer value
     const validForms = data.filter(form => form.customer !== null && form.customer !== '');
+    
+    console.log(`📊 Found ${validForms.length} forms for target month (${targetYear}-${targetMonth.toString().padStart(2, '0')})`);
     
     // Additional client-side sorting to ensure proper date ordering with machine alternation
     const sortedForms = validForms.sort((a, b) => {
@@ -1392,6 +1444,12 @@ async function editForm(traceability_code, lot_letter) {
   }
   if (submitButton) {
     submitButton.textContent = 'Update Inline Inspection Form';
+  }
+  
+  // Update warning message for edit mode
+  const warningMessage = overlay.querySelector('p.text-red-600');
+  if (warningMessage) {
+    warningMessage.textContent = '*Note : Please ensure all entered details are correct before updating form';
   }
   
   // Store the record ID for update (like the old working code)
@@ -1832,6 +1890,131 @@ function formatDate(dateString) {
   return date.toLocaleDateString('en-GB');
 }
 
+// ===== FIELD ERROR HANDLING =====
+function showFieldError(input, message) {
+    console.log(`🚨 Showing error for field: ${input.name}, value: "${input.value}"`);
+    
+    // Remove any existing error message for this field
+    clearFieldError(input);
+    
+    // Add error styling to input
+    input.classList.add('required-field');
+    
+    // Create floating error tooltip
+    const errorTooltip = document.createElement('div');
+    errorTooltip.className = 'field-error-tooltip';
+    errorTooltip.innerHTML = `
+        <div class="field-error-tooltip-content">
+            <div class="field-error-tooltip-arrow"></div>
+            <div class="field-error-icon">!</div>
+            <div class="field-error-tooltip-text">${message}</div>
+        </div>
+    `;
+    
+    // Add base styles for the floating tooltip
+    errorTooltip.style.cssText = `
+        position: absolute;
+        z-index: 10000;
+        pointer-events: none;
+    `;
+    
+    // Add styles for tooltip content
+    const tooltipContent = errorTooltip.querySelector('.field-error-tooltip-content');
+    tooltipContent.style.cssText = `
+        background: #f8f9fa;
+        color: #495057;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        position: relative;
+        max-width: 300px;
+        border: 1px solid #dee2e6;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        word-wrap: break-word;
+        white-space: normal;
+    `;
+    
+
+    
+    // Add styles for exclamation icon
+    const errorIcon = errorTooltip.querySelector('.field-error-icon');
+    errorIcon.style.cssText = `
+        background: #fd7e14;
+        color: white;
+        width: 16px;
+        height: 16px;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: bold;
+        flex-shrink: 0;
+        margin-top: 1px;
+    `;
+    
+    // Add styles for error text
+    const errorText = errorTooltip.querySelector('.field-error-tooltip-text');
+    errorText.style.cssText = `
+        flex: 1;
+        word-wrap: break-word;
+        white-space: normal;
+        line-height: 1.4;
+    `;
+    
+    // Position tooltip relative to the input field itself
+    const inputRect = input.getBoundingClientRect();
+    const parentContainer = input.parentNode;
+    parentContainer.style.position = 'relative';
+    parentContainer.appendChild(errorTooltip);
+    
+    // Calculate position relative to the input field
+    const fieldTop = input.offsetTop;
+    const fieldHeight = input.offsetHeight;
+    const fieldWidth = input.offsetWidth;
+    
+    // Position tooltip BELOW the field
+    errorTooltip.style.position = 'absolute';
+    errorTooltip.style.top = `${fieldTop + fieldHeight + 4}px`;
+    errorTooltip.style.left = `${input.offsetLeft}px`;
+    errorTooltip.style.width = `${fieldWidth}px`;
+    errorTooltip.style.zIndex = '10000';
+    
+    console.log(`📍 Field: ${input.name}, Top: ${fieldTop}, Height: ${fieldHeight}, Width: ${fieldWidth}`);
+    console.log(`📍 Tooltip positioned at: Top=${fieldTop + fieldHeight + 4}px, Left=${input.offsetLeft}px`);
+    
+    // Arrow points UP to the field
+    const arrow = errorTooltip.querySelector('.field-error-tooltip-arrow');
+    arrow.style.cssText = `
+        position: absolute;
+        top: -6px;
+        left: 20px;
+        width: 0;
+        height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-bottom: 6px solid #f8f9fa;
+    `;
+    
+    // Store reference to tooltip on the input for easy removal
+    input.errorTooltip = errorTooltip;
+}
+
+function clearFieldError(input) {
+    // Remove error styling
+    input.classList.remove('required-field');
+    
+    // Remove error tooltip if it exists
+    if (input.errorTooltip) {
+        input.errorTooltip.remove();
+        input.errorTooltip = null;
+    }
+}
+
 // ===== PAGE UNLOAD CLEANUP =====
 // Use beforeunload for cleanup (more reliable than unload)
 window.addEventListener('beforeunload', function() {
@@ -1942,6 +2125,18 @@ async function setupProductAutocomplete() {
 function setupAutocompleteForField(input, users) {
     console.log(`🎯 Setting up autocomplete for ${input.name} with ${users.length} users`);
     let dropdown = null;
+    let originalValue = ''; // Store original value before typing
+    
+    // Store valid names for validation
+    const validNames = users.map(user => user.full_name.toLowerCase());
+    
+    input.addEventListener('focus', function() {
+        // Store the current value when focusing (in case user was editing)
+        originalValue = this.value;
+        
+        // Clear any existing error when user starts typing again
+        clearFieldError(input);
+    });
     
     input.addEventListener('input', function() {
         const value = this.value.toLowerCase();
@@ -1979,6 +2174,9 @@ function setupAutocompleteForField(input, users) {
                 dropdown.remove();
                 dropdown = null;
                 console.log(`✅ Selected: ${user.full_name}`);
+                
+                // Clear any existing error when valid option is selected
+                clearFieldError(input);
             });
             dropdown.appendChild(item);
         });
@@ -1993,6 +2191,37 @@ function setupAutocompleteForField(input, users) {
         console.log(`📋 Dropdown created with ${matches.length} items`);
     });
     
+    // Validate on blur - ensure only valid names are accepted
+    input.addEventListener('blur', function() {
+        setTimeout(() => {
+            if (dropdown) {
+                dropdown.remove();
+                dropdown = null;
+            }
+            
+            // Validate the current value
+            const currentValue = this.value.toLowerCase();
+            console.log(`🔍 Validating field: ${input.name}, value: "${currentValue}", valid: ${validNames.includes(currentValue)}`);
+            
+            if (currentValue && !validNames.includes(currentValue)) {
+                // Invalid name entered - revert to original or clear
+                if (originalValue && validNames.includes(originalValue.toLowerCase())) {
+                    this.value = originalValue;
+                    console.log(`⚠️ Reverted to original valid value: ${originalValue}`);
+                } else {
+                    this.value = '';
+                    console.log(`⚠️ Cleared invalid value: ${currentValue}`);
+                }
+                
+                // Show field-specific error message
+                showFieldError(input, 'Please select a valid name from the dropdown list.');
+            } else {
+                // Clear any existing error for this field
+                clearFieldError(input);
+            }
+        }, 200); // Increased delay to allow dropdown selection
+    });
+    
     // Remove dropdown when clicking outside
     document.addEventListener('click', function(e) {
         if (dropdown && !input.contains(e.target) && !dropdown.contains(e.target)) {
@@ -2001,14 +2230,16 @@ function setupAutocompleteForField(input, users) {
         }
     });
     
-    // Remove dropdown on blur
-    input.addEventListener('blur', function() {
-        setTimeout(() => {
-            if (dropdown) {
-                dropdown.remove();
-                dropdown = null;
+    // Prevent form submission if invalid names are present
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            const currentValue = this.value.toLowerCase();
+            if (currentValue && !validNames.includes(currentValue)) {
+                e.preventDefault();
+                showFieldError(input, 'Please select a valid name from the dropdown list.');
+                this.focus();
             }
-        }, 150);
+        }
     });
 }
 

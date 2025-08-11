@@ -370,10 +370,41 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const formData = lots[0];
                 
                 document.getElementById('customer').textContent = formData.customer || '[Customer]';
-                // Combine production_no and production_no_2 with comma separator
-                const combinedProductionNo = [formData.production_no, formData.production_no_2].filter(Boolean).join(', ');
-                document.getElementById('production_no').textContent = combinedProductionNo || '[Production No.]';
+                // Show only production_no in the main Production No field
+                document.getElementById('production_no').textContent = formData.production_no || '[Production No.]';
+                // Set production_no_2 field separately
+                document.getElementById('production_no_2').value = formData.production_no_2 || '';
                 document.getElementById('prod_code').textContent = formData.prod_code || '[Prod. Code]';
+                
+                // Add auto-save functionality for production_no_2 field
+                const productionNo2Field = document.getElementById('production_no_2');
+                if (productionNo2Field && !viewMode) {
+                    let saveTimeout;
+                    
+                    productionNo2Field.addEventListener('input', function() {
+                        clearTimeout(saveTimeout);
+                        saveTimeout = setTimeout(async () => {
+                            try {
+                                const newValue = this.value.trim();
+                                console.log('Auto-saving production_no_2:', newValue);
+                                
+                                const { error } = await supabase
+                                    .from('inline_inspection_form_master_2')
+                                    .update({ production_no_2: newValue })
+                                    .eq('traceability_code', traceabilityCode)
+                                    .eq('lot_letter', lotLetter);
+                                
+                                if (error) {
+                                    console.error('Error auto-saving production_no_2:', error);
+                                } else {
+                                    console.log('✅ production_no_2 auto-saved successfully');
+                                }
+                            } catch (error) {
+                                console.error('Error in production_no_2 auto-save:', error);
+                            }
+                        }, 1000); // 1 second delay
+                    });
+                }
                 document.getElementById('spec').textContent = formData.spec || '[Spec]';
                 document.getElementById('printed').checked = formData.printed || false;
                 document.getElementById('non_printed').checked = formData.non_printed || false;
