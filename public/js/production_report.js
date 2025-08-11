@@ -174,6 +174,9 @@ function onDateChange() {
     currentFilters.fromDate = fromDate;
     currentFilters.toDate = toDate;
     
+    // Clear summary tables when date changes
+    clearSummaryTables();
+    
     // Reset dependent dropdowns
     resetDropdown('filterMachine');
     resetDropdown('filterProduct');
@@ -198,6 +201,9 @@ function onMachineChange() {
     // Update current filters
     currentFilters.machine = machine;
     
+    // Clear summary tables when machine changes
+    clearSummaryTables();
+    
     // Reset dependent dropdowns
     resetDropdown('filterProduct');
     resetDropdown('filterShift');
@@ -221,6 +227,9 @@ function onProductChange() {
     
     // Update current filters
     currentFilters.product = product;
+    
+    // Clear summary tables when product changes
+    clearSummaryTables();
     
     // Reset dependent dropdowns
     resetDropdown('filterShift');
