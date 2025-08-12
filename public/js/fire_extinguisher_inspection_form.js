@@ -37,9 +37,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Additional security for public access
     setupPublicAccessSecurity();
-    
-    // Hide download QR button for public access (QR code access)
-    hideDownloadQRButtonForPublicAccess();
 });
 
 // Load user profile
@@ -62,6 +59,12 @@ async function loadUserProfile() {
             // Remove user name display for public access
             if (userNameElement) {
                 userNameElement.style.display = 'none';
+            }
+            
+            // Hide QR download button for public access
+            const qrDownloadContainer = document.getElementById('qrDownloadContainer');
+            if (qrDownloadContainer) {
+                qrDownloadContainer.style.display = 'none';
             }
             
             return; // Don't redirect - allow public access
@@ -102,6 +105,12 @@ async function loadUserProfile() {
         if (userNameElement) {
             userNameElement.style.display = 'none';
         }
+        
+        // Hide QR download button for public access
+        const qrDownloadContainer = document.getElementById('qrDownloadContainer');
+        if (qrDownloadContainer) {
+            qrDownloadContainer.style.display = 'none';
+        }
     }
 }
 
@@ -118,43 +127,23 @@ async function loadExistingFireExtinguisherData() {
     const extinguisherId = urlParams.get('extinguisher_id');
     const extinguisherNo = urlParams.get('extinguisher_no');
 
-    // Only try to load data if we have both parameters
     if (extinguisherId && extinguisherNo) {
         try {
-            console.log('Loading fire extinguisher data for ID:', extinguisherId, 'No:', extinguisherNo);
-            
             const { data: extinguisher, error } = await supabase
                 .from('fire_extinguishers')
                 .select('*')
                 .eq('id', extinguisherId)
                 .single();
 
-            if (error) {
-                console.error('Supabase error:', error);
-                throw error;
-            }
+            if (error) throw error;
 
             if (extinguisher) {
-                console.log('Fire extinguisher data loaded successfully:', extinguisher);
                 populateFormWithExistingData(extinguisher);
-            } else {
-                console.log('No fire extinguisher found with ID:', extinguisherId);
             }
         } catch (error) {
             console.error('Error loading existing Fire Extinguisher data:', error);
-            
-            // Don't show error message for public access (QR code access)
-            const userNameElement = document.querySelector('.user-name');
-            const backButton = document.getElementById('backButton');
-            const isPublicAccess = (backButton && backButton.style.display === 'none') || 
-                                  (userNameElement && userNameElement.style.display === 'none');
-            
-            if (!isPublicAccess) {
-                showErrorMessage('Error loading Fire Extinguisher data. Please try again.');
-            }
+            showErrorMessage('Error loading Fire Extinguisher data. Please try again.');
         }
-    } else {
-        console.log('No extinguisher ID or number provided in URL parameters');
     }
 }
 
@@ -558,29 +547,6 @@ function setupPublicAccessSecurity() {
     // document.addEventListener('selectstart', function(e) {
     //     e.preventDefault();
     // });
-}
-
-// Hide download QR button for public access
-function hideDownloadQRButtonForPublicAccess() {
-    const downloadQRButton = document.getElementById('downloadQRButton');
-    
-    if (downloadQRButton) {
-        // Check if user is not authenticated (public access)
-        const userNameElement = document.querySelector('.user-name');
-        const backButton = document.getElementById('backButton');
-        
-        // If back button is hidden and user name is hidden, it's public access
-        const isPublicAccess = (backButton && backButton.style.display === 'none') || 
-                              (userNameElement && userNameElement.style.display === 'none');
-        
-        if (isPublicAccess) {
-            downloadQRButton.style.display = 'none';
-            console.log('Download QR button hidden for public access');
-        } else {
-            downloadQRButton.style.display = 'block';
-            console.log('Download QR button visible for authenticated users');
-        }
-    }
 }
 
 // Check if element is an input field
