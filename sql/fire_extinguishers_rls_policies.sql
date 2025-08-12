@@ -9,6 +9,7 @@
 
 -- Drop existing policies for fire_extinguishers table
 DROP POLICY IF EXISTS "Users can view fire extinguishers" ON public.fire_extinguishers;
+DROP POLICY IF EXISTS "Public can view fire extinguishers" ON public.fire_extinguishers;
 DROP POLICY IF EXISTS "Users can create fire extinguishers" ON public.fire_extinguishers;
 DROP POLICY IF EXISTS "Users can update fire extinguishers" ON public.fire_extinguishers;
 DROP POLICY IF EXISTS "Users can delete fire extinguishers" ON public.fire_extinguishers;
@@ -28,10 +29,10 @@ ALTER TABLE public.fire_extinguishers ENABLE ROW LEVEL SECURITY;
 -- FIRE_EXTINGUISHERS TABLE POLICIES
 -- =====================================================
 
--- Policy 1: All authenticated users can view fire extinguishers (public safety access)
-CREATE POLICY "Users can view fire extinguishers" ON public.fire_extinguishers
+-- Policy 1: Public access for viewing fire extinguishers (for QR code access)
+CREATE POLICY "Public can view fire extinguishers" ON public.fire_extinguishers
 FOR SELECT USING (
-    auth.uid() IS NOT NULL
+    true
 );
 
 -- Policy 2: Only admins can create new fire extinguishers
