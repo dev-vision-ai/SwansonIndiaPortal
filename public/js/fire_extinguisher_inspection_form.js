@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadUserProfile() {
     const userNameElement = document.querySelector('.user-name');
     const backButton = document.getElementById('backButton');
+    const qrDownloadContainer = document.getElementById('qrDownloadContainer');
 
     try {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -56,15 +57,14 @@ async function loadUserProfile() {
                 backButton.style.display = 'none';
             }
             
+            // Hide QR download button for public access
+            if (qrDownloadContainer) {
+                qrDownloadContainer.style.display = 'none';
+            }
+            
             // Remove user name display for public access
             if (userNameElement) {
                 userNameElement.style.display = 'none';
-            }
-            
-            // Hide QR download button for public access
-            const qrDownloadContainer = document.getElementById('qrDownloadContainer');
-            if (qrDownloadContainer) {
-                qrDownloadContainer.style.display = 'none';
             }
             
             return; // Don't redirect - allow public access
@@ -73,6 +73,11 @@ async function loadUserProfile() {
         // User is authenticated - show back button and user info
         if (backButton) {
             backButton.style.display = 'block';
+        }
+
+        // Show QR download button for authenticated users
+        if (qrDownloadContainer) {
+            qrDownloadContainer.style.display = 'block';
         }
 
         if (userNameElement) {
@@ -102,14 +107,11 @@ async function loadUserProfile() {
         if (backButton) {
             backButton.style.display = 'none';
         }
-        if (userNameElement) {
-            userNameElement.style.display = 'none';
-        }
-        
-        // Hide QR download button for public access
-        const qrDownloadContainer = document.getElementById('qrDownloadContainer');
         if (qrDownloadContainer) {
             qrDownloadContainer.style.display = 'none';
+        }
+        if (userNameElement) {
+            userNameElement.style.display = 'none';
         }
     }
 }
