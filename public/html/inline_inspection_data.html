@@ -208,7 +208,7 @@
                             <td class="border border-gray-400 px-3 py-2" id="spec" style="font-size: 15px;">[Spec]</td>
                         </tr>
                     </table>
-                </div>
+                        </div>
                 <!-- Table column: Year table and checkboxes -->
                 <div class="w-full lg:w-auto lg:flex-1 max-w-full lg:max-w-[500px] mt-6 lg:mt-0">
                     <div class="flex flex-col gap-4">
@@ -248,8 +248,38 @@
                         </table>
                     </div>
                 </div>
+                
+                <!-- Team Members Table - Right Side -->
+                <div class="w-full lg:w-auto lg:flex-1 max-w-full lg:max-w-[400px] mt-6 lg:mt-0">
+                    <table class="w-full border border-gray-400" style="font-size: 15px;">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="border border-gray-400 px-3 py-2 text-center font-semibold" colspan="2" style="font-size: 15px;">Shift Members</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background-color: white;">
+                                <td class="border border-gray-400 px-3 py-2 text-left" style="font-size: 15px; background-color: white;">Supervisor</td>
+                                <td class="border border-gray-400 px-3 py-2 text-left" id="supervisor_name" style="font-size: 15px; background-color: white;">[Supervisor Name]</td>
+                            </tr>
+                            <tr style="background-color: white;">
+                                <td class="border border-gray-400 px-3 py-2 text-left" style="font-size: 15px; background-color: white;">Line Leader</td>
+                                <td class="border border-gray-400 px-3 py-2 text-left" id="line_leader_name" style="font-size: 15px; background-color: white;">[Line Leader Name]</td>
+                            </tr>
+                            <tr style="background-color: white;">
+                                <td class="border border-gray-400 px-3 py-2 text-left" style="font-size: 15px; background-color: white;">Operator</td>
+                                <td class="border border-gray-400 px-3 py-2 text-left" id="operator_name" style="font-size: 15px; background-color: white;">[Operator Name]</td>
+                            </tr>
+                            <tr style="background-color: white;">
+                                <td class="border border-gray-400 px-3 py-2 text-left" style="font-size: 15px; background-color: white;">QC Inspector</td>
+                                <td class="border border-gray-400 px-3 py-2 text-left" id="qc_inspector_name" style="font-size: 15px; background-color: white;">[QC Inspector Name]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
+        
         <!-- Roll Entry Grid Placeholder -->
         <section>
             <h2 class="text-xl font-semibold mb-4">Roll Entry Grid</h2>

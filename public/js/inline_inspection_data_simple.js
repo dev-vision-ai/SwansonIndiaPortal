@@ -19,6 +19,21 @@ function getISTTimestamp() {
 // ===== CLOCK FUNCTIONALITY =====
 let clockInterval = null;
 
+// ===== TEAM MEMBERS FUNCTIONALITY =====
+function populateTeamMembers(formData) {
+    try {
+        // Populate team members table with separate role and name columns
+        document.getElementById('supervisor_name').textContent = formData.supervisor || 'N/A';
+        document.getElementById('line_leader_name').textContent = formData.line_leader || 'N/A';
+        document.getElementById('operator_name').textContent = formData.operator || 'N/A';
+        document.getElementById('qc_inspector_name').textContent = formData.qc_inspector || 'N/A';
+        
+        console.log('✅ Team members data populated successfully');
+    } catch (error) {
+        console.error('❌ Error populating team members:', error);
+    }
+}
+
 // ===== SHIFT DISPLAY FUNCTIONALITY =====
 function setShiftDisplay() {
     try {
@@ -417,6 +432,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.getElementById('date').textContent = formData.date || '[Date]';
                 document.getElementById('mc_no').textContent = formData.mc_no || '[M/C No.]';
                 document.getElementById('shift').textContent = formData.shift || '[Shift]';
+                
+                // Populate team members data
+                populateTeamMembers(formData);
+                
                 // Data loading is now handled by loadAllLots() function
             }
         } catch (error) {
