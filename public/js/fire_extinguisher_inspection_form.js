@@ -118,23 +118,43 @@ async function loadExistingFireExtinguisherData() {
     const extinguisherId = urlParams.get('extinguisher_id');
     const extinguisherNo = urlParams.get('extinguisher_no');
 
+    // Only try to load data if we have both parameters
     if (extinguisherId && extinguisherNo) {
         try {
+            console.log('Loading fire extinguisher data for ID:', extinguisherId, 'No:', extinguisherNo);
+            
             const { data: extinguisher, error } = await supabase
                 .from('fire_extinguishers')
                 .select('*')
                 .eq('id', extinguisherId)
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase error:', error);
+                throw error;
+            }
 
             if (extinguisher) {
+                console.log('Fire extinguisher data loaded successfully:', extinguisher);
                 populateFormWithExistingData(extinguisher);
+            } else {
+                console.log('No fire extinguisher found with ID:', extinguisherId);
             }
         } catch (error) {
             console.error('Error loading existing Fire Extinguisher data:', error);
-            showErrorMessage('Error loading Fire Extinguisher data. Please try again.');
+            
+            // Don't show error message for public access (QR code access)
+            const userNameElement = document.querySelector('.user-name');
+            const backButton = document.getElementById('backButton');
+            const isPublicAccess = (backButton && backButton.style.display === 'none') || 
+                                  (userNameElement && userNameElement.style.display === 'none');
+            
+            if (!isPublicAccess) {
+                showErrorMessage('Error loading Fire Extinguisher data. Please try again.');
+            }
         }
+    } else {
+        console.log('No extinguisher ID or number provided in URL parameters');
     }
 }
 
