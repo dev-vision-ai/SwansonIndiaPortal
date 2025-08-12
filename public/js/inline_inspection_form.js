@@ -376,13 +376,19 @@ function setupFilterHandlers() {
     clearFilterBtn.addEventListener('click', clearFilters);
   }
   
-  // Add event listeners to all filter inputs to auto-apply filters
-  const filterInputs = [
-    'filterFromDate', 'filterToDate', 'filterProduct', 'filterMachine', 
-    'filterShift', 'filterOperator', 'filterSupervisor', 'filterLineLeader', 'filterQCInspector'
+  // Add event listeners for cascading filters
+  document.getElementById('filterFromDate')?.addEventListener('change', onDateChange);
+  document.getElementById('filterToDate')?.addEventListener('change', onDateChange);
+  document.getElementById('filterMachine')?.addEventListener('change', onMachineChange);
+  document.getElementById('filterProduct')?.addEventListener('change', onProductChange);
+  document.getElementById('filterShift')?.addEventListener('change', onShiftChange);
+  
+  // Add event listeners for non-cascading filters
+  const nonCascadingFilters = [
+    'filterOperator', 'filterSupervisor', 'filterLineLeader', 'filterQCInspector'
   ];
   
-  filterInputs.forEach(inputId => {
+  nonCascadingFilters.forEach(inputId => {
     const input = document.getElementById(inputId);
     if (input) {
       input.addEventListener('change', applyFilters);
@@ -390,25 +396,230 @@ function setupFilterHandlers() {
   });
 }
 
+// Cascading filter functions
+function onDateChange() {
+  const fromDate = document.getElementById('filterFromDate').value;
+  const toDate = document.getElementById('filterToDate').value;
+  
+  // Update current filters
+  currentFilters.fromDate = fromDate;
+  currentFilters.toDate = toDate;
+  
+  // Reset dependent dropdowns
+  resetDropdown('filterMachine');
+  resetDropdown('filterProduct');
+  resetDropdown('filterShift');
+  
+  if (fromDate || toDate) {
+    populateMachineDropdown(fromDate, toDate);
+  }
+  
+  // Save filter state
+  saveFilterState();
+  
+  // Apply filters
+  applyFilters();
+}
+
+function onMachineChange() {
+  const fromDate = document.getElementById('filterFromDate').value;
+  const toDate = document.getElementById('filterToDate').value;
+  const machine = document.getElementById('filterMachine').value;
+  
+  // Update current filters
+  currentFilters.machine = machine;
+  
+  // Reset dependent dropdowns
+  resetDropdown('filterProduct');
+  resetDropdown('filterShift');
+  
+  if (machine) {
+    populateProductDropdown(fromDate, toDate, machine);
+  }
+  
+  // Save filter state
+  saveFilterState();
+  
+  // Apply filters
+  applyFilters();
+}
+
+function onProductChange() {
+  const fromDate = document.getElementById('filterFromDate').value;
+  const toDate = document.getElementById('filterToDate').value;
+  const machine = document.getElementById('filterMachine').value;
+  const product = document.getElementById('filterProduct').value;
+  
+  // Update current filters
+  currentFilters.product = product;
+  
+  // Reset dependent dropdowns
+  resetDropdown('filterShift');
+  
+  if (product) {
+    populateShiftDropdown(fromDate, toDate, machine, product);
+  }
+  
+  // Save filter state
+  saveFilterState();
+  
+  // Apply filters
+  applyFilters();
+}
+
+function onShiftChange() {
+  const shift = document.getElementById('filterShift').value;
+  
+  // Update current filters
+  currentFilters.shift = shift;
+  
+  // Save filter state
+  saveFilterState();
+  
+  // Apply filters
+  applyFilters();
+}
+
+// Reset dropdown to "All" option only
+function resetDropdown(dropdownId) {
+  const dropdown = document.getElementById(dropdownId);
+  if (dropdown) {
+    dropdown.innerHTML = '<option value="">All</option>';
+  }
+}
+
+// Populate machine dropdown based on date range
+function populateMachineDropdown(fromDate, toDate) {
+  if (!allForms || allForms.length === 0) return;
+  
+  let filteredForms = allForms;
+  
+  // Filter by date range if provided
+  if (fromDate || toDate) {
+    filteredForms = allForms.filter(form => {
+      if (!form.production_date) return false;
+      
+      const formDate = new Date(form.production_date);
+      
+      if (fromDate) {
+        const fromDateObj = new Date(fromDate);
+        if (formDate < fromDateObj) return false;
+      }
+      
+      if (toDate) {
+        const toDateObj = new Date(toDate);
+        if (formDate > toDateObj) return false;
+      }
+      
+      return true;
+    });
+  }
+  
+  const machines = [...new Set(filteredForms.map(form => form.mc_no).filter(Boolean))].sort();
+  populateSelect('filterMachine', machines);
+}
+
+// Populate product dropdown based on date range and machine
+function populateProductDropdown(fromDate, toDate, machine) {
+  if (!allForms || allForms.length === 0) return;
+  
+  let filteredForms = allForms;
+  
+  // Filter by date range if provided
+  if (fromDate || toDate) {
+    filteredForms = filteredForms.filter(form => {
+      if (!form.production_date) return false;
+      
+      const formDate = new Date(form.production_date);
+      
+      if (fromDate) {
+        const fromDateObj = new Date(fromDate);
+        if (formDate < fromDateObj) return false;
+      }
+      
+      if (toDate) {
+        const toDateObj = new Date(toDate);
+        if (formDate > toDateObj) return false;
+      }
+      
+      return true;
+    });
+  }
+  
+  // Filter by machine if provided
+  if (machine) {
+    filteredForms = filteredForms.filter(form => form.mc_no === machine);
+  }
+  
+  const products = [...new Set(filteredForms.map(form => form.prod_code).filter(Boolean))].sort();
+  populateSelect('filterProduct', products);
+}
+
+// Populate shift dropdown based on date range, machine, and product
+function populateShiftDropdown(fromDate, toDate, machine, product) {
+  if (!allForms || allForms.length === 0) return;
+  
+  let filteredForms = allForms;
+  
+  // Filter by date range if provided
+  if (fromDate || toDate) {
+    filteredForms = filteredForms.filter(form => {
+      if (!form.production_date) return false;
+      
+      const formDate = new Date(form.production_date);
+      
+      if (fromDate) {
+        const fromDateObj = new Date(fromDate);
+        if (formDate < fromDateObj) return false;
+      }
+      
+      if (toDate) {
+        const toDateObj = new Date(toDate);
+        if (formDate > toDateObj) return false;
+      }
+      
+      return true;
+    });
+  }
+  
+  // Filter by machine if provided
+  if (machine) {
+    filteredForms = filteredForms.filter(form => form.mc_no === machine);
+  }
+  
+  // Filter by product if provided
+  if (product) {
+    filteredForms = filteredForms.filter(form => form.prod_code === product);
+  }
+  
+  const shifts = [...new Set(filteredForms.map(form => form.shift).filter(Boolean))].sort();
+  populateSelect('filterShift', shifts);
+}
+
 // Populate filter dropdowns with unique values
 function populateFilterDropdowns() {
   if (!allForms || allForms.length === 0) return;
   
-  // Get unique values for each filter
-  const products = [...new Set(allForms.map(form => form.prod_code).filter(Boolean))].sort();
-  const machines = [...new Set(allForms.map(form => form.mc_no).filter(Boolean))].sort();
+  // Get unique values for non-cascading filters
   const operators = [...new Set(allForms.flatMap(form => [form.operator, form.operator2]).filter(Boolean))].sort();
   const supervisors = [...new Set(allForms.flatMap(form => [form.supervisor, form.supervisor2]).filter(Boolean))].sort();
   const lineLeaders = [...new Set(allForms.flatMap(form => [form.line_leader, form.line_leader2]).filter(Boolean))].sort();
   const qcInspectors = [...new Set(allForms.flatMap(form => [form.qc_inspector, form.qc_inspector2]).filter(Boolean))].sort();
   
-  // Populate all dropdowns using populateSelect
-  populateSelect('filterProduct', products);
-  populateSelect('filterMachine', machines);
+  // Populate non-cascading dropdowns
   populateSelect('filterOperator', operators);
   populateSelect('filterSupervisor', supervisors);
   populateSelect('filterLineLeader', lineLeaders);
   populateSelect('filterQCInspector', qcInspectors);
+  
+  // Initialize cascading dropdowns with all available values
+  const machines = [...new Set(allForms.map(form => form.mc_no).filter(Boolean))].sort();
+  const products = [...new Set(allForms.map(form => form.prod_code).filter(Boolean))].sort();
+  const shifts = [...new Set(allForms.map(form => form.shift).filter(Boolean))].sort();
+  
+  populateSelect('filterMachine', machines);
+  populateSelect('filterProduct', products);
+  populateSelect('filterShift', shifts);
   
   // Restore previous filter state if exists
   restoreFilterState();
@@ -469,22 +680,67 @@ function restoreFilterState() {
   if (savedFilters) {
     currentFilters = JSON.parse(savedFilters);
     
-    // Restore filter values
+    // Restore date filters first
     document.getElementById('filterFromDate').value = currentFilters.fromDate || '';
     document.getElementById('filterToDate').value = currentFilters.toDate || '';
-    document.getElementById('filterProduct').value = currentFilters.product || '';
-    document.getElementById('filterMachine').value = currentFilters.machine || '';
-    document.getElementById('filterShift').value = currentFilters.shift || '';
+    
+    // Restore non-cascading filters
     document.getElementById('filterOperator').value = currentFilters.operator || '';
     document.getElementById('filterSupervisor').value = currentFilters.supervisor || '';
     document.getElementById('filterLineLeader').value = currentFilters.lineLeader || '';
     document.getElementById('filterQCInspector').value = currentFilters.qcInspector || '';
     
-    // Update filter status
-    updateFilterStatus();
-    
-    // Apply the restored filters
-    applyFilters();
+    // Restore cascading filters with proper population
+    if (currentFilters.fromDate || currentFilters.toDate) {
+      populateMachineDropdown(currentFilters.fromDate, currentFilters.toDate);
+      
+      // Wait a bit for dropdown population, then restore machine filter
+      setTimeout(() => {
+        if (currentFilters.machine) {
+          document.getElementById('filterMachine').value = currentFilters.machine;
+          populateProductDropdown(currentFilters.fromDate, currentFilters.toDate, currentFilters.machine);
+          
+          // Wait for product dropdown population
+          setTimeout(() => {
+            if (currentFilters.product) {
+              document.getElementById('filterProduct').value = currentFilters.product;
+              populateShiftDropdown(currentFilters.fromDate, currentFilters.toDate, currentFilters.machine, currentFilters.product);
+              
+              // Wait for shift dropdown population
+              setTimeout(() => {
+                if (currentFilters.shift !== undefined) {
+                  document.getElementById('filterShift').value = currentFilters.shift;
+                }
+                
+                // Update filter status and apply filters
+                updateFilterStatus();
+                applyFilters();
+              }, 100);
+            } else {
+              updateFilterStatus();
+              applyFilters();
+            }
+          }, 100);
+        } else {
+          updateFilterStatus();
+          applyFilters();
+        }
+      }, 100);
+    } else {
+      // No date filters, restore directly
+      if (currentFilters.machine) {
+        document.getElementById('filterMachine').value = currentFilters.machine;
+      }
+      if (currentFilters.product) {
+        document.getElementById('filterProduct').value = currentFilters.product;
+      }
+      if (currentFilters.shift !== undefined) {
+        document.getElementById('filterShift').value = currentFilters.shift;
+      }
+      
+      updateFilterStatus();
+      applyFilters();
+    }
   } else {
     // Update filter status to show Off if no saved filters
     updateFilterStatus();
@@ -612,13 +868,26 @@ function clearFilters() {
   // Clear all filter inputs
   document.getElementById('filterFromDate').value = '';
   document.getElementById('filterToDate').value = '';
-  document.getElementById('filterProduct').value = '';
-  document.getElementById('filterMachine').value = '';
-  document.getElementById('filterShift').value = '';
   document.getElementById('filterOperator').value = '';
   document.getElementById('filterSupervisor').value = '';
   document.getElementById('filterLineLeader').value = '';
   document.getElementById('filterQCInspector').value = '';
+  
+  // Reset cascading dropdowns
+  resetDropdown('filterMachine');
+  resetDropdown('filterProduct');
+  resetDropdown('filterShift');
+  
+  // Re-populate cascading dropdowns with all available values
+  if (allForms && allForms.length > 0) {
+    const machines = [...new Set(allForms.map(form => form.mc_no).filter(Boolean))].sort();
+    const products = [...new Set(allForms.map(form => form.prod_code).filter(Boolean))].sort();
+    const shifts = [...new Set(allForms.map(form => form.shift).filter(Boolean))].sort();
+    
+    populateSelect('filterMachine', machines);
+    populateSelect('filterProduct', products);
+    populateSelect('filterShift', shifts);
+  }
   
   // Clear saved filter state
   currentFilters = {};

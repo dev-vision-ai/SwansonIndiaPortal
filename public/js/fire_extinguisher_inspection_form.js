@@ -71,19 +71,19 @@ async function loadUserProfile() {
 
         if (userNameElement) {
             try {
-                const { data: profile, error: profileError } = await supabase
-                    .from('users')
-                    .select('full_name')
-                    .eq('id', user.id)
-                    .single();
+            const { data: profile, error: profileError } = await supabase
+                .from('users')
+                .select('full_name')
+                .eq('id', user.id)
+                .single();
 
-                if (profileError) throw profileError;
+            if (profileError) throw profileError;
 
-                if (profile && profile.full_name) {
-                    userNameElement.textContent = 'Hi, ' + profile.full_name;
-                } else {
-                    userNameElement.textContent = 'Hi, ' + (user.email || 'Admin');
-                }
+            if (profile && profile.full_name) {
+                userNameElement.textContent = 'Hi, ' + profile.full_name;
+            } else {
+                userNameElement.textContent = 'Hi, ' + (user.email || 'Admin');
+            }
             } catch (error) {
                 console.error('Error loading user profile:', error);
                 userNameElement.textContent = 'Hi, Admin';
