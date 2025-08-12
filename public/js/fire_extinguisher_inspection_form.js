@@ -37,6 +37,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Additional security for public access
     setupPublicAccessSecurity();
+    
+    // Hide download QR button for public access (QR code access)
+    hideDownloadQRButtonForPublicAccess();
 });
 
 // Load user profile
@@ -535,6 +538,29 @@ function setupPublicAccessSecurity() {
     // document.addEventListener('selectstart', function(e) {
     //     e.preventDefault();
     // });
+}
+
+// Hide download QR button for public access
+function hideDownloadQRButtonForPublicAccess() {
+    const downloadQRButton = document.getElementById('downloadQRButton');
+    
+    if (downloadQRButton) {
+        // Check if user is not authenticated (public access)
+        const userNameElement = document.querySelector('.user-name');
+        const backButton = document.getElementById('backButton');
+        
+        // If back button is hidden and user name is hidden, it's public access
+        const isPublicAccess = (backButton && backButton.style.display === 'none') || 
+                              (userNameElement && userNameElement.style.display === 'none');
+        
+        if (isPublicAccess) {
+            downloadQRButton.style.display = 'none';
+            console.log('Download QR button hidden for public access');
+        } else {
+            downloadQRButton.style.display = 'block';
+            console.log('Download QR button visible for authenticated users');
+        }
+    }
 }
 
 // Check if element is an input field

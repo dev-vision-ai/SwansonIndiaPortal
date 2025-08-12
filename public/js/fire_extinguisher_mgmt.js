@@ -742,7 +742,7 @@ window.openDeleteSelectionModal = function(extinguisherId, extinguisherNo) {
                 <thead>
                     <tr style="background: #f8f9fa;">
                         <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">
-                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" style="margin-right: 5px;">
+                            <input type="checkbox" id="selectAll" style="margin-right: 5px;">
                             Select All
                         </th>
                         <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Date</th>
@@ -757,7 +757,6 @@ window.openDeleteSelectionModal = function(extinguisherId, extinguisherNo) {
                                 <input type="checkbox" 
                                        id="inspection_${index}" 
                                        value="${index}"
-                                       onchange="updateSelectedInspections()"
                                        style="margin-right: 5px;">
                             </td>
                             <td style="padding: 8px; border-bottom: 1px solid #eee;">${formatDate(inspection.date)}</td>
@@ -775,6 +774,19 @@ window.openDeleteSelectionModal = function(extinguisherId, extinguisherNo) {
     `;
     
     document.getElementById('deleteSelectionModal').style.display = 'block';
+    
+    // Add event listeners to checkboxes after modal is displayed
+    setTimeout(() => {
+        const inspectionCheckboxes = document.querySelectorAll('#deleteSelectionContent input[type="checkbox"]:not(#selectAll)');
+        inspectionCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectedInspections);
+        });
+        
+        const selectAllCheckbox = document.getElementById('selectAll');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', toggleSelectAll);
+        }
+    }, 100);
 }
 
 // Toggle select all checkboxes
@@ -791,14 +803,21 @@ window.toggleSelectAll = function() {
 
 // Update selected inspections array
 window.updateSelectedInspections = function() {
+    console.log('updateSelectedInspections called');
+    
     const inspectionCheckboxes = document.querySelectorAll('#deleteSelectionContent input[type="checkbox"]:not(#selectAll)');
+    console.log('Found checkboxes:', inspectionCheckboxes.length);
+    
     selectedInspectionsToDelete = [];
     
-    inspectionCheckboxes.forEach(checkbox => {
+    inspectionCheckboxes.forEach((checkbox, index) => {
+        console.log(`Checkbox ${index}:`, checkbox.checked, checkbox.value);
         if (checkbox.checked) {
             selectedInspectionsToDelete.push(parseInt(checkbox.value));
         }
     });
+    
+    console.log('Selected inspections:', selectedInspectionsToDelete);
     
     // Update select all checkbox
     const selectAllCheckbox = document.getElementById('selectAll');
@@ -818,6 +837,8 @@ window.closeDeleteSelectionModal = function() {
 
 // Confirm and delete selected inspections
 window.confirmDeleteSelected = async function() {
+    console.log('Confirm delete called. Selected inspections:', selectedInspectionsToDelete);
+    
     if (selectedInspectionsToDelete.length === 0) {
         showErrorMessage('Please select at least one inspection record to delete.');
         return;
@@ -1238,8 +1259,15 @@ function openClearInspectionDataModal() {
         inspectionListElement.appendChild(inspectionDiv);
     });
     
+    // Store the extinguisher ID before closing the delete options modal
+    const extinguisherIdToClear = currentDeleteOptionsExtinguisherId;
+    
     // Close the delete options modal and open the clear data modal
     closeDeleteOptionsModal();
+    
+    // Set the ID for the clear modal
+    currentDeleteOptionsExtinguisherId = extinguisherIdToClear;
+    
     modal.style.display = 'block';
 }
 
@@ -1267,7 +1295,11 @@ function toggleSelectAllInspections() {
 }
 
 function toggleInspectionSelection(index) {
+    console.log('toggleInspectionSelection called with index:', index);
+    
     const checkbox = document.getElementById(`inspection_${index}`);
+    console.log('Checkbox found:', checkbox, 'Checked:', checkbox.checked);
+    
     if (checkbox.checked) {
         if (!selectedInspectionsToClear.includes(index)) {
             selectedInspectionsToClear.push(index);
@@ -1275,6 +1307,8 @@ function toggleInspectionSelection(index) {
     } else {
         selectedInspectionsToClear = selectedInspectionsToClear.filter(i => i !== index);
     }
+    
+    console.log('selectedInspectionsToClear after toggle:', selectedInspectionsToClear);
     
     // Update select all checkbox
     const selectAllCheckbox = document.getElementById('selectAllInspections');
@@ -1286,6 +1320,10 @@ function toggleInspectionSelection(index) {
 }
 
 async function confirmClearSelectedInspections() {
+    console.log('confirmClearSelectedInspections called');
+    console.log('currentDeleteOptionsExtinguisherId:', currentDeleteOptionsExtinguisherId);
+    console.log('selectedInspectionsToClear:', selectedInspectionsToClear);
+    
     if (!currentDeleteOptionsExtinguisherId || selectedInspectionsToClear.length === 0) {
         showErrorMessage('Please select at least one inspection record to clear.');
         return;
@@ -1302,22 +1340,39 @@ async function confirmClearSelectedInspections() {
             throw new Error('Extinguisher data not found');
         }
         
+        console.log('Original inspections:', extinguisher.inspection_data.inspections);
+        console.log('Selected indices to clear:', selectedInspectionsToClear);
+        
         // Remove selected inspections (in reverse order to maintain indices)
         const updatedInspections = extinguisher.inspection_data.inspections.filter((_, index) => 
             !selectedInspectionsToClear.includes(index)
         );
         
+        console.log('Updated inspections after filter:', updatedInspections);
+        
         // Update the database
-        const { error } = await supabase
+        console.log('Updating database with:', { inspection_data: { inspections: updatedInspections } });
+        
+        const { data, error } = await supabase
             .from('fire_extinguishers')
             .update({ inspection_data: { inspections: updatedInspections } })
-            .eq('id', currentDeleteOptionsExtinguisherId);
+            .eq('id', currentDeleteOptionsExtinguisherId)
+            .select();
+        
+        console.log('Database response:', { data, error });
         
         if (error) throw error;
         
+        const clearedCount = selectedInspectionsToClear.length;
+        console.log('About to show success message. Cleared count:', clearedCount);
+        console.log('selectedInspectionsToClear array:', selectedInspectionsToClear);
+        
+        // Store the count before closing modal (which clears the array)
+        const finalClearedCount = clearedCount;
+        
         closeClearInspectionDataModal();
         await loadFireExtinguisherInspections();
-        showSuccessMessage(`${selectedInspectionsToClear.length} inspection record(s) cleared successfully!`);
+        showSuccessMessage(`${finalClearedCount} inspection record(s) cleared successfully!`);
         
     } catch (error) {
         console.error('Error clearing inspection data:', error);
