@@ -521,7 +521,7 @@ function getProductionShiftData(fromDate, toDate, product, machine, shift) {
     const masterRecords = allForms.filter(form => {
         if (fromDate && form.production_date && form.production_date < fromDate) return false;
         if (toDate && form.production_date && form.production_date > toDate) return false;
-        if (form.prod_code !== product) return false;
+        if (product && form.prod_code !== product) return false; // Only filter by product if one is selected
         if (String(form.mc_no) !== String(machine)) return false;
         if (String(form.shift) !== String(shift)) return false;
         return true;
@@ -529,16 +529,17 @@ function getProductionShiftData(fromDate, toDate, product, machine, shift) {
     
     console.log(`📋 Found ${masterRecords.length} master records with complete data`);
     
-    // STEP 2: Extract all traceability codes from master records
-    const traceabilityCodes = [...new Set(masterRecords.map(form => form.traceability_code))];
-    console.log('🔗 Traceability codes to search for:', traceabilityCodes);
+    // STEP 2: Extract all traceability codes and lot letters from master records
+    const traceabilityKeys = [...new Set(masterRecords.map(form => `${form.traceability_code}-${form.lot_letter}`))];
+    console.log('🔗 Traceability keys to search for:', traceabilityKeys);
     
-    // STEP 3: Find ALL records (including lots) that match these traceability codes
-    const allShiftData = allForms.filter(form => 
-        traceabilityCodes.includes(form.traceability_code)
-    );
+    // STEP 3: Find ALL records (including all lots) that match these traceability keys
+    const allShiftData = allForms.filter(form => {
+        const traceabilityKey = `${form.traceability_code}-${form.lot_letter}`;
+        return traceabilityKeys.includes(traceabilityKey);
+    });
     
-    console.log(`📊 Found ${allShiftData.length} total records (including all lots) for this shift`);
+    console.log(`📊 Found ${allShiftData.length} total records (including all lots) for this shift${product ? ' and product' : ' and all products'}`);
     console.log('📋 All matching records:');
     allShiftData.forEach((form, index) => {
         console.log(`${index + 1}:`, {
@@ -566,23 +567,24 @@ function getAllShiftsData(fromDate, toDate, product, machine) {
     const masterRecords = allForms.filter(form => {
         if (fromDate && form.production_date && form.production_date < fromDate) return false;
         if (toDate && form.production_date && form.production_date > toDate) return false;
-        if (form.prod_code !== product) return false;
+        if (product && form.prod_code !== product) return false; // Only filter by product if one is selected
         if (String(form.mc_no) !== String(machine)) return false;
         return true; // Include all shifts
     });
     
     console.log(`📋 Found ${masterRecords.length} master records across all shifts`);
     
-    // STEP 2: Extract all traceability codes from master records
-    const traceabilityCodes = [...new Set(masterRecords.map(form => form.traceability_code))];
-    console.log('🔗 Traceability codes to search for:', traceabilityCodes);
+    // STEP 2: Extract all traceability codes and lot letters from master records
+    const traceabilityKeys = [...new Set(masterRecords.map(form => `${form.traceability_code}-${form.lot_letter}`))];
+    console.log('🔗 Traceability keys to search for:', traceabilityKeys);
     
-    // STEP 3: Find ALL records (including lots) that match these traceability codes
-    const allShiftsData = allForms.filter(form => 
-        traceabilityCodes.includes(form.traceability_code)
-    );
+    // STEP 3: Find ALL records (including all lots) that match these traceability keys
+    const allShiftsData = allForms.filter(form => {
+        const traceabilityKey = `${form.traceability_code}-${form.lot_letter}`;
+        return traceabilityKeys.includes(traceabilityKey);
+    });
     
-    console.log(`📊 Found ${allShiftsData.length} total records (including all lots) across all shifts`);
+    console.log(`📊 Found ${allShiftsData.length} total records (including all lots) across all shifts${product ? ' for this product' : ' for all products'}`);
     console.log('📋 All matching records across shifts:');
     allShiftsData.forEach((form, index) => {
         console.log(`${index + 1}:`, {
@@ -605,6 +607,25 @@ function getAllShiftsData(fromDate, toDate, product, machine) {
 // Update summary tables with filtered shift data
 function updateSummaryTablesWithData(shiftData) {
     console.log('📊 Processing shift data:', shiftData.length, 'records');
+    console.log('🔍 DETAILED RECORD ANALYSIS:');
+    
+    // Group records by traceability key to see all lots
+    const groupedByTraceabilityKey = {};
+    shiftData.forEach(form => {
+        const key = `${form.traceability_code}-${form.lot_letter}`;
+        if (!groupedByTraceabilityKey[key]) {
+            groupedByTraceabilityKey[key] = [];
+        }
+        groupedByTraceabilityKey[key].push(form);
+    });
+    
+    console.log('📋 Records grouped by traceability key:');
+    Object.entries(groupedByTraceabilityKey).forEach(([traceabilityKey, records]) => {
+        console.log(`🔗 ${traceabilityKey}: ${records.length} lots`);
+        records.forEach(record => {
+            console.log(`  - Lot ${record.lot_letter}${record.lot_no}: ${record.accepted_rolls} accepted, ${record.rejected_rolls} rejected, ${record.rework_rolls} rework, ${record.kiv_rolls} KIV`);
+        });
+    });
     
     // Calculate totals by aggregating ALL lots/records for this shift
     let totalAccepted = 0, totalRejected = 0, totalRework = 0, totalKIV = 0;
