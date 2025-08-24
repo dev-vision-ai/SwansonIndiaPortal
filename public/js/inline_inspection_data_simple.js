@@ -2640,53 +2640,134 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ===== FILL O FUNCTIONALITY =====
     const fillOBtn = document.getElementById('fillOBtn');
     if (fillOBtn) {
-        fillOBtn.addEventListener('click', function() {
-            // Get all tables in the container
-            const allTables = tablesContainer.querySelectorAll('table');
-            
-            allTables.forEach(table => {
-                const tbody = table.querySelector('tbody');
-                if (!tbody) return;
-                
-                // Define the specific fields to fill (Film Appearance, Printing, Roll Appearance)
-                const fieldsToFill = [
-                    'lines_strips', 'glossy', 'film_color', 'pin_hole', 'patch_mark', 'odour', 'ct_appearance', 'print_color', // Film Appearance
-                    'mis_print', 'dirty_print', 'tape_test', 'centralization', // Printing
-                    'wrinkles', 'prs', 'roll_curve', 'core_misalignment', 'others' // Roll Appearance
-                ];
-                
-                // Get cells with data-field attributes that match our target fields
-                const cells = tbody.querySelectorAll('td[data-field]');
-                
-                cells.forEach(cell => {
-                    const fieldName = cell.dataset.field;
-                    
-                    // Only process cells that are in our target fields
-                    if (!fieldsToFill.includes(fieldName)) return;
-                    
-                    // Skip cells that already have content (not empty)
-                    if (cell.textContent.trim() !== '') return;
-                    
-                    // Fill empty cells with "O"
-                    cell.textContent = 'O';
-                    
-                    // Apply color coding
-                    applyXOColorCoding(cell);
-                    
-                    // Trigger save to Supabase
-                    const event = new Event('input', { bubbles: true });
-                    cell.dispatchEvent(event);
-                });
-            });
-            
-            // Show confirmation
+        fillOBtn.addEventListener('click', async function() {
+            // Disable button during operation
+            fillOBtn.disabled = true;
             const originalText = fillOBtn.textContent;
-            fillOBtn.textContent = 'Saved!';
-            fillOBtn.style.backgroundColor = '#10b981'; // green
-            setTimeout(() => {
-                fillOBtn.textContent = originalText;
-                fillOBtn.style.backgroundColor = ''; // reset to original
-            }, 1000);
+            fillOBtn.textContent = 'Processing...';
+            
+            try {
+                // Get all tables in the container
+                const allTables = tablesContainer.querySelectorAll('table');
+                const tablesToSave = [];
+                
+                allTables.forEach(table => {
+                    const tbody = table.querySelector('tbody');
+                    if (!tbody) return;
+                    
+                    // Define the specific fields to fill (Film Appearance, Printing, Roll Appearance)
+                    const fieldsToFill = [
+                        'lines_strips', 'glossy', 'film_color', 'pin_hole', 'patch_mark', 'odour', 'ct_appearance', 'print_color', // Film Appearance
+                        'mis_print', 'dirty_print', 'tape_test', 'centralization', // Printing
+                        'wrinkles', 'prs', 'roll_curve', 'core_misalignment', 'others' // Roll Appearance
+                    ];
+                    
+                    let hasChanges = false;
+                    
+                    // Get cells with data-field attributes that match our target fields
+                    const cells = tbody.querySelectorAll('td[data-field]');
+                    
+                    cells.forEach(cell => {
+                        const fieldName = cell.dataset.field;
+                        
+                        // Only process cells that are in our target fields
+                        if (!fieldsToFill.includes(fieldName)) return;
+                        
+                        // Skip cells that already have content (not empty)
+                        if (cell.textContent.trim() !== '') return;
+                        
+                        // Fill empty cells with "O"
+                        cell.textContent = 'O';
+                        
+                        // Apply color coding
+                        applyXOColorCoding(cell);
+                        
+                        hasChanges = true;
+                    });
+                    
+                    // After filling O values, update Accept/Reject status for each row
+                    if (hasChanges) {
+                        const rows = tbody.querySelectorAll('tr');
+                        rows.forEach(row => {
+                            // Check if this row has any X values
+                            const xoFields = [
+                                'lines_strips', 'glossy', 'film_color', 'pin_hole', 'patch_mark', 'odour',
+                                'print_color', 'mis_print', 'dirty_print', 'tape_test', 'centralization',
+                                'wrinkles', 'prs', 'roll_curve', 'core_misalignment', 'others'
+                            ];
+                            
+                            let hasX = false;
+                            let hasO = false;
+                            let totalXOFilled = 0;
+                            
+                            // Check all X/O fields in this row
+                            xoFields.forEach(field => {
+                                const fieldCell = row.querySelector(`td[data-field="${field}"]`);
+                                if (fieldCell) {
+                                    const value = fieldCell.textContent.trim().toUpperCase();
+                                    if (value === 'X') {
+                                        hasX = true;
+                                        totalXOFilled++;
+                                    } else if (value === 'O') {
+                                        hasO = true;
+                                        totalXOFilled++;
+                                    }
+                                }
+                            });
+                            
+                            // Find the Accept/Reject dropdown in the same row
+                            const acceptRejectCell = row.querySelector('td[data-field="accept_reject"]');
+                            if (acceptRejectCell) {
+                                const acceptRejectSelect = acceptRejectCell.querySelector('select');
+                                if (acceptRejectSelect) {
+                                    // Auto-update Accept/Reject based on X/O fields
+                                    if (hasX) {
+                                        // If ANY field has X, set to Reject
+                                        acceptRejectSelect.value = 'Reject';
+                                        acceptRejectSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                    } else if (hasO && totalXOFilled > 0) {
+                                        // If ALL filled fields are O (no X found), set to Accept
+                                        acceptRejectSelect.value = 'Accept';
+                                        acceptRejectSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                    }
+                                }
+                            }
+                        });
+                                         }
+                     
+                     // Only save tables that had changes
+                    if (hasChanges && table.dataset.formId) {
+                        tablesToSave.push(table);
+                    }
+                });
+                
+                // Batch save all modified tables
+                if (tablesToSave.length > 0) {
+                    await Promise.all(tablesToSave.map(table => saveLotToSupabase(table)));
+                }
+                
+                // Update summary table once after all changes
+                updateSummaryTable();
+                
+                // Show success confirmation
+                fillOBtn.textContent = 'Saved!';
+                fillOBtn.style.backgroundColor = '#10b981'; // green
+                setTimeout(() => {
+                    fillOBtn.textContent = originalText;
+                    fillOBtn.style.backgroundColor = ''; // reset to original
+                    fillOBtn.disabled = false;
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error in Fill O operation:', error);
+                fillOBtn.textContent = 'Error!';
+                fillOBtn.style.backgroundColor = '#ef4444'; // red
+                setTimeout(() => {
+                    fillOBtn.textContent = originalText;
+                    fillOBtn.style.backgroundColor = ''; // reset to original
+                    fillOBtn.disabled = false;
+                }, 2000);
+            }
         });
     }
 
@@ -2897,54 +2978,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         fillOButton.textContent = 'Fill O';
             fillOButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm mr-2';
         fillOButton.style.marginBottom = '8px';
-        fillOButton.onclick = function() {
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                // Only fill Lines/Strips (12), Film Appearance (13-19), Printing (20-24), Roll Appearance (25-28)
-                const targetIndices = [
-                    12,                    // Lines/Strips
-                    13, 14, 15, 16, 17, 18, 19, // Film Appearance
-                    20, 21, 22, 23, 24,         // Printing
-                    25, 26, 27, 28              // Roll Appearance
-                ];
-                targetIndices.forEach(idx => {
-                    const td = cells[idx];
-                    if (
-                        td &&
-                        !td.querySelector('select') &&
-                        !td.querySelector('input') &&
-                        td.textContent.trim() === '' // Only fill empty cells (NA cells will be skipped automatically)
-                    ) {
-                            // Temporarily enable cell for Fill O operation
-                            const wasEditable = td.contentEditable;
-                            td.contentEditable = 'true';
-                        td.textContent = 'O';
-                            // Trigger save event for this cell
-                        td.dispatchEvent(new Event('input', { bubbles: true }));
-                            // Restore original editable state
-                            td.contentEditable = wasEditable;
-                    }
-                });
-            });
-                
-                // Save the table after filling O values
-                setTimeout(() => {
-                    saveLotTableToSupabase(table);
-                }, 100);
-        };
-        tablesContainer.appendChild(fillOButton);
+        fillOButton.onclick = async function() {
+            // Disable button during operation
+            fillOButton.disabled = true;
+            const originalText = fillOButton.textContent;
+            fillOButton.textContent = 'Processing...';
             
-            // Add Clear O button
-            const clearOButton = document.createElement('button');
-            clearOButton.textContent = 'Clear O';
-            clearOButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm';
-            clearOButton.style.marginBottom = '8px';
-            clearOButton.onclick = function() {
+            try {
                 const rows = table.querySelectorAll('tbody tr');
+                let hasChanges = false;
+                
                 rows.forEach(row => {
                     const cells = row.querySelectorAll('td');
-                    // Only clear Lines/Strips (12), Film Appearance (13-19), Printing (20-24), Roll Appearance (25-28)
+                    // Only fill Lines/Strips (12), Film Appearance (13-19), Printing (20-24), Roll Appearance (25-28)
                     const targetIndices = [
                         12,                    // Lines/Strips
                         13, 14, 15, 16, 17, 18, 19, // Film Appearance
@@ -2957,24 +3003,207 @@ document.addEventListener('DOMContentLoaded', async function() {
                             td &&
                             !td.querySelector('select') &&
                             !td.querySelector('input') &&
-                            td.textContent.trim() === 'O' // Only clear O values (NA cells don't contain O)
+                            td.textContent.trim() === '' // Only fill empty cells (NA cells will be skipped automatically)
                         ) {
-                            // Temporarily enable cell for Clear O operation
+                            // Temporarily enable cell for Fill O operation
                             const wasEditable = td.contentEditable;
                             td.contentEditable = 'true';
-                            td.textContent = '';
-                            // Trigger save event for this cell
-                            td.dispatchEvent(new Event('input', { bubbles: true }));
+                            td.textContent = 'O';
+                            // Apply color coding
+                            applyXOColorCoding(td);
                             // Restore original editable state
                             td.contentEditable = wasEditable;
+                            hasChanges = true;
                         }
                     });
                 });
                 
-                // Save the table after clearing O values
+                // After filling O values, update Accept/Reject status for each row
+                if (hasChanges) {
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        // Check if this row has any X values
+                        const xoFields = [
+                            'lines_strips', 'glossy', 'film_color', 'pin_hole', 'patch_mark', 'odour',
+                            'print_color', 'mis_print', 'dirty_print', 'tape_test', 'centralization',
+                            'wrinkles', 'prs', 'roll_curve', 'core_misalignment', 'others'
+                        ];
+                        
+                        let hasX = false;
+                        let hasO = false;
+                        let totalXOFilled = 0;
+                        
+                        // Check all X/O fields in this row
+                        xoFields.forEach(field => {
+                            const fieldCell = row.querySelector(`td[data-field="${field}"]`);
+                            if (fieldCell) {
+                                const value = fieldCell.textContent.trim().toUpperCase();
+                                if (value === 'X') {
+                                    hasX = true;
+                                    totalXOFilled++;
+                                } else if (value === 'O') {
+                                    hasO = true;
+                                    totalXOFilled++;
+                                }
+                            }
+                        });
+                        
+                        // Find the Accept/Reject dropdown in the same row
+                        const acceptRejectCell = row.querySelector('td[data-field="accept_reject"]');
+                        if (acceptRejectCell) {
+                            const acceptRejectSelect = acceptRejectCell.querySelector('select');
+                            if (acceptRejectSelect) {
+                                // Auto-update Accept/Reject based on X/O fields
+                                if (hasX) {
+                                    // If ANY field has X, set to Reject
+                                    acceptRejectSelect.value = 'Reject';
+                                    acceptRejectSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                } else if (hasO && totalXOFilled > 0) {
+                                    // If ALL filled fields are O (no X found), set to Accept
+                                    acceptRejectSelect.value = 'Accept';
+                                    acceptRejectSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Only save if there were changes
+                if (hasChanges && table.dataset.formId) {
+                    await saveLotToSupabase(table);
+                }
+                
+                // Update summary table once after all changes
+                updateSummaryTable();
+                
+                // Show success confirmation
+                fillOButton.textContent = 'Saved!';
+                fillOButton.style.backgroundColor = '#10b981'; // green
                 setTimeout(() => {
-                    saveLotTableToSupabase(table);
-                }, 100);
+                    fillOButton.textContent = originalText;
+                    fillOButton.style.backgroundColor = ''; // reset to original
+                    fillOButton.disabled = false;
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error in Fill O operation:', error);
+                fillOButton.textContent = 'Error!';
+                fillOButton.style.backgroundColor = '#ef4444'; // red
+                setTimeout(() => {
+                    fillOButton.textContent = originalText;
+                    fillOButton.style.backgroundColor = ''; // reset to original
+                    fillOButton.disabled = false;
+                }, 2000);
+            }
+        };
+        tablesContainer.appendChild(fillOButton);
+            
+            // Add Clear O button
+            const clearOButton = document.createElement('button');
+            clearOButton.textContent = 'Clear O';
+            clearOButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm';
+            clearOButton.style.marginBottom = '8px';
+            clearOButton.onclick = async function() {
+                // Disable button during operation
+                clearOButton.disabled = true;
+                const originalText = clearOButton.textContent;
+                clearOButton.textContent = 'Processing...';
+                
+                try {
+                    const rows = table.querySelectorAll('tbody tr');
+                    let hasChanges = false;
+                    
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        // Only clear Lines/Strips (12), Film Appearance (13-19), Printing (20-24), Roll Appearance (25-28)
+                        const targetIndices = [
+                            12,                    // Lines/Strips
+                            13, 14, 15, 16, 17, 18, 19, // Film Appearance
+                            20, 21, 22, 23, 24,         // Printing
+                            25, 26, 27, 28              // Roll Appearance
+                        ];
+                        targetIndices.forEach(idx => {
+                            const td = cells[idx];
+                            if (
+                                td &&
+                                !td.querySelector('select') &&
+                                !td.querySelector('input') &&
+                                td.textContent.trim() === 'O' // Only clear O values (NA cells don't contain O)
+                            ) {
+                                // Temporarily enable cell for Clear O operation
+                                const wasEditable = td.contentEditable;
+                                td.contentEditable = 'true';
+                                td.textContent = '';
+                                // Apply color coding
+                                applyXOColorCoding(td);
+                                // Restore original editable state
+                                td.contentEditable = wasEditable;
+                                hasChanges = true;
+                            }
+                        });
+                    });
+                    
+                    // After clearing O values, reset Accept/Reject status for each row
+                    if (hasChanges) {
+                        const rows = table.querySelectorAll('tbody tr');
+                        rows.forEach(row => {
+                            // Find the Accept/Reject dropdown in the same row
+                            const acceptRejectCell = row.querySelector('td[data-field="accept_reject"]');
+                            if (acceptRejectCell) {
+                                const acceptRejectSelect = acceptRejectCell.querySelector('select');
+                                if (acceptRejectSelect) {
+                                    // Reset Accept/Reject to default when clearing O values
+                                    acceptRejectSelect.value = '';
+                                    acceptRejectSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                }
+                            }
+                        });
+                    }
+                    
+                    // After clearing O values, reset Accept/Reject status for each row
+                    if (hasChanges) {
+                        const rows = table.querySelectorAll('tbody tr');
+                        rows.forEach(row => {
+                            // Find the Accept/Reject dropdown in the same row
+                            const acceptRejectCell = row.querySelector('td[data-field="accept_reject"]');
+                            if (acceptRejectCell) {
+                                const acceptRejectSelect = acceptRejectCell.querySelector('select');
+                                if (acceptRejectSelect) {
+                                    // Reset Accept/Reject to default when clearing O values
+                                    acceptRejectSelect.value = '';
+                                    acceptRejectSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                }
+                            }
+                        });
+                    }
+                    
+                    // Only save if there were changes
+                    if (hasChanges && table.dataset.formId) {
+                        await saveLotToSupabase(table);
+                    }
+                    
+                    // Update summary table once after all changes
+                    updateSummaryTable();
+                    
+                    // Show success confirmation
+                    clearOButton.textContent = 'Saved!';
+                    clearOButton.style.backgroundColor = '#10b981'; // green
+                    setTimeout(() => {
+                        clearOButton.textContent = originalText;
+                        clearOButton.style.backgroundColor = ''; // reset to original
+                        clearOButton.disabled = false;
+                    }, 1000);
+                    
+                } catch (error) {
+                    console.error('Error in Clear O operation:', error);
+                    clearOButton.textContent = 'Error!';
+                    clearOButton.style.backgroundColor = '#ef4444'; // red
+                    setTimeout(() => {
+                        clearOButton.textContent = originalText;
+                        clearOButton.style.backgroundColor = ''; // reset to original
+                        clearOButton.disabled = false;
+                    }, 2000);
+                }
             };
             tablesContainer.appendChild(clearOButton);
 

@@ -184,6 +184,8 @@ function onDateChange() {
     
     if (fromDate || toDate) {
         populateMachineDropdown(fromDate, toDate);
+        // Also populate product dropdown with ALL products from date range
+        populateProductDropdown(fromDate, toDate, '');
     }
     
     // Save filter state
@@ -208,9 +210,8 @@ function onMachineChange() {
     resetDropdown('filterProduct');
     resetDropdown('filterShift');
     
-    if (machine) {
-        populateProductDropdown(fromDate, toDate, machine);
-    }
+    // Always populate product dropdown - if machine is selected, filter by it; if not, show all products
+    populateProductDropdown(fromDate, toDate, machine);
     
     // Save filter state
     saveFilterState();
@@ -257,15 +258,25 @@ function onShiftChange() {
     
     // Shift changed
     
-    if (fromDate && toDate && product && machine) {
-        if (shift) {
-            // Single shift selected
-            // Getting single shift data
-            getProductionShiftData(fromDate, toDate, product, machine, shift);
+    if (fromDate && toDate && machine) {
+        if (product && product !== 'all') {
+            // Specific product selected
+            if (shift) {
+                // Single shift selected
+                getProductionShiftData(fromDate, toDate, product, machine, shift);
+            } else {
+                // All shifts selected
+                getAllShiftsData(fromDate, toDate, product, machine);
+            }
         } else {
-            // All shifts selected (empty value means "All Shifts")
-            // Getting all shifts data
-            getAllShiftsData(fromDate, toDate, product, machine);
+            // All products selected - show combined data for all products
+            if (shift) {
+                // Single shift selected - get all products for this machine and shift
+                getAllProductsData(fromDate, toDate, machine, shift);
+            } else {
+                // All shifts selected - get all products for this machine
+                getAllProductsData(fromDate, toDate, machine, '');
+            }
         }
         
         // Save filter state and update status
@@ -318,9 +329,17 @@ function clearSummaryTables() {
     // Clear Rolls Summary Table
     const rollsSummaryTable = document.getElementById('dynamicSummaryTableContainer');
     if (rollsSummaryTable) {
-        const tbody = rollsSummaryTable.querySelector('tbody');
-        if (tbody) {
-            tbody.innerHTML = `
+        const table = rollsSummaryTable.querySelector('table');
+        if (table) {
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Rolls</th>
+                        <th>KGS</th>
+                    </tr>
+                </thead>
+                <tbody>
                 <tr>
                     <td class="metric-label">Accepted Rolls</td>
                     <td class="metric-value">0 Rolls</td>
@@ -346,6 +365,7 @@ function clearSummaryTables() {
                     <td>0 Rolls</td>
                     <td>0.00 KG</td>
                 </tr>
+                </tbody>
             `;
         }
     }
@@ -409,22 +429,55 @@ function clearSummaryTables() {
 // Load forms data from database
 async function loadFormsData() {
     try {
-        // Loading forms data...
+
         
-        // Load ALL forms data from the database
-        const { data, error } = await supabase
+        // First, get the total count to understand our data size
+        const { count, error: countError } = await supabase
             .from('inline_inspection_form_master_2')
-            .select('*')
-            .order('production_date', { ascending: false });
+            .select('*', { count: 'exact', head: true });
         
-        if (error) throw error;
+        if (countError) {
+            console.error('❌ Count error:', countError);
+        } else {
+            // Total records count available if needed
+        }
         
-        // Loaded records from database
+        // Load data in chunks if needed
+        let allData = [];
+        let hasMore = true;
+        let offset = 0;
+        const chunkSize = 1000;
         
-        // Load data
-        allForms = data || [];
+        while (hasMore) {
+            const { data, error } = await supabase
+                .from('inline_inspection_form_master_2')
+                .select('*')
+                .order('production_date', { ascending: false })
+                .range(offset, offset + chunkSize - 1);
+            
+            if (error) {
+                console.error('❌ Database error:', error);
+                throw error;
+            }
+            
+            if (data && data.length > 0) {
+                allData = [...allData, ...data];
+                offset += chunkSize;
+
+                
+                // Stop if we got less than chunk size (end of data)
+                if (data.length < chunkSize) {
+                    hasMore = false;
+                }
+            } else {
+                hasMore = false;
+            }
+        }
         
-        // Data loaded - no filtering or display
+
+        
+        // Set the global data
+        allForms = allData;
         
         // Load saved filter state after data is loaded
         loadFilterState();
@@ -436,14 +489,36 @@ async function loadFormsData() {
 
 // Populate Machine dropdown based on date range
 function populateMachineDropdown(fromDate, toDate) {
+    
     const filteredData = allForms.filter(form => {
-        if (fromDate && form.production_date && form.production_date < fromDate) return false;
-        if (toDate && form.production_date && form.production_date > toDate) return false;
-        return form.mc_no; // Only include records with mc_no
+        let includeRecord = true;
+        
+        if (fromDate && form.production_date) {
+            const formDate = new Date(form.production_date);
+            const fromDateObj = new Date(fromDate);
+            if (formDate < fromDateObj) {
+                includeRecord = false;
+            }
+        }
+        if (toDate && form.production_date) {
+            const formDate = new Date(form.production_date);
+            const toDateObj = new Date(toDate);
+            if (formDate > toDateObj) {
+                includeRecord = false;
+            }
+        }
+        
+        if (includeRecord && form.mc_no) {
+            return true;
+        }
+        
+        return false; // Only include records with mc_no
     });
     
     const machines = [...new Set(filteredData.map(form => form.mc_no))];
     const dropdown = document.getElementById('filterMachine');
+    
+
     
     dropdown.innerHTML = '<option value="">Select Machine</option>';
     machines.sort().forEach(machine => {
@@ -459,16 +534,27 @@ function populateMachineDropdown(fromDate, toDate) {
 // Populate Product dropdown based on date + machine  
 function populateProductDropdown(fromDate, toDate, machine) {
     const filteredData = allForms.filter(form => {
-        if (fromDate && form.production_date && form.production_date < fromDate) return false;
-        if (toDate && form.production_date && form.production_date > toDate) return false;
-        if (String(form.mc_no) !== String(machine)) return false;
+        if (fromDate && form.production_date) {
+            const formDate = new Date(form.production_date);
+            const fromDateObj = new Date(fromDate);
+            if (formDate < fromDateObj) return false;
+        }
+        if (toDate && form.production_date) {
+            const formDate = new Date(form.production_date);
+            const toDateObj = new Date(toDate);
+            if (formDate > toDateObj) return false;
+        }
+        // Only filter by machine if one is selected
+        if (machine && String(form.mc_no) !== String(machine)) return false;
         return form.prod_code; // Only include records with prod_code
     });
     
     const products = [...new Set(filteredData.map(form => form.prod_code))];
     const dropdown = document.getElementById('filterProduct');
     
-    dropdown.innerHTML = '<option value="">Select Product</option>';
+
+    
+    dropdown.innerHTML = '<option value="">Select Product</option><option value="all">All Products</option>';
     products.sort().forEach(product => {
         const option = document.createElement('option');
         option.value = product;
@@ -482,10 +568,19 @@ function populateProductDropdown(fromDate, toDate, machine) {
 // Populate Shift dropdown based on date + machine + product
 function populateShiftDropdown(fromDate, toDate, machine, product) {
     const filteredData = allForms.filter(form => {
-        if (fromDate && form.production_date && form.production_date < fromDate) return false;
-        if (toDate && form.production_date && form.production_date > toDate) return false;
+        if (fromDate && form.production_date) {
+            const formDate = new Date(form.production_date);
+            const fromDateObj = new Date(fromDate);
+            if (formDate < fromDateObj) return false;
+        }
+        if (toDate && form.production_date) {
+            const formDate = new Date(form.production_date);
+            const toDateObj = new Date(toDate);
+            if (formDate > toDateObj) return false;
+        }
         if (String(form.mc_no) !== String(machine)) return false;
-        if (form.prod_code !== product) return false;
+        // Only filter by product if it's not "all"
+        if (product && product !== 'all' && form.prod_code !== product) return false;
         return form.shift; // Only include records with shift
     });
     
@@ -514,44 +609,32 @@ function populateShiftDropdown(fromDate, toDate, machine, product) {
 
 // GET PRODUCTION SHIFT DATA - Final step
 function getProductionShiftData(fromDate, toDate, product, machine, shift) {
-    console.log('🎯 Getting production shift data for:', {fromDate, toDate, product, machine, shift});
-    console.log('🔍 Total forms loaded:', allForms.length);
     
     // STEP 1: Find records that match the filter criteria (these have complete data)
     const masterRecords = allForms.filter(form => {
-        if (fromDate && form.production_date && form.production_date < fromDate) return false;
-        if (toDate && form.production_date && form.production_date > toDate) return false;
+        if (fromDate && form.production_date) {
+            const formDate = new Date(form.production_date);
+            const fromDateObj = new Date(fromDate);
+            if (formDate < fromDateObj) return false;
+        }
+        if (toDate && form.production_date) {
+            const formDate = new Date(form.production_date);
+            const toDateObj = new Date(toDate);
+            if (formDate > toDateObj) return false;
+        }
         if (product && form.prod_code !== product) return false; // Only filter by product if one is selected
         if (String(form.mc_no) !== String(machine)) return false;
         if (String(form.shift) !== String(shift)) return false;
         return true;
     });
     
-    console.log(`📋 Found ${masterRecords.length} master records with complete data`);
-    
     // STEP 2: Extract all traceability codes and lot letters from master records
     const traceabilityKeys = [...new Set(masterRecords.map(form => `${form.traceability_code}-${form.lot_letter}`))];
-    console.log('🔗 Traceability keys to search for:', traceabilityKeys);
     
     // STEP 3: Find ALL records (including all lots) that match these traceability keys
     const allShiftData = allForms.filter(form => {
         const traceabilityKey = `${form.traceability_code}-${form.lot_letter}`;
         return traceabilityKeys.includes(traceabilityKey);
-    });
-    
-    console.log(`📊 Found ${allShiftData.length} total records (including all lots) for this shift${product ? ' and product' : ' and all products'}`);
-    console.log('📋 All matching records:');
-    allShiftData.forEach((form, index) => {
-        console.log(`${index + 1}:`, {
-            traceability_code: form.traceability_code,
-            lot_letter: form.lot_letter,
-            lot_no: form.lot_no,
-            total_rolls: form.total_rolls,
-            accepted_rolls: form.accepted_rolls,
-            rejected_rolls: form.rejected_rolls,
-            production_date: form.production_date,
-            prod_code: form.prod_code
-        });
     });
     
     // Update summary tables with ALL shift data (master + lots)
@@ -560,23 +643,26 @@ function getProductionShiftData(fromDate, toDate, product, machine, shift) {
 
 // GET ALL SHIFTS DATA - For when "All Shifts" is selected
 function getAllShiftsData(fromDate, toDate, product, machine) {
-    console.log('🎯 Getting ALL shifts data for:', {fromDate, toDate, product, machine});
-    console.log('🔍 Total forms loaded:', allForms.length);
     
     // STEP 1: Find records that match the filter criteria (these have complete data)
     const masterRecords = allForms.filter(form => {
-        if (fromDate && form.production_date && form.production_date < fromDate) return false;
-        if (toDate && form.production_date && form.production_date > toDate) return false;
+        if (fromDate && form.production_date) {
+            const formDate = new Date(form.production_date);
+            const fromDateObj = new Date(fromDate);
+            if (formDate < fromDateObj) return false;
+        }
+        if (toDate && form.production_date) {
+            const formDate = new Date(form.production_date);
+            const toDateObj = new Date(toDate);
+            if (formDate > toDateObj) return false;
+        }
         if (product && form.prod_code !== product) return false; // Only filter by product if one is selected
         if (String(form.mc_no) !== String(machine)) return false;
         return true; // Include all shifts
     });
     
-    console.log(`📋 Found ${masterRecords.length} master records across all shifts`);
-    
     // STEP 2: Extract all traceability codes and lot letters from master records
     const traceabilityKeys = [...new Set(masterRecords.map(form => `${form.traceability_code}-${form.lot_letter}`))];
-    console.log('🔗 Traceability keys to search for:', traceabilityKeys);
     
     // STEP 3: Find ALL records (including all lots) that match these traceability keys
     const allShiftsData = allForms.filter(form => {
@@ -584,30 +670,12 @@ function getAllShiftsData(fromDate, toDate, product, machine) {
         return traceabilityKeys.includes(traceabilityKey);
     });
     
-    console.log(`📊 Found ${allShiftsData.length} total records (including all lots) across all shifts${product ? ' for this product' : ' for all products'}`);
-    console.log('📋 All matching records across shifts:');
-    allShiftsData.forEach((form, index) => {
-        console.log(`${index + 1}:`, {
-            traceability_code: form.traceability_code,
-            lot_letter: form.lot_letter,
-            lot_no: form.lot_no,
-            shift: form.shift,
-            total_rolls: form.total_rolls,
-            accepted_rolls: form.accepted_rolls,
-            rejected_rolls: form.rejected_rolls,
-            production_date: form.production_date,
-            prod_code: form.prod_code
-        });
-    });
-    
     // Update summary tables with ALL shifts data (master + lots)
     updateSummaryTablesWithData(allShiftsData);
 }
 
 // Update summary tables with filtered shift data
-function updateSummaryTablesWithData(shiftData) {
-    console.log('📊 Processing shift data:', shiftData.length, 'records');
-    console.log('🔍 DETAILED RECORD ANALYSIS:');
+function updateSummaryTablesWithData(shiftData, skipStatistics = false) {
     
     // Group records by traceability key to see all lots
     const groupedByTraceabilityKey = {};
@@ -619,14 +687,6 @@ function updateSummaryTablesWithData(shiftData) {
         groupedByTraceabilityKey[key].push(form);
     });
     
-    console.log('📋 Records grouped by traceability key:');
-    Object.entries(groupedByTraceabilityKey).forEach(([traceabilityKey, records]) => {
-        console.log(`🔗 ${traceabilityKey}: ${records.length} lots`);
-        records.forEach(record => {
-            console.log(`  - Lot ${record.lot_letter}${record.lot_no}: ${record.accepted_rolls} accepted, ${record.rejected_rolls} rejected, ${record.rework_rolls} rework, ${record.kiv_rolls} KIV`);
-        });
-    });
-    
     // Calculate totals by aggregating ALL lots/records for this shift
     let totalAccepted = 0, totalRejected = 0, totalRework = 0, totalKIV = 0;
     let totalAcceptedWeight = 0, totalRejectedWeight = 0, totalReworkWeight = 0, totalKIVWeight = 0;
@@ -635,7 +695,6 @@ function updateSummaryTablesWithData(shiftData) {
     
     // Aggregate data from all lots/records in this shift
     shiftData.forEach(form => {
-        console.log(`Processing record: ${form.traceability_code}-${form.lot_letter}-${form.lot_no}`);
         
         // Sum up rolls from each record
         totalAccepted += parseInt(form.accepted_rolls) || 0;
@@ -664,11 +723,6 @@ function updateSummaryTablesWithData(shiftData) {
     
     const totalRolls = totalAccepted + totalRejected + totalRework + totalKIV;
     const totalWeight = totalAcceptedWeight + totalRejectedWeight + totalReworkWeight + totalKIVWeight;
-    
-    console.log('📊 Aggregated totals:', {
-        totalAccepted, totalRejected, totalRework, totalKIV, totalRolls,
-        totalWeight, rollWeightSum, rollWeightCount
-    });
     
     // Update Rolls Summary Table
     const container = document.getElementById('dynamicSummaryTableContainer');
@@ -706,9 +760,22 @@ function updateSummaryTablesWithData(shiftData) {
     // Update other summary tables with aggregated data
     updateDefectsSummaryTable(shiftData);
 
-    updateStatisticsTable(shiftData);
+    // Only update statistics table if not skipping
+    if (!skipStatistics) {
+        updateStatisticsTable(shiftData);
+    } else {
+        // Clear statistics table when skipping (for "All Products" view)
+        const statsContainer = document.getElementById('statisticsTableContainer');
+        if (statsContainer) {
+            const tbody = statsContainer.querySelector('table tbody');
+            tbody.innerHTML = `
+                <tr>
+                    <td class="parameter-cell" colspan="4">Statistics not available for combined products view</td>
+                </tr>
+            `;
+        }
+    }
     
-    console.log('📋 All summary tables updated with aggregated shift data');
 }
 
 // Update Defects Summary Table
@@ -738,8 +805,6 @@ function updateDefectsSummaryTable(shiftData) {
             });
         }
     });
-    
-    console.log('🔍 Defect data calculated:', defectData);
     
     const container = document.getElementById('defectsSummaryTableContainer');
     if (container) {
@@ -865,4 +930,43 @@ function updateStatisticsTable(shiftData) {
     }
 }
 
-
+// GET ALL PRODUCTS DATA - Show combined data from all products for a machine
+function getAllProductsData(fromDate, toDate, machine, shift) {
+    
+    console.log('🔍 getAllProductsData called with:', { fromDate, toDate, machine, shift });
+    
+    // STEP 1: Find records that match the filter criteria (machine + date + shift, but NO product filter)
+    const masterRecords = allForms.filter(form => {
+        if (fromDate && form.production_date) {
+            const formDate = new Date(form.production_date);
+            const fromDateObj = new Date(fromDate);
+            if (formDate < fromDateObj) return false;
+        }
+        if (toDate && form.production_date) {
+            const formDate = new Date(form.production_date);
+            const toDateObj = new Date(toDate);
+            if (formDate > toDateObj) return false;
+        }
+        if (String(form.mc_no) !== String(machine)) return false;
+        if (shift && String(form.shift) !== String(shift)) return false;
+        return true; // Include all products
+    });
+    
+    // STEP 2: Extract all traceability codes and lot letters from master records
+    const traceabilityKeys = [...new Set(masterRecords.map(form => `${form.traceability_code}-${form.lot_letter}`))];
+    
+    // STEP 3: Find ALL records (including all lots) that match these traceability keys
+    const allProductsData = allForms.filter(form => {
+        const traceabilityKey = `${form.traceability_code}-${form.lot_letter}`;
+        return traceabilityKeys.includes(traceabilityKey);
+    });
+    
+    console.log('📊 getAllProductsData results:', {
+        masterRecordsCount: masterRecords.length,
+        traceabilityKeysCount: traceabilityKeys.length,
+        allProductsDataCount: allProductsData.length
+    });
+    
+    // Update summary tables with combined data from all products (skip statistics for all products)
+    updateSummaryTablesWithData(allProductsData, true); // true = skip statistics
+}
