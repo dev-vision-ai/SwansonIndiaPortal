@@ -52,6 +52,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize filter functionality
     initializeFilters();
     
+    // Fetch defect types and initialize defect tracking table
+    await fetchDefectTypes();
+    initializeDefectTrackingTable();
+    
     // Load initial data
     loadFormsData();
     
@@ -423,6 +427,9 @@ function clearSummaryTables() {
         }
     }
     
+    // Clear Defect Tracking Table
+    clearDefectTrackingTable();
+    
     // Summary tables cleared
 }
 
@@ -759,6 +766,9 @@ function updateSummaryTablesWithData(shiftData, skipStatistics = false) {
     
     // Update other summary tables with aggregated data
     updateDefectsSummaryTable(shiftData);
+    
+    // Update defect tracking table
+    updateDefectTrackingTable(shiftData);
 
     // Only update statistics table if not skipping
     if (!skipStatistics) {
@@ -969,4 +979,219 @@ function getAllProductsData(fromDate, toDate, machine, shift) {
     
     // Update summary tables with combined data from all products (skip statistics for all products)
     updateSummaryTablesWithData(allProductsData, true); // true = skip statistics
+}
+
+// Defect tracking functionality
+let defectTypes = []; // Will be populated from database
+
+// Fetch defect types from database
+async function fetchDefectTypes() {
+    try {
+        const { data, error } = await supabase
+            .from('all_defects')
+            .select('defect_name')
+            .order('defect_name');
+            
+        if (error) {
+            console.error('Error fetching defect types:', error);
+            return [];
+        }
+        
+        defectTypes = data.map(item => item.defect_name);
+        console.log('Fetched defect types from database:', defectTypes);
+        return defectTypes;
+    } catch (error) {
+        console.error('Error fetching defect types:', error);
+        return [];
+    }
+}
+
+// Initialize defect tracking table
+function initializeDefectTrackingTable() {
+    const tbody = document.getElementById('defectTrackingTableBody');
+    if (!tbody) return;
+
+    // Check if defect types are loaded
+    if (!defectTypes || defectTypes.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="23" class="text-center py-4">Loading defect types...</td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = defectTypes.map(defect => {
+        const cells = Array.from({ length: 21 }, (_, i) => 
+            `<td class="defect-absent">0</td>`
+        ).join('');
+        
+        return `
+            <tr>
+                <td class="defect-name">${defect}</td>
+                <td class="defect-qty">0</td>
+                ${cells}
+            </tr>
+        `;
+    }).join('');
+}
+
+// Update defect tracking table with data
+function updateDefectTrackingTable(formsData) {
+    if (!formsData || formsData.length === 0) {
+        clearDefectTrackingTable();
+        return;
+    }
+
+    // Check if defect types are loaded
+    if (!defectTypes || defectTypes.length === 0) {
+        console.log('Defect types not loaded yet, skipping update');
+        return;
+    }
+
+    console.log('Processing forms data for defect tracking:', formsData.length, 'forms');
+
+    // Initialize defect tracking data structure
+    const defectData = {};
+    defectTypes.forEach(defect => {
+        defectData[defect] = {
+            totalQty: 0,
+            occurrences: Array(21).fill(0)
+        };
+    });
+
+    // Process forms data to extract defect information
+    formsData.forEach((form) => {
+        console.log('Processing form:', form.id, 'with defect_names:', form.defect_names);
+        
+        // Check for defects in the defect_names JSONB column
+        if (form.defect_names && typeof form.defect_names === 'object') {
+            Object.entries(form.defect_names).forEach(([rollPosition, defectName]) => {
+                if (defectName && defectName.trim() !== '') {
+                    const rollPos = parseInt(rollPosition);
+                    if (rollPos >= 1 && rollPos <= 21) {
+                        // Find the defect in our defect types list
+                        const matchingDefect = defectTypes.find(defect => 
+                            defect.toLowerCase() === defectName.toLowerCase()
+                        );
+                        
+                        if (matchingDefect) {
+                            defectData[matchingDefect].totalQty += 1;
+                            defectData[matchingDefect].occurrences[rollPos - 1] += 1; // rollPos - 1 because array is 0-indexed
+                            console.log(`Found defect "${defectName}" at roll position ${rollPos}`);
+                        } else {
+                            console.log(`Defect "${defectName}" not found in defect types list`);
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    console.log('Processed defect data:', defectData);
+
+    // Filter to show only defects that have data
+    const defectsWithData = Object.entries(defectData).filter(([defect, data]) => data.totalQty > 0);
+    
+    console.log('Defects with data:', defectsWithData.length, 'out of', defectTypes.length);
+
+    // Update the table - show only defects with data
+    const tbody = document.getElementById('defectTrackingTableBody');
+    if (tbody) {
+        if (defectsWithData.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="23" class="text-center py-4" style="color: #6b7280; font-style: italic;">
+                        No defects found for the selected filters.
+                    </td>
+                </tr>
+            `;
+        } else {
+            tbody.innerHTML = defectsWithData.map(([defect, data]) => {
+                const cells = data.occurrences.map(occurrence => 
+                    `<td class="${occurrence > 0 ? 'defect-present' : 'defect-absent'}">${occurrence}</td>`
+                ).join('');
+                
+                return `
+                    <tr>
+                        <td class="defect-name">${defect}</td>
+                        <td class="defect-qty">${data.totalQty}</td>
+                        ${cells}
+                    </tr>
+                `;
+            }).join('');
+        }
+    }
+
+    // Update summary statistics
+    updateDefectTrackingSummary(formsData);
+}
+
+// Clear defect tracking table
+function clearDefectTrackingTable() {
+    const tbody = document.getElementById('defectTrackingTableBody');
+    if (tbody) {
+        // Check if defect types are loaded
+        if (!defectTypes || defectTypes.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="23" class="text-center py-4">Loading defect types...</td>
+                </tr>
+            `;
+        } else {
+            // Show all defect types with zero values (original form)
+            tbody.innerHTML = defectTypes.map(defect => {
+                const cells = Array.from({ length: 21 }, () => 
+                    `<td class="defect-absent">0</td>`
+                ).join('');
+                
+                return `
+                    <tr>
+                        <td class="defect-name">${defect}</td>
+                        <td class="defect-qty">0</td>
+                        ${cells}
+                    </tr>
+                `;
+            }).join('');
+        }
+    }
+
+    // Clear summary statistics
+    document.getElementById('totalRejectedQty').textContent = '0';
+    document.getElementById('totalProducedQty').textContent = '0';
+    document.getElementById('totalRejectionPercent').textContent = '0.0';
+}
+
+// Update defect tracking summary statistics
+function updateDefectTrackingSummary(formsData) {
+    let totalProduced = 0;
+    let totalRejected = 0;
+    
+    // Calculate total rolls produced and rejected using the same logic as production summary
+    formsData.forEach(form => {
+        // Use the same counting logic as the production summary table
+        const acceptedRolls = parseInt(form.accepted_rolls) || 0;
+        const rejectedRolls = parseInt(form.rejected_rolls) || 0;
+        const reworkRolls = parseInt(form.rework_rolls) || 0;
+        const kivRolls = parseInt(form.kiv_rolls) || 0;
+        
+        // Total rolls for this form
+        const formTotalRolls = acceptedRolls + rejectedRolls + reworkRolls + kivRolls;
+        totalProduced += formTotalRolls;
+        
+        // Count rejected rolls (including rework and KIV)
+        totalRejected += rejectedRolls + reworkRolls + kivRolls;
+    });
+    
+    const rejectionPercent = totalProduced > 0 ? ((totalRejected / totalProduced) * 100).toFixed(1) : '0.0';
+
+    console.log('Defect tracking summary (using production summary logic):', {
+        totalProduced,
+        totalRejected,
+        rejectionPercent
+    });
+
+    document.getElementById('totalRejectedQty').textContent = totalRejected;
+    document.getElementById('totalProducedQty').textContent = totalProduced;
+    document.getElementById('totalRejectionPercent').textContent = rejectionPercent;
 }

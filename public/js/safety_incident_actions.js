@@ -59,16 +59,61 @@ document.addEventListener('DOMContentLoaded', async () => {
             deleteButton.classList.remove('hidden');
             deleteButton.onclick = async function() {
                 if (confirm('Are you sure you want to delete this safety incident? This action cannot be undone.')) {
-                    const incidentId = document.getElementById('incidentId').value;
-                    const { error } = await supabase
-                        .from('safety_incident_form')
-                        .delete()
-                        .eq('id', incidentId);
-                    if (error) {
+                    try {
+                        const incidentId = document.getElementById('incidentId').value;
+                        
+                        // First, fetch the incident data to get image URLs
+                        const { data: incidentData, error: fetchError } = await supabase
+                            .from('safety_incident_form')
+                            .select('image_urls')
+                            .eq('id', incidentId)
+                            .single();
+                            
+                        if (fetchError) {
+                            console.error('Error fetching incident data:', fetchError);
+                        }
+                        
+                        // Delete images from storage if they exist
+                        if (incidentData && incidentData.image_urls && incidentData.image_urls.length > 0) {
+                            console.log('Deleting images from storage:', incidentData.image_urls);
+                            
+                            for (const imageUrl of incidentData.image_urls) {
+                                try {
+                                    // Extract file path from URL
+                                    const urlParts = imageUrl.split('/');
+                                    const fileName = urlParts[urlParts.length - 1];
+                                    
+                                    // Delete from storage
+                                    const { error: deleteImageError } = await supabase.storage
+                                        .from('safety-incident-images')
+                                        .remove([fileName]);
+                                        
+                                    if (deleteImageError) {
+                                        console.error('Error deleting image:', fileName, deleteImageError);
+                                    } else {
+                                        console.log('Successfully deleted image:', fileName);
+                                    }
+                                } catch (imageError) {
+                                    console.error('Error processing image deletion:', imageError);
+                                }
+                            }
+                        }
+                        
+                        // Now delete the incident from database
+                        const { error } = await supabase
+                            .from('safety_incident_form')
+                            .delete()
+                            .eq('id', incidentId);
+                            
+                        if (error) {
+                            showError('Error deleting incident: ' + error.message);
+                        } else {
+                            alert('Incident and associated images deleted successfully.');
+                            window.location.href = 'safety_incidents_table.html';
+                        }
+                    } catch (error) {
+                        console.error('Error in delete process:', error);
                         showError('Error deleting incident: ' + error.message);
-                    } else {
-                        alert('Incident deleted successfully.');
-                        window.location.href = 'safety_incidents_table.html';
                     }
                 }
             };
@@ -120,6 +165,7 @@ async function loadIncidentDetails(incidentId) {
         if (errorMessage) errorMessage.style.display = 'none';
 
         // Fetch incident data from safety_incident_form table
+        console.log('Fetching incident with ID:', incidentId);
         const { data: incidentData, error: incidentError } = await supabase
             .from('safety_incident_form')
             .select(`
@@ -128,6 +174,8 @@ async function loadIncidentDetails(incidentId) {
             `)
             .eq('id', incidentId)
             .single();
+
+        console.log('Raw incident data from database:', incidentData);
 
         if (incidentError) {
             console.error('Error fetching incident:', incidentError);
@@ -189,25 +237,99 @@ async function populateFormFields(data) {
     document.getElementById('corrective_status').value = data.corrective_action_status || '';
 
     // Display images if any
-    displayImages(data.image_urls);
+    console.log('Safety incident data received:', data);
+    console.log('Image URLs:', data.image_urls);
+    console.log('Image URLs type:', typeof data.image_urls);
+    console.log('Image URLs is array:', Array.isArray(data.image_urls));
+    
+    // Handle different data types for image_urls
+    let imageUrls = data.image_urls;
+    if (typeof imageUrls === 'string') {
+        try {
+            imageUrls = JSON.parse(imageUrls);
+        } catch (e) {
+            console.error('Failed to parse image_urls string:', e);
+            imageUrls = [];
+        }
+    }
+    
+    displayImages(imageUrls);
 }
 
 function displayImages(imageUrls) {
     const imageContainer = document.getElementById('imageDisplayContainer');
-    if (!imageContainer) return;
+    if (!imageContainer) {
+        console.error('Image display container not found');
+        return;
+    }
+
+    console.log('Displaying images:', imageUrls);
 
     if (!imageUrls || imageUrls.length === 0) {
         imageContainer.innerHTML = '<p>No images uploaded</p>';
         return;
     }
 
-    const imageHTML = imageUrls.map(url => `
-        <div style="display: inline-block; margin: 10px;">
-            <img src="${url}" alt="Incident Image" style="max-width: 200px; max-height: 150px; border-radius: 4px; border: 1px solid #ddd;">
-        </div>
-    `).join('');
+    // Clear container first
+    imageContainer.innerHTML = '';
 
-    imageContainer.innerHTML = imageHTML;
+    // Process each image with error handling
+    imageUrls.forEach((url, index) => {
+        const imgDiv = document.createElement('div');
+        imgDiv.style.display = 'inline-block';
+        imgDiv.style.margin = '10px';
+        imgDiv.style.verticalAlign = 'top';
+
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = `Incident Image ${index + 1}`;
+        img.style.maxWidth = '200px';
+        img.style.maxHeight = '150px';
+        img.style.borderRadius = '4px';
+        img.style.border = '1px solid #ddd';
+        img.style.cursor = 'pointer';
+
+        // Add click to enlarge functionality
+        img.onclick = () => {
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.zIndex = '9999';
+            modal.style.cursor = 'pointer';
+
+            const modalImg = document.createElement('img');
+            modalImg.src = url;
+            modalImg.style.maxWidth = '90%';
+            modalImg.style.maxHeight = '90%';
+            modalImg.style.objectFit = 'contain';
+
+            modal.appendChild(modalImg);
+            document.body.appendChild(modal);
+
+            modal.onclick = () => {
+                document.body.removeChild(modal);
+            };
+        };
+
+        // Add error handling
+        img.onerror = () => {
+            console.error(`Failed to load image: ${url}`);
+            img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIEVycm9yPC90ZXh0Pjwvc3ZnPg==';
+            img.alt = 'Image failed to load';
+            img.style.cursor = 'default';
+            img.onclick = null; // Remove click functionality for failed images
+        };
+
+        imgDiv.appendChild(img);
+        imageContainer.appendChild(imgDiv);
+    });
 }
 
 function setupEventListeners() {

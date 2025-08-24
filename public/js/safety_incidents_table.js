@@ -41,8 +41,13 @@ function renderTable(data) {
                 <td>${incident.severity || 'N/A'}</td>
                 <td>${incident.status || 'N/A'}</td>
                 <td class="actions-cell">
-                  <a href="safety_incident_actions.html?id=${incident.id}&mode=view" class="action-btn view-btn">View</a>
-                  ${!isEmployeeTable ? `<a href="safety_incident_actions.html?id=${incident.id}&mode=edit" class="action-btn edit-btn">Edit</a>` : ''}
+                  ${incident.status === 'Draft' 
+                    ? `<a href="safetyincident.html?draft_id=${incident.id}" class="action-btn edit-btn">Edit Draft</a>`
+                    : `<div class="action-buttons-container">
+                         <a href="safety_incident_actions.html?id=${incident.id}&mode=view" class="action-btn view-btn">View</a>
+                         ${!isEmployeeTable ? `<a href="safety_incident_actions.html?id=${incident.id}&mode=edit" class="action-btn edit-btn">Edit</a>` : ''}
+                       </div>`
+                  }
                 </td>
             </tr>
         `;
@@ -134,7 +139,8 @@ async function fetchDraftSafetyIncidents() {
                 incident_date,
                 description,
                 severity,
-                user_id
+                user_id,
+                users ( full_name, department )
             `)
             .eq('user_id', userId)
             .order('created_at', { ascending: false });

@@ -253,6 +253,148 @@
             border-color: #002E7D;
             box-shadow: 0 0 0 3px rgba(0, 46, 125, 0.1);
         }
+
+        /* Defect Tracking Table Specific Styles */
+        .defect-tracking-table {
+            font-size: 16px;
+            table-layout: fixed;
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid #000000;
+        }
+
+        .defect-tracking-table th {
+            font-size: 14px;
+            padding: 12px 14px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border: 1px solid #000000;
+        }
+
+        .defect-tracking-table td {
+            padding: 14px 14px;
+            font-size: 14px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border: 1px solid #000000;
+        }
+
+        .defect-tracking-table .defect-name {
+            text-align: left;
+            font-weight: 500;
+            font-size: 14px;
+            padding-left: 6px;
+            padding-right: 6px;
+            word-wrap: break-word;
+            white-space: normal;
+            line-height: 1.4;
+        }
+
+        .defect-tracking-table .defect-qty {
+            font-weight: 600;
+            background-color: #f3f4f6;
+            font-size: 14px;
+            min-width: 30px;
+        }
+
+        .defect-tracking-table .defect-present {
+            background-color: #fef3c7;
+            color: #92400e;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .defect-tracking-table .defect-absent {
+            background-color: #f9fafb;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .summary-row td {
+            font-weight: 600;
+            text-align: left;
+            font-size: 14px;
+            padding: 14px 8px;
+            border: 1px solid #000000;
+        }
+
+        .summary-row td:first-child {
+            font-weight: 700;
+            padding-left: 6px;
+        }
+
+        .summary-row td:nth-child(2) {
+            text-align: center;
+            font-weight: 700;
+        }
+
+        /* Compact column widths */
+        .defect-tracking-table th:nth-child(1) { /* Cause of Defect */
+            width: 120px;
+            min-width: 120px;
+        }
+        
+        .defect-tracking-table th:nth-child(2) { /* Qty */
+            width: 50px;
+            min-width: 50px;
+        }
+        
+        .defect-tracking-table th:nth-child(n+3) { /* Roll positions 1-21 */
+            width: 30px;
+            min-width: 30px;
+            max-width: 30px;
+        }
+
+        /* Responsive design for defect tracking table */
+        @media (max-width: 1400px) {
+            .defect-tracking-table {
+                font-size: 12px;
+            }
+            
+            .defect-tracking-table th,
+            .defect-tracking-table td {
+                padding: 8px 8px;
+                font-size: 12px;
+            }
+            
+            .defect-tracking-table th:nth-child(1) {
+                width: 100px;
+                min-width: 100px;
+            }
+            
+            .defect-tracking-table th:nth-child(n+3) {
+                width: 25px;
+                min-width: 25px;
+                max-width: 25px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .defect-tracking-table {
+                font-size: 11px;
+            }
+            
+            .defect-tracking-table th,
+            .defect-tracking-table td {
+                padding: 6px 6px;
+                font-size: 11px;
+            }
+            
+            .defect-tracking-table th:nth-child(1) {
+                width: 90px;
+                min-width: 90px;
+            }
+            
+            .defect-tracking-table th:nth-child(n+3) {
+                width: 22px;
+                min-width: 22px;
+                max-width: 22px;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -452,6 +594,67 @@
                                 </div>
                             </div>
 
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Defect Tracking Container -->
+                <div id="defectTrackingSection" class="w-full mt-8 mb-6">
+                    <div class="table-container">
+                        <div class="table-wrapper" style="width: 100%; max-width: none;">
+                            <div class="table-title">Detailed Defect Tracking Report</div>
+                            <div style="text-align: center; margin-bottom: 8px; font-weight: 600; color: #374151;">Roll Positions (1-21)</div>
+                            <div id="defectTrackingTableContainer" style="overflow-x: auto;">
+                                <table id="defectTrackingTable" class="summary-table defect-tracking-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Cause of Defect</th>
+                                            <th>Qty</th>
+                                            <th>1</th>
+                                            <th>2</th>
+                                            <th>3</th>
+                                            <th>4</th>
+                                            <th>5</th>
+                                            <th>6</th>
+                                            <th>7</th>
+                                            <th>8</th>
+                                            <th>9</th>
+                                            <th>10</th>
+                                            <th>11</th>
+                                            <th>12</th>
+                                            <th>13</th>
+                                            <th>14</th>
+                                            <th>15</th>
+                                            <th>16</th>
+                                            <th>17</th>
+                                            <th>18</th>
+                                            <th>19</th>
+                                            <th>20</th>
+                                            <th>21</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="defectTrackingTableBody">
+                                        <!-- Defect rows will be populated by JavaScript -->
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="summary-row" style="background-color: #fef3c7;">
+                                            <td><strong>Total Rejected Qty</strong></td>
+                                            <td id="totalRejectedQty">0</td>
+                                            <td colspan="21"></td>
+                                        </tr>
+                                        <tr class="summary-row" style="background-color: #fef3c7;">
+                                            <td><strong>Total Produced Qty</strong></td>
+                                            <td id="totalProducedQty">0</td>
+                                            <td colspan="21"></td>
+                                        </tr>
+                                        <tr class="summary-row" style="background-color: #fef3c7;">
+                                            <td><strong>Total Rejection %</strong></td>
+                                            <td id="totalRejectionPercent">0.0</td>
+                                            <td colspan="21"></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

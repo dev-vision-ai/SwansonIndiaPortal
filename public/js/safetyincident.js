@@ -27,12 +27,177 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = '/';
         return;
     }
+    
+    // Check if we're loading a draft
+    const urlParams = new URLSearchParams(window.location.search);
+    const draftId = urlParams.get('draft_id');
+    
+    if (draftId) {
+        await loadDraftData(draftId, userId);
+    }
+    
     setupFormEventListeners(userId);
+    
+    // Test bucket access
+    testBucketAccess();
 });
+
+async function testBucketAccess() {
+    try {
+        console.log('Testing safety-incident-images bucket access...');
+        
+        // Try to list files in the bucket to test access
+        const { data, error } = await supabase.storage
+            .from('safety-incident-images')
+            .list('', { limit: 1 });
+            
+        if (error) {
+            console.error('Bucket access test failed:', error);
+            showMessage('Warning: Cannot access image storage bucket. Image uploads may not work.', true);
+        } else {
+            console.log('Bucket access test successful');
+        }
+    } catch (error) {
+        console.error('Bucket access test error:', error);
+    }
+}
 
 async function getLoggedInUserId() {
     const { data: { user } } = await supabase.auth.getUser();
     return user?.id;
+}
+
+async function checkIfUserIsAdmin() {
+    try {
+        const userId = await getLoggedInUserId();
+        if (!userId) return false;
+        
+        const { data: user, error } = await supabase
+            .from('users')
+            .select('is_admin')
+            .eq('id', userId)
+            .single();
+            
+        if (error || !user) return false;
+        
+        return user.is_admin === true;
+    } catch (error) {
+        console.error('Error checking admin status:', error);
+        return false;
+    }
+}
+
+async function loadDraftData(draftId, userId) {
+    try {
+        console.log('Loading draft data for ID:', draftId);
+        
+        const { data: draft, error } = await supabase
+            .from('safety_incident_draft')
+            .select('*')
+            .eq('id', draftId)
+            .eq('user_id', userId)
+            .single();
+            
+        if (error) {
+            console.error('Error loading draft:', error);
+            showMessage('Error loading draft data. Please try again.', true);
+            return;
+        }
+        
+        if (!draft) {
+            console.error('Draft not found or access denied');
+            showMessage('Draft not found or access denied.', true);
+            return;
+        }
+        
+        // Pre-fill the form with draft data
+        fillFormWithDraftData(draft);
+        
+        // Update the submit button to indicate we're editing a draft
+        const submitBtn = document.querySelector('.submit-btn');
+        const deleteDraftBtn = document.querySelector('.delete-draft-btn');
+        if (submitBtn) {
+            submitBtn.dataset.draftId = draftId;
+        }
+        if (deleteDraftBtn) {
+            deleteDraftBtn.style.display = 'inline-block';
+            deleteDraftBtn.dataset.draftId = draftId;
+        }
+        
+        console.log('Draft data loaded successfully:', draft);
+        
+    } catch (error) {
+        console.error('Error in loadDraftData:', error);
+        showMessage('Error loading draft data. Please try again.', true);
+    }
+}
+
+function fillFormWithDraftData(draft) {
+    // Fill form fields with draft data
+    const fields = {
+        'incidentType': draft.incident_type,
+        'incidentDate': draft.incident_date,
+        'incidentTime': draft.incident_time,
+        'description': draft.description,
+        'hazardType': draft.hazard_type,
+        'ppeUsed': draft.ppe_used,
+        'location': draft.location,
+        'department': draft.department,
+        'severity': draft.severity,
+        'injuryType': draft.injury_type,
+        'immediateAction': draft.immediate_action,
+        'whoAction': draft.who_action,
+        'whenActionDate': draft.when_action_date,
+        'statusAction': draft.status_action,
+        'investigationLevel': draft.investigation_level
+    };
+    
+    // Fill each field
+    Object.entries(fields).forEach(([fieldId, value]) => {
+        if (value) {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                if (element.tagName === 'SELECT') {
+                    // For select elements, find the option with matching text
+                    const options = Array.from(element.options);
+                    const matchingOption = options.find(option => 
+                        option.text.trim() === value.trim()
+                    );
+                    if (matchingOption) {
+                        element.value = matchingOption.value;
+                    }
+                } else {
+                    element.value = value;
+                }
+            }
+        }
+    });
+    
+         // Handle textarea elements specifically
+     const textareas = ['description', 'immediateAction', 'whoAction', 'whenActionDate', 'statusAction'];
+     textareas.forEach(fieldId => {
+         const element = document.getElementById(fieldId);
+         if (element && draft[fieldId]) {
+             element.value = draft[fieldId];
+         }
+     });
+     
+     // Load existing images if any
+     if (draft.image_urls && draft.image_urls.length > 0) {
+         console.log('Loading existing images from draft:', draft.image_urls);
+         const imagePreviews = document.getElementById('imagePreviews');
+         if (imagePreviews) {
+             imagePreviews.innerHTML = '';
+             draft.image_urls.forEach(imageUrl => {
+                 const img = document.createElement('img');
+                 img.src = imageUrl;
+                 img.style.maxWidth = '200px';
+                 img.style.margin = '10px';
+                 img.style.borderRadius = '4px';
+                 imagePreviews.appendChild(img);
+             });
+         }
+     }
 }
 
 function setupFormEventListeners(userId) {
@@ -41,6 +206,7 @@ function setupFormEventListeners(userId) {
     const imageUpload = document.getElementById('imageUpload');
     const imagePreviews = document.getElementById('imagePreviews');
     const saveAsDraftButton = document.querySelector('.draft-btn');
+    const deleteDraftButton = document.querySelector('.delete-draft-btn');
 
     // Tooltip functionality for info icons
     const tooltips = document.querySelectorAll('.info-tooltip');
@@ -234,8 +400,19 @@ function setupFormEventListeners(userId) {
         imagePreviews.innerHTML = '';
         compressedFiles = [];
 
+        console.log('Image upload triggered, files:', files.length);
+
         for (const file of Array.from(files)) {
             try {
+                console.log('Processing file:', file.name, 'Size:', file.size);
+                
+                // Check if imageCompression is available
+                if (typeof imageCompression === 'undefined') {
+                    console.error('Image compression library not loaded');
+                    showMessage('Image compression library not available. Please refresh the page.', true);
+                    return;
+                }
+
                 const options = {
                     maxSizeMB: 1,
                     maxWidthOrHeight: 1920,
@@ -244,6 +421,8 @@ function setupFormEventListeners(userId) {
                 };
                 const compressedFile = await imageCompression(file, options);
                 compressedFiles.push(compressedFile);
+
+                console.log('File compressed successfully:', compressedFile.name, 'Size:', compressedFile.size);
 
                 // Only preview the image, do not upload here
                 const reader = new FileReader();
@@ -257,7 +436,8 @@ function setupFormEventListeners(userId) {
                 };
                 reader.readAsDataURL(compressedFile);
             } catch (error) {
-                showMessage(`Error compressing image: ${file.name}`, true);
+                console.error('Error compressing image:', error);
+                showMessage(`Error compressing image: ${file.name} - ${error.message}`, true);
             }
         }
     });
@@ -273,41 +453,142 @@ function setupFormEventListeners(userId) {
                 let uploadedImageUrls = [];
                 
                 // Upload images if any
+                console.log('Compressed files to upload:', compressedFiles.length);
                 if (compressedFiles.length > 0) {
                     uploadedImageUrls = await uploadImagesToSupabase(compressedFiles);
+                    console.log('Uploaded image URLs:', uploadedImageUrls);
+                } else {
+                    console.log('No images to upload');
                 }
 
-                // Submit form data to Supabase
-                const { data, error } = await supabase
-                    .from('safety_incident_form')
-                    .insert([{
-                        user_id: userId,
-                        incident_type: document.getElementById('incidentType').value,
-                        incident_date: document.getElementById('incidentDate').value,
-                        incident_time: document.getElementById('incidentTime').value,
-                        description: document.getElementById('description').value.trim(),
-                        hazard_type: document.getElementById('hazardType').value,
-                        ppe_used: document.getElementById('ppeUsed').value,
-                        location: document.getElementById('location').value.trim(),
-                        department: document.getElementById('department').value,
-                        severity: document.getElementById('severity').value,
-                        injury_type: document.getElementById('injuryType').value,
-                        immediate_action: document.getElementById('immediateAction').value.trim(),
-                        who_action: document.getElementById('whoAction').value.trim(),
-                        when_action_date: document.getElementById('whenActionDate').value.trim(),
-                        status_action: document.getElementById('statusAction').value.trim(),
-                        investigation_level: document.getElementById('investigationLevel').value,
-                        image_urls: uploadedImageUrls
-                    }]);
-
-                if (error) {
-                    console.error('Error submitting form:', error);
-                    showMessage('Error submitting safety incident. Please try again.', true);
+                // Check if we're updating a draft
+                const submitBtn = document.querySelector('.submit-btn');
+                const draftId = submitBtn?.dataset?.draftId;
+                
+                let result;
+                
+                                 if (draftId) {
+                     // First, fetch existing draft data to get current images
+                     const { data: existingDraft, error: fetchError } = await supabase
+                         .from('safety_incident_draft')
+                         .select('image_urls')
+                         .eq('id', draftId)
+                         .eq('user_id', userId)
+                         .single();
+                         
+                     if (fetchError) {
+                         console.error('Error fetching draft data:', fetchError);
+                     }
+                     
+                     // Combine existing images with new uploaded images
+                     let allImageUrls = [];
+                     
+                     // Add existing images from draft
+                     if (existingDraft && existingDraft.image_urls && existingDraft.image_urls.length > 0) {
+                         allImageUrls = [...existingDraft.image_urls];
+                         console.log('Existing draft images:', existingDraft.image_urls);
+                     }
+                     
+                     // Add newly uploaded images
+                     if (uploadedImageUrls.length > 0) {
+                         allImageUrls = [...allImageUrls, ...uploadedImageUrls];
+                         console.log('New uploaded images:', uploadedImageUrls);
+                     }
+                     
+                     console.log('Combined image URLs for final submission:', allImageUrls);
+                     
+                     // Convert draft to final submission
+                     const formData = {
+                         user_id: userId,
+                         incident_type: document.getElementById('incidentType').value,
+                         incident_date: document.getElementById('incidentDate').value,
+                         incident_time: document.getElementById('incidentTime').value,
+                         description: document.getElementById('description').value.trim(),
+                         hazard_type: document.getElementById('hazardType').value,
+                         ppe_used: document.getElementById('ppeUsed').value,
+                         location: document.getElementById('location').value.trim(),
+                         department: document.getElementById('department').value,
+                         severity: document.getElementById('severity').value,
+                         injury_type: document.getElementById('injuryType').value,
+                         immediate_action: document.getElementById('immediateAction').value.trim(),
+                         who_action: document.getElementById('whoAction').value.trim(),
+                         when_action_date: document.getElementById('whenActionDate').value.trim(),
+                         status_action: document.getElementById('statusAction').value.trim(),
+                         investigation_level: document.getElementById('investigationLevel').value,
+                         image_urls: allImageUrls.length > 0 ? allImageUrls : null
+                     };
+                     
+                     // First, insert as final submission
+                     result = await supabase
+                         .from('safety_incident_form')
+                         .insert([formData]);
+                         
+                     if (result.error) {
+                         console.error('Error submitting draft as final:', result.error);
+                         showMessage('Error submitting draft. Please try again.', true);
+                     } else {
+                         // Then delete the draft
+                         const { error: deleteError } = await supabase
+                             .from('safety_incident_draft')
+                             .delete()
+                             .eq('id', draftId)
+                             .eq('user_id', userId);
+                             
+                         if (deleteError) {
+                             console.error('Error deleting draft after submission:', deleteError);
+                             // Don't show error to user since submission was successful
+                         }
+                     }
+                        
+                                         if (result.error) {
+                         console.error('Error submitting draft:', result.error);
+                         showMessage('Error submitting draft. Please try again.', true);
+                     } else {
+                         showMessage('Safety incident submitted successfully!');
+                         // Redirect back to the incidents table
+                         setTimeout(async () => {
+                             // Check if user is admin and redirect accordingly
+                             const isAdmin = await checkIfUserIsAdmin();
+                             if (isAdmin) {
+                                 window.location.href = 'safety_incidents_table.html';
+                             } else {
+                                 window.location.href = 'emp_safety_incidents_table.html';
+                             }
+                         }, 2000);
+                     }
                 } else {
-                    showMessage('Safety incident submitted successfully!');
-                    form.reset();
-                    imagePreviews.innerHTML = '';
-                    compressedFiles = [];
+                    // Submit new incident
+                    result = await supabase
+                        .from('safety_incident_form')
+                        .insert([{
+                            user_id: userId,
+                            incident_type: document.getElementById('incidentType').value,
+                            incident_date: document.getElementById('incidentDate').value,
+                            incident_time: document.getElementById('incidentTime').value,
+                            description: document.getElementById('description').value.trim(),
+                            hazard_type: document.getElementById('hazardType').value,
+                            ppe_used: document.getElementById('ppeUsed').value,
+                            location: document.getElementById('location').value.trim(),
+                            department: document.getElementById('department').value,
+                            severity: document.getElementById('severity').value,
+                            injury_type: document.getElementById('injuryType').value,
+                            immediate_action: document.getElementById('immediateAction').value.trim(),
+                            who_action: document.getElementById('whoAction').value.trim(),
+                            when_action_date: document.getElementById('whenActionDate').value.trim(),
+                            status_action: document.getElementById('statusAction').value.trim(),
+                            investigation_level: document.getElementById('investigationLevel').value,
+                            image_urls: uploadedImageUrls.length > 0 ? uploadedImageUrls : null
+                        }]);
+
+                    if (result.error) {
+                        console.error('Error submitting form:', result.error);
+                        showMessage('Error submitting safety incident. Please try again.', true);
+                    } else {
+                        showMessage('Safety incident submitted successfully!');
+                        form.reset();
+                        imagePreviews.innerHTML = '';
+                        compressedFiles = [];
+                    }
                 }
             } catch (error) {
                 hideUploadOverlay();
@@ -320,41 +601,83 @@ function setupFormEventListeners(userId) {
         hideUploadOverlay();
     });
 
-    // Save as draft functionality
-    saveAsDraftButton.addEventListener('click', async function(event) {
-        event.preventDefault();
+         // Save as draft functionality
+     saveAsDraftButton.addEventListener('click', async function(event) {
+         event.preventDefault();
+ 
+         saveAsDraftButton.disabled = true;
+         saveAsDraftButton.textContent = "Saving...";
+ 
+         try {
+             let uploadedImageUrls = [];
+             
+             // Upload images if any
+             if (compressedFiles.length > 0) {
+                 uploadedImageUrls = await uploadImagesToSupabase(compressedFiles);
+             }
+ 
+             // Check if we're editing an existing draft
+             const submitBtn = document.querySelector('.submit-btn');
+             const draftId = submitBtn?.dataset?.draftId;
+             
+             let result;
+             
+             if (draftId) {
+                 // Update existing draft
+                 result = await supabase
+                     .from('safety_incident_draft')
+                     .update({
+                         incident_type: document.getElementById('incidentType').value,
+                         incident_date: document.getElementById('incidentDate').value,
+                         incident_time: document.getElementById('incidentTime').value,
+                         description: document.getElementById('description').value.trim(),
+                         hazard_type: document.getElementById('hazardType').value,
+                         ppe_used: document.getElementById('ppeUsed').value,
+                         location: document.getElementById('location').value.trim(),
+                         department: document.getElementById('department').value,
+                         severity: document.getElementById('severity').value,
+                         injury_type: document.getElementById('injuryType').value,
+                         immediate_action: document.getElementById('immediateAction').value.trim(),
+                         who_action: document.getElementById('whoAction').value.trim(),
+                         when_action_date: document.getElementById('whenActionDate').value.trim(),
+                         status_action: document.getElementById('statusAction').value.trim(),
+                         investigation_level: document.getElementById('investigationLevel').value,
+                         image_urls: uploadedImageUrls.length > 0 ? uploadedImageUrls : null
+                     })
+                     .eq('id', draftId)
+                     .eq('user_id', userId);
+             } else {
+                 // Create new draft
+                 result = await supabase
+                     .from('safety_incident_draft')
+                     .insert([{
+                         user_id: userId,
+                         incident_type: document.getElementById('incidentType').value,
+                         incident_date: document.getElementById('incidentDate').value,
+                         incident_time: document.getElementById('incidentTime').value,
+                         description: document.getElementById('description').value.trim(),
+                         hazard_type: document.getElementById('hazardType').value,
+                         ppe_used: document.getElementById('ppeUsed').value,
+                         location: document.getElementById('location').value.trim(),
+                         department: document.getElementById('department').value,
+                         severity: document.getElementById('severity').value,
+                         injury_type: document.getElementById('injuryType').value,
+                         immediate_action: document.getElementById('immediateAction').value.trim(),
+                         who_action: document.getElementById('whoAction').value.trim(),
+                         when_action_date: document.getElementById('whenActionDate').value.trim(),
+                         status_action: document.getElementById('statusAction').value.trim(),
+                         investigation_level: document.getElementById('investigationLevel').value,
+                         image_urls: uploadedImageUrls.length > 0 ? uploadedImageUrls : null
+                     }]);
+             }
 
-        saveAsDraftButton.disabled = true;
-        saveAsDraftButton.textContent = "Saving...";
-
-        try {
-            const { data, error } = await supabase
-                .from('safety_incident_draft')
-                .insert([{
-                    user_id: userId,
-                    incident_type: document.getElementById('incidentType').value,
-                    incident_date: document.getElementById('incidentDate').value,
-                    incident_time: document.getElementById('incidentTime').value,
-                    description: document.getElementById('description').value.trim(),
-                    hazard_type: document.getElementById('hazardType').value,
-                    ppe_used: document.getElementById('ppeUsed').value,
-                    location: document.getElementById('location').value.trim(),
-                    department: document.getElementById('department').value,
-                    severity: document.getElementById('severity').value,
-                    injury_type: document.getElementById('injuryType').value,
-                    immediate_action: document.getElementById('immediateAction').value.trim(),
-                    who_action: document.getElementById('whoAction').value.trim(),
-                    when_action_date: document.getElementById('whenActionDate').value.trim(),
-                    status_action: document.getElementById('statusAction').value.trim(),
-                    investigation_level: document.getElementById('investigationLevel').value
-                }]);
-
-            if (error) {
-                const message = error.message || "An error occurred. Please try again.";
-                showMessage('Error saving draft: ' + message, true);
-            } else {
-                showMessage('Draft saved successfully!');
-            }
+             if (result.error) {
+                 const message = result.error.message || "An error occurred. Please try again.";
+                 showMessage('Error saving draft: ' + message, true);
+             } else {
+                 const message = draftId ? 'Draft updated successfully!' : 'Draft saved successfully!';
+                 showMessage(message);
+             }
         } catch (error) {
             console.error('Unexpected error saving draft:', error);
             showMessage('Unexpected error saving draft. Please try again.', true);
@@ -364,27 +687,136 @@ function setupFormEventListeners(userId) {
         }
     });
 
+    // Delete draft functionality
+    if (deleteDraftButton) {
+        deleteDraftButton.addEventListener('click', async function(event) {
+            event.preventDefault();
+            
+            // Confirm deletion
+            if (!confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
+                return;
+            }
+            
+            deleteDraftButton.disabled = true;
+            deleteDraftButton.textContent = "Deleting...";
+            
+            try {
+                const draftId = deleteDraftButton.dataset.draftId;
+                
+                if (!draftId) {
+                    showMessage('No draft ID found. Please try again.', true);
+                    return;
+                }
+                
+                // First, fetch the draft data to get image URLs
+                const { data: draftData, error: fetchError } = await supabase
+                    .from('safety_incident_draft')
+                    .select('image_urls')
+                    .eq('id', draftId)
+                    .eq('user_id', userId)
+                    .single();
+                    
+                if (fetchError) {
+                    console.error('Error fetching draft data:', fetchError);
+                }
+                
+                // Delete images from storage if they exist
+                if (draftData && draftData.image_urls && draftData.image_urls.length > 0) {
+                    console.log('Deleting draft images from storage:', draftData.image_urls);
+                    
+                    for (const imageUrl of draftData.image_urls) {
+                        try {
+                            // Extract file path from URL
+                            const urlParts = imageUrl.split('/');
+                            const fileName = urlParts[urlParts.length - 1];
+                            
+                            // Delete from storage
+                            const { error: deleteImageError } = await supabase.storage
+                                .from('safety-incident-images')
+                                .remove([fileName]);
+                                
+                            if (deleteImageError) {
+                                console.error('Error deleting draft image:', fileName, deleteImageError);
+                            } else {
+                                console.log('Successfully deleted draft image:', fileName);
+                            }
+                        } catch (imageError) {
+                            console.error('Error processing draft image deletion:', imageError);
+                        }
+                    }
+                }
+                
+                // Now delete the draft from database
+                const { error } = await supabase
+                    .from('safety_incident_draft')
+                    .delete()
+                    .eq('id', draftId)
+                    .eq('user_id', userId);
+                    
+                if (error) {
+                    console.error('Error deleting draft:', error);
+                    showMessage('Error deleting draft. Please try again.', true);
+                                 } else {
+                     showMessage('Draft deleted successfully!');
+                     // Redirect back to the incidents table
+                     setTimeout(async () => {
+                         // Check if user is admin and redirect accordingly
+                         const isAdmin = await checkIfUserIsAdmin();
+                         if (isAdmin) {
+                             window.location.href = 'safety_incidents_table.html';
+                         } else {
+                             window.location.href = 'emp_safety_incidents_table.html';
+                         }
+                     }, 2000);
+                 }
+            } catch (error) {
+                console.error('Unexpected error deleting draft:', error);
+                showMessage('Unexpected error deleting draft. Please try again.', true);
+            } finally {
+                deleteDraftButton.disabled = false;
+                deleteDraftButton.textContent = "Delete Draft";
+            }
+        });
+    }
+
     async function uploadImagesToSupabase(files) {
         const imageUrls = [];
+        console.log('Starting image upload to Supabase, files:', files.length);
+        
         for (const file of files) {
-            const { data, error } = await supabase.storage
-                .from('safety-incident-images') // Safety incident bucket name
-                .upload(`${Date.now()}_${file.name}`, file, {
-                    cacheControl: '3600',
-                    upsert: false
-                });
+            try {
+                console.log('Uploading file:', file.name, 'Size:', file.size);
+                
+                const { data, error } = await supabase.storage
+                    .from('safety-incident-images') // Safety incident bucket name
+                    .upload(`${Date.now()}_${file.name}`, file, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
 
-            if (error) {
-                console.error('Error uploading image:', error);
-                showMessage(`Error uploading ${file.name}: ${error.message}`, true);
-            } else {
-                // Get public URL
-                const { data: publicUrlData } = supabase.storage
-                    .from('safety-incident-images')
-                    .getPublicUrl(data.path);
-                imageUrls.push(publicUrlData.publicUrl);
+                if (error) {
+                    console.error('Error uploading image:', error);
+                    showMessage(`Error uploading ${file.name}: ${error.message}`, true);
+                    throw error; // Re-throw to stop the process
+                } else {
+                    console.log('File uploaded successfully:', data.path);
+                    
+                    // Get public URL
+                    const { data: publicUrlData } = supabase.storage
+                        .from('safety-incident-images')
+                        .getPublicUrl(data.path);
+                    
+                    console.log('Public URL generated:', publicUrlData.publicUrl);
+                    imageUrls.push(publicUrlData.publicUrl);
+                }
+            } catch (error) {
+                console.error('Unexpected error uploading file:', file.name, error);
+                showMessage(`Failed to upload ${file.name}: ${error.message}`, true);
+                throw error; // Re-throw to stop the process
             }
         }
+        
+        console.log('All images uploaded successfully, URLs:', imageUrls);
         return imageUrls;
     }
 

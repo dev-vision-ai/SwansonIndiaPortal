@@ -256,6 +256,37 @@ textarea {
     transform: scale(0.98);
 }
 
+.delete-draft-btn {
+    background: #dc3545;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: var(--transition);
+    text-align: center;
+    white-space: nowrap;
+    border: none;
+    margin-left: 10px;
+}
+
+.delete-draft-btn:hover {
+    background: #c82333;
+    box-shadow: 0 5px 10px rgba(220, 53, 69, 0.2);
+    transform: translateY(-1px);
+}
+
+.delete-draft-btn:active {
+    transform: scale(0.98);
+}
+
+.delete-draft-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
 .message {
     padding: 15px 25px;
     border-radius: 4px;

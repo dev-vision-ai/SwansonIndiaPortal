@@ -493,13 +493,19 @@ tbody tr:nth-child(even) {
 /* --- Button styles for table actions (copied from admin_qa.css) --- */
 .action-btn {
     padding: 8px 16px;
-    margin-right: 8px;
+    margin: 0;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-size: 0.9em;
     transition: var(--transition);
     text-decoration: none !important;
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+    white-space: nowrap;
+    box-sizing: border-box;
+    font-weight: 500;
 }
 
 .view-btn {
@@ -561,26 +567,24 @@ table td {
 
 /* Special styling for the Actions cell to center and wrap buttons */
 table td.actions-cell {
+    text-align: center !important;
+    vertical-align: middle !important;
+    padding: 8px 6px;
+    min-width: 120px;
+}
+
+/* Container for action buttons */
+.action-buttons-container {
     display: flex;
     flex-direction: row;
     justify-content: center;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
-    min-width: 120px;
-    white-space: normal !important;
-    word-break: break-word !important;
 }
 
 /* Ensure action buttons do not overflow and wrap if needed */
-.action-btn {
-    min-width: 60px;
-    padding: 6px 16px;
-    font-size: 15px;
-    white-space: nowrap;
-    margin: 2px 0;
-    box-sizing: border-box;
-}
+/* Action button styles are defined above */
 
 /* Make sure description and other long text cells wrap */
 td.description-cell {
