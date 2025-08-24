@@ -233,11 +233,21 @@ app.get('/export', async (req, res) => {
     let emboss_type = '';
     
     if (targetLot) {
+      // Clean product code by removing "(Jeddah)" part if present
+      const prodCodeToCheck = targetLot.prod_code || '';
+      let cleanedProdCode = prodCodeToCheck;
+      
+      if (prodCodeToCheck.toLowerCase().includes('jeddah')) {
+        // Remove "(Jeddah)" or "(JEDDAH)" or any case variation
+        cleanedProdCode = prodCodeToCheck.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
+        console.log('🧹 Cleaned product code from "Jeddah":', prodCodeToCheck, '→', cleanedProdCode);
+      }
+      
       // Try to get header data from main fields first, then fall back to inspection_data
       customer = targetLot.customer || '';
       production_no = targetLot.production_no || '';
       production_no_2 = targetLot.production_no_2 || '';
-      prod_code = targetLot.prod_code || '';
+      prod_code = cleanedProdCode; // Use cleaned product code
       spec = targetLot.spec || '';
       year = targetLot.year || '';
       month = targetLot.month || '';
@@ -981,6 +991,13 @@ app.get('/export', async (req, res) => {
     let shiftNumber = targetLot.shift || '';
     let mcNo = targetLot.mc_no || '';
     
+    // Clean product code by removing "(Jeddah)" part if present
+    if (prodCode.toLowerCase().includes('jeddah')) {
+      // Remove "(Jeddah)" or "(JEDDAH)" or any case variation
+      prodCode = prodCode.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
+      console.log('🧹 Cleaned product code from "Jeddah":', targetLot.prod_code || '', '→', prodCode);
+    }
+    
     // If main fields are null, try to extract from header_data
     if (!prodCode && targetLot.header_data) {
       // Try to get from header_data
@@ -1006,6 +1023,14 @@ app.get('/export', async (req, res) => {
         if (!error && otherForms && otherForms.length > 0) {
           prodCode = otherForms[0].prod_code;
           console.log('  Found prod_code from other forms:', prodCode);
+          
+          // Clean the retrieved product code by removing "(Jeddah)" part if present
+          if (prodCode.toLowerCase().includes('jeddah')) {
+            // Remove "(Jeddah)" or "(JEDDAH)" or any case variation
+            const originalProdCode = prodCode;
+            prodCode = prodCode.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
+            console.log('🧹 Cleaned product code from other forms: "Jeddah" removed:', originalProdCode, '→', prodCode);
+          }
         } else {
           prodCode = 'PROD-CODE'; // Default value
           console.log('  No prod_code found in other forms, using default');

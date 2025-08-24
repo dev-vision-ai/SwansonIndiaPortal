@@ -22,13 +22,26 @@ let clockInterval = null;
 // ===== TEAM MEMBERS FUNCTIONALITY =====
 function populateTeamMembers(formData) {
     try {
-        // Populate team members table with separate role and name columns
-        document.getElementById('supervisor_name').textContent = formData.supervisor || 'N/A';
-        document.getElementById('line_leader_name').textContent = formData.line_leader || 'N/A';
-        document.getElementById('operator_name').textContent = formData.operator || 'N/A';
-        document.getElementById('qc_inspector_name').textContent = formData.qc_inspector || 'N/A';
+        // Helper function to combine multiple names with commas
+        function combineNames(name1, name2) {
+            if (name1 && name2) {
+                return `${name1}, ${name2}`;
+            } else if (name1) {
+                return name1;
+            } else if (name2) {
+                return name2;
+            } else {
+                return 'N/A';
+            }
+        }
         
-        console.log('✅ Team members data populated successfully');
+        // Populate team members table with combined names
+        document.getElementById('supervisor_name').textContent = combineNames(formData.supervisor, formData.supervisor2);
+        document.getElementById('line_leader_name').textContent = formData.line_leader || 'N/A';
+        document.getElementById('operator_name').textContent = combineNames(formData.operator, formData.operator2);
+        document.getElementById('qc_inspector_name').textContent = combineNames(formData.qc_inspector, formData.qc_inspector2);
+        
+        // Team members data populated successfully
     } catch (error) {
         console.error('❌ Error populating team members:', error);
     }
@@ -100,7 +113,7 @@ function startClock() {
         clockInterval = setInterval(updateClock, 1000);
         intervals.add(clockInterval);
         
-        console.log('✅ Clock started successfully');
+        // Clock started successfully
     } catch (error) {
         console.error('❌ Error starting clock:', error);
     }
@@ -112,7 +125,7 @@ function stopClock() {
             clearInterval(clockInterval);
             clockInterval = null;
         }
-        console.log('✅ Clock stopped successfully');
+        // Clock stopped successfully
     } catch (error) {
         console.error('❌ Error stopping clock:', error);
     }
@@ -400,7 +413,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         saveTimeout = setTimeout(async () => {
                             try {
                                 const newValue = this.value.trim();
-                                console.log('Auto-saving production_no_2:', newValue);
+                                // Auto-saving production_no_2
                                 
                                 const { error } = await supabase
                                     .from('inline_inspection_form_master_2')
@@ -411,7 +424,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 if (error) {
                                     console.error('Error auto-saving production_no_2:', error);
                                 } else {
-                                    console.log('✅ production_no_2 auto-saved successfully');
+                                    // production_no_2 auto-saved successfully
                                 }
                             } catch (error) {
                                 console.error('Error in production_no_2 auto-save:', error);
@@ -426,7 +439,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 // Store the form type globally for use in table creation
                 isNonPrintedForm = formData.non_printed || false;
-                console.log('Form type detected - Non-printed:', isNonPrintedForm);
+                // Form type detected
                 document.getElementById('year').textContent = formData.year || '[Year]';
                 document.getElementById('month').textContent = formData.month || '[Month]';
                 document.getElementById('date').textContent = formData.date || '[Date]';
@@ -484,13 +497,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                     }
                 });
                 
-                console.log('View mode: Disabled', editableCells.length, 'editable cells');
-                console.log('View mode: Disabled', selectDropdowns.length, 'select dropdowns');
-                console.log('View mode: Disabled', inputFields.length, 'input fields');
-                console.log('View mode: Disabled', buttons.length, 'buttons');
+                        // View mode: Disabled all interactive elements
                 
                 // Apply color coding for X/O values in view mode
-                console.log('View mode: Applying color coding for X/O values');
+                // View mode: Applying color coding for X/O values
                 
                 // Apply Accept/Reject color coding to tables
                 applyColorCodingToTable();
@@ -558,7 +568,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     }
                 });
                 
-                console.log('View mode: Color coding applied');
+                // View mode: Color coding applied
             }, 500); // Small delay to ensure all elements are rendered
         }
     }
@@ -604,7 +614,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const naColumns = [18, 19, 20, 21, 22, 23]; // ct_appearance, print_color, mis_print, dirty_print, tape_test, centralization
             if (isNonPrintedForm && naColumns.includes(colIndex)) {
                 td.textContent = 'NA';
-                console.log(`Pre-filled NA in column ${colIndex} (${fieldMap[colIndex]})`);
+                // Pre-filled NA in column
             }
         }
         
@@ -650,7 +660,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const formId = table?.dataset?.formId;
                 const allTables = Array.from(document.querySelectorAll('#tablesContainer table'));
                 const tableIndex = allTables.indexOf(table);
-                console.log('[DEBUG] Cell change event in table:', { formId, tableIndex });
+                // Cell change event in table
                 
                 // Handle Accept/Reject → Disable Row functionality
                 const selectedValue = select.value;
@@ -2896,7 +2906,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Helper to create a table for a lot, given its data and form_id
     function createLotTable(lot, nRows = 0) {
-        console.log('createLotTable called with lot:', lot);
+        // createLotTable called
         
         // Reconstruct rolls array from individual JSONB columns
         const rolls = [];
@@ -2961,7 +2971,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             rolls.push(roll);
         }
         
-        console.log('Reconstructed rolls:', rolls);
+        // Rolls reconstructed
         
         // Insert a dotted separator before each table except the first
         if (tablesContainer.childElementCount > 0) {
@@ -3252,7 +3262,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Build tbody - Updated for individual JSONB columns
         const tbody = document.createElement('tbody');
         
-        console.log('Rolls reconstructed from JSONB:', rolls);
+        // Rolls reconstructed from JSONB
         const numRows = Math.max(rolls.length, nRows);
         
         // Always add the correct number of rows
@@ -3266,12 +3276,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Set lot number for first row if no rolls data (new lot)
                 if (col === 2 && isFirstRow && rolls.length === 0) {
                     td.textContent = lot.lot_no || '';
-                    console.log('Setting lot number for new table:', lot.lot_no);
+                    // Setting lot number for new table
                 }
                 // Set arm for first row if no rolls data (new lot)
                 else if (col === 4 && isFirstRow && rolls.length === 0) {
                     td.textContent = lot.arm || '';
-                    console.log('Setting arm for new table:', lot.arm);
+                    // Setting arm for new table
                 }
                 // If there is data for this row, fill it
                 else if (rolls[i]) {
@@ -3343,7 +3353,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const firstRow = tbody.querySelector('tr');
                 if (firstRow) {
                     const inspectedByCell = firstRow.lastElementChild;
-                    console.log('Setting Inspected By cell (last cell):', inspectedByCell, 'to', lot.inspected_by);
+                    // Setting Inspected By cell
                     inspectedByCell.textContent = lot.inspected_by;
                 }
             }, 200);
@@ -3585,8 +3595,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             .eq('traceability_code', traceabilityCode)
             .eq('lot_letter', lotLetter)
             .order('created_at', { ascending: true });
-        console.log('Fetched lots:', lots);
-        console.log('Number of lots found:', lots ? lots.length : 0);
+        // Lots fetched successfully
         if (error) {
             alert('Error loading lots: ' + error.message);
             return;
@@ -3648,17 +3657,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Clear the container before repopulating
         tablesContainer.innerHTML = '';
         lots.forEach((lot, index) => {
-            console.log(`Rendering lot ${index + 1}:`, lot);
+            // Rendering lot
             // Calculate number of rolls from JSONB data
             let rollCount = Object.keys(lot.accept_reject_status || {}).length;
             
             // If this is a new lot (empty JSONB data), use total_rolls field
             if (rollCount === 0 && lot.total_rolls > 0) {
                 rollCount = lot.total_rolls;
-                console.log('New lot detected, using total_rolls:', rollCount);
+                // New lot detected
             }
             
-            console.log(`Creating table for lot ${index + 1} with ${rollCount} rows`);
+            // Creating table for lot
             createLotTable(lot, rollCount);
         });
         // Ensure Add Next Lot button is only appended once at the end
@@ -3674,7 +3683,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // ===== FILL NA VALUES FOR NON-PRINTED FORMS =====
         // After tables are loaded, check if this is a non-printed form and fill NA values
         if (isNonPrintedForm) {
-            console.log('Non-printed form detected - filling NA values in existing tables');
+            // Non-printed form detected
             fillNAValuesForNonPrintedForm();
         }
         
@@ -3892,7 +3901,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Use cached QC inspectors instead of querying database every time
         const qcInspectors = qcInspectorsCache;
         
-        console.log('QC Inspectors Cache:', qcInspectors); // Debug log
+        // QC Inspectors Cache
         
         // Process each table separately to check first row inspector
         tables.forEach((table, tableIndex) => {
@@ -3906,11 +3915,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             const firstRow = rows[0];
             const firstRowInspector = firstRow.querySelector('td[data-field="inspected_by"]')?.textContent.trim() || '';
             
-            console.log(`Table ${tableIndex} - First row inspector: "${firstRowInspector}"`); // Debug log
+            // Table inspector check
             
             // Only process this table's defects if first row inspector is from QC department
             if (firstRowInspector && qcInspectors.includes(firstRowInspector)) {
-                console.log(`Processing table ${tableIndex} - Inspector "${firstRowInspector}" is QC`); // Debug log
+                // Processing QC table // Debug log
                 
                 // Process all rows in this table
                 rows.forEach((row, rowIndex) => {
@@ -3922,7 +3931,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     
                     const defect = (rollData.defect_name || '').trim();
                     if (defect) {
-                        console.log(`Found defect in table ${tableIndex}, row ${rowIndex}: "${defect}"`); // Debug log
+                        // Found defect
                         if (!ipqcDefectCounts[defect]) {
                             ipqcDefectCounts[defect] = 0;
                         }
@@ -3930,11 +3939,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                     }
                 });
             } else {
-                console.log(`Skipping table ${tableIndex} - Inspector "${firstRowInspector}" is not QC`); // Debug log
+                // Skipping non-QC table // Debug log
             }
         });
         
-        console.log('IPQC Defect Counts:', ipqcDefectCounts); // Debug log
+        // IPQC Defect Counts
         
         // Render the IPQC defects table
         let ipqcTable = document.getElementById('ipqcDefectsTable');
@@ -4137,8 +4146,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 })
                 .map(user => user.full_name);
             
-            console.log('Filtered users for "Inspected By":', userSuggestions); // Debug log
-            console.log('QC Inspectors found:', qcInspectorsCache); // Debug log
+                    // Users filtered for Inspected By
         }
     })();
 
@@ -4774,7 +4782,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (!tbody) return;
             
             const rows = Array.from(tbody.rows);
-            console.log(`Processing Table ${tableIndex + 1} with ${rows.length} rows, current Production No: ${currentProductionNo}`);
+            // Processing table
             
             // Process each row in the table
             rows.forEach((row, rowIndex) => {
@@ -4801,7 +4809,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         for (const pattern of patterns) {
                             const match = remarks.match(pattern);
                             if (match && match[1] !== currentProductionNo) {
-                                console.log(`Production No changed from ${currentProductionNo} to ${match[1]} at Table ${tableIndex + 1}, Row ${rowIndex + 1}`);
+                                // Production No changed
                                 currentProductionNo = match[1];
                                 productionNoChanged = true;
                                 break;
@@ -4821,13 +4829,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                     productionNoData[currentProductionNo].totalKg += rollWeight;
                     totalRollsProcessed++;
                     
-                    console.log(`Added roll to ${currentProductionNo}: weight=${rollWeight}, total rolls=${productionNoData[currentProductionNo].rolls}, total kg=${productionNoData[currentProductionNo].totalKg.toFixed(2)}`);
+                    // Added roll to production
                 }
             });
         });
         
-        console.log('Production No Summary - Total rolls processed:', totalRollsProcessed);
-        console.log('Production No Data:', productionNoData);
+        // Production No Summary completed
         
         // Render the Production No summary table
         let productionNoTable = document.getElementById('productionNoSummaryTable');

@@ -45,7 +45,7 @@ function startClock() {
         clockInterval = setInterval(updateClock, 1000);
         intervals.add(clockInterval);
         
-        console.log('✅ Clock started successfully');
+        // Clock started successfully
     } catch (error) {
         console.error('❌ Error starting clock:', error);
     }
@@ -57,7 +57,7 @@ function stopClock() {
             clearInterval(clockInterval);
             clockInterval = null;
         }
-        console.log('✅ Clock stopped successfully');
+        // Clock stopped successfully
     } catch (error) {
         console.error('❌ Error stopping clock:', error);
     }
@@ -110,7 +110,7 @@ function cleanupResources() {
         });
         eventListeners.clear();
         
-        console.log('✅ Cleanup completed successfully');
+        // Cleanup completed successfully
     } catch (error) {
         console.error('❌ Error during cleanup:', error);
     }
@@ -174,7 +174,7 @@ function enhancedCleanup() {
         });
         eventListeners.clear();
         
-        console.log('✅ Enhanced cleanup completed successfully');
+        // Enhanced cleanup completed successfully
     } catch (error) {
         console.error('❌ Error during enhanced cleanup:', error);
     }
@@ -907,7 +907,7 @@ function clearFilters() {
 
 // Global function for form submission
 async function handleFormSubmit(e) {
-  console.log('=== FORM SUBMISSION TRIGGERED ===');
+          // Form submission triggered
     e.preventDefault();
   const form = document.getElementById('inlineInspectionEntryForm');
     const submitBtn = form.querySelector('button[type="submit"]');
@@ -987,11 +987,7 @@ async function handleFormSubmit(e) {
     return;
   }
   
-  console.log('Form submission details:', {
-    isEditMode,
-    submitButtonText: submitBtn.textContent,
-    formDataset: Object.fromEntries(Object.entries(form.dataset))
-  });
+  // Form submission details logged
   
   submitBtn.textContent = isEditMode ? 'Updating...' : 'Creating...';
     submitBtn.disabled = true;
@@ -1009,12 +1005,7 @@ async function handleFormSubmit(e) {
         // Update existing form using record ID (like the old working code)
         const editRecordId = form.dataset.editRecordId;
         
-        console.log('=== UPDATE DEBUG ===');
-        console.log('Edit Mode Debug:', {
-          isEditMode,
-          editRecordId,
-          formData: Object.fromEntries(formData.entries())
-        });
+        // Update debug info
         
         // Check if the record we're trying to update actually exists
         const { data: checkRecord, error: checkError } = await supabase
@@ -1029,8 +1020,7 @@ async function handleFormSubmit(e) {
           `)
           .eq('id', editRecordId);
           
-        console.log('Record to update:', checkRecord);
-        console.log('Check error:', checkError);
+        // Record check completed
         
         const updateObject = {
           customer: formData.get('customer'),
@@ -1058,21 +1048,14 @@ async function handleFormSubmit(e) {
           updated_at: getISTTimestamp()
         };
         
-        console.log('Update Object:', updateObject);
-        console.log('Update Query:', {
-          table: 'inline_inspection_form_master_2',
-          recordId: editRecordId
-        });
-        
-        console.log('About to execute update query...');
+        // Update query prepared
         const { data, error } = await supabase
           .from('inline_inspection_form_master_2')
           .update(updateObject)
           .eq('id', editRecordId)
           .select();
         
-        console.log('Update query executed. Error:', error);
-        console.log('Update query result:', data);
+        // Update query executed
           
         if (error) {
           console.error('Error updating form:', error);
@@ -1080,8 +1063,7 @@ async function handleFormSubmit(e) {
           return;
         }
         
-        console.log('Update Result:', data);
-        console.log('Updated record count:', data ? data.length : 0);
+        // Update completed
         
         // Show success message
         alert('✅ Form updated successfully!');
@@ -1391,7 +1373,7 @@ async function loadFormsTable() {
       } else {
         targetMonth = targetMonth - 1;
       }
-      console.log(`🌙 Before 6:30 AM on 1st - showing previous month's data (night shift still active)`);
+              // Before 6:30 AM on 1st - showing previous month's data
     }
     
     // Calculate start and end dates for target month
@@ -1402,8 +1384,7 @@ async function loadFormsTable() {
     const startDate = startOfMonth.toISOString().split('T')[0];
     const endDate = endOfMonth.toISOString().split('T')[0];
     
-    console.log(`📅 Loading forms for target month: ${targetYear}-${targetMonth.toString().padStart(2, '0')} (${startDate} to ${endDate})`);
-    console.log(`⏰ Current time: ${now.toLocaleString()} - Shift timing applied`);
+            // Loading forms for target month
     
     const { data, error } = await supabase
       .from('inline_inspection_form_master_2')
@@ -1429,7 +1410,7 @@ async function loadFormsTable() {
     // Only show forms with a non-null and non-empty customer value
     const validForms = data.filter(form => form.customer !== null && form.customer !== '');
     
-    console.log(`📊 Found ${validForms.length} forms for target month (${targetYear}-${targetMonth.toString().padStart(2, '0')})`);
+            // Found forms for target month
     
     // Additional client-side sorting to ensure proper date ordering with machine alternation
     const sortedForms = validForms.sort((a, b) => {
@@ -1542,7 +1523,7 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
        form.shift === '3' || form.shift === 3 ? 'C' : form.shift) : '-';
     
     // Debug: Log the shift conversion
-    console.log(`Shift conversion: ${form.shift} (${typeof form.shift}) → ${shiftDisplay}`);
+            // Shift conversion completed
     
     // Check if form status is "submit" - if so, only show eye icon
     const isSubmitted = form.status === 'submit';
@@ -1656,7 +1637,7 @@ function viewForm(traceability_code, lot_letter) {
 }
 
 async function editForm(traceability_code, lot_letter) {
-  console.log('EditForm called with:', { traceability_code, lot_letter });
+          // EditForm called
   
   // Find the record with actual form data for this traceability_code
   const { data: allData, error: listError } = await supabase
@@ -1677,7 +1658,7 @@ async function editForm(traceability_code, lot_letter) {
     return;
   }
   
-  console.log('All forms for traceability_code:', allData);
+          // All forms for traceability_code
   
   // Find the form with actual data (customer, production_no, etc.)
   const formData = allData.find(form => form.customer || form.production_no || form.prod_code || form.spec);
@@ -1688,12 +1669,9 @@ async function editForm(traceability_code, lot_letter) {
     return;
   }
   
-  console.log('Found form with data:', formData);
+          // Found form with data
   
-  console.log('Fetched form data for editing:', formData);
-  console.log('All formData keys:', Object.keys(formData));
-  console.log('FormData values:', Object.entries(formData).filter(([key, value]) => value !== null && value !== ''));
-  console.log('Non-null form fields:', Object.entries(formData).filter(([key, value]) => value !== null && value !== '' && !['id', 'created_at', 'updated_at'].includes(key)));
+          // Form data fetched for editing
   
   const overlay = document.getElementById('inspectionFormOverlay');
   const form = document.getElementById('inlineInspectionEntryForm');
@@ -1723,18 +1701,9 @@ async function editForm(traceability_code, lot_letter) {
   form.dataset.editRecordId = formData.id;
   form.dataset.isEditMode = 'true';
   
-  console.log('Storing in form dataset:', {
-    recordId: formData.id,
-    storedRecordId: form.dataset.editRecordId
-  });
+  // Storing in form dataset
   
-  console.log('Edit Form Debug:', {
-    traceability_code,
-    lot_letter,
-    storedTraceabilityCode: form.dataset.editTraceabilityCode,
-    storedLotLetter: form.dataset.editLotLetter,
-    isEditMode: form.dataset.isEditMode
-  });
+  // Edit Form Debug
   
   // Use direct fields only - inspection_data column has been removed
   const dataToUse = {
@@ -1762,34 +1731,9 @@ async function editForm(traceability_code, lot_letter) {
     qc_inspector2: formData.qc_inspector2 || ''
   };
   
-  console.log('Filling form fields with data:', dataToUse);
-  console.log('Original formData:', formData);
+  // Filling form fields with data
   
-  // Check if form fields exist
-  console.log('Form field checks:', {
-    customerField: !!form.customer,
-    productionNoField: !!form.production_no,
-    prodCodeField: !!form.prod_code,
-    specField: !!form.spec,
-    productionDateField: !!form.production_date,
-    embossTypeField: !!form.emboss_type,
-    printedField: !!form.printed,
-    nonPrintedField: !!form.non_printed,
-    ctField: !!form.ct,
-    yearField: !!form.year,
-    monthField: !!form.month,
-    dateField: !!form.date,
-    mcNoField: !!form.mc_no,
-    shiftField: !!form.shift,
-    supervisorField: !!form.supervisor,
-    supervisor2Field: !!form.supervisor2,
-    lineLeaderField: !!form.line_leader,
-    lineLeader2Field: !!form.line_leader2,
-    operatorField: !!form.operator,
-    operator2Field: !!form.operator2,
-    qcInspectorField: !!form.qc_inspector,
-    qcInspector2Field: !!form.qc_inspector2
-  });
+  // Form field checks completed
   
   form.customer.value = dataToUse.customer;
   form.production_no.value = dataToUse.production_no;
@@ -2301,7 +2245,7 @@ document.addEventListener('visibilitychange', function() {
 
 // Add autocomplete functionality for personnel fields
 async function setupPersonnelAutocomplete() {
-    console.log('🔍 Setting up personnel autocomplete...');
+            // Setting up personnel autocomplete
     
     // Fetch all users from the database
     const { data: users, error } = await supabase
@@ -2314,7 +2258,7 @@ async function setupPersonnelAutocomplete() {
         return;
     }
     
-    console.log('📊 Fetched users:', users);
+            // Fetched users
     
     // Filter users by department
     const productionUsers = users.filter(user => 
@@ -2324,8 +2268,7 @@ async function setupPersonnelAutocomplete() {
         user.department === 'Quality Control' || user.department === 'Quality Assurance'
     );
     
-    console.log('🏭 Production users:', productionUsers);
-    console.log('🔬 QC users:', qcUsers);
+            // Production and QC users filtered
     
     // Setup autocomplete for each field
     const personnelFields = [
@@ -2341,18 +2284,18 @@ async function setupPersonnelAutocomplete() {
     
     personnelFields.forEach(field => {
         const input = document.querySelector(`input[name="${field.name}"]`);
-        console.log(`🔍 Looking for field: ${field.name}`, input);
+        // Looking for field
         if (input) {
-            console.log(`✅ Found field: ${field.name}, setting up autocomplete`);
+            // Found field, setting up autocomplete
             setupAutocompleteForField(input, field.users);
         } else {
-            console.log(`❌ Field not found: ${field.name}`);
+            // Field not found
         }
     });
 }
 
 async function setupProductAutocomplete() {
-    console.log('🔍 Setting up product autocomplete...');
+            // Setting up product autocomplete
     
     // Fetch all products from the database
     const { data: products, error } = await supabase
@@ -2366,7 +2309,7 @@ async function setupProductAutocomplete() {
         return;
     }
     
-    console.log('📊 Fetched products:', products);
+            // Fetched products
     
     // Setup autocomplete for product fields
     const productFields = [
@@ -2377,18 +2320,18 @@ async function setupProductAutocomplete() {
     
     productFields.forEach(field => {
         const input = document.querySelector(`input[name="${field.name}"]`);
-        console.log(`🔍 Looking for field: ${field.name}`, input);
+        // Looking for field
         if (input) {
-            console.log(`✅ Found field: ${field.name}, setting up autocomplete`);
+            // Found field, setting up autocomplete
             setupProductAutocompleteForField(input, field.products, field.field);
         } else {
-            console.log(`❌ Field not found: ${field.name}`);
+            // Field not found
         }
     });
 }
 
 function setupAutocompleteForField(input, users) {
-    console.log(`🎯 Setting up autocomplete for ${input.name} with ${users.length} users`);
+            // Setting up autocomplete for field
     let dropdown = null;
     let originalValue = ''; // Store original value before typing
     
@@ -2438,7 +2381,7 @@ function setupAutocompleteForField(input, users) {
                 input.value = user.full_name;
                 dropdown.remove();
                 dropdown = null;
-                console.log(`✅ Selected: ${user.full_name}`);
+                // Selected user
                 
                 // Clear any existing error when valid option is selected
                 clearFieldError(input);

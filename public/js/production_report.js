@@ -943,7 +943,7 @@ function updateStatisticsTable(shiftData) {
 // GET ALL PRODUCTS DATA - Show combined data from all products for a machine
 function getAllProductsData(fromDate, toDate, machine, shift) {
     
-    console.log('🔍 getAllProductsData called with:', { fromDate, toDate, machine, shift });
+            // getAllProductsData called
     
     // STEP 1: Find records that match the filter criteria (machine + date + shift, but NO product filter)
     const masterRecords = allForms.filter(form => {
@@ -971,11 +971,7 @@ function getAllProductsData(fromDate, toDate, machine, shift) {
         return traceabilityKeys.includes(traceabilityKey);
     });
     
-    console.log('📊 getAllProductsData results:', {
-        masterRecordsCount: masterRecords.length,
-        traceabilityKeysCount: traceabilityKeys.length,
-        allProductsDataCount: allProductsData.length
-    });
+    // getAllProductsData results
     
     // Update summary tables with combined data from all products (skip statistics for all products)
     updateSummaryTablesWithData(allProductsData, true); // true = skip statistics
@@ -998,7 +994,7 @@ async function fetchDefectTypes() {
         }
         
         defectTypes = data.map(item => item.defect_name);
-        console.log('Fetched defect types from database:', defectTypes);
+        // Fetched defect types from database
         return defectTypes;
     } catch (error) {
         console.error('Error fetching defect types:', error);
@@ -1045,11 +1041,11 @@ function updateDefectTrackingTable(formsData) {
 
     // Check if defect types are loaded
     if (!defectTypes || defectTypes.length === 0) {
-        console.log('Defect types not loaded yet, skipping update');
+        // Defect types not loaded yet, skipping update
         return;
     }
 
-    console.log('Processing forms data for defect tracking:', formsData.length, 'forms');
+    // Processing forms data for defect tracking
 
     // Initialize defect tracking data structure
     const defectData = {};
@@ -1062,7 +1058,7 @@ function updateDefectTrackingTable(formsData) {
 
     // Process forms data to extract defect information
     formsData.forEach((form) => {
-        console.log('Processing form:', form.id, 'with defect_names:', form.defect_names);
+        // Processing form
         
         // Check for defects in the defect_names JSONB column
         if (form.defect_names && typeof form.defect_names === 'object') {
@@ -1078,9 +1074,9 @@ function updateDefectTrackingTable(formsData) {
                         if (matchingDefect) {
                             defectData[matchingDefect].totalQty += 1;
                             defectData[matchingDefect].occurrences[rollPos - 1] += 1; // rollPos - 1 because array is 0-indexed
-                            console.log(`Found defect "${defectName}" at roll position ${rollPos}`);
+                            // Found defect at roll position
                         } else {
-                            console.log(`Defect "${defectName}" not found in defect types list`);
+                            // Defect not found in defect types list
                         }
                     }
                 }
@@ -1088,12 +1084,12 @@ function updateDefectTrackingTable(formsData) {
         }
     });
 
-    console.log('Processed defect data:', defectData);
+    // Processed defect data
 
     // Filter to show only defects that have data
     const defectsWithData = Object.entries(defectData).filter(([defect, data]) => data.totalQty > 0);
     
-    console.log('Defects with data:', defectsWithData.length, 'out of', defectTypes.length);
+    // Defects with data
 
     // Update the table - show only defects with data
     const tbody = document.getElementById('defectTrackingTableBody');
@@ -1185,11 +1181,7 @@ function updateDefectTrackingSummary(formsData) {
     
     const rejectionPercent = totalProduced > 0 ? ((totalRejected / totalProduced) * 100).toFixed(1) : '0.0';
 
-    console.log('Defect tracking summary (using production summary logic):', {
-        totalProduced,
-        totalRejected,
-        rejectionPercent
-    });
+    // Defect tracking summary
 
     document.getElementById('totalRejectedQty').textContent = totalRejected;
     document.getElementById('totalProducedQty').textContent = totalProduced;

@@ -350,14 +350,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // --- Add Confirmation --- 
             if (window.confirm("Are you sure you want to log out?")) {
-                console.log('Logout confirmed, signing out...'); // Debug log
+                // Logout confirmed, signing out
                 try {
                     const { error } = await supabase.auth.signOut();
                     if (error) {
                         console.error('Error logging out:', error);
                         alert('Logout failed. Please try again.');
                     } else {
-                        console.log('Logout successful, redirecting...'); // Debug log
+                        // Logout successful, redirecting
                         window.location.replace('../html/auth.html'); // Redirect after successful logout
                     }
                 } catch (err) {
@@ -365,7 +365,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     alert('An unexpected error occurred during logout.');
                 }
             } else {
-                console.log('Logout cancelled by user.'); // Debug log (optional)
+                // Logout cancelled by user
             }
             // --- End Confirmation ---
         });
@@ -417,11 +417,11 @@ async function loadUserProfile() {
 }
 
 async function filterQuickActionsByDepartment(user) {
-    console.log('filterQuickActionsByDepartment called.');
-    console.log('User object:', user);
+    // filterQuickActionsByDepartment called
+    // User object
 
     if (!user) {
-        console.log('No user object, cannot filter quick actions.');
+        // No user object, cannot filter quick actions
         return;
     }
 
@@ -437,10 +437,10 @@ async function filterQuickActionsByDepartment(user) {
             return;
         }
 
-        console.log('User profile data:', userProfile);
+        // User profile data
 
         const userDepartment = userProfile?.department;
-        console.log('User Department:', userDepartment);
+        // User Department
 
         const quickActionGrid = document.querySelector('.quick-action-grid');
         if (quickActionGrid) {
@@ -448,17 +448,17 @@ async function filterQuickActionsByDepartment(user) {
         }
 
         const quickActionCards = document.querySelectorAll('.action-card'); // Changed to action-card based on HTML
-        console.log('Found quick action cards:', quickActionCards.length);
+        // Found quick action cards
 
         quickActionCards.forEach(card => {
             const cardDepartments = card.getAttribute('data-department');
-            console.log('Card data-department:', cardDepartments);
+            // Card data-department
 
             let shouldDisplay = false;
 
             if (cardDepartments) {
                 const departmentsArray = cardDepartments.split(',').map(dept => dept.trim());
-                console.log('Card departments array:', departmentsArray);
+                // Card departments array
 
                 if (departmentsArray.includes('All')) {
                     shouldDisplay = true;
@@ -468,7 +468,7 @@ async function filterQuickActionsByDepartment(user) {
                 }
             }
 
-            console.log(`Card: ${card.querySelector('h3')?.textContent || 'N/A'}, Should Display: ${shouldDisplay}`);
+            // Card display decision
             if (shouldDisplay) {
                 card.classList.remove('js-hide');
             } else {
