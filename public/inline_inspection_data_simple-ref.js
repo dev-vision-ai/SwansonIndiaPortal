@@ -22,26 +22,13 @@ let clockInterval = null;
 // ===== TEAM MEMBERS FUNCTIONALITY =====
 function populateTeamMembers(formData) {
     try {
-        // Helper function to combine multiple names with commas
-        function combineNames(name1, name2) {
-            if (name1 && name2) {
-                return `${name1}, ${name2}`;
-            } else if (name1) {
-                return name1;
-            } else if (name2) {
-                return name2;
-            } else {
-                return 'N/A';
-            }
-        }
-        
-        // Populate team members table with combined names
-        document.getElementById('supervisor_name').textContent = combineNames(formData.supervisor, formData.supervisor2);
+        // Populate team members table with separate role and name columns
+        document.getElementById('supervisor_name').textContent = formData.supervisor || 'N/A';
         document.getElementById('line_leader_name').textContent = formData.line_leader || 'N/A';
-        document.getElementById('operator_name').textContent = combineNames(formData.operator, formData.operator2);
-        document.getElementById('qc_inspector_name').textContent = combineNames(formData.qc_inspector, formData.qc_inspector2);
+        document.getElementById('operator_name').textContent = formData.operator || 'N/A';
+        document.getElementById('qc_inspector_name').textContent = formData.qc_inspector || 'N/A';
         
-        // Team members data populated successfully
+        console.log('✅ Team members data populated successfully');
     } catch (error) {
         console.error('❌ Error populating team members:', error);
     }
@@ -113,7 +100,7 @@ function startClock() {
         clockInterval = setInterval(updateClock, 1000);
         intervals.add(clockInterval);
         
-        // Clock started successfully
+        console.log('✅ Clock started successfully');
     } catch (error) {
         console.error('❌ Error starting clock:', error);
     }
@@ -125,7 +112,7 @@ function stopClock() {
             clearInterval(clockInterval);
             clockInterval = null;
         }
-        // Clock stopped successfully
+        console.log('✅ Clock stopped successfully');
     } catch (error) {
         console.error('❌ Error stopping clock:', error);
     }
@@ -413,7 +400,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         saveTimeout = setTimeout(async () => {
                             try {
                                 const newValue = this.value.trim();
-                                // Auto-saving production_no_2
+                                console.log('Auto-saving production_no_2:', newValue);
                                 
                                 const { error } = await supabase
                                     .from('inline_inspection_form_master_2')
@@ -424,7 +411,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                                 if (error) {
                                     console.error('Error auto-saving production_no_2:', error);
                                 } else {
-                                    // production_no_2 auto-saved successfully
+                                    console.log('✅ production_no_2 auto-saved successfully');
                                 }
                             } catch (error) {
                                 console.error('Error in production_no_2 auto-save:', error);
@@ -439,7 +426,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 // Store the form type globally for use in table creation
                 isNonPrintedForm = formData.non_printed || false;
-                // Form type detected
+                console.log('Form type detected - Non-printed:', isNonPrintedForm);
                 document.getElementById('year').textContent = formData.year || '[Year]';
                 document.getElementById('month').textContent = formData.month || '[Month]';
                 document.getElementById('date').textContent = formData.date || '[Date]';
@@ -497,10 +484,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                     }
                 });
                 
-                        // View mode: Disabled all interactive elements
+                console.log('View mode: Disabled', editableCells.length, 'editable cells');
+                console.log('View mode: Disabled', selectDropdowns.length, 'select dropdowns');
+                console.log('View mode: Disabled', inputFields.length, 'input fields');
+                console.log('View mode: Disabled', buttons.length, 'buttons');
                 
                 // Apply color coding for X/O values in view mode
-                // View mode: Applying color coding for X/O values
+                console.log('View mode: Applying color coding for X/O values');
                 
                 // Apply Accept/Reject color coding to tables
                 applyColorCodingToTable();
@@ -568,7 +558,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     }
                 });
                 
-                // View mode: Color coding applied
+                console.log('View mode: Color coding applied');
             }, 500); // Small delay to ensure all elements are rendered
         }
     }
@@ -614,7 +604,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const naColumns = [18, 19, 20, 21, 22, 23]; // ct_appearance, print_color, mis_print, dirty_print, tape_test, centralization
             if (isNonPrintedForm && naColumns.includes(colIndex)) {
                 td.textContent = 'NA';
-                // Pre-filled NA in column
+                console.log(`Pre-filled NA in column ${colIndex} (${fieldMap[colIndex]})`);
             }
         }
         
@@ -660,7 +650,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const formId = table?.dataset?.formId;
                 const allTables = Array.from(document.querySelectorAll('#tablesContainer table'));
                 const tableIndex = allTables.indexOf(table);
-                // Cell change event in table
+                console.log('[DEBUG] Cell change event in table:', { formId, tableIndex });
                 
                 // Handle Accept/Reject → Disable Row functionality
                 const selectedValue = select.value;
@@ -739,7 +729,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         }
                     });
                     
-                                            // Auto-cleared defect name and changed X to O for Accept status (remarks preserved)
+                    console.log('Auto-cleared defect name and changed X to O for Accept status (remarks preserved)');
                 }
                 
                 // Save the Accept/Reject selection to database immediately
@@ -768,7 +758,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const formId = table?.dataset?.formId;
                 const allTables = Array.from(document.querySelectorAll('#tablesContainer table'));
                 const tableIndex = allTables.indexOf(table);
-                // Cell input event in table
+                console.log('[DEBUG] Cell input event in table:', { formId, tableIndex });
                 
                 const field = td.dataset.field;
                 let text = td.textContent;
@@ -956,7 +946,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const formId = table?.dataset?.formId;
                 const allTables = Array.from(document.querySelectorAll('#tablesContainer table'));
                 const tableIndex = allTables.indexOf(table);
-                // Cell blur event in table
+                console.log('[DEBUG] Cell blur event in table:', { formId, tableIndex });
                 const text = td.textContent;
                 const capitalizedText = capitalizeText(text);
                 
@@ -1127,7 +1117,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         try {
             sampleCell = table.querySelector('tbody tr td')?.textContent || '';
         } catch (e) {}
-        // saveLotToSupabase debug info
+        console.log('[DEBUG] saveLotToSupabase:', { formId, tableIndex, sampleCell });
         const tbody = table.querySelector('tbody');
         if (!tbody) return;
         const rows = tbody.rows;
@@ -1270,7 +1260,23 @@ document.addEventListener('DOMContentLoaded', async function() {
             acceptRejectStatus
         });
         
-        // Saving to individual JSONB columns
+        // Debug: Log the update payload
+        console.log('Saving to individual JSONB columns:', {
+            roll_weights: rollWeights,
+            roll_widths: rollWidths,
+            film_weights_gsm: filmWeightsGsm,
+            thickness_data: thicknessData,
+            roll_diameters: rollDiameters,
+            accept_reject_status: acceptRejectStatus,
+            defect_names: defectNames,
+            film_appearance: filmAppearance,
+            printing_quality: printingQuality,
+            roll_appearance: rollAppearance,
+            paper_core_data: paperCoreData,
+            time_data: timeData,
+            remarks_data: remarksData,
+            summary: summary
+        });
         
         // Update row in Supabase with individual JSONB columns
         const { error } = await supabase
@@ -1306,7 +1312,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (error) {
             alert('Error saving lot: ' + error.message);
         } else {
-            // Lot saved to individual JSONB columns
+            console.log('Lot saved to individual JSONB columns!');
         }
     }
     
@@ -2852,7 +2858,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 };
                 
                 // Migration function deprecated - now using individual JSONB columns
-                // Migration function deprecated - using new JSONB structure
+                console.log('Migration function deprecated - using new JSONB structure');
                 
                 if (saveError) {
                     console.error('Error saving migrated data:', saveError);
@@ -2883,14 +2889,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     // If we have old data format, migrate it automatically
     if (traceabilityCode) {
         // Migration logic removed - now using individual JSONB columns
-        // Using new JSONB structure - no migration needed
+        console.log('Using new JSONB structure - no migration needed');
     }
 
     // ===== MULTI-LOT SUPPORT START =====
 
     // Helper to create a table for a lot, given its data and form_id
     function createLotTable(lot, nRows = 0) {
-        // createLotTable called
+        console.log('createLotTable called with lot:', lot);
         
         // Reconstruct rolls array from individual JSONB columns
         const rolls = [];
@@ -2955,7 +2961,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             rolls.push(roll);
         }
         
-        // Rolls reconstructed
+        console.log('Reconstructed rolls:', rolls);
         
         // Insert a dotted separator before each table except the first
         if (tablesContainer.childElementCount > 0) {
@@ -3106,23 +3112,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 try {
                     const rows = table.querySelectorAll('tbody tr');
                     let hasChanges = false;
-                    const rowsWithAcceptStatus = new Set(); // Track rows that had Accept status
                     
-                    // First pass: Clear O values and track which rows had Accept status
-                    rows.forEach((row, rowIndex) => {
+                    rows.forEach(row => {
                         const cells = row.querySelectorAll('td');
-                        let rowHadOValues = false;
-                        
-                        // Check Accept/Reject status BEFORE clearing O values
-                        const acceptRejectCell = row.querySelector('td[data-field="accept_reject"]');
-                        if (acceptRejectCell) {
-                            const acceptRejectSelect = acceptRejectCell.querySelector('select');
-                            if (acceptRejectSelect && acceptRejectSelect.value === 'Accept') {
-                                // This row had Accept status, mark it for reset
-                                rowsWithAcceptStatus.add(rowIndex);
-                            }
-                        }
-                        
                         // Only clear Lines/Strips (12), Film Appearance (13-19), Printing (20-24), Roll Appearance (25-28)
                         const targetIndices = [
                             12,                    // Lines/Strips
@@ -3130,7 +3122,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                             20, 21, 22, 23, 24,         // Printing
                             25, 26, 27, 28              // Roll Appearance
                         ];
-                        
                         targetIndices.forEach(idx => {
                             const td = cells[idx];
                             if (
@@ -3152,19 +3143,35 @@ document.addEventListener('DOMContentLoaded', async function() {
                         });
                     });
                     
-                    // Second pass: Reset Accept/Reject status only for rows that had Accept status
+                    // After clearing O values, reset Accept/Reject status for each row
                     if (hasChanges) {
-                        rows.forEach((row, rowIndex) => {
-                            // Only reset Accept/Reject if this row had Accept status
-                            if (rowsWithAcceptStatus.has(rowIndex)) {
-                                const acceptRejectCell = row.querySelector('td[data-field="accept_reject"]');
-                                if (acceptRejectCell) {
-                                    const acceptRejectSelect = acceptRejectCell.querySelector('select');
-                                    if (acceptRejectSelect) {
-                                        // Reset Accept/Reject to default only for rows that had Accept status
-                                        acceptRejectSelect.value = '';
-                                        acceptRejectSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                                    }
+                        const rows = table.querySelectorAll('tbody tr');
+                        rows.forEach(row => {
+                            // Find the Accept/Reject dropdown in the same row
+                            const acceptRejectCell = row.querySelector('td[data-field="accept_reject"]');
+                            if (acceptRejectCell) {
+                                const acceptRejectSelect = acceptRejectCell.querySelector('select');
+                                if (acceptRejectSelect) {
+                                    // Reset Accept/Reject to default when clearing O values
+                                    acceptRejectSelect.value = '';
+                                    acceptRejectSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                                }
+                            }
+                        });
+                    }
+                    
+                    // After clearing O values, reset Accept/Reject status for each row
+                    if (hasChanges) {
+                        const rows = table.querySelectorAll('tbody tr');
+                        rows.forEach(row => {
+                            // Find the Accept/Reject dropdown in the same row
+                            const acceptRejectCell = row.querySelector('td[data-field="accept_reject"]');
+                            if (acceptRejectCell) {
+                                const acceptRejectSelect = acceptRejectCell.querySelector('select');
+                                if (acceptRejectSelect) {
+                                    // Reset Accept/Reject to default when clearing O values
+                                    acceptRejectSelect.value = '';
+                                    acceptRejectSelect.dispatchEvent(new Event('change', { bubbles: true }));
                                 }
                             }
                         });
@@ -3245,7 +3252,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Build tbody - Updated for individual JSONB columns
         const tbody = document.createElement('tbody');
         
-        // Rolls reconstructed from JSONB
+        console.log('Rolls reconstructed from JSONB:', rolls);
         const numRows = Math.max(rolls.length, nRows);
         
         // Always add the correct number of rows
@@ -3259,12 +3266,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Set lot number for first row if no rolls data (new lot)
                 if (col === 2 && isFirstRow && rolls.length === 0) {
                     td.textContent = lot.lot_no || '';
-                    // Setting lot number for new table
+                    console.log('Setting lot number for new table:', lot.lot_no);
                 }
                 // Set arm for first row if no rolls data (new lot)
                 else if (col === 4 && isFirstRow && rolls.length === 0) {
                     td.textContent = lot.arm || '';
-                    // Setting arm for new table
+                    console.log('Setting arm for new table:', lot.arm);
                 }
                 // If there is data for this row, fill it
                 else if (rolls[i]) {
@@ -3336,7 +3343,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const firstRow = tbody.querySelector('tr');
                 if (firstRow) {
                     const inspectedByCell = firstRow.lastElementChild;
-                    // Setting Inspected By cell
+                    console.log('Setting Inspected By cell (last cell):', inspectedByCell, 'to', lot.inspected_by);
                     inspectedByCell.textContent = lot.inspected_by;
                 }
             }, 200);
@@ -3415,7 +3422,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         const remarksData = {};
         
         let inspectedBy = '';
-        let armValue = '';
         
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
@@ -3563,7 +3569,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (error) {
             console.error('Error saving lot: ' + error.message);
         } else {
-            // Lot saved successfully to individual JSONB columns
+            console.log('Lot saved successfully to individual JSONB columns');
         }
     }
 
@@ -3579,7 +3585,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             .eq('traceability_code', traceabilityCode)
             .eq('lot_letter', lotLetter)
             .order('created_at', { ascending: true });
-        // Lots fetched successfully
+        console.log('Fetched lots:', lots);
+        console.log('Number of lots found:', lots ? lots.length : 0);
         if (error) {
             alert('Error loading lots: ' + error.message);
             return;
@@ -3641,17 +3648,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Clear the container before repopulating
         tablesContainer.innerHTML = '';
         lots.forEach((lot, index) => {
-            // Rendering lot
+            console.log(`Rendering lot ${index + 1}:`, lot);
             // Calculate number of rolls from JSONB data
             let rollCount = Object.keys(lot.accept_reject_status || {}).length;
             
             // If this is a new lot (empty JSONB data), use total_rolls field
             if (rollCount === 0 && lot.total_rolls > 0) {
                 rollCount = lot.total_rolls;
-                // New lot detected
+                console.log('New lot detected, using total_rolls:', rollCount);
             }
             
-            // Creating table for lot
+            console.log(`Creating table for lot ${index + 1} with ${rollCount} rows`);
             createLotTable(lot, rollCount);
         });
         // Ensure Add Next Lot button is only appended once at the end
@@ -3667,7 +3674,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // ===== FILL NA VALUES FOR NON-PRINTED FORMS =====
         // After tables are loaded, check if this is a non-printed form and fill NA values
         if (isNonPrintedForm) {
-            // Non-printed form detected
+            console.log('Non-printed form detected - filling NA values in existing tables');
             fillNAValuesForNonPrintedForm();
         }
         
@@ -3885,7 +3892,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Use cached QC inspectors instead of querying database every time
         const qcInspectors = qcInspectorsCache;
         
-        // QC Inspectors Cache
+        console.log('QC Inspectors Cache:', qcInspectors); // Debug log
         
         // Process each table separately to check first row inspector
         tables.forEach((table, tableIndex) => {
@@ -3899,11 +3906,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             const firstRow = rows[0];
             const firstRowInspector = firstRow.querySelector('td[data-field="inspected_by"]')?.textContent.trim() || '';
             
-            // Table inspector check
+            console.log(`Table ${tableIndex} - First row inspector: "${firstRowInspector}"`); // Debug log
             
             // Only process this table's defects if first row inspector is from QC department
             if (firstRowInspector && qcInspectors.includes(firstRowInspector)) {
-                // Processing QC table // Debug log
+                console.log(`Processing table ${tableIndex} - Inspector "${firstRowInspector}" is QC`); // Debug log
                 
                 // Process all rows in this table
                 rows.forEach((row, rowIndex) => {
@@ -3915,7 +3922,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     
                     const defect = (rollData.defect_name || '').trim();
                     if (defect) {
-                        // Found defect
+                        console.log(`Found defect in table ${tableIndex}, row ${rowIndex}: "${defect}"`); // Debug log
                         if (!ipqcDefectCounts[defect]) {
                             ipqcDefectCounts[defect] = 0;
                         }
@@ -3923,11 +3930,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                     }
                 });
             } else {
-                // Skipping non-QC table // Debug log
+                console.log(`Skipping table ${tableIndex} - Inspector "${firstRowInspector}" is not QC`); // Debug log
             }
         });
         
-        // IPQC Defect Counts
+        console.log('IPQC Defect Counts:', ipqcDefectCounts); // Debug log
         
         // Render the IPQC defects table
         let ipqcTable = document.getElementById('ipqcDefectsTable');
@@ -4130,7 +4137,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 })
                 .map(user => user.full_name);
             
-                    // Users filtered for Inspected By
+            console.log('Filtered users for "Inspected By":', userSuggestions); // Debug log
+            console.log('QC Inspectors found:', qcInspectorsCache); // Debug log
         }
     })();
 
@@ -4278,13 +4286,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (e.target && e.target.dataset && e.target.dataset.field === 'inspected_by') {
                 showInspectorAutocomplete(e.target);
             }
-            if (e.target && e.target.dataset && e.target.dataset.field === 'remarks') {
-                // Debounce the update to avoid too frequent calls
-                clearTimeout(window.remarksUpdateTimeout);
-                window.remarksUpdateTimeout = setTimeout(() => {
-                    updateProductionNo2FromRemarks();
-                }, 500); // Wait 500ms after user stops typing
-            }
         });
         // Optional: Hide dropdown on scroll
         window.addEventListener('scroll', function() {
@@ -4301,90 +4302,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     const cancelDeleteTableBtn = document.getElementById('cancelDeleteTableBtn');
     const confirmDeleteTableBtn = document.getElementById('confirmDeleteTableBtn');
     
-    // Function to update Production No. 2 & 3 field based on all remarks
-    function updateProductionNo2FromRemarks() {
-        const tables = tablesContainer.querySelectorAll('table');
-        const allProductionNosFromRemarks = new Set();
-        
-        // Collect all production numbers from all remarks across all tables
-        tables.forEach((table, tableIndex) => {
-            const tbody = table.querySelector('tbody');
-            if (!tbody) return;
-            
-            const rows = Array.from(tbody.rows);
-            
-            rows.forEach((row, rowIndex) => {
-                const cells = row.querySelectorAll('td[data-field]');
-                
-                cells.forEach(cell => {
-                    const field = cell.dataset.field;
-                    if (field === 'remarks') {
-                        const remarks = cell.textContent.trim();
-                        const patterns = [
-                            /PRD:\s*([A-Z0-9]+)/i,
-                            /Production:\s*([A-Z0-9]+)/i,
-                            /Prod:\s*([A-Z0-9]+)/i,
-                            /([A-Z]{2,3}\d{2}[A-Z]{2}\d{3})/
-                        ];
-                        
-                        for (const pattern of patterns) {
-                            const matches = remarks.matchAll(new RegExp(pattern.source, 'gi'));
-                            for (const match of matches) {
-                                if (match[1]) {
-                                    allProductionNosFromRemarks.add(match[1]);
-                                }
-                            }
-                        }
-                    }
-                });
-            });
-        });
-        
-        // Update Production No. 2 & 3 field based on all collected production numbers
-        const productionNo2Field = document.getElementById('production_no_2');
-        if (productionNo2Field) {
-            const currentValue = productionNo2Field.value.trim();
-            const existingNos = currentValue ? currentValue.split(',').map(n => n.trim()) : [];
-            const allProductionNosArray = Array.from(allProductionNosFromRemarks);
-            
-            if (allProductionNosArray.length > 0) {
-                // Add new production numbers that aren't already in the field
-                const newNos = allProductionNosArray.filter(no => !existingNos.includes(no));
-                const removedNos = existingNos.filter(no => !allProductionNosArray.includes(no));
-                
-                if (newNos.length > 0 || removedNos.length > 0) {
-                    const updatedValue = allProductionNosArray.join(', ');
-                    productionNo2Field.value = updatedValue;
-                    // Trigger auto-save
-                    const event = new Event('input', { bubbles: true });
-                    productionNo2Field.dispatchEvent(event);
-                    
-                    if (newNos.length > 0) {
-                        console.log('🔄 Auto-populated Production No. 2 & 3 from remarks:', newNos.join(', '));
-                    }
-                    if (removedNos.length > 0) {
-                        console.log('🗑️ Removed from Production No. 2 & 3:', removedNos.join(', '));
-                    }
-                    
-                    // Update Production No Summary table to reflect changes
-                    renderProductionNoSummaryTable();
-                }
-            } else {
-                // If no production numbers found in any remarks, clear the field
-                if (existingNos.length > 0) {
-                    productionNo2Field.value = '';
-                    // Trigger auto-save
-                    const event = new Event('input', { bubbles: true });
-                    productionNo2Field.dispatchEvent(event);
-                    console.log('🗑️ Cleared Production No. 2 & 3 - no production numbers found in any remarks');
-                    
-                    // Update Production No Summary table to reflect changes
-                    renderProductionNoSummaryTable();
-                }
-            }
-        }
-    }
-
     // Function to show success message overlay
     function showSuccessMessage(title, message) {
         const overlay = document.getElementById('successMessageOverlay');
@@ -4851,57 +4768,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         let currentProductionNo = mainProductionNo;
         let totalRollsProcessed = 0;
         
-        // Collect all production numbers from all remarks across all tables for summary
-        const allProductionNosFromRemarks = new Set();
-        
-        // First pass: collect all production numbers from all remarks
-        tables.forEach((table, tableIndex) => {
-            const tbody = table.querySelector('tbody');
-            if (!tbody) return;
-            
-            const rows = Array.from(tbody.rows);
-            
-            rows.forEach((row, rowIndex) => {
-                const cells = row.querySelectorAll('td[data-field]');
-                
-                cells.forEach(cell => {
-                    const field = cell.dataset.field;
-                    if (field === 'remarks') {
-                        const remarks = cell.textContent.trim();
-                        const patterns = [
-                            /PRD:\s*([A-Z0-9]+)/i,
-                            /Production:\s*([A-Z0-9]+)/i,
-                            /Prod:\s*([A-Z0-9]+)/i,
-                            /([A-Z]{2,3}\d{2}[A-Z]{2}\d{3})/
-                        ];
-                        
-                        for (const pattern of patterns) {
-                            const matches = remarks.matchAll(new RegExp(pattern.source, 'gi'));
-                            for (const match of matches) {
-                                if (match[1]) {
-                                    allProductionNosFromRemarks.add(match[1]);
-                                }
-                            }
-                        }
-                    }
-                });
-            });
-        });
-        
-        // Add all production numbers from remarks to the summary data
-        allProductionNosFromRemarks.forEach(prodNo => {
-            if (!productionNoData[prodNo]) {
-                productionNoData[prodNo] = { rolls: 0, totalKg: 0 };
-            }
-        });
-        
         // Process all tables in order (shift-wide continuous tracking)
         tables.forEach((table, tableIndex) => {
             const tbody = table.querySelector('tbody');
             if (!tbody) return;
             
             const rows = Array.from(tbody.rows);
-            // Processing table
+            console.log(`Processing Table ${tableIndex + 1} with ${rows.length} rows, current Production No: ${currentProductionNo}`);
             
             // Process each row in the table
             rows.forEach((row, rowIndex) => {
@@ -4910,14 +4783,14 @@ document.addEventListener('DOMContentLoaded', async function() {
                 let remarks = '';
                 let productionNoChanged = false;
                 
-                // Check for Production No change in remarks and collect roll weight
+                // Check for Production No change in remarks first
                 cells.forEach(cell => {
                     const field = cell.dataset.field;
                     if (!field) return;
                     
                     if (field === 'remarks') {
                         remarks = cell.textContent.trim();
-                        // Look for Production No patterns in remarks for tracking
+                        // Look for Production No patterns in remarks
                         const patterns = [
                             /PRD:\s*([A-Z0-9]+)/i,           // PRD: UBS25PR026
                             /Production:\s*([A-Z0-9]+)/i,     // Production: UBS25PR026
@@ -4925,10 +4798,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                             /([A-Z]{2,3}\d{2}[A-Z]{2}\d{3})/ // Direct format like UBS25PR026
                         ];
                         
-                        // Update current production number for tracking
                         for (const pattern of patterns) {
                             const match = remarks.match(pattern);
                             if (match && match[1] !== currentProductionNo) {
+                                console.log(`Production No changed from ${currentProductionNo} to ${match[1]} at Table ${tableIndex + 1}, Row ${rowIndex + 1}`);
                                 currentProductionNo = match[1];
                                 productionNoChanged = true;
                                 break;
@@ -4948,12 +4821,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                     productionNoData[currentProductionNo].totalKg += rollWeight;
                     totalRollsProcessed++;
                     
-                    // Added roll to production
+                    console.log(`Added roll to ${currentProductionNo}: weight=${rollWeight}, total rolls=${productionNoData[currentProductionNo].rolls}, total kg=${productionNoData[currentProductionNo].totalKg.toFixed(2)}`);
                 }
             });
         });
         
-        // Production No Summary completed
+        console.log('Production No Summary - Total rolls processed:', totalRollsProcessed);
+        console.log('Production No Data:', productionNoData);
         
         // Render the Production No summary table
         let productionNoTable = document.getElementById('productionNoSummaryTable');
