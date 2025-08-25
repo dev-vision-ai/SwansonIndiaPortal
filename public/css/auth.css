@@ -113,10 +113,6 @@ input:focus, select:focus {
 }
 .auth-btn:hover {
     box-shadow: 0 8px 15px rgba(0, 46, 125, 0.3);
-    transform: translateY(-2px);
-}
-.auth-btn:active {
-    transform: scale(0.98);
 }
 .auth-switch {
     margin-top: 1.5rem;

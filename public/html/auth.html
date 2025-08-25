@@ -44,49 +44,7 @@
         color: #4B5563;
     }
 
-    /* Fade-in animation for the whole page */
-    .page-fade-in {
-      opacity: 0;
-      animation: pageFadeIn 1.5s ease forwards;
-    }
-    @keyframes pageFadeIn {
-      to {
-        opacity: 1;
-      }
-    }
 
-    /* Blurring, zooming, and fading animation for background image */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      background: linear-gradient(rgba(0, 46, 125, 0.7), rgba(0, 46, 125, 0.7)),
-        url('../assets/company-photo.png') no-repeat center center/cover;
-      filter: blur(0px);
-      opacity: 1;
-      pointer-events: none;
-      animation: bgZoomBlur 16s ease-in-out infinite alternate;
-      background-size: 100% 100%;
-    }
-    @keyframes bgZoomBlur {
-      0% {
-        filter: blur(0px);
-        background-size: 100% 100%;
-      }
-      40% {
-        filter: blur(6px);
-        background-size: 108% 108%;
-      }
-      60% {
-        filter: blur(6px);
-        background-size: 108% 108%;
-      }
-      100% {
-        filter: blur(0px);
-        background-size: 100% 100%;
-      }
-    }
 
     @media (max-width: 600px) {
       .auth-container-wrapper {
@@ -144,34 +102,12 @@
         margin-top: 0.2rem !important;
         margin-bottom: 0.2rem !important;
       }
-      body::before {
-        background-size: cover !important;
-        animation: bgZoomBlurMobile 14s ease-in-out infinite alternate !important;
-      }
-    }
-    @keyframes bgZoomBlurMobile {
-      0% {
-        filter: blur(0px);
-        background-size: cover;
-      }
-      40% {
-        filter: blur(4px);
-        background-size: 104% 104%;
-      }
-      60% {
-        filter: blur(4px);
-        background-size: 104% 104%;
-      }
-      100% {
-        filter: blur(0px);
-        background-size: cover;
-      }
     }
   </style>
 </head>
 <body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4"> <!-- Removed 'relative' -->
 
-  <div class="auth-container-wrapper flex flex-col md:flex-row bg-white w-full page-fade-in"> <!-- Removed 'mt-16' -->
+  <div class="auth-container-wrapper flex flex-col md:flex-row bg-white w-full"> <!-- Removed 'mt-16' -->
 
     <div class="relative w-full md:w-1/2 h-64 md:h-auto">
       <img alt="Modern office background" class="object-cover w-full h-full" src="../assets/company-photo.png" />
@@ -202,7 +138,7 @@
         <form id="loginForm" class="space-y-5"> 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1" for="empcode">
-              Employee Code / Admin
+              Employee Code / Admin / Shift 
             </label>
             <input type="text" id="empcode" placeholder="Enter Employee Code" required
                    class="input-field appearance-none block w-full shadow-sm focus:outline-none"/>
