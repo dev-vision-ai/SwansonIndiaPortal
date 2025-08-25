@@ -483,10 +483,17 @@ document.addEventListener('DOMContentLoaded', async function() {
                     select.disabled = true;
                 });
                 
-                // Disable all input fields
+                // Disable all input fields except form type checkboxes (keep them visible in view mode)
                 const inputFields = document.querySelectorAll('input');
                 inputFields.forEach(input => {
-                    input.disabled = true;
+                    // Keep form type checkboxes enabled and visible in view mode
+                    if (input.id === 'printed' || input.id === 'non_printed' || input.id === 'ct') {
+                        input.disabled = false;
+                        input.style.opacity = '1';
+                        input.style.pointerEvents = 'none'; // Prevent interaction but keep visible
+                    } else {
+                        input.disabled = true;
+                    }
                 });
                 
                 // Disable all buttons except back button
@@ -502,17 +509,14 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Apply color coding for X/O values in view mode
                 // View mode: Applying color coding for X/O values
                 
-                // Apply Accept/Reject color coding to tables
-                applyColorCodingToTable();
-                
-                // Apply X/O color coding to all cells
-                const allCells = document.querySelectorAll('td');
-                allCells.forEach(cell => {
-                    applyXOColorCoding(cell);
-                });
-                
-                // Ensure Accept/Reject and Roll Position cells get proper color coding in view mode
+                // Optimized color coding for view mode - single pass through all tables
                 const tables = document.querySelectorAll('table');
+                const inspectionFields = [
+                    'lines_strips', 'glossy', 'film_color', 'pin_hole', 'patch_mark', 'odour',
+                    'ct_appearance', 'print_color', 'mis_print', 'dirty_print', 'tape_test', 'centralization',
+                    'wrinkles', 'prs', 'roll_curve', 'core_misalignment', 'others'
+                ];
+                
                 tables.forEach(table => {
                     const tbody = table.querySelector('tbody');
                     if (!tbody) return;
@@ -520,56 +524,55 @@ document.addEventListener('DOMContentLoaded', async function() {
                     const rows = tbody.rows;
                     for (let r = 0; r < rows.length; r++) {
                         const row = rows[r];
-                        const acceptRejectCell = row.querySelector('td[data-field="accept_reject"]');
-                        const rollPosCell = row.querySelector('td[data-field="roll_position"]');
+                        const cells = row.querySelectorAll('td[data-field]');
                         
-                        if (acceptRejectCell) {
-                            const select = acceptRejectCell.querySelector('select');
-                            if (select) {
-                                const value = select.value;
-                                let bgColor = '';
-                                let fgColor = '#fff';
-                                
-                                if (value === 'Accept') {
-                                    bgColor = '#218838'; // dark green
-                                } else if (value === 'Reject') {
-                                    bgColor = '#c82333'; // dark red
-                                } else if (value === 'KIV') {
-                                    bgColor = '#0056b3'; // dark blue
-                                } else if (value === 'Rework') {
-                                    bgColor = '#e6b800'; // dark yellow
-                                }
-                                
-                                // Apply colors to Accept/Reject cell and dropdown (same as main table)
-                                if (bgColor) {
-                                    acceptRejectCell.style.backgroundColor = bgColor;
-                                    acceptRejectCell.style.color = fgColor;
-                                    select.style.backgroundColor = bgColor;
-                                    select.style.color = fgColor;
+                        cells.forEach(cell => {
+                            const fieldName = cell.dataset.field;
+                            
+                            // Apply X/O color coding to inspection fields
+                            if (inspectionFields.includes(fieldName)) {
+                                applyXOColorCoding(cell);
+                            }
+                            
+                            // Apply Accept/Reject color coding
+                            if (fieldName === 'accept_reject') {
+                                const select = cell.querySelector('select');
+                                if (select) {
+                                    const value = select.value;
+                                    let bgColor = '';
+                                    let fgColor = '#fff';
                                     
-                                    // Also apply to Roll Position cell
-                                    if (rollPosCell) {
-                                        rollPosCell.style.backgroundColor = bgColor;
-                                        rollPosCell.style.color = fgColor;
+                                    if (value === 'Accept') {
+                                        bgColor = '#218838'; // dark green
+                                    } else if (value === 'Reject') {
+                                        bgColor = '#c82333'; // dark red
+                                    } else if (value === 'KIV') {
+                                        bgColor = '#0056b3'; // dark blue
+                                    } else if (value === 'Rework') {
+                                        bgColor = '#e6b800'; // dark yellow
                                     }
-                                } else {
-                                    // Reset colors if no status
-                                    acceptRejectCell.style.backgroundColor = '';
-                                    acceptRejectCell.style.color = '';
-                                    select.style.backgroundColor = '';
-                                    select.style.color = '';
-                                    if (rollPosCell) {
-                                        rollPosCell.style.backgroundColor = '';
-                                        rollPosCell.style.color = '';
+                                    
+                                    if (bgColor) {
+                                        cell.style.backgroundColor = bgColor;
+                                        cell.style.color = fgColor;
+                                        select.style.backgroundColor = bgColor;
+                                        select.style.color = fgColor;
+                                        
+                                        // Also apply to Roll Position cell in same row
+                                        const rollPosCell = row.querySelector('td[data-field="roll_position"]');
+                                        if (rollPosCell) {
+                                            rollPosCell.style.backgroundColor = bgColor;
+                                            rollPosCell.style.color = fgColor;
+                                        }
                                     }
                                 }
                             }
-                        }
+                        });
                     }
                 });
                 
                 // View mode: Color coding applied
-            }, 500); // Small delay to ensure all elements are rendered
+            }, 100); // Reduced delay for better performance
         }
     }
 
@@ -583,7 +586,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Removed capitalizeWords function to prevent typing issues
 
-    function createCell(contentEditable = true, rowspan = 1, isDropdown = false, colIndex = null, isFirstRow = false) {
+    function createCell(contentEditable = true, rowspan = 1, isDropdown = false, colIndex = null, isFirstRow = false, rowIndex = 0) {
         const td = document.createElement('td');
         td.className = 'border border-gray-300 px-1 py-1';
         // Add word wrap and text center
@@ -618,10 +621,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
         
-        // Special handling for "Inspected By" column (32) - only first row should be editable
+        // Special handling for "Inspected By" column (32) - only first and second rows should be editable
         if (colIndex === 32 && !isFirstRow) {
-            contentEditable = false;
-            // No gray styling - keep it looking normal but uneditable
+            // Allow editing in first row (rowIndex = 0) and second row (rowIndex = 1)
+            if (rowIndex !== 1) {
+                contentEditable = false;
+                // No gray styling - keep it looking normal but uneditable
+            }
         }
         
         if (colIndex !== null && fixedWidthIndices[colIndex]) {
@@ -651,7 +657,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             select.addEventListener('change', function(e) {
                 if (viewMode) {
-                    console.log('Select change blocked - in view mode');
+                    // console.log('Select change blocked - in view mode');
                     e.preventDefault();
                     return;
                 }
@@ -759,7 +765,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Apply character limits and formatting based on field type
             td.addEventListener('input', function(e) {
                 if (viewMode) {
-                    console.log('Input blocked - in view mode');
+                    // console.log('Input blocked - in view mode');
                     e.preventDefault();
                     return;
                 }
@@ -948,7 +954,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Also capitalize when user finishes typing (blur event)
             td.addEventListener('blur', function(e) {
                 if (viewMode) {
-                    console.log('Blur blocked - in view mode');
+                    // console.log('Blur blocked - in view mode');
                     return;
                 }
                 
@@ -1059,8 +1065,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         for (let i = 0; i < n; i++) {
             const tr = document.createElement('tr');
             const isFirstRow = (tbody.rows.length === 0); // First row in the table
+            const rowIndex = tbody.rows.length; // Current row index
                 for (let col = 0; col < totalColumns; col++) {
-                const td = createCell(true, 1, col === dropdownIndex, col, isFirstRow);
+                const td = createCell(true, 1, col === dropdownIndex, col, isFirstRow, rowIndex);
                 if (col === 3) td.textContent = (tbody.rows.length + 1).toString();
                 // Set lot number only for the first row of the table
                 if (col === 2 && isFirstRow) {
@@ -1087,6 +1094,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (addNewTableBtn) {
             updateAddNextLotButtonState();
         }
+        // Update Add Rows button state after clearing rows
+        updateAddRowsButtonState();
     }
     
     // ===== INSPECTED BY ROW FUNCTION =====
@@ -1097,7 +1106,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     function debouncedSave(table) {
         if (viewMode) {
-            console.log('Save blocked - in view mode');
+            // console.log('Save blocked - in view mode');
             return;
         }
         
@@ -1111,7 +1120,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Defensive saveLotToSupabase - Updated for individual JSONB columns
     async function saveLotToSupabase(table) {
         if (viewMode) {
-            console.log('Save blocked - in view mode');
+            // console.log('Save blocked - in view mode');
             return;
         }
         
@@ -1172,6 +1181,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 if (fieldName === 'inspected_by' && i === 0) {
                     inspectedBy = value;
+                } else if (fieldName === 'inspected_by' && i === 1) {
+                    // For second row, combine with first row
+                    if (value && value.trim()) {
+                        inspectedBy = inspectedBy ? `${inspectedBy}, ${value}` : value;
+                    }
                 } else if (fieldName === 'arm' && i === 0) {
                     armValue = value;
                 } else {
@@ -1408,7 +1422,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ===== BACKWARD COMPATIBILITY - OLD SAVE FUNCTION =====
     async function saveCellToSupabase(event) {
         if (viewMode) {
-            console.log('Save blocked - in view mode');
+            // console.log('Save blocked - in view mode');
             return;
         }
         
@@ -1427,12 +1441,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ===== BACKWARD COMPATIBILITY - OLD TABLE SAVE =====
     async function saveTable() {
         if (viewMode) {
-            console.log('Save blocked - in view mode');
+            // console.log('Save blocked - in view mode');
             return;
         }
         
         // This is now deprecated - use saveLotToSupabase instead
-        console.log('Table save is deprecated. Use saveLotToSupabase instead.');
+        // console.log('Table save is deprecated. Use saveLotToSupabase instead.');
         await saveLotToSupabase();
     }
 
@@ -1533,6 +1547,23 @@ document.addEventListener('DOMContentLoaded', async function() {
             } else {
                 setColors('', '');
             }
+        }
+        
+        // In view mode, also apply X/O color coding to preserve it
+        if (viewMode) {
+            const inspectionFields = [
+                'lines_strips', 'glossy', 'film_color', 'pin_hole', 'patch_mark', 'odour',
+                'ct_appearance', 'print_color', 'mis_print', 'dirty_print', 'tape_test', 'centralization',
+                'wrinkles', 'prs', 'roll_curve', 'core_misalignment', 'others'
+            ];
+            
+            const cells = tbody.querySelectorAll('td[data-field]');
+            cells.forEach(cell => {
+                const fieldName = cell.dataset.field;
+                if (inspectionFields.includes(fieldName)) {
+                    applyXOColorCoding(cell);
+                }
+            });
         }
         });
     }
@@ -1769,10 +1800,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             const nonPrintedCheckbox = document.getElementById('non_printed');
             if (nonPrintedCheckbox && nonPrintedCheckbox.checked) {
                 isNonPrintedForm = true;
-                console.log('Form type updated from UI - Non-printed:', isNonPrintedForm);
+                // console.log('Form type updated from UI - Non-printed:', isNonPrintedForm);
             }
         }
-        console.log('Add Rows clicked - Current isNonPrintedForm:', isNonPrintedForm);
+        // console.log('Add Rows clicked - Current isNonPrintedForm:', isNonPrintedForm);
         const n = parseInt(numRowsInput.value, 10) || 1;
         addRows(n);
         afterTableStructureChange();
@@ -1782,13 +1813,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (addNewTableBtn) {
             updateAddNextLotButtonState();
         }
-        // Disable Add Rows button after adding rows
-        addRowsBtn.disabled = true;
+        // Update Add Rows button state after adding rows
+        updateAddRowsButtonState();
         // Only save if we're not loading data and have a traceability_code
         if (traceabilityCode && !window.isLoadingData) {
             try {
                 // Save new rows as JSONB lot data
-                console.log('Adding', n, 'new rows');
+                // console.log('Adding', n, 'new rows');
                 const table = document.querySelector('#tablesContainer table');
                 if (table) {
                     await saveLotToSupabase(table);
@@ -1807,7 +1838,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (saveTableBtn) {
         saveTableBtn.addEventListener('click', () => {
             const tables = Array.from(tablesContainer.querySelectorAll('table'));
-            console.log('Tables found for saving:', tables);
+            // console.log('Tables found for saving:', tables);
             if (!tables.length) {
                 alert('No tables to save!');
                 return;
@@ -2063,6 +2094,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateSummaryTable();
     updateFastEntryTabOrder();
     addLockCheckboxListeners();
+    updateDeleteButtonVisibility(); // Initialize delete button visibility
+    updateAddRowsButtonState(); // Initialize Add Rows button state
     
     // Update Add Next Lot button state on page load
     if (addNewTableBtn) {
@@ -2259,32 +2292,32 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // First row: add merged cells
                 for (let col = 0; col < totalColumns; col++) {
                     if (col === 31 || col === 32) {
-                        tr.appendChild(createCell(true, 1, false, col, isFirstRow));
+                        tr.appendChild(createCell(true, 1, false, col, isFirstRow, i));
                     } else if (mergedIndices.includes(col)) {
-                        tr.appendChild(createCell(true, n, false, col, isFirstRow));
+                        tr.appendChild(createCell(true, n, false, col, isFirstRow, i));
                     } else if (col === 3) {
-                        const td = createCell(true, 1, false, col, isFirstRow);
+                        const td = createCell(true, 1, false, col, isFirstRow, i);
                         td.textContent = '1';
                         tr.appendChild(td);
                     } else if (col === dropdownIndex) {
-                        tr.appendChild(createCell(false, 1, true, col, isFirstRow));
+                        tr.appendChild(createCell(false, 1, true, col, isFirstRow, i));
                     } else if (col > 4 && col < 31 && col !== dropdownIndex) {
-                        tr.appendChild(createCell(true, 1, false, col, isFirstRow));
+                        tr.appendChild(createCell(true, 1, false, col, isFirstRow, i));
                     }
                 }
             } else {
                 // Subsequent rows: skip merged cells
                 for (let col = 0; col < totalColumns; col++) {
                     if (col === 31 || col === 32) {
-                        tr.appendChild(createCell(true, 1, false, col, isFirstRow));
+                        tr.appendChild(createCell(true, 1, false, col, isFirstRow, i));
                     } else if (col === 3) {
-                        const td = createCell(true, 1, false, col, isFirstRow);
+                        const td = createCell(true, 1, false, col, isFirstRow, i);
                         td.textContent = (i + 1).toString();
                         tr.appendChild(td);
                     } else if (col === dropdownIndex) {
-                        tr.appendChild(createCell(false, 1, true, col, isFirstRow));
+                        tr.appendChild(createCell(false, 1, true, col, isFirstRow, i));
                     } else if (!mergedIndices.includes(col) && col > 4 && col < 31 && col !== dropdownIndex) {
-                        tr.appendChild(createCell(true, 1, false, col, isFirstRow));
+                        tr.appendChild(createCell(true, 1, false, col, isFirstRow, i));
                     }
                 }
             }
@@ -2349,14 +2382,14 @@ document.addEventListener('DOMContentLoaded', async function() {
                     if (cell && cell.textContent.trim() === '') {
                         cell.textContent = 'NA';
                         naFilledCount++;
-                        console.log(`Filled NA for ${fieldName} in row ${row.rowIndex}`);
+                        // console.log(`Filled NA for ${fieldName} in row ${row.rowIndex}`);
                     }
                 });
             });
             
             // If we filled any NA values, save the entire table
             if (naFilledCount > 0) {
-                console.log(`Filled ${naFilledCount} NA values, triggering table save...`);
+                // console.log(`Filled ${naFilledCount} NA values, triggering table save...`);
                 setTimeout(() => {
                     saveLotTableToSupabase(table);
                 }, 100);
@@ -2368,7 +2401,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     function buildEmptyRoll(position, lotNumber = '01') {
         // For non-printed forms, pre-fill NA in printing-related columns
         const naValue = isNonPrintedForm ? "NA" : "";
-        console.log('Building roll', position, '- Non-printed form:', isNonPrintedForm, '- NA value:', naValue);
+                        // console.log('Building roll', position, '- Non-printed form:', isNonPrintedForm, '- NA value:', naValue);
         
         return {
             arm: "",
@@ -2414,7 +2447,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const nonPrintedCheckbox = document.getElementById('non_printed');
             if (nonPrintedCheckbox && nonPrintedCheckbox.checked) {
                 isNonPrintedForm = true;
-                console.log('Form type updated from UI for Add Next Lot - Non-printed:', isNonPrintedForm);
+                // console.log('Form type updated from UI for Add Next Lot - Non-printed:', isNonPrintedForm);
             }
         }
         
@@ -2477,7 +2510,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         
         // Reload all lots (to show the new table)
-        console.log('Reloading lots after creating new lot...');
+        // console.log('Reloading lots after creating new lot...');
         await loadAllLots();
         
         // Ensure new table is properly set up
@@ -2489,12 +2522,121 @@ document.addEventListener('DOMContentLoaded', async function() {
             const tables = tablesContainer.querySelectorAll('table');
             if (tables.length > 0) {
                 const newTable = tables[tables.length - 1];
-                console.log('New table found:', newTable);
+                // console.log('New table found:', newTable);
                 newTable.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 saveLotToSupabase(newTable);
             }
         }, 500); // Increased timeout to ensure everything is loaded
         });
+    }
+
+    // Helper to manage Add Rows button state - enable only when first table is empty
+    function updateAddRowsButtonState() {
+        if (!addRowsBtn) return;
+        
+        const tables = tablesContainer.querySelectorAll('table');
+        if (tables.length === 0) {
+            // No tables exist, enable Add Rows button
+            addRowsBtn.disabled = false;
+            addRowsBtn.style.opacity = '1';
+            addRowsBtn.style.cursor = 'pointer';
+            return;
+        }
+        
+        // Check if the first table (main table) is empty
+        const firstTable = tables[0];
+        const tbody = firstTable.querySelector('tbody');
+        
+        if (tbody && tbody.rows.length === 0) {
+            // First table is empty, enable Add Rows button
+            addRowsBtn.disabled = false;
+            addRowsBtn.style.opacity = '1';
+            addRowsBtn.style.cursor = 'pointer';
+        } else {
+            // First table has rows, disable Add Rows button
+            addRowsBtn.disabled = true;
+            addRowsBtn.style.opacity = '0.5';
+            addRowsBtn.style.cursor = 'not-allowed';
+        }
+    }
+
+    // Helper to manage delete button visibility - only show on latest table
+    function updateDeleteButtonVisibility() {
+        const tables = tablesContainer.querySelectorAll('table');
+        
+        // Remove all existing delete buttons (more specific selector to avoid conflicts)
+        const deleteButtons = tablesContainer.querySelectorAll('button');
+        deleteButtons.forEach(button => {
+            if (button.textContent === 'Delete Table') {
+                button.remove();
+            }
+        });
+        
+        // Add delete button only to the latest table (last table in the list)
+        if (tables.length > 0 && !viewMode) {
+            const latestTable = tables[tables.length - 1];
+            
+            // Check if there's already a delete button for this table
+            const existingDeleteButton = latestTable.previousElementSibling;
+            if (existingDeleteButton && existingDeleteButton.textContent === 'Delete Table') {
+                return; // Already exists, don't create another one
+            }
+            
+            // Create delete button for the latest table
+            const deleteTableButton = document.createElement('button');
+            deleteTableButton.textContent = 'Delete Table';
+            deleteTableButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm ml-2';
+            deleteTableButton.style.marginBottom = '8px';
+            deleteTableButton.onclick = function() {
+                // Store the table reference for the overlay
+                window.currentDeleteTable = latestTable;
+                window.currentDeleteTableButton = deleteTableButton;
+                
+                // Find the associated Fill O and Clear O buttons for this table
+                const tableIndex = Array.from(tables).indexOf(latestTable);
+                const allButtons = tablesContainer.querySelectorAll('button');
+                let fillOButton = null;
+                let clearOButton = null;
+                
+                // Find buttons that belong to this table (they should be positioned before the table)
+                let buttonIndex = 0;
+                for (let i = 0; i < allButtons.length; i++) {
+                    const button = allButtons[i];
+                    if (button.textContent === 'Fill O' || button.textContent === 'Clear O') {
+                        if (buttonIndex === tableIndex * 2) { // Each table has 2 buttons (Fill O, Clear O)
+                            fillOButton = button;
+                        } else if (buttonIndex === tableIndex * 2 + 1) {
+                            clearOButton = button;
+                        }
+                        buttonIndex++;
+                    }
+                }
+                
+                window.currentFillOButton = fillOButton;
+                window.currentClearOButton = clearOButton;
+                
+                // Show the custom overlay
+                const overlay = document.getElementById('deleteTableConfirmationOverlay');
+                const title = document.getElementById('deleteTableConfirmationTitle');
+                const message = document.getElementById('deleteTableConfirmationMessage');
+                
+                // Check if this is the main table (first table)
+                const isMainTable = tables.length > 0 && latestTable === tables[0];
+                
+                if (isMainTable) {
+                    title.textContent = 'Confirm Main Table Clear';
+                    message.textContent = 'Are you sure you want to clear all rows from the main table? This action cannot be undone.';
+                } else {
+                    title.textContent = 'Confirm Table Deletion';
+                    message.textContent = 'Are you sure you want to delete this table? This action cannot be undone.';
+                }
+                
+                overlay.classList.remove('hidden');
+            };
+            
+            // Insert the delete button before the latest table
+            latestTable.parentNode.insertBefore(deleteTableButton, latestTable);
+        }
     }
 
     // Helper to update spacing between tables
@@ -2554,7 +2696,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ===== KEYBOARD NAVIGATION FUNCTIONALITY =====
     function setupKeyboardNavigation() {
         if (viewMode) {
-            console.log('Keyboard navigation disabled - in view mode');
+            // console.log('Keyboard navigation disabled - in view mode');
             return;
         }
         
@@ -2770,7 +2912,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!traceabilityCode) return;
         
         try {
-            console.log('Starting migration of old data to JSONB...');
+            // console.log('Starting migration of old data to JSONB...');
             
             // Load all old individual row data
             const { data: oldData, error } = await supabase
@@ -2787,7 +2929,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
             
             if (oldData && oldData.length > 0) {
-                console.log('Found', oldData.length, 'old rows to migrate');
+                // console.log('Found', oldData.length, 'old rows to migrate');
                 
                 // Convert to JSONB structure
                 const rolls = [];
@@ -2857,7 +2999,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (saveError) {
                     console.error('Error saving migrated data:', saveError);
                 } else {
-                    console.log('Successfully migrated old data to JSONB');
+                    // console.log('Successfully migrated old data to JSONB');
                     
                     // Delete old individual rows
                     const { error: deleteError } = await supabase
@@ -2870,7 +3012,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     if (deleteError) {
                         console.error('Error deleting old rows:', deleteError);
                     } else {
-                        console.log('Old individual rows deleted');
+                        // console.log('Old individual rows deleted');
                     }
                 }
             }
@@ -3200,38 +3342,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             };
             tablesContainer.appendChild(clearOButton);
 
-        // Add Delete Table button
-        const deleteTableButton = document.createElement('button');
-        deleteTableButton.textContent = 'Delete Table';
-        deleteTableButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm ml-2';
-        deleteTableButton.style.marginBottom = '8px';
-            deleteTableButton.onclick = function() {
-                // Store the table reference for the overlay
-                window.currentDeleteTable = table;
-                window.currentDeleteTableButton = deleteTableButton;
-                window.currentFillOButton = fillOButton;
-                window.currentClearOButton = clearOButton;
-                
-                // Show the custom overlay
-                const overlay = document.getElementById('deleteTableConfirmationOverlay');
-                const title = document.getElementById('deleteTableConfirmationTitle');
-                const message = document.getElementById('deleteTableConfirmationMessage');
-                
-                // Check if this is the main table (first table)
-                const tables = tablesContainer.querySelectorAll('table');
-                const isMainTable = tables.length > 0 && table === tables[0];
-                
-                if (isMainTable) {
-                    title.textContent = 'Confirm Main Table Clear';
-                    message.textContent = 'Are you sure you want to clear all rows from the main table? This action cannot be undone.';
-                } else {
-                    title.textContent = 'Confirm Table Deletion';
-                    message.textContent = 'Are you sure you want to delete this table? This action cannot be undone.';
-                }
-                
-                overlay.classList.remove('hidden');
-        };
-        tablesContainer.appendChild(deleteTableButton);
+        // Delete button will be added by updateDeleteButtonVisibility() after all tables are created
         }
         const table = document.createElement('table');
         table.className = 'w-full border-collapse mt-6';
@@ -3253,7 +3364,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const tr = document.createElement('tr');
             const isFirstRow = (i === 0); // First row in this table
             for (let col = 0; col < totalColumns; col++) {
-                const td = createCell(true, 1, col === dropdownIndex, col, isFirstRow);
+                const td = createCell(true, 1, col === dropdownIndex, col, isFirstRow, i);
                 if (col === 3) td.textContent = (i + 1).toString();
                 
                 // Set lot number for first row if no rolls data (new lot)
@@ -3288,11 +3399,17 @@ document.addEventListener('DOMContentLoaded', async function() {
                         value = lot.lot_no || value; // Use lot.lot_no for first row
                     }
                     
-                    // Only show inspected_by in the first row
-                    if (col === 32 && !isFirstRow) {
-                        value = ''; // Clear inspected_by for non-first rows
-                    } else if (col === 32 && isFirstRow) {
-                        value = lot.inspected_by || value; // Use lot.inspected_by for first row
+                    // Handle inspected_by for first and second rows separately
+                    if (col === 32 && i > 1) {
+                        value = ''; // Clear inspected_by for rows beyond second
+                    } else if (col === 32 && i === 0) {
+                        // First row: show first inspector name (before comma)
+                        const names = (lot.inspected_by || '').split(',');
+                        value = names[0]?.trim() || '';
+                    } else if (col === 32 && i === 1) {
+                        // Second row: show second inspector name (after comma)
+                        const names = (lot.inspected_by || '').split(',');
+                        value = names[1]?.trim() || '';
                     }
                     
                     // Only show arm in the first row
@@ -3330,14 +3447,23 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
             tbody.appendChild(tr);
         }
-        // After filling all cells, set Inspected By in the first row's last cell
+        // After filling all cells, set Inspected By in both first and second rows
         if (lot.inspected_by) {
             setTimeout(() => {
-                const firstRow = tbody.querySelector('tr');
-                if (firstRow) {
-                    const inspectedByCell = firstRow.lastElementChild;
-                    // Setting Inspected By cell
-                    inspectedByCell.textContent = lot.inspected_by;
+                const rows = tbody.querySelectorAll('tr');
+                if (rows.length > 0) {
+                    // Set first row with first inspector name
+                    const firstRow = rows[0];
+                    const firstRowInspectedByCell = firstRow.lastElementChild;
+                    const names = lot.inspected_by.split(',');
+                    firstRowInspectedByCell.textContent = names[0]?.trim() || '';
+                    
+                    // Set second row with second inspector name (if exists)
+                    if (rows.length > 1) {
+                        const secondRow = rows[1];
+                        const secondRowInspectedByCell = secondRow.lastElementChild;
+                        secondRowInspectedByCell.textContent = names[1]?.trim() || '';
+                    }
                 }
             }, 200);
         }
@@ -3625,7 +3751,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Fix existing lots that have null lot_no
         for (const lot of lots) {
             if (!lot.lot_no || lot.lot_no === null) {
-                console.log('Fixing lot with null lot_no:', lot.id);
+                // console.log('Fixing lot with null lot_no:', lot.id);
                 // Update the lot to have lot_no '01' if it's the first lot
                 const lotIndex = lots.indexOf(lot);
                 const newLotNo = (lotIndex + 1).toString().padStart(2, '0');
@@ -3664,6 +3790,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         updateFastEntryTabOrder(); // <-- Ensure tab order is set after reload
         addLockCheckboxListeners(); // <-- Ensure checkbox listeners are set after reload
         
+        // Update delete button visibility - only show on latest table
+        updateDeleteButtonVisibility();
+        
         // ===== FILL NA VALUES FOR NON-PRINTED FORMS =====
         // After tables are loaded, check if this is a non-printed form and fill NA values
         if (isNonPrintedForm) {
@@ -3671,17 +3800,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             fillNAValuesForNonPrintedForm();
         }
         
-        // In loadAllLots, after repopulating tables, re-enable Add Rows only for the first table if it is empty
-        const tables = tablesContainer.querySelectorAll('table');
-        if (tables.length > 0) {
-            const firstTable = tables[0];
-            const tbody = firstTable.querySelector('tbody');
-            if (tbody && tbody.rows.length === 0) {
-                addRowsBtn.disabled = false;
-            } else {
-                addRowsBtn.disabled = true;
-            }
-        }
+        // Update Add Rows button state after loading all tables
+        updateAddRowsButtonState();
         // After all lots are loaded and tables are rendered, show defects summary
         // 1. Aggregate all rolls from all lots using JSONB data
         let allRolls = [];
@@ -4360,10 +4480,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                     productionNo2Field.dispatchEvent(event);
                     
                     if (newNos.length > 0) {
-                        console.log('🔄 Auto-populated Production No. 2 & 3 from remarks:', newNos.join(', '));
+                        // console.log('🔄 Auto-populated Production No. 2 & 3 from remarks:', newNos.join(', '));
                     }
                     if (removedNos.length > 0) {
-                        console.log('🗑️ Removed from Production No. 2 & 3:', removedNos.join(', '));
+                        // console.log('🗑️ Removed from Production No. 2 & 3:', removedNos.join(', '));
                     }
                     
                     // Update Production No Summary table to reflect changes
@@ -4376,7 +4496,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     // Trigger auto-save
                     const event = new Event('input', { bubbles: true });
                     productionNo2Field.dispatchEvent(event);
-                    console.log('🗑️ Cleared Production No. 2 & 3 - no production numbers found in any remarks');
+                    // console.log('🗑️ Cleared Production No. 2 & 3 - no production numbers found in any remarks');
                     
                     // Update Production No Summary table to reflect changes
                     renderProductionNoSummaryTable();
@@ -4475,6 +4595,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                     // Update summary table
                     updateSummaryTable();
                     
+                    // Update delete button visibility after clearing main table
+                    updateDeleteButtonVisibility();
+                    
+                    // Re-enable Add Rows button since main table is now empty
+                    updateAddRowsButtonState();
+                    
                     showSuccessMessage('Success!', 'Main table rows cleared successfully!');
                     
                     // Page will refresh when user clicks OK on success message
@@ -4513,6 +4639,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Reorder lot numbers after deletion
                 await reorderLotNumbers();
                 
+                // Update delete button visibility after deletion
+                updateDeleteButtonVisibility();
+                
+                // Update Add Rows button state in case main table was deleted
+                updateAddRowsButtonState();
+                
                 showSuccessMessage('Success!', 'Table deleted successfully!');
                 
                 // Page will refresh when user clicks OK on success message
@@ -4546,7 +4678,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const newLotNo = (i + 1).toString().padStart(2, '0');
                 
                 if (lot.lot_no !== newLotNo) {
-                    console.log(`Updating lot ${lot.id} from ${lot.lot_no} to ${newLotNo}`);
+                    // console.log(`Updating lot ${lot.id} from ${lot.lot_no} to ${newLotNo}`);
                     await supabase
                         .from('inline_inspection_form_master_2')
                         .update({ lot_no: newLotNo })
@@ -4554,7 +4686,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
             }
             
-            console.log('Lot numbers reordered successfully');
+            // console.log('Lot numbers reordered successfully');
         } catch (error) {
             console.error('Error reordering lot numbers:', error);
         }
@@ -4606,7 +4738,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     if (error) {
                         console.error('Error updating lot number:', error);
                     } else {
-                        console.log('Lot number updated to 01 in database');
+                        // console.log('Lot number updated to 01 in database');
                     }
                     
                     // Also save the table data
@@ -4648,18 +4780,18 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Manual trigger for IPQC table (for debugging)
     window.triggerIPQCTable = function() {
-        console.log('Manually triggering IPQC table render...');
+        // console.log('Manually triggering IPQC table render...');
         renderIPQCDefectsTable();
     };
     
     // Debug function to check QC inspectors
     window.checkQCInspectors = function() {
-        console.log('QC Inspectors Cache:', qcInspectorsCache);
-        console.log('All tables:', document.querySelectorAll('#tablesContainer table').length);
+        // console.log('QC Inspectors Cache:', qcInspectorsCache);
+        // console.log('All tables:', document.querySelectorAll('#tablesContainer table').length);
         document.querySelectorAll('#tablesContainer table').forEach((table, index) => {
             const firstRow = table.querySelector('tbody tr');
             const inspector = firstRow?.querySelector('td[data-field="inspected_by"]')?.textContent.trim();
-            console.log(`Table ${index}: Inspector = "${inspector}"`);
+            // console.log(`Table ${index}: Inspector = "${inspector}"`);
         });
     };
 

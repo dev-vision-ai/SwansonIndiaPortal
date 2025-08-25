@@ -214,6 +214,8 @@ app.get('/export', async (req, res) => {
     console.log('Target lot shift:', targetLot?.shift);
     console.log('Target lot traceability_code:', targetLot?.traceability_code);
     console.log('Target lot lot_letter:', targetLot?.lot_letter);
+    console.log('Target lot inspected_by:', targetLot?.inspected_by);
+    console.log('Target lot inspected_by type:', typeof targetLot?.inspected_by);
     
     // Initialize header variables
     let customer = '';
@@ -510,7 +512,7 @@ app.get('/export', async (req, res) => {
           // Get remarks
           const remarks = lot.remarks_data?.[rollPosition] || '';
           
-          // Map to Excel cells - All lot-associated data only in first row of each lot
+          // Map to Excel cells - Handle inspected_by for first and second rows
           if (rollIndex === 0) {
             // First row of the lot - include all lot-associated data
             worksheet.getCell(`A${currentRow}`).value = hour;
@@ -518,7 +520,23 @@ app.get('/export', async (req, res) => {
             worksheet.getCell(`C${currentRow}`).value = lot.lot_no ? lot.lot_no.toString().padStart(2, '0') : '';
             worksheet.getCell(`D${currentRow}`).value = rollPosition;
             worksheet.getCell(`E${currentRow}`).value = lot.arm || '';
-            worksheet.getCell(`AF${currentRow}`).value = lot.inspected_by || '';
+            // First row: show first inspector name (before comma)
+            const names = (lot.inspected_by || '').split(/[,\n\r]+/);
+            console.log('Inspected by data:', lot.inspected_by);
+            console.log('Split names:', names);
+            console.log('First name:', names[0]?.trim());
+            worksheet.getCell(`AF${currentRow}`).value = names[0]?.trim() || '';
+          } else if (rollIndex === 1) {
+            // Second row of the lot - show second inspector name
+            worksheet.getCell(`A${currentRow}`).value = '';
+            worksheet.getCell(`B${currentRow}`).value = '';
+            worksheet.getCell(`C${currentRow}`).value = '';
+            worksheet.getCell(`D${currentRow}`).value = rollPosition;
+            worksheet.getCell(`E${currentRow}`).value = '';
+            // Second row: show second inspector name (after comma)
+            const names = (lot.inspected_by || '').split(/[,\n\r]+/);
+            console.log('Second name:', names[1]?.trim());
+            worksheet.getCell(`AF${currentRow}`).value = names[1]?.trim() || '';
           } else {
             // Other rows of the lot - leave all lot-associated data empty
             worksheet.getCell(`A${currentRow}`).value = '';
@@ -678,7 +696,7 @@ app.get('/export', async (req, res) => {
               const acceptRejectStatus = lot.accept_reject_status?.[rollPosition] || '';
               const defectName = lot.defect_names?.[rollPosition] || '';
               
-                            // Map to Excel cells - All lot-associated data only in first row of each lot
+                            // Map to Excel cells - Handle inspected_by for first and second rows
               if (rollIndex === 0) {
                 // First row of the lot - include all lot-associated data
                 page2Worksheet.getCell(`A${page2CurrentRow}`).value = hour;
@@ -686,7 +704,19 @@ app.get('/export', async (req, res) => {
                 page2Worksheet.getCell(`C${page2CurrentRow}`).value = lot.lot_no ? lot.lot_no.toString().padStart(2, '0') : '';
                 page2Worksheet.getCell(`D${page2CurrentRow}`).value = rollPosition;
                 page2Worksheet.getCell(`E${page2CurrentRow}`).value = lot.arm || '';
-                page2Worksheet.getCell(`AF${page2CurrentRow}`).value = lot.inspected_by || '';
+                // First row: show first inspector name (before comma)
+                const names = (lot.inspected_by || '').split(/[,\n\r]+/);
+                page2Worksheet.getCell(`AF${page2CurrentRow}`).value = names[0]?.trim() || '';
+              } else if (rollIndex === 1) {
+                // Second row of the lot - show second inspector name
+                page2Worksheet.getCell(`A${page2CurrentRow}`).value = '';
+                page2Worksheet.getCell(`B${page2CurrentRow}`).value = '';
+                page2Worksheet.getCell(`C${page2CurrentRow}`).value = '';
+                page2Worksheet.getCell(`D${page2CurrentRow}`).value = rollPosition;
+                page2Worksheet.getCell(`E${page2CurrentRow}`).value = '';
+                // Second row: show second inspector name (after comma)
+                const names = (lot.inspected_by || '').split(/[,\n\r]+/);
+                page2Worksheet.getCell(`AF${page2CurrentRow}`).value = names[1]?.trim() || '';
               } else {
                 // Other rows of the lot - leave all lot-associated data empty
                 page2Worksheet.getCell(`A${page2CurrentRow}`).value = '';
@@ -734,11 +764,7 @@ app.get('/export', async (req, res) => {
               
               page2Worksheet.getCell(`AE${page2CurrentRow}`).value = defectName;
               
-              // Inspected By - populate for first roll of each lot
-              if (rollIndex === 0) {
-                const headerData = lot.header_data || {};
-                page2Worksheet.getCell(`AF${page2CurrentRow}`).value = lot.inspected_by || '';
-              }
+              // Inspected By - already handled above for first and second rows
               
               page2CurrentRow++;
             }
@@ -855,7 +881,7 @@ app.get('/export', async (req, res) => {
               const acceptRejectStatus = lot.accept_reject_status?.[rollPosition] || '';
               const defectName = lot.defect_names?.[rollPosition] || '';
               
-              // Map to Excel cells - All lot-associated data only in first row of each lot
+              // Map to Excel cells - Handle inspected_by for first and second rows
               if (rollIndex === 0) {
                 // First row of the lot - include all lot-associated data
                 page3Worksheet.getCell(`A${page3CurrentRow}`).value = hour;
@@ -863,7 +889,19 @@ app.get('/export', async (req, res) => {
                 page3Worksheet.getCell(`C${page3CurrentRow}`).value = lot.lot_no ? lot.lot_no.toString().padStart(2, '0') : '';
                 page3Worksheet.getCell(`D${page3CurrentRow}`).value = rollPosition;
                 page3Worksheet.getCell(`E${page3CurrentRow}`).value = lot.arm || '';
-                page3Worksheet.getCell(`AF${page3CurrentRow}`).value = lot.inspected_by || '';
+                // First row: show first inspector name (before comma)
+                const names = (lot.inspected_by || '').split(/[,\n\r]+/);
+                page3Worksheet.getCell(`AF${page3CurrentRow}`).value = names[0]?.trim() || '';
+              } else if (rollIndex === 1) {
+                // Second row of the lot - show second inspector name
+                page3Worksheet.getCell(`A${page3CurrentRow}`).value = '';
+                page3Worksheet.getCell(`B${page3CurrentRow}`).value = '';
+                page3Worksheet.getCell(`C${page3CurrentRow}`).value = '';
+                page3Worksheet.getCell(`D${page3CurrentRow}`).value = rollPosition;
+                page3Worksheet.getCell(`E${page3CurrentRow}`).value = '';
+                // Second row: show second inspector name (after comma)
+                const names = (lot.inspected_by || '').split(/[,\n\r]+/);
+                page3Worksheet.getCell(`AF${page3CurrentRow}`).value = names[1]?.trim() || '';
               } else {
                 // Other rows of the lot - leave all lot-associated data empty
                 page3Worksheet.getCell(`A${page3CurrentRow}`).value = '';

@@ -937,9 +937,17 @@ async function handleFormSubmit(e) {
   const ctCheckbox = form.querySelector('input[name="ct"]');
   const checkboxGroup = form.querySelector('.flex.flex-row.items-center.gap-10.border.border-gray-200.bg-gray-50.rounded-lg.px-4.py-3.w-fit.mb-2');
   
+  // More robust checkbox validation
   const isAnyCheckboxSelected = (printedCheckbox && printedCheckbox.checked) || 
                                (nonPrintedCheckbox && nonPrintedCheckbox.checked) || 
                                (ctCheckbox && ctCheckbox.checked);
+  
+  // console.log('Checkbox validation:', {
+  //   printed: printedCheckbox?.checked,
+  //   nonPrinted: nonPrintedCheckbox?.checked,
+  //   ct: ctCheckbox?.checked,
+  //   isAnySelected: isAnyCheckboxSelected
+  // });
   
   const missingFields = [];
   
@@ -955,10 +963,13 @@ async function handleFormSubmit(e) {
   
   requiredFields.forEach(fieldName => {
     const field = form.querySelector(`[name="${fieldName}"]`);
-    if (!field || !field.value.trim()) {
+    if (!field) {
+      console.warn(`Field not found: ${fieldName}`);
       missingFields.push(fieldName.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()));
-      if (field) {
-        field.classList.add('required-field');
+    } else if (!field.value.trim()) {
+      missingFields.push(fieldName.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()));
+      field.classList.add('required-field');
+      if (missingFields.length === 1) { // Only focus on first missing field
         field.focus();
       }
     }
@@ -1005,7 +1016,8 @@ async function handleFormSubmit(e) {
         // Update existing form using record ID (like the old working code)
         const editRecordId = form.dataset.editRecordId;
         
-        // Update debug info
+        // Get the lot_letter from the existing record for cache clearing
+        let lot_letter = 'A'; // Default fallback
         
         // Check if the record we're trying to update actually exists
         const { data: checkRecord, error: checkError } = await supabase
@@ -1021,6 +1033,11 @@ async function handleFormSubmit(e) {
           .eq('id', editRecordId);
           
         // Record check completed
+        
+        // Get lot_letter from the existing record
+        if (checkRecord && checkRecord.length > 0) {
+          lot_letter = checkRecord[0].lot_letter || 'A';
+        }
         
         const updateObject = {
           customer: formData.get('customer'),
@@ -1067,6 +1084,10 @@ async function handleFormSubmit(e) {
         
         // Show success message
         alert('✅ Form updated successfully!');
+        
+        // Clear cache for this form to ensure fresh data
+        const cacheKey = `${traceability_code}_${lot_letter}`;
+        formDataCache.delete(cacheKey);
       } else {
         // Create new form
       const form_id = crypto.randomUUID();
@@ -1078,11 +1099,11 @@ async function handleFormSubmit(e) {
         const currentMachine = formData.get('mc_no');
         const currentDate = formData.get('production_date');
         
-        console.log('Checking for existing forms with:', {
-          shift: currentShift,
-          machine: currentMachine,
-          date: currentDate
-        });
+        // console.log('Checking for existing forms with:', {
+        //   shift: currentShift,
+        //   machine: currentMachine,
+        //   date: currentDate
+        // });
         
         const { data: existingForms, error: fetchError } = await supabase
           .from('inline_inspection_form_master_2')
@@ -1092,7 +1113,7 @@ async function handleFormSubmit(e) {
           .eq('production_date', currentDate);
           
         if (!fetchError && existingForms && existingForms.length > 0) {
-          console.log('Found existing forms for same shift/machine/date:', existingForms);
+          // console.log('Found existing forms for same shift/machine/date:', existingForms);
           
           // Collect used letters
           const usedLetters = existingForms
@@ -1100,7 +1121,7 @@ async function handleFormSubmit(e) {
             .filter(l => l && typeof l === 'string')
             .map(l => l.toUpperCase());
             
-          console.log('Used lot letters:', usedLetters);
+                      // console.log('Used lot letters:', usedLetters);
           
           // Find next available letter
           const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -1111,9 +1132,9 @@ async function handleFormSubmit(e) {
             }
           }
           
-          console.log('Assigned lot letter:', lot_letter);
+                      // console.log('Assigned lot letter:', lot_letter);
         } else {
-          console.log('No existing forms found for same shift/machine/date, using A');
+          // console.log('No existing forms found for same shift/machine/date, using A');
         }
       } catch (err) {
         console.warn('Could not determine next lot_letter, defaulting to A.', err);
@@ -1172,7 +1193,27 @@ async function handleFormSubmit(e) {
       
       const overlay = document.getElementById('inspectionFormOverlay');
       overlay.style.display = 'none';
+      overlay.classList.add('hidden');
+      
+      // Reset form completely
       form.reset();
+      
+      // Clear all validation styling
+      form.querySelectorAll('input, select').forEach(field => {
+        field.classList.remove('required-field');
+      });
+      
+      // Clear checkbox group error styling
+      const checkboxGroup = form.querySelector('.flex.flex-row.items-center.gap-10.border.border-gray-200.bg-gray-50.rounded-lg.px-4.py-3.w-fit.mb-2');
+      if (checkboxGroup) {
+        checkboxGroup.classList.remove('checkbox-group-error');
+      }
+      
+      // Hide product type error
+      const productTypeError = document.getElementById('productTypeError');
+      if (productTypeError) {
+        productTypeError.classList.add('hidden');
+      }
       
       // Reset form mode and UI
       form.dataset.isEditMode = 'false';
@@ -1218,10 +1259,32 @@ async function handleFormSubmit(e) {
 
   if (createFormBtn) {
     createFormBtn.addEventListener('click', function() {
+      // console.log('Create form button clicked');
+      
       if (form) {
         const submitBtn = form.querySelector('button[type="submit"]');
         if (submitBtn) submitBtn.textContent = 'Create Inline Inspection Form';
         form.onsubmit = handleFormSubmit;
+        
+        // Reset form to clear any previous data
+        form.reset();
+        
+        // Clear any validation styling
+        form.querySelectorAll('input, select').forEach(field => {
+          field.classList.remove('required-field');
+        });
+        
+        // Clear checkbox group error styling
+        const checkboxGroup = form.querySelector('.flex.flex-row.items-center.gap-10.border.border-gray-200.bg-gray-50.rounded-lg.px-4.py-3.w-fit.mb-2');
+        if (checkboxGroup) {
+          checkboxGroup.classList.remove('checkbox-group-error');
+        }
+        
+        // Hide product type error
+        const productTypeError = document.getElementById('productTypeError');
+        if (productTypeError) {
+          productTypeError.classList.add('hidden');
+        }
       }
       
       // Reset warning message for create mode
@@ -1230,7 +1293,9 @@ async function handleFormSubmit(e) {
         warningMessage.textContent = '*Note : Please ensure all entered details are correct before creating form';
       }
       
+      // Show modal
       overlay.style.display = 'flex';
+      overlay.classList.remove('hidden');
       
       // Setup autocomplete for personnel and product fields
       setTimeout(() => {
@@ -1240,6 +1305,42 @@ async function handleFormSubmit(e) {
     });
   }
 
+  // Close button handler
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function() {
+      // console.log('Close button clicked');
+      overlay.style.display = 'none';
+      overlay.classList.add('hidden');
+      
+      // Reset form
+      if (form) {
+        form.reset();
+        form.querySelectorAll('input, select').forEach(field => {
+          field.classList.remove('required-field');
+        });
+        
+        // Clear checkbox group error styling
+        const checkboxGroup = form.querySelector('.flex.flex-row.items-center.gap-10.border.border-gray-200.bg-gray-50.rounded-lg.px-4.py-3.w-fit.mb-2');
+        if (checkboxGroup) {
+          checkboxGroup.classList.remove('checkbox-group-error');
+        }
+        
+        // Hide product type error
+        const productTypeError = document.getElementById('productTypeError');
+        if (productTypeError) {
+          productTypeError.classList.add('hidden');
+        }
+      }
+    });
+  }
+  
+  // Close modal when clicking outside
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) {
+      closeBtn.click();
+    }
+  });
+  
   // Production Report button
   const productionReportBtn = document.getElementById('openProductionReport');
   if (productionReportBtn) {
@@ -1636,74 +1737,14 @@ function viewForm(traceability_code, lot_letter) {
   window.location.href = `inline_inspection_data.html?traceability_code=${traceability_code}&lot_letter=${lot_letter}&mode=view`;
 }
 
-async function editForm(traceability_code, lot_letter) {
-          // EditForm called
-  
-  // Find the record with actual form data for this traceability_code
-  const { data: allData, error: listError } = await supabase
-    .from('inline_inspection_form_master_2')
-    .select(`
-      id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
-      production_date, emboss_type, printed, non_printed, ct, year, month, date,
-      mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
-      operator, operator2, qc_inspector, qc_inspector2, status,
-      total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
-      created_at, updated_at
-    `)
-    .eq('traceability_code', traceability_code);
-    
-  if (listError) {
-    console.error('Error listing forms:', listError);
-    alert('Error loading form for editing.');
-    return;
-  }
-  
-          // All forms for traceability_code
-  
-  // Find the form with actual data (customer, production_no, etc.)
-  const formData = allData.find(form => form.customer || form.production_no || form.prod_code || form.spec);
-  
-  if (!formData) {
-    console.error('No form with data found for traceability_code:', traceability_code);
-    alert('No form data found for editing.');
-    return;
-  }
-  
-          // Found form with data
-  
-          // Form data fetched for editing
-  
-  const overlay = document.getElementById('inspectionFormOverlay');
-  const form = document.getElementById('inlineInspectionEntryForm');
-  const modalTitle = overlay.querySelector('h3');
-  const submitButton = form.querySelector('button[type="submit"]');
-  
-  if (!overlay || !form) {
-    console.error('Overlay or form not found');
-    return;
-  }
-  
-  // Update modal title and button for edit mode
-  if (modalTitle) {
-    modalTitle.textContent = 'Edit Inline Inspection Form Details';
-  }
-  if (submitButton) {
-    submitButton.textContent = 'Update Inline Inspection Form';
-  }
-  
-  // Update warning message for edit mode
-  const warningMessage = overlay.querySelector('p.text-red-600');
-  if (warningMessage) {
-    warningMessage.textContent = '*Note : Please ensure all entered details are correct before updating form';
-  }
-  
-  // Store the record ID for update (like the old working code)
+// Cache for form data to avoid repeated database calls
+const formDataCache = new Map();
+
+// Function to populate form with data (extracted for reuse)
+function populateFormWithData(formData, form, submitButton) {
+  // Store the record ID for update
   form.dataset.editRecordId = formData.id;
   form.dataset.isEditMode = 'true';
-  
-  // Storing in form dataset
-  
-  // Edit Form Debug
   
   // Use direct fields only - inspection_data column has been removed
   const dataToUse = {
@@ -1731,35 +1772,69 @@ async function editForm(traceability_code, lot_letter) {
     qc_inspector2: formData.qc_inspector2 || ''
   };
   
-  // Filling form fields with data
+  // Clear any existing validation styling before populating
+  form.querySelectorAll('input, select').forEach(field => {
+    field.classList.remove('required-field');
+  });
   
-  // Form field checks completed
+  // Clear checkbox group error styling
+  const checkboxGroup = form.querySelector('.flex.flex-row.items-center.gap-10.border.border-gray-200.bg-gray-50.rounded-lg.px-4.py-3.w-fit.mb-2');
+  if (checkboxGroup) {
+    checkboxGroup.classList.remove('checkbox-group-error');
+  }
   
-  form.customer.value = dataToUse.customer;
-  form.production_no.value = dataToUse.production_no;
-  form.prod_code.value = dataToUse.prod_code;
-  form.spec.value = dataToUse.spec;
-  form.production_date.value = dataToUse.production_date;
-  form.emboss_type.value = dataToUse.emboss_type;
-  form.printed.checked = !!dataToUse.printed;
-  form.non_printed.checked = !!dataToUse.non_printed;
-  form.ct.checked = !!dataToUse.ct;
-  form.year.value = dataToUse.year;
-  form.month.value = dataToUse.month;
-  form.date.value = dataToUse.date;
-  form.mc_no.value = dataToUse.mc_no;
-  form.shift.value = dataToUse.shift;
-  form.supervisor.value = dataToUse.supervisor;
-  form.supervisor2.value = dataToUse.supervisor2;
-  form.line_leader.value = dataToUse.line_leader;
-  form.line_leader2.value = dataToUse.line_leader2;
-  form.operator.value = dataToUse.operator;
-  form.operator2.value = dataToUse.operator2;
-  form.qc_inspector.value = dataToUse.qc_inspector;
-  form.qc_inspector2.value = dataToUse.qc_inspector2;
+  // Hide product type error
+  const productTypeError = document.getElementById('productTypeError');
+  if (productTypeError) {
+    productTypeError.classList.add('hidden');
+  }
   
-  // Show the overlay for editing form details
-  overlay.style.display = 'flex';
+  // Filling form fields with data using proper field selectors
+  try {
+    const fields = {
+      customer: form.querySelector('[name="customer"]'),
+      production_no: form.querySelector('[name="production_no"]'),
+      prod_code: form.querySelector('[name="prod_code"]'),
+      spec: form.querySelector('[name="spec"]'),
+      production_date: form.querySelector('[name="production_date"]'),
+      emboss_type: form.querySelector('[name="emboss_type"]'),
+      printed: form.querySelector('[name="printed"]'),
+      non_printed: form.querySelector('[name="non_printed"]'),
+      ct: form.querySelector('[name="ct"]'),
+      year: form.querySelector('[name="year"]'),
+      month: form.querySelector('[name="month"]'),
+      date: form.querySelector('[name="date"]'),
+      mc_no: form.querySelector('[name="mc_no"]'),
+      shift: form.querySelector('[name="shift"]'),
+      supervisor: form.querySelector('[name="supervisor"]'),
+      supervisor2: form.querySelector('[name="supervisor2"]'),
+      line_leader: form.querySelector('[name="line_leader"]'),
+      line_leader2: form.querySelector('[name="line_leader2"]'),
+      operator: form.querySelector('[name="operator"]'),
+      operator2: form.querySelector('[name="operator2"]'),
+      qc_inspector: form.querySelector('[name="qc_inspector"]'),
+      qc_inspector2: form.querySelector('[name="qc_inspector2"]')
+    };
+    
+    // Populate text and select fields
+    Object.keys(fields).forEach(fieldName => {
+      const field = fields[fieldName];
+      if (field && fieldName !== 'printed' && fieldName !== 'non_printed' && fieldName !== 'ct') {
+        field.value = dataToUse[fieldName] || '';
+      }
+    });
+    
+    // Populate checkboxes
+    if (fields.printed) fields.printed.checked = !!dataToUse.printed;
+    if (fields.non_printed) fields.non_printed.checked = !!dataToUse.non_printed;
+    if (fields.ct) fields.ct.checked = !!dataToUse.ct;
+    
+            // console.log('Form populated successfully for editing');
+  } catch (error) {
+    console.error('Error populating form fields:', error);
+    alert('Error loading form data. Please try again.');
+    return;
+  }
   
   // Setup autocomplete for edit mode
   setupPersonnelAutocomplete();
@@ -1768,6 +1843,107 @@ async function editForm(traceability_code, lot_letter) {
   // Ensure form submission handler is attached
   if (form) {
     form.onsubmit = handleFormSubmit;
+  }
+  
+  // Restore button state
+  submitButton.textContent = 'Update Inline Inspection Form';
+  submitButton.disabled = false;
+}
+
+async function editForm(traceability_code, lot_letter) {
+      // console.log('EditForm called for:', { traceability_code, lot_letter });
+  
+  // Show modal immediately for better UX
+  const overlay = document.getElementById('inspectionFormOverlay');
+  const form = document.getElementById('inlineInspectionEntryForm');
+  const modalTitle = overlay.querySelector('h3');
+  const submitButton = form.querySelector('button[type="submit"]');
+  
+  if (!overlay || !form) {
+    console.error('Overlay or form not found');
+    return;
+  }
+  
+  // Update modal title and button for edit mode immediately
+  if (modalTitle) {
+    modalTitle.textContent = 'Edit Inline Inspection Form Details';
+  }
+  if (submitButton) {
+    submitButton.textContent = 'Update Inline Inspection Form';
+  }
+  
+  // Update warning message for edit mode
+  const warningMessage = overlay.querySelector('p.text-red-600');
+  if (warningMessage) {
+    warningMessage.textContent = '*Note : Please ensure all entered details are correct before updating form';
+  }
+  
+  // Show the overlay immediately
+  overlay.style.display = 'flex';
+  overlay.classList.remove('hidden');
+  
+  // Check cache first
+  const cacheKey = `${traceability_code}_${lot_letter}`;
+  let formData = formDataCache.get(cacheKey);
+  
+  if (formData) {
+            // console.log('Using cached form data');
+    populateFormWithData(formData, form, submitButton);
+    return;
+  }
+  
+  // Show loading state only if we need to fetch data
+  submitButton.textContent = 'Loading...';
+  submitButton.disabled = true;
+  
+  try {
+    // Find the record with actual form data for this traceability_code
+    const { data: allData, error: listError } = await supabase
+      .from('inline_inspection_form_master_2')
+      .select(`
+        id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
+        production_date, emboss_type, printed, non_printed, ct, year, month, date,
+        mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
+        operator, operator2, qc_inspector, qc_inspector2, status,
+        total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
+        created_at, updated_at
+      `)
+      .eq('traceability_code', traceability_code);
+    
+  if (listError) {
+    console.error('Error listing forms:', listError);
+    alert('Error loading form for editing.');
+    return;
+  }
+  
+          // All forms for traceability_code
+  
+  // Find the form with actual data (customer, production_no, etc.)
+  const formData = allData.find(form => form.customer || form.production_no || form.prod_code || form.spec);
+  
+  if (!formData) {
+    console.error('No form with data found for traceability_code:', traceability_code);
+    alert('No form data found for editing.');
+    // Reset button state
+    submitButton.textContent = 'Update Inline Inspection Form';
+    submitButton.disabled = false;
+    return;
+  }
+  
+          // console.log('Found form with data for editing');
+  
+  // Cache the form data for future use
+  formDataCache.set(cacheKey, formData);
+  
+  // Populate the form with the fetched data
+  populateFormWithData(formData, form, submitButton);
+  
+  } catch (error) {
+    console.error('Error in editForm function:', error);
+    alert('Error loading form for editing. Please try again.');
+    // Reset button state on error
+    submitButton.textContent = 'Update Inline Inspection Form';
+    submitButton.disabled = false;
   }
 }
 
@@ -1912,23 +2088,23 @@ window.downloadFormExcel = async function(traceability_code, lot_letter, buttonE
     const contentDisposition = response.headers.get('Content-Disposition');
     let filename = `inspection_form_${traceability_code}_${lot_letter}.xlsx`;
     
-    console.log('Content-Disposition header:', contentDisposition); // Debug log
+            // console.log('Content-Disposition header:', contentDisposition); // Debug log
     
     if (contentDisposition) {
       const filenameMatch = contentDisposition.match(/filename="(.+)"/);
       if (filenameMatch && filenameMatch[1]) {
         filename = filenameMatch[1];
-        console.log('Extracted filename:', filename); // Debug log
+        // console.log('Extracted filename:', filename); // Debug log
       }
     }
     
     // Fallback: Create a simple filename if header is not available
     if (!contentDisposition || contentDisposition === 'null') {
       filename = `In-Line_Inspection_Form_${traceability_code}_${lot_letter}.xlsx`;
-      console.log('Using fallback filename:', filename); // Debug log
+              // console.log('Using fallback filename:', filename); // Debug log
     }
     
-    console.log('Final filename:', filename); // Debug log
+            // console.log('Final filename:', filename); // Debug log
     a.download = filename;
     document.body.appendChild(a);
     a.click();
@@ -2101,7 +2277,7 @@ function formatDate(dateString) {
 
 // ===== FIELD ERROR HANDLING =====
 function showFieldError(input, message) {
-    console.log(`🚨 Showing error for field: ${input.name}, value: "${input.value}"`);
+            // console.log(`🚨 Showing error for field: ${input.name}, value: "${input.value}"`);
     
     // Remove any existing error message for this field
     clearFieldError(input);
@@ -2193,8 +2369,8 @@ function showFieldError(input, message) {
     errorTooltip.style.width = `${fieldWidth}px`;
     errorTooltip.style.zIndex = '10000';
     
-    console.log(`📍 Field: ${input.name}, Top: ${fieldTop}, Height: ${fieldHeight}, Width: ${fieldWidth}`);
-    console.log(`📍 Tooltip positioned at: Top=${fieldTop + fieldHeight + 4}px, Left=${input.offsetLeft}px`);
+            // console.log(`📍 Field: ${input.name}, Top: ${fieldTop}, Height: ${fieldHeight}, Width: ${fieldWidth}`);
+        // console.log(`📍 Tooltip positioned at: Top=${fieldTop + fieldHeight + 4}px, Left=${input.offsetLeft}px`);
     
     // Arrow points UP to the field
     const arrow = errorTooltip.querySelector('.field-error-tooltip-arrow');
@@ -2348,7 +2524,6 @@ function setupAutocompleteForField(input, users) {
     
     input.addEventListener('input', function() {
         const value = this.value.toLowerCase();
-        console.log(`📝 Input value: "${value}"`);
         
         // Remove existing dropdown
         if (dropdown) {
@@ -2362,8 +2537,6 @@ function setupAutocompleteForField(input, users) {
         const matches = users.filter(user => 
             user.full_name.toLowerCase().includes(value)
         ).slice(0, 5); // Limit to 5 suggestions
-        
-        console.log(`🔍 Matches found:`, matches);
         
         if (matches.length === 0) return;
         
@@ -2396,7 +2569,6 @@ function setupAutocompleteForField(input, users) {
         // Add to DOM
         input.parentNode.style.position = 'relative';
         input.parentNode.appendChild(dropdown);
-        console.log(`📋 Dropdown created with ${matches.length} items`);
     });
     
     // Validate on blur - ensure only valid names are accepted
@@ -2409,16 +2581,15 @@ function setupAutocompleteForField(input, users) {
             
             // Validate the current value
             const currentValue = this.value.toLowerCase();
-            console.log(`🔍 Validating field: ${input.name}, value: "${currentValue}", valid: ${validNames.includes(currentValue)}`);
             
             if (currentValue && !validNames.includes(currentValue)) {
                 // Invalid name entered - revert to original or clear
                 if (originalValue && validNames.includes(originalValue.toLowerCase())) {
                     this.value = originalValue;
-                    console.log(`⚠️ Reverted to original valid value: ${originalValue}`);
+                    // console.log(`⚠️ Reverted to original valid value: ${originalValue}`);
                 } else {
                     this.value = '';
-                    console.log(`⚠️ Cleared invalid value: ${currentValue}`);
+                    // console.log(`⚠️ Cleared invalid value: ${currentValue}`);
                 }
                 
                 // Show field-specific error message
@@ -2452,12 +2623,10 @@ function setupAutocompleteForField(input, users) {
 }
 
 function setupProductAutocompleteForField(input, products, fieldType) {
-    console.log(`🎯 Setting up product autocomplete for ${input.name} with ${products.length} products`);
     let dropdown = null;
     
     input.addEventListener('input', function() {
         const value = this.value.toLowerCase();
-        console.log(`📝 Input value: "${value}"`);
         
         // Remove existing dropdown
         if (dropdown) {
@@ -2479,8 +2648,6 @@ function setupProductAutocompleteForField(input, products, fieldType) {
         }
         
         // No limit - show all matches since there aren't many products
-        
-        console.log(`🔍 Matches found:`, matches);
         
         if (matches.length === 0) return;
         
@@ -2509,7 +2676,7 @@ function setupProductAutocompleteForField(input, products, fieldType) {
                 input.value = product[fieldType];
                 dropdown.remove();
                 dropdown = null;
-                console.log(`✅ Selected: ${product[fieldType]}`);
+                // console.log(`✅ Selected: ${product[fieldType]}`);
                 
                 // Auto-fill related fields if they exist
                 if (fieldType === 'customer') {
@@ -2546,7 +2713,6 @@ function setupProductAutocompleteForField(input, products, fieldType) {
         // Add to DOM
         input.parentNode.style.position = 'relative';
         input.parentNode.appendChild(dropdown);
-        console.log(`📋 Dropdown created with ${matches.length} items`);
     });
     
     // Remove dropdown when clicking outside
