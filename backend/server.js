@@ -278,7 +278,16 @@ app.get('/export', async (req, res) => {
             if (!customer) customer = otherForm.customer || '';
             if (!production_no) production_no = otherForm.production_no || '';
             if (!production_no_2) production_no_2 = otherForm.production_no_2 || '';
-            if (!prod_code) prod_code = otherForm.prod_code || '';
+            if (!prod_code) {
+              // Clean product code from other forms too
+              const otherProdCode = otherForm.prod_code || '';
+              if (otherProdCode.toLowerCase().includes('jeddah')) {
+                prod_code = otherProdCode.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
+                console.log('🧹 Cleaned product code from other forms: "Jeddah" removed:', otherProdCode, '→', prod_code);
+              } else {
+                prod_code = otherProdCode;
+              }
+            }
             if (!spec) spec = otherForm.spec || '';
             if (!shift) shift = otherForm.shift || '';
             if (!mc_no) mc_no = otherForm.mc_no || '';
@@ -1029,7 +1038,16 @@ app.get('/export', async (req, res) => {
     let shiftNumber = targetLot.shift || '';
     let mcNo = targetLot.mc_no || '';
     
-    // Clean product code by removing "(Jeddah)" part if present
+    // Store original product code for filename (with Jeddah)
+    let originalProdCodeForFilename = prodCode;
+    
+    // Remove extra spaces around "(Jeddah)" for filename (e.g., "APE-168(18)C (Jeddah)" → "APE-168(18)C(Jeddah)")
+    if (originalProdCodeForFilename.toLowerCase().includes('jeddah')) {
+      originalProdCodeForFilename = originalProdCodeForFilename.replace(/\s*\(([^)]*jeddah[^)]*)\)/gi, '($1)').trim();
+      console.log('🧹 Cleaned filename product code spacing:', prodCode, '→', originalProdCodeForFilename);
+    }
+    
+    // Clean product code by removing "(Jeddah)" part if present (for Excel content only)
     if (prodCode.toLowerCase().includes('jeddah')) {
       // Remove "(Jeddah)" or "(JEDDAH)" or any case variation
       prodCode = prodCode.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
@@ -1062,7 +1080,16 @@ app.get('/export', async (req, res) => {
           prodCode = otherForms[0].prod_code;
           console.log('  Found prod_code from other forms:', prodCode);
           
-          // Clean the retrieved product code by removing "(Jeddah)" part if present
+          // Update original product code for filename if we found it from other forms
+          originalProdCodeForFilename = prodCode;
+          
+          // Remove extra spaces around "(Jeddah)" for filename from other forms too
+          if (originalProdCodeForFilename.toLowerCase().includes('jeddah')) {
+            originalProdCodeForFilename = originalProdCodeForFilename.replace(/\s*\(([^)]*jeddah[^)]*)\)/gi, '($1)').trim();
+            console.log('🧹 Cleaned filename product code spacing from other forms:', prodCode, '→', originalProdCodeForFilename);
+          }
+          
+          // Clean the retrieved product code by removing "(Jeddah)" part if present (for Excel content only)
           if (prodCode.toLowerCase().includes('jeddah')) {
             // Remove "(Jeddah)" or "(JEDDAH)" or any case variation
             const originalProdCode = prodCode;
@@ -1126,7 +1153,8 @@ app.get('/export', async (req, res) => {
     console.log('  shiftLetter:', shiftLetter);
     
     // Create filename with format: ILIF-trace code-prod code-Shift-A-B-C.xlsx
-    const filename = `ILIF-${targetLot.traceability_code}-${prodCode}-Shift-${shiftLetter}.xlsx`;
+    // Use original product code (with Jeddah) for filename
+    const filename = `ILIF-${targetLot.traceability_code}-${originalProdCodeForFilename}-Shift-${shiftLetter}.xlsx`;
     
     console.log('Generated filename:', filename); // Debug log
     
