@@ -2542,13 +2542,14 @@ function setupAutocompleteForField(input, users) {
         
         // Create dropdown
         dropdown = document.createElement('div');
-        dropdown.className = 'absolute z-50 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto';
+        dropdown.className = 'absolute z-50 w-full border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto';
         dropdown.style.top = '100%';
         dropdown.style.left = '0';
+        dropdown.style.background = '#eaf4fb'; // Light blue background
         
         matches.forEach(user => {
             const item = document.createElement('div');
-            item.className = 'px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm';
+            item.className = 'px-3 py-2 hover:bg-blue-200 cursor-pointer text-sm';
             item.textContent = user.full_name;
             item.addEventListener('click', function() {
                 input.value = user.full_name;
@@ -2653,13 +2654,14 @@ function setupProductAutocompleteForField(input, products, fieldType) {
         
         // Create dropdown
         dropdown = document.createElement('div');
-        dropdown.className = 'absolute z-50 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto';
+        dropdown.className = 'absolute z-50 w-full border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto';
         dropdown.style.top = '100%';
         dropdown.style.left = '0';
+        dropdown.style.background = '#eaf4fb'; // Light blue background
         
         matches.forEach(product => {
             const item = document.createElement('div');
-            item.className = 'px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm';
+            item.className = 'px-3 py-2 hover:bg-blue-200 cursor-pointer text-sm';
             
             // Show different information based on field type
             let displayText = '';
