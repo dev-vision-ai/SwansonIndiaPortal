@@ -2331,6 +2331,188 @@ document.addEventListener('DOMContentLoaded', async function() {
         return table;
     }
 
+    // ===== DUPLICATE LOT NUMBER DETECTION =====
+    async function checkForDuplicateLotNumber(traceabilityCode, lotLetter, lotNumber) {
+        try {
+            // Check if this lot number already exists in the database
+            const { data: existingLots, error } = await supabase
+                .from('inline_inspection_form_master_2')
+                .select('id, form_id, lot_no, created_at, status')
+                .eq('traceability_code', traceabilityCode)
+                .eq('lot_letter', lotLetter)
+                .eq('lot_no', lotNumber);
+            
+            if (error) {
+                console.error('Error checking for duplicate lot numbers:', error);
+                return { hasDuplicates: false, duplicates: [] };
+            }
+            
+            if (existingLots && existingLots.length > 0) {
+                return { 
+                    hasDuplicates: true, 
+                    duplicates: existingLots,
+                    message: `⚠️ DUPLICATE LOT DETECTED!\n\nLot Number: ${lotNumber}\nTraceability Code: ${traceabilityCode}\nLot Letter: ${lotLetter}\n\nFound ${existingLots.length} existing record(s) with the same lot number.\n\nThis could cause data conflicts. Please verify before proceeding.`
+                };
+            }
+            
+            return { hasDuplicates: false, duplicates: [] };
+        } catch (error) {
+            console.error('Error in duplicate lot number check:', error);
+            return { hasDuplicates: false, duplicates: [] };
+        }
+    }
+
+    // Function to show duplicate warning modal
+    function showDuplicateWarningModal(duplicateInfo) {
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            font-family: Arial, sans-serif;
+        `;
+        
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        `;
+        
+        const title = document.createElement('h2');
+        title.textContent = '🚨 DUPLICATE LOT NUMBER WARNING';
+        title.style.cssText = `
+            color: #d32f2f;
+            margin: 0 0 20px 0;
+            font-size: 18px;
+            font-weight: bold;
+        `;
+        
+        const message = document.createElement('div');
+        message.innerHTML = duplicateInfo.message.replace(/\n/g, '<br>');
+        message.style.cssText = `
+            margin: 20px 0;
+            line-height: 1.5;
+            color: #333;
+        `;
+        
+        // Add details about existing records
+        if (duplicateInfo.duplicates.length > 0) {
+            const detailsTitle = document.createElement('h3');
+            detailsTitle.textContent = 'Existing Records:';
+            detailsTitle.style.cssText = `
+                color: #1976d2;
+                margin: 20px 0 10px 0;
+                font-size: 16px;
+            `;
+            
+            const detailsList = document.createElement('ul');
+            detailsList.style.cssText = `
+                margin: 10px 0;
+                padding-left: 20px;
+            `;
+            
+            duplicateInfo.duplicates.forEach((lot, index) => {
+                const listItem = document.createElement('li');
+                const createdAt = new Date(lot.created_at).toLocaleString();
+                listItem.innerHTML = `
+                    <strong>Record ${index + 1}:</strong><br>
+                    Form ID: ${lot.form_id}<br>
+                    Status: ${lot.status}<br>
+                    Created: ${createdAt}
+                `;
+                listItem.style.cssText = `
+                    margin: 8px 0;
+                    padding: 8px;
+                    background: #f5f5f5;
+                    border-radius: 4px;
+                `;
+                detailsList.appendChild(listItem);
+            });
+            
+            message.appendChild(detailsTitle);
+            message.appendChild(detailsList);
+        }
+        
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        `;
+        
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = '❌ Cancel';
+        cancelBtn.style.cssText = `
+            padding: 10px 20px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        `;
+        cancelBtn.onclick = () => {
+            document.body.removeChild(modal);
+        };
+        
+        const proceedBtn = document.createElement('button');
+        proceedBtn.textContent = '⚠️ Proceed Anyway';
+        proceedBtn.style.cssText = `
+            padding: 10px 20px;
+            background: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        `;
+        proceedBtn.onclick = () => {
+            document.body.removeChild(modal);
+            // Return a promise that resolves to true to indicate user wants to proceed
+            if (window.duplicateCheckCallback) {
+                window.duplicateCheckCallback(true);
+            }
+        };
+        
+        buttonContainer.appendChild(cancelBtn);
+        buttonContainer.appendChild(proceedBtn);
+        
+        modalContent.appendChild(title);
+        modalContent.appendChild(message);
+        modalContent.appendChild(buttonContainer);
+        modal.appendChild(modalContent);
+        
+        document.body.appendChild(modal);
+        
+        // Return a promise that resolves when user makes a choice
+        return new Promise((resolve) => {
+            window.duplicateCheckCallback = (proceed) => {
+                resolve(proceed);
+                delete window.duplicateCheckCallback;
+            };
+            
+            // Also resolve on cancel button click
+            cancelBtn.onclick = () => {
+                document.body.removeChild(modal);
+                resolve(false);
+            };
+        });
+    }
+
     // Add this function near the top of the file or before the Add Next Lot handler
     function getNextLotNumber() {
         const tables = tablesContainer.querySelectorAll('table');
@@ -2442,6 +2624,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Add event listener to the button (only if it exists)
     if (addNewTableBtn) {
     addNewTableBtn.addEventListener('click', async function() {
+        // Prevent duplicate table creation
+        if (addNewTableBtn.disabled) {
+            return; // Already processing
+        }
+        
+        // Disable button during operation
+        addNewTableBtn.disabled = true;
+        const originalText = addNewTableBtn.textContent;
+        addNewTableBtn.textContent = 'Creating...';
         // Double-check form type from UI if not set from database
         if (isNonPrintedForm === false) {
             const nonPrintedCheckbox = document.getElementById('non_printed');
@@ -2461,6 +2652,22 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Get the next lot number
         const nextLotNumber = getNextLotNumber();
+        
+        // Check for duplicate lot number before proceeding
+        const duplicateCheck = await checkForDuplicateLotNumber(traceabilityCode, lotLetter, nextLotNumber);
+        
+        if (duplicateCheck.hasDuplicates) {
+            // Show warning modal and wait for user decision
+            const userWantsToProceed = await showDuplicateWarningModal(duplicateCheck);
+            
+            if (!userWantsToProceed) {
+                // User cancelled, re-enable button and return
+                addNewTableBtn.disabled = false;
+                addNewTableBtn.textContent = originalText;
+                return;
+            }
+            // User chose to proceed anyway, continue with creation
+        }
         
         const rolls = [];
         for (let i = 1; i <= rowCount; i++) {
@@ -2506,6 +2713,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             }]);
         if (error) {
             alert('Error creating new lot: ' + error.message);
+            // Re-enable button on error
+            addNewTableBtn.disabled = false;
+            addNewTableBtn.textContent = originalText;
             return;
         }
         
@@ -2517,6 +2727,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         setTimeout(() => {
         addSaveListeners(); // <-- Ensure new table cells are hooked up for saving
             updateAddNextLotButtonState();
+            updateTableSpacing(); // <-- Add table spacing update
             
         // Scroll to the new lot's table
             const tables = tablesContainer.querySelectorAll('table');
@@ -2527,6 +2738,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 saveLotToSupabase(newTable);
             }
         }, 500); // Increased timeout to ensure everything is loaded
+        
+        // Re-enable button after operation
+        addNewTableBtn.disabled = false;
+        addNewTableBtn.textContent = originalText;
         });
     }
 
@@ -2689,9 +2904,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     // updateAddTableBtnVisibility(); // REMOVE THIS LINE
 
     // Call updateTableSpacing after any table add/remove/restore
-    if (addNewTableBtn) {
-    addNewTableBtn.addEventListener('click', updateTableSpacing);
-    }
+    // REMOVED: Duplicate event listener that was causing duplicate table creation
+    // updateTableSpacing will be called from within the main Add Next Lot handler
 
     // ===== KEYBOARD NAVIGATION FUNCTIONALITY =====
     function setupKeyboardNavigation() {
@@ -2770,6 +2984,128 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Initialize keyboard navigation
     setupKeyboardNavigation();
+    
+    // ===== PERIODIC DUPLICATE CHECK =====
+    // Check for existing duplicates when page loads
+    async function checkExistingDuplicates() {
+        if (!traceabilityCode || !lotLetter) return;
+        
+        try {
+            const { data: allLots, error } = await supabase
+                .from('inline_inspection_form_master_2')
+                .select('id, form_id, lot_no, created_at, status')
+                .eq('traceability_code', traceabilityCode)
+                .eq('lot_letter', lotLetter)
+                .order('lot_no');
+            
+            if (error) {
+                console.error('Error checking for existing duplicates:', error);
+                return;
+            }
+            
+            if (!allLots || allLots.length === 0) return;
+            
+            // Group by lot_no to find duplicates
+            const lotGroups = {};
+            allLots.forEach(lot => {
+                if (!lotGroups[lot.lot_no]) {
+                    lotGroups[lot.lot_no] = [];
+                }
+                lotGroups[lot.lot_no].push(lot);
+            });
+            
+            // Check for duplicates
+            const duplicates = [];
+            Object.entries(lotGroups).forEach(([lotNo, lots]) => {
+                if (lots.length > 1) {
+                    duplicates.push({
+                        lot_no: lotNo,
+                        records: lots
+                    });
+                }
+            });
+            
+            if (duplicates.length > 0) {
+                // Show a less intrusive notification about existing duplicates
+                showExistingDuplicatesNotification(duplicates);
+            }
+        } catch (error) {
+            console.error('Error in periodic duplicate check:', error);
+        }
+    }
+    
+    // Function to show notification about existing duplicates
+    function showExistingDuplicatesNotification(duplicates) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 9999;
+            font-family: Arial, sans-serif;
+        `;
+        
+        const title = document.createElement('div');
+        title.textContent = '⚠️ Existing Duplicates Found';
+        title.style.cssText = `
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 8px;
+            font-size: 14px;
+        `;
+        
+        const message = document.createElement('div');
+        message.textContent = `Found ${duplicates.length} lot number(s) with duplicate records. Check the console for details.`;
+        message.style.cssText = `
+            color: #856404;
+            font-size: 12px;
+            line-height: 1.4;
+        `;
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '×';
+        closeBtn.style.cssText = `
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #856404;
+        `;
+        closeBtn.onclick = () => {
+            document.body.removeChild(notification);
+        };
+        
+        notification.appendChild(closeBtn);
+        notification.appendChild(title);
+        notification.appendChild(message);
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
+        }, 10000);
+        
+        // Log details to console
+        console.warn('🚨 EXISTING DUPLICATES FOUND:', duplicates);
+        duplicates.forEach(dup => {
+            console.warn(`Lot ${dup.lot_no} has ${dup.records.length} records:`, dup.records);
+        });
+    }
+    
+    // Run duplicate check after page loads
+    setTimeout(checkExistingDuplicates, 2000);
 
 
 
