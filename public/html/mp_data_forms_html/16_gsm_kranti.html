@@ -127,6 +127,34 @@
             width: 18% !important; /* 3 columns × 6% = 18% */
             min-width: 150px !important;
         }
+        /* Equal width for Page 4 parameter columns only */
+        .page4-table td, .page4-table th {
+            width: 10% !important; /* Reduced from 12.5% to make columns narrower */
+            min-width: 60px !important;
+        }
+        /* Sample No. columns (first 3 columns) - for Page 4 to match Page 1 */
+        .page4-table td:nth-child(1), .page4-table th:nth-child(1),
+        .page4-table td:nth-child(2), .page4-table th:nth-child(2),
+        .page4-table td:nth-child(3), .page4-table th:nth-child(3) {
+            width: 6% !important;
+            min-width: 50px !important;
+            max-width: 50px !important;
+        }
+        /* Override for merged Sample No. header in Page 4 */
+        .page4-table th[colspan="3"][rowspan="2"] {
+            width: 18% !important; /* 3 columns × 6% = 18% */
+            min-width: 150px !important;
+        }
+        /* Increase width of PG Quality System Requirements column (8th column) */
+        .page4-table td:nth-child(8), .page4-table th:nth-child(8) {
+            width: 25% !important;
+            min-width: 150px !important;
+        }
+        /* Increase width of empty column (9th column) on the right */
+        .page4-table td:nth-child(9), .page4-table th:nth-child(9) {
+            width: 15% !important;
+            min-width: 90px !important;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
@@ -446,6 +474,74 @@
                                 <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
                                 <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
                                 <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Page 4 Section - Testing Parameters Table -->
+            <section class="mb-8 border border-gray-200 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Testing Parameters and Specifications - Page 4</h3>
+                
+                <!-- Add Rows Controls -->
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-4">
+                        <span id="rowCountDisplay4" class="text-sm font-bold text-gray-700">Rows: 0</span>
+                        <input id="numRowsInput4" type="number" min="1" value="1" class="w-16 px-2 py-1 border rounded text-sm" style="height:28px;" title="Number of rows to add" />
+                        <button id="addNewRowsBtn4" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm">Add New Rows</button>
+                    </div>
+                </div>
+                
+                <!-- Testing Parameters Table with merged header -->
+                <div class="overflow-x-auto">
+                    <table class="w-full border border-gray-400 bg-white testing-table page4-table" style="font-size: 13px;">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <td class="border border-gray-400 px-3 py-2 text-left font-semibold" colspan="3" style="font-size: 13px;">Testing Equipment Identification number:</td>
+                                <td class="border border-gray-400 px-3 py-2" colspan="6"></td>
+                            </tr>
+                            <tr class="bg-gray-100">
+                                <th class="border border-gray-400 px-3 py-2 text-center font-semibold" colspan="3" rowspan="2" style="font-size: 13px;">Sample No.</th>
+                                <th class="border border-gray-400 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Gloss (Gloss unit)<br>(T-9.0 U-11.0)</th>
+                                <th class="border border-gray-400 px-3 py-2 text-center font-semibold" rowspan="2" style="font-size: 13px;">PG Quality System Requirements<br>Pass=0; Fail=1</th>
+                                <th class="border border-gray-400 px-3 py-2 text-center font-semibold" rowspan="2" style="font-size: 13px;"></th>
+                            </tr>
+                            <tr class="bg-gray-100">
+                                <th class="border border-gray-400 px-3 py-2 text-center font-semibold" style="font-size: 13px;">1</th>
+                                <th class="border border-gray-400 px-3 py-2 text-center font-semibold" style="font-size: 13px;">2</th>
+                                <th class="border border-gray-400 px-3 py-2 text-center font-semibold" style="font-size: 13px;">3</th>
+                                <th class="border border-gray-400 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Ave</th>
+                            </tr>
+                        </thead>
+                        <tbody id="testingTableBody4">
+                            <!-- Summary Statistics Rows -->
+                            <tr class="average-row">
+                                <td class="border border-gray-400 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Average</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;"></td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-400 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Minimum</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;"></td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-400 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Maximum</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;">0</td>
+                                <td class="border border-gray-400 px-3 py-2 text-center" style="font-size: 13px;"></td>
                             </tr>
                         </tbody>
                     </table>

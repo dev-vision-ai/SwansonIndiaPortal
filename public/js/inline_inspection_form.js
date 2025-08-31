@@ -795,64 +795,133 @@ async function applyFilters() {
   // Update filter status
   updateFilterStatus();
   
-  // Filter the forms
-  filteredForms = allForms.filter(form => {
-    // Date filter
-    if (fromDate && toDate) {
-      const formDate = new Date(form.production_date);
-      const fromDateObj = new Date(fromDate);
-      const toDateObj = new Date(toDate);
-      if (formDate < fromDateObj || formDate > toDateObj) return false;
-    } else if (fromDate) {
-      const formDate = new Date(form.production_date);
-      const fromDateObj = new Date(fromDate);
-      if (formDate < fromDateObj) return false;
-    } else if (toDate) {
-      const formDate = new Date(form.production_date);
-      const toDateObj = new Date(toDate);
-      if (formDate > toDateObj) return false;
-    }
-    
-    // Product filter
-    if (product && form.prod_code) {
-      if (form.prod_code !== product) return false;
-    }
-    
-    // Machine filter
-    if (machine && form.mc_no) {
-      if (form.mc_no !== machine) return false;
-    }
-    
-    // Shift filter
-    if (shift && form.shift) {
-      if (parseInt(form.shift) !== parseInt(shift)) return false;
-    }
-    
-    // Operator filter
-    if (operator && (form.operator || form.operator2)) {
-      if (form.operator !== operator && form.operator2 !== operator) return false;
-    }
-    
-    // Supervisor filter
-    if (supervisor && (form.supervisor || form.supervisor2)) {
-      if (form.supervisor !== supervisor && form.supervisor2 !== supervisor) return false;
-    }
-    
-    // Line Leader filter
-    if (lineLeader && (form.line_leader || form.line_leader2)) {
-      if (form.line_leader !== lineLeader && form.line_leader2 !== lineLeader) return false;
-    }
-    
-    // QC Inspector filter
-    if (qcInspector && (form.qc_inspector || form.qc_inspector2)) {
-      if (form.qc_inspector !== qcInspector && form.qc_inspector2 !== qcInspector) return false;
-    }
-    
-    return true;
-  });
-  
   // Check if date filters are applied
   const hasDateFilters = fromDate || toDate;
+  
+  // If date filters are applied, load historical data from database
+  if (hasDateFilters) {
+    try {
+      // Build query for historical data
+      let query = supabase
+        .from('inline_inspection_form_master_2')
+        .select(`
+          id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
+          production_date, emboss_type, printed, non_printed, ct, year, month, date,
+          mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
+          operator, operator2, qc_inspector, qc_inspector2, status,
+          total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
+          created_at, updated_at
+        `);
+      
+      // Apply date filters to database query
+      if (fromDate) {
+        query = query.gte('production_date', fromDate);
+      }
+      if (toDate) {
+        query = query.lte('production_date', toDate);
+      }
+      
+      // Add ordering
+      query = query
+        .order('production_date', { ascending: false })
+        .order('created_at', { ascending: false })
+        .order('mc_no', { ascending: true });
+      
+      const { data: historicalData, error } = await query;
+      
+      if (error) {
+        console.error('Error loading historical data:', error);
+        return;
+      }
+      
+      // Filter historical data with other filters
+      const validHistoricalForms = historicalData.filter(form => form.customer !== null && form.customer !== '');
+      
+      // Apply other filters to historical data
+      filteredForms = validHistoricalForms.filter(form => {
+        // Product filter
+        if (product && form.prod_code) {
+          if (form.prod_code !== product) return false;
+        }
+        
+        // Machine filter
+        if (machine && form.mc_no) {
+          if (form.mc_no !== machine) return false;
+        }
+        
+        // Shift filter
+        if (shift && form.shift) {
+          if (parseInt(form.shift) !== parseInt(shift)) return false;
+        }
+        
+        // Operator filter
+        if (operator && (form.operator || form.operator2)) {
+          if (form.operator !== operator && form.operator2 !== operator) return false;
+        }
+        
+        // Supervisor filter
+        if (supervisor && (form.supervisor || form.supervisor2)) {
+          if (form.supervisor !== supervisor && form.supervisor2 !== supervisor) return false;
+        }
+        
+        // Line Leader filter
+        if (lineLeader && (form.line_leader || form.line_leader2)) {
+          if (form.line_leader !== lineLeader && form.line_leader2 !== lineLeader) return false;
+        }
+        
+        // QC Inspector filter
+        if (qcInspector && (form.qc_inspector || form.qc_inspector2)) {
+          if (form.qc_inspector !== qcInspector && form.qc_inspector2 !== qcInspector) return false;
+        }
+        
+        return true;
+      });
+      
+    } catch (error) {
+      console.error('Error in historical data filtering:', error);
+      return;
+    }
+  } else {
+    // No date filters - use existing allForms data
+    filteredForms = allForms.filter(form => {
+      // Product filter
+      if (product && form.prod_code) {
+        if (form.prod_code !== product) return false;
+      }
+      
+      // Machine filter
+      if (machine && form.mc_no) {
+        if (form.mc_no !== machine) return false;
+      }
+      
+      // Shift filter
+      if (shift && form.shift) {
+        if (parseInt(form.shift) !== parseInt(shift)) return false;
+      }
+      
+      // Operator filter
+      if (operator && (form.operator || form.operator2)) {
+        if (form.operator !== operator && form.operator2 !== operator) return false;
+      }
+      
+      // Supervisor filter
+      if (supervisor && (form.supervisor || form.supervisor2)) {
+        if (form.supervisor !== supervisor && form.supervisor2 !== supervisor) return false;
+      }
+      
+      // Line Leader filter
+      if (lineLeader && (form.line_leader || form.line_leader2)) {
+        if (form.line_leader !== lineLeader && form.line_leader2 !== lineLeader) return false;
+      }
+      
+      // QC Inspector filter
+      if (qcInspector && (form.qc_inspector || form.qc_inspector2)) {
+        if (form.qc_inspector !== qcInspector && form.qc_inspector2 !== qcInspector) return false;
+      }
+      
+      return true;
+    });
+  }
   
   // Update the table with filtered results
   await updateFormsTable(filteredForms, hasDateFilters);
@@ -896,7 +965,7 @@ function clearFilters() {
   // Update filter status
   updateFilterStatus();
   
-  // Reset to show all forms
+  // Reset to show current month's forms
   filteredForms = [...allForms];
   updateFormsTable(filteredForms, false); // false = show limited forms when no date filters
   
@@ -1479,11 +1548,14 @@ async function loadFormsTable() {
     
     // Calculate start and end dates for target month
     const startOfMonth = new Date(targetYear, targetMonth - 1, 1); // First day of target month
-    const endOfMonth = new Date(targetYear, targetMonth, 0); // Last day of target month
+    const endOfMonth = new Date(targetYear, targetMonth, 0); // Last day of target month (this is correct)
     
     // Format dates for database query (YYYY-MM-DD)
-    const startDate = startOfMonth.toISOString().split('T')[0];
-    const endDate = endOfMonth.toISOString().split('T')[0];
+    // Use local date formatting to avoid timezone issues with toISOString()
+    const startDate = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-01`;
+    const endDate = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-${endOfMonth.getDate().toString().padStart(2, '0')}`;
+    
+
     
             // Loading forms for target month
     
@@ -1510,6 +1582,8 @@ async function loadFormsTable() {
 
     // Only show forms with a non-null and non-empty customer value
     const validForms = data.filter(form => form.customer !== null && form.customer !== '');
+    
+
     
             // Found forms for target month
     
