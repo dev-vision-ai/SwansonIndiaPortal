@@ -397,7 +397,7 @@ function setupFilterHandlers() {
 }
 
 // Cascading filter functions
-function onDateChange() {
+async function onDateChange() {
   const fromDate = document.getElementById('filterFromDate').value;
   const toDate = document.getElementById('filterToDate').value;
   
@@ -411,7 +411,8 @@ function onDateChange() {
   resetDropdown('filterShift');
   
   if (fromDate || toDate) {
-    populateMachineDropdown(fromDate, toDate);
+    await populateMachineDropdown(fromDate, toDate);
+    await populateNonCascadingDropdowns(fromDate, toDate);
   }
   
   // Save filter state
@@ -421,7 +422,7 @@ function onDateChange() {
   applyFilters();
 }
 
-function onMachineChange() {
+async function onMachineChange() {
   const fromDate = document.getElementById('filterFromDate').value;
   const toDate = document.getElementById('filterToDate').value;
   const machine = document.getElementById('filterMachine').value;
@@ -434,7 +435,7 @@ function onMachineChange() {
   resetDropdown('filterShift');
   
   if (machine) {
-    populateProductDropdown(fromDate, toDate, machine);
+    await populateProductDropdown(fromDate, toDate, machine);
   }
   
   // Save filter state
@@ -444,7 +445,7 @@ function onMachineChange() {
   applyFilters();
 }
 
-function onProductChange() {
+async function onProductChange() {
   const fromDate = document.getElementById('filterFromDate').value;
   const toDate = document.getElementById('filterToDate').value;
   const machine = document.getElementById('filterMachine').value;
@@ -457,7 +458,7 @@ function onProductChange() {
   resetDropdown('filterShift');
   
   if (product) {
-    populateShiftDropdown(fromDate, toDate, machine, product);
+    await populateShiftDropdown(fromDate, toDate, machine, product);
   }
   
   // Save filter state
@@ -489,118 +490,145 @@ function resetDropdown(dropdownId) {
 }
 
 // Populate machine dropdown based on date range
-function populateMachineDropdown(fromDate, toDate) {
-  if (!allForms || allForms.length === 0) return;
+async function populateMachineDropdown(fromDate, toDate) {
+  let dataToUse = allForms;
   
-  let filteredForms = allForms;
-  
-  // Filter by date range if provided
+  // If date filters are applied, load historical data from database
   if (fromDate || toDate) {
-    filteredForms = allForms.filter(form => {
-      if (!form.production_date) return false;
-      
-      const formDate = new Date(form.production_date);
+    try {
+      let query = supabase
+        .from('inline_inspection_form_master_2')
+        .select('mc_no, production_date')
+        .not('customer', 'is', null)
+        .neq('customer', '');
       
       if (fromDate) {
-        const fromDateObj = new Date(fromDate);
-        if (formDate < fromDateObj) return false;
+        query = query.gte('production_date', fromDate);
       }
-      
       if (toDate) {
-        const toDateObj = new Date(toDate);
-        if (formDate > toDateObj) return false;
+        query = query.lte('production_date', toDate);
       }
       
-      return true;
-    });
+      const { data: historicalData, error } = await query;
+      
+      if (error) {
+        console.error('Error loading historical data for machine dropdown:', error);
+        return;
+      }
+      
+      dataToUse = historicalData || [];
+    } catch (error) {
+      console.error('Error in populateMachineDropdown:', error);
+      return;
+    }
   }
   
-  const machines = [...new Set(filteredForms.map(form => form.mc_no).filter(Boolean))].sort();
+  if (!dataToUse || dataToUse.length === 0) return;
+  
+  const machines = [...new Set(dataToUse.map(form => form.mc_no).filter(Boolean))].sort();
   populateSelect('filterMachine', machines);
 }
 
 // Populate product dropdown based on date range and machine
-function populateProductDropdown(fromDate, toDate, machine) {
-  if (!allForms || allForms.length === 0) return;
+async function populateProductDropdown(fromDate, toDate, machine) {
+  let dataToUse = allForms;
   
-  let filteredForms = allForms;
-  
-  // Filter by date range if provided
+  // If date filters are applied, load historical data from database
   if (fromDate || toDate) {
-    filteredForms = filteredForms.filter(form => {
-      if (!form.production_date) return false;
-      
-      const formDate = new Date(form.production_date);
+    try {
+      let query = supabase
+        .from('inline_inspection_form_master_2')
+        .select('prod_code, mc_no, production_date')
+        .not('customer', 'is', null)
+        .neq('customer', '');
       
       if (fromDate) {
-        const fromDateObj = new Date(fromDate);
-        if (formDate < fromDateObj) return false;
+        query = query.gte('production_date', fromDate);
       }
-      
       if (toDate) {
-        const toDateObj = new Date(toDate);
-        if (formDate > toDateObj) return false;
+        query = query.lte('production_date', toDate);
       }
       
-      return true;
-    });
+      const { data: historicalData, error } = await query;
+      
+      if (error) {
+        console.error('Error loading historical data for product dropdown:', error);
+        return;
+      }
+      
+      dataToUse = historicalData || [];
+    } catch (error) {
+      console.error('Error in populateProductDropdown:', error);
+      return;
+    }
   }
+  
+  if (!dataToUse || dataToUse.length === 0) return;
   
   // Filter by machine if provided
   if (machine) {
-    filteredForms = filteredForms.filter(form => form.mc_no === machine);
+    dataToUse = dataToUse.filter(form => form.mc_no === machine);
   }
   
-  const products = [...new Set(filteredForms.map(form => form.prod_code).filter(Boolean))].sort();
+  const products = [...new Set(dataToUse.map(form => form.prod_code).filter(Boolean))].sort();
   populateSelect('filterProduct', products);
 }
 
 // Populate shift dropdown based on date range, machine, and product
-function populateShiftDropdown(fromDate, toDate, machine, product) {
-  if (!allForms || allForms.length === 0) return;
+async function populateShiftDropdown(fromDate, toDate, machine, product) {
+  let dataToUse = allForms;
   
-  let filteredForms = allForms;
-  
-  // Filter by date range if provided
+  // If date filters are applied, load historical data from database
   if (fromDate || toDate) {
-    filteredForms = filteredForms.filter(form => {
-      if (!form.production_date) return false;
-      
-      const formDate = new Date(form.production_date);
+    try {
+      let query = supabase
+        .from('inline_inspection_form_master_2')
+        .select('shift, mc_no, prod_code, production_date')
+        .not('customer', 'is', null)
+        .neq('customer', '');
       
       if (fromDate) {
-        const fromDateObj = new Date(fromDate);
-        if (formDate < fromDateObj) return false;
+        query = query.gte('production_date', fromDate);
       }
-      
       if (toDate) {
-        const toDateObj = new Date(toDate);
-        if (formDate > toDateObj) return false;
+        query = query.lte('production_date', toDate);
       }
       
-      return true;
-    });
+      const { data: historicalData, error } = await query;
+      
+      if (error) {
+        console.error('Error loading historical data for shift dropdown:', error);
+        return;
+      }
+      
+      dataToUse = historicalData || [];
+    } catch (error) {
+      console.error('Error in populateShiftDropdown:', error);
+      return;
+    }
   }
+  
+  if (!dataToUse || dataToUse.length === 0) return;
   
   // Filter by machine if provided
   if (machine) {
-    filteredForms = filteredForms.filter(form => form.mc_no === machine);
+    dataToUse = dataToUse.filter(form => form.mc_no === machine);
   }
   
   // Filter by product if provided
   if (product) {
-    filteredForms = filteredForms.filter(form => form.prod_code === product);
+    dataToUse = dataToUse.filter(form => form.prod_code === product);
   }
   
-  const shifts = [...new Set(filteredForms.map(form => form.shift).filter(Boolean))].sort();
+  const shifts = [...new Set(dataToUse.map(form => form.shift).filter(Boolean))].sort();
   populateSelect('filterShift', shifts);
 }
 
 // Populate filter dropdowns with unique values
-function populateFilterDropdowns() {
+async function populateFilterDropdowns() {
   if (!allForms || allForms.length === 0) return;
   
-  // Get unique values for non-cascading filters
+  // Get unique values for non-cascading filters from current data
   const operators = [...new Set(allForms.flatMap(form => [form.operator, form.operator2]).filter(Boolean))].sort();
   const supervisors = [...new Set(allForms.flatMap(form => [form.supervisor, form.supervisor2]).filter(Boolean))].sort();
   const lineLeaders = [...new Set(allForms.flatMap(form => [form.line_leader, form.line_leader2]).filter(Boolean))].sort();
@@ -622,7 +650,50 @@ function populateFilterDropdowns() {
   populateSelect('filterShift', shifts);
   
   // Restore previous filter state if exists
-  restoreFilterState();
+  await restoreFilterState();
+}
+
+// Populate non-cascading filter dropdowns with historical data
+async function populateNonCascadingDropdowns(fromDate, toDate) {
+  if (!fromDate && !toDate) return;
+  
+  try {
+    let query = supabase
+      .from('inline_inspection_form_master_2')
+      .select('operator, operator2, supervisor, supervisor2, line_leader, line_leader2, qc_inspector, qc_inspector2')
+      .not('customer', 'is', null)
+      .neq('customer', '');
+    
+    if (fromDate) {
+      query = query.gte('production_date', fromDate);
+    }
+    if (toDate) {
+      query = query.lte('production_date', toDate);
+    }
+    
+    const { data: historicalData, error } = await query;
+    
+    if (error) {
+      console.error('Error loading historical data for non-cascading dropdowns:', error);
+      return;
+    }
+    
+    if (historicalData && historicalData.length > 0) {
+      // Get unique values for non-cascading filters from historical data
+      const operators = [...new Set(historicalData.flatMap(form => [form.operator, form.operator2]).filter(Boolean))].sort();
+      const supervisors = [...new Set(historicalData.flatMap(form => [form.supervisor, form.supervisor2]).filter(Boolean))].sort();
+      const lineLeaders = [...new Set(historicalData.flatMap(form => [form.line_leader, form.line_leader2]).filter(Boolean))].sort();
+      const qcInspectors = [...new Set(historicalData.flatMap(form => [form.qc_inspector, form.qc_inspector2]).filter(Boolean))].sort();
+      
+      // Populate non-cascading dropdowns with historical data
+      populateSelect('filterOperator', operators);
+      populateSelect('filterSupervisor', supervisors);
+      populateSelect('filterLineLeader', lineLeaders);
+      populateSelect('filterQCInspector', qcInspectors);
+    }
+  } catch (error) {
+    console.error('Error in populateNonCascadingDropdowns:', error);
+  }
 }
 
 // Helper function to populate datalist options
@@ -675,7 +746,7 @@ function saveFilterState() {
 }
 
 // Restore filter state from localStorage
-function restoreFilterState() {
+async function restoreFilterState() {
   const savedFilters = localStorage.getItem('inlineInspectionFilters');
   if (savedFilters) {
     currentFilters = JSON.parse(savedFilters);
@@ -692,40 +763,25 @@ function restoreFilterState() {
     
     // Restore cascading filters with proper population
     if (currentFilters.fromDate || currentFilters.toDate) {
-      populateMachineDropdown(currentFilters.fromDate, currentFilters.toDate);
+      await populateMachineDropdown(currentFilters.fromDate, currentFilters.toDate);
       
-      // Wait a bit for dropdown population, then restore machine filter
-      setTimeout(() => {
-        if (currentFilters.machine) {
-          document.getElementById('filterMachine').value = currentFilters.machine;
-          populateProductDropdown(currentFilters.fromDate, currentFilters.toDate, currentFilters.machine);
+      if (currentFilters.machine) {
+        document.getElementById('filterMachine').value = currentFilters.machine;
+        await populateProductDropdown(currentFilters.fromDate, currentFilters.toDate, currentFilters.machine);
+        
+        if (currentFilters.product) {
+          document.getElementById('filterProduct').value = currentFilters.product;
+          await populateShiftDropdown(currentFilters.fromDate, currentFilters.toDate, currentFilters.machine, currentFilters.product);
           
-          // Wait for product dropdown population
-          setTimeout(() => {
-            if (currentFilters.product) {
-              document.getElementById('filterProduct').value = currentFilters.product;
-              populateShiftDropdown(currentFilters.fromDate, currentFilters.toDate, currentFilters.machine, currentFilters.product);
-              
-              // Wait for shift dropdown population
-              setTimeout(() => {
-                if (currentFilters.shift !== undefined) {
-                  document.getElementById('filterShift').value = currentFilters.shift;
-                }
-                
-                // Update filter status and apply filters
-                updateFilterStatus();
-                applyFilters();
-              }, 100);
-            } else {
-              updateFilterStatus();
-              applyFilters();
-            }
-          }, 100);
-        } else {
-          updateFilterStatus();
-          applyFilters();
+          if (currentFilters.shift !== undefined) {
+            document.getElementById('filterShift').value = currentFilters.shift;
+          }
         }
-      }, 100);
+      }
+      
+      // Update filter status and apply filters
+      updateFilterStatus();
+      applyFilters();
     } else {
       // No date filters, restore directly
       if (currentFilters.machine) {
@@ -933,7 +989,7 @@ async function applyFilters() {
   }
 }
 
-function clearFilters() {
+async function clearFilters() {
   // Clear all filter inputs
   document.getElementById('filterFromDate').value = '';
   document.getElementById('filterToDate').value = '';
@@ -947,17 +1003,6 @@ function clearFilters() {
   resetDropdown('filterProduct');
   resetDropdown('filterShift');
   
-  // Re-populate cascading dropdowns with all available values
-  if (allForms && allForms.length > 0) {
-    const machines = [...new Set(allForms.map(form => form.mc_no).filter(Boolean))].sort();
-    const products = [...new Set(allForms.map(form => form.prod_code).filter(Boolean))].sort();
-    const shifts = [...new Set(allForms.map(form => form.shift).filter(Boolean))].sort();
-    
-    populateSelect('filterMachine', machines);
-    populateSelect('filterProduct', products);
-    populateSelect('filterShift', shifts);
-  }
-  
   // Clear saved filter state
   currentFilters = {};
   localStorage.removeItem('inlineInspectionFilters');
@@ -965,9 +1010,8 @@ function clearFilters() {
   // Update filter status
   updateFilterStatus();
   
-  // Reset to show current month's forms
-  filteredForms = [...allForms];
-  updateFormsTable(filteredForms, false); // false = show limited forms when no date filters
+  // Reload the table with current month's data (this will reset to default month view)
+  await loadFormsTable();
   
   // Filters cleared successfully
 }
@@ -1520,60 +1564,82 @@ async function handleFormSubmit(e) {
 });
 
 // ===== LOAD FORMS TABLE =====
-async function loadFormsTable() {
-  try {
-    // Get current date and time
-    const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-    const currentDay = now.getDate();
-    
-    // Determine which month's data to show based on shift timing
-    // If it's before 6:30 AM on the 1st of the month, show previous month's data
-    // (because night shift of previous month ends at 6:30 AM)
-    let targetYear = now.getFullYear();
-    let targetMonth = now.getMonth() + 1; // getMonth() returns 0-11, so add 1
-    
-    if (currentDay === 1 && currentHour < 6 || (currentDay === 1 && currentHour === 6 && currentMinute < 30)) {
-      // It's before 6:30 AM on the 1st, so show previous month's data
-      if (targetMonth === 1) {
-        // If it's January 1st before 6:30 AM, show December of previous year
-        targetYear = targetYear - 1;
-        targetMonth = 12;
-      } else {
-        targetMonth = targetMonth - 1;
+  async function loadFormsTable() {
+    try {
+      // Check if there are saved filters that should override default behavior
+      const savedFilters = localStorage.getItem('inlineInspectionFilters');
+      let hasDateFilters = false;
+      let startDate, endDate;
+      
+      if (savedFilters) {
+        const filters = JSON.parse(savedFilters);
+        if (filters.fromDate || filters.toDate) {
+          hasDateFilters = true;
+          startDate = filters.fromDate;
+          endDate = filters.toDate;
+        }
       }
-              // Before 6:30 AM on 1st - showing previous month's data
-    }
-    
-    // Calculate start and end dates for target month
-    const startOfMonth = new Date(targetYear, targetMonth - 1, 1); // First day of target month
-    const endOfMonth = new Date(targetYear, targetMonth, 0); // Last day of target month (this is correct)
-    
-    // Format dates for database query (YYYY-MM-DD)
-    // Use local date formatting to avoid timezone issues with toISOString()
-    const startDate = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-01`;
-    const endDate = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-${endOfMonth.getDate().toString().padStart(2, '0')}`;
-    
-
-    
-            // Loading forms for target month
-    
-    const { data, error } = await supabase
-      .from('inline_inspection_form_master_2')
-      .select(`
-        id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
-        production_date, emboss_type, printed, non_printed, ct, year, month, date,
-        mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
-        operator, operator2, qc_inspector, qc_inspector2, status,
-        total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
-        created_at, updated_at
-      `)
-      .gte('production_date', startDate)
-      .lte('production_date', endDate)
-      .order('production_date', { ascending: false })
-      .order('created_at', { ascending: false })
-      .order('mc_no', { ascending: true });
+      
+      // If no date filters are saved, use default month logic
+      if (!hasDateFilters) {
+        // Get current date and time
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const currentDay = now.getDate();
+        
+        // Determine which month's data to show based on shift timing
+        // If it's before 6:30 AM on the 1st of the month, show previous month's data
+        // (because night shift of previous month ends at 6:30 AM)
+        let targetYear = now.getFullYear();
+        let targetMonth = now.getMonth() + 1; // getMonth() returns 0-11, so add 1
+        
+        if (currentDay === 1 && currentHour < 6 || (currentDay === 1 && currentHour === 6 && currentMinute < 30)) {
+          // It's before 6:30 AM on the 1st, so show previous month's data
+          if (targetMonth === 1) {
+            // If it's January 1st before 6:30 AM, show December of previous year
+            targetYear = targetYear - 1;
+            targetMonth = 12;
+          } else {
+            targetMonth = targetMonth - 1;
+          }
+                  // Before 6:30 AM on 1st - showing previous month's data
+        }
+        
+        // Calculate start and end dates for target month
+        const startOfMonth = new Date(targetYear, targetMonth - 1, 1); // First day of target month
+        const endOfMonth = new Date(targetYear, targetMonth, 0); // Last day of target month (this is correct)
+        
+        // Format dates for database query (YYYY-MM-DD)
+        startDate = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-01`;
+        endDate = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-${endOfMonth.getDate().toString().padStart(2, '0')}`;
+      }
+      
+      // Loading forms for target date range
+      
+      let query = supabase
+        .from('inline_inspection_form_master_2')
+        .select(`
+          id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
+          production_date, emboss_type, printed, non_printed, ct, year, month, date,
+          mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
+          operator, operator2, qc_inspector, qc_inspector2, status,
+          total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
+          created_at, updated_at
+        `);
+      
+      // Apply date filters if they exist
+      if (startDate) {
+        query = query.gte('production_date', startDate);
+      }
+      if (endDate) {
+        query = query.lte('production_date', endDate);
+      }
+      
+      const { data, error } = await query
+        .order('production_date', { ascending: false })
+        .order('created_at', { ascending: false })
+        .order('mc_no', { ascending: true });
 
     if (error) {
       console.error('Error loading forms:', error);
@@ -1614,8 +1680,8 @@ async function loadFormsTable() {
     
     allForms = sortedForms; // Store all forms for filtering
     filteredForms = sortedForms; // Initialize filtered forms with all valid forms
-    await updateFormsTable(sortedForms, false); // false = show limited forms initially
-    populateFilterDropdowns(); // Populate dropdowns after loading forms
+    await updateFormsTable(sortedForms, hasDateFilters); // Pass hasDateFilters to show all forms if date filters are applied
+    await populateFilterDropdowns(); // Populate dropdowns after loading forms
   } catch (error) {
     console.error('Error:', error);
   }
@@ -2809,5 +2875,6 @@ function setupProductAutocompleteForField(input, products, fieldType) {
         }, 150);
     });
 }
+
 
 
