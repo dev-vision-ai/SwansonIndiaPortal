@@ -5,8 +5,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function fetchFilmInspectionForms() {
         const { data, error } = await supabase
-            .from('ape_168_16_cp_table')
-            .select('id, lot_no, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date');
+            .from('168_16cp_kranti')
+            .select('form_id, lot_no, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date');
 
         // Fetch user names for prepared_by field
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -40,7 +40,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error fetching data:', error.message);
             return;
         }
-        console.log('Fetched data:', data);
 
         tableBody.innerHTML = ''; // Clear existing rows
 
@@ -61,7 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td class="py-2 px-4 border-b border-r text-center">
                     <div class="flex justify-center space-x-3 flex-wrap max-w-full overflow-hidden">
                         <!-- Sky blue Enter Data button -->
-                        <button class="p-1.5 rounded-md bg-sky-50 hover:bg-sky-100 text-sky-600 hover:text-sky-800 transition-all duration-200 border border-sky-200 hover:border-sky-300 flex-shrink-0 view-film-form-button" data-id="${formData.id}" title="Add Details">
+                        <button class="p-1.5 rounded-md bg-sky-50 hover:bg-sky-100 text-sky-600 hover:text-sky-800 transition-all duration-200 border border-sky-200 hover:border-sky-300 flex-shrink-0 view-film-form-button" data-id="${formData.form_id}" title="Add Details">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
@@ -106,7 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Example for a search function
     async function searchFilmInspectionForms(searchTerm) {
-        let query = supabase.from('ape_168_16_cp_table').select('*');
+        let query = supabase.from('168_16cp_kranti').select('*');
     
         if (searchTerm) {
             // Prioritize exact match on lot_no
@@ -121,7 +120,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error fetching data:', error.message);
             return;
         }
-        console.log('Fetched data:', data);
 
         tableBody.innerHTML = ''; // Clear existing rows
 
@@ -309,13 +307,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('Submitting prestore form data:', preStoreFormData);
 
             // Determine the table name based on the selected product
-            let tableName = 'ape_168_16_cp_table';
+            let tableName = '168_16cp_kranti';
             if (preStoreFormData.product_code) {
                 const productTableMap = {
-                    'APE-168(16)C': 'ape_168_16_cp_table',
-                    'APE-168(16)CP(KRANTI)': 'ape_168_16_cp_table'
+                    'APE-168(16)C': '168_16cp_kranti',
+                    'APE-168(16)CP(KRANTI)': '168_16cp_kranti'
                 };
-                tableName = productTableMap[preStoreFormData.product_code] || 'ape_168_16_cp_table';
+                tableName = productTableMap[preStoreFormData.product_code] || '168_16cp_kranti';
             }
             console.log('Selected product:', preStoreFormData.product_code);
             console.log('Target table:', tableName);
@@ -342,7 +340,38 @@ document.addEventListener('DOMContentLoaded', async () => {
         const viewFilmFormButton = event.target.closest('.view-film-form-button');
         if (viewFilmFormButton) {
             const formId = viewFilmFormButton.dataset.id;
-            window.location.href = `/html/pre_store_&_fif/film_inspection_form_data.html?id=${formId}`;
+            const lotNo = viewFilmFormButton.closest('tr').querySelector('td:nth-child(5)').textContent; // Get lot_no from the row
+            const productCode = viewFilmFormButton.closest('tr').querySelector('td:nth-child(3)').textContent; // Get product_code from the row
+            
+            // Store form data in sessionStorage
+            sessionStorage.setItem('currentFormId', formId);
+            sessionStorage.setItem('currentLotNo', lotNo);
+            sessionStorage.setItem('currentProductCode', productCode);
+            
+            // Route to the correct form based on product code
+            let targetForm = '';
+            switch(productCode) {
+                case 'APE-168(16)CP(KRANTI)':
+                case 'APE-168(16)C':
+                    targetForm = '16_gsm_kranti.html';
+                    break;
+                case 'APE-168(18)CP(KRANTI)':
+                case 'APE-168(18)C':
+                    targetForm = '18_gsm_kranti.html'; // Future form
+                    break;
+                case 'WHITE-234(18)':
+                    targetForm = 'white_234_18.html'; // Future form
+                    break;
+                case 'APE-176(18)CP(LCC+WW)BS':
+                    targetForm = 'ape_176_18_lcc_ww_bs.html'; // Future form
+                    break;
+                default:
+                    // Default fallback
+                    targetForm = '16_gsm_kranti.html';
+                    break;
+            }
+            
+            window.location.href = targetForm;
         }
 
         const editButton = event.target.closest('.edit-button');

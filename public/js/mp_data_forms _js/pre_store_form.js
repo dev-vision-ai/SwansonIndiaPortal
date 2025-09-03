@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         async function fetchFormData() {
             // Try to fetch from the specific product table first
             let { data, error } = await supabase
-                .from('ape_168_16_cp_table')
+                .from('168_16cp_kranti')
                 .select('*')
                 .eq('id', formId)
                 .single();
@@ -182,15 +182,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('Submitting data:', finalData);
 
         // Determine the table name based on the selected product
-        let tableName = 'ape_168_16_cp_table'; // default table for pre-store form
+                    let tableName = '168_16cp_kranti'; // default table for pre-store form
         if (finalData.product_code) {
             // Map product codes to their specific tables
             const productTableMap = {
-                'APE-168(16)C': 'ape_168_16_cp_table',
-                'APE-168(16)CP(KRANTI)': 'ape_168_16_cp_table'
+                'APE-168(16)C': '168_16cp_kranti',
+                'APE-168(16)CP(KRANTI)': '168_16cp_kranti'
                 // Add more product-specific tables as they are created
             };
-            tableName = productTableMap[finalData.product_code] || 'ape_168_16_cp_table';
+                            tableName = productTableMap[finalData.product_code] || '168_16cp_kranti';
         }
         console.log('Selected product:', finalData.product_code);
         console.log('Target table:', tableName);

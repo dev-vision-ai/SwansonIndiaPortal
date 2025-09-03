@@ -1,5 +1,38 @@
 import { supabase } from '../../supabase-config.js';
 
+// IMMEDIATE PROTECTION: Prevent customer field from being converted to dropdown
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded - setting up customer field protection...');
+    
+    // Set up immediate protection
+    const protectCustomerField = () => {
+        const customerField = document.getElementById('customer');
+        if (customerField && customerField.tagName !== 'INPUT') {
+            console.warn('Customer field was already a dropdown! Converting to input...');
+            const newInput = document.createElement('input');
+            newInput.type = 'text';
+            newInput.id = 'customer';
+            newInput.name = 'customer';
+            newInput.className = 'mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50';
+            newInput.placeholder = 'Customer will auto-fill';
+            newInput.readOnly = true;
+            
+            customerField.parentNode.replaceChild(newInput, customerField);
+            console.log('Customer field converted to input on page load');
+        }
+    };
+    
+    // Run immediately
+    protectCustomerField();
+    
+    // Also run after a short delay to catch any late conversions
+    setTimeout(protectCustomerField, 100);
+    setTimeout(protectCustomerField, 500);
+    setTimeout(protectCustomerField, 1000);
+    
+    console.log('Customer field protection setup complete');
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const formId = urlParams.get('id');
@@ -45,7 +78,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             overlay.style.display = 'flex';
             loadProducts(); // Load products when modal opens
-            loadCustomers(); // Load customers when modal opens
         });
     }
 
@@ -74,13 +106,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadProducts() {
         try {
             console.log('Loading products from fif_products_master...');
+            
+            // First, let's see what columns actually exist
+            const { data: tableInfo, error: tableError } = await supabase
+                .from('fif_products_master')
+                .select('*')
+                .limit(1);
+                
+            if (tableError) {
+                console.error('Table access error:', tableError.message);
+                return;
+            }
+            
+            console.log('Table structure sample:', tableInfo);
+            
+            // Now try to load products with proper error handling
             const { data: products, error } = await supabase
                 .from('fif_products_master')
-                .select('prod_code, customer, spec')
+                .select('*')
                 .order('prod_code');
 
             if (error) {
                 console.error('Error fetching products:', error.message);
+                console.error('Full error:', error);
                 return;
             }
 
@@ -96,43 +144,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Function to load customers from master table
-    async function loadCustomers() {
-        try {
-            console.log('Loading customers from customers_master...');
-            const { data: customers, error } = await supabase
-                .from('customers_master')
-                .select('customer_name')
-                .order('customer_name');
 
-            if (error) {
-                console.error('Error fetching customers:', error.message);
-                return;
-            }
-
-            console.log('Customers loaded:', customers);
-
-            // Get the customer dropdown
-            const customerSelect = document.getElementById('customer');
-            if (!customerSelect) return;
-
-            // Clear existing options except the first one
-            customerSelect.innerHTML = '<option value="">Select Customer</option>';
-
-            // Add customers to dropdown
-            customers.forEach(customer => {
-                const option = document.createElement('option');
-                option.value = customer.customer_name;
-                option.textContent = customer.customer_name;
-                customerSelect.appendChild(option);
-            });
-
-            console.log('Customers added to dropdown');
-
-        } catch (error) {
-            console.error('Error loading customers:', error);
-        }
-    }
 
     // Function to load specification based on selected product
     async function loadSpecification(selectedProduct) {
@@ -165,6 +177,88 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // Function to load customer based on selected product
+    async function loadCustomerForProduct(selectedProduct) {
+        const customerInput = document.getElementById('customer');
+        
+        if (!selectedProduct || !customerInput) {
+            return;
+        }
+
+        try {
+            console.log('Loading customer for product:', selectedProduct);
+            const { data: product, error } = await supabase
+                .from('fif_products_master')
+                .select('customer')
+                .eq('prod_code', selectedProduct)
+                .single();
+
+            if (error) {
+                console.error('Error fetching customer:', error.message);
+                return;
+            }
+
+            if (product && product.customer) {
+                console.log('Customer loaded:', product.customer);
+                customerInput.value = product.customer;
+                
+                // FORCE the field to stay as input and prevent conversion to dropdown
+                if (customerInput.tagName !== 'INPUT') {
+                    console.error('Customer field was converted to dropdown! Forcing back to input...');
+                    const newInput = document.createElement('input');
+                    newInput.type = 'text';
+                    newInput.id = 'customer';
+                    newInput.name = 'customer';
+                    newInput.className = 'mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50';
+                    newInput.placeholder = 'Customer will auto-fill';
+                    newInput.readOnly = true;
+                    newInput.value = product.customer;
+                    
+                    customerInput.parentNode.replaceChild(newInput, customerInput);
+                    console.log('Customer field forced back to input type');
+                }
+                
+                // ADD PROTECTION: Set up a mutation observer to prevent future conversions
+                if (!window.customerFieldProtected) {
+                    window.customerFieldProtected = true;
+                    
+                    // Watch for any changes to the customer field
+                    const observer = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            if (mutation.type === 'childList') {
+                                const customerField = document.getElementById('customer');
+                                if (customerField && customerField.tagName !== 'INPUT') {
+                                    console.warn('Customer field being converted again! Re-protecting...');
+                                    // Force it back to input
+                                    const newInput = document.createElement('input');
+                                    newInput.type = 'text';
+                                    newInput.id = 'customer';
+                                    newInput.name = 'customer';
+                                    newInput.className = 'mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50';
+                                    newInput.placeholder = 'Customer will auto-fill';
+                                    newInput.readOnly = true;
+                                    newInput.value = product.customer;
+                                    
+                                    customerField.parentNode.replaceChild(newInput, customerField);
+                                }
+                            }
+                        });
+                    });
+                    
+                    // Start observing the customer field
+                    const customerField = document.getElementById('customer');
+                    if (customerField) {
+                        observer.observe(customerField.parentNode, { childList: true, subtree: true });
+                        console.log('Customer field protection activated!');
+                    }
+                }
+            }
+
+        } catch (error) {
+            console.error('Error loading customer:', error);
+        }
+    }
+
     // Function to show product suggestions
     function showProductSuggestions(searchTerm) {
         if (!productSuggestions || !allProducts.length) return;
@@ -187,6 +281,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 productCodeInput.value = product.prod_code;
                 productSuggestions.classList.add('hidden');
                 loadSpecification(product.prod_code);
+                loadCustomerForProduct(product.prod_code);
             });
             productSuggestions.appendChild(suggestionItem);
         });
@@ -202,6 +297,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 showProductSuggestions(searchTerm);
             } else {
                 productSuggestions.classList.add('hidden');
+            }
+            
+            // Auto-load customer and specification when product code is manually typed
+            if (searchTerm && allProducts.some(p => p.prod_code === searchTerm)) {
+                loadSpecification(searchTerm);
+                loadCustomerForProduct(searchTerm);
             }
         });
 
@@ -309,13 +410,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             data.lot_no = lotNo;
 
             // Determine the table name based on the selected product
-            let tableName = 'prestore_and_film_inspection_form'; // default table
+            let tableName = '168_16cp_kranti'; // default table for 16 GSM Kranti products
             
             if (data.product_code) {
                 // Map product codes to their specific tables
                 const productTableMap = {
-                    'APE-168(16)C': 'ape_168_16_cp_table',
-                    'APE-168(16)CP(KRANTI)': 'ape_168_16_cp_table' // Using same table for testing
+                    'APE-168(16)C': '168_16cp_kranti',           // Your current table
+                    'APE-168(16)CP(KRANTI)': '168_16cp_kranti'  // Your current table
                     // Add more product-specific tables as they are created
                     // 'WHITE-234(18)': 'white_234_18_table',
                     // 'APE-176(18)CP(LCC+WW)BS': 'ape_176_18_cp_lcc_ww_bs_table',
