@@ -479,10 +479,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 remarks: formData.get('remarks'),
             };
 
-            // Add 'SWIN' prefix to lot_no if it doesn't already have it
-            if (preStoreFormData.lot_no && !preStoreFormData.lot_no.startsWith('SWIN')) {
-                preStoreFormData.lot_no = 'SWIN' + preStoreFormData.lot_no;
-            }
+            // Keep lot_no as entered by user (no automatic prefix)
 
             // Try to get the logged-in user's email (optional - don't block if it fails)
             try {

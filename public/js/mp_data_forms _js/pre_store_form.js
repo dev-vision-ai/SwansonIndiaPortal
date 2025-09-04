@@ -150,10 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             kraft_paper: formData.get('kraft-paper'),
         };
 
-        // Add 'SWIN' prefix to lot_no if it doesn't already have it
-        if (preStoreFormData.lot_no && !preStoreFormData.lot_no.startsWith('SWIN')) {
-            preStoreFormData.lot_no = 'SWIN' + preStoreFormData.lot_no;
-        }
+        // Keep lot_no as entered by user (no automatic prefix)
 
         // Merge filmInspectionData with preStoreFormData if it exists and we are not editing
         let finalData = { ...preStoreFormData };
