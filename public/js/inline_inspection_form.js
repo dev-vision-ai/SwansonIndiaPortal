@@ -1732,7 +1732,7 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
     const isFiltered = filteredForms.length !== allForms.length;
     const message = isFiltered 
       ? 'No forms match the current filter criteria. Try adjusting your filters.'
-      : 'No forms created yet. Click "Create Film Inspection Form" to get started.';
+      : 'No forms created yet. Click "Inline Film Inspection Form" to get started.';
     
     tbody.innerHTML = `
       <tr>

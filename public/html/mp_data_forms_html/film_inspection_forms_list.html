@@ -14,8 +14,53 @@
             font-family: 'Roboto', sans-serif;
             font-weight: 500;
         }
+        
+        /* Equal font size for all modal content */
+        #preStoreFormOverlay label {
+            font-size: 15px !important;
+        }
+        #preStoreFormOverlay input, #preStoreFormOverlay select {
+            font-size: 15px !important;
+        }
+        #preStoreFormOverlay .p-4 label {
+            font-size: 15px !important;
+        }
+        #preStoreFormOverlay .p-4 .block {
+            font-size: 15px !important;
+        }
+        #preStoreFormOverlay .p-4 input[type="radio"] + label {
+            font-size: 15px !important;
+        }
         html, body {
             overflow-y: auto;
+        }
+        
+        /* Ensure word wrap for all text content across the entire form */
+        * {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
+        
+        /* Specific word wrap for table cells */
+        table, th, td {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
+        
+        /* Word wrap for input fields */
+        input, textarea, select {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
+        
+        /* Word wrap for labels and text content */
+        label, span, div, p, h1, h2, h3, h4, h5, h6 {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
         }
     </style>
 </head>
@@ -74,75 +119,88 @@
         </div>
     </div>
     
+    <!-- Password Confirmation Modal for Delete -->
+    <div id="passwordConfirmModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Confirm Deletion</h3>
+                <p class="text-sm text-gray-500 mb-4">Please enter your password to confirm deletion of this form.</p>
+                
+                <div class="mb-4">
+                    <div class="relative">
+                        <input type="password" id="deletePasswordInput" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Enter your password">
+                        <button type="button" id="togglePasswordVisibility" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <i class="fas fa-eye text-gray-400 hover:text-gray-600"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center space-x-3">
+                    <button id="cancelDeleteButton" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancel
+                    </button>
+                    <button id="confirmDeleteButton" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Overlay for Film Inspection Form -->
     <div id="filmInspectionFormOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
-      <main class="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-4 md:p-6 flex flex-col items-center max-h-[95vh] overflow-y-auto relative mt-20">
+      <main class="w-full max-w-6xl bg-white rounded-xl shadow-2xl p-4 md:p-6 flex flex-col items-center max-h-[95vh] overflow-y-auto relative mt-20">
         <button id="closeFilmInspectionFormOverlay" class="absolute top-4 right-4 text-2xl text-red-500 hover:text-red-700 font-bold bg-white rounded-full w-10 h-10 flex items-center justify-center shadow transition">&times;</button>
             <div class="w-full p-2 md:p-4">
                 <h3 class="text-2xl font-bold text-gray-800 mb-5 text-center">Film Inspection Form Details</h3>
                 <div class="bg-[#002E7D] h-1 w-24 mx-auto rounded mb-5"></div>
-                <form id="filmInspectionForm" class="space-y-5">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5 mb-5">
+                <form id="filmInspectionForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                         <div class="relative">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Product Code <span class="text-red-500">*</span>:</label>
-                            <input type="text" name="product_code" id="product_code" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Type to search product code..." autocomplete="off">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Product Code <span class="text-red-500">*</span>:</label>
+                            <input type="text" name="product_code" id="product_code" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter product code" autocomplete="off">
                             <div id="productSuggestions" class="absolute z-50 w-full border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden" style="background: #eaf4fb;"></div>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Production Instruction (PI) No. <span class="text-red-500">*</span>:</label>
-                            <input type="text" name="production_order" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Prod. Order">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Customer <span class="text-red-500">*</span>:</label>
+                            <input type="text" name="customer" id="customer" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Autofilled" readonly>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Machine No. <span class="text-red-500">*</span>:</label>
-                            <select name="machine_no" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Specification <span class="text-red-500">*</span>:</label>
+                            <input type="text" name="specification" id="specification" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Autofilled" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Ref. No:</label>
+                            <input type="text" name="ref_no" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Ref. No" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Production Date <span class="text-red-500">*</span>:</label>
+                            <input type="date" name="production_date" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Inspection Date <span class="text-red-500">*</span>:</label>
+                            <input type="date" name="inspection_date" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Machine No. <span class="text-red-500">*</span>:</label>
+                            <select name="machine_no" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
                                 <option value="">Select Machine</option>
                                 <option value="01">01</option>
                                 <option value="02">02</option>
                                 <option value="03">03</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5 mb-5">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Production Date <span class="text-red-500">*</span>:</label>
-                            <input type="date" name="production_date" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">P.I. No.:</label>
+                            <input type="text" name="production_order" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Prod. Order" autocomplete="off">
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Inspection Date <span class="text-red-500">*</span>:</label>
-                            <input type="date" name="inspection_date" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Specification <span class="text-red-500">*</span>:</label>
-                            <input type="text" name="specification" id="specification" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Specification will be auto-loaded" readonly>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5 mb-5">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">PO:</label>
-                            <input type="text" name="purchase_order" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter PO">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Quantity:</label>
-                            <div class="flex h-10 w-full">
-                                <input type="text" name="quantity" class="w-2/3 px-4 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Quantity">
-                                <span class="w-1/3 inline-flex items-center justify-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-200 text-gray-500 text-sm">Rolls</span>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Lot. No <span class="text-red-500">*</span>:</label>
-                            <input type="text" name="lot_no" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Lot. No" maxlength="8">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5 mb-5">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Ref. No:</label>
-                            <input type="text" name="ref_no" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Ref. No">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Customer <span class="text-red-500">*</span>:</label>
-                            <input type="text" name="customer" id="customer" class="w-full h-10 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Customer will auto-fill" readonly>
-                        </div>
-                        <div></div>
                     </div>
                     <div class="flex justify-center gap-4 pt-4">
                         <button type="button" id="clearFilmInspectionForm" class="inline-flex justify-center py-3 px-6 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
@@ -236,97 +294,123 @@
     </div>
     
     <!-- Pre-Store Form Modal Overlay -->
-    <div id="preStoreFormOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden" style="padding-top: 100px;">
-        <main class="w-full max-w-6xl bg-white rounded-xl shadow-2xl p-4 md:p-6 flex flex-col items-center max-h-[85vh] overflow-hidden relative">
+    <style>
+        /* Hide number input spinner arrows */
+        #standard-packing-modal::-webkit-outer-spin-button,
+        #standard-packing-modal::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+          <div id="preStoreFormOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden" style="padding-top: 65px;">
+        <main class="w-full max-w-6xl bg-white rounded-xl shadow-2xl p-4 md:p-6 flex flex-col items-center max-h-[87vh] overflow-hidden relative">
             <button id="closePreStoreFormOverlay" class="absolute top-2 right-2 text-lg text-red-500 hover:text-red-700 font-bold bg-white rounded-full w-7 h-7 flex items-center justify-center shadow transition">&times;</button>
             <div class="w-full p-3">
                 <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">Pre-Store Inspection Form</h3>
                 <div class="bg-[#002E7D] h-1 w-20 mx-auto rounded mb-4"></div>
                 <form id="preStoreFormModal" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
-                    <div>
-                        <label for="production-order-modal" class="block text-sm font-medium text-gray-700 mb-1">Production Instruction (PI) No. <span class="text-red-500">*</span></label>
-                        <input id="production-order-modal" name="production_order" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
-                    </div>
-
-                    <div>
-                        <label for="product-code-modal" class="block text-sm font-medium text-gray-700 mb-1">Product Code <span class="text-red-500">*</span></label>
-                        <select id="product-code-modal" name="product-code" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
-                            <option value="">Select Product Code</option>
-                            <option>WHITE-234(18)</option>
-                            <option>APE-176(18)CP(LCC+WW)BS</option>
-                            <option>APE-168(18)CP(KRANTI)</option>
-                            <option>APE-168(18)C</option>
-                            <option>WHITE-214(18)</option>
-                            <option>APE-168(16)CP(KRANTI)</option>
-                            <option>APE-168(16)C</option>
-                            <option>APE-102(18)C</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="quantity-modal" class="block text-sm font-medium text-gray-700 mb-1">Quantity <span class="text-red-500">*</span></label>
-                        <div class="flex rounded-md shadow-sm">
-                            <input id="quantity-modal" name="quantity" type="text" required class="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
-                            <span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-200 text-gray-500 text-sm">Rolls</span>
+                    <!-- Row with 4 equal fields: Production Instruction, Product Code, Specification, Pallet Size -->
+                    <div class="col-span-full grid grid-cols-4 gap-4">
+                        <div>
+                            <label for="production-order-modal" class="block text-sm font-medium text-gray-700 mb-1">Production Instruction (PI) No. <span class="text-red-500">*</span></label>
+                            <input id="production-order-modal" name="production_order" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="product-code-modal" class="block text-sm font-medium text-gray-700 mb-1">Product Code <span class="text-red-500">*</span></label>
+                            <select id="product-code-modal" name="product-code" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                                <option value="">Select Product Code</option>
+                                <option>WHITE-234(18)</option>
+                                <option>APE-176(18)CP(LCC+WW)BS</option>
+                                <option>APE-168(18)CP(KRANTI)</option>
+                                <option>APE-168(18)C</option>
+                                <option>WHITE-214(18)</option>
+                                <option>APE-168(16)CP(KRANTI)</option>
+                                <option>APE-168(16)C</option>
+                                <option>APE-102(18)C</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="specification-modal" class="block text-sm font-medium text-gray-700 mb-1">Specification <span class="text-red-500">*</span></label>
+                            <input id="specification-modal" name="specification" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="pallet-size-modal" class="block text-sm font-medium text-gray-700 mb-1">Pallet Size <span class="text-red-500">*</span></label>
+                            <input id="pallet-size-modal" name="pallet-size" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
                         </div>
                     </div>
-                    <div>
-                        <label for="customer-modal" class="block text-sm font-medium text-gray-700 mb-1">Customer <span class="text-red-500">*</span></label>
-                        <select id="customer-modal" name="customer" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
-                            <option value="">Select Customer</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="location-modal" class="block text-sm font-medium text-gray-700 mb-1">Location <span class="text-red-500">*</span></label>
-                        <input id="location-modal" name="location" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
-                    </div>
-                    <div>
-                        <label for="specification-modal" class="block text-sm font-medium text-gray-700 mb-1">Specification <span class="text-red-500">*</span></label>
-                        <input id="specification-modal" name="specification" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
-                    </div>
-                    <div>
-                        <label for="batch-modal" class="block text-sm font-medium text-gray-700 mb-1">Batch <span class="text-red-500">*</span></label>
-                        <input id="batch-modal" name="batch" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Batch">
-                    </div>
-                    <div>
-                        <label for="ref-no-modal" class="block text-sm font-medium text-gray-700 mb-1">Reference No</label>
-                        <input id="ref-no-modal" name="ref_no" type="text" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Reference No">
-                    </div>
-                    <div>
-                        <label for="standard-packing-modal" class="block text-sm font-medium text-gray-700 mb-1">Standard Packing <span class="text-red-500">*</span></label>
-                        <input id="standard-packing-modal" name="standard-packing" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
-                    </div>
-                    <div>
-                        <label for="production-date-modal" class="block text-sm font-medium text-gray-700 mb-1">Production Date <span class="text-red-500">*</span></label>
-                        <div class="flex rounded-md shadow-sm">
-                            <input type="date" id="production-date-modal" name="production-date" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
+                    
+                    <!-- Row with 4 equal fields: Customer, Location, PO, Machine No -->
+                    <div class="col-span-full grid grid-cols-4 gap-4">
+                        <div>
+                            <label for="customer-modal" class="block text-sm font-medium text-gray-700 mb-1">Customer <span class="text-red-500">*</span></label>
+                            <input id="customer-modal" name="customer" type="text" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Customer" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="location-modal" class="block text-sm font-medium text-gray-700 mb-1">Location <span class="text-red-500">*</span></label>
+                            <input id="location-modal" name="location" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="purchase-order-modal" class="block text-sm font-medium text-gray-700 mb-1">PO <span class="text-red-500">*</span></label>
+                            <input type="text" id="purchase-order-modal" name="purchase_order" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter PO" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="machine-no-modal" class="block text-sm font-medium text-gray-700 mb-1">Machine No. <span class="text-red-500">*</span></label>
+                            <input id="machine-no-modal" name="machine_no" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Select Machine" autocomplete="off">
                         </div>
                     </div>
-                    <div>
-                        <label for="inspection-date-modal" class="block text-sm font-medium text-gray-700 mb-1">Inspection Date <span class="text-red-500">*</span></label>
-                        <div class="flex rounded-md shadow-sm">
-                            <input type="date" id="inspection-date-modal" name="inspection-date" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
+                    <!-- Row with 4 equal fields: Production Date, Inspection Date, Lot. No, Standard Packing -->
+                    <div class="col-span-full grid grid-cols-4 gap-4">
+                        <div>
+                            <label for="production-date-modal" class="block text-sm font-medium text-gray-700 mb-1">Production Date <span class="text-red-500">*</span></label>
+                            <input type="date" id="production-date-modal" name="production-date" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="inspection-date-modal" class="block text-sm font-medium text-gray-700 mb-1">Inspection Date <span class="text-red-500">*</span></label>
+                            <input type="date" id="inspection-date-modal" name="inspection-date" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="lot-no-modal" class="block text-sm font-medium text-gray-700 mb-1">Lot. No <span class="text-red-500">*</span></label>
+                            <input type="text" id="lot-no-modal" name="lot_no" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Lot. No" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="standard-packing-modal" class="block text-sm font-medium text-gray-700 mb-1">Standard Packing <span class="text-red-500">*</span></label>
+                            <div class="flex rounded-md shadow-sm">
+                                <input id="standard-packing-modal" name="standard-packing" type="number" min="1" required class="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter number" style="-moz-appearance: textfield;" autocomplete="off">
+                                <select id="standard-packing-unit-modal" name="standard-packing-unit" class="px-3 py-2 border border-l-0 border-gray-300 bg-gray-200 text-gray-700 text-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] rounded-r-md" autocomplete="off">
+                                    <option value="Rolls / Pallet" selected>Rolls / Pallet</option>
+                                    <option value="Rolls / Box">Rolls / Box</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <label for="pallet-size-modal" class="block text-sm font-medium text-gray-700 mb-1">Pallet Size <span class="text-red-500">*</span></label>
-                        <div class="flex rounded-md shadow-sm">
-                            <input id="pallet-size-modal" name="pallet-size" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
+                    
+                    <!-- Row with 4 equal fields: Quantity, Batch, Reference No, Pre-store Inspection Done By -->
+                    <div class="col-span-full grid grid-cols-4 gap-4">
+                        <div>
+                            <label for="quantity-modal" class="block text-sm font-medium text-gray-700 mb-1">Quantity <span class="text-red-500">*</span></label>
+                            <div class="flex rounded-md shadow-sm">
+                                <input id="quantity-modal" name="quantity" type="text" required class="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                                <span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-200 text-gray-500 text-sm">Rolls</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="batch-modal" class="block text-sm font-medium text-gray-700 mb-1">Batch <span class="text-red-500">*</span></label>
+                            <input id="batch-modal" name="batch" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Batch" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="ref-no-modal" class="block text-sm font-medium text-gray-700 mb-1">Reference No</label>
+                            <input id="ref-no-modal" name="ref_no" type="text" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Reference No" autocomplete="off">
+                        </div>
+                        <div class="relative">
+                            <label for="prestore-done-by-modal" class="block text-sm font-medium text-gray-700 mb-1">Pre-store Inspection Done By: <span class="text-red-500">*</span></label>
+                            <input id="prestore-done-by-modal" name="prestore_done_by" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Type to search inspector name..." autocomplete="off">
+                            <div id="prestoreDoneBySuggestions" class="absolute z-50 w-full border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden" style="background: #eaf4fb;"></div>
                         </div>
                     </div>
-                    <div>
-                        <label for="machine-no-modal" class="block text-sm font-medium text-gray-700 mb-1">Machine No. <span class="text-red-500">*</span></label>
-                        <input id="machine-no-modal" name="machine_no" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Select Machine">
-                    </div>
-                    <div>
-                        <label for="purchase-order-modal" class="block text-sm font-medium text-gray-700 mb-1">PO <span class="text-red-500">*</span>:</label>
-                        <input type="text" id="purchase-order-modal" name="purchase_order" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter PO">
-                    </div>
-                    <div>
-                        <label for="lot-no-modal" class="block text-sm font-medium text-gray-700 mb-1">Lot. No <span class="text-red-500">*</span>:</label>
-                        <input type="text" id="lot-no-modal" name="lot_no" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Lot. No">
-                    </div>
+                    
+                    <!-- Remaining fields in normal grid -->
                     <div class="col-span-full mt-3 p-3 border border-gray-200 rounded-md shadow-sm">
-                        <h3 class="text-sm font-medium leading-6 text-gray-900 mb-2">Palletized Finished Goods Status</h3>
+                        <h3 class="text-base font-medium leading-6 text-gray-900 mb-2">Palletized Finished Goods Status</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         <div class="p-3 bg-gray-50 rounded-lg shadow-sm">
                             <label class="block text-xs font-medium text-gray-700 mb-2">Pallet List</label>
@@ -433,7 +517,13 @@
                     </div>
                 </div>
 
-                <div class="col-span-full flex justify-end mt-4">
+                <!-- Remarks field -->
+                <div class="col-span-full">
+                    <label for="remarks-modal" class="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
+                    <textarea id="remarks-modal" name="remarks" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50 resize-none overflow-y-auto" style="height: 80px;" placeholder="Enter any additional remarks or notes" autocomplete="off"></textarea>
+                </div>
+
+                <div class="col-span-full flex justify-end">
                     <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#002E7D] hover:bg-[#002E7D]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#002E7D]">
                         Save
                     </button>

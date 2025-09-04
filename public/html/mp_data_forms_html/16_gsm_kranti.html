@@ -13,6 +13,27 @@
             font-family: 'Roboto', sans-serif;
             font-weight: 500;
         }
+        
+        /* Ensure word wrap for all text content across the entire form */
+        * {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
+        
+        /* Specific word wrap for table cells */
+        table, th, td {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
+        
+        /* Word wrap for input fields */
+        input, textarea {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
         table, th, td {
             font-size: 13px;
             border-radius: 0 !important;
@@ -29,37 +50,52 @@
         }
         
         .testing-table th {
-            background: #f8f9fa !important; /* Subtle light grey for headers only */
-            border: 1px solid #adb5bd !important; /* Darker grey borders like Excel */
+            background: rgba(59, 130, 246, 0.1) !important; /* Light blue with low opacity */
+            border: 1px solid #6b7280 !important; /* Light black border */
             padding: 8px 6px !important;
             text-align: center !important;
             font-weight: 600 !important;
-            color: #495057 !important;
+            color: #374151 !important; /* Dark gray text for better readability */
+            /* Removed text shadow for cleaner look */
         }
         
         .testing-table td {
-            background: white !important; /* Clean white background for data cells */
-            border: 1px solid #adb5bd !important; /* Darker grey borders like Excel */
+            background: white !important; /* White background */
+            border: 1px solid #6b7280 !important; /* Light black border */
             padding: 6px 8px !important;
             text-align: center !important;
             vertical-align: middle !important;
+            transition: all 0.2s ease !important; /* Smooth transitions */
         }
         
-        /* Remove all heavy styling - clean like inline inspection form */
-        .testing-table tr:nth-child(even),
-        .testing-table tr:nth-child(odd) {
-            background: white !important;
+        /* All rows have same background color */
+        .testing-table tr:nth-child(even) td {
+            background: white !important; /* White background */
         }
         
-        .testing-table tbody tr:hover {
-            background-color: #f8f9fa !important; /* Very subtle hover effect */
+        .testing-table tr:nth-child(odd) td {
+            background: white !important; /* White background */
         }
         
-        /* Clean borders - darker grey like Excel */
+        .testing-table:not(.modern-header-table) tbody tr:hover td {
+            background: rgba(135, 206, 235, 0.3) !important; /* Light sky blue hover */
+            /* Removed transform - no pop up effect */
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important; /* Very subtle shadow */
+        }
+        
+        /* Prevent hover effect on summary rows */
+        .testing-table:not(.modern-header-table) tbody tr.average-row:hover td,
+        .testing-table:not(.modern-header-table) tbody tr:nth-last-child(2):hover td,
+        .testing-table:not(.modern-header-table) tbody tr:nth-last-child(1):hover td {
+            background: #fed7aa !important; /* Keep light orange background on hover */
+            box-shadow: none !important; /* Remove shadow on hover */
+        }
+        
+        /* Modern borders */
         .testing-table tr,
         .testing-table td,
         .testing-table th {
-            border: 1px solid #adb5bd !important;
+            border: 1px solid #6b7280 !important; /* Light black border */
         }
         
         /* Ensure highlighted cells completely override original borders - INSTANT */
@@ -76,11 +112,12 @@
         
         /* Styling for dynamically created table cells */
         .testing-table-cell {
-            background: white !important;
-            border: 1px solid #adb5bd !important;
+            background: white !important; /* White background */
+            border: 1px solid #6b7280 !important; /* Light black border */
             padding: 6px 8px !important;
             text-align: center !important;
             vertical-align: middle !important;
+            transition: all 0.2s ease !important; /* Smooth transitions */
         }
         
         /* ===== CELL HIGHLIGHTING STYLES ===== */
@@ -147,10 +184,19 @@
             vertical-align: middle !important;
         }
         
-        /* Remove any hover effects that might affect height */
-        .testing-table td:hover {
+        /* Remove any hover effects that might affect height - but not for header table */
+        .testing-table:not(.modern-header-table) td:hover {
             height: auto !important;
         }
+        
+        /* Professional header table styling */
+        .modern-header-table td {
+            background: linear-gradient(135deg, #f8fafc 0%, #e5e7eb 100%) !important; /* Professional gray gradient */
+            border: 1px solid #d1d5db !important; /* Professional border */
+            transition: none !important; /* No transitions for read-only fields */
+        }
+        
+        
         
         /* Specific styling for testing-input class */
         .testing-input {
@@ -261,6 +307,127 @@
             width: 15% !important;
             min-width: 90px !important;
         }
+        
+        /* Light orange background for summary rows - ONLY in testing parameter tables */
+        .testing-table:not(.modern-header-table) tr.average-row td,
+        .testing-table:not(.modern-header-table) tr.average-row th {
+            background: #fed7aa !important; /* Light orange background */
+            font-weight: 600 !important; /* Make text bold for better visibility */
+        }
+        
+        /* Light orange background for minimum and maximum rows - ONLY in testing parameter tables */
+        .testing-table:not(.modern-header-table) tbody tr:nth-last-child(2) td,
+        .testing-table:not(.modern-header-table) tbody tr:nth-last-child(1) td {
+            background: #fed7aa !important; /* Light orange background */
+            font-weight: 600 !important; /* Make text bold for better visibility */
+        }
+        
+        /* Background color for label cells in General Product & Production Information table - OVERRIDE all other rules */
+        .testing-table.modern-header-table td:first-child,
+        .testing-table.modern-header-table td:nth-child(3),
+        .testing-table.modern-header-table td:nth-child(5),
+        .testing-table.modern-header-table td:nth-child(7) {
+            background: #f1f5f9 !important; /* Light greyish background for labels */
+            font-weight: 600 !important; /* Bold text for labels */
+        }
+        
+            /* Keep input data cells with white background - OVERRIDE all other rules */
+            .testing-table.modern-header-table td:nth-child(2),
+            .testing-table.modern-header-table td:nth-child(4),
+            .testing-table.modern-header-table td:nth-child(6),
+            .testing-table.modern-header-table td:nth-child(8) {
+                background: white !important; /* White background for input cells */
+            }
+        
+        /* Also ensure font size for all data cells in the modern-header-table */
+        .testing-table.modern-header-table td {
+            font-size: 15px !important; /* Match the header font size exactly */
+        }
+        
+        /* OVERRIDE: Larger font size for populated data cells - MUST be after general rule */
+        .testing-table.modern-header-table td:nth-child(2),
+        .testing-table.modern-header-table td:nth-child(4),
+        .testing-table.modern-header-table td:nth-child(6),
+        .testing-table.modern-header-table td:nth-child(8) {
+            font-size: 20px !important; /* Larger font size for populated data - OVERRIDE */
+        }
+        
+        /* Light greyish background for headers in testing parameter tables (Pages 1, 2, 3, 4) */
+        .testing-table:not(.modern-header-table) thead th,
+        .testing-table:not(.modern-header-table) thead td {
+            background: #f1f5f9 !important; /* Light greyish background for headers */
+            font-weight: 600 !important; /* Bold text for headers */
+        }
+        
+        /* Remove background color from "Testing Equipment Identification Number" row - make it white */
+        .testing-table:not(.modern-header-table) thead tr:first-child td,
+        .testing-table:not(.modern-header-table) thead tr:first-child th {
+            background: white !important; /* White background for equipment identification row */
+        }
+        
+        /* Orange background for Ave columns in dynamic rows - Page 2 */
+        .page2-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(7),
+        .page2-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(11),
+        .page2-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(15) {
+            background: #fed7aa !important; /* Light orange background for Ave columns in Page 2 dynamic rows */
+        }
+        
+        /* Orange background for Ave columns in dynamic rows - Page 3 */
+        .page3-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(7),
+        .page3-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(11),
+        .page3-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(15) {
+            background: #fed7aa !important; /* Light orange background for Ave columns in Page 3 dynamic rows */
+        }
+        
+        /* Orange background for Ave column in dynamic rows - Page 4 */
+        .page4-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(7) {
+            background: #fed7aa !important; /* Light orange background for Gloss Ave column in Page 4 dynamic rows */
+        }
+        
+        /* Simple square button styles for row management */
+        .modern-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 28px;
+            border: none;
+            border-radius: 0;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: none;
+            box-shadow: none;
+            vertical-align: middle;
+        }
+        
+        .modern-btn:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .modern-btn:active {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .add-btn {
+            background: #10b981;
+            color: white;
+        }
+        
+        .add-btn:hover {
+            background: #059669;
+        }
+        
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .delete-btn:hover {
+            background: #dc2626;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
@@ -274,46 +441,46 @@
 
     <main class="flex flex-col w-full min-h-screen pt-20 gap-8 p-0">
         <div class="bg-white rounded-none shadow-2xl w-full h-full min-h-[calc(100vh-96px)] p-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">16 GSM Kranti Inspection Form</h2>
+            <h2 id="formTitle" class="text-2xl font-bold text-gray-800 mb-6 text-center"></h2>
             
             <!-- Top Section - General Product & Production Information -->
             <section class="mb-8 border border-gray-200 rounded-lg p-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">General Product & Production Information</h3>
-                <table class="w-full border-2 border-gray-800 bg-white testing-table" style="font-size: 15px;">
+                <table class="w-full border-2 border-gray-800 bg-white testing-table modern-header-table" style="font-size: 15px;">
                     <tr>
                         <td class="border border-gray-800 px-3 py-2 font-semibold testing-table-cell" style="font-size: 15px; min-width: 180px;">Product Code:</td>
                         <td class="border border-gray-800 px-3 py-2 testing-table-cell" style="min-width: 250px;">
-                            <input type="text" class="w-full testing-input" placeholder="Enter Product Code" style="font-size: 15px;">
+                            <input type="text" id="productCodeInput" class="w-full testing-input" placeholder="Enter Product Code">
                         </td>
                         <td class="border border-gray-800 px-3 py-2 font-semibold w-52 testing-table-cell" style="font-size: 15px;">Prod. Order:</td>
                         <td class="border border-gray-800 px-3 py-2 testing-table-cell">
-                            <input type="text" class="w-full testing-input" placeholder="Enter Prod. Order" style="font-size: 15px;">
+                            <input type="text" class="w-full testing-input" placeholder="Enter Prod. Order">
                         </td>
                         <td class="border border-gray-800 px-3 py-2 font-semibold w-52 testing-table-cell" style="font-size: 15px;">Machine:</td>
                         <td class="border border-gray-800 px-3 py-2 testing-table-cell">
-                            <input type="text" class="w-full testing-input" placeholder="Enter Machine" style="font-size: 15px;">
+                            <input type="text" class="w-full testing-input" placeholder="Enter Machine">
                         </td>
                         <td class="border border-gray-800 px-3 py-2 font-semibold w-52 testing-table-cell" style="font-size: 15px;">Production Date:</td>
                         <td class="border border-gray-800 px-3 py-2 testing-table-cell">
-                            <input type="date" class="w-full testing-input" style="font-size: 15px;">
+                            <input type="date" class="w-full testing-input">
                         </td>
                     </tr>
                     <tr>
                         <td class="border border-gray-800 px-3 py-2 font-semibold testing-table-cell" style="font-size: 15px; min-width: 180px;">Specification:</td>
                         <td class="border border-gray-800 px-3 py-2 testing-table-cell" style="min-width: 250px;">
-                            <input type="text" class="w-full testing-input" placeholder="Enter Specification" style="font-size: 15px;">
+                            <input type="text" class="w-full testing-input" placeholder="Enter Specification">
                         </td>
                         <td class="border border-gray-800 px-3 py-2 font-semibold w-52 testing-table-cell" style="font-size: 15px;">PO:</td>
                         <td class="border border-gray-800 px-3 py-2 testing-table-cell">
-                            <input type="text" class="w-full testing-input" placeholder="Enter PO" style="font-size: 15px;">
+                            <input type="text" class="w-full testing-input" placeholder="Enter PO">
                         </td>
                         <td class="border border-gray-800 px-3 py-2 font-semibold w-52 testing-table-cell" style="font-size: 15px;">Quantity:</td>
                         <td class="border border-gray-800 px-3 py-2 testing-table-cell">
-                            <input type="text" class="w-full testing-input" placeholder="Enter Quantity" style="font-size: 15px;">
+                            <input type="text" class="w-full testing-input" placeholder="Enter Quantity">
                         </td>
                         <td class="border border-gray-800 px-3 py-2 font-semibold w-52 testing-table-cell" style="font-size: 15px;">Inspection Date:</td>
                         <td class="border border-gray-800 px-3 py-2 testing-table-cell">
-                            <input type="date" class="w-full testing-input" style="font-size: 15px;">
+                            <input type="date" class="w-full testing-input">
                         </td>
                     </tr>
 
@@ -322,18 +489,16 @@
 
             <!-- Bottom Section - Testing Parameters Table -->
             <section class="mb-8 border border-gray-200 rounded-lg p-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Testing Parameters and Specifications - Page 1</h3>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 1</h3>
                 
                             <!-- Add/Delete Rows Controls -->
             <div class="flex justify-between items-center mb-4">
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
                     <span id="rowCountDisplay" class="text-sm font-bold text-gray-700">Rows: 0</span>
-                    <input id="numRowsInput" type="number" min="1" value="1" class="w-16 px-2 py-1 border rounded text-sm" style="height:28px;" title="Number of rows to add/delete" />
-                    <button id="addNewRowsBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm">Add New Rows</button>
-                    <button id="deleteRowsBtn" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-sm">Delete Rows</button>
-
+                    <input id="numRowsInput" type="number" min="1" value="1" class="px-1 py-1 border rounded text-sm" style="width:28px; height:28px;" title="Number of rows to add/delete" />
+                    <button id="addNewRowsBtn" class="modern-btn add-btn" title="Add New Rows">+</button>
+                    <button id="deleteRowsBtn" class="modern-btn delete-btn" title="Delete Rows">−</button>
                 </div>
-
             </div>
                 
                 <!-- Testing Parameters Table with merged header -->
@@ -400,7 +565,7 @@
 
             <!-- Page 2 Section - Testing Parameters Table -->
             <section class="mb-8 border border-gray-200 rounded-lg p-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Testing Parameters and Specifications - Page 2</h3>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 2</h3>
                 
                 <!-- Row Count Display -->
                 <div class="flex justify-between items-center mb-4">
@@ -474,7 +639,7 @@
 
             <!-- Page 3 Section - Testing Parameters Table -->
             <section class="mb-8 border border-gray-200 rounded-lg p-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Testing Parameters and Specifications - Page 3</h3>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 3</h3>
                 
                 <!-- Row Count Display -->
                 <div class="flex justify-between items-center mb-4">
@@ -548,7 +713,7 @@
 
             <!-- Page 4 Section - Testing Parameters Table -->
             <section class="mb-8 border border-gray-200 rounded-lg p-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Testing Parameters and Specifications - Page 4</h3>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 4</h3>
                 
                 <!-- Row Count Display -->
                 <div class="flex justify-between items-center mb-4">
@@ -610,5 +775,29 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module" src="../../supabase-config.js"></script>
     <script type="module" src="../../js/mp_data_forms _js/16_gsm_kranti.js"></script>
+    
+    <script>
+        // Function to update form title from the product code input field
+        function updateFormTitleFromInput() {
+            const formTitle = document.getElementById('formTitle');
+            const productCodeInput = document.getElementById('productCodeInput');
+            
+            if (formTitle && productCodeInput) {
+                // Get product code from the input field
+                const productCode = productCodeInput.value.trim();
+                
+                if (productCode) {
+                    // Update title with product code from input field
+                    formTitle.textContent = productCode.toUpperCase();
+                }
+            }
+        }
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait a bit for the form data to load, then update title
+            setTimeout(updateFormTitleFromInput, 1000);
+        });
+    </script>
 </body>
 </html>

@@ -366,10 +366,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             const formData = new FormData(form);
             const data = {};
             for (let [key, value] of formData.entries()) {
-                data[key] = value;
+                // Only include fields that have actual values (not empty strings)
+                if (value && value.trim() !== '') {
+                    data[key] = value.trim();
+                }
             }
             
             console.log('Form data being submitted:', data);
+
+            // Validate required fields
+            const requiredFields = ['product_code', 'customer', 'specification', 'production_date', 'inspection_date', 'machine_no'];
+            const missingFields = requiredFields.filter(field => !data[field]);
+            
+            if (missingFields.length > 0) {
+                alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+                return;
+            }
 
             // Get the logged-in user's email
             const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -401,13 +413,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 data.quantity = parseInt(data.quantity);
             }
 
-            // Inside your form submission handler, before inserting data:
-            let lotNo = formData.get('lot_no');
-            // Add 'SWIN' prefix to lot_no if it doesn't already have it
-            if (lotNo && !lotNo.startsWith('SWIN')) {
-                lotNo = 'SWIN' + lotNo;
+            // Only include lot_no if it was actually entered by the user
+            const lotNo = formData.get('lot_no');
+            if (lotNo && lotNo.trim() !== '') {
+                data.lot_no = lotNo.trim();
             }
-            data.lot_no = lotNo;
 
             // Determine the table name based on the selected product
             let tableName = '168_16cp_kranti'; // default table for 16 GSM Kranti products
@@ -446,22 +456,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                     .update(data)
                     .eq('id', formId);
             } else {
-                // Check for uniqueness before submission (only for new entries)
-                const { data: existingLots, error: checkError } = await supabase
-                    .from(tableName)
-                    .select('lot_no')
-                    .eq('lot_no', lotNo)
-                    .limit(1);
+                // Check for uniqueness before submission (only for new entries and only if lot_no is provided)
+                if (data.lot_no) {
+                    const { data: existingLots, error: checkError } = await supabase
+                        .from(tableName)
+                        .select('lot_no')
+                        .eq('lot_no', data.lot_no)
+                        .limit(1);
 
-                if (checkError) {
-                    console.error('Error checking LOT NO uniqueness:', checkError.message);
-                    alert('An error occurred while validating LOT NO. Please try again.');
-                    return;
-                }
+                    if (checkError) {
+                        console.error('Error checking LOT NO uniqueness:', checkError.message);
+                        alert('An error occurred while validating LOT NO. Please try again.');
+                        return;
+                    }
 
-                if (existingLots && existingLots.length > 0) {
-                    alert('Error: LOT NO already exists. Please enter a unique LOT NO.');
-                    return;
+                    if (existingLots && existingLots.length > 0) {
+                        alert('Error: LOT NO already exists. Please enter a unique LOT NO.');
+                        return;
+                    }
                 }
 
                 // Insert new record into the product-specific table

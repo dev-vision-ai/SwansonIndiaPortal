@@ -60,6 +60,29 @@ document.addEventListener('DOMContentLoaded', function() {
            inspectionDateInput = allDateInputs[1] || null;
        }
        
+       // Make header form fields read-only
+       const headerFields = [
+           productCodeInput,
+           productionOrderInput,
+           machineInput,
+           productionDateInput,
+           specificationInput,
+           poInput,
+           quantityInput,
+           inspectionDateInput
+       ];
+       
+       headerFields.forEach(field => {
+           if (field) {
+               field.readOnly = true;
+               field.style.backgroundColor = '#f3f4f6'; // Light gray background
+               field.style.cursor = 'default'; // Normal cursor instead of not-allowed
+               field.style.fontSize = '16px'; // Bigger font size for better readability
+               field.style.fontWeight = '500'; // Slightly bolder text
+               field.title = 'This field is read-only';
+           }
+       });
+       
 
 
        // ===== AUTO-SAVE TO DATABASE (LIKE INLINE INSPECTION FORM) =====
@@ -84,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
                    specification: specificationInput?.value || '',
                    purchase_order: poInput?.value || '',
                    quantity: quantityInput?.value ? parseInt(quantityInput.value) : null,
-                   lot_no: currentLotNo || generateLotNumber(), // Use existing or generate new
+                   lot_no: currentLotNo || null, // Only use existing lot_no, don't generate new ones
                    // Don't overwrite ref_no and prepared_by if updating existing form
                    ...(currentFormId ? {} : {
                        ref_no: generateRefNumber(),
@@ -187,16 +210,36 @@ document.addEventListener('DOMContentLoaded', function() {
            }
        }
        
-       // Debounced auto-save function (like inline inspection form)
-       function debouncedAutoSave() {
-           clearTimeout(saveTimeout);
-           saveTimeout = setTimeout(autoSaveToDatabase, 1000); // 1 second delay like inline inspection
-       }
-       
-       // Update existing debouncedSave to use database instead of localStorage
+       // Single debounced save function for database operations
        function debouncedSave() {
            clearTimeout(saveTimeout);
-           saveTimeout = setTimeout(autoSaveToDatabase, 1000); // 1 second delay as requested
+           saveTimeout = setTimeout(autoSaveToDatabase, 1000); // 1 second delay
+       }
+       
+       // Helper function to add consolidated input event listener
+       function addConsolidatedInputListener(input, tableBody, tr, columnIndex) {
+           input.addEventListener('input', function() {
+               // Auto-save to database after each change (debounced)
+               debouncedSave();
+               
+               // Real-time sync for Page 1 sample columns
+               if (tableBody.id === 'testingTableBody' && columnIndex <= 2) {
+                   const rowIndex = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
+                       const firstCell = row.querySelector('td');
+                       return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
+                   }).indexOf(tr);
+                   if (rowIndex !== -1) {
+                       syncSampleDataToOtherPages(rowIndex, columnIndex, this.value);
+                   }
+               }
+           });
+       }
+       
+       // Helper function to trigger summary recalculation with delay
+       function triggerSummaryRecalculation() {
+           setTimeout(() => {
+               forceRecalculateAllSummaryStatistics();
+           }, 50);
        }
        
        // Get table data (excluding summary rows)
@@ -243,6 +286,9 @@ document.addEventListener('DOMContentLoaded', function() {
                    
                    // Add event listener for automatic average calculation
                    input.addEventListener('input', function() {
+                       // Auto-save to database after each change (debounced)
+                       debouncedSave();
+                       
                        // Only calculate row averages for Pages 2, 3, 4 (not Page 1)
                        if (tableBody.id !== 'testingTableBody') {
                            calculateRowAverages(tr, tableBody);
@@ -256,9 +302,6 @@ document.addEventListener('DOMContentLoaded', function() {
                            const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
                            calculatePage1ColumnStats(tableBody, inputIndex);
                        }
-                       
-                       // Auto-save to database after each change (debounced)
-                       debouncedSave();
                    });
                    
                    td.appendChild(input);
@@ -701,10 +744,8 @@ document.addEventListener('DOMContentLoaded', function() {
            });
        }
        
-       // Enhanced debounced save with memory management
+       // Debounced save timeout management
        let saveTimeout = null;
-       
-       // This function is now replaced by the new debouncedSave that saves to database
 
     // Update row count for Page 1
     function updateRowCount() {
@@ -1070,6 +1111,13 @@ document.addEventListener('DOMContentLoaded', function() {
          function loadColumnDataToTable(tableBody, inputIndex, jsonbData) {
              if (!jsonbData || typeof jsonbData !== 'object') return;
              
+             // Determine which table this is (Page 1, 2, 3, or 4)
+             const isPage1 = tableBody === testingTableBody;
+             const isPage2 = tableBody === testingTableBody2;
+             const isPage3 = tableBody === testingTableBody3;
+             const isPage4 = tableBody === testingTableBody4;
+             const isNotPage1 = isPage2 || isPage3 || isPage4;
+             
              // Get all data rows (excluding summary rows)
              const dataRows = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
                  const firstCell = row.querySelector('td');
@@ -1103,15 +1151,39 @@ document.addEventListener('DOMContentLoaded', function() {
                      if (inputIndex === 0) {
                          // Sample Number column - update input value
                          const inputs = row.querySelectorAll('input');
-                         if (inputs[0]) inputs[0].value = jsonbData[rowKey];
+                         if (inputs[0]) {
+                             inputs[0].value = jsonbData[rowKey];
+                             // Make readonly on Pages 2, 3, 4 (sample identification columns)
+                             if (isNotPage1) {
+                                 inputs[0].readOnly = true;
+                                 inputs[0].style.backgroundColor = 'transparent';
+                                 inputs[0].style.color = '#000000';
+                             }
+                         }
                      } else if (inputIndex === 1) {
                          // Lot Number column - update input value
                          const inputs = row.querySelectorAll('input');
-                         if (inputs[1]) inputs[1].value = jsonbData[rowKey];
+                         if (inputs[1]) {
+                             inputs[1].value = jsonbData[rowKey];
+                             // Make readonly on Pages 2, 3, 4 (sample identification columns)
+                             if (isNotPage1) {
+                                 inputs[1].readOnly = true;
+                                 inputs[1].style.backgroundColor = 'transparent';
+                                 inputs[1].style.color = '#000000';
+                             }
+                         }
                      } else if (inputIndex === 2) {
                          // Roll Number column - update input value
                          const inputs = row.querySelectorAll('input');
-                         if (inputs[2]) inputs[2].value = jsonbData[rowKey];
+                         if (inputs[2]) {
+                             inputs[2].value = jsonbData[rowKey];
+                             // Make readonly on Pages 2, 3, 4 (sample identification columns)
+                             if (isNotPage1) {
+                                 inputs[2].readOnly = true;
+                                 inputs[2].style.backgroundColor = 'transparent';
+                                 inputs[2].style.color = '#000000';
+                             }
+                         }
                      } else {
                          // Input columns - find and update input value (column index = input index)
                          const inputs = row.querySelectorAll('input');
@@ -1132,8 +1204,31 @@ document.addEventListener('DOMContentLoaded', function() {
          // Make all summary rows uneditable from the start
          makeSummaryRowsUneditable();
          
-         // Load existing data from database if available
-         loadDataFromDatabase();
+                 // Load existing data from database if available
+        loadDataFromDatabase();
+        
+        // Apply validation to existing sample inputs after data is loaded
+        applyValidationToExistingSampleInputs();
+        
+        // Apply validation to existing thickness inputs after data is loaded
+        applyValidationToExistingThicknessInputs();
+        
+        // Apply validation to existing opacity inputs after data is loaded
+        applyValidationToExistingOpacityInputs();
+        
+        // Apply validation to existing COF inputs after data is loaded
+        applyValidationToExistingCOFInputs();
+        
+        // Apply validation to existing Cut Width inputs after data is loaded
+        applyValidationToExistingCutWidthInputs();
+        
+        // Apply validation to existing Color-Delta E inputs after data is loaded
+        applyValidationToExistingColorDeltaInputs();
+        
+        // Apply validation to existing Page 2, 3, 4 inputs after data is loaded
+        applyValidationToExistingPage2Inputs();
+        applyValidationToExistingPage3Inputs();
+        applyValidationToExistingPage4Inputs();
        
        // Add event listeners to existing input fields for average calculation
        addAverageCalculationListeners();
@@ -1229,19 +1324,27 @@ document.addEventListener('DOMContentLoaded', function() {
                }
            }
 
-                    // Add new empty rows
+           // Pre-calculate table properties for performance
+           const isPage1 = tableBody.id === 'testingTableBody';
+           const isPage2 = tableBody.id === 'testingTableBody2';
+           const isPage3 = tableBody.id === 'testingTableBody3';
+           const isPage4 = tableBody.id === 'testingTableBody4';
+           
+           let columnCount;
+           if (isPage2 || isPage3) {
+               columnCount = 15;
+           } else if (isPage4) {
+               columnCount = 8;
+           } else {
+               columnCount = 10;
+           }
+
+           // Use DocumentFragment for better performance
+           const fragment = document.createDocumentFragment();
+
+           // Add new empty rows
             for (let i = 0; i < n; i++) {
                 const tr = document.createElement('tr');
-                
-                // Determine number of columns based on table body ID
-                let columnCount;
-                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
-                    columnCount = 15;
-                                 } else if (tableBody.id === 'testingTableBody4') {
-                     columnCount = 8;
-                 } else {
-                    columnCount = 10;
-                }
                 
                 for (let j = 0; j < columnCount; j++) {
                     const td = document.createElement('td');
@@ -1256,24 +1359,19 @@ document.addEventListener('DOMContentLoaded', function() {
                        input.value = '';
                        input.placeholder = '';
                        
-                       // Add event listener for auto-save to database
-                       input.addEventListener('input', function() {
-                           // Auto-save to database after each change (debounced)
-                           debouncedSave();
-                       });
+                       // Check if this is Page 1 (editable) or Pages 2,3,4 (readonly)
+                       if (!isPage1) {
+                           // Make readonly on Pages 2, 3, 4
+                           input.readOnly = true;
+                           input.style.backgroundColor = 'transparent';
+                           input.style.color = '#000000';
+                       }
                        
-                       // Add real-time sync listener for Page 1 sample columns
-                       if (tableBody.id === 'testingTableBody') {
-                           input.addEventListener('input', function() {
-                               // Get the row index and sync to other pages
-                               const rowIndex = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
-                                   const firstCell = row.querySelector('td');
-                                   return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
-                               }).indexOf(tr);
-                               if (rowIndex !== -1) {
-                                   syncSampleDataToOtherPages(rowIndex, 0, this.value);
-                               }
-                           });
+                       // Apply Lot & Roll validation (00-00 format) only on Page 1
+                       if (isPage1) {
+                           applyLotRollValidation(input);
+                           // Add consolidated input event listener only on Page 1
+                           addConsolidatedInputListener(input, tableBody, tr, 0);
                        }
                        
                        td.appendChild(input);
@@ -1285,24 +1383,19 @@ document.addEventListener('DOMContentLoaded', function() {
                        input.value = '';
                        input.placeholder = '';
                        
-                       // Add event listener for auto-save to database
-                       input.addEventListener('input', function() {
-                           // Auto-save to database after each change (debounced)
-                           debouncedSave();
-                       });
+                       // Check if this is Page 1 (editable) or Pages 2,3,4 (readonly)
+                       if (!isPage1) {
+                           // Make readonly on Pages 2, 3, 4
+                           input.readOnly = true;
+                           input.style.backgroundColor = 'transparent';
+                           input.style.color = '#000000';
+                       }
                        
-                       // Add real-time sync listener for Page 1 sample columns
-                       if (tableBody.id === 'testingTableBody') {
-                           input.addEventListener('input', function() {
-                               // Get the row index and sync to other pages
-                               const rowIndex = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
-                                   const firstCell = row.querySelector('td');
-                                   return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
-                               }).indexOf(tr);
-                               if (rowIndex !== -1) {
-                                   syncSampleDataToOtherPages(rowIndex, 1, this.value);
-                               }
-                           });
+                       // Apply Roll ID validation (00000000 format) only on Page 1
+                       if (isPage1) {
+                           applyRollIDValidation(input);
+                           // Add consolidated input event listener only on Page 1
+                           addConsolidatedInputListener(input, tableBody, tr, 1);
                        }
                        
                        td.appendChild(input);
@@ -1314,24 +1407,19 @@ document.addEventListener('DOMContentLoaded', function() {
                        input.value = '';
                        input.placeholder = '';
                        
-                       // Add event listener for auto-save to database
-                       input.addEventListener('input', function() {
-                           // Auto-save to database after each change (debounced)
-                           debouncedSave();
-                       });
+                       // Check if this is Page 1 (editable) or Pages 2,3,4 (readonly)
+                       if (!isPage1) {
+                           // Make readonly on Pages 2, 3, 4
+                           input.readOnly = true;
+                           input.style.backgroundColor = 'transparent';
+                           input.style.color = '#000000';
+                       }
                        
-                       // Add real-time sync listener for Page 1 sample columns
-                       if (tableBody.id === 'testingTableBody') {
-                           input.addEventListener('input', function() {
-                               // Get the row index and sync to other pages
-                               const rowIndex = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
-                                   const firstCell = row.querySelector('td');
-                                   return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
-                               }).indexOf(tr);
-                               if (rowIndex !== -1) {
-                                   syncSampleDataToOtherPages(rowIndex, 2, this.value);
-                               }
-                           });
+                       // Apply Lot Time validation (00:00 format) only on Page 1
+                       if (isPage1) {
+                           applyLotTimeValidation(input);
+                           // Add consolidated input event listener only on Page 1
+                           addConsolidatedInputListener(input, tableBody, tr, 2);
                        }
                        
                        td.appendChild(input);
@@ -1343,30 +1431,107 @@ document.addEventListener('DOMContentLoaded', function() {
                     input.value = '';
                     input.placeholder = '';
                     
+                    // Apply validation to Basic Weight column (Page 1, column 3)
+                    if (tableBody.id === 'testingTableBody' && j === 3) {
+                        applyValidationToInput(input, tableBody, j);
+                    }
+                    
+                    // Apply specific validation to Thickness column (Page 1, column 4)
+                    if (tableBody.id === 'testingTableBody' && j === 4) {
+                        applyThicknessValidation(input);
+                    }
+                    
+                    // Apply specific validation to Opacity column (Page 1, column 5)
+                    if (tableBody.id === 'testingTableBody' && j === 5) {
+                        applyOpacityValidation(input);
+                    }
+                    
+                    // Apply specific validation to COF Kinetic column (Page 1, column 6)
+                    if (tableBody.id === 'testingTableBody' && j === 6) {
+                        applyCOFValidation(input);
+                    }
+                    
+                    // Apply specific validation to Cut Width column (Page 1, column 7)
+                    if (tableBody.id === 'testingTableBody' && j === 7) {
+                        applyCutWidthValidation(input);
+                    }
+                    
+                    // Apply specific validation to Color-Delta E Unprinted column (Page 1, column 8)
+                    if (tableBody.id === 'testingTableBody' && j === 8) {
+                        applyColorDeltaValidation(input);
+                    }
+                    
+                    // Apply specific validation to Color-Delta E Printed column (Page 1, column 9)
+                    if (tableBody.id === 'testingTableBody' && j === 9) {
+                        applyColorDeltaValidation(input);
+                    }
+                    
+                    // Page 2 validations
+                    if (isPage2) {
+                        // Elongation MD columns (000 format)
+                        if (j === 3 || j === 4 || j === 5) {
+                            applyThreeDigitValidation(input);
+                        }
+                        // Force MD columns (00.0 format)
+                        if (j === 7 || j === 8 || j === 9) {
+                            applyTwoDigitOneDecimalValidation(input);
+                        }
+                        // Force 5% MD columns (0.0 format)
+                        if (j === 11 || j === 12 || j === 13) {
+                            applyOneDigitOneDecimalValidation(input);
+                        }
+                    }
+                    
+                    // Page 3 validations
+                    // Elongation CD columns (000 format)
+                    if (tableBody.id === 'testingTableBody3' && (j === 3 || j === 4 || j === 5)) {
+                        applyThreeDigitValidation(input);
+                    }
+                    // Force CD columns (00.0 format)
+                    if (tableBody.id === 'testingTableBody3' && (j === 7 || j === 8 || j === 9)) {
+                        applyTwoDigitOneDecimalValidation(input);
+                    }
+                    // Modulus columns (00.0 format)
+                    if (tableBody.id === 'testingTableBody3' && (j === 11 || j === 12 || j === 13)) {
+                        applyTwoDigitOneDecimalValidation(input);
+                    }
+                    
+                    // Page 4 validations
+                    // Gloss columns (00.0 format)
+                    if (tableBody.id === 'testingTableBody4' && (j === 3 || j === 4 || j === 5)) {
+                        applyTwoDigitOneDecimalValidation(input);
+                    }
+                    
                     // Add event listener for automatic average calculation
-                    input.addEventListener('input', function() {
-                        // Only calculate row averages for Pages 2, 3, 4 (not Page 1)
-                        if (tableBody.id !== 'testingTableBody') {
-                            calculateRowAverages(tr, tableBody);
-                        }
-                        // Also calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
-                        if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
-                            calculateSummaryStatistics(tableBody);
-                        }
-                        // Calculate individual column stats for Page 1 (only the changed column)
-                        if (tableBody.id === 'testingTableBody') {
-                            const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
-                            calculatePage1ColumnStats(tableBody, inputIndex);
-                        }
-                           
-                           // Force immediate recalculation of ALL summary statistics for instant sync
-                           setTimeout(() => {
-                               forceRecalculateAllSummaryStatistics();
-                           }, 50); // Small delay to ensure current calculations complete first
-                           
-                           // Auto-save to database after each change (debounced)
-                           debouncedSave();
-                    });
+                    // Skip validated columns as they have their own comprehensive event listeners
+                    const isPage1Validated = tableBody.id === 'testingTableBody' && (j === 0 || j === 1 || j === 2 || j === 4 || j === 5 || j === 6 || j === 7 || j === 8 || j === 9);
+                    const isPage2Validated = tableBody.id === 'testingTableBody2' && (j === 3 || j === 4 || j === 5 || j === 7 || j === 8 || j === 9 || j === 11 || j === 12 || j === 13);
+                    const isPage3Validated = tableBody.id === 'testingTableBody3' && (j === 3 || j === 4 || j === 5 || j === 7 || j === 8 || j === 9 || j === 11 || j === 12 || j === 13);
+                    const isPage4Validated = tableBody.id === 'testingTableBody4' && (j === 3 || j === 4 || j === 5);
+                    
+                    if (!(isPage1Validated || isPage2Validated || isPage3Validated || isPage4Validated)) {
+                        input.addEventListener('input', function() {
+                            // Auto-save to database after each change (debounced)
+                            debouncedSave();
+                            
+                            // Only calculate row averages for Pages 2, 3, 4 (not Page 1)
+                            if (tableBody.id !== 'testingTableBody') {
+                                calculateRowAverages(tr, tableBody);
+                            }
+                            // Also calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
+                            if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
+                                calculateSummaryStatistics(tableBody);
+                            }
+                            // Calculate individual column stats for Page 1 (only the changed column)
+                            if (tableBody.id === 'testingTableBody') {
+                                const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
+                                calculatePage1ColumnStats(tableBody, inputIndex);
+                            }
+                               
+                               // Force immediate recalculation of ALL summary statistics for instant sync
+                               triggerSummaryRecalculation();
+                        });
+                    }
                     
                     td.appendChild(input);
                    }
@@ -1374,11 +1539,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     tr.appendChild(td);
                 }
                 
-                tableBody.appendChild(tr);
+                // Add to fragment instead of directly to table for better performance
+                fragment.appendChild(tr);
                
                // Add highlighting functionality to the new row
                addHighlightingToRow(tr);
             }
+
+           // Add all new rows to table at once (much faster)
+           tableBody.appendChild(fragment);
 
            // Re-add summary rows
            summaryRows.forEach(row => {
@@ -1574,6 +1743,9 @@ document.addEventListener('DOMContentLoaded', function() {
                    const inputs = row.querySelectorAll('input');
                    inputs.forEach(input => {
                        input.addEventListener('input', function() {
+                           // Auto-save to database after each change (debounced)
+                           debouncedSave();
+                           
                            // Only calculate row averages for Pages 2, 3, 4 (not Page 1)
                            if (tableBody.id !== 'testingTableBody') {
                                calculateRowAverages(row, tableBody);
@@ -1589,12 +1761,9 @@ document.addEventListener('DOMContentLoaded', function() {
                            }
                            
                            // Force immediate recalculation of ALL summary statistics for instant sync
-                           setTimeout(() => {
-                               forceRecalculateAllSummaryStatistics();
-                           }, 50); // Small delay to ensure current calculations complete first
+                           triggerSummaryRecalculation();
                            
-                           // Auto-save to database after each change (debounced)
-                           debouncedSave();
+                           // Auto-save handled by consolidated input listener
                        });
                    });
                });
@@ -2123,51 +2292,18 @@ document.addEventListener('DOMContentLoaded', function() {
        
 
        
-       // Clear form (clears all pages)
+       // Clear form button DISABLED for safety - prevents accidental data deletion
        const clearBtn = document.querySelector('button[type="reset"]');
        if (clearBtn) {
-           clearBtn.addEventListener('click', function() {
-               // Clear Page 1
-               const rows = Array.from(testingTableBody.querySelectorAll('tr'));
-               rows.forEach(row => {
-                   const firstCell = row.querySelector('td');
-                   if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
-                       row.remove();
-                   }
-               });
-               
-               // Clear Page 2
-               const rows2 = Array.from(testingTableBody2.querySelectorAll('tr'));
-               rows2.forEach(row => {
-                   const firstCell = row.querySelector('td');
-                   if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
-                       row.remove();
-                   }
-               });
-               
-               // Clear Page 3
-               const rows3 = Array.from(testingTableBody3.querySelectorAll('tr'));
-               rows3.forEach(row => {
-                   const firstCell = row.querySelector('td');
-                   if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
-                       row.remove();
-                   }
-               });
-               
-               // Clear Page 4
-               const rows4 = Array.from(testingTableBody4.querySelectorAll('tr'));
-               rows4.forEach(row => {
-                   const firstCell = row.querySelector('td');
-                   if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
-                       row.remove();
-                   }
-               });
-               
-               updateRowCount();
-               updateRowCount2();
-               updateRowCount3();
-               updateRowCount4();
-           });
+           // Disable the button and hide it to prevent accidental clicks
+           clearBtn.disabled = true;
+           clearBtn.style.display = 'none'; // Hide the button completely
+           clearBtn.style.visibility = 'hidden'; // Double safety - make it invisible
+           
+           // Remove any existing event listeners
+           clearBtn.removeEventListener('click', function() {});
+           
+           console.log('🚫 Clear form button disabled and hidden for data safety');
        }
        
        // Function to clear cached data rows when table structure changes
@@ -2179,4 +2315,1487 @@ document.addEventListener('DOMContentLoaded', function() {
        
        // Function to add rows to any table (like inline inspection form)
 
+         // ===== CHARACTER VALIDATION FRAMEWORK =====
+         // This will be built step by step based on your requirements
+         
+         // Base validation function - will be enhanced as needed
+         function applyValidationToInput(input, tableBody, columnIndex) {
+             // This function will be customized based on your specific validation needs
+             // We'll implement validations one by one as you request them
+             
+             // Basic Weight column validation (Page 1, column 3)
+             if (tableBody.id === 'testingTableBody' && columnIndex === 3) {
+                 input.addEventListener('input', function() {
+                     validateBasicWeight(this);
+                     
+                     // Auto-save to database after each change (debounced)
+                     debouncedSave();
+                 });
+                 
+                 // Add Enter key listener for auto-formatting
+                 input.addEventListener('keydown', function(e) {
+                     if (e.key === 'Enter') {
+                         e.preventDefault();
+                         formatBasicWeightOnEnter(this);
+                         // Move to next row after formatting
+                         const row = this.closest('tr');
+                         const nextRow = row.nextElementSibling;
+                         if (nextRow && !['Average', 'Minimum', 'Maximum'].includes(nextRow.querySelector('td').textContent.trim())) {
+                             const nextInput = nextRow.querySelector('input');
+                             if (nextInput) {
+                                 nextInput.focus();
+                             }
+                         }
+                     }
+                 });
+                 
+                 return; // Exit early for Basic Weight column
+             }
+             
+             // For now, just add a basic input event listener for other columns
+             input.addEventListener('input', function() {
+                 // Validation logic will be added here step by step
+                 console.log(`Input validation for ${tableBody.id}, column ${columnIndex}: ${this.value}`);
+                 
+                 // Auto-save to database after each change (debounced)
+                 debouncedSave();
+             });
+         }
+         
+         // Basic Weight validation function - exactly 00.00 format
+         function validateBasicWeight(input) {
+             let value = input.value;
+             
+             // Remove any non-numeric characters except decimal point
+             value = value.replace(/[^0-9.]/g, '');
+             
+             // Ensure only one decimal point
+             const parts = value.split('.');
+             if (parts.length > 2) {
+                 value = parts[0] + '.' + parts.slice(1).join('');
+             }
+             
+             // Limit to 2 digits before decimal and 2 digits after
+             if (parts.length === 2) {
+                 // Before decimal: max 2 digits
+                 if (parts[0].length > 2) {
+                     parts[0] = parts[0].substring(0, 2);
+                 }
+                 // After decimal: max 2 digits
+                 if (parts[1].length > 2) {
+                     parts[1] = parts[1].substring(0, 2);
+                 }
+                 value = parts[0] + '.' + parts[1];
+             } else if (parts.length === 1) {
+                 // No decimal point yet, limit to 2 digits
+                 if (parts[0].length > 2) {
+                     parts[0] = parts[0].substring(0, 2);
+                     value = parts[0];
+                 }
+             }
+             
+             // Update input value with validated format
+             input.value = value;
+         }
+         
+         // Function to format Basic Weight to 00.00 format on Enter key
+         function formatBasicWeightOnEnter(input) {
+             let value = input.value.trim();
+             
+             // If empty, do nothing
+             if (value === '') return;
+             
+             // Parse the number
+             const numValue = parseFloat(value);
+             if (isNaN(numValue)) return;
+             
+             // Format to exactly 2 decimal places
+             const formattedValue = numValue.toFixed(2);
+             
+             // Update input value with formatted result
+             input.value = formattedValue;
+                 }
+        
+        // Thickness validation function - exactly 0.000 format
+        function applyThicknessValidation(input) {
+            input.addEventListener('input', function() {
+                validateThickness(this);
+                
+                // Auto-save to database after each change (debounced)
+                debouncedSave();
+                
+                // Also handle calculations (to avoid duplicate event listeners)
+                const tr = this.closest('tr');
+                const tableBody = tr.closest('tbody');
+                
+                // Calculate individual column stats for Page 1 (only the changed column)
+                if (tableBody.id === 'testingTableBody') {
+                    const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
+                    calculatePage1ColumnStats(tableBody, inputIndex);
+                }
+                
+                // Force immediate recalculation of ALL summary statistics for instant sync
+                triggerSummaryRecalculation(); // Small delay to ensure current calculations complete first
+            });
+            
+            // Add Enter key listener for auto-formatting
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    formatThicknessOnEnter(this);
+                    
+                    // Recalculate summary statistics after formatting
+                    const tr = this.closest('tr');
+                    const tableBody = tr.closest('tbody');
+                    
+                    if (tableBody.id === 'testingTableBody') {
+                        const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
+                        calculatePage1ColumnStats(tableBody, inputIndex);
+                        
+                        // Force immediate recalculation of ALL summary statistics after conversion
+                        triggerSummaryRecalculation();
+                    }
+                    
+                    // Move to next row after formatting
+                    const row = this.closest('tr');
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow) {
+                        const nextInput = nextRow.querySelector('input');
+                        if (nextInput) {
+                            nextInput.focus();
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Thickness validation function - allow typing multiple digits, format on Enter
+        function validateThickness(input) {
+            let value = input.value;
+            
+            // Remove any non-numeric characters except decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // Allow up to 2 digits before decimal for typing (like 00, 30, 99, etc.)
+            // Only limit if there's a decimal point
+            if (parts.length === 2) {
+                // Before decimal: allow up to 2 digits (for values like 00, 30, 99)
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                }
+                // After decimal: max 3 digits
+                if (parts[1].length > 3) {
+                    parts[1] = parts[1].substring(0, 3);
+                }
+                value = parts[0] + '.' + parts[1];
+            } else if (parts.length === 1) {
+                // No decimal point yet, allow up to 2 digits for typing
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                    value = parts[0];
+                }
+            }
+            
+            // Update input value with validated format
+            input.value = value;
+        }
+        
+        // Function to format Thickness to 0.000 format on Enter key
+        function formatThicknessOnEnter(input) {
+            let value = input.value.trim();
+            
+            // If empty, set to 0.000
+            if (value === '') {
+                input.value = '0.000';
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseFloat(value);
+            
+            // If not a valid number, set to 0.000
+            if (isNaN(numValue)) {
+                input.value = '0.000';
+                return;
+            }
+            
+            // Convert integer input to decimal format (e.g., 30 -> 0.030)
+            let finalValue;
+            if (Number.isInteger(numValue) && !value.includes('.')) {
+                // If it's an integer without decimal point, treat as thousandths
+                finalValue = numValue / 1000;
+            } else {
+                // If it already has decimal point, use as is
+                finalValue = numValue;
+            }
+            
+            // Ensure value is between 0 and 0.999 (since max input is 99)
+            if (finalValue < 0) {
+                input.value = '0.000';
+                return;
+            }
+            if (finalValue > 0.999) {
+                input.value = '0.999';
+                return;
+            }
+            
+            // Format to exactly 3 decimal places
+            const formattedValue = finalValue.toFixed(3);
+            
+            // Update input value with formatted result
+            input.value = formattedValue;
+        }
+        
+        // Opacity validation function - exactly 00.0 format
+        function applyOpacityValidation(input) {
+            input.addEventListener('input', function() {
+                validateOpacity(this);
+                
+                // Auto-save to database after each change (debounced)
+                debouncedSave();
+                
+                // Also handle calculations (to avoid duplicate event listeners)
+                const tr = this.closest('tr');
+                const tableBody = tr.closest('tbody');
+                
+                // Calculate individual column stats for Page 1 (only the changed column)
+                if (tableBody.id === 'testingTableBody') {
+                    const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
+                    calculatePage1ColumnStats(tableBody, inputIndex);
+                }
+                
+                // Force immediate recalculation of ALL summary statistics for instant sync
+                triggerSummaryRecalculation(); // Small delay to ensure current calculations complete first
+            });
+            
+            // Add Enter key listener for auto-formatting
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    formatOpacityOnEnter(this);
+                    
+                    // Recalculate summary statistics after formatting
+                    const tr = this.closest('tr');
+                    const tableBody = tr.closest('tbody');
+                    
+                    if (tableBody.id === 'testingTableBody') {
+                        const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
+                        calculatePage1ColumnStats(tableBody, inputIndex);
+                        
+                        // Force immediate recalculation of ALL summary statistics after conversion
+                        triggerSummaryRecalculation();
+                    }
+                    
+                    // Move to next row after formatting
+                    const row = this.closest('tr');
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow) {
+                        const nextInput = nextRow.querySelector('input');
+                        if (nextInput) {
+                            nextInput.focus();
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Opacity validation function - allow typing up to 2 digits, format on Enter
+        function validateOpacity(input) {
+            let value = input.value;
+            
+            // Remove any non-numeric characters except decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // Allow up to 2 digits before decimal for typing (like 00, 30, 99, etc.)
+            // Only limit if there's a decimal point
+            if (parts.length === 2) {
+                // Before decimal: allow up to 2 digits (for values like 00, 30, 99)
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                }
+                // After decimal: max 1 digit
+                if (parts[1].length > 1) {
+                    parts[1] = parts[1].substring(0, 1);
+                }
+                value = parts[0] + '.' + parts[1];
+            } else if (parts.length === 1) {
+                // No decimal point yet, allow up to 2 digits for typing
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                    value = parts[0];
+                }
+            }
+            
+            // Update input value with validated format
+            input.value = value;
+        }
+        
+        // Function to format Opacity to 00.0 format on Enter key
+        function formatOpacityOnEnter(input) {
+            let value = input.value.trim();
+            
+            // If empty, set to 00.0
+            if (value === '') {
+                input.value = '00.0';
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseFloat(value);
+            
+            // If not a valid number, set to 00.0
+            if (isNaN(numValue)) {
+                input.value = '00.0';
+                return;
+            }
+            
+            // Convert integer input to decimal format (e.g., 30 -> 30.0)
+            let finalValue;
+            if (Number.isInteger(numValue) && !value.includes('.')) {
+                // If it's an integer without decimal point, treat as whole number with 1 decimal
+                finalValue = numValue;
+            } else {
+                // If it already has decimal point, use as is
+                finalValue = numValue;
+            }
+            
+            // Ensure value is between 0 and 99.9 (since max input is 99)
+            if (finalValue < 0) {
+                input.value = '00.0';
+                return;
+            }
+            if (finalValue > 99.9) {
+                input.value = '99.9';
+                return;
+            }
+            
+            // Format to exactly 1 decimal place with 2 digits before decimal
+            const formattedValue = finalValue.toFixed(1);
+            
+            // Pad with leading zero if needed (e.g., 5.0 -> 05.0)
+            if (formattedValue.length === 3) { // e.g., "5.0"
+                const paddedValue = '0' + formattedValue; // "05.0"
+                input.value = paddedValue;
+            } else {
+                input.value = formattedValue;
+            }
+        }
+        
+        // COF Kinetic validation function - exactly 0.00 format
+        function applyCOFValidation(input) {
+            input.addEventListener('input', function() {
+                validateCOF(this);
+                
+                // Auto-save to database after each change (debounced)
+                debouncedSave();
+                
+                // Also handle calculations (to avoid duplicate event listeners)
+                const tr = this.closest('tr');
+                const tableBody = tr.closest('tbody');
+                
+                // Calculate individual column stats for Page 1 (only the changed column)
+                if (tableBody.id === 'testingTableBody') {
+                    const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
+                    calculatePage1ColumnStats(tableBody, inputIndex);
+                }
+                
+                // Force immediate recalculation of ALL summary statistics for instant sync
+                triggerSummaryRecalculation(); // Small delay to ensure current calculations complete first
+                
+                // Auto-save handled by consolidated input listener
+            });
+            
+            // Add Enter key listener for auto-formatting
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    formatCOFOnEnter(this);
+                    
+                    // Recalculate summary statistics after formatting
+                    const tr = this.closest('tr');
+                    const tableBody = tr.closest('tbody');
+                    
+                    if (tableBody.id === 'testingTableBody') {
+                        const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
+                        calculatePage1ColumnStats(tableBody, inputIndex);
+                        
+                        // Force immediate recalculation of ALL summary statistics after conversion
+                        triggerSummaryRecalculation();
+                    }
+                    
+                    // Move to next row after formatting
+                    const row = this.closest('tr');
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow) {
+                        const nextInput = nextRow.querySelector('input');
+                        if (nextInput) {
+                            nextInput.focus();
+                        }
+                    }
+                }
+            });
+        }
+        
+        // COF Kinetic validation function - allow typing up to 2 digits, format on Enter
+        function validateCOF(input) {
+            let value = input.value;
+            
+            // Remove any non-numeric characters except decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // Allow up to 2 digits before decimal for typing (like 00, 30, 99, etc.)
+            // Only limit if there's a decimal point
+            if (parts.length === 2) {
+                // Before decimal: allow up to 2 digits (for values like 00, 30, 99)
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                }
+                // After decimal: max 2 digits
+                if (parts[1].length > 2) {
+                    parts[1] = parts[1].substring(0, 2);
+                }
+                value = parts[0] + '.' + parts[1];
+            } else if (parts.length === 1) {
+                // No decimal point yet, allow up to 2 digits for typing
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                    value = parts[0];
+                }
+            }
+            
+            // Update input value with validated format
+            input.value = value;
+        }
+        
+        // Function to format COF Kinetic to 0.00 format on Enter key
+        function formatCOFOnEnter(input) {
+            let value = input.value.trim();
+            
+            // If empty, set to 0.00
+            if (value === '') {
+                input.value = '0.00';
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseFloat(value);
+            
+            // If not a valid number, set to 0.00
+            if (isNaN(numValue)) {
+                input.value = '0.00';
+                return;
+            }
+            
+            // Convert integer input to decimal format (e.g., 30 -> 0.30)
+            let finalValue;
+            if (Number.isInteger(numValue) && !value.includes('.')) {
+                // If it's an integer without decimal point, treat as hundredths
+                finalValue = numValue / 100;
+            } else {
+                // If it already has decimal point, use as is
+                finalValue = numValue;
+            }
+            
+            // Ensure value is between 0 and 0.99 (since max input is 99)
+            if (finalValue < 0) {
+                input.value = '0.00';
+                return;
+            }
+            if (finalValue > 0.99) {
+                input.value = '0.99';
+                return;
+            }
+            
+            // Format to exactly 2 decimal places
+            const formattedValue = finalValue.toFixed(2);
+            
+            // Update input value with formatted result
+            input.value = formattedValue;
+        }
+        
+        // Cut Width validation function - exactly 000 format
+        function applyCutWidthValidation(input) {
+            input.addEventListener('input', function() {
+                validateCutWidth(this);
+                
+                // Auto-save to database after each change (debounced)
+                debouncedSave();
+                
+                // Also handle calculations (to avoid duplicate event listeners)
+                const tr = this.closest('tr');
+                const tableBody = tr.closest('tbody');
+                
+                // Calculate individual column stats for Page 1 (only the changed column)
+                if (tableBody.id === 'testingTableBody') {
+                    const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
+                    calculatePage1ColumnStats(tableBody, inputIndex);
+                }
+                
+                // Force immediate recalculation of ALL summary statistics for instant sync
+                triggerSummaryRecalculation(); // Small delay to ensure current calculations complete first
+                
+                // Auto-save handled by consolidated input listener
+            });
+            
+            // Add Enter key listener for auto-formatting
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    formatCutWidthOnEnter(this);
+                    
+                    // Recalculate summary statistics after formatting
+                    const tr = this.closest('tr');
+                    const tableBody = tr.closest('tbody');
+                    
+                    if (tableBody.id === 'testingTableBody') {
+                        const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
+                        calculatePage1ColumnStats(tableBody, inputIndex);
+                        
+                        // Force immediate recalculation of ALL summary statistics after conversion
+                        triggerSummaryRecalculation();
+                    }
+                    
+                    // Move to next row after formatting
+                    const row = this.closest('tr');
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow) {
+                        const nextInput = nextRow.querySelector('input');
+                        if (nextInput) {
+                            nextInput.focus();
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Cut Width validation function - allow typing up to 3 digits, format on Enter
+        function validateCutWidth(input) {
+            let value = input.value;
+            
+            // Remove any non-numeric characters (no decimal point allowed)
+            value = value.replace(/[^0-9]/g, '');
+            
+            // Limit to 3 digits maximum
+            if (value.length > 3) {
+                value = value.substring(0, 3);
+            }
+            
+            // Update input value with validated format
+            input.value = value;
+        }
+        
+        // Function to format Cut Width to 000 format on Enter key
+        function formatCutWidthOnEnter(input) {
+            let value = input.value.trim();
+            
+            // If empty, set to 000
+            if (value === '') {
+                input.value = '000';
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseInt(value);
+            
+            // If not a valid number, set to 000
+            if (isNaN(numValue)) {
+                input.value = '000';
+                return;
+            }
+            
+            // Ensure value is between 0 and 999
+            if (numValue < 0) {
+                input.value = '000';
+                return;
+            }
+            if (numValue > 999) {
+                input.value = '999';
+                return;
+            }
+            
+            // Format to exactly 3 digits with leading zeros
+            const formattedValue = numValue.toString().padStart(3, '0');
+            
+            // Update input value with formatted result
+            input.value = formattedValue;
+        }
+        
+        // Color-Delta E validation function - exactly 0.00 format
+        function applyColorDeltaValidation(input) {
+            input.addEventListener('input', function() {
+                validateColorDelta(this);
+                
+                // Auto-save to database after each change (debounced)
+                debouncedSave();
+                
+                // Also handle calculations (to avoid duplicate event listeners)
+                const tr = this.closest('tr');
+                const tableBody = tr.closest('tbody');
+                
+                // Calculate individual column stats for Page 1 (only the changed column)
+                if (tableBody.id === 'testingTableBody') {
+                    const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
+                    calculatePage1ColumnStats(tableBody, inputIndex);
+                }
+                
+                // Force immediate recalculation of ALL summary statistics for instant sync
+                triggerSummaryRecalculation(); // Small delay to ensure current calculations complete first
+                
+                // Auto-save handled by consolidated input listener
+            });
+            
+            // Add Enter key listener for auto-formatting
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    formatColorDeltaOnEnter(this);
+                    
+                    // Recalculate summary statistics after formatting
+                    const tr = this.closest('tr');
+                    const tableBody = tr.closest('tbody');
+                    
+                    if (tableBody.id === 'testingTableBody') {
+                        const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
+                        calculatePage1ColumnStats(tableBody, inputIndex);
+                        
+                        // Force immediate recalculation of ALL summary statistics after conversion
+                        triggerSummaryRecalculation();
+                    }
+                    
+                    // Move to next row after formatting
+                    const row = this.closest('tr');
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow) {
+                        const nextInput = nextRow.querySelector('input');
+                        if (nextInput) {
+                            nextInput.focus();
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Color-Delta E validation function - allow typing up to 3 digits, format on Enter
+        function validateColorDelta(input) {
+            let value = input.value;
+            
+            // Remove any non-numeric characters except decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // Allow up to 3 digits before decimal for typing (like 0, 30, 999, etc.)
+            // Only limit if there's a decimal point
+            if (parts.length === 2) {
+                // Before decimal: allow up to 3 digits (for values like 0, 30, 999)
+                if (parts[0].length > 3) {
+                    parts[0] = parts[0].substring(0, 3);
+                }
+                // After decimal: max 2 digits
+                if (parts[1].length > 2) {
+                    parts[1] = parts[1].substring(0, 2);
+                }
+                value = parts[0] + '.' + parts[1];
+            } else if (parts.length === 1) {
+                // No decimal point yet, allow up to 3 digits for typing
+                if (parts[0].length > 3) {
+                    parts[0] = parts[0].substring(0, 3);
+                    value = parts[0];
+                }
+            }
+            
+            // Update input value with validated format
+            input.value = value;
+        }
+        
+        // Function to format Color-Delta E to 0.00 format on Enter key
+        function formatColorDeltaOnEnter(input) {
+            let value = input.value.trim();
+            
+            // If empty, set to 0.00
+            if (value === '') {
+                input.value = '0.00';
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseFloat(value);
+            
+            // If not a valid number, set to 0.00
+            if (isNaN(numValue)) {
+                input.value = '0.00';
+                return;
+            }
+            
+            // Convert integer input to decimal format (e.g., 30 -> 0.30)
+            let finalValue;
+            if (Number.isInteger(numValue) && !value.includes('.')) {
+                // If it's an integer without decimal point, treat as hundredths
+                finalValue = numValue / 100;
+            } else {
+                // If it already has decimal point, use as is
+                finalValue = numValue;
+            }
+            
+            // Ensure value is between 0 and 9.99 (allow values like 1.22, 2.50, etc.)
+            if (finalValue < 0) {
+                input.value = '0.00';
+                return;
+            }
+            if (finalValue > 9.99) {
+                input.value = '9.99';
+                return;
+            }
+            
+            // Format to exactly 2 decimal places
+            const formattedValue = finalValue.toFixed(2);
+            
+            // Update input value with formatted result
+            input.value = formattedValue;
+        }
+        
+        // Lot & Roll validation function - exactly 00-00 format
+        function applyLotRollValidation(input) {
+            input.addEventListener('input', function() {
+                validateLotRoll(this);
+                
+                // Auto-save to database after each change (debounced)
+                debouncedSave();
+            });
+            
+            // Add Enter key listener for auto-formatting
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    formatLotRollOnEnter(this);
+                    
+                    // Move to next row after formatting
+                    const row = this.closest('tr');
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow) {
+                        const nextInput = nextRow.querySelector('input');
+                        if (nextInput) {
+                            nextInput.focus();
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Roll ID validation function - exactly 00000000 format
+        function applyRollIDValidation(input) {
+            input.addEventListener('input', function() {
+                validateRollID(this);
+                
+                // Auto-save to database after each change (debounced)
+                debouncedSave();
+            });
+            
+            // Add Enter key listener for auto-formatting
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    formatRollIDOnEnter(this);
+                    
+                    // Move to next row after formatting
+                    const row = this.closest('tr');
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow) {
+                        const nextInput = nextRow.querySelector('input');
+                        if (nextInput) {
+                            nextInput.focus();
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Lot Time validation function - exactly 00:00 format
+        function applyLotTimeValidation(input) {
+            input.addEventListener('input', function() {
+                validateLotTime(this);
+                
+                // Auto-save to database after each change (debounced)
+                debouncedSave();
+            });
+            
+            // Add Enter key listener for auto-formatting
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    formatLotTimeOnEnter(this);
+                    
+                    // Move to next row after formatting
+                    const row = this.closest('tr');
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow) {
+                        const nextInput = nextRow.querySelector('input');
+                        if (nextInput) {
+                            nextInput.focus();
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Validation functions for sample columns
+        function validateLotRoll(input) {
+            let value = input.value;
+            
+            // Only allow numbers, dash, and double quote
+            value = value.replace(/[^0-9-"]/g, '');
+            
+            // Ensure only one dash
+            const parts = value.split('-');
+            if (parts.length > 2) {
+                value = parts[0] + '-' + parts.slice(1).join('');
+            }
+            
+            // Limit to 2 digits before and after dash
+            if (parts.length === 2) {
+                // Before dash: max 2 digits
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                }
+                // After dash: max 2 digits
+                if (parts[1].length > 2) {
+                    parts[1] = parts[1].substring(0, 2);
+                }
+                value = parts[0] + '-' + parts[1];
+            } else if (parts.length === 1) {
+                // No dash yet, limit to 2 digits
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                    value = parts[0];
+                }
+                
+                // Auto-insert dash after 2 digits
+                if (parts[0].length === 2 && !value.includes('-')) {
+                    value = parts[0] + '-';
+                }
+            }
+            
+            // Update input value with validated format
+            input.value = value;
+        }
+        
+        function validateRollID(input) {
+            let value = input.value;
+            
+            // Only allow numbers and double quote
+            value = value.replace(/[^0-9"]/g, '');
+            
+            // Limit to 8 digits maximum
+            if (value.length > 8) {
+                value = value.substring(0, 8);
+            }
+            
+            // Update input value with validated format
+            input.value = value;
+        }
+        
+        function validateLotTime(input) {
+            let value = input.value;
+            
+            // Only allow numbers, colon, and double quote
+            value = value.replace(/[^0-9:"]/g, '');
+            
+            // Ensure only one colon
+            const parts = value.split(':');
+            if (parts.length > 2) {
+                value = parts[0] + ':' + parts.slice(1).join('');
+            }
+            
+            // Limit to 2 digits before and after colon
+            if (parts.length === 2) {
+                // Before colon: max 2 digits
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                }
+                // After colon: max 2 digits
+                if (parts[1].length > 2) {
+                    parts[1] = parts[1].substring(0, 2);
+                }
+                value = parts[0] + ':' + parts[1];
+            } else if (parts.length === 1) {
+                // No colon yet, limit to 2 digits
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                    value = parts[0];
+                }
+                
+                // Auto-insert colon after 2 digits
+                if (parts[0].length === 2 && !value.includes(':')) {
+                    value = parts[0] + ':';
+                }
+            }
+            
+            // Update input value with validated format
+            input.value = value;
+        }
+        
+        // Format functions for sample columns
+        function formatLotRollOnEnter(input) {
+            let value = input.value.trim();
+            
+            // Don't auto-fill empty cells, leave them empty
+            if (value === '') {
+                return;
+            }
+            
+            // Parse the value
+            const parts = value.split('-');
+            
+            if (parts.length === 2) {
+                // Format both parts to 2 digits with leading zeros
+                const part1 = parts[0].padStart(2, '0');
+                const part2 = parts[1].padStart(2, '0');
+                input.value = part1 + '-' + part2;
+            } else if (parts.length === 1) {
+                // Single number, split into two parts
+                const num = parts[0].padStart(4, '0');
+                const part1 = num.substring(0, 2);
+                const part2 = num.substring(2, 4);
+                input.value = part1 + '-' + part2;
+            }
+        }
+        
+        function formatRollIDOnEnter(input) {
+            let value = input.value.trim();
+            
+            // Don't auto-fill empty cells, leave them empty
+            if (value === '') {
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseInt(value);
+            
+            // If not a valid number, don't format
+            if (isNaN(numValue)) {
+                return;
+            }
+            
+            // Format to exactly 8 digits with leading zeros
+            const formattedValue = numValue.toString().padStart(8, '0');
+            
+            // Update input value with formatted result
+            input.value = formattedValue;
+        }
+        
+        function formatLotTimeOnEnter(input) {
+            let value = input.value.trim();
+            
+            // Don't auto-fill empty cells, leave them empty
+            if (value === '') {
+                return;
+            }
+            
+            // Parse the value
+            const parts = value.split(':');
+            
+            if (parts.length === 2) {
+                // Format both parts to 2 digits with leading zeros
+                const hours = parts[0].padStart(2, '0');
+                const minutes = parts[1].padStart(2, '0');
+                
+                // Validate time range
+                const h = parseInt(hours);
+                const m = parseInt(minutes);
+                
+                if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
+                    input.value = hours + ':' + minutes;
+                } else {
+                    input.value = '00:00';
+                }
+            } else if (parts.length === 1) {
+                // Single number, treat as minutes or hours
+                const num = parts[0].padStart(4, '0');
+                const hours = num.substring(0, 2);
+                const minutes = num.substring(2, 4);
+                
+                const h = parseInt(hours);
+                const m = parseInt(minutes);
+                
+                if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
+                    input.value = hours + ':' + minutes;
+                } else {
+                    input.value = '00:00';
+                }
+            } else {
+                input.value = '00:00';
+            }
+        }
+        
+        // Three digit validation function - exactly 000 format (for Elongation columns)
+        function applyThreeDigitValidation(input) {
+            input.addEventListener('input', function() {
+                validateThreeDigits(this);
+                
+                // Auto-save to database after each change (debounced)
+                debouncedSave();
+                
+                // Also handle calculations (to avoid duplicate event listeners)
+                const tr = this.closest('tr');
+                const tableBody = tr.closest('tbody');
+                
+                // Calculate row averages for Pages 2, 3, 4
+                if (tableBody.id !== 'testingTableBody') {
+                    calculateRowAverages(tr, tableBody);
+                }
+                
+                // Calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
+                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
+                    calculateSummaryStatistics(tableBody);
+                }
+                
+                // Auto-save handled by consolidated input listener
+            });
+            
+            // Add Enter key listener for auto-formatting
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    formatThreeDigitsOnEnter(this);
+                    
+                    // Move to next row after formatting
+                    const row = this.closest('tr');
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow) {
+                        const nextInput = nextRow.querySelector('input');
+                        if (nextInput) {
+                            nextInput.focus();
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Two digit one decimal validation function - exactly 00.0 format (for Force and Modulus columns)
+        function applyTwoDigitOneDecimalValidation(input) {
+            input.addEventListener('input', function() {
+                validateTwoDigitOneDecimal(this);
+                
+                // Auto-save to database after each change (debounced)
+                debouncedSave();
+                
+                // Also handle calculations (to avoid duplicate event listeners)
+                const tr = this.closest('tr');
+                const tableBody = tr.closest('tbody');
+                
+                // Calculate row averages for Pages 2, 3, 4
+                if (tableBody.id !== 'testingTableBody') {
+                    calculateRowAverages(tr, tableBody);
+                }
+                
+                // Calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
+                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
+                    calculateSummaryStatistics(tableBody);
+                }
+                
+                // Auto-save handled by consolidated input listener
+            });
+            
+            // Add Enter key listener for auto-formatting
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    formatTwoDigitOneDecimalOnEnter(this);
+                    
+                    // Move to next row after formatting
+                    const row = this.closest('tr');
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow) {
+                        const nextInput = nextRow.querySelector('input');
+                        if (nextInput) {
+                            nextInput.focus();
+                        }
+                    }
+                }
+            });
+        }
+        
+        // One digit one decimal validation function - exactly 0.0 format (for Force 5% columns)
+        function applyOneDigitOneDecimalValidation(input) {
+            input.addEventListener('input', function() {
+                validateOneDigitOneDecimal(this);
+                
+                // Auto-save to database after each change (debounced)
+                debouncedSave();
+                
+                // Also handle calculations (to avoid duplicate event listeners)
+                const tr = this.closest('tr');
+                const tableBody = tr.closest('tbody');
+                
+                // Calculate row averages for Pages 2, 3, 4
+                if (tableBody.id !== 'testingTableBody') {
+                    calculateRowAverages(tr, tableBody);
+                }
+                
+                // Calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
+                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
+                    calculateSummaryStatistics(tableBody);
+                }
+                
+                // Auto-save handled by consolidated input listener
+            });
+            
+            // Add Enter key listener for auto-formatting
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    formatOneDigitOneDecimalOnEnter(this);
+                    
+                    // Move to next row after formatting
+                    const row = this.closest('tr');
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow) {
+                        const nextInput = nextRow.querySelector('input');
+                        if (nextInput) {
+                            nextInput.focus();
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Validation functions for different formats
+        function validateThreeDigits(input) {
+            let value = input.value;
+            
+            // Remove any non-numeric characters (no decimal point allowed)
+            value = value.replace(/[^0-9]/g, '');
+            
+            // Limit to 3 digits maximum
+            if (value.length > 3) {
+                value = value.substring(0, 3);
+            }
+            
+            // Update input value with validated format
+            input.value = value;
+        }
+        
+        function validateTwoDigitOneDecimal(input) {
+            let value = input.value;
+            
+            // Remove any non-numeric characters except decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // Allow up to 2 digits before decimal for typing
+            if (parts.length === 2) {
+                // Before decimal: allow up to 2 digits
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                }
+                // After decimal: max 1 digit
+                if (parts[1].length > 1) {
+                    parts[1] = parts[1].substring(0, 1);
+                }
+                value = parts[0] + '.' + parts[1];
+            } else if (parts.length === 1) {
+                // No decimal point yet, allow up to 2 digits for typing
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                    value = parts[0];
+                }
+            }
+            
+            // Update input value with validated format
+            input.value = value;
+        }
+        
+        function validateOneDigitOneDecimal(input) {
+            let value = input.value;
+            
+            // Remove any non-numeric characters except decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // Allow up to 1 digit before decimal for typing
+            if (parts.length === 2) {
+                // Before decimal: allow up to 1 digit
+                if (parts[0].length > 1) {
+                    parts[0] = parts[0].substring(0, 1);
+                }
+                // After decimal: max 1 digit
+                if (parts[1].length > 1) {
+                    parts[1] = parts[1].substring(0, 1);
+                }
+                value = parts[0] + '.' + parts[1];
+            } else if (parts.length === 1) {
+                // No decimal point yet, allow up to 1 digit for typing
+                if (parts[0].length > 1) {
+                    parts[0] = parts[0].substring(0, 1);
+                    value = parts[0];
+                }
+            }
+            
+            // Update input value with validated format
+            input.value = value;
+        }
+        
+        // Format functions for different formats
+        function formatThreeDigitsOnEnter(input) {
+            let value = input.value.trim();
+            
+            // If empty, set to 000
+            if (value === '') {
+                input.value = '000';
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseInt(value);
+            
+            // If not a valid number, set to 000
+            if (isNaN(numValue)) {
+                input.value = '000';
+                return;
+            }
+            
+            // Ensure value is between 0 and 999
+            if (numValue < 0) {
+                input.value = '000';
+                return;
+            }
+            if (numValue > 999) {
+                input.value = '999';
+                return;
+            }
+            
+            // Format to exactly 3 digits with leading zeros
+            const formattedValue = numValue.toString().padStart(3, '0');
+            
+            // Update input value with formatted result
+            input.value = formattedValue;
+        }
+        
+        function formatTwoDigitOneDecimalOnEnter(input) {
+            let value = input.value.trim();
+            
+            // If empty, set to 00.0
+            if (value === '') {
+                input.value = '00.0';
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseFloat(value);
+            
+            // If not a valid number, set to 00.0
+            if (isNaN(numValue)) {
+                input.value = '00.0';
+                return;
+            }
+            
+            // Ensure value is between 0 and 99.9
+            if (numValue < 0) {
+                input.value = '00.0';
+                return;
+            }
+            if (numValue > 99.9) {
+                input.value = '99.9';
+                return;
+            }
+            
+            // Format to exactly 1 decimal place
+            const formattedValue = numValue.toFixed(1);
+            
+            // Don't add leading zeros - keep natural format (e.g., 9.9 stays 9.9, not 09.9)
+            input.value = formattedValue;
+        }
+        
+        function formatOneDigitOneDecimalOnEnter(input) {
+            let value = input.value.trim();
+            
+            // If empty, set to 0.0
+            if (value === '') {
+                input.value = '0.0';
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseFloat(value);
+            
+            // If not a valid number, set to 0.0
+            if (isNaN(numValue)) {
+                input.value = '0.0';
+                return;
+            }
+            
+            // Ensure value is between 0 and 9.9
+            if (numValue < 0) {
+                input.value = '0.0';
+                return;
+            }
+            if (numValue > 9.9) {
+                input.value = '9.9';
+                return;
+            }
+            
+            // Format to exactly 1 decimal place
+            const formattedValue = numValue.toFixed(1);
+            
+            // Update input value with formatted result
+            input.value = formattedValue;
+        }
+        
+        // Apply validation to existing sample inputs (Page 1, columns 0, 1, 2)
+        function applyValidationToExistingSampleInputs() {
+            // Lot & Roll inputs (column 1)
+            const lotRollInputs = testingTableBody.querySelectorAll('tr td:nth-child(1) input');
+            lotRollInputs.forEach(input => {
+                applyLotRollValidation(input);
+            });
+            
+            // Roll ID inputs (column 2)
+            const rollIDInputs = testingTableBody.querySelectorAll('tr td:nth-child(2) input');
+            rollIDInputs.forEach(input => {
+                applyRollIDValidation(input);
+            });
+            
+            // Lot Time inputs (column 3)
+            const lotTimeInputs = testingTableBody.querySelectorAll('tr td:nth-child(3) input');
+            lotTimeInputs.forEach(input => {
+                applyLotTimeValidation(input);
+            });
+        }
+        
+        // Apply validation to existing thickness inputs (Page 1, column 4)
+        function applyValidationToExistingThicknessInputs() {
+            const thicknessInputs = testingTableBody.querySelectorAll('tr td:nth-child(5) input');
+            thicknessInputs.forEach(input => {
+                applyThicknessValidation(input);
+            });
+        }
+        
+        // Apply validation to existing opacity inputs (Page 1, column 5)
+        function applyValidationToExistingOpacityInputs() {
+            const opacityInputs = testingTableBody.querySelectorAll('tr td:nth-child(6) input');
+            opacityInputs.forEach(input => {
+                applyOpacityValidation(input);
+            });
+        }
+        
+        // Apply validation to existing COF inputs (Page 1, column 6)
+        function applyValidationToExistingCOFInputs() {
+            const cofInputs = testingTableBody.querySelectorAll('tr td:nth-child(7) input');
+            cofInputs.forEach(input => {
+                applyCOFValidation(input);
+            });
+        }
+        
+        // Apply validation to existing Cut Width inputs (Page 1, column 7)
+        function applyValidationToExistingCutWidthInputs() {
+            const cutWidthInputs = testingTableBody.querySelectorAll('tr td:nth-child(8) input');
+            cutWidthInputs.forEach(input => {
+                applyCutWidthValidation(input);
+            });
+        }
+        
+        // Apply validation to existing Color-Delta E inputs (Page 1, columns 8 & 9)
+        function applyValidationToExistingColorDeltaInputs() {
+            const colorDeltaUnprintedInputs = testingTableBody.querySelectorAll('tr td:nth-child(9) input');
+            const colorDeltaPrintedInputs = testingTableBody.querySelectorAll('tr td:nth-child(10) input');
+            
+            colorDeltaUnprintedInputs.forEach(input => {
+                applyColorDeltaValidation(input);
+            });
+            
+            colorDeltaPrintedInputs.forEach(input => {
+                applyColorDeltaValidation(input);
+            });
+        }
+        
+        // Apply validation to existing Page 2 inputs
+        function applyValidationToExistingPage2Inputs() {
+            // Elongation MD columns (000 format)
+            const elongationInputs = testingTableBody2.querySelectorAll('tr td:nth-child(4) input, tr td:nth-child(5) input, tr td:nth-child(6) input');
+            elongationInputs.forEach(input => {
+                applyThreeDigitValidation(input);
+            });
+            
+            // Force MD columns (00.0 format)
+            const forceInputs = testingTableBody2.querySelectorAll('tr td:nth-child(8) input, tr td:nth-child(9) input, tr td:nth-child(10) input');
+            forceInputs.forEach(input => {
+                applyTwoDigitOneDecimalValidation(input);
+            });
+            
+            // Force 5% MD columns (0.0 format)
+            const force5pInputs = testingTableBody2.querySelectorAll('tr td:nth-child(12) input, tr td:nth-child(13) input, tr td:nth-child(14) input');
+            force5pInputs.forEach(input => {
+                applyOneDigitOneDecimalValidation(input);
+            });
+        }
+        
+        // Apply validation to existing Page 3 inputs
+        function applyValidationToExistingPage3Inputs() {
+            // Elongation CD columns (000 format)
+            const elongationInputs = testingTableBody3.querySelectorAll('tr td:nth-child(4) input, tr td:nth-child(5) input, tr td:nth-child(6) input');
+            elongationInputs.forEach(input => {
+                applyThreeDigitValidation(input);
+            });
+            
+            // Force CD columns (00.0 format)
+            const forceInputs = testingTableBody3.querySelectorAll('tr td:nth-child(8) input, tr td:nth-child(9) input, tr td:nth-child(10) input');
+            forceInputs.forEach(input => {
+                applyTwoDigitOneDecimalValidation(input);
+            });
+            
+            // Modulus columns (00.0 format)
+            const modulusInputs = testingTableBody3.querySelectorAll('tr td:nth-child(12) input, tr td:nth-child(13) input, tr td:nth-child(14) input');
+            modulusInputs.forEach(input => {
+                applyTwoDigitOneDecimalValidation(input);
+            });
+        }
+        
+        // Apply validation to existing Page 4 inputs
+        function applyValidationToExistingPage4Inputs() {
+            // Gloss columns (00.0 format)
+            const glossInputs = testingTableBody4.querySelectorAll('tr td:nth-child(4) input, tr td:nth-child(5) input, tr td:nth-child(6) input');
+            glossInputs.forEach(input => {
+                applyTwoDigitOneDecimalValidation(input);
+            });
+        }
+        
+        // Placeholder for validation functions - will be implemented as needed
+         // validateNumericInput()
+         // validateDecimalInput() 
+         // validatePercentageInput()
+         // validateTimeInput()
+         // validateAlphanumericInput()
+         
 });

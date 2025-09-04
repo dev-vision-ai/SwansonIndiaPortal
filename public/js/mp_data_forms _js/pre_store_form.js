@@ -94,9 +94,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         async function fetchFormData() {
             // Try to fetch from the specific product table first
             let { data, error } = await supabase
-                .from('168_16cp_kranti')
+                .from('"168_16cp_kranti"')
                 .select('*')
-                .eq('id', formId)
+                .eq('form_id', formId)
                 .single();
 
             if (error) {
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             ref_no: formData.get('ref_no'),
             standard_packing: formData.get('standard-packing'),
             production_date: formData.get('production-date'),
-            inspection_date_prestore: formData.get('inspection-date'),
+            inspection_date: formData.get('inspection-date'),
             pallet_size: formData.get('pallet-size'),
             machine_no: formData.get('machine_no'),
             purchase_order: formData.get('purchase_order'),
@@ -182,15 +182,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('Submitting data:', finalData);
 
         // Determine the table name based on the selected product
-                    let tableName = '168_16cp_kranti'; // default table for pre-store form
+        let tableName = '"168_16cp_kranti"'; // default table for pre-store form
         if (finalData.product_code) {
             // Map product codes to their specific tables
             const productTableMap = {
-                'APE-168(16)C': '168_16cp_kranti',
-                'APE-168(16)CP(KRANTI)': '168_16cp_kranti'
+                'APE-168(16)C': '"168_16cp_kranti"',
+                'APE-168(16)CP(KRANTI)': '"168_16cp_kranti"'
                 // Add more product-specific tables as they are created
             };
-                            tableName = productTableMap[finalData.product_code] || '168_16cp_kranti';
+            tableName = productTableMap[finalData.product_code] || '"168_16cp_kranti"';
         }
         console.log('Selected product:', finalData.product_code);
         console.log('Target table:', tableName);
@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const { error } = await supabase
                 .from(tableName)
                 .update(finalData)
-                .eq('id', formId);
+                .eq('form_id', formId);
             upsertError = error;
         } else {
             // Insert new record
