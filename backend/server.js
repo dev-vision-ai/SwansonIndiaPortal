@@ -1172,6 +1172,217 @@ app.get('/export', async (req, res) => {
   }
 });
 
+// 16 GSM Kranti Excel Export Endpoint
+app.get('/export-16gsm-kranti', async (req, res) => {
+  try {
+    // Get form_id parameter
+    const { form_id } = req.query;
+    
+    console.log('16 GSM Kranti export request received:', { form_id });
+    
+    if (!form_id) {
+      return res.status(400).send('form_id parameter is required');
+    }
+
+    // 1. Fetch data from Supabase for the specific form
+    const { data, error } = await supabase
+      .from('168_16cp_kranti')
+      .select('*')
+      .eq('form_id', form_id)
+      .single();
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return res.status(500).send('Error fetching data from database');
+    }
+
+    if (!data) {
+      return res.status(404).send('Form not found');
+    }
+
+    console.log('Data fetched successfully:', data);
+
+    // 2. Load the 16 GSM Kranti Excel template
+    const templatePath = path.join(__dirname, 'templates', 'APE-168(16)CP(KRANTI).xlsx');
+    console.log('Template path:', templatePath);
+    
+    // Check if template file exists
+    if (!fs.existsSync(templatePath)) {
+      console.error('Template file not found:', templatePath);
+      return res.status(500).send('Excel template file not found');
+    }
+    
+    const workbook = new ExcelJS.Workbook();
+    try {
+      await workbook.xlsx.readFile(templatePath);
+      console.log('16 GSM Kranti template loaded successfully');
+    } catch (templateError) {
+      console.error('Error loading template:', templateError);
+      return res.status(500).send(`Error loading Excel template: ${templateError.message}`);
+    }
+
+    // 3. Get the first worksheet
+    const worksheet = workbook.worksheets[0];
+    console.log('Worksheet name:', worksheet.name);
+
+    // 4. Map the data to Excel cells - MANUAL COLUMN MAPPING
+    console.log('Starting manual column mapping...');
+
+    // Basic Information Section
+    worksheet.getCell('B2').value = data.product_code || ''; // Product Code
+    worksheet.getCell('B3').value = data.production_order || ''; // Production Order
+    worksheet.getCell('B4').value = data.machine_no || ''; // Machine No
+    worksheet.getCell('B5').value = formatDateToDDMMYYYY(data.production_date); // Production Date
+    worksheet.getCell('B6').value = formatDateToDDMMYYYY(data.inspection_date); // Inspection Date
+    worksheet.getCell('B7').value = data.specification || ''; // Specification
+    worksheet.getCell('B8').value = data.purchase_order || ''; // PO
+    worksheet.getCell('B9').value = data.quantity || ''; // Quantity
+    worksheet.getCell('B10').value = data.lot_no || ''; // Lot No
+    worksheet.getCell('B11').value = data.ref_no || ''; // Ref No
+    worksheet.getCell('B12').value = data.customer || ''; // Customer
+    worksheet.getCell('B13').value = data.prepared_by || ''; // Prepared By
+
+    // Page 1 Data - Basic Weight, Thickness, Opacity, COF, Cut Width, Color-Delta E
+    if (data.page1_basic_weight) {
+      const basicWeightData = data.page1_basic_weight;
+      let row = 20; // Starting row for data
+      
+      Object.keys(basicWeightData).forEach(key => {
+        if (basicWeightData[key] && basicWeightData[key] !== '') {
+          worksheet.getCell(`B${row}`).value = basicWeightData[key];
+        }
+        row++;
+      });
+    }
+
+    if (data.page1_thickness) {
+      const thicknessData = data.page1_thickness;
+      let row = 20; // Starting row for data
+      
+      Object.keys(thicknessData).forEach(key => {
+        if (thicknessData[key] && thicknessData[key] !== '') {
+          worksheet.getCell(`C${row}`).value = thicknessData[key];
+        }
+        row++;
+      });
+    }
+
+    if (data.page1_opacity) {
+      const opacityData = data.page1_opacity;
+      let row = 20; // Starting row for data
+      
+      Object.keys(opacityData).forEach(key => {
+        if (opacityData[key] && opacityData[key] !== '') {
+          worksheet.getCell(`D${row}`).value = opacityData[key];
+        }
+        row++;
+      });
+    }
+
+    if (data.page1_cof_kinetic) {
+      const cofData = data.page1_cof_kinetic;
+      let row = 20; // Starting row for data
+      
+      Object.keys(cofData).forEach(key => {
+        if (cofData[key] && cofData[key] !== '') {
+          worksheet.getCell(`E${row}`).value = cofData[key];
+        }
+        row++;
+      });
+    }
+
+    if (data.page1_cut_width) {
+      const cutWidthData = data.page1_cut_width;
+      let row = 20; // Starting row for data
+      
+      Object.keys(cutWidthData).forEach(key => {
+        if (cutWidthData[key] && cutWidthData[key] !== '') {
+          worksheet.getCell(`F${row}`).value = cutWidthData[key];
+        }
+        row++;
+      });
+    }
+
+    if (data.page1_color_delta_unprinted) {
+      const colorDeltaUnprintedData = data.page1_color_delta_unprinted;
+      let row = 20; // Starting row for data
+      
+      Object.keys(colorDeltaUnprintedData).forEach(key => {
+        if (colorDeltaUnprintedData[key] && colorDeltaUnprintedData[key] !== '') {
+          worksheet.getCell(`G${row}`).value = colorDeltaUnprintedData[key];
+        }
+        row++;
+      });
+    }
+
+    if (data.page1_color_delta_printed) {
+      const colorDeltaPrintedData = data.page1_color_delta_printed;
+      let row = 20; // Starting row for data
+      
+      Object.keys(colorDeltaPrintedData).forEach(key => {
+        if (colorDeltaPrintedData[key] && colorDeltaPrintedData[key] !== '') {
+          worksheet.getCell(`H${row}`).value = colorDeltaPrintedData[key];
+        }
+        row++;
+      });
+    }
+
+    // Sheet 1 - Lot & Roll data mapping (A8 to A37)
+    if (data.lot_and_roll) {
+      const lotAndRollData = data.lot_and_roll;
+      let row = 8; // Starting from A8
+      
+      Object.keys(lotAndRollData).forEach(key => {
+        if (lotAndRollData[key] && lotAndRollData[key] !== '' && row <= 37) {
+          worksheet.getCell(`A${row}`).value = lotAndRollData[key];
+          row++;
+        }
+      });
+    }
+
+    // Sheet 1 - Roll ID data mapping (B8 to B37)
+    if (data.roll_id) {
+      const rollIdData = data.roll_id;
+      let row = 8; // Starting from B8
+      
+      Object.keys(rollIdData).forEach(key => {
+        if (rollIdData[key] && rollIdData[key] !== '' && row <= 37) {
+          worksheet.getCell(`B${row}`).value = rollIdData[key];
+          row++;
+        }
+      });
+    }
+
+    // Sheet 1 - Lot Time data mapping (C8 to C37)
+    if (data.lot_time) {
+      const lotTimeData = data.lot_time;
+      let row = 8; // Starting from C8
+      
+      Object.keys(lotTimeData).forEach(key => {
+        if (lotTimeData[key] && lotTimeData[key] !== '' && row <= 37) {
+          worksheet.getCell(`C${row}`).value = lotTimeData[key];
+          row++;
+        }
+      });
+    }
+
+    console.log('Data mapping completed successfully');
+
+    // 5. Set response headers for Excel download
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="16GSM-KRANTI-${data.lot_no || 'FORM'}.xlsx"`);
+
+    // 6. Write the workbook to response
+    await workbook.xlsx.write(res);
+    console.log('16 GSM Kranti Excel file generated and sent successfully');
+
+  } catch (error) {
+    console.error('Error exporting 16 GSM Kranti report:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).send(`Error exporting 16 GSM Kranti report: ${error.message}`);
+  }
+});
+
 // Helper function to format date to DD/MM/YYYY
 function formatDateToDDMMYYYY(dateString) {
   if (!dateString) return '';
@@ -1190,6 +1401,7 @@ app.listen(PORT, () => {
   console.log(`🔗 Ping endpoint: http://localhost:${PORT}/ping`);
   console.log(`🔋 Keep-alive endpoint: http://localhost:${PORT}/keep-alive`);
   console.log(`📊 Excel export: http://localhost:${PORT}/export`);
+  console.log(`📊 16 GSM Kranti Excel export: http://localhost:${PORT}/export-16gsm-kranti`);
   console.log(`🔄 Client-side keep-alive also active for redundancy`);
   
   // Immediate warm-up to prevent cold starts

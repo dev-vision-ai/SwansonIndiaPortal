@@ -9,11 +9,128 @@
   <link rel="stylesheet" href="../css/admin_qa.css">
   <link rel="stylesheet" href="../css/header.css">
   <style>
+    /* Compact styling for smaller content - using !important to override conflicts */
+    body {
+      font-size: 0.75rem !important;
+      padding: 0.25rem;
+    }
+    
+    .container {
+      padding: 0.25rem;
+      max-width: 95%;
+    }
+    
+    .form-container {
+      padding: 0.75rem;
+      max-width: 700px;
+      margin: 0.25rem auto;
+    }
+    
+    .form-group {
+      margin-bottom: 0.5rem;
+    }
+    
+    .form-group label, label {
+      font-size: 0.8rem !important;
+      margin-bottom: 0.2rem;
+      font-weight: 500;
+    }
+    
+    input, textarea, .form-group input, .form-group textarea {
+      font-size: 0.8rem !important;
+      padding: 0.4rem;
+      min-height: 32px;
+      height: 32px;
+      line-height: 1.3;
+      border-radius: 4px;
+    }
+    
+    select, .form-group select {
+      font-size: 0.8rem !important;
+      padding: 0.4rem;
+      min-height: 36px;
+      height: 36px;
+      line-height: 1.3;
+      border-radius: 4px;
+    }
+    
+    select option {
+      font-size: 0.8rem !important;
+      padding: 0.3rem;
+      line-height: 1.2;
+    }
+    
+    textarea {
+      height: 32px;
+      resize: none;
+      overflow: hidden;
+    }
+    
+    textarea:not(#incidentTitle) {
+      height: 80px;
+      resize: vertical;
+      overflow: auto;
+    }
+    
+    .btn {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem !important;
+      min-height: 32px;
+    }
+    
+    h2, h3 {
+      font-size: 1rem !important;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    
+    .form-row {
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .immediate-action-row-scroll {
+      margin-bottom: 0.5rem;
+    }
+    
+    .immediate-action-field textarea {
+      height: 60px;
+      font-size: 0.75rem !important;
+    }
+    
+    .rpn-table, .rpn-table th, .rpn-table td, .repeat-alert-table, .repeat-alert-table th, .repeat-alert-table td {
+      font-size: 0.75rem !important;
+    }
+    
+    .rpn-table th, .rpn-table td {
+      padding: 0.3rem;
+    }
+    
+    .rpn-table input {
+      width: 50px;
+      height: 28px;
+      font-size: 0.75rem !important;
+    }
+    
+    .repeat-alert-select {
+      font-size: 0.75rem !important;
+      height: 28px;
+    }
+    
+    .form-section {
+      margin-bottom: 0.75rem;
+    }
+    
+    .image-previews-container {
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
     #rpn-calculation-section {
       background-color: #f0f0f0; /* Light gray background */
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
+      padding: 6px;
+      border-radius: 6px;
+      margin-bottom: 8px;
      }
 
      .rpn-operator {
@@ -45,9 +162,9 @@
   <style>
     .form-container {
       position: relative; /* Needed for absolute positioning of the button */
-      padding: 20px; 
-      max-width: 1000px; 
-      margin: 20px auto; 
+      padding: 1rem; 
+      max-width: 800px; 
+      margin: 0.5rem auto; 
       background: #fff; 
       border-radius: 8px; 
       box-shadow: var(--shadow-md); 
@@ -93,8 +210,8 @@
       cursor: not-allowed;
       opacity: 0.7;
     }
-    .form-actions { margin-top: 20px; text-align: right; }
-    .form-actions button { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; margin-left: 10px; }
+    .form-actions { margin-top: 10px; text-align: right; }
+    .form-actions button { padding: 0.4rem 0.8rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-left: 6px; min-height: 32px; height: 32px; }
     .btn-save { background-color: var(--accent-color); color: white; }
     .btn-back { background-color: #6c757d; color: white; }
     .btn-alert { background-color: #28a745; color: white; }
@@ -121,15 +238,15 @@
       /* justify-content: space-between; /* Keep or adjust as needed */
     }
     .header-back-button {
-      padding: 6px 12px; /* Adjust padding as needed */
-      font-size: 0.9rem;
+      padding: 4px 10px; /* Optimized padding to match other pages */
+      font-size: 0.8rem;
       background-color: #e4c829; /* Yellow background */
       color: #000000; /* Blue text (adjust if your blue is different) */
       border: none;
       border-radius: 4px;
       cursor: pointer;
       transition: background-color 0.3s ease;
-      margin-right: 15px; /* Add space between button and title */
+      margin-right: 12px; /* Optimized spacing */
       font-weight: 600; /* Make font slightly bolder */
     }
     
@@ -147,7 +264,7 @@
   <!-- End Header -->
 
   <!-- Main content area for the form -->
-  <main class="form-container" style="margin-top: 80px;"> 
+  <main class="form-container" style="margin-top: 60px;"> 
     <!-- --- REMOVE Back Button From Here --- 
     <button type="button" class="btn-back-top" onclick="window.history.back();">Back</button>
     -->

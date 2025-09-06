@@ -16,20 +16,40 @@
       /* Add other necessary header styles if not already in admin_qa.css */
       /* e.g., justify-content: space-between; padding: 10px 20px; */
     }
-    .header-back-button {
-      padding: 6px 12px; 
-      font-size: 0.9rem;
-      background-color: #e4c829; /* Yellow background */
-      color: #000000; /* Black text */
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      margin-right: 15px; /* Space between button and title */
-      font-weight: 600; 
+    .header-container .header-back-button {
+      padding: 4px 10px !important; 
+      font-size: 0.8rem !important;
+      background-color: #e4c829 !important; /* Yellow background */
+      color: #000000 !important; /* Black text */
+      border: none !important;
+      border-radius: 4px !important;
+      cursor: pointer !important;
+      transition: background-color 0.3s ease !important;
+      margin-right: 12px !important; /* Space between button and title */
+      font-weight: 600 !important; 
+      height: auto !important;
+      width: auto !important;
+      min-width: auto !important;
+      min-height: auto !important;
     }
-    .header-back-button:hover {
-      background-color: #d3b725; /* Darker yellow on hover */
+    .header-container .header-back-button:hover {
+      background-color: #d3b725 !important; /* Darker yellow on hover */
+    }
+    
+    /* Compact table styling */
+    table td {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      text-align: center;
+    }
+    
+    /* Compact filter controls */
+    .filter-controls {
+      margin-bottom: 0.5rem;
+    }
+    
+    .filter-controls span {
+      font-size: 0.8rem;
     }
   </style>
 </head>
@@ -87,19 +107,19 @@
         </div>
         <!-- End Filter Controls -->
 
-        <table class="min-w-full bg-white shadow-md rounded">
+        <table class="min-w-full bg-white shadow-md rounded text-xs">
       <thead>
         <tr class="bg-gray-200 text-left">
           <!-- Add data-sort attributes matching the keys in dashboard_qa.js -->
-          <th class="py-2 px-4" data-sort="id">Alert No.</th>
-          <th class="py-2 px-4" data-sort="incidentdate">Date</th>
-          <th class="py-2 px-4" data-sort="user_name">Reported By</th>
-          <th class="py-2 px-4" data-sort="user_department">Reporter Dept.</th> <!-- Added new header -->
-          <th class="py-2 px-4" data-sort="incidenttitle">Title</th>
-          <th class="py-2 px-4" data-sort="incidentdesc">Description</th>
-          <th class="py-2 px-4" data-sort="responsibledept">Responsible Dept.</th>
-          <th class="py-2 px-4" data-sort="abnormalitytype">Type of Abnormality</th> 
-          <th class="py-2 px-4">Actions</th> 
+          <th class="py-1 px-2" data-sort="id">Alert No.</th>
+          <th class="py-1 px-2" data-sort="incidentdate">Date</th>
+          <th class="py-1 px-2" data-sort="user_name">Reported By</th>
+          <th class="py-1 px-2" data-sort="user_department">Reporter Dept.</th> <!-- Added new header -->
+          <th class="py-1 px-2" data-sort="incidenttitle">Title</th>
+          <th class="py-1 px-2" data-sort="incidentdesc">Description</th>
+          <th class="py-1 px-2" data-sort="responsibledept">Responsible Dept.</th>
+          <th class="py-1 px-2" data-sort="abnormalitytype">Type of Abnormality</th> 
+          <th class="py-1 px-2">Actions</th> 
         </tr>
       </thead>
       <tbody id="alertsBody">

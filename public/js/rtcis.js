@@ -603,4 +603,46 @@ document.addEventListener('DOMContentLoaded', () => {
         pdfDoc.open();
         pdfDoc.download(filename);
     });
+
+    // Clear Data Button Functionality
+    const clearDataBtn = document.getElementById('clearRTCISData');
+    if (clearDataBtn) {
+        clearDataBtn.addEventListener('click', () => {
+            // Clear all form inputs
+            const formInputs = form.querySelectorAll('input, select, textarea');
+            formInputs.forEach(input => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    input.checked = false;
+                } else {
+                    input.value = '';
+                }
+            });
+
+            // Clear any generated labels/barcodes
+            const labelArea = document.getElementById('label-print-area');
+            if (labelArea) {
+                labelArea.innerHTML = '';
+            }
+
+            // Clear barcode SVGs
+            const barcodeElements = ['barcode-gcas', 'barcode-lot', 'barcode-sscc'];
+            barcodeElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.innerHTML = '';
+                }
+            });
+
+            // Clear barcode text elements
+            const barcodeTextElements = ['barcode-gcas-text', 'barcode-lot-text', 'barcode-sscc-text'];
+            barcodeTextElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = '';
+                }
+            });
+
+            console.log('RTCIS form data cleared');
+        });
+    }
 });

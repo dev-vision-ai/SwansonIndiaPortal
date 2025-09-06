@@ -8,11 +8,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         .page-fade-in {
-            opacity: 0;
-            animation: pageFadeIn 1.5s ease forwards;
+            opacity: 1;
         }
-        @keyframes pageFadeIn {
-            to { opacity: 1; }
+        .header-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .header-title {
+            text-align: center;
         }
     </style>
 </head>
@@ -21,15 +25,12 @@
         <section class="incident-section auth-form">
             <div class="header-container">
                 <div class="header-title">Quality Alert Form</div>
-                <div class="company-logo">
-                    <img src="../assets/logo.png" alt="Company Logo" class="auth-logo">
-                </div>
             </div>
             <div class="container page-fade-in">
                 <form id="qualityAlertForm">
                     <div class="form-group">
                         <label for="incidentTitle">Incident Name:</label>
-                        <input type="text" id="incidentTitle" placeholder="Enter incident title">
+                        <textarea id="incidentTitle" placeholder="Enter incident title" rows="1"></textarea>
                     </div>
                     <div class="split-container">
                         <div class="split-item form-group">
@@ -194,6 +195,31 @@
         </section>
     </main>
 <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.0/dist/browser-image-compression.js"></script>
+<script>
+// Auto-resize textarea for incident name
+document.addEventListener('DOMContentLoaded', function() {
+    const incidentTitle = document.getElementById('incidentTitle');
+    
+    if (incidentTitle) {
+        // Function to auto-resize textarea
+        function autoResize() {
+            incidentTitle.style.height = 'auto';
+            incidentTitle.style.height = incidentTitle.scrollHeight + 'px';
+        }
+        
+        // Auto-resize on input
+        incidentTitle.addEventListener('input', autoResize);
+        
+        // Auto-resize on paste
+        incidentTitle.addEventListener('paste', function() {
+            setTimeout(autoResize, 10);
+        });
+        
+        // Initial resize
+        autoResize();
+    }
+});
+</script>
 <script type="module" src="../js/qualityalert.js"></script>
 </body>
 </html>

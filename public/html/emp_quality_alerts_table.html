@@ -10,11 +10,63 @@
   <link rel="stylesheet" href="../css/employee_dashboard.css">
   <style>
     .page-fade-in {
-      opacity: 0;
-      animation: pageFadeIn 1.5s ease forwards;
+      opacity: 1;
     }
-    @keyframes pageFadeIn {
-      to { opacity: 1; }
+    
+    /* Compact styling for smaller content */
+    .container {
+      padding-top: 0.5rem !important;
+    }
+    
+    .quality-alerts-container {
+      padding: 1rem !important;
+      margin-top: 0.5rem !important;
+    }
+    
+    .quality-alerts-container h2 {
+      font-size: 1.1rem !important;
+      margin-bottom: 0.75rem !important;
+    }
+    
+    .filter-controls {
+      margin-bottom: 0.75rem !important;
+      gap: 0.5rem !important;
+    }
+    
+    .filter-controls span {
+      font-size: 0.8rem !important;
+      margin-bottom: 0.25rem !important;
+    }
+    
+    .filter-input, .filter-select {
+      font-size: 0.8rem !important;
+      padding: 0.25rem 0.5rem !important;
+      height: 1.75rem !important;
+      min-width: 0 !important;
+      width: auto !important;
+      margin-bottom: 0.25rem !important;
+    }
+    
+    .filter-btn {
+      font-size: 0.8rem !important;
+      padding: 0.25rem 0.5rem !important;
+      height: 1.75rem !important;
+      margin-bottom: 0.25rem !important;
+    }
+    
+    table {
+      font-size: 0.75rem !important;
+    }
+    
+    table th {
+      padding: 0.25rem 0.5rem !important;
+      font-size: 0.75rem !important;
+    }
+    
+    table td {
+      padding: 0.25rem 0.5rem !important;
+      font-size: 0.75rem !important;
+      text-align: center !important;
     }
   </style>
 </head>
@@ -29,11 +81,11 @@
   </div>
 
   <div class="container page-fade-in">
-    <div class="quality-alerts-container p-6">
-      <h2 class="text-xl font-semibold mb-4 text-center">All Your Reported Quality Alerts</h2>
+    <div class="quality-alerts-container p-4">
+      <h2 class="text-lg font-semibold mb-3 text-center">All Your Reported Quality Alerts</h2>
       <!-- Filter Controls -->
-      <div class="filter-controls mb-4 flex justify-center space-x-4">
-        <span class="text-sm font-medium">Sort or Filter Alerts:</span>
+      <div class="filter-controls mb-3 flex justify-center space-x-3">
+        <span class="text-xs font-medium">Sort or Filter Alerts:</span>
         <input type="date" id="filterDate" class="filter-input border rounded px-2 py-1" placeholder="Filter by Date">
         <select id="filterDept" class="filter-select border rounded px-2 py-1">
           <option value="">Filter by Responsible Dept.</option>
@@ -63,29 +115,29 @@
           <option value="Labelling">Labelling</option>
           <option value="Other">Other</option>
         </select>
-        <button id="clearFilters" class="filter-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-1 px-3 rounded transition-colors">
+        <button id="clearFilters" class="filter-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-1 px-2 rounded transition-colors text-xs">
           Clear Filters
         </button>
       </div>
       <!-- End Filter Controls -->
-      <table class="min-w-full bg-white shadow-md rounded">
+      <table class="min-w-full bg-white shadow-md rounded text-xs">
         <thead>
           <tr class="bg-gray-200 text-left">
             <!-- Add data-sort attributes matching the keys in dashboard_qa.js -->
-            <th class="py-2 px-4" data-sort="id">Alert No.</th>
-            <th class="py-2 px-4" data-sort="incidentdate">Date</th>
-            <th class="py-2 px-4" data-sort="user_name">Reported By</th>
-            <th class="py-2 px-4" data-sort="incidenttitle">Title</th>
-            <th class="py-2 px-4" data-sort="incidentdesc">Description</th>
-            <th class="py-2 px-4" data-sort="responsibledept">Responsible Dept.</th>
-            <th class="py-2 px-4" data-sort="abnormalitytype">Type of Abnormality</th>
-            <th class="py-2 px-4" data-sort="status">Status</th>
-            <th class="py-2 px-4">Actions</th>
+            <th class="py-1 px-2" data-sort="id">Alert No.</th>
+            <th class="py-1 px-2" data-sort="incidentdate">Date</th>
+            <th class="py-1 px-2" data-sort="user_name">Reported By</th>
+            <th class="py-1 px-2" data-sort="incidenttitle">Title</th>
+            <th class="py-1 px-2" data-sort="incidentdesc">Description</th>
+            <th class="py-1 px-2" data-sort="responsibledept">Responsible Dept.</th>
+            <th class="py-1 px-2" data-sort="abnormalitytype">Type of Abnormality</th>
+            <th class="py-1 px-2" data-sort="status">Status</th>
+            <th class="py-1 px-2">Actions</th>
           </tr>
         </thead>
         <tbody id="alertsBody">
             <tr class="loading-row">
-                <td colspan="8" class="text-center py-4">Loading alerts...</td>
+                <td colspan="9" class="text-center py-2 text-xs">Loading alerts...</td>
             </tr>
         </tbody>
       </table>

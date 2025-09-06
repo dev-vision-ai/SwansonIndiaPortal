@@ -117,8 +117,6 @@ Thumbs.db
 
 # Uploads
 uploads/
-*.xlsx
-*.xls
 *.csv
 
 # Build outputs

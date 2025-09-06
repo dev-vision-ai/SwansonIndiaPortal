@@ -2,7 +2,7 @@
 
 .header-container {
     position: fixed;
-    top: -5px;
+    top: 0;
     left: 0;
     width: 100%;
     z-index: 1000;
@@ -10,10 +10,10 @@
     justify-content: space-between;
     align-items: center;
     background-color: var(--accent-color);
-    padding: 10px 20px;
+    padding: 6px 20px;
     margin: 0;
     border-radius: 0;
-    border-bottom: 7px solid #e4c829;
+    border-bottom: 5px solid #e4c829;
 }
 
 .header-title {
@@ -21,7 +21,7 @@
     left: 50%;
     transform: translateX(-50%);
     color: white;
-    font-size: 1.6rem;
+    font-size: 1.3rem;
     font-weight: 600;
     letter-spacing: 0.5px;
 }
@@ -33,10 +33,10 @@
 }
 
 .company-logo img {
-    height: 48px;
+    height: 36px;
     filter: none;
     object-fit: contain;
-    border: 3px solid white;
+    border: 2px solid white;
 }
 
 .auth-logo {
@@ -45,15 +45,15 @@
 }
 
 .header-back-button {
-    padding: 6px 12px;
-    font-size: 0.9rem;
+    padding: 4px 10px;
+    font-size: 0.8rem;
     background-color: #e4c829;
     color: #000000;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    margin-right: 15px;
+    margin-right: 12px;
     font-weight: 600;
 }
 
@@ -61,37 +61,38 @@
 
 @media (max-width: 768px) {
     .header-container {
-        padding: 5px 10px;
+        padding: 4px 10px;
     }
     .header-title {
-        font-size: 1.2rem;
+        font-size: 1.0rem;
     }
     .company-logo img {
-        height: 38px;
+        height: 32px;
     }
     .header-back-button {
-        padding: 8px 12px;
-        font-size: 0.9rem;
+        padding: 6px 10px;
+        font-size: 0.85rem;
     }
 }
 
 @media (max-width: 600px) {
     .header-container {
         position: fixed;
-        top: -0.5px;
-        padding: 5px 10px;
+        top: 0;
+        padding: 4px 10px;
         border-bottom: 5px solid #e4c829;
     }
     .header-title {
         position: absolute;
-        top: 35%;
-        font-size: 1.1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.0rem;
     }
     .company-logo img {
-        height: 38px;
+        height: 32px;
     }
     .header-back-button {
-        padding: 6px 12px;
-        font-size: 0.9rem;
+        padding: 4px 8px;
+        font-size: 0.75rem;
     }
 } 

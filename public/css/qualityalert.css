@@ -11,8 +11,8 @@
     --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.15);
     --background-gradient: #f4f4f4; /* Light background */
     --form-bg: #fff;
-    --header-desktop-height: 60px; /* Adjust as needed */
-    --header-mobile-height: 50px; /* Adjust as needed */
+    --header-desktop-height: 45px; /* Adjust as needed */
+    --header-mobile-height: 40px; /* Adjust as needed */
     --form-element-spacing-desktop: 1.25rem;
     --form-element-spacing-mobile: 1rem;
 }
@@ -33,9 +33,9 @@ body {
     background-image: url('data:image/svg+xml;utf8,<svg width="60" height="30" viewBox="0 0 60 30" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><circle cx="45" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><line x1="25" y1="15" x2="35" y2="15" stroke="%2399aabb" stroke-width="1" opacity="0.10"/></svg>');
     background-size: 60px 30px;
     background-repeat: repeat;
-    padding: 1rem;
+    padding: 0.5rem;
     padding-top: 5px;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
 }
 main {
     width: 100%;
@@ -44,10 +44,10 @@ main {
 }
 .incident-section {
     width: 100%;
-    max-width: 1000px;
+    max-width: 800px;
     background: var(--form-bg);
     border-radius: 0.5rem;
-    padding: 2.5rem 1.0rem;
+    padding: 1.5rem 1.0rem;
     padding-top: calc(var(--header-desktop-height) + 1.5rem);
     margin-top: 0.7rem;
     box-shadow: var(--shadow-md);
@@ -58,10 +58,10 @@ main {
 }
 .header-container {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     background-color: var(--accent-color);
-    padding: 0 1.5rem;
+    padding: 0 1rem;
     border-radius: 0.5rem 0.5rem 0 0;
     width: 100%;
     box-sizing: border-box;
@@ -79,7 +79,7 @@ main {
     margin: 0;
 }
 .company-logo img {
-    height: 28px;
+    height: 22px;
 }
 .auth-form {
     display: flex;
@@ -88,14 +88,14 @@ main {
 }
 .form-group {
     text-align: left;
-    margin-bottom: var(--form-element-spacing-desktop);
+    margin-bottom: 0.75rem;
 }
 .form-group label {
     display: block;
-    font-size: 1.05rem;
+    font-size: 0.9rem;
     font-weight: 500;
     color: var(--text-dark);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
 }
 input[type="text"],
 input[type="date"],
@@ -103,12 +103,15 @@ input[type="time"],
 select,
 textarea {
     width: 100%;
-    padding: 0.9rem;
+    padding: 0.5rem;
     border: 1px solid #ced4da;
     border-radius: 5px;
-    font-size: 1.05rem;
+    font-size: 0.9rem;
     transition: var(--transition);
     box-sizing: border-box;
+    min-height: 40px;
+    height: 40px;
+    line-height: 1.4;
 }
 input:focus,
 select:focus,
@@ -120,12 +123,29 @@ textarea:focus {
 .split-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: var(--form-element-spacing-desktop);
-    margin-bottom: var(--form-element-spacing-desktop);
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
 }
 textarea {
-    height: 180px;
+    height: 40px;
+    resize: none;
+    overflow: hidden;
+}
+
+/* Exception for larger textareas */
+textarea:not(#incidentTitle) {
+    height: 120px;
     resize: vertical;
+    overflow: auto;
+}
+
+/* Auto-resize textarea for incident name */
+#incidentTitle {
+    min-height: 40px;
+    height: auto;
+    resize: none;
+    overflow: hidden;
+    line-height: 1.4;
 }
 #imageUploadContainer {
     text-align: center;
@@ -171,10 +191,10 @@ textarea {
 }
 
 .submit-btn, .draft-btn {
-    padding: 10px 20px;
+    padding: 8px 16px;
     border-radius: 0.4rem;
     cursor: pointer;
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     transition: var(--transition);
     text-align: center;
     white-space: nowrap;

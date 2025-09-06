@@ -69,37 +69,37 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">-</td>
                 <td class="py-2 px-4 border-b border-r text-center">
-                    <div class="flex justify-center space-x-3 flex-wrap max-w-full overflow-hidden">
+                    <div class="flex justify-center space-x-1 flex-nowrap max-w-full overflow-hidden">
                         <!-- Sky blue Enter Data button -->
-                        <button class="p-1.5 rounded-md bg-sky-50 hover:bg-sky-100 text-sky-600 hover:text-sky-800 transition-all duration-200 border border-sky-200 hover:border-sky-300 flex-shrink-0 view-film-form-button" data-id="${formData.form_id}" title="Add Details">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button class="p-1 rounded-md bg-sky-50 hover:bg-sky-100 text-sky-600 hover:text-sky-800 transition-all duration-200 border border-sky-200 hover:border-sky-300 flex-shrink-0 view-film-form-button" data-id="${formData.form_id}" title="Add Details">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
                         </button>
                         <!-- Green Edit button - now opens prestore form -->
-                        <button onclick="openPrestoreForm('${formData.lot_no}', '${formData.product_code}', '${formData.production_order}', '${formData.form_id}')" class="p-1.5 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0" title="Edit Pre-store">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button onclick="openPrestoreForm('${formData.lot_no}', '${formData.product_code}', '${formData.production_order}', '${formData.form_id}')" class="p-1 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0" title="Edit Pre-store">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                         </button>
                         <!-- Dark blue View button -->
-                        <button class="p-1.5 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-800 hover:text-blue-900 transition-all duration-200 border border-blue-200 hover:border-blue-300 flex-shrink-0" title="View">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button class="p-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-800 hover:text-blue-900 transition-all duration-200 border border-blue-200 hover:border-blue-300 flex-shrink-0" title="View">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                             </svg>
                         </button>
                         <!-- Red Delete button -->
-                        <button class="p-1.5 rounded-md bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition-all duration-200 border border-red-200 hover:border-red-300 flex-shrink-0 delete-button" data-id="${formData.form_id}" title="Delete Film Inspection Form">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button class="p-1 rounded-md bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition-all duration-200 border border-red-200 hover:border-red-300 flex-shrink-0 delete-button" data-id="${formData.form_id}" title="Delete Film Inspection Form">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
                         </button>
                     </div>
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
-                    <button class="p-1.5 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Download">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <button onclick="download16GSMKrantiExcel('${formData.form_id}', '${formData.lot_no}')" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Download Excel">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                     </button>
@@ -145,18 +145,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td class="py-2 px-4 border-b border-r text-center">${formData.machine_no || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.prepared_by || ''}</td>
                 <td class="py-2 px-5 border-b text-center">
-                    <div class="flex items-center space-x-2 justify-center">
-                        <button class="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-                            <i class="fas fa-plus"></i>
+                    <div class="flex items-center space-x-1 justify-center flex-nowrap">
+                        <button class="bg-blue-500 text-white p-1 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                            <i class="fas fa-plus text-sm"></i>
                         </button>
-                        <button class="bg-green-500 text-white p-2 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
-                            <i class="fas fa-edit"></i>
+                        <button class="bg-green-500 text-white p-1 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
+                            <i class="fas fa-edit text-sm"></i>
                         </button>
-                        <button class="bg-blue-700 text-white p-2 rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-opacity-50">
-                            <i class="fas fa-eye"></i>
+                        <button class="bg-blue-700 text-white p-1 rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-opacity-50">
+                            <i class="fas fa-eye text-sm"></i>
                         </button>
-                        <button class="bg-red-500 text-white p-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 delete-button" data-id="${formData.form_id}">
-                            <i class="fas fa-trash"></i>
+                        <button class="bg-red-500 text-white p-1 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 delete-button" data-id="${formData.form_id}">
+                            <i class="fas fa-trash text-sm"></i>
                         </button>
                     </div>
                 </td>
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         // Handle radio button fields (Accept/Reject/N/A)
-        const radioFields = ['pallet_list', 'product_label', 'wrapping', 'layer_pad', 'contamination', 'kraft_paper'];
+        const radioFields = ['pallet_list', 'product_label', 'wrapping', 'layer_pad', 'contamination', 'kraft_paper', 'no_damage', 'pallet'];
         radioFields.forEach(field => {
             if (data[field]) {
                 // Convert underscore field name to hyphen for HTML name attribute
@@ -475,6 +475,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 layer_pad: formData.get('layer-pad'),
                 contamination: formData.get('contamination'),
                 kraft_paper: formData.get('kraft-paper'),
+                no_damage: formData.get('no-damage'),
+                pallet: formData.get('pallet'),
                 prestore_done_by: formData.get('prestore_done_by'),
                 remarks: formData.get('remarks'),
             };
@@ -726,4 +728,80 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     */
+
+    // Function to download 16 GSM Kranti Excel file
+    window.download16GSMKrantiExcel = function(formId, lotNo) {
+        try {
+            console.log('Downloading 16 GSM Kranti Excel for form_id:', formId, 'lot_no:', lotNo);
+            
+            // Validate formId
+            if (!formId || formId === 'undefined' || formId === 'null') {
+                alert('Error: Form ID is missing. Cannot download Excel file.');
+                console.error('Form ID is missing or invalid:', formId);
+                return;
+            }
+            
+            // Create download URL with form_id parameter
+            const downloadUrl = `http://localhost:3000/export-16gsm-kranti?form_id=${encodeURIComponent(formId)}`;
+            console.log('Download URL:', downloadUrl);
+            
+            // Show loading message
+            const originalButton = event.target;
+            const originalTitle = originalButton.title;
+            originalButton.title = 'Downloading...';
+            originalButton.disabled = true;
+            
+            // Try fetch method first (more reliable)
+            fetch(downloadUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    // Create download link from blob
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `16GSM-KRANTI-${lotNo || 'FORM'}.xlsx`;
+                    
+                    // Append to body, click, and remove
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Clean up the URL object
+                    window.URL.revokeObjectURL(url);
+                    
+                    console.log('Download completed successfully');
+                })
+                .catch(error => {
+                    console.error('Fetch download error:', error);
+                    
+                    // Fallback to direct link method
+                    console.log('Trying fallback download method...');
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = `16GSM-KRANTI-${lotNo || 'FORM'}.xlsx`;
+                    link.target = '_blank';
+                    
+                    // Append to body, click, and remove
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            
+            // Reset button after a short delay
+            setTimeout(() => {
+                originalButton.title = originalTitle;
+                originalButton.disabled = false;
+            }, 2000);
+            
+            console.log('Download initiated successfully');
+        } catch (error) {
+            console.error('Error downloading Excel file:', error);
+            alert('Error downloading Excel file: ' + error.message);
+        }
+    };
 });
