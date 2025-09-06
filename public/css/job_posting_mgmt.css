@@ -276,32 +276,4 @@ table.job-table td .btn:last-child {
 
 /* REMOVED Redundant section/main styles from the end */
 
-/* Add this to job_posting_mgmt.css or ensure it's in admin_adhr.css */
-.header-back-button {
-  padding: 6px 12px; 
-  font-size: 0.9rem;
-  background-color: #e4c829; /* Yellow background */
-  color: #000000; /* Black text */
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-right: 15px; /* Adjust spacing as needed */
-  font-weight: 600; 
-  /* Position it correctly - might need adjustment based on header layout */
-  order: -1; /* Try to place it first in flex/grid layout */
-  align-self: center; /* Align vertically if header is flex */
-}
-
-.header-back-button:hover {
-  background-color: #d3b725; /* Darker yellow on hover */
-}
-
-/* Ensure header-container uses flexbox for proper alignment */
-.header-container {
-    display: flex; /* Make sure flexbox is enabled */
-    align-items: center; /* Vertically align items */
-    justify-content: space-between; /* Adjust as needed */
-    /* other existing header styles */
-}
 

@@ -1,5 +1,23 @@
 import { supabase } from '../supabase-config.js';
 
+// Auto-expand incident name field
+function autoExpandTextarea(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+}
+
+// Initialize auto-expand for incident name field
+document.addEventListener('DOMContentLoaded', function() {
+    const incidentTitle = document.getElementById('incidentTitle');
+    if (incidentTitle) {
+        incidentTitle.addEventListener('input', function() {
+            autoExpandTextarea(this);
+        });
+        // Set initial height
+        autoExpandTextarea(incidentTitle);
+    }
+});
+
 function showMessage(message, isError = false) {
     const overlay = document.querySelector('.submission-message-overlay');
     const submissionMessage = document.querySelector('.submission-message');

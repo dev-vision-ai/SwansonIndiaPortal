@@ -30,50 +30,6 @@ body {
     min-height: fixed;
 }
 
-.header-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: var(--accent-color);
-    padding: 6px 20px; /* Optimized padding to match other pages */
-    margin: 0;
-    border-radius: 0;
-    border-bottom: 5px solid #e4c829;
-    box-sizing: border-box;
-}
-
-.header-title {
-    position: absolute; /* Position title absolutely */
-    left: 50%; /* Center horizontally */
-    transform: translateX(-50%); /* Adjust for centering */
-    color: white;
-    font-size: 1.3rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
-
-.company-logo {
-    display: flex;
-    align-items: center; /* Center logo vertically */
-    margin-left: auto; /* Ensure logo stays on the right */
-}
-
-.company-logo img {
-    height: 36px; /* Optimized height to match other pages */
-    filter: none;
-    object-fit: contain;
-    border: 2px solid white; /* Optimized border size */
-}
-
-.auth-logo {
-    height: 60px; /* Increase height for larger logo */
-    border: 3px solid white; /* Add white border */
-}
 
 .nav-item {
     display: flex;
@@ -253,67 +209,6 @@ body {
     .quick-action-grid {
         flex-direction: column;
         align-items: center;
-    }
-    .header-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        z-index: 1000;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background-color: var(--accent-color);
-        padding: 20px 10px; /* Increased top/bottom padding for taller header */
-        margin: 0;
-        border-radius: 0;
-        border-bottom: 5px solid #e4c829;
-        height: 70px; /* Increased height for mobile */
-        box-sizing: border-box;
-    }
-    .header-back-button {
-        position: fixed;
-        top: 8px;
-        left: 10px;
-        z-index: 1100;
-        padding: 4px 10px;
-        font-size: 0.8rem;
-        background-color: #e4c829;
-        color: #002E7D;
-        border: none;
-        border-radius: 4px;
-        font-weight: 600;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.07);
-    }
-    .header-title {
-        position: absolute;
-        left: 50%;
-        top: 48%;
-        transform: translate(-50%, -50%);
-        color: white;
-        font-size: 1.0rem;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        text-align: center;
-        width: 100%;
-        pointer-events: none;
-    }
-    .company-logo {
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        display: flex;
-        align-items: center;
-        margin-left: 0;
-    }
-    .company-logo img {
-        height: 32px;
-        border: 2px solid white;
-    }
-    /* Add left padding to header-container to prevent content under back button */
-    .header-container {
-        padding-left: 56px;
     }
     .logout-button {
         padding: 4px 10px;

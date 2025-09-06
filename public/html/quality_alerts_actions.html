@@ -7,7 +7,7 @@
   <title>Quality Alert Details</title> <!-- Form Title -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
   <link rel="stylesheet" href="../css/admin_qa.css">
-  <link rel="stylesheet" href="../css/header.css">
+  <link rel="stylesheet" href="../css/common_header.css">
   <style>
     /* Compact styling for smaller content - using !important to override conflicts */
     body {
@@ -168,23 +168,6 @@
       border-radius: 8px; 
       box-shadow: var(--shadow-md); 
     }
-    .btn-back-top {
-      position: absolute;
-      top: 15px; /* Adjust as needed */
-      left: 15px; /* Adjust as needed */
-      padding: 8px 15px;
-      font-size: 0.9rem;
-      /* Use existing btn-back styles or customize */
-      background-color: #6c757d; 
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    .btn-back-top:hover {
-        background-color: #5a6268;
-    }
     .form-container h2, .form-container h3 { margin-bottom: 20px; color: var(--accent-color); }
     .form-group { margin-bottom: 15px; }
     .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--text-dark); }
@@ -231,82 +214,12 @@
       margin-bottom: 0; /* Remove bottom margin from individual groups */
     }
     
-    /* Override admin_qa.css to center align all header elements */
-    .header-container {
-      display: flex !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      height: auto !important;
-    }
-    
-    .header-back-button {
-      position: relative !important;
-      top: auto !important;
-      left: auto !important;
-      align-self: center !important;
-      z-index: auto !important;
-    }
-    
-    .header-title {
-      position: absolute !important;
-      left: 50% !important;
-      top: 50% !important;
-      transform: translate(-50%, -50%) !important;
-      align-self: center !important;
-      width: auto !important;
-      pointer-events: auto !important;
-    }
-    
-    .company-logo {
-      position: relative !important;
-      right: auto !important;
-      top: auto !important;
-      transform: none !important;
-      align-self: center !important;
-      margin-left: auto !important;
-    }
-    
-    /* Mobile overrides */
-    @media (max-width: 600px) {
-      .header-container {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        padding: 8px 20px !important;
-        height: 60px !important;
-        min-height: 60px !important;
-      }
-      
-      .header-back-button {
-        position: relative !important;
-        top: auto !important;
-        left: auto !important;
-        align-self: center !important;
-      }
-      
-      .header-title {
-        position: absolute !important;
-        left: 50% !important;
-        top: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        align-self: center !important;
-        width: auto !important;
-      }
-      
-      .company-logo {
-        position: relative !important;
-        right: auto !important;
-        top: auto !important;
-        transform: none !important;
-        align-self: center !important;
-      }
-    }
     
   </style>
 </head>
 <body>
 
-  <div class="header-container">
+  <div class="header-container centered-layout">
     <button type="button" class="header-back-button" onclick="window.history.back();">Back</button>
     <div class="header-title">Quality Alert Actions</div>
     <div class="company-logo">
@@ -317,9 +230,6 @@
 
   <!-- Main content area for the form -->
   <main class="form-container" style="margin-top: 60px;"> 
-    <!-- --- REMOVE Back Button From Here --- 
-    <button type="button" class="btn-back-top" onclick="window.history.back();">Back</button>
-    -->
 
     <h2 id="form-title">Quality Alert Details</h2>
     <form id="alert-form">

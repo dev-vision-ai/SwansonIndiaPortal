@@ -47,13 +47,6 @@
 
 /* ===== TABLET RESPONSIVE (768px - 1024px) ===== */
 @media (min-width: 768px) and (max-width: 1024px) {
-    .header-container {
-        padding: 12px 15px;
-    }
-    
-    .header-title {
-        font-size: 17px;
-    }
     
     main {
         padding: 0;
@@ -136,11 +129,6 @@
 
 /* ===== PRINT RESPONSIVE ===== */
 @media print {
-    .header-container {
-        background: white !important;
-        color: black !important;
-        position: static !important;
-    }
     
     .btn {
         display: none !important;
@@ -182,8 +170,3 @@ textarea:focus {
     outline: 2px solid #2563eb;
     outline-offset: 2px;
 }
-
-/* Remove focus outline from back button */
-.header-back-button:focus {
-    outline: none;
-} 

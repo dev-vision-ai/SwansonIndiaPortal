@@ -31,45 +31,6 @@ body {
     min-height: fixed;
 }
 
-.header-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
-    display: flex;
-    justify-content: space-between; /* Keep content spaced */
-    align-items: center; /* Center content vertically */
-    background-color: var(--accent-color);
-    padding: 10px 20px; /* Decrease padding to reduce header height */
-    margin: 0;
-    border-radius: 0;
-    border-bottom: 7px solid #e4c829; /* Added yellow line */
-    box-sizing: border-box;
-}
-
-.header-title {
-    position: absolute; /* Position title absolutely */
-    left: 50%; /* Center horizontally */
-    transform: translateX(-50%); /* Adjust for centering */
-    color: white;
-    font-size: 1.6rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
-
-.company-logo {
-    display: flex;
-    align-items: center; /* Center logo vertically */
-    margin-left: auto; /* Ensure logo stays on the right */
-}
-
-.company-logo img {
-    height: 48px; /* Increase height for larger logo */
-    filter: none;
-    object-fit: contain;
-    border: 3px solid white; /* Add white border */
-}
 
 .auth-logo {
     height: 60px; /* Increase height for larger logo */
