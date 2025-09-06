@@ -231,44 +231,74 @@
       margin-bottom: 0; /* Remove bottom margin from individual groups */
     }
     
-    .header-container { /* Ensure flex alignment for button */
-      display: flex;
-      align-items: center;
-      /* justify-content: space-between; /* Keep or adjust as needed */
+    /* Override admin_qa.css to center align all header elements */
+    .header-container {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      height: auto !important;
     }
+    
     .header-back-button {
-      padding: 4px 10px; /* Optimized padding to match other pages */
-      font-size: 0.8rem;
-      background-color: #e4c829; /* Yellow background */
-      color: #000000; /* Blue text (adjust if your blue is different) */
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      margin-right: 12px; /* Optimized spacing */
-      font-weight: 600; /* Make font slightly bolder */
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+      align-self: center !important;
+      z-index: auto !important;
     }
     
-    /* Fix mobile back button positioning */
-    @media (max-width: 768px) {
-      .header-back-button {
-        padding: 4px 8px;
-        font-size: 0.75rem;
-        margin-right: 8px;
-        align-self: center;
-        position: relative;
-        top: 0;
-      }
+    .header-title {
+      position: absolute !important;
+      left: 50% !important;
+      top: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      align-self: center !important;
+      width: auto !important;
+      pointer-events: auto !important;
     }
     
+    .company-logo {
+      position: relative !important;
+      right: auto !important;
+      top: auto !important;
+      transform: none !important;
+      align-self: center !important;
+      margin-left: auto !important;
+    }
+    
+    /* Mobile overrides */
     @media (max-width: 600px) {
+      .header-container {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 8px 20px !important;
+        height: 60px !important;
+        min-height: 60px !important;
+      }
+      
       .header-back-button {
-        padding: 3px 6px;
-        font-size: 0.7rem;
-        margin-right: 6px;
-        align-self: center;
-        position: relative;
-        top: 0;
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        align-self: center !important;
+      }
+      
+      .header-title {
+        position: absolute !important;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        align-self: center !important;
+        width: auto !important;
+      }
+      
+      .company-logo {
+        position: relative !important;
+        right: auto !important;
+        top: auto !important;
+        transform: none !important;
+        align-self: center !important;
       }
     }
     

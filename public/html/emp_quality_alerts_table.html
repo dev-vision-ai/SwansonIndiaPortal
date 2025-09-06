@@ -13,6 +13,77 @@
       opacity: 1;
     }
     
+    /* Header styling to match quality_alerts_actions.html */
+    .header-container {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      height: auto !important;
+    }
+    
+    .header-back-button {
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+      align-self: center !important;
+      z-index: auto !important;
+    }
+    
+    .header-title {
+      position: absolute !important;
+      left: 50% !important;
+      top: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      align-self: center !important;
+      width: auto !important;
+      pointer-events: auto !important;
+    }
+    
+    .company-logo {
+      position: relative !important;
+      right: auto !important;
+      top: auto !important;
+      transform: none !important;
+      align-self: center !important;
+      margin-left: auto !important;
+    }
+    
+    /* Mobile overrides */
+    @media (max-width: 600px) {
+      .header-container {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 8px 20px !important;
+        height: 60px !important;
+        min-height: 60px !important;
+      }
+      
+      .header-back-button {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        align-self: center !important;
+      }
+      
+      .header-title {
+        position: absolute !important;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        align-self: center !important;
+        width: auto !important;
+      }
+      
+      .company-logo {
+        position: relative !important;
+        right: auto !important;
+        top: auto !important;
+        transform: none !important;
+        align-self: center !important;
+      }
+    }
+    
     /* Compact styling for smaller content */
     .container {
       padding-top: 0.5rem !important;
