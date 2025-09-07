@@ -10,26 +10,32 @@
       "use": "@vercel/static"
     }
   ],
+  "redirects": [
+    {
+      "source": "/film-inspection-forms",
+      "destination": "/html/mp_data_forms_html/film_inspection_forms_list.html",
+      "permanent": false
+    },
+    {
+      "source": "/film-inspection-form",
+      "destination": "/html/mp_data_forms_html/16_gsm_kranti.html",
+      "permanent": false
+    },
+    {
+      "source": "/inline-inspection-forms",
+      "destination": "/html/mp_data_forms_html/inline_inspection_forms_list.html",
+      "permanent": false
+    },
+    {
+      "source": "/inline-inspection-form",
+      "destination": "/html/mp_data_forms_html/inline_inspection_form.html",
+      "permanent": false
+    }
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
       "dest": "backend/server.js"
-    },
-    {
-      "src": "/film-inspection-forms",
-      "dest": "public/html/mp_data_forms_html/film_inspection_forms_list.html"
-    },
-    {
-      "src": "/film-inspection-form",
-      "dest": "public/html/mp_data_forms_html/16_gsm_kranti.html"
-    },
-    {
-      "src": "/inline-inspection-forms",
-      "dest": "public/html/mp_data_forms_html/inline_inspection_forms_list.html"
-    },
-    {
-      "src": "/inline-inspection-form",
-      "dest": "public/html/mp_data_forms_html/inline_inspection_form.html"
     },
     {
       "src": "/",
