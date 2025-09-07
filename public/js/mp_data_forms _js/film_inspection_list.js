@@ -1091,35 +1091,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     function showSuccessMessage(message) {
-        if (progressDiv) {
-            progressDiv.innerHTML = `
-                <div style="text-align: center;">
-                    <div style="font-size: 1.5rem; color: #28a745; margin-bottom: 0.75rem;">✓</div>
-                    <div style="font-size: 1rem; font-weight: 600; color: #28a745; margin-bottom: 0.5rem;">Success!</div>
-                    <div style="font-size: 0.85rem; color: #666666;">${message}</div>
-                </div>
-            `;
-            
-            setTimeout(() => {
-                hideProgressIndicator();
-            }, 2000);
-        }
+        // Hide progress indicator first
+        hideProgressIndicator();
+        
+        // Show standalone success notification (same as inline form)
+        showMessage(message, 'success');
     }
     
     function showErrorMessage(message) {
-        if (progressDiv) {
-            progressDiv.innerHTML = `
-                <div style="text-align: center;">
-                    <div style="font-size: 1.5rem; color: #dc3545; margin-bottom: 0.75rem;">✗</div>
-                    <div style="font-size: 1rem; font-weight: 600; color: #dc3545; margin-bottom: 0.5rem;">Error!</div>
-                    <div style="font-size: 0.85rem; color: #666666;">${message}</div>
-                </div>
-            `;
-            
-            setTimeout(() => {
-                hideProgressIndicator();
-            }, 3000);
-        }
+        // Hide progress indicator first
+        hideProgressIndicator();
+        
+        // Show standalone error notification (same as inline form)
+        showMessage(message, 'error');
+    }
+    
+    // Standalone notification function (same as inline form)
+    function showMessage(message, type) {
+        const messageDiv = document.createElement('div');
+        messageDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            z-index: 10000;
+            font-weight: bold;
+            ${type === 'success' ? 'background: #28a745;' : 'background: #dc3545;'}
+        `;
+        messageDiv.textContent = message;
+        document.body.appendChild(messageDiv);
+        
+        setTimeout(() => {
+            messageDiv.remove();
+        }, 5000);
     }
 
     // Set up edit modal event listeners
