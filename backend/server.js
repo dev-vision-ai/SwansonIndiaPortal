@@ -1294,6 +1294,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // User Name (Prepared by) (B41)
     worksheet.getCell('B41').value = data.prepared_by || 'Unknown User';
     
+    // Film Inspection Form Ref No (O3)
+    worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+    
     // Map equipment data to Excel cells
     console.log('Mapping equipment data to template...');
     if (data.equipment_used && data.equipment_used.page1) {
@@ -1469,6 +1472,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // User Name (Prepared by) (B42)
       page2Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
       
+      // Film Inspection Form Ref No (O3)
+      page2Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      
       // Equipment data for Page 2 (D6)
       if (data.equipment_used && data.equipment_used.page2) {
         page2Worksheet.getCell('D6').value = data.equipment_used.page2.common || '';
@@ -1601,6 +1607,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // User Name (Prepared by) (B42)
       page3Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
       
+      // Film Inspection Form Ref No (O3)
+      page3Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      
       // Equipment data for Page 3 (D6)
       if (data.equipment_used && data.equipment_used.page3) {
         page3Worksheet.getCell('D6').value = data.equipment_used.page3.common || '';
@@ -1732,6 +1741,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     if (page4Worksheet) {
       // User Name (Prepared by) (B42)
       page4Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      
+      // Film Inspection Form Ref No (O3)
+      page4Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
       
       // Equipment data for Page 4 (D6)
       if (data.equipment_used && data.equipment_used.page4) {

@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
-                                            <button onclick="download16GSMKrantiExcel('${formData.form_id}', '${formData.lot_no}')" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Download Excel">
+                                            <button onclick="download16GSMKrantiExcel('${formData.form_id}', '${formData.lot_no}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Download Excel">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -878,7 +878,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     */
 
     // Function to download 16 GSM Kranti Excel file
-    window.download16GSMKrantiExcel = function(formId, lotNo) {
+    window.download16GSMKrantiExcel = async function(formId, lotNo, buttonElement) {
+        // Store original button state immediately
+        const downloadBtn = buttonElement || event.target;
+        const originalContent = downloadBtn.innerHTML;
+        const originalTitle = downloadBtn.title;
+        const originalDisabled = downloadBtn.disabled;
+        
         try {
             console.log('Downloading 16 GSM Kranti Excel for form_id:', formId, 'lot_no:', lotNo);
             
@@ -889,66 +895,232 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
             
-            // Create download URL with form_id parameter
-            const downloadUrl = `http://localhost:3000/export-168-16cp-kranti-form?form_id=${encodeURIComponent(formId)}`;
-            console.log('Download URL:', downloadUrl);
+            // Show loading state
+            if (downloadBtn) {
+                downloadBtn.innerHTML = '⏳ Generating Excel...';
+                downloadBtn.title = 'Generating Excel file...';
+                downloadBtn.disabled = true;
+            }
             
-            // Show loading message
-            const originalButton = event.target;
-            const originalTitle = originalButton.title;
-            originalButton.title = 'Downloading...';
-            originalButton.disabled = true;
+            // Show progress indicator
+            showProgressIndicator('Fetching data...');
             
-            // Try fetch method first (more reliable)
-            fetch(downloadUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Server error: ${response.status} ${response.statusText}`);
-                    }
-                    return response.blob();
-                })
-                .then(blob => {
-                    // Create download link from blob
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `16GSM-KRANTI-${lotNo || 'FORM'}.xlsx`;
-                    
-                    // Append to body, click, and remove
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    // Clean up the URL object
-                    window.URL.revokeObjectURL(url);
-                    
-                })
-                .catch(error => {
-                    console.error('Fetch download error:', error);
-                    
-                    // Fallback to direct link method
-                    const link = document.createElement('a');
-                    link.href = downloadUrl;
-                    link.download = `16GSM-KRANTI-${lotNo || 'FORM'}.xlsx`;
-                    link.target = '_blank';
-                    
-                    // Append to body, click, and remove
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                });
+            // Call the Node.js export server with specific form parameters
+            // Use localhost for IDE testing, Render URL for production
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+            const downloadUrl = `${backendUrl}/export-168-16cp-kranti-form?form_id=${encodeURIComponent(formId)}`;
+
+            // Add timeout for slow connections
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 1 minute timeout
+
+            // Start countdown after showing "Fetching data..."
+            startCountdown();
             
-            // Reset button after a short delay
-            setTimeout(() => {
-                originalButton.title = originalTitle;
-                originalButton.disabled = false;
-            }, 2000);
+            // Wait for countdown to complete (5 seconds) before making the request
+            await new Promise(resolve => setTimeout(resolve, 5000));
+
+            const response = await fetch(downloadUrl, {
+                method: 'GET',
+                signal: controller.signal,
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                }
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const blob = await response.blob();
+            
+            updateProgressIndicator('Preparing download...');
+            
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            
+            // Generate filename using lot_no
+            const filename = lotNo ? `APE-168(16)CP(KRANTI)-${lotNo}.xlsx` : `APE-168(16)CP(KRANTI)-${formId}.xlsx`;
+            a.download = filename;
+            
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            // Success message
+            showSuccessMessage('Excel file downloaded successfully!');
+            
+            console.log('Excel file downloaded successfully');
             
         } catch (error) {
-            console.error('Error downloading Excel file:', error);
-            alert('Error downloading Excel file: ' + error.message);
+            console.error('Download failed:', error);
+            
+            if (error.name === 'AbortError') {
+                showErrorMessage('Request timed out. Please try again or check your internet connection.');
+            } else {
+                showErrorMessage('Failed to download Excel file. Please try again.');
+            }
+        } finally {
+            // Reset button state completely
+            if (downloadBtn) {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }
+            
+            hideProgressIndicator();
         }
     };
+
+    // ===== LOADING UI FUNCTIONS (from inline form) =====
+    
+    // Progress indicator functions
+    let progressDiv = null;
+    let countdownInterval = null;
+    
+    function showProgressIndicator(message) {
+        if (progressDiv) {
+            progressDiv.remove();
+        }
+        
+        progressDiv = document.createElement('div');
+        progressDiv.id = 'progressIndicator';
+        progressDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            z-index: 9999;
+            text-align: center;
+            min-width: 280px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 1px solid rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        `;
+        document.body.appendChild(progressDiv);
+        updateProgressIndicator(message);
+    }
+    
+    function updateProgressIndicator(message) {
+        if (!progressDiv) return;
+        
+        progressDiv.innerHTML = `
+            <div style="margin-bottom: 15px;">
+                <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #002E7D;">Downloading...</div>
+                <div class="spinner" style="
+                    border: 2px solid rgba(0,46,125,0.3);
+                    border-top: 2px solid #002E7D;
+                    border-radius: 50%;
+                    width: 35px;
+                    height: 35px;
+                    animation: spin 1s linear infinite;
+                    margin: 0 auto 15px;
+                "></div>
+                <div id="countdown-message" style="font-size: 13px; opacity: 0.8; margin-bottom: 15px; color: #666;">${message}</div>
+                <div class="diagonal-progress" style="
+                    height: 5px;
+                    background: repeating-linear-gradient(
+                        45deg,
+                        #002E7D 0px,
+                        #002E7D 6px,
+                        #1e40af 6px,
+                        #1e40af 12px,
+                        transparent 12px,
+                        transparent 18px
+                    );
+                    margin-top: 20px;
+                    border-radius: 3px;
+                    border: 1px solid #002E7D;
+                    animation: diagonalMove 1.5s linear infinite;
+                "></div>
+            </div>
+            <style>
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                @keyframes diagonalMove {
+                    0% { background-position: 0px 0px; }
+                    100% { background-position: 40px 0px; }
+                }
+            </style>
+        `;
+    }
+    
+    function hideProgressIndicator() {
+        if (progressDiv) {
+            progressDiv.remove();
+            progressDiv = null;
+        }
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+    }
+    
+    function startCountdown() {
+        let countdown = 5;
+        const countdownElement = document.getElementById('countdown-message');
+        
+        if (countdownElement) {
+            countdownElement.textContent = `Starting download in ${countdown} seconds...`;
+        }
+        
+        countdownInterval = setInterval(() => {
+            countdown--;
+            if (countdownElement) {
+                countdownElement.textContent = `Starting download in ${countdown} seconds...`;
+            }
+            
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+        }, 1000);
+    }
+    
+    function showSuccessMessage(message) {
+        if (progressDiv) {
+            progressDiv.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 1.5rem; color: #28a745; margin-bottom: 0.75rem;">✓</div>
+                    <div style="font-size: 1rem; font-weight: 600; color: #28a745; margin-bottom: 0.5rem;">Success!</div>
+                    <div style="font-size: 0.85rem; color: #666666;">${message}</div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                hideProgressIndicator();
+            }, 2000);
+        }
+    }
+    
+    function showErrorMessage(message) {
+        if (progressDiv) {
+            progressDiv.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 1.5rem; color: #dc3545; margin-bottom: 0.75rem;">✗</div>
+                    <div style="font-size: 1rem; font-weight: 600; color: #dc3545; margin-bottom: 0.5rem;">Error!</div>
+                    <div style="font-size: 0.85rem; color: #666666;">${message}</div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                hideProgressIndicator();
+            }, 3000);
+        }
+    }
 
     // Set up edit modal event listeners
     setTimeout(() => {
