@@ -20,6 +20,22 @@
       "dest": "public/index.html"
     },
     {
+      "src": "/film-inspection-forms",
+      "dest": "public/html/mp_data_forms_html/film_inspection_forms_list.html"
+    },
+    {
+      "src": "/film-inspection-form",
+      "dest": "public/html/mp_data_forms_html/16_gsm_kranti.html"
+    },
+    {
+      "src": "/inline-inspection-forms",
+      "dest": "public/html/mp_data_forms_html/inline_inspection_forms_list.html"
+    },
+    {
+      "src": "/inline-inspection-form",
+      "dest": "public/html/mp_data_forms_html/inline_inspection_form.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "public/$1"
     }
