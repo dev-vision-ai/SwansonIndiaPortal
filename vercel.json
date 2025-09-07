@@ -10,28 +10,6 @@
       "use": "@vercel/static"
     }
   ],
-  "redirects": [
-    {
-      "source": "/film-inspection-forms",
-      "destination": "/html/mp_data_forms_html/film_inspection_forms_list.html",
-      "permanent": false
-    },
-    {
-      "source": "/film-inspection-form",
-      "destination": "/html/mp_data_forms_html/16_gsm_kranti.html",
-      "permanent": false
-    },
-    {
-      "source": "/inline-inspection-forms",
-      "destination": "/html/mp_data_forms_html/inline_inspection_forms_list.html",
-      "permanent": false
-    },
-    {
-      "source": "/inline-inspection-form",
-      "destination": "/html/mp_data_forms_html/inline_inspection_form.html",
-      "permanent": false
-    }
-  ],
   "routes": [
     {
       "src": "/api/(.*)",
@@ -43,7 +21,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "public/$1"
+      "dest": "public/html/$1"
     }
   ],
   "env": {

@@ -394,14 +394,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                         prePopulatePrestoreForm(data);
                     } else if (lotNo) {
                         // Fallback to lot_no search
-                        const { data: lotData, error: lotError } = await supabase
-                            .from('168_16cp_kranti')
-                            .select('*')
-                            .eq('lot_no', lotNo)
-                            .single();
-                        
-                        if (lotData && !lotError) {
-                            prePopulatePrestoreForm(lotData);
+                            const { data: lotData, error: lotError } = await supabase
+                                .from('168_16cp_kranti')
+                                .select('*')
+                                .eq('lot_no', lotNo)
+                                .single();
+                            
+                            if (lotData && !lotError) {
+                                prePopulatePrestoreForm(lotData);
                         }
                     }
                 } catch (error) {
@@ -508,7 +508,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         preStoreFormData.prepared_by = user.email || 'Unknown User';
                     } else if (profile && profile.full_name) {
                         preStoreFormData.prepared_by = profile.full_name;
-                    } else {
+                } else {
                         preStoreFormData.prepared_by = user.email || 'Unknown User';
                     }
                 } else {
@@ -567,9 +567,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 // Close modal and clean up after a short delay
                 setTimeout(() => {
-                    preStoreFormModal.reset();
-                    preStoreFormOverlay.classList.add('hidden');
-                    sessionStorage.removeItem('prestoreFormData');
+                preStoreFormModal.reset();
+                preStoreFormOverlay.classList.add('hidden');
+                sessionStorage.removeItem('prestoreFormData');
                 }, 500);
             }
         });
@@ -932,7 +932,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             clearTimeout(timeoutId);
 
-            if (!response.ok) {
+                    if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
@@ -941,7 +941,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateProgressIndicator('Preparing download...');
             
             // Create download link
-            const url = window.URL.createObjectURL(blob);
+                    const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
@@ -952,7 +952,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             document.body.appendChild(a);
             a.click();
-            window.URL.revokeObjectURL(url);
+                    window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
             
             // Success message
@@ -1123,7 +1123,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         messageDiv.textContent = message;
         document.body.appendChild(messageDiv);
         
-        setTimeout(() => {
+            setTimeout(() => {
             messageDiv.remove();
         }, 5000);
     }
