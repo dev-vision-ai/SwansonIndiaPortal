@@ -1294,6 +1294,31 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // User Name (Prepared by) (B41)
     worksheet.getCell('B41').value = data.prepared_by || 'Unknown User';
     
+    // Map equipment data to Excel cells
+    console.log('Mapping equipment data to template...');
+    if (data.equipment_used && data.equipment_used.page1) {
+      const equipment = data.equipment_used.page1;
+      
+      // Basic Weight Equipment (D6)
+      worksheet.getCell('D6').value = equipment.basic_weight || '';
+      
+      // Thickness Equipment (F6)
+      worksheet.getCell('F6').value = equipment.thickness || '';
+      
+      // Opacity Equipment (H6)
+      worksheet.getCell('H6').value = equipment.opacity || '';
+      
+      // COF Equipment (J6)
+      worksheet.getCell('J6').value = equipment.cof || '';
+      
+      // Cut Width Equipment (L6)
+      worksheet.getCell('L6').value = equipment.cut_width || '';
+      
+      // Color Equipment (N6) - Use unprinted equipment for both unprinted and printed
+      // Since both use the same equipment type (X-RITE), use unprinted equipment ID
+      worksheet.getCell('N6').value = equipment.color_unprinted || '';
+    }
+    
     // Map sample data to the correct columns based on template structure
     console.log('Mapping sample data to template...');
     
@@ -1444,6 +1469,11 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // User Name (Prepared by) (B42)
       page2Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
       
+      // Equipment data for Page 2 (D6)
+      if (data.equipment_used && data.equipment_used.page2) {
+        page2Worksheet.getCell('D6').value = data.equipment_used.page2.common || '';
+      }
+      
       // Page 2 data mapping - Elongation MD and Force MD data - fill from bottom up
       // Elongation MD 1 data to column D (D9-D38)
       if (data.page2_elongation_md_1) {
@@ -1571,6 +1601,11 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // User Name (Prepared by) (B42)
       page3Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
       
+      // Equipment data for Page 3 (D6)
+      if (data.equipment_used && data.equipment_used.page3) {
+        page3Worksheet.getCell('D6').value = data.equipment_used.page3.common || '';
+      }
+      
       // Page 3 data mapping - Elongation CD, Force CD, and Modulus data - fill from bottom up
       // Elongation CD 1 data to column D (D9-D38)
       if (data.page3_elongation_cd_1) {
@@ -1697,6 +1732,11 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     if (page4Worksheet) {
       // User Name (Prepared by) (B42)
       page4Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      
+      // Equipment data for Page 4 (D6)
+      if (data.equipment_used && data.equipment_used.page4) {
+        page4Worksheet.getCell('D6').value = data.equipment_used.page4.gloss || '';
+      }
       
       // Page 4 data mapping - Gloss and PG Quality data - fill from bottom up
       // Gloss 1 data to column D (D9-D38)

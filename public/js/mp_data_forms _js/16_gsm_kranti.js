@@ -54,6 +54,77 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 5000);
     }
+    
+    // ===== QC EQUIPMENT DROPDOWNS SETUP =====
+    // Load QC equipment data and populate dropdowns
+    async function loadQCEquipmentDropdowns() {
+        try {
+            const { data: equipmentData, error } = await supabase
+                .from('qc_equipments')
+                .select('equipment_type, equipment_id')
+                .order('equipment_type, equipment_id');
+            
+            if (error) {
+                console.error('Error loading QC equipment:', error);
+                return;
+            }
+            
+            // Group equipment by type
+            const equipmentByType = {};
+            equipmentData.forEach(equipment => {
+                if (!equipmentByType[equipment.equipment_type]) {
+                    equipmentByType[equipment.equipment_type] = [];
+                }
+                equipmentByType[equipment.equipment_type].push(equipment.equipment_id);
+            });
+            
+            // Equipment type to dropdown mapping
+            const equipmentMappings = {
+                'Weigh Scale': ['basic-weight-equipment'],
+                'Dial Gauge': ['thickness-equipment'],
+                'Spectrophotometer': ['opacity-equipment'],
+                'Instron': ['cof-equipment', 'page2-common-equipment', 'page3-common-equipment'],
+                'Steel Ruler': ['cut-width-equipment'],
+                'X-RITE': ['color-unprinted-equipment', 'color-printed-equipment'],
+                'Glossmeter': ['gloss-equipment']
+            };
+            
+            // Populate dropdowns
+            Object.keys(equipmentMappings).forEach(equipmentType => {
+                const dropdownIds = equipmentMappings[equipmentType];
+                const equipmentIds = equipmentByType[equipmentType] || [];
+                
+                dropdownIds.forEach(dropdownId => {
+                    const dropdown = document.getElementById(dropdownId);
+                    if (dropdown) {
+                        // Clear existing options except the first one
+                        dropdown.innerHTML = '<option value="">Select Equipment ▼</option>';
+                        
+                        // Add equipment options
+                        equipmentIds.forEach(equipmentId => {
+                            const option = document.createElement('option');
+                            option.value = equipmentId;
+                            option.textContent = equipmentId;
+                            dropdown.appendChild(option);
+                        });
+                        
+                        // Add change event listener for auto-save
+                        dropdown.addEventListener('change', function() {
+                            if (!viewMode) {
+                                autoSaveToDatabase();
+                            }
+                        });
+                    }
+                });
+            });
+            
+        } catch (error) {
+            console.error('Error setting up QC equipment dropdowns:', error);
+        }
+    }
+    
+    // Load equipment dropdowns on page load
+    loadQCEquipmentDropdowns();
 
     // Page 1 elements
     const addRowsBtn = document.getElementById('addNewRowsBtn');
@@ -116,10 +187,12 @@ document.addEventListener('DOMContentLoaded', function() {
        headerFields.forEach(field => {
            if (field) {
                field.readOnly = true;
-               field.style.backgroundColor = '#f3f4f6'; // Light gray background
+               // field.style.backgroundColor = '#f3f4f6'; // Light gray background - REMOVED for normal appearance
                field.style.cursor = 'default'; // Normal cursor instead of not-allowed
                field.style.fontSize = '16px'; // Bigger font size for better readability
                field.style.fontWeight = '500'; // Slightly bolder text
+               field.style.color = '#000000'; // Force black text color
+               field.style.opacity = '1'; // Force full opacity
                field.title = 'This field is read-only';
            }
        });
@@ -130,14 +203,16 @@ document.addEventListener('DOMContentLoaded', function() {
            if (deleteRowsBtn) deleteRowsBtn.style.display = 'none';
            if (numRowsInput) numRowsInput.style.display = 'none';
            
-           // Disable all input fields in tables
+           // Disable all input fields in tables and equipment dropdowns
            setTimeout(() => {
                const allInputs = document.querySelectorAll('input, textarea, select');
                allInputs.forEach(input => {
                    input.readOnly = true;
                    input.disabled = true;
-                   input.style.backgroundColor = '#f9fafb';
+                   // input.style.backgroundColor = '#f9fafb'; // REMOVED for normal appearance
                    input.style.cursor = 'default';
+                   input.style.color = '#000000'; // Force black text color
+                   input.style.opacity = '1'; // Force full opacity
                });
            }, 1000);
        }
@@ -150,13 +225,102 @@ document.addEventListener('DOMContentLoaded', function() {
        // Use global variables set from sessionStorage
        let currentFormId = sessionFormId || null; // Store current form_id (UUID) for updates
        let currentLotNo = sessionLotNo || null;  // Store current lot_no for updates
+       let isInitialLoading = true; // Flag to prevent auto-save during initial data loading
        
 
        
+       // Get equipment selections from all dropdowns
+       function getEquipmentSelections() {
+           const equipmentData = {
+               page1: {
+                   basic_weight: document.getElementById('basic-weight-equipment')?.value || '',
+                   thickness: document.getElementById('thickness-equipment')?.value || '',
+                   opacity: document.getElementById('opacity-equipment')?.value || '',
+                   cof: document.getElementById('cof-equipment')?.value || '',
+                   cut_width: document.getElementById('cut-width-equipment')?.value || '',
+                   color_unprinted: document.getElementById('color-unprinted-equipment')?.value || '',
+                   color_printed: document.getElementById('color-printed-equipment')?.value || ''
+               },
+               page2: {
+                   common: document.getElementById('page2-common-equipment')?.value || ''
+               },
+               page3: {
+                   common: document.getElementById('page3-common-equipment')?.value || ''
+               },
+               page4: {
+                   gloss: document.getElementById('gloss-equipment')?.value || ''
+               }
+           };
+           
+           // Only return equipment data if at least one equipment is selected
+           const hasEquipment = Object.values(equipmentData).some(page => 
+               Object.values(page).some(equipment => equipment && equipment !== '')
+           );
+           
+           return hasEquipment ? equipmentData : null;
+       }
+       
+       // Load equipment selections from database
+       function loadEquipmentSelections(data) {
+           if (data.equipment_used) {
+               const equipment = data.equipment_used;
+               
+               // Load Page 1 equipment
+               if (equipment.page1) {
+                   if (equipment.page1.basic_weight) {
+                       const dropdown = document.getElementById('basic-weight-equipment');
+                       if (dropdown) dropdown.value = equipment.page1.basic_weight;
+                   }
+                   if (equipment.page1.thickness) {
+                       const dropdown = document.getElementById('thickness-equipment');
+                       if (dropdown) dropdown.value = equipment.page1.thickness;
+                   }
+                   if (equipment.page1.opacity) {
+                       const dropdown = document.getElementById('opacity-equipment');
+                       if (dropdown) dropdown.value = equipment.page1.opacity;
+                   }
+                   if (equipment.page1.cof) {
+                       const dropdown = document.getElementById('cof-equipment');
+                       if (dropdown) dropdown.value = equipment.page1.cof;
+                   }
+                   if (equipment.page1.cut_width) {
+                       const dropdown = document.getElementById('cut-width-equipment');
+                       if (dropdown) dropdown.value = equipment.page1.cut_width;
+                   }
+                   if (equipment.page1.color_unprinted) {
+                       const dropdown = document.getElementById('color-unprinted-equipment');
+                       if (dropdown) dropdown.value = equipment.page1.color_unprinted;
+                   }
+                   if (equipment.page1.color_printed) {
+                       const dropdown = document.getElementById('color-printed-equipment');
+                       if (dropdown) dropdown.value = equipment.page1.color_printed;
+                   }
+               }
+               
+               // Load Page 2 equipment
+               if (equipment.page2 && equipment.page2.common) {
+                   const dropdown = document.getElementById('page2-common-equipment');
+                   if (dropdown) dropdown.value = equipment.page2.common;
+               }
+               
+               // Load Page 3 equipment
+               if (equipment.page3 && equipment.page3.common) {
+                   const dropdown = document.getElementById('page3-common-equipment');
+                   if (dropdown) dropdown.value = equipment.page3.common;
+               }
+               
+               // Load Page 4 equipment
+               if (equipment.page4 && equipment.page4.gloss) {
+                   const dropdown = document.getElementById('gloss-equipment');
+                   if (dropdown) dropdown.value = equipment.page4.gloss;
+               }
+           }
+       }
+       
        // Auto-save all form data to database (debounced)
        async function autoSaveToDatabase() {
-           // Block saving in view mode
-           if (viewMode) {
+           // Block saving in view mode or during initial loading
+           if (viewMode || isInitialLoading) {
                return;
            }
            
@@ -233,8 +397,14 @@ document.addEventListener('DOMContentLoaded', function() {
         page4_pg_quality: convertColumnToJSONB(testingTableBody4, 7),         // PG Quality - HTML column 7
                };
                
-               // Combine header and table data
+               // Get equipment selections
+               const equipmentData = getEquipmentSelections();
+               
+               // Combine header, table data, and equipment data (only if equipment data exists)
                const completeData = { ...headerData, ...tableData };
+               if (equipmentData) {
+                   completeData.equipment_used = equipmentData;
+               }
                
 
                
@@ -863,6 +1033,8 @@ document.addEventListener('DOMContentLoaded', function() {
                      
                      if (error) {
                          console.log('No existing data found or error:', error.message);
+                         // Mark initial loading as complete even if no data found
+                         isInitialLoading = false;
                          return;
                      }
                      
@@ -871,7 +1043,14 @@ document.addEventListener('DOMContentLoaded', function() {
                          currentFormId = data.form_id;
                          currentLotNo = data.lot_no;
                          loadTableDataFromDatabase(data);
+                         loadEquipmentSelections(data);
                      }
+                     
+                     // Mark initial loading as complete
+                     isInitialLoading = false;
+                 } else {
+                     // No current form ID (new form), mark initial loading as complete
+                     isInitialLoading = false;
                  }
              } catch (error) {
                  console.error('Error loading data from database:', error);
