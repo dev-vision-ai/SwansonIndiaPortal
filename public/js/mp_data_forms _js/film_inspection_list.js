@@ -6,35 +6,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function fetchFilmInspectionForms() {
         const { data, error } = await supabase
             .from('168_16cp_kranti')
-            .select('form_id, lot_no, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date');
+            .select('form_id, lot_no, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at')
+            .order('created_at', { ascending: false });
 
-        // Fetch user names for prepared_by field
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        const userIds = data ? [...new Set(data.map(item => item.prepared_by).filter(id => uuidRegex.test(id)))] : [];
-
-        let usersData = null;
-        let usersError = null;
-
-        if (userIds.length > 0) {
-            const { data: fetchedUsersData, error: fetchedUsersError } = await supabase
-                .from('users') // Assuming your user profiles are in a 'users' table
-                .select('id, full_name')
-                .in('id', userIds);
-            usersData = fetchedUsersData;
-            usersError = fetchedUsersError;
-        }
-
-        if (usersError) {
-            console.error('Error fetching user names:', usersError.message);
-            // Continue without names if there's an error
-        }
-
-        const userMap = new Map();
-        if (usersData) {
-            usersData.forEach(user => {
-                userMap.set(user.id, user.full_name);
-            });
-        }
+        // No need to fetch user names since prepared_by now stores full names directly
 
         if (error) {
             console.error('Error fetching data:', error.message);
@@ -56,16 +31,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         data.forEach((formData, index) => {
             const row = tableBody.insertRow();
+            // Serial number based on creation order: latest entry gets highest number
+            const serialNumber = data.length - index;
             row.innerHTML = `
-                <td class="py-2 px-4 border-b border-r text-center">${index + 1}</td>
+                <td class="py-2 px-4 border-b border-r text-center">${serialNumber}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.production_date ? new Date(formData.production_date).toLocaleDateString('en-GB') : ''}</td>
-                <td class="py-2 px-4 border-b border-r text-center">${formData.product_code || ''}</td>
-                <td class="py-2 px-4 border-b border-r text-center">${formData.machine_no || ''}</td>
-                <td class="py-2 px-4 border-b border-r text-center">${formData.lot_no || ''}</td>
-                <td class="py-2 px-4 border-b border-r text-center">${formData.specification || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.inspection_date ? new Date(formData.inspection_date).toLocaleDateString('en-GB') : ''}</td>
+                <td class="py-2 px-4 border-b border-r text-center">${formData.machine_no || ''}</td>
+                <td class="py-2 px-4 border-b border-r text-center">${formData.product_code || ''}</td>
+                <td class="py-2 px-4 border-b border-r text-center">${formData.specification || ''}</td>
+                <td class="py-2 px-4 border-b border-r text-center">${formData.lot_no || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">
-                    ${uuidRegex.test(formData.prepared_by) ? (userMap.get(formData.prepared_by) || formData.prepared_by) : formData.prepared_by || ''}
+                    ${formData.prepared_by || ''}
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">-</td>
                 <td class="py-2 px-4 border-b border-r text-center">
@@ -76,6 +53,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
                         </button>
+                        <!-- Purple Edit Details button -->
+                        <button class="p-1 rounded-md bg-purple-50 hover:bg-purple-100 text-purple-600 hover:text-purple-800 transition-all duration-200 border border-purple-200 hover:border-purple-300 flex-shrink-0 edit-details-button" data-id="${formData.form_id}" title="Edit Form Details">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </button>
                         <!-- Green Edit button - now opens prestore form -->
                         <button onclick="openPrestoreForm('${formData.lot_no}', '${formData.product_code}', '${formData.production_order}', '${formData.form_id}')" class="p-1 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0" title="Edit Pre-store">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             </svg>
                         </button>
                         <!-- Dark blue View button -->
-                        <button class="p-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-800 hover:text-blue-900 transition-all duration-200 border border-blue-200 hover:border-blue-300 flex-shrink-0" title="View">
+                        <button onclick="viewFilmForm('${formData.form_id}', '${formData.lot_no}', '${formData.product_code}')" class="p-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-800 hover:text-blue-900 transition-all duration-200 border border-blue-200 hover:border-blue-300 flex-shrink-0" title="View">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -168,7 +152,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Function to pre-populate prestore form modal
     function prePopulatePrestoreForm(data) {
-        console.log('Pre-populating prestore form with data:', data);
         
         // Map field names from database to prestore form modal IDs
         const fieldMappings = {
@@ -180,7 +163,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             'location': 'location-modal',
             'specification': 'specification-modal',
             'batch': 'batch-modal',
-            'ref_no': 'ref-no-modal',
+            'prestore_ref_no': 'ref-no-modal', // Only prestore_ref_no should map to ref-no-modal
             'standard_packing': 'standard-packing-modal',
             'production_date': 'production-date-modal',
             'inspection_date': 'inspection-date-modal',
@@ -339,7 +322,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Function to open prestore form modal with pre-filled data
     window.openPrestoreForm = async function(lotNo, productCode, productionOrder, formId) {
-        // Store the film inspection data in session storage
+        // Store the film inspection data in session storage immediately (fast)
         const prestoreData = {
             lot_no: lotNo,
             product_code: productCode,
@@ -349,84 +332,100 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
         sessionStorage.setItem('prestoreFormData', JSON.stringify(prestoreData));
         
+        // Fetch prestore_ref_no in background (non-blocking)
+        fetchPrestoreRefNo(formId);
+        
         // Store form_id globally for the modal to use
         window.currentPrestoreFormId = formId;
         
-        // Open the prestore form modal
+        // Open the prestore form modal immediately
         const preStoreFormOverlay = document.getElementById('preStoreFormOverlay');
         if (preStoreFormOverlay) {
             preStoreFormOverlay.classList.remove('hidden');
             
+            // Populate with basic data immediately (fast)
+            prePopulatePrestoreForm(prestoreData);
+            
+            // Do all heavy operations in background (non-blocking)
+            setupPrestoreModalInBackground(formId, lotNo);
+        }
+    };
+    
+    // Function to fetch prestore_ref_no in background
+    async function fetchPrestoreRefNo(formId) {
+        try {
+            const { data: formData, error } = await supabase
+                .from('168_16cp_kranti')
+                .select('prestore_ref_no')
+                .eq('form_id', formId)
+                .single();
+            
+            if (error) throw error;
+            
+            // Update the reference number field if it exists
+            if (formData.prestore_ref_no) {
+                const refNoField = document.getElementById('ref-no-modal');
+                if (refNoField) {
+                    refNoField.value = formData.prestore_ref_no;
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error fetching prestore_ref_no:', error);
+        }
+    }
+    
+    // Function to setup prestore modal in background (non-blocking)
+    async function setupPrestoreModalInBackground(formId, lotNo) {
+        try {
             // Setup auto-suggestion for prestore done by field
             await setupPrestoreDoneByAutoSuggestion();
             
             // Try to fetch full data from database using form_id or lot_no
             if (formId) {
                 try {
-                    console.log('Searching for form_id:', formId);
                     const { data, error } = await supabase
                         .from('168_16cp_kranti')
                         .select('*')
                         .eq('form_id', formId)
                         .single();
                     
-                    console.log('Database query result by form_id:', { data, error });
-                    
                     if (data && !error) {
-                        console.log('Loading existing data for prestore form:', data);
                         prePopulatePrestoreForm(data);
-                    } else {
-                        console.log('No existing data found by form_id, trying lot_no');
+                    } else if (lotNo) {
                         // Fallback to lot_no search
-                        if (lotNo) {
-                            const { data: lotData, error: lotError } = await supabase
-                                .from('168_16cp_kranti')
-                                .select('*')
-                                .eq('lot_no', lotNo)
-                                .single();
-                            
-                            if (lotData && !lotError) {
-                                console.log('Loading existing data by lot_no:', lotData);
-                                prePopulatePrestoreForm(lotData);
-                            } else {
-                                console.log('No existing data found, using basic data');
-                                prePopulatePrestoreForm(prestoreData);
-                            }
-                        } else {
-                            prePopulatePrestoreForm(prestoreData);
+                        const { data: lotData, error: lotError } = await supabase
+                            .from('168_16cp_kranti')
+                            .select('*')
+                            .eq('lot_no', lotNo)
+                            .single();
+                        
+                        if (lotData && !lotError) {
+                            prePopulatePrestoreForm(lotData);
                         }
                     }
                 } catch (error) {
                     console.error('Error loading existing data:', error);
-                    prePopulatePrestoreForm(prestoreData);
                 }
             } else if (lotNo) {
                 try {
-                    console.log('Searching for lot_no:', lotNo);
                     const { data, error } = await supabase
                         .from('168_16cp_kranti')
                         .select('*')
                         .eq('lot_no', lotNo)
                         .single();
                     
-                    console.log('Database query result by lot_no:', { data, error });
-                    
                     if (data && !error) {
-                        console.log('Loading existing data for prestore form:', data);
                         prePopulatePrestoreForm(data);
-                    } else {
-                        console.log('No existing data found, using basic data');
-                        prePopulatePrestoreForm(prestoreData);
                     }
                 } catch (error) {
                     console.error('Error loading existing data:', error);
-                    prePopulatePrestoreForm(prestoreData);
                 }
-            } else {
-                prePopulatePrestoreForm(prestoreData);
             }
+        } catch (error) {
+            console.error('Error in background setup:', error);
         }
-    };
+    }
     
     // Modal close functionality
     const closePreStoreFormOverlay = document.getElementById('closePreStoreFormOverlay');
@@ -452,6 +451,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         preStoreFormModal.addEventListener('submit', async function(event) {
             event.preventDefault();
             
+            const submitButton = preStoreFormModal.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.textContent;
+            
+            // Show loading state
+            submitButton.textContent = 'Saving...';
+            submitButton.disabled = true;
+            
             const formData = new FormData(preStoreFormModal);
             const preStoreFormData = {
                 production_order: formData.get('production_order'),
@@ -461,7 +467,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 location: formData.get('location'),
                 specification: formData.get('specification'),
                 batch: formData.get('batch'),
-                ref_no: formData.get('ref_no'),
+                prestore_ref_no: formData.get('ref_no'),
                 standard_packing: formData.get('standard-packing') ? `${formData.get('standard-packing')} ${formData.get('standard-packing-unit')}` : null,
                 production_date: formData.get('production-date'),
                 inspection_date: formData.get('inspection-date'),
@@ -488,15 +494,29 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const { data: { user }, error: userError } = await supabase.auth.getUser();
                 if (userError) {
                     console.warn('Could not fetch user info:', userError.message);
-                    preStoreFormData.prepared_by = 'unknown';
+                    preStoreFormData.prepared_by = 'Unknown User';
                 } else if (user && user.id) {
-                    preStoreFormData.prepared_by = user.id;
+                    // Fetch user's full name from users table
+                    const { data: profile, error: profileError } = await supabase
+                        .from('users')
+                        .select('full_name')
+                        .eq('id', user.id)
+                        .single();
+                    
+                    if (profileError) {
+                        console.warn('Error fetching user profile:', profileError.message);
+                        preStoreFormData.prepared_by = user.email || 'Unknown User';
+                    } else if (profile && profile.full_name) {
+                        preStoreFormData.prepared_by = profile.full_name;
+                    } else {
+                        preStoreFormData.prepared_by = user.email || 'Unknown User';
+                    }
                 } else {
-                    preStoreFormData.prepared_by = 'unknown';
+                    preStoreFormData.prepared_by = 'Unknown User';
                 }
             } catch (error) {
                 console.warn('Authentication error, continuing without user info:', error);
-                preStoreFormData.prepared_by = 'unknown';
+                preStoreFormData.prepared_by = 'Unknown User';
             }
 
             console.log('Submitting prestore form data:', preStoreFormData);
@@ -516,14 +536,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Update existing record if form_id exists, otherwise insert new
             let error;
             if (window.currentPrestoreFormId) {
-                // Update existing record using form_id
+                // Update existing record using form_id (DO NOT update prepared_by to preserve original author)
+                const updateData = { ...preStoreFormData };
+                delete updateData.prepared_by; // Remove prepared_by from update to preserve original author
+                
                 const { error: updateError } = await supabase
                     .from(tableName)
-                    .update(preStoreFormData)
+                    .update(updateData)
                     .eq('form_id', window.currentPrestoreFormId);
                 error = updateError;
             } else {
-                // Insert new record
+                // Insert new record (prepared_by is set for new records)
                 const { error: insertError } = await supabase
                     .from(tableName)
                     .insert([preStoreFormData]);
@@ -533,13 +556,111 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (error) {
                 console.error('Error saving prestore data:', error.message);
                 alert('Error saving data: ' + error.message);
+                
+                // Reset button state on error
+                submitButton.textContent = originalButtonText;
+                submitButton.disabled = false;
             } else {
-                alert('Pre-store form data saved successfully!');
-                preStoreFormModal.reset();
-                preStoreFormOverlay.classList.add('hidden');
-                sessionStorage.removeItem('prestoreFormData');
+                // Show success state
+                submitButton.textContent = 'Saved!';
+                submitButton.style.backgroundColor = '#10B981'; // Green
+                
+                // Close modal and clean up after a short delay
+                setTimeout(() => {
+                    preStoreFormModal.reset();
+                    preStoreFormOverlay.classList.add('hidden');
+                    sessionStorage.removeItem('prestoreFormData');
+                }, 500);
             }
         });
+    }
+
+    // Function to open Edit Film Inspection Form modal with populated data
+    function openEditFilmInspectionFormModal(data) {
+        const modal = document.getElementById('editFilmInspectionFormOverlay');
+        const form = document.getElementById('editFilmInspectionForm');
+        
+        if (!modal || !form) {
+            console.error('Edit modal or form not found');
+            return;
+        }
+        
+        // Populate form fields with table data (fast, no database call)
+        if (data.productCode) {
+            form.querySelector('input[name="product_code"]').value = data.productCode;
+        }
+        if (data.specification) {
+            form.querySelector('input[name="specification"]').value = data.specification;
+        }
+        if (data.productionDate) {
+            // Convert DD/MM/YYYY to YYYY-MM-DD for date input
+            const dateParts = data.productionDate.split('/');
+            if (dateParts.length === 3) {
+                const formattedDate = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
+                form.querySelector('input[name="production_date"]').value = formattedDate;
+            }
+        }
+        if (data.inspectionDate) {
+            // Convert DD/MM/YYYY to YYYY-MM-DD for date input
+            const dateParts = data.inspectionDate.split('/');
+            if (dateParts.length === 3) {
+                const formattedDate = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
+                form.querySelector('input[name="inspection_date"]').value = formattedDate;
+            }
+        }
+        if (data.machineNo) {
+            form.querySelector('select[name="machine_no"]').value = data.machineNo;
+        }
+        
+        // Set form ID for update
+        form.setAttribute('data-form-id', data.formId);
+        
+        // Show the modal immediately
+        modal.classList.remove('hidden');
+        
+        // Fetch additional data from database in background (async, non-blocking)
+        fetchAdditionalFormData(data.formId, form);
+    }
+    
+    // Function to fetch additional form data in background
+    async function fetchAdditionalFormData(formId, form) {
+        try {
+            const { data: formData, error } = await supabase
+                .from('168_16cp_kranti')
+                .select('customer, production_order, film_insp_form_ref_no')
+                .eq('form_id', formId)
+                .single();
+            
+            if (error) throw error;
+            
+            // Update fields that weren't available in table data
+            if (formData.customer) {
+                form.querySelector('input[name="customer"]').value = formData.customer;
+            }
+            if (formData.production_order) {
+                form.querySelector('input[name="production_order"]').value = formData.production_order;
+            }
+            if (formData.film_insp_form_ref_no) {
+                form.querySelector('input[name="ref_no"]').value = formData.film_insp_form_ref_no;
+            }
+            
+        } catch (error) {
+            console.error('Error fetching additional form data:', error);
+        }
+    }
+
+    // Function to close and reset edit modal
+    function closeEditFilmInspectionModal() {
+        const modal = document.getElementById('editFilmInspectionFormOverlay');
+        const form = document.getElementById('editFilmInspectionForm');
+        
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+        if (form) {
+            form.reset();
+            form.removeAttribute('data-form-id');
+        }
     }
 
     // Add event listener for edit buttons
@@ -547,8 +668,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const viewFilmFormButton = event.target.closest('.view-film-form-button');
         if (viewFilmFormButton) {
             const formId = viewFilmFormButton.dataset.id;
-            const lotNo = viewFilmFormButton.closest('tr').querySelector('td:nth-child(5)').textContent; // Get lot_no from the row
-            const productCode = viewFilmFormButton.closest('tr').querySelector('td:nth-child(3)').textContent; // Get product_code from the row
+            const lotNo = viewFilmFormButton.closest('tr').querySelector('td:nth-child(7)').textContent; // Get lot_no from the row (updated column position)
+            const productCode = viewFilmFormButton.closest('tr').querySelector('td:nth-child(5)').textContent; // Get product_code from the row (updated column position)
             
             // Store form data in sessionStorage
             sessionStorage.setItem('currentFormId', formId);
@@ -579,6 +700,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             
             window.location.href = targetForm;
+        }
+
+        const editDetailsButton = event.target.closest('.edit-details-button');
+        if (editDetailsButton) {
+            const formId = editDetailsButton.dataset.id;
+            const row = editDetailsButton.closest('tr');
+            
+            // Extract data from the table row
+            const productionDate = row.querySelector('td:nth-child(2)').textContent.trim();
+            const inspectionDate = row.querySelector('td:nth-child(3)').textContent.trim();
+            const machineNo = row.querySelector('td:nth-child(4)').textContent.trim();
+            const productCode = row.querySelector('td:nth-child(5)').textContent.trim();
+            const specification = row.querySelector('td:nth-child(6)').textContent.trim();
+            const lotNo = row.querySelector('td:nth-child(7)').textContent.trim();
+            const preparedBy = row.querySelector('td:nth-child(8)').textContent.trim();
+            
+            // Open the Edit Film Inspection Form Details modal with populated data
+            openEditFilmInspectionFormModal({
+                formId: formId,
+                productionDate: productionDate,
+                inspectionDate: inspectionDate,
+                machineNo: machineNo,
+                productCode: productCode,
+                specification: specification,
+                lotNo: lotNo,
+                preparedBy: preparedBy
+            });
         }
 
         const editButton = event.target.closest('.edit-button');
@@ -742,7 +890,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             
             // Create download URL with form_id parameter
-            const downloadUrl = `http://localhost:3000/export-16gsm-kranti?form_id=${encodeURIComponent(formId)}`;
+            const downloadUrl = `http://localhost:3000/export-168-16cp-kranti-form?form_id=${encodeURIComponent(formId)}`;
             console.log('Download URL:', downloadUrl);
             
             // Show loading message
@@ -774,13 +922,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     // Clean up the URL object
                     window.URL.revokeObjectURL(url);
                     
-                    console.log('Download completed successfully');
                 })
                 .catch(error => {
                     console.error('Fetch download error:', error);
                     
                     // Fallback to direct link method
-                    console.log('Trying fallback download method...');
                     const link = document.createElement('a');
                     link.href = downloadUrl;
                     link.download = `16GSM-KRANTI-${lotNo || 'FORM'}.xlsx`;
@@ -798,10 +944,143 @@ document.addEventListener('DOMContentLoaded', async () => {
                 originalButton.disabled = false;
             }, 2000);
             
-            console.log('Download initiated successfully');
         } catch (error) {
             console.error('Error downloading Excel file:', error);
             alert('Error downloading Excel file: ' + error.message);
         }
     };
+
+    // Set up edit modal event listeners
+    setTimeout(() => {
+        const closeEditBtn = document.getElementById('closeEditFilmInspectionFormOverlay');
+        const clearEditBtn = document.getElementById('clearEditFilmInspectionForm');
+        const editModal = document.getElementById('editFilmInspectionFormOverlay');
+        const editForm = document.getElementById('editFilmInspectionForm');
+        
+        
+        if (closeEditBtn) {
+            closeEditBtn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeEditFilmInspectionModal();
+            };
+        }
+        
+        if (clearEditBtn) {
+            clearEditBtn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (editForm) {
+                    editForm.reset();
+                    editForm.removeAttribute('data-form-id');
+                }
+            };
+        }
+        
+        if (editModal) {
+            editModal.onclick = function(e) {
+                if (e.target === editModal) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeEditFilmInspectionModal();
+                }
+            };
+        }
+        
+        if (editForm) {
+            editForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                
+                const formData = new FormData(editForm);
+                const formId = editForm.getAttribute('data-form-id');
+                const submitButton = editForm.querySelector('button[type="submit"]');
+                
+                if (!formId) {
+                    alert('Form ID not found. Please try again.');
+                    return;
+                }
+                
+                // Show loading state
+                const originalButtonText = submitButton.textContent;
+                submitButton.textContent = 'Updating...';
+                submitButton.disabled = true;
+                
+                try {
+                    // Update existing form (DO NOT update prepared_by to preserve original author)
+                    const updateData = {
+                        product_code: formData.get('product_code'),
+                        customer: formData.get('customer'),
+                        specification: formData.get('specification'),
+                        production_date: formData.get('production_date'),
+                        inspection_date: formData.get('inspection_date'),
+                        machine_no: formData.get('machine_no'),
+                        production_order: formData.get('production_order'),
+                        film_insp_form_ref_no: formData.get('ref_no')
+                        // prepared_by is intentionally excluded to preserve original author
+                    };
+                    
+                    const { error } = await supabase
+                        .from('168_16cp_kranti')
+                        .update(updateData)
+                        .eq('form_id', formId);
+                    
+                    if (error) throw error;
+                    
+                    // Show success state
+                    submitButton.textContent = 'Updated!';
+                    submitButton.style.backgroundColor = '#10B981'; // Green
+                    
+                    // Close modal and refresh the list after a short delay
+                    setTimeout(async () => {
+                        closeEditFilmInspectionModal();
+                        await fetchFilmInspectionForms();
+                    }, 500);
+                    
+                } catch (error) {
+                    console.error('Error updating form:', error);
+                    alert('Error updating form: ' + error.message);
+                    
+                    // Reset button state
+                    submitButton.textContent = originalButtonText;
+                    submitButton.disabled = false;
+                    submitButton.style.backgroundColor = '';
+                }
+            });
+        }
+    }, 1000);
 });
+
+// Global function to handle View button click - navigate to form in view-only mode
+window.viewFilmForm = function(formId, lotNo, productCode) {
+    // Store form data in sessionStorage with view mode flag
+    sessionStorage.setItem('currentFormId', formId);
+    sessionStorage.setItem('currentLotNo', lotNo);
+    sessionStorage.setItem('currentProductCode', productCode);
+    sessionStorage.setItem('viewMode', 'true');
+    
+    // Route to the correct form based on product code
+    let targetForm = '';
+    switch(productCode) {
+        case 'APE-168(16)CP(KRANTI)':
+        case 'APE-168(16)C':
+            targetForm = '16_gsm_kranti.html';
+            break;
+        case 'APE-168(18)CP(KRANTI)':
+        case 'APE-168(18)C':
+            targetForm = '18_gsm_kranti.html'; // Future form
+            break;
+        case 'WHITE-234(18)':
+            targetForm = 'white_234_18.html'; // Future form
+            break;
+        case 'APE-176(18)CP(LCC+WW)BS':
+            targetForm = 'ape_176_18_lcc_ww_bs.html'; // Future form
+            break;
+        default:
+            // Default fallback
+            targetForm = '16_gsm_kranti.html';
+            break;
+    }
+    
+    // Navigate to the form with view mode parameter
+    window.location.href = targetForm + '?mode=view';
+};

@@ -2,6 +2,16 @@
 import { supabase } from '../../supabase-config.js';
 
 document.addEventListener('DOMContentLoaded', function() {
+    // ===== VIEW MODE DETECTION =====
+    // Get URL parameters first
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewMode = urlParams.get('mode') === 'view' || sessionStorage.getItem('viewMode') === 'true';
+    
+    // Clear view mode flag from sessionStorage after detection
+    if (sessionStorage.getItem('viewMode') === 'true') {
+        sessionStorage.removeItem('viewMode');
+    }
+    
     // ===== SESSION INITIALIZATION =====
     // Load session variables from sessionStorage (set by film_inspection_list.js)
     const sessionFormId = sessionStorage.getItem('currentFormId');
@@ -12,6 +22,37 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set these as current session variables
         window.currentFormId = sessionFormId;
         window.currentLotNo = sessionLotNo;
+    }
+    
+    // ===== VIEW MODE SETUP =====
+    if (viewMode) {
+        // Add view-only indicator immediately
+        const viewOnlyIndicator = document.createElement('div');
+        viewOnlyIndicator.id = 'viewOnlyIndicator';
+        viewOnlyIndicator.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-center';
+        viewOnlyIndicator.innerHTML = `
+            <div class="flex items-center gap-2 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                <span class="font-semibold">YOU ARE IN VIEW ONLY MODE - Form cannot be edited here</span>
+            </div>
+        `;
+        document.body.appendChild(viewOnlyIndicator);
+        
+        // Hide the indicator after 5 seconds
+        setTimeout(() => {
+            if (viewOnlyIndicator) {
+                viewOnlyIndicator.style.opacity = '0';
+                viewOnlyIndicator.style.transition = 'opacity 0.5s ease-out';
+                setTimeout(() => {
+                    if (viewOnlyIndicator.parentNode) {
+                        viewOnlyIndicator.parentNode.removeChild(viewOnlyIndicator);
+                    }
+                }, 500);
+            }
+        }, 5000);
     }
 
     // Page 1 elements
@@ -83,6 +124,24 @@ document.addEventListener('DOMContentLoaded', function() {
            }
        });
        
+       // In view mode, hide add/delete buttons and disable all editing
+       if (viewMode) {
+           if (addRowsBtn) addRowsBtn.style.display = 'none';
+           if (deleteRowsBtn) deleteRowsBtn.style.display = 'none';
+           if (numRowsInput) numRowsInput.style.display = 'none';
+           
+           // Disable all input fields in tables
+           setTimeout(() => {
+               const allInputs = document.querySelectorAll('input, textarea, select');
+               allInputs.forEach(input => {
+                   input.readOnly = true;
+                   input.disabled = true;
+                   input.style.backgroundColor = '#f9fafb';
+                   input.style.cursor = 'default';
+               });
+           }, 1000);
+       }
+       
 
 
        // ===== AUTO-SAVE TO DATABASE (LIKE INLINE INSPECTION FORM) =====
@@ -96,6 +155,11 @@ document.addEventListener('DOMContentLoaded', function() {
        
        // Auto-save all form data to database (debounced)
        async function autoSaveToDatabase() {
+           // Block saving in view mode
+           if (viewMode) {
+               return;
+           }
+           
            try {
                // Get header form data
                const headerData = {
@@ -108,9 +172,9 @@ document.addEventListener('DOMContentLoaded', function() {
                    purchase_order: poInput?.value || '',
                    quantity: quantityInput?.value ? parseInt(quantityInput.value) : null,
                    lot_no: currentLotNo || null, // Only use existing lot_no, don't generate new ones
-                   // Don't overwrite ref_no and prepared_by if updating existing form
+                   // Don't overwrite prestore_ref_no and prepared_by if updating existing form
                    ...(currentFormId ? {} : {
-                       ref_no: generateRefNumber(),
+                       prestore_ref_no: generateRefNumber(),
                        prepared_by: 'User'
                    })
                };
@@ -219,6 +283,11 @@ document.addEventListener('DOMContentLoaded', function() {
        // Helper function to add consolidated input event listener
        function addConsolidatedInputListener(input, tableBody, tr, columnIndex) {
            input.addEventListener('input', function() {
+               // Block input in view mode
+               if (viewMode) {
+                   return;
+               }
+               
                // Auto-save to database after each change (debounced)
                debouncedSave();
                
@@ -286,6 +355,11 @@ document.addEventListener('DOMContentLoaded', function() {
                    
                    // Add event listener for automatic average calculation
                    input.addEventListener('input', function() {
+                       // Block input in view mode
+                       if (viewMode) {
+                           return;
+                       }
+                       
                        // Auto-save to database after each change (debounced)
                        debouncedSave();
                        
@@ -538,6 +612,11 @@ document.addEventListener('DOMContentLoaded', function() {
                    const input = freshCell.querySelector('input');
                    if (input) {
                        input.addEventListener('keydown', function(e) {
+                           // Block keyboard navigation in view mode
+                           if (viewMode) {
+                               return;
+                           }
+                           
                            handleKeyboardNavigation(e, freshCell);
                        });
                    }
@@ -1260,6 +1339,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
            // Add rows button for Page 1 (syncs with all pages)
        addRowsBtn.addEventListener('click', function() {
+           // Block in view mode
+           if (viewMode) {
+               return;
+           }
+           
            const n = parseInt(numRowsInput.value, 10) || 1;
            addRowsToTable(testingTableBody, n);
            addRowsToTable(testingTableBody2, n);
@@ -1275,6 +1359,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
        // Delete rows button for Page 1 (syncs with all pages) - deletes one row at a time
        deleteRowsBtn.addEventListener('click', function() {
+           // Block in view mode
+           if (viewMode) {
+               return;
+           }
+           
            deleteRowsFromTable(testingTableBody, 1);
            deleteRowsFromTable(testingTableBody2, 1);
            deleteRowsFromTable(testingTableBody3, 1);

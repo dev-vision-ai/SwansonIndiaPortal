@@ -383,7 +383,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            // Get the logged-in user's email
+            // Get the logged-in user's full name
             const { data: { user }, error: userError } = await supabase.auth.getUser();
             if (userError) {
                 console.error('Error fetching user:', userError.message);
@@ -391,11 +391,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
             
-            // Add the user's email to the data object
+            // Fetch user's full name from users table
             if (user && user.id) {
-                data.prepared_by = user.id;
+                const { data: profile, error: profileError } = await supabase
+                    .from('users')
+                    .select('full_name')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (profileError) {
+                    console.error('Error fetching user profile:', profileError.message);
+                    data.prepared_by = user.email || 'Unknown User'; // Fallback to email
+                } else if (profile && profile.full_name) {
+                    data.prepared_by = profile.full_name;
+                } else {
+                    data.prepared_by = user.email || 'Unknown User'; // Fallback to email
+                }
             } else {
-                data.prepared_by = 'unknown'; // Fallback if user ID is not available
+                data.prepared_by = 'Unknown User'; // Fallback if user ID is not available
             }
 
             // Convert specific fields to numbers if necessary

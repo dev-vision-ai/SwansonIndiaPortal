@@ -556,14 +556,14 @@ app.get('/export', async (req, res) => {
             worksheet.getCell(`AF${currentRow}`).value = '';
           }
           
-          // Common fields for all rows
-          worksheet.getCell(`F${currentRow}`).value = rollWeight;
-          worksheet.getCell(`G${currentRow}`).value = rollWidth;
-          worksheet.getCell(`H${currentRow}`).value = filmWeightGsm;
-          worksheet.getCell(`I${currentRow}`).value = thickness;
-          worksheet.getCell(`J${currentRow}`).value = rollDia;
+          // Common fields for all rows - convert numerical values to numbers
+          worksheet.getCell(`F${currentRow}`).value = rollWeight ? parseFloat(rollWeight) : rollWeight;
+          worksheet.getCell(`G${currentRow}`).value = rollWidth ? parseFloat(rollWidth) : rollWidth;
+          worksheet.getCell(`H${currentRow}`).value = filmWeightGsm ? parseFloat(filmWeightGsm) : filmWeightGsm;
+          worksheet.getCell(`I${currentRow}`).value = thickness ? parseFloat(thickness) : thickness;
+          worksheet.getCell(`J${currentRow}`).value = rollDia ? parseFloat(rollDia) : rollDia;
           worksheet.getCell(`K${currentRow}`).value = paperCoreId;
-          worksheet.getCell(`L${currentRow}`).value = paperCoreOd;
+          worksheet.getCell(`L${currentRow}`).value = paperCoreOd ? parseFloat(paperCoreOd) : paperCoreOd;
           
           // Film Appearance
           worksheet.getCell(`M${currentRow}`).value = linesStrips;
@@ -603,17 +603,17 @@ app.get('/export', async (req, res) => {
       }
     });
 
-    // 8. Add Page1 summary
-    worksheet.getCell('L84').value = page1Summary.accepted_rolls;
-    worksheet.getCell('N84').value = page1Summary.accepted_weight;
-    worksheet.getCell('L85').value = page1Summary.rejected_rolls;
-    worksheet.getCell('N85').value = page1Summary.rejected_weight;
-    worksheet.getCell('L86').value = page1Summary.rework_rolls;
-    worksheet.getCell('N86').value = page1Summary.rework_weight;
-    worksheet.getCell('L87').value = page1Summary.kiv_rolls;
-    worksheet.getCell('N87').value = page1Summary.kiv_weight;
-    worksheet.getCell('L88').value = page1Summary.accepted_rolls + page1Summary.rejected_rolls + page1Summary.rework_rolls + page1Summary.kiv_rolls;
-    worksheet.getCell('N88').value = page1Summary.accepted_weight + page1Summary.rejected_weight + page1Summary.rework_weight + page1Summary.kiv_weight;
+    // 8. Add Page1 summary - convert to numbers
+    worksheet.getCell('L84').value = parseFloat(page1Summary.accepted_rolls) || 0;
+    worksheet.getCell('N84').value = parseFloat(page1Summary.accepted_weight) || 0;
+    worksheet.getCell('L85').value = parseFloat(page1Summary.rejected_rolls) || 0;
+    worksheet.getCell('N85').value = parseFloat(page1Summary.rejected_weight) || 0;
+    worksheet.getCell('L86').value = parseFloat(page1Summary.rework_rolls) || 0;
+    worksheet.getCell('N86').value = parseFloat(page1Summary.rework_weight) || 0;
+    worksheet.getCell('L87').value = parseFloat(page1Summary.kiv_rolls) || 0;
+    worksheet.getCell('N87').value = parseFloat(page1Summary.kiv_weight) || 0;
+    worksheet.getCell('L88').value = parseFloat(page1Summary.accepted_rolls + page1Summary.rejected_rolls + page1Summary.rework_rolls + page1Summary.kiv_rolls) || 0;
+    worksheet.getCell('N88').value = parseFloat(page1Summary.accepted_weight + page1Summary.rejected_weight + page1Summary.rework_weight + page1Summary.kiv_weight) || 0;
 
     // 9. Calculate total pages and add page indicator to Page1
     const totalPages = 1 + (page2Lots.length > 0 ? 1 : 0) + (page3Lots.length > 0 ? 1 : 0);
@@ -736,14 +736,14 @@ app.get('/export', async (req, res) => {
                 page2Worksheet.getCell(`AF${page2CurrentRow}`).value = '';
               }
               
-              // Common fields for all rows
-              page2Worksheet.getCell(`F${page2CurrentRow}`).value = rollWeight;
-              page2Worksheet.getCell(`G${page2CurrentRow}`).value = rollWidth;
-              page2Worksheet.getCell(`H${page2CurrentRow}`).value = filmWeightGsm;
-              page2Worksheet.getCell(`I${page2CurrentRow}`).value = thickness;
-              page2Worksheet.getCell(`J${page2CurrentRow}`).value = rollDia;
+              // Common fields for all rows - convert numerical values to numbers
+              page2Worksheet.getCell(`F${page2CurrentRow}`).value = rollWeight ? parseFloat(rollWeight) : rollWeight;
+              page2Worksheet.getCell(`G${page2CurrentRow}`).value = rollWidth ? parseFloat(rollWidth) : rollWidth;
+              page2Worksheet.getCell(`H${page2CurrentRow}`).value = filmWeightGsm ? parseFloat(filmWeightGsm) : filmWeightGsm;
+              page2Worksheet.getCell(`I${page2CurrentRow}`).value = thickness ? parseFloat(thickness) : thickness;
+              page2Worksheet.getCell(`J${page2CurrentRow}`).value = rollDia ? parseFloat(rollDia) : rollDia;
               page2Worksheet.getCell(`K${page2CurrentRow}`).value = paperCoreId;
-              page2Worksheet.getCell(`L${page2CurrentRow}`).value = paperCoreOd;
+              page2Worksheet.getCell(`L${page2CurrentRow}`).value = paperCoreOd ? parseFloat(paperCoreOd) : paperCoreOd;
               
               // Film Appearance
               page2Worksheet.getCell(`M${page2CurrentRow}`).value = linesStrips;
@@ -785,17 +785,17 @@ app.get('/export', async (req, res) => {
           }
         });
 
-        // Add Page2 summary
-        page2Worksheet.getCell('L84').value = page2Summary.accepted_rolls;
-        page2Worksheet.getCell('N84').value = page2Summary.accepted_weight;
-        page2Worksheet.getCell('L85').value = page2Summary.rejected_rolls;
-        page2Worksheet.getCell('N85').value = page2Summary.rejected_weight;
-        page2Worksheet.getCell('L86').value = page2Summary.rework_rolls;
-        page2Worksheet.getCell('N86').value = page2Summary.rework_weight;
-        page2Worksheet.getCell('L87').value = page2Summary.kiv_rolls;
-        page2Worksheet.getCell('N87').value = page2Summary.kiv_weight;
-        page2Worksheet.getCell('L88').value = page2Summary.accepted_rolls + page2Summary.rejected_rolls + page2Summary.rework_rolls + page2Summary.kiv_rolls;
-        page2Worksheet.getCell('N88').value = page2Summary.accepted_weight + page2Summary.rejected_weight + page2Summary.rework_weight + page2Summary.kiv_weight;
+        // Add Page2 summary - convert to numbers
+        page2Worksheet.getCell('L84').value = parseFloat(page2Summary.accepted_rolls) || 0;
+        page2Worksheet.getCell('N84').value = parseFloat(page2Summary.accepted_weight) || 0;
+        page2Worksheet.getCell('L85').value = parseFloat(page2Summary.rejected_rolls) || 0;
+        page2Worksheet.getCell('N85').value = parseFloat(page2Summary.rejected_weight) || 0;
+        page2Worksheet.getCell('L86').value = parseFloat(page2Summary.rework_rolls) || 0;
+        page2Worksheet.getCell('N86').value = parseFloat(page2Summary.rework_weight) || 0;
+        page2Worksheet.getCell('L87').value = parseFloat(page2Summary.kiv_rolls) || 0;
+        page2Worksheet.getCell('N87').value = parseFloat(page2Summary.kiv_weight) || 0;
+        page2Worksheet.getCell('L88').value = parseFloat(page2Summary.accepted_rolls + page2Summary.rejected_rolls + page2Summary.rework_rolls + page2Summary.kiv_rolls) || 0;
+        page2Worksheet.getCell('N88').value = parseFloat(page2Summary.accepted_weight + page2Summary.rejected_weight + page2Summary.rework_weight + page2Summary.kiv_weight) || 0;
 
         // Add page indicator to Page2
         page2Worksheet.getCell('A1').value = `Page 2 of ${totalPages}`;
@@ -921,14 +921,14 @@ app.get('/export', async (req, res) => {
                 page3Worksheet.getCell(`AF${page3CurrentRow}`).value = '';
               }
               
-              // Common fields for all rows
-              page3Worksheet.getCell(`F${page3CurrentRow}`).value = rollWeight;
-              page3Worksheet.getCell(`G${page3CurrentRow}`).value = rollWidth;
-              page3Worksheet.getCell(`H${page3CurrentRow}`).value = filmWeightGsm;
-              page3Worksheet.getCell(`I${page3CurrentRow}`).value = thickness;
-              page3Worksheet.getCell(`J${page3CurrentRow}`).value = rollDia;
+              // Common fields for all rows - convert numerical values to numbers
+              page3Worksheet.getCell(`F${page3CurrentRow}`).value = rollWeight ? parseFloat(rollWeight) : rollWeight;
+              page3Worksheet.getCell(`G${page3CurrentRow}`).value = rollWidth ? parseFloat(rollWidth) : rollWidth;
+              page3Worksheet.getCell(`H${page3CurrentRow}`).value = filmWeightGsm ? parseFloat(filmWeightGsm) : filmWeightGsm;
+              page3Worksheet.getCell(`I${page3CurrentRow}`).value = thickness ? parseFloat(thickness) : thickness;
+              page3Worksheet.getCell(`J${page3CurrentRow}`).value = rollDia ? parseFloat(rollDia) : rollDia;
               page3Worksheet.getCell(`K${page3CurrentRow}`).value = paperCoreId;
-              page3Worksheet.getCell(`L${page3CurrentRow}`).value = paperCoreOd;
+              page3Worksheet.getCell(`L${page3CurrentRow}`).value = paperCoreOd ? parseFloat(paperCoreOd) : paperCoreOd;
               
               // Film Appearance
               page3Worksheet.getCell(`M${page3CurrentRow}`).value = linesStrips;
@@ -968,17 +968,17 @@ app.get('/export', async (req, res) => {
           }
         });
 
-        // Add Page3 summary
-        page3Worksheet.getCell('L84').value = page3Summary.accepted_rolls;
-        page3Worksheet.getCell('N84').value = page3Summary.accepted_weight;
-        page3Worksheet.getCell('L85').value = page3Summary.rejected_rolls;
-        page3Worksheet.getCell('N85').value = page3Summary.rejected_weight;
-        page3Worksheet.getCell('L86').value = page3Summary.rework_rolls;
-        page3Worksheet.getCell('N86').value = page3Summary.rework_weight;
-        page3Worksheet.getCell('L87').value = page3Summary.kiv_rolls;
-        page3Worksheet.getCell('N87').value = page3Summary.kiv_weight;
-        page3Worksheet.getCell('L88').value = page3Summary.accepted_rolls + page3Summary.rejected_rolls + page3Summary.rework_rolls + page3Summary.kiv_rolls;
-        page3Worksheet.getCell('N88').value = page3Summary.accepted_weight + page3Summary.rejected_weight + page3Summary.rework_weight + page3Summary.kiv_weight;
+        // Add Page3 summary - convert to numbers
+        page3Worksheet.getCell('L84').value = parseFloat(page3Summary.accepted_rolls) || 0;
+        page3Worksheet.getCell('N84').value = parseFloat(page3Summary.accepted_weight) || 0;
+        page3Worksheet.getCell('L85').value = parseFloat(page3Summary.rejected_rolls) || 0;
+        page3Worksheet.getCell('N85').value = parseFloat(page3Summary.rejected_weight) || 0;
+        page3Worksheet.getCell('L86').value = parseFloat(page3Summary.rework_rolls) || 0;
+        page3Worksheet.getCell('N86').value = parseFloat(page3Summary.rework_weight) || 0;
+        page3Worksheet.getCell('L87').value = parseFloat(page3Summary.kiv_rolls) || 0;
+        page3Worksheet.getCell('N87').value = parseFloat(page3Summary.kiv_weight) || 0;
+        page3Worksheet.getCell('L88').value = parseFloat(page3Summary.accepted_rolls + page3Summary.rejected_rolls + page3Summary.rework_rolls + page3Summary.kiv_rolls) || 0;
+        page3Worksheet.getCell('N88').value = parseFloat(page3Summary.accepted_weight + page3Summary.rejected_weight + page3Summary.rework_weight + page3Summary.kiv_weight) || 0;
 
         // Add page indicator to Page3
         page3Worksheet.getCell('A1').value = `Page 3 of ${totalPages}`;
@@ -1172,13 +1172,13 @@ app.get('/export', async (req, res) => {
   }
 });
 
-// 16 GSM Kranti Excel Export Endpoint
-app.get('/export-16gsm-kranti', async (req, res) => {
+// 168-16CP Kranti Film Inspection Form Excel Export Endpoint
+app.get('/export-168-16cp-kranti-form', async (req, res) => {
   try {
     // Get form_id parameter
     const { form_id } = req.query;
     
-    console.log('16 GSM Kranti export request received:', { form_id });
+    console.log('168-16CP Kranti form export request received:', { form_id });
     
     if (!form_id) {
       return res.status(400).send('form_id parameter is required');
@@ -1201,185 +1201,574 @@ app.get('/export-16gsm-kranti', async (req, res) => {
     }
 
     console.log('Data fetched successfully:', data);
+    console.log('Data keys:', Object.keys(data));
+    console.log('Sample data preview:', {
+      form_id: data.form_id,
+      lot_no: data.lot_no,
+      product_code: data.product_code,
+      has_lot_and_roll: !!data.lot_and_roll,
+      has_roll_id: !!data.roll_id,
+      has_lot_time: !!data.lot_time
+    });
 
-    // 2. Load the 16 GSM Kranti Excel template
-    const templatePath = path.join(__dirname, 'templates', 'APE-168(16)CP(KRANTI).xlsx');
+    // 2. Try to load the actual template with better error handling
+    const templatePath = path.join(__dirname, 'templates', '168_16cp_kranti.xlsx');
     console.log('Template path:', templatePath);
+    console.log('__dirname:', __dirname);
+    console.log('Full path:', path.resolve(templatePath));
     
-    // Check if template file exists
-    if (!fs.existsSync(templatePath)) {
-      console.error('Template file not found:', templatePath);
-      return res.status(500).send('Excel template file not found');
+    // Check if file exists and get stats
+    if (fs.existsSync(templatePath)) {
+      const stats = fs.statSync(templatePath);
+      console.log('Template file exists:', {
+        size: stats.size,
+        isFile: stats.isFile(),
+        modified: stats.mtime,
+        readable: true
+      });
+    } else {
+      console.error('Template file does not exist at:', templatePath);
+      return res.status(500).send('Template file not found');
     }
     
-    const workbook = new ExcelJS.Workbook();
+    let workbook;
+    let worksheet;
+    
+    // Load the actual template file
+    console.log('Loading template file...');
+    
     try {
+      // Check if template file exists
+      if (fs.existsSync(templatePath)) {
+        console.log('Template file exists, loading...');
+        workbook = new ExcelJS.Workbook();
       await workbook.xlsx.readFile(templatePath);
-      console.log('16 GSM Kranti template loaded successfully');
-    } catch (templateError) {
-      console.error('Error loading template:', templateError);
-      return res.status(500).send(`Error loading Excel template: ${templateError.message}`);
+        worksheet = workbook.getWorksheet('Page1');
+        console.log('Template loaded successfully with Page1 worksheet');
+      } else {
+        console.log('Template file not found, creating basic workbook...');
+        workbook = new ExcelJS.Workbook();
+        const page1Worksheet = workbook.addWorksheet('Page1');
+        worksheet = page1Worksheet;
+        console.log('Basic workbook created with Page1 worksheet');
+      }
+    } catch (error) {
+      console.log('Error loading template:', error.message);
+      console.log('Creating basic workbook as fallback...');
+      workbook = new ExcelJS.Workbook();
+      const page1Worksheet = workbook.addWorksheet('Page1');
+      worksheet = page1Worksheet;
+      console.log('Basic workbook created with Page1 worksheet');
     }
 
-    // 3. Get the first worksheet
-    const worksheet = workbook.worksheets[0];
-    console.log('Worksheet name:', worksheet.name);
-
-    // 4. Map the data to Excel cells - MANUAL COLUMN MAPPING
-    console.log('Starting manual column mapping...');
-
-    // Basic Information Section
-    worksheet.getCell('B2').value = data.product_code || ''; // Product Code
-    worksheet.getCell('B3').value = data.production_order || ''; // Production Order
-    worksheet.getCell('B4').value = data.machine_no || ''; // Machine No
-    worksheet.getCell('B5').value = formatDateToDDMMYYYY(data.production_date); // Production Date
-    worksheet.getCell('B6').value = formatDateToDDMMYYYY(data.inspection_date); // Inspection Date
-    worksheet.getCell('B7').value = data.specification || ''; // Specification
-    worksheet.getCell('B8').value = data.purchase_order || ''; // PO
-    worksheet.getCell('B9').value = data.quantity || ''; // Quantity
-    worksheet.getCell('B10').value = data.lot_no || ''; // Lot No
-    worksheet.getCell('B11').value = data.ref_no || ''; // Ref No
-    worksheet.getCell('B12').value = data.customer || ''; // Customer
-    worksheet.getCell('B13').value = data.prepared_by || ''; // Prepared By
-
-    // Page 1 Data - Basic Weight, Thickness, Opacity, COF, Cut Width, Color-Delta E
-    if (data.page1_basic_weight) {
-      const basicWeightData = data.page1_basic_weight;
-      let row = 20; // Starting row for data
-      
-      Object.keys(basicWeightData).forEach(key => {
-        if (basicWeightData[key] && basicWeightData[key] !== '') {
-          worksheet.getCell(`B${row}`).value = basicWeightData[key];
-        }
-        row++;
-      });
-    }
-
-    if (data.page1_thickness) {
-      const thicknessData = data.page1_thickness;
-      let row = 20; // Starting row for data
-      
-      Object.keys(thicknessData).forEach(key => {
-        if (thicknessData[key] && thicknessData[key] !== '') {
-          worksheet.getCell(`C${row}`).value = thicknessData[key];
-        }
-        row++;
-      });
-    }
-
-    if (data.page1_opacity) {
-      const opacityData = data.page1_opacity;
-      let row = 20; // Starting row for data
-      
-      Object.keys(opacityData).forEach(key => {
-        if (opacityData[key] && opacityData[key] !== '') {
-          worksheet.getCell(`D${row}`).value = opacityData[key];
-        }
-        row++;
-      });
-    }
-
-    if (data.page1_cof_kinetic) {
-      const cofData = data.page1_cof_kinetic;
-      let row = 20; // Starting row for data
-      
-      Object.keys(cofData).forEach(key => {
-        if (cofData[key] && cofData[key] !== '') {
-          worksheet.getCell(`E${row}`).value = cofData[key];
-        }
-        row++;
-      });
-    }
-
-    if (data.page1_cut_width) {
-      const cutWidthData = data.page1_cut_width;
-      let row = 20; // Starting row for data
-      
-      Object.keys(cutWidthData).forEach(key => {
-        if (cutWidthData[key] && cutWidthData[key] !== '') {
-          worksheet.getCell(`F${row}`).value = cutWidthData[key];
-        }
-        row++;
-      });
-    }
-
-    if (data.page1_color_delta_unprinted) {
-      const colorDeltaUnprintedData = data.page1_color_delta_unprinted;
-      let row = 20; // Starting row for data
-      
-      Object.keys(colorDeltaUnprintedData).forEach(key => {
-        if (colorDeltaUnprintedData[key] && colorDeltaUnprintedData[key] !== '') {
-          worksheet.getCell(`G${row}`).value = colorDeltaUnprintedData[key];
-        }
-        row++;
-      });
-    }
-
-    if (data.page1_color_delta_printed) {
-      const colorDeltaPrintedData = data.page1_color_delta_printed;
-      let row = 20; // Starting row for data
-      
-      Object.keys(colorDeltaPrintedData).forEach(key => {
-        if (colorDeltaPrintedData[key] && colorDeltaPrintedData[key] !== '') {
-          worksheet.getCell(`H${row}`).value = colorDeltaPrintedData[key];
-        }
-        row++;
-      });
-    }
-
-    // Sheet 1 - Lot & Roll data mapping (A8 to A37)
+    // 4. MANUAL CELL MAPPING - User will specify which data goes where
+    console.log('Starting manual cell mapping...');
+    
+    // Map header data to correct cells based on template structure
+    console.log('Mapping header data to template structure...');
+    
+    // Product Code (C4)
+    worksheet.getCell('C4').value = data.product_code || '';
+    
+    // Specification (C5) 
+    worksheet.getCell('C5').value = data.specification || '';
+    
+    // Production Order (H4)
+    worksheet.getCell('H4').value = data.production_order || '';
+    
+    // Purchase Order (H5)
+    worksheet.getCell('H5').value = data.purchase_order || '';
+    
+    // Machine (K4)
+    worksheet.getCell('K4').value = data.machine_no || '';
+    
+    // Quantity (K5)
+    worksheet.getCell('K5').value = data.quantity || '';
+    
+    // Production Date (N4) - format as DD/MM/YYYY
+    worksheet.getCell('N4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
+    
+    // Inspection Date (N5) - format as DD/MM/YYYY  
+    worksheet.getCell('N5').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+    
+    // User Name (Prepared by) (B41)
+    worksheet.getCell('B41').value = data.prepared_by || 'Unknown User';
+    
+    // Map sample data to the correct columns based on template structure
+    console.log('Mapping sample data to template...');
+    
+    // Sample data should go in rows 8-37 (30 rows) - fill from bottom up
+    // Lot & Roll data to Sample No. column (A8-A37)
     if (data.lot_and_roll) {
       const lotAndRollData = data.lot_and_roll;
-      let row = 8; // Starting from A8
+      const dataValues = Object.values(lotAndRollData).filter(value => value && value !== '');
+      let row = 37; // Starting from A37 (last data row)
       
-      Object.keys(lotAndRollData).forEach(key => {
-        if (lotAndRollData[key] && lotAndRollData[key] !== '' && row <= 37) {
-          worksheet.getCell(`A${row}`).value = lotAndRollData[key];
-          row++;
-        }
-      });
+      // Fill from bottom up
+      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
+        worksheet.getCell(`A${row}`).value = dataValues[i];
+        row--;
+      }
     }
-
-    // Sheet 1 - Roll ID data mapping (B8 to B37)
+    
+    // Roll ID data to column B (B8-B37) - fill from bottom up
     if (data.roll_id) {
       const rollIdData = data.roll_id;
-      let row = 8; // Starting from B8
+      const dataValues = Object.values(rollIdData).filter(value => value && value !== '');
+      let row = 37;
       
-      Object.keys(rollIdData).forEach(key => {
-        if (rollIdData[key] && rollIdData[key] !== '' && row <= 37) {
-          worksheet.getCell(`B${row}`).value = rollIdData[key];
-          row++;
-        }
-      });
+      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
+        worksheet.getCell(`B${row}`).value = dataValues[i];
+        row--;
+      }
     }
-
-    // Sheet 1 - Lot Time data mapping (C8 to C37)
+    
+    // Lot Time data to column C (C8-C37) - fill from bottom up
     if (data.lot_time) {
       const lotTimeData = data.lot_time;
-      let row = 8; // Starting from C8
+      const dataValues = Object.values(lotTimeData).filter(value => value && value !== '');
+      let row = 37;
       
-      Object.keys(lotTimeData).forEach(key => {
-        if (lotTimeData[key] && lotTimeData[key] !== '' && row <= 37) {
-          worksheet.getCell(`C${row}`).value = lotTimeData[key];
-          row++;
-        }
-      });
+      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
+        worksheet.getCell(`C${row}`).value = dataValues[i];
+        row--;
+      }
+    }
+    
+    // Map page1 data to the measurement columns - fill from bottom up
+    // Basic Weight data to column D (D8-D37)
+    if (data.page1_basic_weight) {
+      const basicWeightData = data.page1_basic_weight;
+      const dataValues = Object.values(basicWeightData).filter(value => value && value !== '');
+      let row = 37;
+      
+      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
+        const numValue = parseFloat(dataValues[i]);
+        worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+        row--;
+      }
+    }
+    
+    // Thickness data to column F (F8-F37)
+    if (data.page1_thickness) {
+      const thicknessData = data.page1_thickness;
+      const dataValues = Object.values(thicknessData).filter(value => value && value !== '');
+      let row = 37;
+      
+      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
+        const numValue = parseFloat(dataValues[i]);
+        worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+        row--;
+      }
+    }
+    
+    // Opacity data to column H (H8-H37) - corrected mapping
+    if (data.page1_opacity) {
+      const opacityData = data.page1_opacity;
+      const dataValues = Object.values(opacityData).filter(value => value && value !== '');
+      let row = 37;
+      
+      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
+        const numValue = parseFloat(dataValues[i]);
+        worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+        row--;
+      }
+    }
+    
+    // COF Kinetic data to column J (J8-J37)
+    if (data.page1_cof_kinetic) {
+      const cofData = data.page1_cof_kinetic;
+      const dataValues = Object.values(cofData).filter(value => value && value !== '');
+      let row = 37;
+      
+      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
+        const numValue = parseFloat(dataValues[i]);
+        worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+        row--;
+      }
+    }
+    
+    // Cut Width data to column L (L8-L37)
+    if (data.page1_cut_width) {
+      const cutWidthData = data.page1_cut_width;
+      const dataValues = Object.values(cutWidthData).filter(value => value && value !== '');
+      let row = 37;
+      
+      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
+        const numValue = parseFloat(dataValues[i]);
+        worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+        row--;
+      }
+    }
+    
+    // Color-Delta E (Unprinted Film) data to column N (N8-N37)
+    if (data.page1_color_delta_unprinted) {
+      const colorDeltaUnprintedData = data.page1_color_delta_unprinted;
+      const dataValues = Object.values(colorDeltaUnprintedData).filter(value => value && value !== '');
+      let row = 37;
+      
+      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
+        const numValue = parseFloat(dataValues[i]);
+        worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+        row--;
+      }
+    }
+    
+    // Color-Delta E (Printed Film) data to column O (O8-O37)
+    if (data.page1_color_delta_printed) {
+      const colorDeltaPrintedData = data.page1_color_delta_printed;
+      const dataValues = Object.values(colorDeltaPrintedData).filter(value => value && value !== '');
+      let row = 37;
+      
+      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
+        const numValue = parseFloat(dataValues[i]);
+        worksheet.getCell(`O${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+        row--;
+      }
     }
 
-    console.log('Data mapping completed successfully');
+
+    // Set Excel to automatically calculate formulas when opened
+    workbook.calcProperties.fullCalcOnLoad = true;
+    workbook.calcProperties.calcMode = 'automatic';
+    
+    // Force recalculation by setting a dummy value and removing it
+    const dummyCell = worksheet.getCell('Z1');
+    dummyCell.value = '=NOW()';
+    dummyCell.value = null;
+    
+
+    // Map Page 2 data if Page2 worksheet exists
+    const page2Worksheet = workbook.getWorksheet('Page2');
+    if (page2Worksheet) {
+      // User Name (Prepared by) (B42)
+      page2Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      
+      // Page 2 data mapping - Elongation MD and Force MD data - fill from bottom up
+      // Elongation MD 1 data to column D (D9-D38)
+      if (data.page2_elongation_md_1) {
+        const elongationData = data.page2_elongation_md_1;
+        const dataValues = Object.values(elongationData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page2Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Elongation MD 2 data to column E (E9-E38) - fill from bottom up
+      if (data.page2_elongation_md_2) {
+        const elongationData = data.page2_elongation_md_2;
+        const dataValues = Object.values(elongationData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page2Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Elongation MD 3 data to column F (F9-F38) - fill from bottom up
+      if (data.page2_elongation_md_3) {
+        const elongationData = data.page2_elongation_md_3;
+        const dataValues = Object.values(elongationData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page2Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Force MD 1 data to column H (H9-H38) - fill from bottom up
+      if (data.page2_force_md_1) {
+        const forceData = data.page2_force_md_1;
+        const dataValues = Object.values(forceData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page2Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Force MD 2 data to column I (I9-I38) - fill from bottom up
+      if (data.page2_force_md_2) {
+        const forceData = data.page2_force_md_2;
+        const dataValues = Object.values(forceData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page2Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Force MD 3 data to column J (J9-J38) - fill from bottom up
+      if (data.page2_force_md_3) {
+        const forceData = data.page2_force_md_3;
+        const dataValues = Object.values(forceData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page2Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Force 5% MD 1 data to column L (L9-L38) - fill from bottom up
+      if (data.page2_force_5p_md_1) {
+        const force5pData = data.page2_force_5p_md_1;
+        const dataValues = Object.values(force5pData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page2Worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Force 5% MD 2 data to column M (M9-M38) - fill from bottom up
+      if (data.page2_force_5p_md_2) {
+        const force5pData = data.page2_force_5p_md_2;
+        const dataValues = Object.values(force5pData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page2Worksheet.getCell(`M${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Force 5% MD 3 data to column N (N9-N38) - fill from bottom up
+      if (data.page2_force_5p_md_3) {
+        const force5pData = data.page2_force_5p_md_3;
+        const dataValues = Object.values(force5pData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page2Worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+    } else {
+    }
+
+    // Map Page 3 data if Page3 worksheet exists
+    const page3Worksheet = workbook.getWorksheet('Page3');
+    if (page3Worksheet) {
+      // User Name (Prepared by) (B42)
+      page3Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      
+      // Page 3 data mapping - Elongation CD, Force CD, and Modulus data - fill from bottom up
+      // Elongation CD 1 data to column D (D9-D38)
+      if (data.page3_elongation_cd_1) {
+        const elongationData = data.page3_elongation_cd_1;
+        const dataValues = Object.values(elongationData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page3Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Elongation CD 2 data to column E (E9-E38) - fill from bottom up
+      if (data.page3_elongation_cd_2) {
+        const elongationData = data.page3_elongation_cd_2;
+        const dataValues = Object.values(elongationData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page3Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Elongation CD 3 data to column F (F9-F38) - fill from bottom up
+      if (data.page3_elongation_cd_3) {
+        const elongationData = data.page3_elongation_cd_3;
+        const dataValues = Object.values(elongationData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page3Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Force CD 1 data to column H (H9-H38) - fill from bottom up
+      if (data.page3_force_cd_1) {
+        const forceData = data.page3_force_cd_1;
+        const dataValues = Object.values(forceData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page3Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Force CD 2 data to column I (I9-I38) - fill from bottom up
+      if (data.page3_force_cd_2) {
+        const forceData = data.page3_force_cd_2;
+        const dataValues = Object.values(forceData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page3Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Force CD 3 data to column J (J9-J38) - fill from bottom up
+      if (data.page3_force_cd_3) {
+        const forceData = data.page3_force_cd_3;
+        const dataValues = Object.values(forceData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page3Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Modulus 1 data to column L (L9-L38) - fill from bottom up
+      if (data.page3_modulus_1) {
+        const modulusData = data.page3_modulus_1;
+        const dataValues = Object.values(modulusData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page3Worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Modulus 2 data to column M (M9-M38) - fill from bottom up
+      if (data.page3_modulus_2) {
+        const modulusData = data.page3_modulus_2;
+        const dataValues = Object.values(modulusData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page3Worksheet.getCell(`M${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Modulus 3 data to column N (N9-N38) - fill from bottom up
+      if (data.page3_modulus_3) {
+        const modulusData = data.page3_modulus_3;
+        const dataValues = Object.values(modulusData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page3Worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+    } else {
+    }
+
+    // Map Page 4 data if Page4 worksheet exists
+    const page4Worksheet = workbook.getWorksheet('Page4');
+    if (page4Worksheet) {
+      // User Name (Prepared by) (B42)
+      page4Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      
+      // Page 4 data mapping - Gloss and PG Quality data - fill from bottom up
+      // Gloss 1 data to column D (D9-D38)
+      if (data.page4_gloss_1) {
+        const glossData = data.page4_gloss_1;
+        const dataValues = Object.values(glossData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page4Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Gloss 2 data to column E (E9-E38) - fill from bottom up
+      if (data.page4_gloss_2) {
+        const glossData = data.page4_gloss_2;
+        const dataValues = Object.values(glossData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page4Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // Gloss 3 data to column F (F9-F38) - fill from bottom up
+      if (data.page4_gloss_3) {
+        const glossData = data.page4_gloss_3;
+        const dataValues = Object.values(glossData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page4Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+      // PG Quality data to column H (H9-H38) - fill from bottom up
+      if (data.page4_pg_quality) {
+        const pgQualityData = data.page4_pg_quality;
+        const dataValues = Object.values(pgQualityData).filter(value => value && value !== '');
+        let row = 38;
+        
+        for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
+          const numValue = parseFloat(dataValues[i]);
+          page4Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          row--;
+        }
+      }
+      
+    } else {
+    }
 
     // 5. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename="16GSM-KRANTI-${data.lot_no || 'FORM'}.xlsx"`);
+    
+    // Generate filename with lot number
+    const lotNumber = data.lot_no || 'UNKNOWN';
+    const filename = `APE-168(16)CP(KRANTI-${lotNumber}.xlsx`;
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 
     // 6. Write the workbook to response
     await workbook.xlsx.write(res);
-    console.log('16 GSM Kranti Excel file generated and sent successfully');
 
   } catch (error) {
-    console.error('Error exporting 16 GSM Kranti report:', error);
+    console.error('Error exporting 168-16CP Kranti form:', error);
     console.error('Error stack:', error.stack);
-    res.status(500).send(`Error exporting 16 GSM Kranti report: ${error.message}`);
+    res.status(500).send(`Error exporting 168-16CP Kranti form: ${error.message}`);
   }
 });
 
@@ -1401,7 +1790,7 @@ app.listen(PORT, () => {
   console.log(`🔗 Ping endpoint: http://localhost:${PORT}/ping`);
   console.log(`🔋 Keep-alive endpoint: http://localhost:${PORT}/keep-alive`);
   console.log(`📊 Excel export: http://localhost:${PORT}/export`);
-  console.log(`📊 16 GSM Kranti Excel export: http://localhost:${PORT}/export-16gsm-kranti`);
+  console.log(`📊 168-16CP Kranti form export: http://localhost:${PORT}/export-168-16cp-kranti-form`);
   console.log(`🔄 Client-side keep-alive also active for redundancy`);
   
   // Immediate warm-up to prevent cold starts

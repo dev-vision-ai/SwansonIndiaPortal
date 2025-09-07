@@ -225,14 +225,21 @@
         }
         
 
-        /* Sample No. columns (first 3 columns) - for Page 1 */
+        /* Sample No. columns (1st and 3rd columns) - for Page 1 */
         .testing-table td:nth-child(1), .testing-table th:nth-child(1),
-        .testing-table td:nth-child(2), .testing-table th:nth-child(2),
         .testing-table td:nth-child(3), .testing-table th:nth-child(3) {
-            width: 6%;
+            width: 5.5%;
             min-width: 50px;
             max-width: 50px;
         }
+        
+        /* Roll ID column (2nd column) - wider for 8-digit numbers */
+        .testing-table td:nth-child(2), .testing-table th:nth-child(2) {
+            width: 7%;
+            min-width: 70px;
+            max-width: 70px;
+        }
+        
         /* Parameter columns (remaining 7 columns) - for Page 1 */
         .testing-table td:nth-child(4), .testing-table th:nth-child(4),
         .testing-table td:nth-child(5), .testing-table th:nth-child(5),
@@ -241,62 +248,114 @@
         .testing-table td:nth-child(8), .testing-table th:nth-child(8),
         .testing-table td:nth-child(9), .testing-table th:nth-child(9),
         .testing-table td:nth-child(10), .testing-table th:nth-child(10) {
-            width: 11.71%;
+            width: 11.5%;
             min-width: 80px;
         }
-        /* Equal width for Page 2 parameter columns only */
-        .page2-table td, .page2-table th {
-            width: 6.67% !important; /* 100% / 15 columns = 6.67% each */
-            min-width: 60px !important;
-        }
-        /* Sample No. columns (first 3 columns) - for Page 2 to match Page 1 exactly */
+        /* Page 2 - Sample No. columns (1st and 3rd columns) */
         .page2-table td:nth-child(1), .page2-table th:nth-child(1),
-        .page2-table td:nth-child(2), .page2-table th:nth-child(2),
         .page2-table td:nth-child(3), .page2-table th:nth-child(3) {
-            width: 6% !important;
+            width: 5.5% !important;
             min-width: 50px !important;
             max-width: 50px !important;
         }
+        
+        /* Page 2 - Roll ID column (2nd column) - wider for 8-digit numbers */
+        .page2-table td:nth-child(2), .page2-table th:nth-child(2) {
+            width: 7% !important;
+            min-width: 70px !important;
+            max-width: 70px !important;
+        }
+        
+        /* Page 2 - Parameter columns (remaining 12 columns) - equal width */
+        .page2-table td:nth-child(4), .page2-table th:nth-child(4),
+        .page2-table td:nth-child(5), .page2-table th:nth-child(5),
+        .page2-table td:nth-child(6), .page2-table th:nth-child(6),
+        .page2-table td:nth-child(7), .page2-table th:nth-child(7),
+        .page2-table td:nth-child(8), .page2-table th:nth-child(8),
+        .page2-table td:nth-child(9), .page2-table th:nth-child(9),
+        .page2-table td:nth-child(10), .page2-table th:nth-child(10),
+        .page2-table td:nth-child(11), .page2-table th:nth-child(11),
+        .page2-table td:nth-child(12), .page2-table th:nth-child(12),
+        .page2-table td:nth-child(13), .page2-table th:nth-child(13),
+        .page2-table td:nth-child(14), .page2-table th:nth-child(14),
+        .page2-table td:nth-child(15), .page2-table th:nth-child(15) {
+            width: 6.83% !important; /* (100% - 18%) / 12 = 6.83% each */
+            min-width: 60px !important;
+        }
+        
         /* Override for merged Sample No. header in Page 2 */
         .page2-table th[colspan="3"][rowspan="2"] {
-            width: 18% !important; /* 3 columns × 6% = 18% */
-            min-width: 150px !important;
+            width: 18% !important; /* 5.5% + 7% + 5.5% = 18% */
+            min-width: 170px !important;
         }
-        /* Equal width for Page 3 parameter columns only */
-        .page3-table td, .page3-table th {
-            width: 6.67% !important; /* 100% / 15 columns = 6.67% each */
-            min-width: 60px !important;
-        }
-        /* Sample No. columns (first 3 columns) - for Page 3 to match Page 1 */
+        /* Page 3 - Sample No. columns (1st and 3rd columns) */
         .page3-table td:nth-child(1), .page3-table th:nth-child(1),
-        .page3-table td:nth-child(2), .page3-table th:nth-child(2),
         .page3-table td:nth-child(3), .page3-table th:nth-child(3) {
-            width: 6% !important;
+            width: 5.5% !important;
             min-width: 50px !important;
             max-width: 50px !important;
         }
+        
+        /* Page 3 - Roll ID column (2nd column) - wider for 8-digit numbers */
+        .page3-table td:nth-child(2), .page3-table th:nth-child(2) {
+            width: 7% !important;
+            min-width: 70px !important;
+            max-width: 70px !important;
+        }
+        
+        /* Page 3 - Parameter columns (remaining 12 columns) - equal width */
+        .page3-table td:nth-child(4), .page3-table th:nth-child(4),
+        .page3-table td:nth-child(5), .page3-table th:nth-child(5),
+        .page3-table td:nth-child(6), .page3-table th:nth-child(6),
+        .page3-table td:nth-child(7), .page3-table th:nth-child(7),
+        .page3-table td:nth-child(8), .page3-table th:nth-child(8),
+        .page3-table td:nth-child(9), .page3-table th:nth-child(9),
+        .page3-table td:nth-child(10), .page3-table th:nth-child(10),
+        .page3-table td:nth-child(11), .page3-table th:nth-child(11),
+        .page3-table td:nth-child(12), .page3-table th:nth-child(12),
+        .page3-table td:nth-child(13), .page3-table th:nth-child(13),
+        .page3-table td:nth-child(14), .page3-table th:nth-child(14),
+        .page3-table td:nth-child(15), .page3-table th:nth-child(15) {
+            width: 6.83% !important; /* (100% - 18%) / 12 = 6.83% each */
+            min-width: 60px !important;
+        }
+        
         /* Override for merged Sample No. header in Page 3 */
         .page3-table th[colspan="3"][rowspan="2"] {
-            width: 18% !important; /* 3 columns × 6% = 18% */
-            min-width: 150px !important;
+            width: 18% !important; /* 5.5% + 7% + 5.5% = 18% */
+            min-width: 170px !important;
         }
-        /* Equal width for Page 4 parameter columns only */
-        .page4-table td, .page4-table th {
-            width: 10% !important; /* Reduced from 12.5% to make columns narrower */
-            min-width: 60px !important;
-        }
-        /* Sample No. columns (first 3 columns) - for Page 4 to match Page 1 */
+        /* Page 4 - Sample No. columns (1st and 3rd columns) */
         .page4-table td:nth-child(1), .page4-table th:nth-child(1),
-        .page4-table td:nth-child(2), .page4-table th:nth-child(2),
         .page4-table td:nth-child(3), .page4-table th:nth-child(3) {
-            width: 6% !important;
+            width: 5.5% !important;
             min-width: 50px !important;
             max-width: 50px !important;
         }
+        
+        /* Page 4 - Roll ID column (2nd column) - wider for 8-digit numbers */
+        .page4-table td:nth-child(2), .page4-table th:nth-child(2) {
+            width: 7% !important;
+            min-width: 70px !important;
+            max-width: 70px !important;
+        }
+        
+        /* Page 4 - Parameter columns (remaining 7 columns) - equal width */
+        .page4-table td:nth-child(4), .page4-table th:nth-child(4),
+        .page4-table td:nth-child(5), .page4-table th:nth-child(5),
+        .page4-table td:nth-child(6), .page4-table th:nth-child(6),
+        .page4-table td:nth-child(7), .page4-table th:nth-child(7),
+        .page4-table td:nth-child(8), .page4-table th:nth-child(8),
+        .page4-table td:nth-child(9), .page4-table th:nth-child(9),
+        .page4-table td:nth-child(10), .page4-table th:nth-child(10) {
+            width: 11.71% !important; /* (100% - 18%) / 7 = 11.71% each */
+            min-width: 80px !important;
+        }
+        
         /* Override for merged Sample No. header in Page 4 */
         .page4-table th[colspan="3"][rowspan="2"] {
-            width: 18% !important; /* 3 columns × 6% = 18% */
-            min-width: 150px !important;
+            width: 18% !important; /* 5.5% + 7% + 5.5% = 18% */
+            min-width: 170px !important;
         }
         /* Increase width of PG Quality System Requirements column (8th column) */
         .page4-table td:nth-child(8), .page4-table th:nth-child(8) {
