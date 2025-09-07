@@ -41,6 +41,8 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         document.body.appendChild(viewOnlyIndicator);
         
+        // Equipment loading indicator removed - no annoying popup
+        
         // Hide the indicator after 5 seconds
         setTimeout(() => {
             if (viewOnlyIndicator) {
@@ -59,10 +61,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load QC equipment data and populate dropdowns
     async function loadQCEquipmentDropdowns() {
         try {
-            const { data: equipmentData, error } = await supabase
-                .from('qc_equipments')
-                .select('equipment_type, equipment_id')
-                .order('equipment_type, equipment_id');
+            // Load equipment data with timeout for faster response
+            const { data: equipmentData, error } = await Promise.race([
+                supabase
+                    .from('qc_equipments')
+                    .select('equipment_type, equipment_id')
+                    .order('equipment_type, equipment_id'),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Equipment loading timeout')), 3000)
+                )
+            ]);
             
             if (error) {
                 console.error('Error loading QC equipment:', error);
@@ -118,13 +126,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             });
             
+            // Equipment loading indicator removed - no popup to hide
+            
         } catch (error) {
             console.error('Error setting up QC equipment dropdowns:', error);
+            
+            // Equipment loading indicator removed - no popup to hide
         }
     }
     
-    // Load equipment dropdowns on page load
-    loadQCEquipmentDropdowns();
+    // Load equipment dropdowns on page load (optimized for view mode)
+    loadQCEquipmentDropdowns().then(() => {
+        // Equipment dropdowns loaded, now load form data if in view mode
+        if (viewMode && currentFormId) {
+            loadDataFromDatabase();
+        }
+    });
 
     // Page 1 elements
     const addRowsBtn = document.getElementById('addNewRowsBtn');
@@ -1020,16 +1037,22 @@ document.addEventListener('DOMContentLoaded', function() {
            rowCountDisplay4.textContent = `Rows: ${Math.max(0, dataRows)}`;
        }
 
-         // Load data from database when page loads
+         // Load data from database when page loads (optimized for speed)
          async function loadDataFromDatabase() {
              try {
                  // Check if we have a current form session
                  if (currentFormId) {
-                     const { data, error } = await supabase
-                         .from('168_16cp_kranti')
-                         .select('*')
-                         .eq('form_id', currentFormId)
-                         .single();
+                     // Load form data with timeout for faster response
+                     const { data, error } = await Promise.race([
+                         supabase
+                             .from('168_16cp_kranti')
+                             .select('*')
+                             .eq('form_id', currentFormId)
+                             .single(),
+                         new Promise((_, reject) => 
+                             setTimeout(() => reject(new Error('Database timeout')), 5000)
+                         )
+                     ]);
                      
                      if (error) {
                          console.log('No existing data found or error:', error.message);
