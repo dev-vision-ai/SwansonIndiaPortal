@@ -26,35 +26,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // ===== VIEW MODE SETUP =====
     if (viewMode) {
-        // Add view-only indicator immediately
-        const viewOnlyIndicator = document.createElement('div');
-        viewOnlyIndicator.id = 'viewOnlyIndicator';
-        viewOnlyIndicator.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-center';
-        viewOnlyIndicator.innerHTML = `
-            <div class="flex items-center gap-2 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                </svg>
-                <span class="font-semibold">YOU ARE IN VIEW ONLY MODE - Form cannot be edited here</span>
-            </div>
-        `;
-        document.body.appendChild(viewOnlyIndicator);
-        
-        // Equipment loading indicator removed - no annoying popup
-        
-        // Hide the indicator after 5 seconds
-        setTimeout(() => {
-            if (viewOnlyIndicator) {
-                viewOnlyIndicator.style.opacity = '0';
-                viewOnlyIndicator.style.transition = 'opacity 0.5s ease-out';
-                setTimeout(() => {
-                    if (viewOnlyIndicator.parentNode) {
-                        viewOnlyIndicator.parentNode.removeChild(viewOnlyIndicator);
-                    }
-                }, 500);
-            }
-        }, 5000);
+        // Show pre-store section in view mode
+        const prestoreSection = document.getElementById('prestore-section');
+        if (prestoreSection) {
+            prestoreSection.style.display = 'block';
+        }
+    } else {
+        // Hide pre-store section in add/details mode
+        const prestoreSection = document.getElementById('prestore-section');
+        if (prestoreSection) {
+            prestoreSection.style.display = 'none';
+        }
     }
     
     // ===== QC EQUIPMENT DROPDOWNS SETUP =====
@@ -1067,6 +1049,7 @@ document.addEventListener('DOMContentLoaded', function() {
                          currentLotNo = data.lot_no;
                          loadTableDataFromDatabase(data);
                          loadEquipmentSelections(data);
+                         loadPreStoreData(data);
                      }
                      
                      // Mark initial loading as complete
@@ -1175,6 +1158,175 @@ document.addEventListener('DOMContentLoaded', function() {
              }, 300); // 300ms delay after data loading
              
 
+         }
+         
+         // Load pre-store data into view fields
+         function loadPreStoreData(dbData) {
+             try {
+                 // Load basic information fields
+                 if (dbData.production_order) {
+                     const element = document.getElementById('view-production-order');
+                     if (element) element.textContent = dbData.production_order;
+                 }
+                 
+                 if (dbData.product_code) {
+                     const element = document.getElementById('view-product-code');
+                     if (element) element.textContent = dbData.product_code;
+                 }
+                 
+                 if (dbData.specification) {
+                     const element = document.getElementById('view-specification');
+                     if (element) element.textContent = dbData.specification;
+                 }
+                 
+                 if (dbData.pallet_size) {
+                     const element = document.getElementById('view-pallet-size');
+                     if (element) element.textContent = dbData.pallet_size;
+                 }
+                 
+                 if (dbData.customer) {
+                     const element = document.getElementById('view-customer');
+                     if (element) element.textContent = dbData.customer;
+                 }
+                 
+                 if (dbData.location) {
+                     const element = document.getElementById('view-location');
+                     if (element) element.textContent = dbData.location;
+                 }
+                 
+                 if (dbData.machine_no) {
+                     const element = document.getElementById('view-machine-no');
+                     if (element) element.textContent = dbData.machine_no;
+                 }
+                 
+                 if (dbData.quantity) {
+                     const element = document.getElementById('view-quantity');
+                     if (element) element.textContent = dbData.quantity;
+                 }
+                 
+                 if (dbData.production_date) {
+                     const element = document.getElementById('view-production-date');
+                     if (element) element.textContent = new Date(dbData.production_date).toLocaleDateString('en-GB');
+                 }
+                 
+                 if (dbData.inspection_date) {
+                     const element = document.getElementById('view-inspection-date');
+                     if (element) element.textContent = new Date(dbData.inspection_date).toLocaleDateString('en-GB');
+                 }
+                 
+                 if (dbData.standard_packing) {
+                     const element = document.getElementById('view-standard-packing');
+                     if (element) element.textContent = dbData.standard_packing;
+                 }
+                 
+                 if (dbData.batch) {
+                     const element = document.getElementById('view-batch');
+                     if (element) element.textContent = dbData.batch;
+                 }
+                 
+                 if (dbData.prestore_ref_no) {
+                     const element = document.getElementById('view-ref-no');
+                     if (element) element.textContent = dbData.prestore_ref_no;
+                 }
+                 
+                 if (dbData.prestore_done_by) {
+                     const element = document.getElementById('view-prestore-done-by');
+                     if (element) element.textContent = dbData.prestore_done_by;
+                 }
+                 
+                 // Load palletized finished goods status
+                 if (dbData.pallet_list) {
+                     const element = document.getElementById('view-pallet-list');
+                     if (element) {
+                         element.textContent = dbData.pallet_list;
+                         applyStatusStyling(element, dbData.pallet_list);
+                     }
+                 }
+                 
+                 if (dbData.product_label) {
+                     const element = document.getElementById('view-product-label');
+                     if (element) {
+                         element.textContent = dbData.product_label;
+                         applyStatusStyling(element, dbData.product_label);
+                     }
+                 }
+                 
+                 if (dbData.wrapping) {
+                     const element = document.getElementById('view-wrapping');
+                     if (element) {
+                         element.textContent = dbData.wrapping;
+                         applyStatusStyling(element, dbData.wrapping);
+                     }
+                 }
+                 
+                 if (dbData.layer_pad) {
+                     const element = document.getElementById('view-layer-pad');
+                     if (element) {
+                         element.textContent = dbData.layer_pad;
+                         applyStatusStyling(element, dbData.layer_pad);
+                     }
+                 }
+                 
+                 if (dbData.contamination) {
+                     const element = document.getElementById('view-contamination');
+                     if (element) {
+                         element.textContent = dbData.contamination;
+                         applyStatusStyling(element, dbData.contamination);
+                     }
+                 }
+                 
+                 if (dbData.kraft_paper) {
+                     const element = document.getElementById('view-kraft-paper');
+                     if (element) {
+                         element.textContent = dbData.kraft_paper;
+                         applyStatusStyling(element, dbData.kraft_paper);
+                     }
+                 }
+                 
+                 if (dbData.no_damage) {
+                     const element = document.getElementById('view-no-damage');
+                     if (element) {
+                         element.textContent = dbData.no_damage;
+                         applyStatusStyling(element, dbData.no_damage);
+                     }
+                 }
+                 
+                 if (dbData.pallet) {
+                     const element = document.getElementById('view-pallet');
+                     if (element) {
+                         element.textContent = dbData.pallet;
+                         applyStatusStyling(element, dbData.pallet);
+                     }
+                 }
+                 
+                 // Load remarks
+                 if (dbData.remarks) {
+                     const element = document.getElementById('view-remarks');
+                     if (element) element.textContent = dbData.remarks;
+                 }
+                 
+                 console.log('Pre-store data loaded successfully');
+             } catch (error) {
+                 console.error('Error loading pre-store data:', error);
+             }
+         }
+         
+         // Function to apply colored background styling to status values
+         function applyStatusStyling(element, statusValue) {
+             if (!element || !statusValue) return;
+             
+             // Remove any existing background classes
+             element.classList.remove('bg-green-100', 'bg-red-100', 'bg-orange-100', 'text-green-800', 'text-red-800', 'text-orange-800', 'rounded-full');
+             
+             const status = statusValue.toString().toLowerCase().trim();
+             
+             if (status === 'accept') {
+                 element.classList.add('bg-green-100', 'text-green-800', 'rounded-full');
+             } else if (status === 'reject') {
+                 element.classList.add('bg-red-100', 'text-red-800', 'rounded-full');
+             } else if (status === 'n/a' || status === 'na') {
+                 element.classList.add('bg-orange-100', 'text-orange-800', 'rounded-full');
+             }
          }
          
          // Function to populate Sample Identification columns across ALL pages (Page 1 editable, others uneditable)

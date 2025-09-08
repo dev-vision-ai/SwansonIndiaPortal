@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function fetchFilmInspectionForms() {
         const { data, error } = await supabase
             .from('168_16cp_kranti')
-            .select('form_id, lot_no, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at')
+            .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at')
             .order('created_at', { ascending: false });
 
         // No need to fetch user names since prepared_by now stores full names directly
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (data.length === 0) {
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="10" class="py-4 text-center text-gray-500">
+                    <td colspan="9" class="py-4 text-center text-gray-500">
                         No forms created yet. Click "Create Film Inspection Form" to get started.
                     </td>
                 </tr>
@@ -40,7 +40,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td class="py-2 px-4 border-b border-r text-center">${formData.machine_no || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.product_code || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.specification || ''}</td>
-                <td class="py-2 px-4 border-b border-r text-center">${formData.lot_no || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">
                     ${formData.prepared_by || ''}
                 </td>
@@ -61,13 +60,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                             </svg>
                         </button>
                         <!-- Green Edit button - now opens prestore form -->
-                        <button onclick="openPrestoreForm('${formData.lot_no}', '${formData.product_code}', '${formData.production_order}', '${formData.form_id}')" class="p-1 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0" title="Edit Pre-store">
+                        <button onclick="openPrestoreForm('${formData.product_code}', '${formData.production_order}', '${formData.form_id}')" class="p-1 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0" title="Edit Pre-store">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                         </button>
                         <!-- Dark blue View button -->
-                        <button onclick="viewFilmForm('${formData.form_id}', '${formData.lot_no}', '${formData.product_code}')" class="p-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-800 hover:text-blue-900 transition-all duration-200 border border-blue-200 hover:border-blue-300 flex-shrink-0" title="View">
+                        <button onclick="viewFilmForm('${formData.form_id}', '${formData.product_code}')" class="p-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-800 hover:text-blue-900 transition-all duration-200 border border-blue-200 hover:border-blue-300 flex-shrink-0" title="View">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -82,7 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
-                                            <button onclick="download16GSMKrantiExcel('${formData.form_id}', '${formData.lot_no}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Download Excel">
+                                            <button onclick="download16GSMKrantiExcel('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Download Excel">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -103,10 +102,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         let query = supabase.from('168_16cp_kranti').select('*');
     
         if (searchTerm) {
-            // Prioritize exact match on lot_no
-            query = query.eq('lot_no', searchTerm);
+            // Prioritize exact match on production_order
+            query = query.eq('production_order', searchTerm);
             // Or for partial matches, you might use .ilike() for case-insensitive search
-            // query = query.ilike('lot_no', `%${searchTerm}%`);
+            // query = query.ilike('production_order', `%${searchTerm}%`);
         }
     
         const { data, error } = await query;
@@ -118,31 +117,56 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         tableBody.innerHTML = ''; // Clear existing rows
 
-        data.forEach(formData => {
+        data.forEach((formData, index) => {
             const row = tableBody.insertRow();
+            // Serial number based on creation order: latest entry gets highest number
+            const serialNumber = data.length - index;
             row.innerHTML = `
-                <td class="py-2 px-4 border-b text-center">${formData.lot_no || ''}</td>
-                <td class="py-2 px-4 border-b">${formData.production_order || ''}</td>
-                <td class="py-2 px-4 border-b">${formData.product_code || ''}</td>
-                <td class="py-2 px-4 border-b">${formData.specification || ''}</td>
-                <td class="py-2 px-4 border-b border-r text-center">${formData.inspection_date || ''}</td>
+                <td class="py-2 px-4 border-b border-r text-center">${serialNumber}</td>
+                <td class="py-2 px-4 border-b border-r text-center">${formData.production_date ? new Date(formData.production_date).toLocaleDateString('en-GB') : ''}</td>
+                <td class="py-2 px-4 border-b border-r text-center">${formData.inspection_date ? new Date(formData.inspection_date).toLocaleDateString('en-GB') : ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.machine_no || ''}</td>
-                <td class="py-2 px-4 border-b border-r text-center">${formData.prepared_by || ''}</td>
-                <td class="py-2 px-5 border-b text-center">
-                    <div class="flex items-center space-x-1 justify-center flex-nowrap">
-                        <button class="bg-blue-500 text-white p-1 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-                            <i class="fas fa-plus text-sm"></i>
+                <td class="py-2 px-4 border-b border-r text-center">${formData.product_code || ''}</td>
+                <td class="py-2 px-4 border-b border-r text-center">${formData.specification || ''}</td>
+                <td class="py-2 px-4 border-b border-r text-center">
+                    ${formData.prepared_by || ''}
+                </td>
+                <td class="py-2 px-4 border-b border-r text-center">-</td>
+                <td class="py-2 px-4 border-b border-r text-center">
+                    <div class="flex justify-center space-x-1 flex-nowrap max-w-full overflow-hidden">
+                        <!-- Sky blue Enter Data button -->
+                        <button onclick="enterData('${formData.form_id}')" class="p-1 rounded-md bg-sky-50 hover:bg-sky-100 text-sky-600 hover:text-sky-800 transition-all duration-200 border border-sky-200 hover:border-sky-300 flex-shrink-0" title="Enter Data">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
                         </button>
-                        <button class="bg-green-500 text-white p-1 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
-                            <i class="fas fa-edit text-sm"></i>
+                        <!-- Green Edit button - now opens prestore form -->
+                        <button onclick="openPrestoreForm('${formData.product_code}', '${formData.production_order}', '${formData.form_id}')" class="p-1 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0" title="Edit Pre-store">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
                         </button>
-                        <button class="bg-blue-700 text-white p-1 rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-opacity-50">
-                            <i class="fas fa-eye text-sm"></i>
+                        <!-- Dark blue View button -->
+                        <button onclick="viewFilmForm('${formData.form_id}', '${formData.product_code}')" class="p-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-800 hover:text-blue-900 transition-all duration-200 border border-blue-200 hover:border-blue-300 flex-shrink-0" title="View">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
                         </button>
-                        <button class="bg-red-500 text-white p-1 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 delete-button" data-id="${formData.form_id}">
-                            <i class="fas fa-trash text-sm"></i>
+                        <!-- Red Delete button -->
+                        <button onclick="deleteFilmForm('${formData.form_id}')" class="p-1 rounded-md bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition-all duration-200 border border-red-200 hover:border-red-300 flex-shrink-0" title="Delete">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
                         </button>
                     </div>
+                </td>
+                <td class="py-2 px-4 border-b border-r text-center">
+                                            <button onclick="download16GSMKrantiExcel('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Download Excel">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </button>
                 </td>
             `;
         });
@@ -155,7 +179,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Map field names from database to prestore form modal IDs
         const fieldMappings = {
-            'lot_no': 'lot-no-modal',
             'product_code': 'product-code-modal',
             'production_order': 'production-order-modal',
             'quantity': 'quantity-modal',
@@ -169,7 +192,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             'inspection_date': 'inspection-date-modal',
             'pallet_size': 'pallet-size-modal',
             'machine_no': 'machine-no-modal',
-            'purchase_order': 'purchase-order-modal',
             'prestore_done_by': 'prestore-done-by-modal',
             'remarks': 'remarks-modal'
         };
@@ -321,10 +343,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     // Function to open prestore form modal with pre-filled data
-    window.openPrestoreForm = async function(lotNo, productCode, productionOrder, formId) {
+    window.openPrestoreForm = async function(productCode, productionOrder, formId) {
         // Store the film inspection data in session storage immediately (fast)
         const prestoreData = {
-            lot_no: lotNo,
             product_code: productCode,
             production_order: productionOrder,
             form_id: formId,
@@ -347,7 +368,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             prePopulatePrestoreForm(prestoreData);
             
             // Do all heavy operations in background (non-blocking)
-            setupPrestoreModalInBackground(formId, lotNo);
+            setupPrestoreModalInBackground(formId);
         }
     };
     
@@ -376,43 +397,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     // Function to setup prestore modal in background (non-blocking)
-    async function setupPrestoreModalInBackground(formId, lotNo) {
+    async function setupPrestoreModalInBackground(formId) {
         try {
             // Setup auto-suggestion for prestore done by field
             await setupPrestoreDoneByAutoSuggestion();
             
-            // Try to fetch full data from database using form_id or lot_no
+            // Try to fetch full data from database using form_id
             if (formId) {
                 try {
                     const { data, error } = await supabase
                         .from('168_16cp_kranti')
                         .select('*')
                         .eq('form_id', formId)
-                        .single();
-                    
-                    if (data && !error) {
-                        prePopulatePrestoreForm(data);
-                    } else if (lotNo) {
-                        // Fallback to lot_no search
-                            const { data: lotData, error: lotError } = await supabase
-                                .from('168_16cp_kranti')
-                                .select('*')
-                                .eq('lot_no', lotNo)
-                                .single();
-                            
-                            if (lotData && !lotError) {
-                                prePopulatePrestoreForm(lotData);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error loading existing data:', error);
-                }
-            } else if (lotNo) {
-                try {
-                    const { data, error } = await supabase
-                        .from('168_16cp_kranti')
-                        .select('*')
-                        .eq('lot_no', lotNo)
                         .single();
                     
                     if (data && !error) {
@@ -473,8 +469,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 inspection_date: formData.get('inspection-date'),
                 pallet_size: formData.get('pallet-size'),
                 machine_no: formData.get('machine_no'),
-                purchase_order: formData.get('purchase_order'),
-                lot_no: formData.get('lot_no'),
                 pallet_list: formData.get('pallet-list'),
                 product_label: formData.get('product-label'),
                 wrapping: formData.get('wrapping'),
@@ -487,7 +481,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 remarks: formData.get('remarks'),
             };
 
-            // Keep lot_no as entered by user (no automatic prefix)
 
             // Try to get the logged-in user's email (optional - don't block if it fails)
             try {
@@ -668,12 +661,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const viewFilmFormButton = event.target.closest('.view-film-form-button');
         if (viewFilmFormButton) {
             const formId = viewFilmFormButton.dataset.id;
-            const lotNo = viewFilmFormButton.closest('tr').querySelector('td:nth-child(7)').textContent; // Get lot_no from the row (updated column position)
             const productCode = viewFilmFormButton.closest('tr').querySelector('td:nth-child(5)').textContent; // Get product_code from the row (updated column position)
             
             // Store form data in sessionStorage
             sessionStorage.setItem('currentFormId', formId);
-            sessionStorage.setItem('currentLotNo', lotNo);
             sessionStorage.setItem('currentProductCode', productCode);
             
             // Route to the correct form based on product code
@@ -878,7 +869,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     */
 
     // Function to download 16 GSM Kranti Excel file
-    window.download16GSMKrantiExcel = async function(formId, lotNo, buttonElement) {
+    window.download16GSMKrantiExcel = async function(formId, buttonElement) {
         // Store original button state immediately
         const downloadBtn = buttonElement || event.target;
         const originalContent = downloadBtn.innerHTML;
@@ -886,7 +877,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const originalDisabled = downloadBtn.disabled;
         
         try {
-            console.log('Downloading 16 GSM Kranti Excel for form_id:', formId, 'lot_no:', lotNo);
+            console.log('Downloading 16 GSM Kranti Excel for form_id:', formId);
             
             // Validate formId
             if (!formId || formId === 'undefined' || formId === 'null') {
@@ -946,8 +937,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.style.display = 'none';
             a.href = url;
             
-            // Generate filename using lot_no
-            const filename = lotNo ? `APE-168(16)CP(KRANTI)-${lotNo}.xlsx` : `APE-168(16)CP(KRANTI)-${formId}.xlsx`;
+            // Generate filename using form_id
+            const filename = `APE-168(16)CP(KRANTI)-${formId}.xlsx`;
             a.download = filename;
             
             document.body.appendChild(a);
@@ -1229,10 +1220,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Global function to handle View button click - navigate to form in view-only mode
-window.viewFilmForm = function(formId, lotNo, productCode) {
+window.viewFilmForm = function(formId, productCode) {
     // Store form data in sessionStorage with view mode flag
     sessionStorage.setItem('currentFormId', formId);
-    sessionStorage.setItem('currentLotNo', lotNo);
     sessionStorage.setItem('currentProductCode', productCode);
     sessionStorage.setItem('viewMode', 'true');
     

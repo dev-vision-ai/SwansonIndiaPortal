@@ -372,13 +372,6 @@
               <option value="">All</option>
             </select>
           </div>
-          <!-- Lot No Filter -->
-          <div class="flex flex-col items-center">
-            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Lot No:</label>
-            <select id="filterLotNo" class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
-              <option value="">All</option>
-            </select>
-          </div>
           <!-- Specification Filter -->
           <div class="flex flex-col items-center">
             <label class="block text-xs font-semibold text-gray-700 mb-0.5">Specification:</label>
@@ -429,9 +422,9 @@
                             <input id="production-order-modal" name="production_order" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
                         </div>
                         <div>
-                            <label for="product-code-modal" class="block text-sm font-medium text-gray-700 mb-1">Product Code <span class="text-red-500">*</span></label>
+                            <label for="product-code-modal" class="block text-sm font-medium text-gray-700 mb-1">Product Name <span class="text-red-500">*</span></label>
                             <select id="product-code-modal" name="product-code" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
-                                <option value="">Select Product Code</option>
+                                <option value="">Select Product Name</option>
                                 <option>WHITE-234(18)</option>
                                 <option>APE-176(18)CP(LCC+WW)BS</option>
                                 <option>APE-168(18)CP(KRANTI)</option>
@@ -452,7 +445,7 @@
                         </div>
                     </div>
                     
-                    <!-- Row with 4 equal fields: Customer, Location, PO, Machine No -->
+                    <!-- Row with 4 equal fields: Customer, Location, Machine No, Quantity -->
                     <div class="col-span-full grid grid-cols-4 gap-2">
                         <div>
                             <label for="customer-modal" class="block text-sm font-medium text-gray-700 mb-1">Customer <span class="text-red-500">*</span></label>
@@ -463,15 +456,18 @@
                             <input id="location-modal" name="location" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
                         </div>
                         <div>
-                            <label for="purchase-order-modal" class="block text-sm font-medium text-gray-700 mb-1">PO <span class="text-red-500">*</span></label>
-                            <input type="text" id="purchase-order-modal" name="purchase_order" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter PO" autocomplete="off">
-                        </div>
-                        <div>
                             <label for="machine-no-modal" class="block text-sm font-medium text-gray-700 mb-1">Machine No. <span class="text-red-500">*</span></label>
                             <input id="machine-no-modal" name="machine_no" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Select Machine" autocomplete="off">
                         </div>
+                        <div>
+                            <label for="quantity-modal" class="block text-sm font-medium text-gray-700 mb-1">Quantity (Rolls) <span class="text-red-500">*</span></label>
+                            <div class="flex rounded-md shadow-sm">
+                                <input id="quantity-modal" name="quantity" type="text" required class="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                                <span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-200 text-gray-500 text-sm">Rolls</span>
+                            </div>
+                        </div>
                     </div>
-                    <!-- Row with 4 equal fields: Production Date, Inspection Date, Lot. No, Standard Packing -->
+                    <!-- Row with 4 equal fields: Production Date, Inspection Date, Standard Packing, Batch -->
                     <div class="col-span-full grid grid-cols-4 gap-2">
                         <div>
                             <label for="production-date-modal" class="block text-sm font-medium text-gray-700 mb-1">Production Date <span class="text-red-500">*</span></label>
@@ -480,10 +476,6 @@
                         <div>
                             <label for="inspection-date-modal" class="block text-sm font-medium text-gray-700 mb-1">Inspection Date <span class="text-red-500">*</span></label>
                             <input type="date" id="inspection-date-modal" name="inspection-date" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
-                        </div>
-                        <div>
-                            <label for="lot-no-modal" class="block text-sm font-medium text-gray-700 mb-1">Lot. No <span class="text-red-500">*</span></label>
-                            <input type="text" id="lot-no-modal" name="lot_no" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Lot. No" autocomplete="off">
                         </div>
                         <div>
                             <label for="standard-packing-modal" class="block text-sm font-medium text-gray-700 mb-1">Standard Packing <span class="text-red-500">*</span></label>
@@ -495,21 +487,14 @@
                                 </select>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- Row with 4 equal fields: Quantity, Batch, Reference No, Pre-store Inspection Done By -->
-                    <div class="col-span-full grid grid-cols-4 gap-2">
-                        <div>
-                            <label for="quantity-modal" class="block text-sm font-medium text-gray-700 mb-1">Quantity <span class="text-red-500">*</span></label>
-                            <div class="flex rounded-md shadow-sm">
-                                <input id="quantity-modal" name="quantity" type="text" required class="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
-                                <span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-200 text-gray-500 text-sm">Rolls</span>
-                            </div>
-                        </div>
                         <div>
                             <label for="batch-modal" class="block text-sm font-medium text-gray-700 mb-1">Batch <span class="text-red-500">*</span></label>
                             <input id="batch-modal" name="batch" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Batch" autocomplete="off">
                         </div>
+                    </div>
+                    
+                    <!-- Row with 4 equal fields: Reference No, Pre-store Inspection Done By, Empty, Empty -->
+                    <div class="col-span-full grid grid-cols-4 gap-2">
                         <div>
                             <label for="ref-no-modal" class="block text-sm font-medium text-gray-700 mb-1">Reference No</label>
                             <input id="ref-no-modal" name="ref_no" type="text" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Reference No" autocomplete="off">
@@ -518,6 +503,12 @@
                             <label for="prestore-done-by-modal" class="block text-sm font-medium text-gray-700 mb-1">Pre-store Inspection Done By: <span class="text-red-500">*</span></label>
                             <input id="prestore-done-by-modal" name="prestore_done_by" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Type to search inspector name..." autocomplete="off">
                             <div id="prestoreDoneBySuggestions" class="absolute z-50 w-full border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden" style="background: #eaf4fb;"></div>
+                        </div>
+                        <div>
+                            <!-- Empty field for consistent grid layout -->
+                        </div>
+                        <div>
+                            <!-- Empty field for consistent grid layout -->
                         </div>
                     </div>
                     
@@ -692,7 +683,6 @@
             <th class="py-1 px-2 border-r border-gray-300 w-12 whitespace-normal break-words">M/C No</th>
             <th class="py-1 px-2 border-r border-gray-300 w-36 whitespace-normal break-words">Product</th>
             <th class="py-1 px-2 border-r border-gray-300 w-24 whitespace-normal break-words">Specification</th>
-            <th class="py-1 px-2 border-r border-gray-300 w-24 whitespace-normal break-words">Lot No</th>
             <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Prepared By</th>
             <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Status</th>
             <th class="py-1 px-2 border-r border-gray-300 w-32 whitespace-normal break-words">Action</th>

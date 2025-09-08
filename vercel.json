@@ -21,7 +21,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "public/html/$1"
+      "dest": "public/$1"
     }
   ],
   "env": {
