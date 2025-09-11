@@ -1325,55 +1325,71 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // Map sample data to the correct columns based on template structure
     console.log('Mapping sample data to template...');
     
-    // Sample data should go in rows 8-37 (30 rows) - fill from bottom up
+    // Sample data should go in rows 8-37 (30 rows) - preserve HTML form structure
+    // Top rows (8-25): Historical data, Bottom rows (26-37): Fresh data
     // Lot & Roll data to Sample No. column (A8-A37)
     if (data.lot_and_roll) {
       const lotAndRollData = data.lot_and_roll;
       const dataValues = Object.values(lotAndRollData).filter(value => value && value !== '');
-      let row = 37; // Starting from A37 (last data row)
       
-      // Fill from bottom up
-      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
-        worksheet.getCell(`A${row}`).value = dataValues[i];
-        row--;
+      // Fill all 30 rows to match HTML form structure
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        if (dataIndex < dataValues.length) {
+          worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
+        } else {
+          worksheet.getCell(`A${row}`).value = ''; // Empty row
+        }
       }
     }
     
-    // Roll ID data to column B (B8-B37) - fill from bottom up
+    // Roll ID data to column B (B8-B37) - preserve HTML form structure
     if (data.roll_id) {
       const rollIdData = data.roll_id;
       const dataValues = Object.values(rollIdData).filter(value => value && value !== '');
-      let row = 37;
       
-      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
-        worksheet.getCell(`B${row}`).value = dataValues[i];
-        row--;
+      // Fill all 30 rows to match HTML form structure
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        if (dataIndex < dataValues.length) {
+          worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
+        } else {
+          worksheet.getCell(`B${row}`).value = ''; // Empty row
+        }
       }
     }
     
-    // Lot Time data to column C (C8-C37) - fill from bottom up
+    // Lot Time data to column C (C8-C37) - preserve HTML form structure
     if (data.lot_time) {
       const lotTimeData = data.lot_time;
       const dataValues = Object.values(lotTimeData).filter(value => value && value !== '');
-      let row = 37;
       
-      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
-        worksheet.getCell(`C${row}`).value = dataValues[i];
-        row--;
+      // Fill all 30 rows to match HTML form structure
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        if (dataIndex < dataValues.length) {
+          worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
+        } else {
+          worksheet.getCell(`C${row}`).value = ''; // Empty row
+        }
       }
     }
     
-    // Map page1 data to the measurement columns - fill from bottom up
+    // Map page1 data to the measurement columns - preserve HTML form structure
     // Basic Weight data to column D (D8-D37)
     if (data.page1_basic_weight) {
       const basicWeightData = data.page1_basic_weight;
       const dataValues = Object.values(basicWeightData).filter(value => value && value !== '');
-      let row = 37;
       
-      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
-        const numValue = parseFloat(dataValues[i]);
-        worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
-        row--;
+      // Fill all 30 rows to match HTML form structure
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        if (dataIndex < dataValues.length) {
+          const numValue = parseFloat(dataValues[dataIndex]);
+          worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
+        } else {
+          worksheet.getCell(`D${row}`).value = ''; // Empty row
+        }
       }
     }
     
@@ -1381,25 +1397,33 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     if (data.page1_thickness) {
       const thicknessData = data.page1_thickness;
       const dataValues = Object.values(thicknessData).filter(value => value && value !== '');
-      let row = 37;
       
-      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
-        const numValue = parseFloat(dataValues[i]);
-        worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
-        row--;
+      // Fill all 30 rows to match HTML form structure
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        if (dataIndex < dataValues.length) {
+          const numValue = parseFloat(dataValues[dataIndex]);
+          worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
+        } else {
+          worksheet.getCell(`F${row}`).value = ''; // Empty row
+        }
       }
     }
     
-    // Opacity data to column H (H8-H37) - corrected mapping
+    // Opacity data to column H (H8-H37) - preserve HTML form structure
     if (data.page1_opacity) {
       const opacityData = data.page1_opacity;
       const dataValues = Object.values(opacityData).filter(value => value && value !== '');
-      let row = 37;
       
-      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
-        const numValue = parseFloat(dataValues[i]);
-        worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
-        row--;
+      // Fill all 30 rows to match HTML form structure
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        if (dataIndex < dataValues.length) {
+          const numValue = parseFloat(dataValues[dataIndex]);
+          worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
+        } else {
+          worksheet.getCell(`H${row}`).value = ''; // Empty row
+        }
       }
     }
     
@@ -1407,12 +1431,16 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     if (data.page1_cof_kinetic) {
       const cofData = data.page1_cof_kinetic;
       const dataValues = Object.values(cofData).filter(value => value && value !== '');
-      let row = 37;
       
-      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
-        const numValue = parseFloat(dataValues[i]);
-        worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
-        row--;
+      // Fill all 30 rows to match HTML form structure
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        if (dataIndex < dataValues.length) {
+          const numValue = parseFloat(dataValues[dataIndex]);
+          worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
+        } else {
+          worksheet.getCell(`J${row}`).value = ''; // Empty row
+        }
       }
     }
     
@@ -1420,12 +1448,16 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     if (data.page1_cut_width) {
       const cutWidthData = data.page1_cut_width;
       const dataValues = Object.values(cutWidthData).filter(value => value && value !== '');
-      let row = 37;
       
-      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
-        const numValue = parseFloat(dataValues[i]);
-        worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
-        row--;
+      // Fill all 30 rows to match HTML form structure
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        if (dataIndex < dataValues.length) {
+          const numValue = parseFloat(dataValues[dataIndex]);
+          worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
+        } else {
+          worksheet.getCell(`L${row}`).value = ''; // Empty row
+        }
       }
     }
     
@@ -1433,12 +1465,16 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     if (data.page1_color_delta_unprinted) {
       const colorDeltaUnprintedData = data.page1_color_delta_unprinted;
       const dataValues = Object.values(colorDeltaUnprintedData).filter(value => value && value !== '');
-      let row = 37;
       
-      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
-        const numValue = parseFloat(dataValues[i]);
-        worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
-        row--;
+      // Fill all 30 rows to match HTML form structure
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        if (dataIndex < dataValues.length) {
+          const numValue = parseFloat(dataValues[dataIndex]);
+          worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
+        } else {
+          worksheet.getCell(`N${row}`).value = ''; // Empty row
+        }
       }
     }
     
@@ -1446,12 +1482,16 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     if (data.page1_color_delta_printed) {
       const colorDeltaPrintedData = data.page1_color_delta_printed;
       const dataValues = Object.values(colorDeltaPrintedData).filter(value => value && value !== '');
-      let row = 37;
       
-      for (let i = dataValues.length - 1; i >= 0 && row >= 8; i--) {
-        const numValue = parseFloat(dataValues[i]);
-        worksheet.getCell(`O${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
-        row--;
+      // Fill all 30 rows to match HTML form structure
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        if (dataIndex < dataValues.length) {
+          const numValue = parseFloat(dataValues[dataIndex]);
+          worksheet.getCell(`O${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
+        } else {
+          worksheet.getCell(`O${row}`).value = ''; // Empty row
+        }
       }
     }
 

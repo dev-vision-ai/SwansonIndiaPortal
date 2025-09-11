@@ -5,10 +5,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // ===== VIEW MODE DETECTION =====
     // Get URL parameters first
     const urlParams = new URLSearchParams(window.location.search);
-    const viewMode = urlParams.get('mode') === 'view' || sessionStorage.getItem('viewMode') === 'true';
+    const viewModeFromStorage = sessionStorage.getItem('viewMode') === 'true';
+    const viewMode = urlParams.get('mode') === 'view' || viewModeFromStorage;
+    
     
     // Clear view mode flag from sessionStorage after detection
-    if (sessionStorage.getItem('viewMode') === 'true') {
+    if (viewModeFromStorage) {
         sessionStorage.removeItem('viewMode');
     }
     
@@ -25,104 +27,142 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // ===== VIEW MODE SETUP =====
-    if (viewMode) {
-        // Show pre-store section in view mode
-        const prestoreSection = document.getElementById('prestore-section');
-        if (prestoreSection) {
-            prestoreSection.style.display = 'block';
-        }
-    } else {
-        // Hide pre-store section in add/details mode
-        const prestoreSection = document.getElementById('prestore-section');
-        if (prestoreSection) {
-            prestoreSection.style.display = 'none';
-        }
+    const prestoreSection = document.getElementById('prestore-section');
+    if (prestoreSection) {
+        prestoreSection.style.display = viewMode ? 'block' : 'none';
     }
     
     // ===== QC EQUIPMENT DROPDOWNS SETUP =====
-    // Load QC equipment data and populate dropdowns
+    // Load QC equipment data and populate dropdowns - SIMPLE AND DIRECT
     async function loadQCEquipmentDropdowns() {
         try {
-            // Load equipment data with timeout for faster response
-            const { data: equipmentData, error } = await Promise.race([
-                supabase
-                    .from('qc_equipments')
-                    .select('equipment_type, equipment_id')
-                    .order('equipment_type, equipment_id'),
-                new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Equipment loading timeout')), 3000)
-                )
-            ]);
+            // Show loading state
+            showEquipmentLoadingState();
+            
+            // Load equipment data directly from database
+            const { data: equipmentData, error } = await supabase
+                .from('qc_equipments')
+                .select('equipment_type, equipment_id')
+                .order('equipment_type, equipment_id');
             
             if (error) {
-                console.error('Error loading QC equipment:', error);
-                return;
+                throw new Error(`Database error: ${error.message}`);
             }
             
-            // Group equipment by type
-            const equipmentByType = {};
-            equipmentData.forEach(equipment => {
-                if (!equipmentByType[equipment.equipment_type]) {
-                    equipmentByType[equipment.equipment_type] = [];
-                }
-                equipmentByType[equipment.equipment_type].push(equipment.equipment_id);
-            });
+            if (!equipmentData || equipmentData.length === 0) {
+                throw new Error('No equipment data found');
+            }
             
-            // Equipment type to dropdown mapping
-            const equipmentMappings = {
-                'Weigh Scale': ['basic-weight-equipment'],
-                'Dial Gauge': ['thickness-equipment'],
-                'Spectrophotometer': ['opacity-equipment'],
-                'Instron': ['cof-equipment', 'page2-common-equipment', 'page3-common-equipment'],
-                'Steel Ruler': ['cut-width-equipment'],
-                'X-RITE': ['color-unprinted-equipment', 'color-printed-equipment'],
-                'Glossmeter': ['gloss-equipment']
-            };
-            
-            // Populate dropdowns
-            Object.keys(equipmentMappings).forEach(equipmentType => {
-                const dropdownIds = equipmentMappings[equipmentType];
-                const equipmentIds = equipmentByType[equipmentType] || [];
-                
-                dropdownIds.forEach(dropdownId => {
-                    const dropdown = document.getElementById(dropdownId);
-                    if (dropdown) {
-                        // Clear existing options except the first one
-                        dropdown.innerHTML = '<option value="">Select Equipment ▼</option>';
-                        
-                        // Add equipment options
-                        equipmentIds.forEach(equipmentId => {
-                            const option = document.createElement('option');
-                            option.value = equipmentId;
-                            option.textContent = equipmentId;
-                            dropdown.appendChild(option);
-                        });
-                        
-                        // Add change event listener for auto-save
-                        dropdown.addEventListener('change', function() {
-                            if (!viewMode) {
-                                autoSaveToDatabase();
-                            }
-                        });
-                    }
-                });
-            });
-            
-            // Equipment loading indicator removed - no popup to hide
+            // Populate dropdowns with fresh data
+            populateEquipmentDropdowns(equipmentData);
             
         } catch (error) {
-            console.error('Error setting up QC equipment dropdowns:', error);
-            
-            // Equipment loading indicator removed - no popup to hide
+            console.error('Error loading QC equipment:', error);
+            showEquipmentLoadingError();
         }
     }
     
-    // Load equipment dropdowns on page load (optimized for view mode)
+    // Function to show loading state
+    function showEquipmentLoadingState() {
+        const allDropdownIds = [
+            'basic-weight-equipment', 'thickness-equipment', 'opacity-equipment',
+            'cof-equipment', 'page2-common-equipment', 'page3-common-equipment',
+            'cut-width-equipment', 'color-unprinted-equipment', 'color-printed-equipment',
+            'gloss-equipment'
+        ];
+        
+        allDropdownIds.forEach(dropdownId => {
+            const dropdown = document.getElementById(dropdownId);
+            if (dropdown) {
+                dropdown.innerHTML = '<option value="">Loading equipment...</option>';
+            }
+        });
+    }
+    
+    // Separate function to populate dropdowns
+    function populateEquipmentDropdowns(equipmentData) {
+        // Group equipment by type
+        const equipmentByType = {};
+        equipmentData.forEach(equipment => {
+            if (!equipmentByType[equipment.equipment_type]) {
+                equipmentByType[equipment.equipment_type] = [];
+            }
+            equipmentByType[equipment.equipment_type].push(equipment.equipment_id);
+        });
+        
+        // Equipment type to dropdown mapping
+        const equipmentMappings = {
+            'Weigh Scale': ['basic-weight-equipment'],
+            'Dial Gauge': ['thickness-equipment'],
+            'Spectrophotometer': ['opacity-equipment'],
+            'Instron': ['cof-equipment', 'page2-common-equipment', 'page3-common-equipment'],
+            'Steel Ruler': ['cut-width-equipment'],
+            'X-RITE': ['color-unprinted-equipment', 'color-printed-equipment'],
+            'Glossmeter': ['gloss-equipment']
+        };
+        
+        // Populate dropdowns
+        Object.keys(equipmentMappings).forEach(equipmentType => {
+            const dropdownIds = equipmentMappings[equipmentType];
+            const equipmentIds = equipmentByType[equipmentType] || [];
+            
+            dropdownIds.forEach(dropdownId => {
+                const dropdown = document.getElementById(dropdownId);
+                if (dropdown) {
+                    // Clear existing options except the first one
+                    dropdown.innerHTML = '<option value="">Select Equipment ▼</option>';
+                    
+                    // Add equipment options
+                    equipmentIds.forEach(equipmentId => {
+                        const option = document.createElement('option');
+                        option.value = equipmentId;
+                        option.textContent = equipmentId;
+                        dropdown.appendChild(option);
+                    });
+                    
+                    // Add change event listener for auto-save
+                    dropdown.addEventListener('change', function() {
+                        if (!viewMode) {
+                            autoSaveToDatabase();
+                        }
+                    });
+                }
+            });
+        });
+    }
+    
+    // Function to show equipment loading error
+    function showEquipmentLoadingError() {
+        // Set default options for all dropdowns
+        const allDropdownIds = [
+            'basic-weight-equipment', 'thickness-equipment', 'opacity-equipment',
+            'cof-equipment', 'page2-common-equipment', 'page3-common-equipment',
+            'cut-width-equipment', 'color-unprinted-equipment', 'color-printed-equipment',
+            'gloss-equipment'
+        ];
+        
+        allDropdownIds.forEach(dropdownId => {
+            const dropdown = document.getElementById(dropdownId);
+            if (dropdown) {
+                dropdown.innerHTML = '<option value="">Equipment loading failed - Please refresh</option>';
+            }
+        });
+    }
+    
+    // Load equipment dropdowns on page load - SIMPLE AND DIRECT
     loadQCEquipmentDropdowns().then(() => {
         // Equipment dropdowns loaded, now load form data if in view mode
         if (viewMode && currentFormId) {
-            loadDataFromDatabase();
+            loadDataFromDatabase().then(() => {
+                // Apply conditional formatting after data is loaded in view mode
+                setTimeout(() => {
+                    applyConditionalFormattingToAllColumns();
+                }, 100);
+            });
         }
+        
+        // Setup historical data loading trigger
+        setupHistoricalDataTrigger();
     });
 
     // Page 1 elements
@@ -147,6 +187,30 @@ document.addEventListener('DOMContentLoaded', function() {
            if (!addRowsBtn || !deleteRowsBtn || !numRowsInput || !testingTableBody || !testingTableBody2 || !testingTableBody3 || !testingTableBody4) {
            return;
        }
+
+       // ===== HELPER FUNCTIONS FOR TABLE OPERATIONS =====
+       // Get all table bodies as an array for easier iteration
+       const getAllTableBodies = () => [testingTableBody, testingTableBody2, testingTableBody3, testingTableBody4];
+       
+       // Get table body by page number (1-4)
+       const getTableBodyByPage = (pageNumber) => {
+           switch(pageNumber) {
+               case 1: return testingTableBody;
+               case 2: return testingTableBody2;
+               case 3: return testingTableBody3;
+               case 4: return testingTableBody4;
+               default: return null;
+           }
+       };
+       
+       // Get column count for a specific table
+       const getTableColumnCount = (tableBody) => {
+           if (tableBody.id === 'testingTableBody') return 10;      // Page 1: 10 columns
+           if (tableBody.id === 'testingTableBody2') return 15;     // Page 2: 15 columns  
+           if (tableBody.id === 'testingTableBody3') return 15;     // Page 3: 15 columns
+           if (tableBody.id === 'testingTableBody4') return 8;      // Page 4: 8 columns
+           return 0;
+       };
        
        // Header form elements
        const productCodeInput = document.querySelector('input[placeholder="Enter Product Code"]');
@@ -213,10 +277,40 @@ document.addEventListener('DOMContentLoaded', function() {
                    input.style.color = '#000000'; // Force black text color
                    input.style.opacity = '1'; // Force full opacity
                });
+               
+               // Re-apply conditional formatting after disabling inputs in view mode
+               applyConditionalFormattingToAllColumns();
            }, 1000);
        }
        
 
+
+       // ===== HISTORICAL DATA LOADING TRIGGER =====
+       // Load historical data when user enters required fields
+       function setupHistoricalDataTrigger() {
+           if (productCodeInput) {
+               productCodeInput.addEventListener('blur', checkAndLoadHistoricalData);
+           }
+           if (machineInput) {
+               machineInput.addEventListener('blur', checkAndLoadHistoricalData);
+           }
+           if (productionDateInput) {
+               productionDateInput.addEventListener('change', checkAndLoadHistoricalData);
+           }
+       }
+
+       // Check if all required fields are filled and load historical data
+       async function checkAndLoadHistoricalData() {
+           const productCode = productCodeInput ? productCodeInput.value.trim() : '';
+           const machineNo = machineInput ? machineInput.value.trim() : '';
+           const productionDate = productionDateInput ? productionDateInput.value : '';
+
+           // Only load historical data if all three fields are filled and we don't have a current form ID
+           if (productCode && machineNo && productionDate && !currentFormId) {
+               console.log('All required fields filled, loading historical data...');
+               await loadHistoricalDataForNewForm();
+           }
+       }
 
        // ===== AUTO-SAVE TO DATABASE (LIKE INLINE INSPECTION FORM) =====
        
@@ -446,7 +540,7 @@ document.addEventListener('DOMContentLoaded', function() {
        // Single debounced save function for database operations
        function debouncedSave() {
            clearTimeout(saveTimeout);
-           saveTimeout = setTimeout(autoSaveToDatabase, 1000); // 1 second delay
+           saveTimeout = setTimeout(autoSaveToDatabase, 200); // 200ms delay for better responsiveness
        }
        
        // Helper function to add consolidated input event listener
@@ -682,13 +776,131 @@ document.addEventListener('DOMContentLoaded', function() {
                }
                
                if (inputElement && inputElement.value && inputElement.value.trim() !== '') {
-                   jsonbObject[String(i)] = inputElement.value.trim(); // Actual value
+                   // Apply formatting for specific Page 1 columns before saving to database
+                   const formattedValue = formatValueForDatabase(inputElement.value.trim(), tableBody.id, columnIndex);
+                   jsonbObject[String(i)] = formattedValue;
                } else {
                    jsonbObject[String(i)] = ""; // Empty string
                }
            }
            
                           return Object.keys(jsonbObject).length > 0 ? jsonbObject : null;
+       }
+
+       // Function to format values before saving to database (All pages)
+       function formatValueForDatabase(value, tableBodyId, columnIndex) {
+           // Page 1 formatting
+           if (tableBodyId === 'testingTableBody') {
+           
+           // Page 1 column formatting
+           if (columnIndex === 3) {
+               // Basic Weight column - format to 2 decimal places (00.00)
+               const numValue = parseFloat(value);
+               if (!isNaN(numValue)) {
+                   return numValue.toFixed(2);
+               }
+           } else if (columnIndex === 4) {
+               // Thickness column - format to 3 decimal places (0.000)
+               const numValue = parseFloat(value);
+               if (!isNaN(numValue)) {
+                   // Convert integer input to decimal format (e.g., 30 -> 0.030)
+                   let finalValue;
+                   if (Number.isInteger(numValue) && !value.includes('.')) {
+                       // If it's an integer without decimal point, treat as thousandths
+                       finalValue = numValue / 1000;
+                   } else {
+                       // Already has decimal point, use as-is
+                       finalValue = numValue;
+                   }
+                   return finalValue.toFixed(3);
+               }
+           } else if (columnIndex === 5) {
+               // Opacity column - format to 1 decimal place (00.0)
+               const numValue = parseFloat(value);
+               if (!isNaN(numValue)) {
+                   return numValue.toFixed(1);
+               }
+           } else if (columnIndex === 6) {
+               // COF Kinetic column - format to 2 decimal places (0.00)
+               const numValue = parseFloat(value);
+               if (!isNaN(numValue)) {
+                   return numValue.toFixed(2);
+               }
+           } else if (columnIndex === 7) {
+               // Cut Width column - format to whole number (000)
+               const numValue = parseFloat(value);
+               if (!isNaN(numValue)) {
+                   return Math.round(numValue).toString().padStart(3, '0');
+               }
+           } else if (columnIndex === 8 || columnIndex === 9) {
+               // Color Delta columns - format to 2 decimal places (0.00)
+               const numValue = parseFloat(value);
+               if (!isNaN(numValue)) {
+                   return numValue.toFixed(2);
+               }
+           }
+           
+           // Page 2 formatting
+           } else if (tableBodyId === 'testingTableBody2') {
+               // Elongation MD columns (columns 3, 4, 5) - format to 3 digits (000)
+               if (columnIndex === 3 || columnIndex === 4 || columnIndex === 5) {
+                   const numValue = parseInt(value);
+                   if (!isNaN(numValue)) {
+                       return numValue.toString().padStart(3, '0');
+                   }
+               }
+               // Force MD columns (columns 7, 8, 9) - format to 00.0
+               else if (columnIndex === 7 || columnIndex === 8 || columnIndex === 9) {
+                   const numValue = parseFloat(value);
+                   if (!isNaN(numValue)) {
+                       return numValue.toFixed(1);
+                   }
+               }
+               // Force 5% MD columns (columns 11, 12, 13) - format to 0.0
+               else if (columnIndex === 11 || columnIndex === 12 || columnIndex === 13) {
+                   const numValue = parseFloat(value);
+                   if (!isNaN(numValue)) {
+                       return numValue.toFixed(1);
+                   }
+               }
+           
+           // Page 3 formatting
+           } else if (tableBodyId === 'testingTableBody3') {
+               // Elongation CD columns (columns 3, 4, 5) - format to 3 digits (000)
+               if (columnIndex === 3 || columnIndex === 4 || columnIndex === 5) {
+                   const numValue = parseInt(value);
+                   if (!isNaN(numValue)) {
+                       return numValue.toString().padStart(3, '0');
+                   }
+               }
+               // Force CD columns (columns 7, 8, 9) - format to 00.0
+               else if (columnIndex === 7 || columnIndex === 8 || columnIndex === 9) {
+                   const numValue = parseFloat(value);
+                   if (!isNaN(numValue)) {
+                       return numValue.toFixed(1);
+                   }
+               }
+               // Modulus columns (columns 11, 12, 13) - format to 00.0
+               else if (columnIndex === 11 || columnIndex === 12 || columnIndex === 13) {
+                   const numValue = parseFloat(value);
+                   if (!isNaN(numValue)) {
+                       return numValue.toFixed(1);
+                   }
+               }
+           
+           // Page 4 formatting
+           } else if (tableBodyId === 'testingTableBody4') {
+               // Gloss columns (columns 3, 4, 5) - format to 00.0
+               if (columnIndex === 3 || columnIndex === 4 || columnIndex === 5) {
+                   const numValue = parseFloat(value);
+                   if (!isNaN(numValue)) {
+                       return numValue.toFixed(1);
+                   }
+               }
+           }
+           
+           // Return original value if no formatting applies
+           return value;
        }
        
        // Generate unique lot number
@@ -996,45 +1208,52 @@ document.addEventListener('DOMContentLoaded', function() {
        let saveTimeout = null;
 
     // Update row count for Page 1
+    // Get current data row count (excluding summary rows)
+    function getCurrentDataRowCount(tableBody) {
+        if (!tableBody) return 0;
+        const dataRows = tableBody.querySelectorAll('tr').length - 3; // Subtract 3 for summary rows
+        return Math.max(0, dataRows);
+    }
+    
+    // Get current data row count for all tables
+    const getAllTableRowCounts = () => {
+        return getAllTableBodies().map(tableBody => getCurrentDataRowCount(tableBody));
+    };
+
+    // Update row count for Page 1 (original function)
     function updateRowCount() {
-        const dataRows = testingTableBody.querySelectorAll('tr').length - 3;
-        rowCountDisplay.textContent = `Rows: ${Math.max(0, dataRows)}`;
+        const dataRows = getCurrentDataRowCount(testingTableBody);
+        rowCountDisplay.textContent = `Rows: ${dataRows}`;
     }
 
-           // Update row count for Page 2
-       function updateRowCount2() {
-           const dataRows = testingTableBody2.querySelectorAll('tr').length - 3;
-           rowCountDisplay2.textContent = `Rows: ${Math.max(0, dataRows)}`;
-       }
-       
-       // Update row count for Page 3
-       function updateRowCount3() {
-           const dataRows = testingTableBody3.querySelectorAll('tr').length - 3;
-           rowCountDisplay3.textContent = `Rows: ${Math.max(0, dataRows)}`;
-       }
-       
-       // Update row count for Page 4
-       function updateRowCount4() {
-           const dataRows = testingTableBody4.querySelectorAll('tr').length - 3;
-           rowCountDisplay4.textContent = `Rows: ${Math.max(0, dataRows)}`;
-       }
+    // Update row count for a specific page
+    function updateRowCountByPage(pageNumber) {
+        const tableBody = getTableBodyByPage(pageNumber);
+        const rowCountDisplay = document.getElementById(`rowCountDisplay${pageNumber > 1 ? pageNumber : ''}`);
+        if (tableBody && rowCountDisplay) {
+            const dataRows = getCurrentDataRowCount(tableBody);
+            rowCountDisplay.textContent = `Rows: ${dataRows}`;
+        }
+    }
+
+    // Update row count for all pages
+    function updateAllRowCounts() {
+        for (let i = 1; i <= 4; i++) {
+            updateRowCountByPage(i);
+        }
+    }
 
          // Load data from database when page loads (optimized for speed)
          async function loadDataFromDatabase() {
              try {
                  // Check if we have a current form session
                  if (currentFormId) {
-                     // Load form data with timeout for faster response
-                     const { data, error } = await Promise.race([
-                         supabase
-                             .from('168_16cp_kranti')
-                             .select('*')
-                             .eq('form_id', currentFormId)
-                             .single(),
-                         new Promise((_, reject) => 
-                             setTimeout(() => reject(new Error('Database timeout')), 5000)
-                         )
-                     ]);
+                     // Load form data directly - no timeout needed
+                     const { data, error } = await supabase
+                         .from('168_16cp_kranti')
+                         .select('*')
+                         .eq('form_id', currentFormId)
+                         .single();
                      
                      if (error) {
                          console.log('No existing data found or error:', error.message);
@@ -1054,16 +1273,381 @@ document.addEventListener('DOMContentLoaded', function() {
                      
                      // Mark initial loading as complete
                      isInitialLoading = false;
-                 } else {
-                     // No current form ID (new form), mark initial loading as complete
-                     isInitialLoading = false;
-                 }
+                } else {
+                    // No current form ID (new form), load historical data if available
+                    await loadHistoricalDataForNewForm();
+                    isInitialLoading = false;
+                }
              } catch (error) {
                  console.error('Error loading data from database:', error);
              }
-         }
-         
-         // Load table data from database into the form
+        }
+
+        // Load historical data for new forms based on product_code + machine_no + production_date
+        async function loadHistoricalDataForNewForm() {
+            try {
+                // Get current form details
+                const productCode = productCodeInput ? productCodeInput.value.trim() : '';
+                const machineNo = machineInput ? machineInput.value.trim() : '';
+                const productionDate = productionDateInput ? productionDateInput.value : '';
+
+                console.log('Loading historical data with:', { productCode, machineNo, productionDate });
+
+                // Only proceed if we have the required criteria
+                if (!productCode || !machineNo || !productionDate) {
+                    console.log('Missing required fields for historical data search:', { productCode, machineNo, productionDate });
+                    return;
+                }
+
+                // Calculate previous date
+                const currentDate = new Date(productionDate);
+                const previousDate = new Date(currentDate);
+                previousDate.setDate(previousDate.getDate() - 1);
+                const previousDateStr = previousDate.toISOString().split('T')[0];
+
+                console.log(`Searching for historical data: Product=${productCode}, Machine=${machineNo}, Date=${previousDateStr}`);
+
+                // Search for previous form with matching criteria
+                const { data: historicalData, error } = await supabase
+                    .from('168_16cp_kranti')
+                    .select('*')
+                    .eq('product_code', productCode)
+                    .eq('machine_no', machineNo)
+                    .eq('production_date', previousDateStr)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single();
+
+                if (error || !historicalData) {
+                    console.log('No historical data found for previous date, searching for most recent...');
+                    
+                    // If no data for previous date, find most recent form with same product + machine
+                    const { data: recentData, error: recentError } = await supabase
+                        .from('168_16cp_kranti')
+                        .select('*')
+                        .eq('product_code', productCode)
+                        .eq('machine_no', machineNo)
+                        .lt('production_date', productionDate)
+                        .order('production_date', { ascending: false })
+                        .limit(1)
+                        .single();
+
+                    if (recentError || !recentData) {
+                        console.log('No historical data found at all:', recentError);
+                        return;
+                    }
+
+                    console.log('Found recent historical data:', recentData);
+                    // Load most recent historical data
+                    await loadHistoricalDataIntoForm(recentData);
+                } else {
+                    console.log('Found previous day historical data:', historicalData);
+                    // Load previous day's data
+                    await loadHistoricalDataIntoForm(historicalData);
+                }
+
+            } catch (error) {
+                console.error('Error loading historical data:', error);
+            }
+        }
+
+        // Load historical data into form with dynamic row allocation
+        async function loadHistoricalDataIntoForm(historicalData) {
+            try {
+                console.log('Loading historical data into form...');
+
+                // Get requested rows for fresh data (from user input)
+                const requestedRows = parseInt(numRowsInput.value, 10) || 12;
+                const availableForHistorical = 30 - requestedRows;
+                
+                console.log(`Loading historical data: ${availableForHistorical} rows for historical, ${requestedRows} rows for fresh data`);
+
+                // Load historical data into top rows (1 to availableForHistorical)
+                loadHistoricalDataIntoTopRows(historicalData, availableForHistorical);
+                
+                // Clear bottom rows for fresh data entry
+                clearBottomRowsForFreshData(requestedRows);
+
+                // Calculate statistics immediately after loading historical data
+                console.log('Calculating statistics for historical data...');
+                calculatePage1ColumnStats(testingTableBody);
+                calculateSummaryStatistics(testingTableBody2);
+                calculateSummaryStatistics(testingTableBody3);
+                calculateSummaryStatistics(testingTableBody4);
+                recalculateAllRowAverages();
+                forceRecalculateAllSummaryStatistics();
+
+                // Auto-save the form with historical data loaded
+                console.log('Auto-saving form with historical data...');
+                await autoSaveToDatabase();
+
+            } catch (error) {
+                console.error('Error loading historical data into form:', error);
+            }
+        }
+
+        // Ensure 30 rows exist (like clicking the + button)
+        async function ensure30RowsExist() {
+            try {
+                // Get current row count (excluding summary rows)
+                const currentRows = getCurrentDataRowCount(testingTableBody);
+                
+                // Calculate how many rows to add to reach 30 total
+                const rowsToAdd = 30 - currentRows;
+                
+                // Only add rows if we haven't reached 30 rows yet
+                if (rowsToAdd > 0) {
+                    console.log(`Adding ${rowsToAdd} rows to reach 30 total rows`);
+                    
+                    // Add rows to all tables to reach 30 total
+                    addRowsToTable(testingTableBody, rowsToAdd);
+                    addRowsToTable(testingTableBody2, rowsToAdd);
+                    addRowsToTable(testingTableBody3, rowsToAdd);
+                    addRowsToTable(testingTableBody4, rowsToAdd);
+                    
+                    // Update row counts
+                    updateRowCount();
+                    updateAllRowCounts();
+                }
+            } catch (error) {
+                console.error('Error ensuring 30 rows exist:', error);
+            }
+        }
+
+        // Load historical data into top rows
+        function loadHistoricalDataIntoTopRows(historicalData, availableForHistorical) {
+            // Load historical data into top rows (1 to availableForHistorical)
+            // This loads from rows (requestedRows+1) to 30 from historical form
+            
+            const requestedRows = 30 - availableForHistorical;
+            const startFromRow = requestedRows + 1;
+            
+            console.log(`Loading historical rows ${startFromRow}-30 into current form rows 1-${availableForHistorical}`);
+
+            // Load data into Page 1 (testingTableBody)
+            loadHistoricalDataIntoTable(testingTableBody, historicalData, 1, availableForHistorical, startFromRow);
+            
+            // Load data into Page 2 (testingTableBody2)
+            loadHistoricalDataIntoTable(testingTableBody2, historicalData, 1, availableForHistorical, startFromRow);
+            
+            // Load data into Page 3 (testingTableBody3)
+            loadHistoricalDataIntoTable(testingTableBody3, historicalData, 1, availableForHistorical, startFromRow);
+            
+            // Load data into Page 4 (testingTableBody4)
+            loadHistoricalDataIntoTable(testingTableBody4, historicalData, 1, availableForHistorical, startFromRow);
+        }
+
+        // Load historical data into specific table
+        function loadHistoricalDataIntoTable(tableBody, historicalData, startRow, endRow, historicalStartRow) {
+            if (!tableBody || !historicalData) return;
+
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            let currentRow = startRow;
+            let historicalRow = historicalStartRow;
+
+            for (let i = 0; i < rows.length && currentRow <= endRow; i++) {
+                const row = rows[i];
+                const firstCell = row.querySelector('td');
+                
+                // Skip summary rows
+                if (firstCell && ['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
+                    continue;
+                }
+
+                // Load historical data for this row
+                loadHistoricalRowData(row, historicalData, historicalRow);
+                
+                currentRow++;
+                historicalRow++;
+            }
+        }
+
+        // Load historical data for a specific row
+        function loadHistoricalRowData(row, historicalData, historicalRow) {
+            if (!row || !historicalData) return;
+
+            const inputs = row.querySelectorAll('input');
+            const rowKey = String(historicalRow);
+
+            // Load data based on table type
+            if (row.closest('#testingTableBody')) {
+                // Page 1 data
+                if (historicalData.lot_and_roll && historicalData.lot_and_roll[rowKey] && inputs[0]) {
+                    inputs[0].value = historicalData.lot_and_roll[rowKey];
+                }
+                if (historicalData.roll_id && historicalData.roll_id[rowKey] && inputs[1]) {
+                    inputs[1].value = historicalData.roll_id[rowKey];
+                }
+                if (historicalData.lot_time && historicalData.lot_time[rowKey] && inputs[2]) {
+                    inputs[2].value = historicalData.lot_time[rowKey];
+                }
+                // Load Page 1 data with conditional formatting
+                const page1Data = [
+                    { key: 'page1_basic_weight', inputIndex: 3, columnType: 'basicWeight' },
+                    { key: 'page1_thickness', inputIndex: 4, columnType: 'thickness' },
+                    { key: 'page1_opacity', inputIndex: 5, columnType: 'opacity' },
+                    { key: 'page1_cof_kinetic', inputIndex: 6, columnType: 'cof' },
+                    { key: 'page1_cut_width', inputIndex: 7, columnType: 'cutWidth' },
+                    { key: 'page1_color_delta_unprinted', inputIndex: 8, columnType: 'colorDelta' },
+                    { key: 'page1_color_delta_printed', inputIndex: 9, columnType: 'colorDelta' }
+                ];
+                
+                page1Data.forEach(({ key, inputIndex, columnType }) => {
+                    if (historicalData[key] && historicalData[key][rowKey] && inputs[inputIndex]) {
+                        inputs[inputIndex].value = historicalData[key][rowKey];
+                        applyColorFormatting(inputs[inputIndex], columnType);
+                    }
+                });
+            } else if (row.closest('#testingTableBody2')) {
+                // Page 2 data - Load lot_and_roll, roll_id, lot_time for all pages
+                if (historicalData.lot_and_roll && historicalData.lot_and_roll[rowKey] && inputs[0]) {
+                    inputs[0].value = historicalData.lot_and_roll[rowKey];
+                }
+                if (historicalData.roll_id && historicalData.roll_id[rowKey] && inputs[1]) {
+                    inputs[1].value = historicalData.roll_id[rowKey];
+                }
+                if (historicalData.lot_time && historicalData.lot_time[rowKey] && inputs[2]) {
+                    inputs[2].value = historicalData.lot_time[rowKey];
+                }
+                // Page 2 specific data
+                if (historicalData.page2_elongation_md_1 && historicalData.page2_elongation_md_1[rowKey] && inputs[3]) {
+                    inputs[3].value = historicalData.page2_elongation_md_1[rowKey];
+                }
+                if (historicalData.page2_elongation_md_2 && historicalData.page2_elongation_md_2[rowKey] && inputs[4]) {
+                    inputs[4].value = historicalData.page2_elongation_md_2[rowKey];
+                }
+                if (historicalData.page2_elongation_md_3 && historicalData.page2_elongation_md_3[rowKey] && inputs[5]) {
+                    inputs[5].value = historicalData.page2_elongation_md_3[rowKey];
+                }
+                if (historicalData.page2_force_md_1 && historicalData.page2_force_md_1[rowKey] && inputs[6]) {
+                    inputs[6].value = historicalData.page2_force_md_1[rowKey];
+                }
+                if (historicalData.page2_force_md_2 && historicalData.page2_force_md_2[rowKey] && inputs[7]) {
+                    inputs[7].value = historicalData.page2_force_md_2[rowKey];
+                }
+                if (historicalData.page2_force_md_3 && historicalData.page2_force_md_3[rowKey] && inputs[8]) {
+                    inputs[8].value = historicalData.page2_force_md_3[rowKey];
+                }
+                if (historicalData.page2_force_5p_md_1 && historicalData.page2_force_5p_md_1[rowKey] && inputs[9]) {
+                    inputs[9].value = historicalData.page2_force_5p_md_1[rowKey];
+                }
+                if (historicalData.page2_force_5p_md_2 && historicalData.page2_force_5p_md_2[rowKey] && inputs[10]) {
+                    inputs[10].value = historicalData.page2_force_5p_md_2[rowKey];
+                }
+                if (historicalData.page2_force_5p_md_3 && historicalData.page2_force_5p_md_3[rowKey] && inputs[11]) {
+                    inputs[11].value = historicalData.page2_force_5p_md_3[rowKey];
+                }
+            } else if (row.closest('#testingTableBody3')) {
+                // Page 3 data - Load lot_and_roll, roll_id, lot_time for all pages
+                if (historicalData.lot_and_roll && historicalData.lot_and_roll[rowKey] && inputs[0]) {
+                    inputs[0].value = historicalData.lot_and_roll[rowKey];
+                }
+                if (historicalData.roll_id && historicalData.roll_id[rowKey] && inputs[1]) {
+                    inputs[1].value = historicalData.roll_id[rowKey];
+                }
+                if (historicalData.lot_time && historicalData.lot_time[rowKey] && inputs[2]) {
+                    inputs[2].value = historicalData.lot_time[rowKey];
+                }
+                // Page 3 specific data
+                if (historicalData.page3_elongation_cd_1 && historicalData.page3_elongation_cd_1[rowKey] && inputs[3]) {
+                    inputs[3].value = historicalData.page3_elongation_cd_1[rowKey];
+                }
+                if (historicalData.page3_elongation_cd_2 && historicalData.page3_elongation_cd_2[rowKey] && inputs[4]) {
+                    inputs[4].value = historicalData.page3_elongation_cd_2[rowKey];
+                }
+                if (historicalData.page3_elongation_cd_3 && historicalData.page3_elongation_cd_3[rowKey] && inputs[5]) {
+                    inputs[5].value = historicalData.page3_elongation_cd_3[rowKey];
+                }
+                if (historicalData.page3_force_cd_1 && historicalData.page3_force_cd_1[rowKey] && inputs[6]) {
+                    inputs[6].value = historicalData.page3_force_cd_1[rowKey];
+                }
+                if (historicalData.page3_force_cd_2 && historicalData.page3_force_cd_2[rowKey] && inputs[7]) {
+                    inputs[7].value = historicalData.page3_force_cd_2[rowKey];
+                }
+                if (historicalData.page3_force_cd_3 && historicalData.page3_force_cd_3[rowKey] && inputs[8]) {
+                    inputs[8].value = historicalData.page3_force_cd_3[rowKey];
+                }
+                if (historicalData.page3_modulus_1 && historicalData.page3_modulus_1[rowKey] && inputs[9]) {
+                    inputs[9].value = historicalData.page3_modulus_1[rowKey];
+                }
+                if (historicalData.page3_modulus_2 && historicalData.page3_modulus_2[rowKey] && inputs[10]) {
+                    inputs[10].value = historicalData.page3_modulus_2[rowKey];
+                }
+                if (historicalData.page3_modulus_3 && historicalData.page3_modulus_3[rowKey] && inputs[11]) {
+                    inputs[11].value = historicalData.page3_modulus_3[rowKey];
+                }
+            } else if (row.closest('#testingTableBody4')) {
+                // Page 4 data - Load lot_and_roll, roll_id, lot_time for all pages
+                if (historicalData.lot_and_roll && historicalData.lot_and_roll[rowKey] && inputs[0]) {
+                    inputs[0].value = historicalData.lot_and_roll[rowKey];
+                }
+                if (historicalData.roll_id && historicalData.roll_id[rowKey] && inputs[1]) {
+                    inputs[1].value = historicalData.roll_id[rowKey];
+                }
+                if (historicalData.lot_time && historicalData.lot_time[rowKey] && inputs[2]) {
+                    inputs[2].value = historicalData.lot_time[rowKey];
+                }
+                // Page 4 specific data
+                if (historicalData.page4_gloss_1 && historicalData.page4_gloss_1[rowKey] && inputs[3]) {
+                    inputs[3].value = historicalData.page4_gloss_1[rowKey];
+                }
+                if (historicalData.page4_gloss_2 && historicalData.page4_gloss_2[rowKey] && inputs[4]) {
+                    inputs[4].value = historicalData.page4_gloss_2[rowKey];
+                }
+                if (historicalData.page4_gloss_3 && historicalData.page4_gloss_3[rowKey] && inputs[5]) {
+                    inputs[5].value = historicalData.page4_gloss_3[rowKey];
+                }
+                if (historicalData.page4_pg_quality && historicalData.page4_pg_quality[rowKey] && inputs[6]) {
+                    inputs[6].value = historicalData.page4_pg_quality[rowKey];
+                }
+            }
+        }
+
+        // Clear bottom rows for fresh data entry
+        function clearBottomRowsForFreshData(requestedRows) {
+            const startRow = 30 - requestedRows + 1;
+            const endRow = 30;
+
+            console.log(`Clearing rows ${startRow}-${endRow} for fresh data entry`);
+
+            // Clear data in all tables for bottom rows
+            clearBottomRowsInTable(testingTableBody, startRow, endRow);
+            clearBottomRowsInTable(testingTableBody2, startRow, endRow);
+            clearBottomRowsInTable(testingTableBody3, startRow, endRow);
+            clearBottomRowsInTable(testingTableBody4, startRow, endRow);
+        }
+
+        // Clear bottom rows in specific table
+        function clearBottomRowsInTable(tableBody, startRow, endRow) {
+            if (!tableBody) return;
+
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            let currentRow = 1;
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const firstCell = row.querySelector('td');
+                
+                // Skip summary rows
+                if (firstCell && ['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
+                    continue;
+                }
+
+                // Clear data in bottom rows
+                if (currentRow >= startRow && currentRow <= endRow) {
+                    const inputs = row.querySelectorAll('input');
+                    inputs.forEach(input => {
+                        if (input.type !== 'number' || input.placeholder !== '') {
+                            input.value = '';
+                        }
+                    });
+                }
+
+                currentRow++;
+            }
+        }
+        
+        // Load table data from database into the form
          function loadTableDataFromDatabase(dbData) {
              // Load header data
              if (dbData.product_code && productCodeInput) productCodeInput.value = dbData.product_code;
@@ -1135,27 +1719,22 @@ document.addEventListener('DOMContentLoaded', function() {
              
              // Update row counts and recalculate statistics
              updateRowCount();
-             updateRowCount2();
-             updateRowCount3();
-             updateRowCount4();
+             updateAllRowCounts();
              
-             // Delay statistics calculations to reduce CPU spike during data loading
-             setTimeout(() => {
-                 // Recalculate all statistics asynchronously
-                 calculatePage1ColumnStats(testingTableBody);
-                 calculateSummaryStatistics(testingTableBody2);
-                 calculateSummaryStatistics(testingTableBody3);
-                 calculateSummaryStatistics(testingTableBody4);
-                 
-                 // Recalculate ALL row averages for Pages 2, 3, 4 after data loads
-                 recalculateAllRowAverages();
-                 
-                 // Force recalculation of summary statistics to populate Average/Min/Max rows
-                 forceRecalculateAllSummaryStatistics();
-                 
-                 // Ensure all summary rows remain uneditable after data loads
-                 makeSummaryRowsUneditable();
-             }, 300); // 300ms delay after data loading
+             // Calculate statistics immediately - no delay needed
+             calculatePage1ColumnStats(testingTableBody);
+             calculateSummaryStatistics(testingTableBody2);
+             calculateSummaryStatistics(testingTableBody3);
+             calculateSummaryStatistics(testingTableBody4);
+             
+             // Recalculate ALL row averages for Pages 2, 3, 4 after data loads
+             recalculateAllRowAverages();
+             
+             // Force recalculation of summary statistics to populate Average/Min/Max rows
+             forceRecalculateAllSummaryStatistics();
+             
+             // Ensure all summary rows remain uneditable after data loads
+             makeSummaryRowsUneditable();
              
 
          }
@@ -1622,6 +2201,42 @@ document.addEventListener('DOMContentLoaded', function() {
                          const inputs = row.querySelectorAll('input');
                          if (inputs[inputIndex]) {
                              inputs[inputIndex].value = jsonbData[rowKey];
+                             
+                             // Apply conditional formatting after loading data
+                             let columnTypes = {};
+                             
+                             if (isPage1) {
+                                 columnTypes = {
+                                     3: 'basicWeight',
+                                     4: 'thickness', 
+                                     5: 'opacity',
+                                     6: 'cof',
+                                     7: 'cutWidth',
+                                     8: 'colorDelta',
+                                     9: 'colorDelta'
+                                 };
+                             } else if (isPage2) {
+                                 columnTypes = {
+                                     3: 'elongationMD', 4: 'elongationMD', 5: 'elongationMD',
+                                     7: 'forceMD', 8: 'forceMD', 9: 'forceMD',
+                                     11: 'force5pMD', 12: 'force5pMD', 13: 'force5pMD'
+                                 };
+                             } else if (isPage3) {
+                                 columnTypes = {
+                                     3: 'elongationCD', 4: 'elongationCD', 5: 'elongationCD',
+                                     7: 'forceCD', 8: 'forceCD', 9: 'forceCD',
+                                     11: 'modulus', 12: 'modulus', 13: 'modulus'
+                                 };
+                             } else if (isPage4) {
+                                 columnTypes = {
+                                     3: 'gloss', 4: 'gloss', 5: 'gloss',
+                                     7: 'pgQuality'
+                                 };
+                             }
+                             
+                             if (columnTypes[inputIndex]) {
+                                 applyColorFormatting(inputs[inputIndex], columnTypes[inputIndex]);
+                             }
                          }
                      }
                  }
@@ -1630,9 +2245,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
            // Initialize
        updateRowCount();
-       updateRowCount2();
-       updateRowCount3();
-       updateRowCount4();
+       updateAllRowCounts();
          
          // Make all summary rows uneditable from the start
          makeSummaryRowsUneditable();
@@ -1646,8 +2259,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Apply validation to existing thickness inputs after data is loaded
         applyValidationToExistingThicknessInputs();
         
+        // Apply conditional formatting to ALL columns across ALL pages after data is loaded
+        applyConditionalFormattingToAllColumns();
+        
         // Apply validation to existing opacity inputs after data is loaded
         applyValidationToExistingOpacityInputs();
+        
+        // Apply validation to existing PG Quality inputs after data is loaded
+        applyValidationToExistingPGQualityInputs();
         
         // Apply validation to existing COF inputs after data is loaded
         applyValidationToExistingCOFInputs();
@@ -1666,13 +2285,10 @@ document.addEventListener('DOMContentLoaded', function() {
        // Add event listeners to existing input fields for average calculation
        addAverageCalculationListeners();
        
-       // Delay initial calculations to reduce CPU spike on page load
-       setTimeout(() => {
-           // Calculate initial summary statistics asynchronously
+       // Calculate initial summary statistics immediately
        calculateSummaryStatistics(testingTableBody2);
        calculateSummaryStatistics(testingTableBody3);
        calculatePage1ColumnStats(testingTableBody);
-       }, 500); // 500ms delay to let page settle
        
        // Form is ready - data will be auto-saved to database as user types
        
@@ -1691,22 +2307,43 @@ document.addEventListener('DOMContentLoaded', function() {
            }
        });
 
-           // Add rows button for Page 1 (syncs with all pages)
-       addRowsBtn.addEventListener('click', function() {
+           // Add rows button for Page 1 (syncs with all pages) - ensures 30 rows with historical data
+       addRowsBtn.addEventListener('click', async function() {
            // Block in view mode
            if (viewMode) {
                return;
            }
            
-           const n = parseInt(numRowsInput.value, 10) || 1;
-           addRowsToTable(testingTableBody, n);
-           addRowsToTable(testingTableBody2, n);
-           addRowsToTable(testingTableBody3, n);
-           addRowsToTable(testingTableBody4, n);
-           updateRowCount();
-           updateRowCount2();
-           updateRowCount3();
-           updateRowCount4();
+           // Get requested rows for fresh data (from user input)
+           const requestedRows = parseInt(numRowsInput.value, 10) || 12;
+           
+           // Ensure we have exactly 30 rows (like clicking the + button)
+           const currentRows = getCurrentDataRowCount(testingTableBody);
+           const rowsToAdd = 30 - currentRows;
+           
+           if (rowsToAdd > 0) {
+               console.log(`Adding ${rowsToAdd} rows to reach 30 total rows`);
+               
+               // Add rows to all tables to reach 30 total
+               addRowsToTable(testingTableBody, rowsToAdd);
+               addRowsToTable(testingTableBody2, rowsToAdd);
+               addRowsToTable(testingTableBody3, rowsToAdd);
+               addRowsToTable(testingTableBody4, rowsToAdd);
+               
+               // Update row counts
+               updateRowCount();
+               updateAllRowCounts();
+           }
+           
+           // Load historical data if available
+           await loadHistoricalDataForNewForm();
+           
+           // Clear bottom rows for fresh data entry
+           clearBottomRowsForFreshData(requestedRows);
+           
+           // Auto-save the form after loading historical data
+           console.log('Auto-saving form after loading historical data...');
+           await autoSaveToDatabase();
        });
        
 
@@ -1723,9 +2360,7 @@ document.addEventListener('DOMContentLoaded', function() {
            deleteRowsFromTable(testingTableBody3, 1);
            deleteRowsFromTable(testingTableBody4, 1);
            updateRowCount();
-           updateRowCount2();
-           updateRowCount3();
-           updateRowCount4();
+           updateAllRowCounts();
        });
 
 
@@ -1874,75 +2509,78 @@ document.addEventListener('DOMContentLoaded', function() {
                     input.value = '';
                     input.placeholder = '';
                     
-                    // Apply validation to Basic Weight column (Page 1, column 3)
-                    if (tableBody.id === 'testingTableBody' && j === 3) {
-                        applyValidationToInput(input, tableBody, j);
+                    // Apply validation and conditional formatting to Page 1 columns
+                    if (tableBody.id === 'testingTableBody') {
+                        if (j === 3) {
+                            applyValidationToInput(input, tableBody, j);
+                            applyConditionalFormatting(input, 'basicWeight');
+                        } else if (j === 4) {
+                            applyThicknessValidation(input);
+                            applyConditionalFormatting(input, 'thickness');
+                        } else if (j === 5) {
+                            applyOpacityValidation(input);
+                            applyConditionalFormatting(input, 'opacity');
+                        } else if (j === 6) {
+                            applyCOFValidation(input);
+                            applyConditionalFormatting(input, 'cof');
+                        } else if (j === 7) {
+                            applyCutWidthValidation(input);
+                            applyConditionalFormatting(input, 'cutWidth');
+                        } else if (j === 8) {
+                            applyColorDeltaValidation(input);
+                            applyConditionalFormatting(input, 'colorDelta');
+                        } else if (j === 9) {
+                            applyColorDeltaValidation(input);
+                            applyConditionalFormatting(input, 'colorDelta');
+                        }
                     }
                     
-                    // Apply specific validation to Thickness column (Page 1, column 4)
-                    if (tableBody.id === 'testingTableBody' && j === 4) {
-                        applyThicknessValidation(input);
-                    }
-                    
-                    // Apply specific validation to Opacity column (Page 1, column 5)
-                    if (tableBody.id === 'testingTableBody' && j === 5) {
-                        applyOpacityValidation(input);
-                    }
-                    
-                    // Apply specific validation to COF Kinetic column (Page 1, column 6)
-                    if (tableBody.id === 'testingTableBody' && j === 6) {
-                        applyCOFValidation(input);
-                    }
-                    
-                    // Apply specific validation to Cut Width column (Page 1, column 7)
-                    if (tableBody.id === 'testingTableBody' && j === 7) {
-                        applyCutWidthValidation(input);
-                    }
-                    
-                    // Apply specific validation to Color-Delta E Unprinted column (Page 1, column 8)
-                    if (tableBody.id === 'testingTableBody' && j === 8) {
-                        applyColorDeltaValidation(input);
-                    }
-                    
-                    // Apply specific validation to Color-Delta E Printed column (Page 1, column 9)
-                    if (tableBody.id === 'testingTableBody' && j === 9) {
-                        applyColorDeltaValidation(input);
-                    }
-                    
-                    // Page 2 validations
+                    // Page 2 validations and conditional formatting
                     if (isPage2) {
                         // Elongation MD columns (000 format)
                         if (j === 3 || j === 4 || j === 5) {
                             applyThreeDigitValidation(input);
+                            applyConditionalFormatting(input, 'elongationMD');
                         }
                         // Force MD columns (00.0 format)
                         if (j === 7 || j === 8 || j === 9) {
                             applyTwoDigitOneDecimalValidation(input);
+                            applyConditionalFormatting(input, 'forceMD');
                         }
                         // Force 5% MD columns (0.0 format)
                         if (j === 11 || j === 12 || j === 13) {
                             applyOneDigitOneDecimalValidation(input);
+                            applyConditionalFormatting(input, 'force5pMD');
                         }
                     }
                     
-                    // Page 3 validations
+                    // Page 3 validations and conditional formatting
                     // Elongation CD columns (000 format)
                     if (tableBody.id === 'testingTableBody3' && (j === 3 || j === 4 || j === 5)) {
                         applyThreeDigitValidation(input);
+                        applyConditionalFormatting(input, 'elongationCD');
                     }
                     // Force CD columns (00.0 format)
                     if (tableBody.id === 'testingTableBody3' && (j === 7 || j === 8 || j === 9)) {
                         applyTwoDigitOneDecimalValidation(input);
+                        applyConditionalFormatting(input, 'forceCD');
                     }
                     // Modulus columns (00.0 format)
                     if (tableBody.id === 'testingTableBody3' && (j === 11 || j === 12 || j === 13)) {
                         applyTwoDigitOneDecimalValidation(input);
+                        applyConditionalFormatting(input, 'modulus');
                     }
                     
-                    // Page 4 validations
+                    // Page 4 validations and conditional formatting
                     // Gloss columns (00.0 format)
                     if (tableBody.id === 'testingTableBody4' && (j === 3 || j === 4 || j === 5)) {
                         applyTwoDigitOneDecimalValidation(input);
+                        applyConditionalFormatting(input, 'gloss');
+                    }
+                    // PG Quality column
+                    if (tableBody.id === 'testingTableBody4' && j === 7) {
+                        applyConditionalFormatting(input, 'pgQuality');
+                        applyPGQualityValidation(input);
                     }
                     
                     // Add event listener for automatic average calculation
@@ -2041,9 +2679,7 @@ document.addEventListener('DOMContentLoaded', function() {
            // Save the updated table state to database after deleting rows
            
            // Force immediate save to ensure deleted data is removed from database
-           setTimeout(() => {
-               debouncedSave();
-           }, 100);
+           debouncedSave();
            
            // Clear cache since table structure changed
            clearTableCache(tableBody);
@@ -4144,12 +4780,124 @@ document.addEventListener('DOMContentLoaded', function() {
                 applyThicknessValidation(input);
             });
         }
+
+        // Apply PG Quality validation (Page 4, column 7) - Only 0 or 1 allowed
+        function applyPGQualityValidation(input) {
+            input.addEventListener('keydown', function(e) {
+                // Allow: backspace, delete, tab, escape, enter, home, end, left, right
+                if ([8, 9, 27, 13, 46, 35, 36, 37, 39].indexOf(e.keyCode) !== -1 ||
+                    // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                    (e.keyCode === 65 && e.ctrlKey === true) ||
+                    (e.keyCode === 67 && e.ctrlKey === true) ||
+                    (e.keyCode === 86 && e.ctrlKey === true) ||
+                    (e.keyCode === 88 && e.ctrlKey === true)) {
+                    return;
+                }
+                
+                // Only allow 0 or 1, and only if field is empty
+                if ((e.key === '0' || e.key === '1') && this.value === '') {
+                    return;
+                }
+                
+                e.preventDefault();
+            });
+            
+            input.addEventListener('input', function() {
+                let value = this.value;
+                
+                // Only allow single digit 0 or 1
+                if (value === '0' || value === '1') {
+                    this.value = value;
+                } else {
+                    // Clear any invalid input
+                    this.value = '';
+                }
+                
+                // Trigger conditional formatting
+                applyColorFormatting(this, 'pgQuality');
+            });
+            
+            input.addEventListener('blur', function() {
+                let value = this.value;
+                
+                // Only allow single digit 0 or 1
+                if (value === '0' || value === '1') {
+                    this.value = value;
+                } else {
+                    this.value = '';
+                }
+                
+                // Trigger conditional formatting
+                applyColorFormatting(this, 'pgQuality');
+            });
+        }
+
+        // Apply conditional formatting to ALL columns across ALL pages
+        function applyConditionalFormattingToAllColumns() {
+            // Page 1
+            const page1Columns = [
+                { tableBody: testingTableBody, columnIndex: 3, columnType: 'basicWeight' },
+                { tableBody: testingTableBody, columnIndex: 4, columnType: 'thickness' },
+                { tableBody: testingTableBody, columnIndex: 5, columnType: 'opacity' },
+                { tableBody: testingTableBody, columnIndex: 6, columnType: 'cof' },
+                { tableBody: testingTableBody, columnIndex: 7, columnType: 'cutWidth' },
+                { tableBody: testingTableBody, columnIndex: 8, columnType: 'colorDelta' },
+                { tableBody: testingTableBody, columnIndex: 9, columnType: 'colorDelta' }
+            ];
+            
+            // Page 2
+            const page2Columns = [
+                { tableBody: testingTableBody2, columnIndex: 3, columnType: 'elongationMD' },
+                { tableBody: testingTableBody2, columnIndex: 4, columnType: 'elongationMD' },
+                { tableBody: testingTableBody2, columnIndex: 5, columnType: 'elongationMD' },
+                { tableBody: testingTableBody2, columnIndex: 7, columnType: 'forceMD' },
+                { tableBody: testingTableBody2, columnIndex: 8, columnType: 'forceMD' },
+                { tableBody: testingTableBody2, columnIndex: 9, columnType: 'forceMD' },
+                { tableBody: testingTableBody2, columnIndex: 11, columnType: 'force5pMD' },
+                { tableBody: testingTableBody2, columnIndex: 12, columnType: 'force5pMD' },
+                { tableBody: testingTableBody2, columnIndex: 13, columnType: 'force5pMD' }
+            ];
+            
+            // Page 3
+            const page3Columns = [
+                { tableBody: testingTableBody3, columnIndex: 3, columnType: 'elongationCD' },
+                { tableBody: testingTableBody3, columnIndex: 4, columnType: 'elongationCD' },
+                { tableBody: testingTableBody3, columnIndex: 5, columnType: 'elongationCD' },
+                { tableBody: testingTableBody3, columnIndex: 7, columnType: 'forceCD' },
+                { tableBody: testingTableBody3, columnIndex: 8, columnType: 'forceCD' },
+                { tableBody: testingTableBody3, columnIndex: 9, columnType: 'forceCD' },
+                { tableBody: testingTableBody3, columnIndex: 11, columnType: 'modulus' },
+                { tableBody: testingTableBody3, columnIndex: 12, columnType: 'modulus' },
+                { tableBody: testingTableBody3, columnIndex: 13, columnType: 'modulus' }
+            ];
+            
+            // Page 4
+            const page4Columns = [
+                { tableBody: testingTableBody4, columnIndex: 3, columnType: 'gloss' },
+                { tableBody: testingTableBody4, columnIndex: 4, columnType: 'gloss' },
+                { tableBody: testingTableBody4, columnIndex: 5, columnType: 'gloss' },
+                { tableBody: testingTableBody4, columnIndex: 7, columnType: 'pgQuality' }
+            ];
+            
+            // Apply to all pages
+            [...page1Columns, ...page2Columns, ...page3Columns, ...page4Columns].forEach(({ tableBody, columnIndex, columnType }) => {
+                applyConditionalFormattingToColumn(tableBody, columnIndex, columnType);
+            });
+        }
         
         // Apply validation to existing opacity inputs (Page 1, column 5)
         function applyValidationToExistingOpacityInputs() {
             const opacityInputs = testingTableBody.querySelectorAll('tr td:nth-child(6) input');
             opacityInputs.forEach(input => {
                 applyOpacityValidation(input);
+            });
+        }
+
+        // Apply validation to existing PG Quality inputs (Page 4, column 7)
+        function applyValidationToExistingPGQualityInputs() {
+            const pgQualityInputs = testingTableBody4.querySelectorAll('tr td:nth-child(8) input');
+            pgQualityInputs.forEach(input => {
+                applyPGQualityValidation(input);
             });
         }
         
@@ -4231,6 +4979,108 @@ document.addEventListener('DOMContentLoaded', function() {
             const glossInputs = testingTableBody4.querySelectorAll('tr td:nth-child(4) input, tr td:nth-child(5) input, tr td:nth-child(6) input');
             glossInputs.forEach(input => {
                 applyTwoDigitOneDecimalValidation(input);
+            });
+        }
+
+        // Unified conditional formatting system
+        function applyConditionalFormatting(input, columnType) {
+            // Add event listeners
+            input.addEventListener('input', function() {
+                applyColorFormatting(this, columnType);
+            });
+            
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    applyColorFormatting(this, columnType);
+                }
+            });
+            
+            // Apply formatting immediately
+            applyColorFormatting(input, columnType);
+        }
+
+        function applyColorFormatting(input, columnType) {
+            const value = parseFloat(input.value);
+            
+            // Remove existing color classes and inline styles
+            input.classList.remove('text-red-600', 'bg-red-50', 'border-red-300');
+            input.style.color = '';
+            input.style.backgroundColor = '';
+            input.style.borderColor = '';
+            input.style.borderWidth = '';
+            input.style.borderStyle = '';
+            
+        // Apply red formatting based on column type
+        let shouldHighlight = false;
+        
+        switch(columnType) {
+            // Page 1
+            case 'basicWeight':
+                shouldHighlight = !isNaN(value) && (value < 14 || value > 18);
+                break;
+            case 'thickness':
+                shouldHighlight = !isNaN(value) && (value < 0.025 || value > 0.035);
+                break;
+            case 'opacity':
+                shouldHighlight = !isNaN(value) && (value < 45.0 || value > 55.0);
+                break;
+            case 'cof':
+                shouldHighlight = !isNaN(value) && (value < 0.20 || value > 0.60);
+                break;
+            case 'cutWidth':
+                shouldHighlight = !isNaN(value) && (value < 166 || value > 170);
+                break;
+            case 'colorDelta':
+                shouldHighlight = !isNaN(value) && value > 4.00;
+                break;
+            // Page 2
+            case 'elongationMD':
+                shouldHighlight = !isNaN(value) && (value < 350 || value > 450);
+                break;
+            case 'forceMD':
+                shouldHighlight = !isNaN(value) && (value < 9.0 || value > 12.0);
+                break;
+            case 'force5pMD':
+                shouldHighlight = !isNaN(value) && (value < 2.5 || value > 5.5);
+                break;
+            // Page 3
+            case 'elongationCD':
+                shouldHighlight = !isNaN(value) && (value < 400 || value > 500);
+                break;
+            case 'forceCD':
+                shouldHighlight = !isNaN(value) && (value < 6.0 || value > 9.0);
+                break;
+            case 'modulus':
+                shouldHighlight = !isNaN(value) && (value < 20.0 || value > 40.0);
+                break;
+            // Page 4
+            case 'gloss':
+                shouldHighlight = !isNaN(value) && (value < 9.0 || value > 11.0);
+                break;
+            case 'pgQuality':
+                shouldHighlight = !isNaN(value) && (value !== 0 && value !== 1);
+                break;
+        }
+        
+        if (shouldHighlight) {
+            // Use inline styles for disabled inputs to ensure visibility
+            if (input.disabled || input.readOnly) {
+                input.style.color = '#dc2626'; // red-600
+                input.style.backgroundColor = '#fef2f2'; // red-50
+                input.style.borderColor = '#fca5a5'; // red-300
+                input.style.borderWidth = '1px';
+                input.style.borderStyle = 'solid';
+            } else {
+                input.classList.add('text-red-600', 'bg-red-50', 'border-red-300');
+            }
+        }
+        }
+
+        // Apply conditional formatting to ALL inputs in a column
+        function applyConditionalFormattingToColumn(tableBody, columnIndex, columnType) {
+            const inputs = tableBody.querySelectorAll(`tr td:nth-child(${columnIndex + 1}) input`);
+            inputs.forEach(input => {
+                applyConditionalFormatting(input, columnType);
             });
         }
         
