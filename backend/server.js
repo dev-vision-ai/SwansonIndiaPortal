@@ -158,7 +158,7 @@ app.get('/export', async (req, res) => {
     }
 
     // 2. Load the client's Excel template
-    const templatePath = path.join(__dirname, 'templates', 'Inline_inspection_form.xlsx');
+    const templatePath = path.join(__dirname, 'templates', 'Inline-inspection-form.xlsx');
     console.log('Template path:', templatePath);
     
     // Check if template file exists
@@ -1212,7 +1212,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     });
 
     // 2. Try to load the actual template with better error handling
-    const templatePath = path.join(__dirname, 'templates', '168_16cp_kranti.xlsx');
+    const templatePath = path.join(__dirname, 'templates', '168-16cp-kranti.xlsx');
     console.log('Template path:', templatePath);
     console.log('__dirname:', __dirname);
     console.log('Full path:', path.resolve(templatePath));

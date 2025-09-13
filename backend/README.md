@@ -62,6 +62,6 @@ backend/
 ├── server.js          # Main server file
 ├── package.json       # Dependencies
 ├── templates/         # Excel templates
-│   └── Inline_inspection_form.xlsx
+│   └── Inline-inspection-form.xlsx
 └── README.md         # This file
 ``` 

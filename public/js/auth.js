@@ -120,7 +120,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         if (username.includes('shift-a') || username.includes('shift-b') || username.includes('shift-c')) {
             console.log("Shift user detected. Redirecting directly to inline inspection form.");
             const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
-            window.location.href = `${basePath}/html/inline_inspection_form.html`;
+            window.location.href = `${basePath}/html/inline-inspection-form.html`;
             return; // Skip all other redirection logic
         }
 
@@ -146,16 +146,16 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
             // Update the string here to match the database value
             if (department === 'Human Resources') { 
                 console.log("Department matches 'Human Resources'. Redirecting to admin_adhr."); 
-                window.location.href = `${basePath}/html/admin_adhr.html`; 
+                window.location.href = `${basePath}/html/admin-adhr.html`; 
             } else if (department === 'Quality Assurance') {
                 console.log("Department matches 'Quality Assurance'. Redirecting to admin_qa."); // Log successful match
-                window.location.href = `${basePath}/html/admin_qa.html`;
+                window.location.href = `${basePath}/html/admin-qa.html`;
             } else if (department === 'IQA') { // <-- Add this else if block
                 console.log("Department matches 'IQA'. Redirecting to admin_iqa."); 
-                window.location.href = `${basePath}/html/admin_iqa.html`;
+                window.location.href = `${basePath}/html/admin-iqa.html`;
             } else if (department === 'QC' || department === 'Quality Control') {
                 console.log("Department matches 'QC' or 'Quality Control'. Redirecting to admin_qc.");
-                window.location.href = `${basePath}/html/admin_qc.html`;
+                window.location.href = `${basePath}/html/admin-qc.html`;
             } else {
                 // Fallback for admins with unexpected departments
                 console.warn("Admin user has an unrecognized department:", department);
@@ -166,7 +166,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         } else {
             // User is not an admin (is_admin is FALSE or null)
             console.log("User is not admin. Redirecting to dashboard."); // Log non-admin redirect
-            window.location.href = `${basePath}/html/employee_dashboard.html`;
+            window.location.href = `${basePath}/html/employee-dashboard.html`;
         }
 
     } catch (error) {

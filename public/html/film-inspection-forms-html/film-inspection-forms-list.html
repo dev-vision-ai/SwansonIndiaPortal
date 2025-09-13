@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Film Inspection Forms</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="../../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../../css/common-header.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+        }
+        
+        /* Optimized font size for all modal content */
+        #filmInspectionFormOverlay label {
+            font-size: 11px !important;
+            font-weight: 500 !important;
+        }
+        #filmInspectionFormOverlay input, #filmInspectionFormOverlay select {
+            font-size: 11px !important;
+            padding: 0.25rem 0.5rem !important;
+            height: 2rem !important;
+        }
+        #filmInspectionFormOverlay .space-y-4 > * + * {
+            margin-top: 0.75rem !important;
+        }
+        #filmInspectionFormOverlay .gap-4 {
+            gap: 0.75rem !important;
+        }
+        #filmInspectionFormOverlay .mb-4 {
+            margin-bottom: 0.75rem !important;
+        }
+        #filmInspectionFormOverlay .gap-6 {
+            gap: 0.75rem !important;
+        }
+        #filmInspectionFormOverlay .mb-6 {
+            margin-bottom: 0.75rem !important;
+        }
+        #filmInspectionFormOverlay #productSuggestions {
+            font-size: 11px !important;
+        }
+        #filmInspectionFormOverlay #productSuggestions .suggestion-item {
+            padding: 0.25rem 0.5rem !important;
+            font-size: 11px !important;
+        }
+        #preStoreFormOverlay label {
+            font-size: 12px !important;
+            font-weight: 500 !important;
+        }
+        #preStoreFormOverlay input, #preStoreFormOverlay select {
+            font-size: 12px !important;
+            padding: 0.3rem 0.5rem !important;
+            height: 2rem !important;
+        }
+        #preStoreFormOverlay .p-4 label {
+            font-size: 12px !important;
+        }
+        #preStoreFormOverlay .p-4 .block {
+            font-size: 12px !important;
+        }
+        #preStoreFormOverlay .p-4 input[type="radio"] + label {
+            font-size: 12px !important;
+        }
+        #preStoreFormOverlay .mb-1 {
+            margin-bottom: 0.25rem !important;
+        }
+        #preStoreFormOverlay .mb-2 {
+            margin-bottom: 0.4rem !important;
+        }
+        #preStoreFormOverlay .mb-3 {
+            margin-bottom: 0.6rem !important;
+        }
+        #preStoreFormOverlay h3 {
+            font-size: 16px !important;
+        }
+        #preStoreFormOverlay .text-sm {
+            font-size: 11px !important;
+        }
+        html, body {
+            overflow-y: auto;
+        }
+        
+        /* Ensure word wrap for all text content across the entire form */
+        * {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
+        
+        /* Specific word wrap for table cells */
+        table, th, td {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
+        
+        /* Word wrap for input fields */
+        input, textarea, select {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
+        
+        /* Word wrap for labels and text content */
+        label, span, div, p, h1, h2, h3, h4, h5, h6 {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
+    <div class="header-container">
+        <button type="button" class="header-back-button" onclick="window.location.href='../../html/employee-dashboard.html'">Back</button>
+        <div class="header-title">All Film Inspection Forms</div>
+        <div class="company-logo">
+            <img src="../../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Overlay -->
+    <div id="deleteConfirmationOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <h3 id="deleteConfirmationTitle" class="text-lg font-medium text-gray-900 mb-2">Confirm Deletion</h3>
+                <p id="deleteConfirmationMessage" class="text-sm text-gray-500 mb-6">Are you sure you want to delete this form?</p>
+                <div class="flex justify-center space-x-3">
+                    <button id="cancelDeleteBtn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancel
+                    </button>
+                    <button id="confirmDeleteBtn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Final Delete Warning Overlay -->
+    <div id="finalDeleteWarningOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">⚠️ FINAL WARNING</h3>
+                <p class="text-sm text-gray-500 mb-6">This action cannot be undone. Are you absolutely sure you want to delete this form?</p>
+                <div class="flex justify-center space-x-3">
+                    <button id="cancelFinalDeleteBtn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancel
+                    </button>
+                    <button id="confirmFinalDeleteBtn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Delete Permanently
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Password Confirmation Modal for Delete -->
+    <div id="passwordConfirmModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Confirm Deletion</h3>
+                <p class="text-sm text-gray-500 mb-4">Please enter your password to confirm deletion of this form.</p>
+                
+                <div class="mb-4">
+                    <div class="relative">
+                        <input type="password" id="deletePasswordInput" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Enter your password">
+                        <button type="button" id="togglePasswordVisibility" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <i class="fas fa-eye text-gray-400 hover:text-gray-600"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center space-x-3">
+                    <button id="cancelDeleteButton" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancel
+                    </button>
+                    <button id="confirmDeleteButton" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overlay for Film Inspection Form -->
+    <div id="filmInspectionFormOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
+      <main class="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-3 md:p-4 flex flex-col items-center max-h-[85vh] overflow-y-auto relative mt-16">
+        <button id="closeFilmInspectionFormOverlay" class="absolute top-3 right-3 text-xl text-red-500 hover:text-red-700 font-bold bg-white rounded-full w-8 h-8 flex items-center justify-center shadow transition">&times;</button>
+            <div class="w-full p-2 md:p-3">
+                <h3 class="text-lg font-bold text-gray-800 mb-3 text-center">Film Inspection Form Details</h3>
+                <div class="bg-[#002E7D] h-1 w-20 mx-auto rounded mb-3"></div>
+                <form id="filmInspectionForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <div class="relative">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Product Code <span class="text-red-500">*</span>:</label>
+                            <input type="text" name="product_code" id="product_code" class="w-full h-8 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-xs bg-gray-50" placeholder="Enter product code" autocomplete="off">
+                            <div id="productSuggestions" class="absolute z-50 w-full border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto hidden text-xs" style="background: #eaf4fb;"></div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Customer <span class="text-red-500">*</span>:</label>
+                            <input type="text" name="customer" id="customer" class="w-full h-8 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-xs bg-gray-50" placeholder="Autofilled" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Specification <span class="text-red-500">*</span>:</label>
+                            <input type="text" name="specification" id="specification" class="w-full h-8 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-xs bg-gray-50" placeholder="Autofilled" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Film Inspection Form Ref No:</label>
+                            <input type="text" name="ref_no" class="w-full h-8 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-xs bg-gray-50" placeholder="Enter Ref. No" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Production Date <span class="text-red-500">*</span>:</label>
+                            <input type="date" name="production_date" class="w-full h-8 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-xs bg-gray-50" autocomplete="off">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Inspection Date <span class="text-red-500">*</span>:</label>
+                            <input type="date" name="inspection_date" class="w-full h-8 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-xs bg-gray-50" autocomplete="off">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Machine No. <span class="text-red-500">*</span>:</label>
+                            <select name="machine_no" class="w-full h-8 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-xs bg-gray-50" autocomplete="off">
+                                <option value="">Select Machine</option>
+                                <option value="01">01</option>
+                                <option value="02">02</option>
+                                <option value="03">03</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">P.I. No.:</label>
+                            <input type="text" name="production_order" class="w-full h-8 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-xs bg-gray-50" placeholder="Enter Prod. Order" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="flex justify-center gap-3 pt-3">
+                        <button type="button" id="clearFilmInspectionForm" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                            Clear Form
+                        </button>
+                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                            Create Film Inspection Form
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Overlay for Edit Film Inspection Form Details -->
+    <div id="editFilmInspectionFormOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
+      <main class="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-3 md:p-4 flex flex-col items-center max-h-[85vh] overflow-y-auto relative mt-16">
+        <button id="closeEditFilmInspectionFormOverlay" class="absolute top-3 right-3 text-xl text-red-500 hover:text-red-700 font-bold bg-white rounded-full w-8 h-8 flex items-center justify-center shadow transition">&times;</button>
+            <div class="w-full p-2 md:p-3">
+                <h3 class="text-lg font-bold text-gray-800 mb-3 text-center">Edit Film Inspection Form Details</h3>
+                <div class="bg-[#002E7D] h-1 w-20 mx-auto rounded mb-3"></div>
+                <form id="editFilmInspectionForm" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <div class="relative">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Product Code <span class="text-red-500">*</span>:</label>
+                            <input type="text" name="product_code" id="edit_product_code" class="w-full h-8 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-xs bg-gray-50" placeholder="Enter product code" autocomplete="off">
+                            <div id="editProductSuggestions" class="absolute z-50 w-full border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto hidden text-xs" style="background: #eaf4fb;"></div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Customer <span class="text-red-500">*</span>:</label>
+                            <input type="text" name="customer" id="edit_customer" class="w-full h-8 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-xs bg-gray-50" placeholder="Autofilled" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Specification <span class="text-red-500">*</span>:</label>
+                            <input type="text" name="specification" id="edit_specification" class="w-full h-8 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-xs bg-gray-50" placeholder="Autofilled" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Film Inspection Form Ref No:</label>
+                            <input type="text" name="ref_no" id="edit_ref_no" class="w-full h-8 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-xs bg-gray-50" placeholder="Enter Ref. No" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Production Date <span class="text-red-500">*</span>:</label>
+                            <input type="date" name="production_date" id="edit_production_date" class="w-full h-8 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-xs bg-gray-50" autocomplete="off">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Inspection Date <span class="text-red-500">*</span>:</label>
+                            <input type="date" name="inspection_date" id="edit_inspection_date" class="w-full h-8 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-xs bg-gray-50" autocomplete="off">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Machine No. <span class="text-red-500">*</span>:</label>
+                            <select name="machine_no" id="edit_machine_no" class="w-full h-8 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-xs bg-gray-50" autocomplete="off">
+                                <option value="">Select Machine</option>
+                                <option value="01">01</option>
+                                <option value="02">02</option>
+                                <option value="03">03</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">P.I. No.:</label>
+                            <input type="text" name="production_order" id="edit_production_order" class="w-full h-8 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-xs bg-gray-50" placeholder="Enter Prod. Order" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="flex justify-center gap-3 pt-3">
+                        <button type="button" id="clearEditFilmInspectionForm" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                            Clear Form
+                        </button>
+                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                            Update Film Inspection Form
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create Film Inspection Form Button -->
+    <div class="flex justify-center w-full mt-16 mb-1">
+      <button id="showFilmInspectionFormOverlay" type="button" class="bg-[#002E7D] hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow text-base transition-all duration-200">
+        + Create Film Inspection Form
+      </button>
+    </div>
+
+    <!-- Filter Section -->
+    <div id="filterSection" class="w-full flex justify-center mt-4 mb-2">
+      <div id="filterContainer" class="bg-white rounded-lg shadow-md p-2">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex-1"></div>
+          <h3 class="text-xs font-semibold text-gray-800 text-center flex-1">Find / Filter Forms</h3>
+          <div class="flex items-center space-x-2 flex-1 justify-end">
+            <span class="text-sm text-gray-600">Filter Status:</span>
+            <span id="filterStatus" class="px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700">
+              Off
+            </span>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end justify-center gap-2">
+          <!-- Date Range -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-semibold text-gray-700 mb-0.5">From Date:</label>
+            <input type="date" id="filterFromDate" class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+          </div>
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-semibold text-gray-700 mb-0.5">To Date:</label>
+            <input type="date" id="filterToDate" class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+          </div>
+          <!-- Product Filter -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Product:</label>
+            <select id="filterProduct" class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+              <option value="">All</option>
+            </select>
+          </div>
+          <!-- Machine Filter -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-semibold text-gray-700 mb-0.5">M/C No:</label>
+            <select id="filterMachine" class="w-16 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+              <option value="">All</option>
+            </select>
+          </div>
+          <!-- Specification Filter -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Specification:</label>
+            <select id="filterSpecification" class="w-28 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+              <option value="">All</option>
+            </select>
+          </div>
+          <!-- Prepared By Filter -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Prepared By:</label>
+            <select id="filterPreparedBy" class="w-28 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+              <option value="">All</option>
+            </select>
+          </div>
+          <!-- Filter Buttons -->
+          <div class="flex flex-col items-center">
+            <div class="h-4"></div> <!-- Spacer to align with inputs -->
+            <div class="flex space-x-2">
+              <button id="clearFilter" class="w-12 h-6 bg-gray-500 text-white text-xs font-semibold rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                Clear
+                </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Pre-Store Form Modal Overlay -->
+    <style>
+        /* Hide number input spinner arrows */
+        #standard-packing-modal::-webkit-outer-spin-button,
+        #standard-packing-modal::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+          <div id="preStoreFormOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden" style="padding-top: 52px;">
+        <main class="w-full max-w-4xl bg-white shadow-2xl p-3 md:p-4 flex flex-col items-center max-h-[90vh] overflow-y-auto relative z-50">
+            <button id="closePreStoreFormOverlay" class="absolute top-2 right-2 text-lg text-red-500 hover:text-red-700 font-bold bg-white rounded-full w-7 h-7 flex items-center justify-center shadow transition">&times;</button>
+            <div class="w-full p-2">
+                <h3 class="text-lg font-bold text-gray-800 mb-2 text-center">Pre-Store Inspection Form</h3>
+                <div class="bg-[#002E7D] h-1 w-16 mx-auto rounded mb-3"></div>
+                <form id="preStoreFormModal" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-2 gap-y-1">
+                    <!-- Row with 4 equal fields: Production Instruction, Product Code, Specification, Pallet Size -->
+                    <div class="col-span-full grid grid-cols-4 gap-2">
+                        <div>
+                            <label for="production-order-modal" class="block text-sm font-medium text-gray-700 mb-1">Production Instruction (PI) No. <span class="text-red-500">*</span></label>
+                            <input id="production-order-modal" name="production_order" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="product-code-modal" class="block text-sm font-medium text-gray-700 mb-1">Product Name <span class="text-red-500">*</span></label>
+                            <select id="product-code-modal" name="product-code" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                                <option value="">Select Product Name</option>
+                                <option>WHITE-234(18)</option>
+                                <option>APE-176(18)CP(LCC+WW)BS</option>
+                                <option>APE-168(18)CP(KRANTI)</option>
+                                <option>APE-168(18)C</option>
+                                <option>WHITE-214(18)</option>
+                                <option>APE-168(16)CP(KRANTI)</option>
+                                <option>APE-168(16)C</option>
+                                <option>APE-102(18)C</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="specification-modal" class="block text-sm font-medium text-gray-700 mb-1">Specification <span class="text-red-500">*</span></label>
+                            <input id="specification-modal" name="specification" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="pallet-size-modal" class="block text-sm font-medium text-gray-700 mb-1">Pallet Size <span class="text-red-500">*</span></label>
+                            <input id="pallet-size-modal" name="pallet-size" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                        </div>
+                    </div>
+                    
+                    <!-- Row with 4 equal fields: Customer, Location, Machine No, Quantity -->
+                    <div class="col-span-full grid grid-cols-4 gap-2">
+                        <div>
+                            <label for="customer-modal" class="block text-sm font-medium text-gray-700 mb-1">Customer <span class="text-red-500">*</span></label>
+                            <input id="customer-modal" name="customer" type="text" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Customer" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="location-modal" class="block text-sm font-medium text-gray-700 mb-1">Location <span class="text-red-500">*</span></label>
+                            <input id="location-modal" name="location" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="machine-no-modal" class="block text-sm font-medium text-gray-700 mb-1">Machine No. <span class="text-red-500">*</span></label>
+                            <input id="machine-no-modal" name="machine_no" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Select Machine" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="quantity-modal" class="block text-sm font-medium text-gray-700 mb-1">Quantity (Rolls) <span class="text-red-500">*</span></label>
+                            <div class="flex rounded-md shadow-sm">
+                                <input id="quantity-modal" name="quantity" type="text" required class="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                                <span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-200 text-gray-500 text-sm">Rolls</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Row with 4 equal fields: Production Date, Inspection Date, Standard Packing, Batch -->
+                    <div class="col-span-full grid grid-cols-4 gap-2">
+                        <div>
+                            <label for="production-date-modal" class="block text-sm font-medium text-gray-700 mb-1">Production Date <span class="text-red-500">*</span></label>
+                            <input type="date" id="production-date-modal" name="production-date" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="inspection-date-modal" class="block text-sm font-medium text-gray-700 mb-1">Inspection Date <span class="text-red-500">*</span></label>
+                            <input type="date" id="inspection-date-modal" name="inspection-date" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="standard-packing-modal" class="block text-sm font-medium text-gray-700 mb-1">Standard Packing <span class="text-red-500">*</span></label>
+                            <div class="flex rounded-md shadow-sm">
+                                <input id="standard-packing-modal" name="standard-packing" type="number" min="1" required class="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter number" style="appearance: textfield; -moz-appearance: textfield;" autocomplete="off">
+                                <select id="standard-packing-unit-modal" name="standard-packing-unit" class="px-3 py-2 border border-l-0 border-gray-300 bg-gray-200 text-gray-700 text-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] rounded-r-md" autocomplete="off">
+                                    <option value="Rolls / Pallet" selected>Rolls / Pallet</option>
+                                    <option value="Rolls / Box">Rolls / Box</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="batch-modal" class="block text-sm font-medium text-gray-700 mb-1">Batch <span class="text-red-500">*</span></label>
+                            <input id="batch-modal" name="batch" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Batch" autocomplete="off">
+                        </div>
+                    </div>
+                    
+                    <!-- Row with 4 equal fields: Reference No, Pre-store Inspection Done By, Empty, Empty -->
+                    <div class="col-span-full grid grid-cols-4 gap-2">
+                        <div>
+                            <label for="ref-no-modal" class="block text-sm font-medium text-gray-700 mb-1">Reference No</label>
+                            <input id="ref-no-modal" name="ref_no" type="text" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Reference No" autocomplete="off">
+                        </div>
+                        <div class="relative">
+                            <label for="prestore-done-by-modal" class="block text-sm font-medium text-gray-700 mb-1">Pre-store Inspection Done By: <span class="text-red-500">*</span></label>
+                            <input id="prestore-done-by-modal" name="prestore_done_by" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Type to search inspector name..." autocomplete="off">
+                            <div id="prestoreDoneBySuggestions" class="absolute z-50 w-full border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden" style="background: #eaf4fb;"></div>
+                        </div>
+                        <div>
+                            <!-- Empty field for consistent grid layout -->
+                        </div>
+                        <div>
+                            <!-- Empty field for consistent grid layout -->
+                        </div>
+                    </div>
+                    
+                    <!-- Remaining fields in normal grid -->
+                    <div class="col-span-full mt-3 p-3 border border-gray-200 rounded-md shadow-sm">
+                        <h3 class="text-base font-medium leading-6 text-gray-900 mb-2">Palletized Finished Goods Status</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                        <div class="p-3 bg-gray-50 rounded-lg shadow-sm">
+                            <label class="block text-xs font-medium text-gray-700 mb-2">Pallet List</label>
+                            <div class="flex space-x-3">
+                                <div class="flex items-center">
+                                    <input id="pallet-list-accept-modal" name="pallet-list" type="radio" value="Accept" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="pallet-list-accept-modal" class="ml-1 block text-xs text-gray-900">Accept</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="pallet-list-reject-modal" name="pallet-list" type="radio" value="Reject" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="pallet-list-reject-modal" class="ml-1 block text-xs text-gray-900">Reject</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="pallet-list-n-a-modal" name="pallet-list" type="radio" value="N/A" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="pallet-list-n-a-modal" class="ml-1 block text-xs text-gray-900">N/A</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg shadow-sm">
+                            <label class="block text-xs font-medium text-gray-700 mb-2">Product Identification Label</label>
+                            <div class="flex space-x-3">
+                                <div class="flex items-center">
+                                    <input id="product-label-accept-modal" name="product-label" type="radio" value="Accept" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="product-label-accept-modal" class="ml-1 block text-xs text-gray-900">Accept</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="product-label-reject-modal" name="product-label" type="radio" value="Reject" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="product-label-reject-modal" class="ml-1 block text-xs text-gray-900">Reject</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="product-label-n-a-modal" name="product-label" type="radio" value="N/A" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="product-label-n-a-modal" class="ml-1 block text-xs text-gray-900">N/A</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg shadow-sm">
+                            <label class="block text-xs font-medium text-gray-700 mb-2">Wrapping Done Properly</label>
+                            <div class="flex space-x-3">
+                                <div class="flex items-center">
+                                    <input id="wrapping-accept-modal" name="wrapping" type="radio" value="Accept" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="wrapping-accept-modal" class="ml-1 block text-xs text-gray-900">Accept</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="wrapping-reject-modal" name="wrapping" type="radio" value="Reject" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="wrapping-reject-modal" class="ml-1 block text-xs text-gray-900">Reject</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="wrapping-n-a-modal" name="wrapping" type="radio" value="N/A" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="wrapping-n-a-modal" class="ml-1 block text-xs text-gray-900">N/A</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg shadow-sm">
+                            <label class="block text-xs font-medium text-gray-700 mb-2">Layer Pad</label>
+                            <div class="flex space-x-3">
+                                <div class="flex items-center">
+                                    <input id="layer-pad-accept-modal" name="layer-pad" type="radio" value="Accept" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="layer-pad-accept-modal" class="ml-1 block text-xs text-gray-900">Accept</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="layer-pad-reject-modal" name="layer-pad" type="radio" value="Reject" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="layer-pad-reject-modal" class="ml-1 block text-xs text-gray-900">Reject</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="layer-pad-n-a-modal" name="layer-pad" type="radio" value="N/A" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="layer-pad-n-a-modal" class="ml-1 block text-xs text-gray-900">N/A</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg shadow-sm">
+                            <label class="block text-xs font-medium text-gray-700 mb-2">No Contamination</label>
+                            <div class="flex space-x-3">
+                                <div class="flex items-center">
+                                    <input id="contamination-accept-modal" name="contamination" type="radio" value="Accept" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="contamination-accept-modal" class="ml-1 block text-xs text-gray-900">Accept</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="contamination-reject-modal" name="contamination" type="radio" value="Reject" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="contamination-reject-modal" class="ml-1 block text-xs text-gray-900">Reject</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="contamination-n-a-modal" name="contamination" type="radio" value="N/A" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="contamination-n-a-modal" class="ml-1 block text-xs text-gray-900">N/A</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg shadow-sm">
+                            <label class="block text-xs font-medium text-gray-700 mb-2">Kraft Paper</label>
+                            <div class="flex space-x-3">
+                                <div class="flex items-center">
+                                    <input id="kraft-paper-accept-modal" name="kraft-paper" type="radio" value="Accept" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="kraft-paper-accept-modal" class="ml-1 block text-xs text-gray-900">Accept</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="kraft-paper-reject-modal" name="kraft-paper" type="radio" value="Reject" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="kraft-paper-reject-modal" class="ml-1 block text-xs text-gray-900">Reject</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="kraft-paper-n-a-modal" name="kraft-paper" type="radio" value="N/A" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="kraft-paper-n-a-modal" class="ml-1 block text-xs text-gray-900">N/A</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg shadow-sm">
+                            <label class="block text-xs font-medium text-gray-700 mb-2">No Damage</label>
+                            <div class="flex space-x-3">
+                                <div class="flex items-center">
+                                    <input id="no-damage-accept-modal" name="no-damage" type="radio" value="Accept" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="no-damage-accept-modal" class="ml-1 block text-xs text-gray-900">Accept</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="no-damage-reject-modal" name="no-damage" type="radio" value="Reject" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="no-damage-reject-modal" class="ml-1 block text-xs text-gray-900">Reject</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="no-damage-n-a-modal" name="no-damage" type="radio" value="N/A" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="no-damage-n-a-modal" class="ml-1 block text-xs text-gray-900">N/A</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg shadow-sm">
+                            <label class="block text-xs font-medium text-gray-700 mb-2">Pallet</label>
+                            <div class="flex space-x-3">
+                                <div class="flex items-center">
+                                    <input id="pallet-accept-modal" name="pallet" type="radio" value="Accept" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="pallet-accept-modal" class="ml-1 block text-xs text-gray-900">Accept</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="pallet-reject-modal" name="pallet" type="radio" value="Reject" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="pallet-reject-modal" class="ml-1 block text-xs text-gray-900">Reject</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="pallet-n-a-modal" name="pallet" type="radio" value="N/A" class="focus:ring-indigo-500 h-3 w-3 text-indigo-600 border-gray-300">
+                                    <label for="pallet-n-a-modal" class="ml-1 block text-xs text-gray-900">N/A</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Remarks field -->
+                <div class="col-span-full">
+                    <label for="remarks-modal" class="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
+                    <textarea id="remarks-modal" name="remarks" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50 resize-none overflow-y-auto" style="height: 80px;" placeholder="Enter any additional remarks or notes" autocomplete="off"></textarea>
+                </div>
+
+                <div class="col-span-full flex justify-end">
+                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#002E7D] hover:bg-[#002E7D]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#002E7D]">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+    </div>
+    
+    <!-- Film Inspection Forms Table -->
+    <div class="w-full flex justify-center mt-4">
+      <div class="w-full overflow-x-auto">
+        <table class="w-full bg-white shadow-md rounded table-fixed text-xs">
+                    <thead>
+          <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center text-xs">
+            <th class="py-1 px-2 border-r border-gray-300 w-10 whitespace-normal break-words">Sr No</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Production Date</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Inspection Date</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-12 whitespace-normal break-words">M/C No</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-36 whitespace-normal break-words">Product</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-24 whitespace-normal break-words">Specification</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Prepared By</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Status</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-32 whitespace-normal break-words">Action</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Download</th>
+                        </tr>
+                    </thead>
+                    <tbody id="filmInspectionListTableBody">
+          <!-- Data rows will go here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <style>
+      /* Striped rows and hover for tbody - matching inline inspection */
+      table tbody tr { 
+        background-color: #ffffff; 
+        transition: background-color 0.2s ease;
+      }
+      table tbody tr:hover { 
+        background-color: #f8fafc; 
+        cursor: pointer;
+      }
+      table tbody tr { 
+        border-bottom: 1px solid #d1d5db; 
+      }
+      /* Enhanced separator lines */
+      table th { 
+        border-right: 1px solid #d1d5db; 
+        border-bottom: 1px solid #d1d5db;
+      }
+      table td { 
+        border-right: 1px solid #d1d5db; 
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        text-align: center;
+      }
+    </style>
+
+    <script type="module" src="../../supabase-config.js"></script>
+    <script type="module" src="../../js/film-inspection-forms-js/film-inspection-list.js"></script>
+</body>
+</html>
