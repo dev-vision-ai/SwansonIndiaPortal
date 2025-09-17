@@ -447,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
                    // Page 1: Convert to JSONB arrays for each column
                    // HTML: Sample No (colspan="3"), Basic Weight (GSM), Thickness, Opacity, COF, Cut Width, Color Delta Unprinted, Color Delta Printed
                    // HTML columns: 0(Sample No), 1(Basic Weight), 2(Thickness), 3(Opacity), 4(COF), 5(Cut Width), 6(Color Unprinted), 7(Color Printed)
-                   page1_basic_weight: convertColumnToJSONB(testingTableBody, 3), // Basic Weight (GSM) - HTML column 3
+                   page1_basis_weight: convertColumnToJSONB(testingTableBody, 3), // Basic Weight (GSM) - HTML column 3
                    page1_thickness: convertColumnToJSONB(testingTableBody, 4),   // Thickness - HTML column 4
                    page1_opacity: convertColumnToJSONB(testingTableBody, 5),     // Opacity - HTML column 5
                    page1_cof_kinetic: convertColumnToJSONB(testingTableBody, 6), // COF Kinetic - HTML column 6
@@ -1269,6 +1269,9 @@ document.addEventListener('DOMContentLoaded', function() {
                          loadTableDataFromDatabase(data);
                          loadEquipmentSelections(data);
                          loadPreStoreData(data);
+                         
+                         // Update equipment dropdown styling after data is loaded
+                         setTimeout(updateEquipmentDropdownStyling, 100);
                      }
                      
                      // Mark initial loading as complete
@@ -1483,7 +1486,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 // Load Page 1 data with conditional formatting
                 const page1Data = [
-                    { key: 'page1_basic_weight', inputIndex: 3, columnType: 'basicWeight' },
+                    { key: 'page1_basis_weight', inputIndex: 3, columnType: 'basicWeight' },
                     { key: 'page1_thickness', inputIndex: 4, columnType: 'thickness' },
                     { key: 'page1_opacity', inputIndex: 5, columnType: 'opacity' },
                     { key: 'page1_cof_kinetic', inputIndex: 6, columnType: 'cof' },
@@ -1675,7 +1678,7 @@ document.addEventListener('DOMContentLoaded', function() {
              if (dbData.lot_time) loadColumnDataToTable(testingTableBody, 2, dbData.lot_time);
              
              // Load Page 1 data
-             if (dbData.page1_basic_weight) loadColumnDataToTable(testingTableBody, 3, dbData.page1_basic_weight);
+             if (dbData.page1_basis_weight) loadColumnDataToTable(testingTableBody, 3, dbData.page1_basis_weight);
              if (dbData.page1_thickness) loadColumnDataToTable(testingTableBody, 4, dbData.page1_thickness);
              if (dbData.page1_opacity) loadColumnDataToTable(testingTableBody, 5, dbData.page1_opacity);
              if (dbData.page1_cof_kinetic) loadColumnDataToTable(testingTableBody, 6, dbData.page1_cof_kinetic);
@@ -2018,6 +2021,18 @@ document.addEventListener('DOMContentLoaded', function() {
              });
          }
          
+         // Function to update equipment dropdown styling
+         function updateEquipmentDropdownStyling() {
+             const equipmentDropdowns = document.querySelectorAll('.testing-table select');
+             equipmentDropdowns.forEach(function(dropdown) {
+                 if (dropdown.value && dropdown.value !== '' && dropdown.value !== 'Select Equipment ▼') {
+                     dropdown.classList.add('equipment-selected');
+                 } else {
+                     dropdown.classList.remove('equipment-selected');
+                 }
+             });
+         }
+
          // Function to make all summary rows (Average, Minimum, Maximum) and vertical Ave columns uneditable
          function makeSummaryRowsUneditable() {
              // Get all table bodies

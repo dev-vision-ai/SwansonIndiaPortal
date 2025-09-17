@@ -1377,8 +1377,8 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     
     // Map page1 data to the measurement columns - preserve HTML form structure
     // Basic Weight data to column D (D8-D37)
-    if (data.page1_basic_weight) {
-      const basicWeightData = data.page1_basic_weight;
+    if (data.page1_basis_weight) {
+      const basicWeightData = data.page1_basis_weight;
       const dataValues = Object.values(basicWeightData).filter(value => value && value !== '');
       
       // Fill all 30 rows to match HTML form structure
@@ -1849,10 +1849,14 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // 5. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     
-    // Generate filename with lot number
-    const lotNumber = data.lot_no || 'UNKNOWN';
-    const filename = `APE-168(16)CP(KRANTI-${lotNumber}.xlsx`;
+    // Generate filename with batch number
+    const filename = `Film Inspection Form - ${data.batch || form_id}.xlsx`;
+    console.log('Film inspection filename:', filename);
+    console.log('Using batch value:', data.batch);
+    console.log('Fallback form_id:', form_id);
+    
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
 
     // 6. Write the workbook to response
     await workbook.xlsx.write(res);
@@ -1873,6 +1877,252 @@ function formatDateToDDMMYYYY(dateString) {
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
 }
+
+// Pre-Store Form Excel Export Endpoint
+app.get('/api/download-prestore-excel/:formId', async (req, res) => {
+  try {
+    const { formId } = req.params;
+    
+    console.log('Pre-Store form export request received:', { formId });
+    
+    if (!formId) {
+      return res.status(400).send('formId parameter is required');
+    }
+
+    // 1. Fetch data from Supabase for the specific form
+    const { data, error } = await supabase
+      .from('168_16cp_kranti')
+      .select('*')
+      .eq('form_id', formId)
+      .single();
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return res.status(500).send('Error fetching data from database');
+    }
+
+    if (!data) {
+      return res.status(404).send('Form not found');
+    }
+
+    console.log('Pre-Store data fetched successfully:', data);
+    console.log('Batch value from database:', data.batch);
+    console.log('Form ID:', formId);
+
+    // 2. Load the pre-store template
+    const templatePath = path.join(__dirname, 'templates', 'pre-store-form.xlsx');
+    console.log('Pre-Store template path:', templatePath);
+    
+    if (!fs.existsSync(templatePath)) {
+      console.error('Pre-Store template file not found:', templatePath);
+      return res.status(500).send('Pre-Store template file not found');
+    }
+
+    console.log('Pre-Store template file exists, loading workbook...');
+
+    // 3. Load the workbook
+    const workbook = new ExcelJS.Workbook();
+    try {
+      await workbook.xlsx.readFile(templatePath);
+      console.log('Pre-Store workbook loaded successfully');
+    } catch (readError) {
+      console.error('Error reading Pre-Store template file:', readError);
+      return res.status(500).send('Error reading Pre-Store template file');
+    }
+    
+    // Try to get the first worksheet (index 0) or by name
+    let worksheet = workbook.getWorksheet(1);
+    if (!worksheet) {
+      worksheet = workbook.getWorksheet(0);
+    }
+    if (!worksheet) {
+      worksheet = workbook.getWorksheet('Sheet1');
+    }
+    if (!worksheet) {
+      // Get the first available worksheet
+      const worksheetNames = workbook.worksheets.map(ws => ws.name);
+      console.log('Available worksheets:', worksheetNames);
+      if (worksheetNames.length > 0) {
+        worksheet = workbook.getWorksheet(worksheetNames[0]);
+      }
+    }
+    
+    if (!worksheet) {
+      console.error('No worksheet found in Pre-Store template');
+      return res.status(500).send('No worksheet found in Pre-Store template');
+    }
+    
+    console.log('Pre-Store worksheet loaded successfully:', worksheet.name);
+
+    // 4. Map pre-store data to Excel cells
+    // Product and Production Information Section
+    if (data.production_order) {
+      worksheet.getCell('B3').value = data.production_order;
+    }
+    
+    if (data.customer) {
+      // Add location in brackets if available
+      let customerValue = data.customer;
+      if (data.location) {
+        customerValue = `${data.customer} (${data.location})`;
+      }
+      worksheet.getCell('B4').value = customerValue;
+    }
+    
+    if (data.standard_packing) {
+      worksheet.getCell('B5').value = data.standard_packing;
+    }
+    
+    if (data.product_code) {
+      worksheet.getCell('G3').value = data.product_code;
+    }
+    
+    if (data.specification) {
+      worksheet.getCell('G4').value = data.specification;
+    }
+    
+    if (data.quantity) {
+      worksheet.getCell('O3').value = `${data.quantity} Rolls`;
+    }
+    
+    if (data.batch) {
+      worksheet.getCell('O4').value = data.batch;
+    }
+    
+    if (data.production_date) {
+      // Format date to dd/mm/yyyy
+      const prodDate = new Date(data.production_date);
+      const formattedProdDate = `${String(prodDate.getDate()).padStart(2, '0')}/${String(prodDate.getMonth() + 1).padStart(2, '0')}/${prodDate.getFullYear()}`;
+      worksheet.getCell('T3').value = formattedProdDate;
+    }
+    
+    if (data.inspection_date) {
+      // Format date to dd/mm/yyyy
+      const inspDate = new Date(data.inspection_date);
+      const formattedInspDate = `${String(inspDate.getDate()).padStart(2, '0')}/${String(inspDate.getMonth() + 1).padStart(2, '0')}/${inspDate.getFullYear()}`;
+      worksheet.getCell('T4').value = formattedInspDate;
+    }
+    
+    if (data.pallet_size) {
+      worksheet.getCell('O5').value = data.pallet_size;
+    }
+    
+    // Palletized Finished Goods Status Section
+    // Helper function to get status symbol
+    const getStatusSymbol = (status) => {
+      if (status === 'Accept' || status === 'accept' || status === 'Pass' || status === 'pass') {
+        return '✓'; // Check symbol
+      } else if (status === 'Reject' || status === 'reject' || status === 'Fail' || status === 'fail') {
+        return '✗'; // Cross symbol
+      } else if (status === 'NA' || status === 'na' || status === 'N/A' || status === 'n/a') {
+        return 'N/A';
+      }
+      return status; // Return original value if no match
+    };
+    
+    if (data.pallet_list) {
+      worksheet.getCell('C8').value = getStatusSymbol(data.pallet_list);
+    }
+    
+    if (data.product_label) {
+      worksheet.getCell('P8').value = getStatusSymbol(data.product_label);
+    }
+    
+    if (data.wrapping) {
+      worksheet.getCell('C9').value = getStatusSymbol(data.wrapping);
+    }
+    
+    if (data.layer_pad) {
+      worksheet.getCell('P9').value = getStatusSymbol(data.layer_pad);
+    }
+    
+    if (data.contamination) {
+      worksheet.getCell('C10').value = getStatusSymbol(data.contamination);
+    }
+    
+    if (data.kraft_paper) {
+      worksheet.getCell('P10').value = getStatusSymbol(data.kraft_paper);
+    }
+    
+    if (data.no_damage) {
+      worksheet.getCell('C11').value = getStatusSymbol(data.no_damage);
+    }
+    
+    if (data.pallet) {
+      worksheet.getCell('P11').value = getStatusSymbol(data.pallet);
+    }
+    
+    if (data.prestore_done_by) {
+      worksheet.getCell('A29').value = data.prestore_done_by;
+    }
+    
+    if (data.remarks) {
+      // Handle remarks - each row A13-V13, A14-V14, etc. is merged
+      // Put text in A13, A14, A15, etc. and it will flow across the merged cells
+      const maxRows = 9; // From row 13 to 21 (9 rows)
+      const maxCharsPerRow = 200; // Approximate characters per merged row (A to V)
+      
+      // Remove newlines and create one continuous text
+      const continuousText = data.remarks.replace(/\n/g, ' ').trim();
+      
+      // Split text into chunks that fit in each merged row
+      const words = continuousText.split(' ');
+      let currentRowText = '';
+      const rowTexts = [];
+      
+      words.forEach(word => {
+        const testText = currentRowText + (currentRowText ? ' ' : '') + word;
+        
+        if (testText.length <= maxCharsPerRow) {
+          currentRowText = testText;
+        } else {
+          if (currentRowText) {
+            rowTexts.push(currentRowText);
+            currentRowText = word;
+          } else {
+            // Single word is too long, force it
+            rowTexts.push(word);
+          }
+        }
+      });
+      
+      // Add remaining text
+      if (currentRowText) {
+        rowTexts.push(currentRowText);
+      }
+      
+      // Map each row text to A13, A14, A15, etc. (merged cells)
+      for (let i = 0; i < Math.min(rowTexts.length, maxRows); i++) {
+        const rowNum = 13 + i;
+        worksheet.getCell(`A${rowNum}`).value = rowTexts[i].trim(); // Trim spaces at end
+      }
+    }
+    
+    if (data.prestore_ref_no) {
+      worksheet.getCell('V2').value = data.prestore_ref_no;
+    }
+
+    // 5. Set response headers for file download
+    const filename = `Pre-Store Inspection Form - ${data.batch || formId}.xlsx`;
+    console.log('Generated filename:', filename);
+    console.log('Using batch value:', data.batch);
+    console.log('Fallback formId:', formId);
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+
+    // 6. Write the workbook to response
+    await workbook.xlsx.write(res);
+    res.end();
+
+    console.log('Pre-Store Excel file generated and sent successfully');
+
+  } catch (error) {
+    console.error('Error generating Pre-Store Excel file:', error);
+    res.status(500).send('Error generating Pre-Store Excel file');
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`🚀 Swanson India Portal Backend Server Started!`);

@@ -81,8 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <!-- Purple Edit Details button -->
                         <button class="p-1 rounded-md bg-purple-50 hover:bg-purple-100 text-purple-600 hover:text-purple-800 transition-all duration-200 border border-purple-200 hover:border-purple-300 flex-shrink-0 edit-details-button" data-id="${formData.form_id}" title="Edit Form Details">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                             </svg>
                         </button>
                         <!-- Green Edit button - now opens prestore form -->
@@ -107,7 +106,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
-                                            <button onclick="download16GSMKrantiExcel('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Download Excel">
+                                            <button onclick="download16GSMKrantiExcel('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </button>
+                    <button onclick="downloadPrestoreExcel('${formData.form_id}', this)" class="p-1 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0 ml-1" title="Pre-Store">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -188,7 +192,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
-                                            <button onclick="download16GSMKrantiExcel('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Download Excel">
+                                            <button onclick="download16GSMKrantiExcel('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </button>
+                    <button onclick="downloadPrestoreExcel('${formData.form_id}', this)" class="p-1 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0 ml-1" title="Pre-Store">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -251,10 +260,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Handle radio button fields (Accept/Reject/N/A)
         const radioFields = ['pallet_list', 'product_label', 'wrapping', 'layer_pad', 'contamination', 'kraft_paper', 'no_damage', 'pallet'];
         radioFields.forEach(field => {
-            if (data[field] && data[field] !== 'N/A' && data[field] !== 'n/a' && data[field] !== 'na' && data[field] !== 'N/a') {
+            if (data[field]) {
                 // Convert underscore field name to hyphen for HTML name attribute
                 const htmlFieldName = field.replace(/_/g, '-');
-                const radioButton = document.querySelector(`input[name="${htmlFieldName}"][value="${data[field]}"]`);
+                // Handle different case variations of N/A
+                let valueToMatch = data[field];
+                if (data[field] === 'N/A' || data[field] === 'n/a' || data[field] === 'na' || data[field] === 'N/a') {
+                    valueToMatch = 'N/A'; // Standardize to 'N/A' for HTML value
+                }
+                const radioButton = document.querySelector(`input[name="${htmlFieldName}"][value="${valueToMatch}"]`);
                 if (radioButton) {
                     radioButton.checked = true;
                 }
@@ -382,6 +396,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (preStoreFormOverlay) {
             preStoreFormOverlay.classList.remove('hidden');
             
+            // Load pallet sizes dropdown
+            loadPalletSizes();
+            
             // Populate with basic data immediately (fast)
             prePopulatePrestoreForm(prestoreData);
             
@@ -453,6 +470,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 preStoreFormOverlay.classList.add('hidden');
                 if (preStoreFormModal) {
                     preStoreFormModal.reset();
+                }
+                
+                // Reset submit button state
+                const submitButton = preStoreFormModal.querySelector('button[type="submit"]');
+                if (submitButton) {
+                    submitButton.textContent = 'Save';
+                    submitButton.disabled = false;
+                    submitButton.style.backgroundColor = '#002E7D'; // Original dark blue
                 }
             }
         });
@@ -580,6 +605,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 preStoreFormModal.reset();
                 preStoreFormOverlay.classList.add('hidden');
                 sessionStorage.removeItem('prestoreFormData');
+                
+                // Reset submit button state
+                submitButton.textContent = 'Save';
+                submitButton.disabled = false;
+                submitButton.style.backgroundColor = '#002E7D'; // Original dark blue
                 }, 500);
             }
         });
@@ -898,6 +928,87 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     */
 
+    // Function to download Pre-Store Excel file
+    window.downloadPrestoreExcel = async function(formId, buttonElement) {
+        // Store original button state immediately
+        const downloadBtn = buttonElement || event.target;
+        const originalContent = downloadBtn.innerHTML;
+        const originalTitle = downloadBtn.title;
+        const originalDisabled = downloadBtn.disabled;
+        
+        try {
+            // Show loading state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+            downloadBtn.title = 'Downloading...';
+            downloadBtn.disabled = true;
+            
+            // Make API call to download prestore Excel
+            const response = await fetch(`http://localhost:3000/api/download-prestore-excel/${formId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            // Get the blob from response
+            const blob = await response.blob();
+            
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            // Get filename from response headers or use default
+            const contentDisposition = response.headers.get('Content-Disposition');
+            console.log('Content-Disposition header:', contentDisposition);
+            let filename = `Pre-Store Inspection Form-${formId}.xlsx`; // fallback
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                    console.log('Extracted filename from header:', filename);
+                }
+            } else {
+                console.log('No Content-Disposition header found, using fallback filename');
+            }
+            console.log('Final download filename:', filename);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            // Show success state briefly
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            downloadBtn.title = 'Downloaded!';
+            
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Error downloading prestore Excel:', error);
+            
+            // Show error state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            downloadBtn.title = 'Download failed';
+            
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 3000);
+        }
+    };
+
     // Function to download 16 GSM Kranti Excel file
     window.download16GSMKrantiExcel = async function(formId, buttonElement) {
         // Store original button state immediately
@@ -907,95 +1018,75 @@ document.addEventListener('DOMContentLoaded', async () => {
         const originalDisabled = downloadBtn.disabled;
         
         try {
-            
-            // Validate formId
-            if (!formId || formId === 'undefined' || formId === 'null') {
-                alert('Error: Form ID is missing. Cannot download Excel file.');
-                console.error('Form ID is missing or invalid:', formId);
-                return;
-            }
-            
             // Show loading state
-            if (downloadBtn) {
-                downloadBtn.innerHTML = '⏳ Generating Excel...';
-                downloadBtn.title = 'Generating Excel file...';
-                downloadBtn.disabled = true;
-            }
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+            downloadBtn.title = 'Downloading...';
+            downloadBtn.disabled = true;
             
-            // Show progress indicator
-            showProgressIndicator('Fetching data...');
-            
-            // Call the Node.js export server with specific form parameters
-            // Use localhost for IDE testing, Render URL for production
-            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
-            const downloadUrl = `${backendUrl}/export-168-16cp-kranti-form?form_id=${encodeURIComponent(formId)}`;
-
-            // Add timeout for slow connections
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 60000); // 1 minute timeout
-
-            // Start countdown after showing "Fetching data..."
-            startCountdown();
-            
-            // Wait for countdown to complete (5 seconds) before making the request
-            await new Promise(resolve => setTimeout(resolve, 5000));
-
-            const response = await fetch(downloadUrl, {
+            // Make API call to download film inspection Excel
+            const response = await fetch(`http://localhost:3000/export-168-16cp-kranti-form?form_id=${formId}`, {
                 method: 'GET',
-                signal: controller.signal,
-                credentials: 'include',
                 headers: {
-                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'Content-Type': 'application/json',
                 }
             });
-
-            clearTimeout(timeoutId);
-
-                    if (!response.ok) {
+            
+            if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
+            // Get the blob from response
             const blob = await response.blob();
             
-            updateProgressIndicator('Preparing download...');
-            
             // Create download link
-                    const url = window.URL.createObjectURL(blob);
+            const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            
-            // Generate filename using form_id
-            const filename = `APE-168(16)CP(KRANTI)-${formId}.xlsx`;
+            // Get filename from response headers or use default
+            const contentDisposition = response.headers.get('Content-Disposition');
+            console.log('Film inspection Content-Disposition header:', contentDisposition);
+            let filename = `Film Inspection Form-${formId}.xlsx`; // fallback
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                    console.log('Extracted film inspection filename from header:', filename);
+                }
+            } else {
+                console.log('No Content-Disposition header found for film inspection, using fallback filename');
+            }
+            console.log('Final film inspection download filename:', filename);
             a.download = filename;
-            
             document.body.appendChild(a);
             a.click();
-                    window.URL.revokeObjectURL(url);
+            window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
             
-            // Success message
-            showSuccessMessage('Excel file downloaded successfully!');
+            // Show success state briefly
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            downloadBtn.title = 'Downloaded!';
             
-            
-        } catch (error) {
-            console.error('Download failed:', error);
-            
-            if (error.name === 'AbortError') {
-                showErrorMessage('Request timed out. Please try again or check your internet connection.');
-            } else {
-                showErrorMessage('Failed to download Excel file. Please try again.');
-            }
-        } finally {
-            // Reset button state completely
-            if (downloadBtn) {
+            // Reset button after 2 seconds
+            setTimeout(() => {
                 downloadBtn.innerHTML = originalContent;
                 downloadBtn.title = originalTitle;
                 downloadBtn.disabled = originalDisabled;
-            }
+            }, 2000);
             
-            hideProgressIndicator();
+        } catch (error) {
+            console.error('Error downloading film inspection Excel:', error);
+            
+            // Show error state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            downloadBtn.title = 'Download failed';
+            
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 3000);
         }
     };
 
@@ -1747,6 +1838,43 @@ window.viewFilmForm = function(formId, productCode) {
 
         } catch (error) {
             console.error('Error loading customers:', error);
+        }
+    }
+
+    // Function to load pallet sizes from fif_products_master table
+    async function loadPalletSizes() {
+        try {
+            const { data: products, error } = await supabase
+                .from('fif_products_master')
+                .select('pallet_size')
+                .not('pallet_size', 'is', null)
+                .order('pallet_size');
+
+            if (error) {
+                console.error('Error fetching pallet sizes:', error.message);
+                return;
+            }
+
+            // Get unique pallet sizes
+            const uniquePalletSizes = [...new Set(products.map(product => product.pallet_size))].filter(size => size && size.trim() !== '');
+
+            // Get the pallet size dropdown in the modal
+            const palletSizeSelect = document.getElementById('pallet-size-modal');
+            if (!palletSizeSelect) return;
+
+            // Clear existing options except the first one
+            palletSizeSelect.innerHTML = '<option value="">Select Pallet Size</option>';
+
+            // Add pallet sizes to dropdown
+            uniquePalletSizes.forEach(size => {
+                const option = document.createElement('option');
+                option.value = size;
+                option.textContent = size;
+                palletSizeSelect.appendChild(option);
+            });
+
+        } catch (error) {
+            console.error('Error loading pallet sizes:', error);
         }
     }
 

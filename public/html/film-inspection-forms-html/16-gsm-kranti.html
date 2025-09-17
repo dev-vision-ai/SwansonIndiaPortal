@@ -500,6 +500,16 @@
         .delete-btn:hover {
             background: #dc2626;
         }
+        
+        /* Equipment dropdown cell background when equipment is selected */
+        .testing-table select.equipment-selected {
+            background-color: #dcfce7 !important; /* Light green background when equipment is selected */
+        }
+        
+        /* Equipment dropdown cell background when no equipment is selected (default state) */
+        .testing-table select {
+            background-color: transparent !important; /* Transparent background by default */
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
@@ -516,7 +526,7 @@
             <h2 id="formTitle" class="text-2xl font-bold text-gray-800 mb-6 text-center"></h2>
             
     <!-- Pre-Store Inspection Information Section (View Mode Only) -->
-    <section id="prestore-section" class="mb-4 border border-gray-200 rounded-lg p-3" style="display: none;">
+    <section id="prestore-section" class="mb-8 border border-black rounded-lg p-3" style="display: none; background-color: #f0f9ff;">
                 <h3 class="font-semibold text-gray-800 mb-1 text-center" style="font-size: 16px;">Pre-Store Inspection Details</h3>
                 <div class="flex justify-center mb-4">
                     <hr class="border-gray-400 w-48">
@@ -525,23 +535,23 @@
                     <!-- Row 1: Production Instruction, Product Name, Specification, Pallet Size, Customer -->
                     <div class="col-span-full grid grid-cols-5 gap-3 mb-1">
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Production Instruction (PI) No.:</label>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Production Instruction (PI) No.:</label>
                             <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-production-order">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Product Name:</label>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Product Name:</label>
                             <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-product-code">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Specification:</label>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Specification:</label>
                             <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-specification">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Pallet Size:</label>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Pallet Size:</label>
                             <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-pallet-size">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Customer:</label>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Customer:</label>
                             <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-customer">-</div>
                         </div>
                     </div>
@@ -549,23 +559,23 @@
                     <!-- Row 2: Location, Machine No, Quantity, Production Date, Inspection Date -->
                     <div class="col-span-full grid grid-cols-5 gap-3 mb-1">
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Location:</label>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Location:</label>
                             <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-location">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Machine No.:</label>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Machine No.:</label>
                             <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-machine-no">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Quantity (Rolls):</label>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Quantity (Rolls):</label>
                             <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-quantity">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Production Date:</label>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Production Date:</label>
                             <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-production-date">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Inspection Date:</label>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Inspection Date:</label>
                             <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-inspection-date">-</div>
                         </div>
                     </div>
@@ -573,19 +583,19 @@
                     <!-- Row 3: Standard Packing, Batch, Reference No, Pre-store Done By -->
                     <div class="col-span-full grid grid-cols-5 gap-3 mb-1">
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Standard Packing:</label>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Standard Packing:</label>
                             <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-standard-packing">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Batch:</label>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Batch:</label>
                             <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-batch">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Reference No:</label>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Reference No:</label>
                             <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-ref-no">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Pre-store Done By:</label>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Pre-store Done By:</label>
                             <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-prestore-done-by">-</div>
                         </div>
                         <div>
@@ -613,11 +623,11 @@
                     </div>
                     
                     <!-- Palletized Finished Goods Status Section -->
-                    <div class="col-span-full mt-1 p-3 border border-gray-300">
-                        <h3 class="font-medium leading-6 text-gray-900 mb-1" style="font-size: 13px;">Palletized Finished Goods Status</h3>
+                    <div class="col-span-full mt-1 p-3 border border-black bg-white">
+                        <h3 class="font-medium leading-6 text-black mb-1" style="font-size: 13px;">Palletized Finished Goods Status</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                             <div class="p-2 bg-gray-50 border border-gray-300">
-                                <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Pallet List:</label>
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Pallet List:</label>
                                 <hr class="border-gray-400 mb-1">
                                 <div class="flex space-x-3">
                                     <div class="flex items-center">
@@ -626,7 +636,7 @@
                                 </div>
                             </div>
                             <div class="p-2 bg-gray-50 border border-gray-300">
-                                <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Product Identification Label:</label>
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Product Identification Label:</label>
                                 <hr class="border-gray-400 mb-1">
                                 <div class="flex space-x-3">
                                     <div class="flex items-center">
@@ -635,7 +645,7 @@
                                 </div>
                             </div>
                             <div class="p-2 bg-gray-50 border border-gray-300">
-                                <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Wrapping Done Properly:</label>
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Wrapping Done Properly:</label>
                                 <hr class="border-gray-400 mb-1">
                                 <div class="flex space-x-3">
                                     <div class="flex items-center">
@@ -644,7 +654,7 @@
                                 </div>
                             </div>
                             <div class="p-2 bg-gray-50 border border-gray-300">
-                                <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Layer Pad:</label>
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Layer Pad:</label>
                                 <hr class="border-gray-400 mb-1">
                                 <div class="flex space-x-3">
                                     <div class="flex items-center">
@@ -653,7 +663,7 @@
                                 </div>
                             </div>
                             <div class="p-2 bg-gray-50 border border-gray-300">
-                                <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">No Contamination:</label>
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">No Contamination:</label>
                                 <hr class="border-gray-400 mb-1">
                                 <div class="flex space-x-3">
                                     <div class="flex items-center">
@@ -662,7 +672,7 @@
                                 </div>
                             </div>
                             <div class="p-2 bg-gray-50 border border-gray-300">
-                                <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Kraft Paper:</label>
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Kraft Paper:</label>
                                 <hr class="border-gray-400 mb-1">
                                 <div class="flex space-x-3">
                                     <div class="flex items-center">
@@ -671,7 +681,7 @@
                                 </div>
                             </div>
                             <div class="p-2 bg-gray-50 border border-gray-300">
-                                <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">No Damage:</label>
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">No Damage:</label>
                                 <hr class="border-gray-400 mb-1">
                                 <div class="flex space-x-3">
                                     <div class="flex items-center">
@@ -680,7 +690,7 @@
                                 </div>
                             </div>
                             <div class="p-2 bg-gray-50 border border-gray-300">
-                                <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Pallet:</label>
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Pallet:</label>
                                 <hr class="border-gray-400 mb-1">
                                 <div class="flex space-x-3">
                                     <div class="flex items-center">
@@ -693,14 +703,14 @@
                     
                     <!-- Remarks Section -->
                     <div class="col-span-full mt-1">
-                                <label class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Remarks:</label>
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Remarks:</label>
                         <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50 min-h-[40px]" style="font-size: 13px;" id="view-remarks">-</div>
                     </div>
                 </div>
             </section>
             
             <!-- General Product & Production Information Section -->
-            <section class="mb-8 border border-gray-200 rounded-lg p-6">
+            <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">General Product & Production Information</h3>
                 <table class="w-full border-2 border-gray-800 bg-white testing-table modern-header-table" style="font-size: 15px; table-layout: fixed; word-wrap: break-word;">
                     <tr>
@@ -744,7 +754,7 @@
             </section>
 
             <!-- Bottom Section - Testing Parameters Table -->
-            <section class="mb-8 border border-gray-200 rounded-lg p-6">
+            <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 1</h3>
                 
                             <!-- Add/Delete Rows Controls -->
@@ -773,7 +783,7 @@
                             </tr>
                             <tr class="bg-gray-100">
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Sample No.</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Basic Weight<br>(L-14.00 T-16.00 U-18.00)<br>GSM</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Basis Weight<br>(L-14.00 T-16.00 U-18.00)<br>GSM</th>
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Thickness<br>(L-0.025 T-0.030 U-0.035)<br>mm</th>
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Opacity<br>(L-45.0 T-50.0 U-55.0)<br>%</th>
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">COF Kinetic<br>(L-0.20 T-0.40 U-0.60)</th>
@@ -820,7 +830,7 @@
             </section>
 
             <!-- Page 2 Section - Testing Parameters Table -->
-            <section class="mb-8 border border-gray-200 rounded-lg p-6">
+            <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 2</h3>
                 
                 <!-- Row Count Display -->
@@ -894,7 +904,7 @@
             </section>
 
             <!-- Page 3 Section - Testing Parameters Table -->
-            <section class="mb-8 border border-gray-200 rounded-lg p-6">
+            <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 3</h3>
                 
                 <!-- Row Count Display -->
@@ -968,7 +978,7 @@
             </section>
 
             <!-- Page 4 Section - Testing Parameters Table -->
-            <section class="mb-8 border border-gray-200 rounded-lg p-6">
+            <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 4</h3>
                 
                 <!-- Row Count Display -->
@@ -1049,10 +1059,36 @@
             }
         }
         
+        // Function to update equipment dropdown styling
+        function updateEquipmentDropdownStyling() {
+            const equipmentDropdowns = document.querySelectorAll('.testing-table select');
+            equipmentDropdowns.forEach(function(dropdown) {
+                if (dropdown.value && dropdown.value !== '' && dropdown.value !== 'Select Equipment ▼') {
+                    dropdown.classList.add('equipment-selected');
+                } else {
+                    dropdown.classList.remove('equipment-selected');
+                }
+            });
+        }
+
         // Initialize when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             // Wait a bit for the form data to load, then update title
             setTimeout(updateFormTitleFromInput, 1000);
+            
+            // Add event listeners to equipment dropdowns and apply initial styling
+            setTimeout(function() {
+                const equipmentDropdowns = document.querySelectorAll('.testing-table select');
+                equipmentDropdowns.forEach(function(dropdown) {
+                    // Apply initial styling based on current value
+                    updateEquipmentDropdownStyling();
+                    
+                    // Add change event listener
+                    dropdown.addEventListener('change', function() {
+                        updateEquipmentDropdownStyling();
+                    });
+                });
+            }, 1500);
         });
     </script>
 </body>
