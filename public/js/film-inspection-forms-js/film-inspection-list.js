@@ -1024,7 +1024,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             downloadBtn.disabled = true;
             
             // Make API call to download film inspection Excel
-            const response = await fetch(`http://localhost:3000/export-168-16cp-kranti-form?form_id=${formId}`, {
+            // Use localhost for IDE testing, Render URL for production
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+            const downloadUrl = `${backendUrl}/export-168-16cp-kranti-form?form_id=${encodeURIComponent(formId)}`;
+            
+            const response = await fetch(downloadUrl, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
