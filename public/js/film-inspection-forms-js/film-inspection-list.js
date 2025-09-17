@@ -943,7 +943,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             downloadBtn.disabled = true;
             
             // Make API call to download prestore Excel
-            const response = await fetch(`http://localhost:3000/api/download-prestore-excel/${formId}`, {
+            // Use localhost for IDE testing, Render URL for production
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+            const downloadUrl = `${backendUrl}/api/download-prestore-excel/${encodeURIComponent(formId)}`;
+            
+            const response = await fetch(downloadUrl, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
