@@ -30,30 +30,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(protectCustomerField, 1000);
 
     async function fetchFilmInspectionForms() {
-        const { data, error } = await supabase
-            .from('168_16cp_kranti')
-            .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at')
-            .order('created_at', { ascending: false });
+        try {
+            // Fetch data from both tables
+            const [krantiResult, whiteResult] = await Promise.all([
+                supabase
+                    .from('168_16cp_kranti')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at')
+                    .order('created_at', { ascending: false }),
+                supabase
+                    .from('168_16c_white')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at')
+                    .order('created_at', { ascending: false })
+            ]);
 
-        // No need to fetch user names since prepared_by now stores full names directly
+            // Check for errors
+            if (krantiResult.error) {
+                console.error('Error fetching from 168_16cp_kranti:', krantiResult.error.message);
+            }
+            if (whiteResult.error) {
+                console.error('Error fetching from 168_16c_white:', whiteResult.error.message);
+            }
 
-        if (error) {
-            console.error('Error fetching data:', error.message);
-            return;
-        }
+            // Combine data from both tables
+            const allData = [
+                ...(krantiResult.data || []),
+                ...(whiteResult.data || [])
+            ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Sort by creation date, newest first
 
-        tableBody.innerHTML = ''; // Clear existing rows
+            const data = allData;
 
-        if (data.length === 0) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="9" class="py-4 text-center text-gray-500">
-                        No forms created yet. Click "Create Film Inspection Form" to get started.
-                    </td>
-                </tr>
-            `;
-            return;
-        }
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            if (data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="py-4 text-center text-gray-500">
+                            No forms created yet. Click "Create Film Inspection Form" to get started.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
 
         data.forEach((formData, index) => {
             const row = tableBody.insertRow();
@@ -119,6 +136,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </td>
             `;
         });
+        } catch (error) {
+            console.error('Error fetching film inspection forms:', error);
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="py-4 text-center text-red-500">
+                        Error loading forms. Please refresh the page.
+                    </td>
+                </tr>
+            `;
+        }
     }
 
     // Expose the function globally so it can be called from the modal
@@ -410,13 +437,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Function to fetch prestore_ref_no in background
     async function fetchPrestoreRefNo(formId) {
         try {
-            const { data: formData, error } = await supabase
-                .from('168_16cp_kranti')
-                .select('prestore_ref_no')
-                .eq('form_id', formId)
-                .single();
+            // Try to fetch from both tables using .maybeSingle() to avoid errors when no data found
+            const [krantiResult, whiteResult] = await Promise.all([
+                supabase
+                    .from('168_16cp_kranti')
+                    .select('prestore_ref_no')
+                    .eq('form_id', formId)
+                    .maybeSingle(),
+                supabase
+                    .from('168_16c_white')
+                    .select('prestore_ref_no')
+                    .eq('form_id', formId)
+                    .maybeSingle()
+            ]);
             
-            if (error) throw error;
+            // Use the result that has data (not an error)
+            let formData = null;
+            if (!krantiResult.error && krantiResult.data) {
+                formData = krantiResult.data;
+            } else if (!whiteResult.error && whiteResult.data) {
+                formData = whiteResult.data;
+            }
+            
+            if (!formData) {
+                console.log('Form data not found in either table for prestore_ref_no');
+                return;
+            }
             
             // Update the reference number field if it exists
             if (formData.prestore_ref_no) {
@@ -440,13 +486,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Try to fetch full data from database using form_id
             if (formId) {
                 try {
-                    const { data, error } = await supabase
-                        .from('168_16cp_kranti')
-                        .select('*')
-                        .eq('form_id', formId)
-                        .single();
+                    // Try to fetch from both tables using .maybeSingle() to avoid errors when no data found
+                    const [krantiResult, whiteResult] = await Promise.all([
+                        supabase
+                            .from('168_16cp_kranti')
+                            .select('*')
+                            .eq('form_id', formId)
+                            .maybeSingle(),
+                        supabase
+                            .from('168_16c_white')
+                            .select('*')
+                            .eq('form_id', formId)
+                            .maybeSingle()
+                    ]);
                     
-                    if (data && !error) {
+                    // Use the result that has data (not an error)
+                    let data = null;
+                    if (!krantiResult.error && krantiResult.data) {
+                        data = krantiResult.data;
+                    } else if (!whiteResult.error && whiteResult.data) {
+                        data = whiteResult.data;
+                    }
+                    
+                    if (data) {
                         prePopulatePrestoreForm(data);
                     }
                 } catch (error) {
@@ -562,8 +624,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             let tableName = '168_16cp_kranti';
             if (preStoreFormData.product_code) {
                 const productTableMap = {
-                    'APE-168(16)C': '168_16cp_kranti',
-                    'APE-168(16)CP(KRANTI)': '168_16cp_kranti'
+                    'APE-168(16)C': '168_16c_white',            // Updated to correct table
+                    'APE-168(16)CP(KRANTI)': '168_16cp_kranti'  // Keep existing mapping
                 };
                 tableName = productTableMap[preStoreFormData.product_code] || '168_16cp_kranti';
             }
@@ -668,13 +730,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Function to fetch additional form data in background
     async function fetchAdditionalFormData(formId, form) {
         try {
-            const { data: formData, error } = await supabase
-                .from('168_16cp_kranti')
-                .select('customer, production_order, film_insp_form_ref_no')
-                .eq('form_id', formId)
-                .single();
+            // Try to fetch from both tables using .maybeSingle() to avoid errors when no data found
+            const [krantiResult, whiteResult] = await Promise.all([
+                supabase
+                    .from('168_16cp_kranti')
+                    .select('customer, production_order, film_insp_form_ref_no')
+                    .eq('form_id', formId)
+                    .maybeSingle(),
+                supabase
+                    .from('168_16c_white')
+                    .select('customer, production_order, film_insp_form_ref_no')
+                    .eq('form_id', formId)
+                    .maybeSingle()
+            ]);
             
-            if (error) throw error;
+            // Use the result that has data (not an error)
+            let formData = null;
+            if (!krantiResult.error && krantiResult.data) {
+                formData = krantiResult.data;
+            } else if (!whiteResult.error && whiteResult.data) {
+                formData = whiteResult.data;
+            }
+            
+            if (!formData) {
+                console.log('Form data not found in either table');
+                return;
+            }
             
             // Update fields that weren't available in table data
             if (formData.customer) {
@@ -730,10 +811,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Route to the correct form based on product code
             let targetForm = '';
+            console.log('Routing form for product code:', productCode);
             switch(productCode) {
                 case 'APE-168(16)CP(KRANTI)':
-                case 'APE-168(16)C':
                     targetForm = '16-gsm-kranti.html';
+                    console.log('Routing to kranti form');
+                    break;
+                case 'APE-168(16)C':
+                    targetForm = '16-gsm-168-white.html';
+                    console.log('Routing to white form');
                     break;
                 case 'APE-168(18)CP(KRANTI)':
                 case 'APE-168(18)C':
@@ -804,17 +890,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Direct deletion function (temporary for development)
     async function deleteFormDirectly(formId) {
         try {
-            const { error } = await supabase
-                .from('168_16cp_kranti')
-                .delete()
-                .eq('form_id', formId);
+            // Try to delete from both tables
+            const [krantiResult, whiteResult] = await Promise.all([
+                supabase
+                    .from('168_16cp_kranti')
+                    .delete()
+                    .eq('form_id', formId),
+                supabase
+                    .from('168_16c_white')
+                    .delete()
+                    .eq('form_id', formId)
+            ]);
 
-            if (error) {
-                console.error('Error deleting form:', error.message);
-                alert('Error deleting form: ' + error.message);
-            } else {
+            // Check if either deletion was successful
+            const krantiSuccess = !krantiResult.error;
+            const whiteSuccess = !whiteResult.error;
+            
+            if (krantiSuccess || whiteSuccess) {
                 alert('Form deleted successfully!');
                 fetchFilmInspectionForms(); // Refresh the list
+            } else {
+                console.error('Error deleting form from both tables:', krantiResult.error, whiteResult.error);
+                alert('Error deleting form: Form not found in either table');
             }
         } catch (error) {
             console.error('Error deleting form:', error);
@@ -946,6 +1043,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Use localhost for IDE testing, Render URL for production
             const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+            
+            // Prestore download endpoint (with /api/ prefix)
             const downloadUrl = `${backendUrl}/api/download-prestore-excel/${encodeURIComponent(formId)}`;
             
             const response = await fetch(downloadUrl, {
@@ -1326,12 +1425,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                         }
                     });
                     
-                    const { error } = await supabase
-                        .from('168_16cp_kranti')
-                        .update(updateData)
-                        .eq('form_id', formId);
+                    // Try to update in both tables
+                    const [krantiResult, whiteResult] = await Promise.all([
+                        supabase
+                            .from('168_16cp_kranti')
+                            .update(updateData)
+                            .eq('form_id', formId),
+                        supabase
+                            .from('168_16c_white')
+                            .update(updateData)
+                            .eq('form_id', formId)
+                    ]);
                     
-                    if (error) throw error;
+                    // Check if either update was successful
+                    const krantiSuccess = !krantiResult.error;
+                    const whiteSuccess = !whiteResult.error;
+                    
+                    if (!krantiSuccess && !whiteSuccess) {
+                        throw new Error('Form not found in either table');
+                    }
                     
                     // Show success state
                     submitButton.textContent = 'Updated!';
@@ -1371,10 +1483,15 @@ window.viewFilmForm = function(formId, productCode) {
     
     // Route to the correct form based on product code
     let targetForm = '';
+    console.log('View form routing for product code:', productCode);
     switch(productCode) {
         case 'APE-168(16)CP(KRANTI)':
-        case 'APE-168(16)C':
             targetForm = '16-gsm-kranti.html';
+            console.log('View routing to kranti form');
+            break;
+        case 'APE-168(16)C':
+            targetForm = '16-gsm-168-white.html';
+            console.log('View routing to white form');
             break;
         case 'APE-168(18)CP(KRANTI)':
         case 'APE-168(18)C':
@@ -1738,8 +1855,8 @@ window.viewFilmForm = function(formId, productCode) {
             if (data.product_code) {
                 // Map product codes to their specific tables
                 const productTableMap = {
-                    'APE-168(16)C': '168_16cp_kranti',           // Your current table
-                    'APE-168(16)CP(KRANTI)': '168_16cp_kranti'  // Your current table
+                    'APE-168(16)C': '168_16c_white',            // Updated to correct table
+                    'APE-168(16)CP(KRANTI)': '168_16cp_kranti'  // Keep existing mapping
                     // Add more product-specific tables as they are created
                 };
                 
@@ -2059,8 +2176,8 @@ window.viewFilmForm = function(formId, productCode) {
             if (finalData.product_code) {
                 // Map product codes to their specific tables
                 const productTableMap = {
-                    'APE-168(16)C': '"168_16cp_kranti"',
-                    'APE-168(16)CP(KRANTI)': '"168_16cp_kranti"'
+                    'APE-168(16)C': '"168_16c_white"',            // Updated to correct table
+                    'APE-168(16)CP(KRANTI)': '"168_16cp_kranti"'  // Keep existing mapping
                     // Add more product-specific tables as they are created
                 };
                 tableName = productTableMap[finalData.product_code] || '"168_16cp_kranti"';

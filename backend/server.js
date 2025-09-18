@@ -1883,18 +1883,43 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
   try {
     const { formId } = req.params;
     
-    console.log('Pre-Store form export request received:', { formId });
     
     if (!formId) {
       return res.status(400).send('formId parameter is required');
     }
 
-    // 1. Fetch data from Supabase for the specific form
-    const { data, error } = await supabase
-      .from('168_16cp_kranti')
+    // 1. Determine which table this form belongs to and fetch the correct data
+    let data, error, tableName;
+    
+    // Check 168_16c_white table
+    const { data: whiteData, error: whiteError } = await supabase
+      .from('168_16c_white')
       .select('*')
       .eq('form_id', formId)
       .single();
+    
+    if (!whiteError && whiteData) {
+      data = whiteData;
+      error = null;
+      tableName = '168_16c_white';
+    } else {
+      // Check 168_16cp_kranti table
+      const { data: krantiData, error: krantiError } = await supabase
+        .from('168_16cp_kranti')
+        .select('*')
+        .eq('form_id', formId)
+        .single();
+      
+      if (!krantiError && krantiData) {
+        data = krantiData;
+        error = null;
+        tableName = '168_16cp_kranti';
+      } else {
+        data = null;
+        error = new Error('Form not found in any table');
+        tableName = null;
+      }
+    }
 
     if (error) {
       console.error('Supabase error:', error);
@@ -1905,26 +1930,20 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
       return res.status(404).send('Form not found');
     }
 
-    console.log('Pre-Store data fetched successfully:', data);
-    console.log('Batch value from database:', data.batch);
-    console.log('Form ID:', formId);
 
     // 2. Load the pre-store template
     const templatePath = path.join(__dirname, 'templates', 'pre-store-form.xlsx');
-    console.log('Pre-Store template path:', templatePath);
     
     if (!fs.existsSync(templatePath)) {
       console.error('Pre-Store template file not found:', templatePath);
       return res.status(500).send('Pre-Store template file not found');
     }
 
-    console.log('Pre-Store template file exists, loading workbook...');
 
     // 3. Load the workbook
     const workbook = new ExcelJS.Workbook();
     try {
       await workbook.xlsx.readFile(templatePath);
-      console.log('Pre-Store workbook loaded successfully');
     } catch (readError) {
       console.error('Error reading Pre-Store template file:', readError);
       return res.status(500).send('Error reading Pre-Store template file');
@@ -1941,7 +1960,6 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
     if (!worksheet) {
       // Get the first available worksheet
       const worksheetNames = workbook.worksheets.map(ws => ws.name);
-      console.log('Available worksheets:', worksheetNames);
       if (worksheetNames.length > 0) {
         worksheet = workbook.getWorksheet(worksheetNames[0]);
       }
@@ -1952,7 +1970,6 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
       return res.status(500).send('No worksheet found in Pre-Store template');
     }
     
-    console.log('Pre-Store worksheet loaded successfully:', worksheet.name);
 
     // 4. Map pre-store data to Excel cells
     // Product and Production Information Section
@@ -2116,7 +2133,6 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
     await workbook.xlsx.write(res);
     res.end();
 
-    console.log('Pre-Store Excel file generated and sent successfully');
 
   } catch (error) {
     console.error('Error generating Pre-Store Excel file:', error);
