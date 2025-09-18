@@ -2004,7 +2004,7 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
     }
     
     if (data.pallet_size) {
-      worksheet.getCell('O5').value = data.pallet_size;
+      worksheet.getCell('P5').value = data.pallet_size;
     }
     
     // Palletized Finished Goods Status Section
