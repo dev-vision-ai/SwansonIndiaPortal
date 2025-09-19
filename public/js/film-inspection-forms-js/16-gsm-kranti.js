@@ -5050,20 +5050,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
             // Page 2
             case 'elongationMD':
-                shouldHighlight = !isNaN(value) && (value < 350 || value > 450);
+                shouldHighlight = !isNaN(value) && value < 350;
                 break;
             case 'forceMD':
-                shouldHighlight = !isNaN(value) && (value < 9.0 || value > 12.0);
+                shouldHighlight = !isNaN(value) && value < 9.0;
                 break;
             case 'force5pMD':
                 shouldHighlight = !isNaN(value) && (value < 2.5 || value > 5.5);
                 break;
             // Page 3
             case 'elongationCD':
-                shouldHighlight = !isNaN(value) && (value < 400 || value > 500);
+                shouldHighlight = !isNaN(value) && value < 400;
                 break;
             case 'forceCD':
-                shouldHighlight = !isNaN(value) && (value < 6.0 || value > 9.0);
+                shouldHighlight = !isNaN(value) && value < 6.0;
                 break;
             case 'modulus':
                 shouldHighlight = !isNaN(value) && (value < 20.0 || value > 40.0);

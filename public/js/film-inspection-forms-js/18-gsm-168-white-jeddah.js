@@ -514,14 +514,14 @@ document.addEventListener('DOMContentLoaded', function() {
                if (currentFormId) {
                    // Update existing record
                    result = await supabase
-                       .from('168_16c_white')
+                       .from('168_18c_white_jeddah')
                        .update(completeData)
                        .eq('form_id', currentFormId)
                        .select('form_id');
                } else {
                    // Insert new record
                    result = await supabase
-                       .from('168_16c_white')
+                       .from('168_18c_white_jeddah')
                        .insert([completeData])
                        .select('form_id');
                }
@@ -1329,7 +1329,7 @@ document.addEventListener('DOMContentLoaded', function() {
                  if (currentFormId) {
                      // Load form data directly - no timeout needed
                      const { data, error } = await supabase
-                         .from('168_16c_white')
+                         .from('168_18c_white_jeddah')
                          .select('*')
                          .eq('form_id', currentFormId)
                          .single();
@@ -1389,7 +1389,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Searching for historical data:', { productCode, machineNo, previousDateStr });
                 
                 const { data: historicalData, error } = await supabase
-                    .from('168_16c_white')
+                    .from('168_18c_white_jeddah')
                     .select('*')
                     .eq('product_code', productCode)
                     .eq('machine_no', machineNo)
@@ -1407,7 +1407,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Searching for recent data:', { productCode, machineNo, productionDate });
                     
                     const { data: recentData, error: recentError } = await supabase
-                        .from('168_16c_white')
+                        .from('168_18c_white_jeddah')
                         .select('*')
                         .eq('product_code', productCode)
                         .eq('machine_no', machineNo)

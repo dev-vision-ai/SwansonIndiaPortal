@@ -1282,8 +1282,8 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // Machine (K4)
     worksheet.getCell('K4').value = data.machine_no || '';
     
-    // Quantity (K5)
-    worksheet.getCell('K5').value = data.quantity || '';
+    // Quantity (K5) - Add "Rolls" text like prestore form
+    worksheet.getCell('K5').value = data.quantity ? `${data.quantity} Rolls` : '';
     
     // Production Date (N4) - format as DD/MM/YYYY
     worksheet.getCell('N4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
@@ -1914,11 +1914,37 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
         data = krantiData;
         error = null;
         tableName = '168_16cp_kranti';
-      } else {
-        data = null;
-        error = new Error('Form not found in any table');
-        tableName = null;
-      }
+        } else {
+          // Check 176_18cp_ww table
+          const { data: wwData, error: wwError } = await supabase
+            .from('176_18cp_ww')
+            .select('*')
+            .eq('form_id', formId)
+            .single();
+          
+          if (!wwError && wwData) {
+            data = wwData;
+            error = null;
+            tableName = '176_18cp_ww';
+          } else {
+            // Check 168_18c_white_jeddah table
+            const { data: jeddahData, error: jeddahError } = await supabase
+              .from('168_18c_white_jeddah')
+              .select('*')
+              .eq('form_id', formId)
+              .single();
+            
+            if (!jeddahError && jeddahData) {
+              data = jeddahData;
+              error = null;
+              tableName = '168_18c_white_jeddah';
+            } else {
+              data = null;
+              error = new Error('Form not found in any table');
+              tableName = null;
+            }
+          }
+        }
     }
 
     if (error) {

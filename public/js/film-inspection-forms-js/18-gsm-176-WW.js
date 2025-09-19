@@ -67,7 +67,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const allDropdownIds = [
             'basic-weight-equipment', 'thickness-equipment', 'opacity-equipment',
             'cof-equipment', 'page2-common-equipment', 'page3-common-equipment',
-            'color-common-equipment', 'gloss-equipment'
+            'cut-width-equipment', 'color-unprinted-equipment', 'color-printed-equipment',
+            'gloss-equipment'
         ];
         
         allDropdownIds.forEach(dropdownId => {
@@ -93,8 +94,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const equipmentMappings = {
             'Weigh Scale': ['basic-weight-equipment'],
             'Dial Gauge': ['thickness-equipment'],
-            'Spectrophotometer': ['opacity-equipment', 'color-common-equipment'],
+            'Spectrophotometer': ['opacity-equipment'],
             'Instron': ['cof-equipment', 'page2-common-equipment', 'page3-common-equipment'],
+            'Steel Ruler': ['cut-width-equipment'],
+            'X-RITE': ['color-unprinted-equipment', 'color-printed-equipment'],
             'Glossmeter': ['gloss-equipment']
         };
         
@@ -134,7 +137,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const allDropdownIds = [
             'basic-weight-equipment', 'thickness-equipment', 'opacity-equipment',
             'cof-equipment', 'page2-common-equipment', 'page3-common-equipment',
-            'color-common-equipment', 'gloss-equipment'
+            'cut-width-equipment', 'color-unprinted-equipment', 'color-printed-equipment',
+            'gloss-equipment'
         ];
         
         allDropdownIds.forEach(dropdownId => {
@@ -150,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Equipment dropdowns loaded, now load form data if in view mode
         if (viewMode && currentFormId) {
             loadDataFromDatabase().then(() => {
-                // Apply conditional formatting in view mode (red text only)
+                // Apply conditional formatting after data is loaded in view mode
                 setTimeout(() => {
                     applyConditionalFormattingToAllColumns();
                 }, 100);
@@ -201,11 +205,10 @@ document.addEventListener('DOMContentLoaded', function() {
        
        // Get column count for a specific table
        const getTableColumnCount = (tableBody) => {
-           if (tableBody.id === 'testingTableBody') return 7;      // Page 1: 7 columns (3 for Sample No + 4 parameters)
+           if (tableBody.id === 'testingTableBody') return 10;      // Page 1: 10 columns
            if (tableBody.id === 'testingTableBody2') return 15;     // Page 2: 15 columns  
            if (tableBody.id === 'testingTableBody3') return 15;     // Page 3: 15 columns
-           if (tableBody.id === 'testingTableBody4') return 11;     // Page 4: 11 columns (3 for Sample No + 4 Color + 4 Gloss columns)
-           if (tableBody.id === 'testingTableBody5') return 5;      // Page 5: 5 columns (3 for Sample No + 1 PG Quality + 1 blank column)
+           if (tableBody.id === 'testingTableBody4') return 8;      // Page 4: 8 columns
            return 0;
        };
        
@@ -275,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
                    input.style.opacity = '1'; // Force full opacity
                });
                
-               // Apply conditional formatting in view mode (red text only)
+               // Re-apply conditional formatting after disabling inputs in view mode
                applyConditionalFormattingToAllColumns();
            }, 1000);
        }
@@ -325,7 +328,10 @@ document.addEventListener('DOMContentLoaded', function() {
                    basic_weight: document.getElementById('basic-weight-equipment')?.value || '',
                    thickness: document.getElementById('thickness-equipment')?.value || '',
                    opacity: document.getElementById('opacity-equipment')?.value || '',
-                   cof: document.getElementById('cof-equipment')?.value || ''
+                   cof: document.getElementById('cof-equipment')?.value || '',
+                   cut_width: document.getElementById('cut-width-equipment')?.value || '',
+                   color_unprinted: document.getElementById('color-unprinted-equipment')?.value || '',
+                   color_printed: document.getElementById('color-printed-equipment')?.value || ''
                },
                page2: {
                    common: document.getElementById('page2-common-equipment')?.value || ''
@@ -334,11 +340,7 @@ document.addEventListener('DOMContentLoaded', function() {
                    common: document.getElementById('page3-common-equipment')?.value || ''
                },
                page4: {
-                   color_common: document.getElementById('color-common-equipment')?.value || '',
                    gloss: document.getElementById('gloss-equipment')?.value || ''
-               },
-               page5: {
-                   common: document.getElementById('page5-common-equipment')?.value || ''
                }
            };
            
@@ -400,15 +402,9 @@ document.addEventListener('DOMContentLoaded', function() {
                }
                
                // Load Page 4 equipment
-               if (equipment.page4) {
-                   if (equipment.page4.color_common) {
-                       const dropdown = document.getElementById('color-common-equipment');
-                       if (dropdown) dropdown.value = equipment.page4.color_common;
-                   }
-                   if (equipment.page4.gloss) {
-                       const dropdown = document.getElementById('gloss-equipment');
-                       if (dropdown) dropdown.value = equipment.page4.gloss;
-                   }
+               if (equipment.page4 && equipment.page4.gloss) {
+                   const dropdown = document.getElementById('gloss-equipment');
+                   if (dropdown) dropdown.value = equipment.page4.gloss;
                }
            }
        }
@@ -419,7 +415,6 @@ document.addEventListener('DOMContentLoaded', function() {
            if (viewMode || isInitialLoading) {
                return;
            }
-           
            
            try {
                // Get header form data
@@ -455,6 +450,9 @@ document.addEventListener('DOMContentLoaded', function() {
                    page1_thickness: convertColumnToJSONB(testingTableBody, 4),   // Thickness - HTML column 4
                    page1_opacity: convertColumnToJSONB(testingTableBody, 5),     // Opacity - HTML column 5
                    page1_cof_kinetic: convertColumnToJSONB(testingTableBody, 6), // COF Kinetic - HTML column 6
+                   page1_cut_width: convertColumnToJSONB(testingTableBody, 7),   // Cut Width - HTML column 7
+                   page1_color_delta_unprinted: convertColumnToJSONB(testingTableBody, 8), // Color Delta Unprinted - HTML column 8
+                   page1_color_delta_printed: convertColumnToJSONB(testingTableBody, 9),   // Color Delta Printed - HTML column 9
                    
                    // Page 2: Convert to JSONB arrays for each column
                    // HTML: Sample No (colspan="3"), Elongation MD (colspan="4"), Force MD (colspan="4"), Force 5% MD (colspan="4")
@@ -483,19 +481,12 @@ document.addEventListener('DOMContentLoaded', function() {
                    page3_modulus_3: convertColumnToJSONB(testingTableBody3, 13),          // Modulus 3 - HTML column 13
                    
                    // Page 4: Convert to JSONB arrays for each column
-                   // HTML: Sample No (colspan="3"), Color L, Color A, Color B, Color~Delta E, Gloss (colspan="4")
-                   // HTML columns: 0(Sample No), 1(Color L), 2(Color A), 3(Color B), 4(Color~Delta E), 5(Gloss1), 6(Gloss2), 7(Gloss3), 8(GlossAve)
-                   page4_color_l: convertColumnToJSONB(testingTableBody4, 3),            // Color L - HTML column 3
-                   page4_color_a: convertColumnToJSONB(testingTableBody4, 4),            // Color A - HTML column 4
-                   page4_color_b: convertColumnToJSONB(testingTableBody4, 5),            // Color B - HTML column 5
-                   page4_color_delta_e: convertColumnToJSONB(testingTableBody4, 6),     // Color~Delta E - HTML column 6
-                   page4_gloss_1: convertColumnToJSONB(testingTableBody4, 7),            // Gloss 1 - HTML column 7
-                   page4_gloss_2: convertColumnToJSONB(testingTableBody4, 8),            // Gloss 2 - HTML column 8
-                   page4_gloss_3: convertColumnToJSONB(testingTableBody4, 9),            // Gloss 3 - HTML column 9
-                   // page4_gloss_ave is calculated automatically and not saved to database
-                   
-                   // Page 5 - PG Quality System Requirements
-                   page5_pg_quality: convertColumnToJSONB(testingTableBody5, 3)          // PG Quality - HTML column 3
+                   // HTML: Sample No (colspan="3"), Gloss (colspan="3"), PG Quality
+                   // HTML columns: 0(Sample No), 1(Gloss1), 2(Gloss2), 3(Gloss3), 4(PG Quality)
+                           page4_gloss_1: convertColumnToJSONB(testingTableBody4, 3),            // Gloss 1 - HTML column 3
+        page4_gloss_2: convertColumnToJSONB(testingTableBody4, 4),            // Gloss 2 - HTML column 4
+        page4_gloss_3: convertColumnToJSONB(testingTableBody4, 5),            // Gloss 3 - HTML column 5
+        page4_pg_quality: convertColumnToJSONB(testingTableBody4, 7),         // PG Quality - HTML column 7
                };
                
                // Get equipment selections
@@ -514,14 +505,14 @@ document.addEventListener('DOMContentLoaded', function() {
                if (currentFormId) {
                    // Update existing record
                    result = await supabase
-                       .from('168_16c_white')
+                       .from('176_18cp_ww')
                        .update(completeData)
                        .eq('form_id', currentFormId)
                        .select('form_id');
                } else {
                    // Insert new record
                    result = await supabase
-                       .from('168_16c_white')
+                       .from('176_18cp_ww')
                        .insert([completeData])
                        .select('form_id');
                }
@@ -532,7 +523,6 @@ document.addEventListener('DOMContentLoaded', function() {
                    console.error('Supabase error:', error);
                    return;
                }
-               
                
                // Store form_id and lot_no for future updates
                if (data && data.length > 0) {
@@ -547,18 +537,9 @@ document.addEventListener('DOMContentLoaded', function() {
        }
        
        // Single debounced save function for database operations
-       let isSaving = false; // Flag to prevent duplicate saves
-       
        function debouncedSave() {
-           if (isSaving) {
-               return; // Prevent duplicate saves
-           }
            clearTimeout(saveTimeout);
-           saveTimeout = setTimeout(async () => {
-               isSaving = true;
-               await autoSaveToDatabase();
-               isSaving = false;
-           }, 200); // 200ms delay for better responsiveness
+           saveTimeout = setTimeout(autoSaveToDatabase, 200); // 200ms delay for better responsiveness
        }
        
        // Helper function to add consolidated input event listener
@@ -648,8 +629,8 @@ document.addEventListener('DOMContentLoaded', function() {
                        if (tableBody.id !== 'testingTableBody') {
                            calculateRowAverages(tr, tableBody);
                        }
-                       // Also calculate summary statistics for vertical Ave columns (Page 2, 3 & 4)
-                       if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
+                       // Also calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
+                       if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
                            calculateSummaryStatistics(tableBody);
                        }
                        // Calculate individual column stats for Page 1 (only the changed column)
@@ -770,31 +751,10 @@ document.addEventListener('DOMContentLoaded', function() {
                        const inputs = row.querySelectorAll('input');
                        inputElement = inputs[columnIndex] || null;
                    }
-               } else if (tableBody.id === 'testingTableBody5') {
-                   // Page 5: 3 sample columns + 1 data column (PG Quality)
-                   // DOM columns: 0(Sample1), 1(Sample2), 2(Sample3), 3(PG Quality)
-                   // Input indices: 0(Sample1), 1(Sample2), 2(Sample3), 3(PG Quality)
-                   if (columnIndex === 0) {
-                       // Sample Number column - find input in first column
-                       const inputs = row.querySelectorAll('input');
-                       inputElement = inputs[0] || null;
-                   } else if (columnIndex === 1) {
-                       // Lot Number column - find input in second column
-                       const inputs = row.querySelectorAll('input');
-                       inputElement = inputs[1] || null;
-                   } else if (columnIndex === 2) {
-                       // Roll Number column - find input in third column
-                       const inputs = row.querySelectorAll('input');
-                       inputElement = inputs[2] || null;
-                   } else if (columnIndex === 3) {
-                       // PG Quality column - find input in fourth column
-                       const inputs = row.querySelectorAll('input');
-                       inputElement = inputs[3] || null;
-                   }
                } else if (tableBody.id === 'testingTableBody4') {
-                   // Page 4: 3 sample columns + 8 data columns
-                   // DOM columns: 0(Sample1), 1(Sample2), 2(Sample3), 3(Color L), 4(Color A), 5(Color B), 6(Color~Delta E), 7(Gloss1), 8(Gloss2), 9(Gloss3), 10(GlossAve)
-                   // Input indices: 0(Sample1), 1(Sample2), 2(Sample3), 3(Color L), 4(Color A), 5(Color B), 6(Color~Delta E), 7(Gloss1), 8(Gloss2), 9(Gloss3), 10(GlossAve)
+                   // Page 4: 3 sample columns + 5 data columns
+                   // DOM columns: 0(Sample1), 1(Sample2), 2(Sample3), 3(Gloss1), 4(Gloss2), 5(Gloss3), 6(PG Quality), 7
+                   // Input indices: 0(Sample1), 1(Sample2), 2(Sample3), 3(Gloss1), 4(Gloss2), 5(Gloss3), 6(PG Quality)
                    if (columnIndex === 0) {
                        // Sample Number column - find input in first column
                        const inputs = row.querySelectorAll('input');
@@ -863,25 +823,7 @@ document.addEventListener('DOMContentLoaded', function() {
                // COF Kinetic column - format to 2 decimal places (0.00)
                const numValue = parseFloat(value);
                if (!isNaN(numValue)) {
-                   // Convert integer values to decimal format (e.g., 42 -> 0.42, 0 -> 0.0)
-                   let finalValue;
-                   if (Number.isInteger(numValue)) {
-                       // If it's an integer, convert to decimal by dividing by 100
-                       finalValue = numValue / 100;
-                   } else {
-                       // If it already has decimal places, use as-is
-                       finalValue = numValue;
-                   }
-                   
-                   // Ensure value is between 0 and 0.99 (since we're dividing by 100)
-                   if (finalValue < 0) {
-                       finalValue = 0;
-                   }
-                   if (finalValue > 0.99) {
-                       finalValue = 0.99;
-                   }
-                   
-                   return finalValue.toFixed(2);
+                   return numValue.toFixed(2);
                }
            } else if (columnIndex === 7) {
                // Cut Width column - format to whole number (000)
@@ -903,13 +845,7 @@ document.addEventListener('DOMContentLoaded', function() {
                if (columnIndex === 3 || columnIndex === 4 || columnIndex === 5) {
                    const numValue = parseInt(value);
                    if (!isNaN(numValue)) {
-                       // Ensure the value is preserved exactly as entered (no truncation)
-                       // Only pad with leading zeros if the value is less than 3 digits
-                       if (numValue >= 100) {
-                           return numValue.toString(); // Keep values like 550, 999 as-is
-                       } else {
-                           return numValue.toString().padStart(3, '0'); // Pad smaller values like 5 -> 005
-                       }
+                       return numValue.toString().padStart(3, '0');
                    }
                }
                // Force MD columns (columns 7, 8, 9) - format to 00.0
@@ -953,27 +889,11 @@ document.addEventListener('DOMContentLoaded', function() {
            
            // Page 4 formatting
            } else if (tableBodyId === 'testingTableBody4') {
-               // Color Delta E column (column 6) - format to 0.00
-               if (columnIndex === 6) {
-                   const numValue = parseFloat(value);
-                   if (!isNaN(numValue)) {
-                       return numValue.toFixed(2);
-                   }
-               }
-               // Gloss columns (columns 7, 8, 9) - format to 00.0
-               else if (columnIndex === 7 || columnIndex === 8 || columnIndex === 9) {
+               // Gloss columns (columns 3, 4, 5) - format to 00.0
+               if (columnIndex === 3 || columnIndex === 4 || columnIndex === 5) {
                    const numValue = parseFloat(value);
                    if (!isNaN(numValue)) {
                        return numValue.toFixed(1);
-                   }
-               }
-           // Page 5 formatting
-           } else if (tableBodyId === 'testingTableBody5') {
-               // PG Quality column (column 3) - format to integer (0 or 1)
-               if (columnIndex === 3) {
-                   const numValue = parseInt(value);
-                   if (!isNaN(numValue)) {
-                       return numValue.toString();
                    }
                }
            }
@@ -1105,12 +1025,11 @@ document.addEventListener('DOMContentLoaded', function() {
            
            // Define columns per row for each table type
            const getColumnsPerRow = (tableBody) => {
-               if (tableBody.id === 'testingTableBody') return 7;       // Page 1: 7 columns (3 Sample No + 4 data columns)
+               if (tableBody.id === 'testingTableBody') return 10;      // Page 1: 10 columns
                if (tableBody.id === 'testingTableBody2') return 15;     // Page 2: 15 columns  
                if (tableBody.id === 'testingTableBody3') return 15;     // Page 3: 15 columns
-               if (tableBody.id === 'testingTableBody4') return 11;     // Page 4: 11 columns (3 for Sample No + 4 Color + 4 Gloss columns)
-               if (tableBody.id === 'testingTableBody5') return 5;      // Page 5: 5 columns (3 for Sample No + 1 PG Quality + 1 blank column)
-               return 7; // Default fallback
+               if (tableBody.id === 'testingTableBody4') return 8;      // Page 4: 8 columns
+               return 10; // Default fallback
            };
            
            // Get the current table and its column count
@@ -1329,24 +1248,23 @@ document.addEventListener('DOMContentLoaded', function() {
                  if (currentFormId) {
                      // Load form data directly - no timeout needed
                      const { data, error } = await supabase
-                         .from('168_16c_white')
+                         .from('176_18cp_ww')
                          .select('*')
-                         .eq('form_id', currentFormId)
-                         .single();
+                         .eq('form_id', currentFormId);
                      
-                     if (error) {
+                     if (error || !data || data.length === 0) {
                          // Mark initial loading as complete even if no data found
                          isInitialLoading = false;
                          return;
                      }
                      
-                     if (data) {
+                     if (data[0]) {
                          // Set session variables from loaded data
-                         currentFormId = data.form_id;
-                         currentLotNo = data.lot_no;
-                         loadTableDataFromDatabase(data);
-                         loadEquipmentSelections(data);
-                         loadPreStoreData(data);
+                         currentFormId = data[0].form_id;
+                         currentLotNo = data[0].lot_no;
+                         loadTableDataFromDatabase(data[0]);
+                         loadEquipmentSelections(data[0]);
+                         loadPreStoreData(data[0]);
                          
                          // Update equipment dropdown styling after data is loaded
                          setTimeout(updateEquipmentDropdownStyling, 100);
@@ -1386,44 +1304,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
                 // Search for previous form with matching criteria
-                console.log('Searching for historical data:', { productCode, machineNo, previousDateStr });
-                
                 const { data: historicalData, error } = await supabase
-                    .from('168_16c_white')
+                    .from('176_18cp_ww')
                     .select('*')
                     .eq('product_code', productCode)
                     .eq('machine_no', machineNo)
                     .eq('production_date', previousDateStr)
                     .order('created_at', { ascending: false })
                     .limit(1);
-                
-                if (error) {
-                    console.error('Error fetching historical data:', error);
-                }
 
                 if (error || !historicalData || historicalData.length === 0) {
-                    
                     // If no data for previous date, find most recent form with same product + machine
-                    console.log('Searching for recent data:', { productCode, machineNo, productionDate });
-                    
                     const { data: recentData, error: recentError } = await supabase
-                        .from('168_16c_white')
+                        .from('176_18cp_ww')
                         .select('*')
                         .eq('product_code', productCode)
                         .eq('machine_no', machineNo)
                         .lt('production_date', productionDate)
                         .order('production_date', { ascending: false })
                         .limit(1);
-                    
-                    if (recentError) {
-                        console.error('Error fetching recent data:', recentError);
-                    }
 
                     if (recentError || !recentData || recentData.length === 0) {
-                        console.log('No historical data found for this product/machine combination');
                         return;
                     }
-
                     // Load most recent historical data
                     await loadHistoricalDataIntoForm(recentData[0]);
                 } else {
@@ -1456,7 +1359,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 calculateSummaryStatistics(testingTableBody2);
                 calculateSummaryStatistics(testingTableBody3);
                 calculateSummaryStatistics(testingTableBody4);
-                // Page 5: No statistics calculation needed (PG Quality uses dashes)
                 recalculateAllRowAverages();
                 forceRecalculateAllSummaryStatistics();
 
@@ -1485,7 +1387,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     addRowsToTable(testingTableBody2, rowsToAdd);
                     addRowsToTable(testingTableBody3, rowsToAdd);
                     addRowsToTable(testingTableBody4, rowsToAdd);
-                    addRowsToTable(testingTableBody5, rowsToAdd);
                     
                     // Update row counts
                     updateRowCount();
@@ -1516,9 +1417,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Load data into Page 4 (testingTableBody4)
             loadHistoricalDataIntoTable(testingTableBody4, historicalData, 1, availableForHistorical, startFromRow);
-            
-            // Load data into Page 5 (testingTableBody5)
-            loadHistoricalDataIntoTable(testingTableBody5, historicalData, 1, availableForHistorical, startFromRow);
         }
 
         // Load historical data into specific table
@@ -1570,7 +1468,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     { key: 'page1_basis_weight', inputIndex: 3, columnType: 'basicWeight' },
                     { key: 'page1_thickness', inputIndex: 4, columnType: 'thickness' },
                     { key: 'page1_opacity', inputIndex: 5, columnType: 'opacity' },
-                    { key: 'page1_cof_kinetic', inputIndex: 6, columnType: 'cof' }
+                    { key: 'page1_cof_kinetic', inputIndex: 6, columnType: 'cof' },
+                    { key: 'page1_cut_width', inputIndex: 7, columnType: 'cutWidth' },
+                    { key: 'page1_color_delta_unprinted', inputIndex: 8, columnType: 'colorDelta' },
+                    { key: 'page1_color_delta_printed', inputIndex: 9, columnType: 'colorDelta' }
                 ];
                 
                 page1Data.forEach(({ key, inputIndex, columnType }) => {
@@ -1678,6 +1579,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (historicalData.page4_gloss_3 && historicalData.page4_gloss_3[rowKey] && inputs[5]) {
                     inputs[5].value = historicalData.page4_gloss_3[rowKey];
                 }
+                if (historicalData.page4_pg_quality && historicalData.page4_pg_quality[rowKey] && inputs[6]) {
+                    inputs[6].value = historicalData.page4_pg_quality[rowKey];
+                }
             }
         }
 
@@ -1756,6 +1660,9 @@ document.addEventListener('DOMContentLoaded', function() {
              if (dbData.page1_thickness) loadColumnDataToTable(testingTableBody, 4, dbData.page1_thickness);
              if (dbData.page1_opacity) loadColumnDataToTable(testingTableBody, 5, dbData.page1_opacity);
              if (dbData.page1_cof_kinetic) loadColumnDataToTable(testingTableBody, 6, dbData.page1_cof_kinetic);
+             if (dbData.page1_cut_width) loadColumnDataToTable(testingTableBody, 7, dbData.page1_cut_width);
+             if (dbData.page1_color_delta_unprinted) loadColumnDataToTable(testingTableBody, 8, dbData.page1_color_delta_unprinted);
+             if (dbData.page1_color_delta_printed) loadColumnDataToTable(testingTableBody, 9, dbData.page1_color_delta_printed);
              
              // Load Page 2 data
              if (dbData.page2_elongation_md_1) loadColumnDataToTable(testingTableBody2, 3, dbData.page2_elongation_md_1);
@@ -1780,16 +1687,10 @@ document.addEventListener('DOMContentLoaded', function() {
              if (dbData.page3_modulus_3) loadColumnDataToTable(testingTableBody3, 13, dbData.page3_modulus_3);
              
              // Load Page 4 data
-             if (dbData.page4_color_l) loadColumnDataToTable(testingTableBody4, 3, dbData.page4_color_l);
-             if (dbData.page4_color_a) loadColumnDataToTable(testingTableBody4, 4, dbData.page4_color_a);
-             if (dbData.page4_color_b) loadColumnDataToTable(testingTableBody4, 5, dbData.page4_color_b);
-             if (dbData.page4_color_delta_e) loadColumnDataToTable(testingTableBody4, 6, dbData.page4_color_delta_e);
-             if (dbData.page4_gloss_1) loadColumnDataToTable(testingTableBody4, 7, dbData.page4_gloss_1);
-             if (dbData.page4_gloss_2) loadColumnDataToTable(testingTableBody4, 8, dbData.page4_gloss_2);
-             if (dbData.page4_gloss_3) loadColumnDataToTable(testingTableBody4, 9, dbData.page4_gloss_3);
-             
-             // Load Page 5 data
-             if (dbData.page5_pg_quality) loadColumnDataToTable(testingTableBody5, 3, dbData.page5_pg_quality);
+                     if (dbData.page4_gloss_1) loadColumnDataToTable(testingTableBody4, 3, dbData.page4_gloss_1);
+        if (dbData.page4_gloss_2) loadColumnDataToTable(testingTableBody4, 4, dbData.page4_gloss_2);
+        if (dbData.page4_gloss_3) loadColumnDataToTable(testingTableBody4, 5, dbData.page4_gloss_3);
+        if (dbData.page4_pg_quality) loadColumnDataToTable(testingTableBody4, 7, dbData.page4_pg_quality);
              
              // Populate Sample Identification columns across ALL pages (Page 1 editable, others uneditable)
              populateSampleColumnsAcrossAllPages(dbData);
@@ -1806,7 +1707,6 @@ document.addEventListener('DOMContentLoaded', function() {
              calculateSummaryStatistics(testingTableBody2);
              calculateSummaryStatistics(testingTableBody3);
              calculateSummaryStatistics(testingTableBody4);
-             // Page 5: No statistics calculation needed (PG Quality uses dashes)
              
              // Recalculate ALL row averages for Pages 2, 3, 4 after data loads
              recalculateAllRowAverages();
@@ -1989,9 +1889,9 @@ document.addEventListener('DOMContentLoaded', function() {
          }
          
          // Function to populate Sample Identification columns across ALL pages (Page 1 editable, others uneditable)
-        function populateSampleColumnsAcrossAllPages(dbData) {
-            // Get all table bodies
-            const allTableBodies = [testingTableBody, testingTableBody2, testingTableBody3, testingTableBody4, testingTableBody5];
+         function populateSampleColumnsAcrossAllPages(dbData) {
+             // Get all table bodies
+             const allTableBodies = [testingTableBody, testingTableBody2, testingTableBody3, testingTableBody4];
              
              allTableBodies.forEach((tableBody, tableIndex) => {
                  // Get data rows (excluding summary rows)
@@ -2008,8 +1908,8 @@ document.addEventListener('DOMContentLoaded', function() {
                      if (inputs[0] && dbData.lot_and_roll && dbData.lot_and_roll[String(rowIndex + 1)]) {
                          inputs[0].value = dbData.lot_and_roll[String(rowIndex + 1)];
                          
-                         // Only make uneditable for Pages 2, 3, 4, 5 (keep Page 1 editable)
-                         if (tableIndex > 0) { // tableIndex 0 = Page 1, 1+ = Pages 2,3,4,5
+                         // Only make uneditable for Pages 2, 3, 4 (keep Page 1 editable)
+                         if (tableIndex > 0) { // tableIndex 0 = Page 1, 1+ = Pages 2,3,4
                              inputs[0].readOnly = true; // Make uneditable
                              inputs[0].style.backgroundColor = 'transparent'; // Normal transparent background
                              inputs[0].style.color = '#000000'; // Normal black text
@@ -2020,8 +1920,8 @@ document.addEventListener('DOMContentLoaded', function() {
                      if (inputs[1] && dbData.roll_id && dbData.roll_id[String(rowIndex + 1)]) {
                          inputs[1].value = dbData.roll_id[String(rowIndex + 1)];
                          
-                         // Only make uneditable for Pages 2, 3, 4, 5 (keep Page 1 editable)
-                         if (tableIndex > 0) { // tableIndex 0 = Page 1, 1+ = Pages 2,3,4,5
+                         // Only make uneditable for Pages 2, 3, 4 (keep Page 1 editable)
+                         if (tableIndex > 0) { // tableIndex 0 = Page 1, 1+ = Pages 2,3,4
                              inputs[1].readOnly = true; // Make uneditable
                              inputs[1].style.backgroundColor = 'transparent'; // Normal transparent background
                              inputs[1].style.color = '#000000'; // Normal black text
@@ -2032,8 +1932,8 @@ document.addEventListener('DOMContentLoaded', function() {
                      if (inputs[2] && dbData.lot_time && dbData.lot_time[String(rowIndex + 1)]) {
                          inputs[2].value = dbData.lot_time[String(rowIndex + 1)];
                          
-                         // Only make uneditable for Pages 2, 3, 4, 5 (keep Page 1 editable)
-                         if (tableIndex > 0) { // tableIndex 0 = Page 1, 1+ = Pages 2,3,4,5
+                         // Only make uneditable for Pages 2, 3, 4 (keep Page 1 editable)
+                         if (tableIndex > 0) { // tableIndex 0 = Page 1, 1+ = Pages 2,3,4
                              inputs[2].readOnly = true; // Make uneditable
                              inputs[2].style.backgroundColor = 'transparent'; // Normal transparent background
                              inputs[2].style.color = '#000000'; // Normal black text
@@ -2044,9 +1944,9 @@ document.addEventListener('DOMContentLoaded', function() {
          }
          
          // Function to sync sample data changes from Page 1 to all other pages in real-time
-        function syncSampleDataToOtherPages(rowIndex, columnIndex, newValue) {
-            // Get other table bodies (Pages 2, 3, 4, 5)
-            const otherTableBodies = [testingTableBody2, testingTableBody3, testingTableBody4, testingTableBody5];
+         function syncSampleDataToOtherPages(rowIndex, columnIndex, newValue) {
+             // Get other table bodies (Pages 2, 3, 4)
+             const otherTableBodies = [testingTableBody2, testingTableBody3, testingTableBody4];
              
              otherTableBodies.forEach(tableBody => {
                  // Get data rows (excluding summary rows)
@@ -2194,7 +2094,7 @@ document.addEventListener('DOMContentLoaded', function() {
          
          // Function to recalculate ALL row averages for Pages 2, 3, 4 after data loads
          function recalculateAllRowAverages() {
-             // Get all table bodies for Pages 2, 3, 4 (Page 5 excluded - no averages needed)
+             // Get all table bodies for Pages 2, 3, 4
              const tableBodies = [testingTableBody2, testingTableBody3, testingTableBody4];
              
              tableBodies.forEach(tableBody => {
@@ -2321,8 +2221,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                  };
                              } else if (isPage4) {
                                  columnTypes = {
-                                     3: 'colorL', 4: 'colorA', 5: 'colorB', 6: 'colorDeltaE',
-                                     7: 'gloss', 8: 'gloss', 9: 'gloss', 10: 'gloss',
+                                     3: 'gloss', 4: 'gloss', 5: 'gloss',
+                                     7: 'pgQuality'
                                  };
                              }
                              
@@ -2357,9 +2257,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // Apply validation to existing opacity inputs after data is loaded
         applyValidationToExistingOpacityInputs();
         
+        // Apply validation to existing PG Quality inputs after data is loaded
+        applyValidationToExistingPGQualityInputs();
         
         // Apply validation to existing COF inputs after data is loaded
         applyValidationToExistingCOFInputs();
+        
+        // Apply validation to existing Cut Width inputs after data is loaded
+        applyValidationToExistingCutWidthInputs();
+        
+        // Apply validation to existing Color-Delta E inputs after data is loaded
+        applyValidationToExistingColorDeltaInputs();
         
         // Apply validation to existing Page 2, 3, 4 inputs after data is loaded
         applyValidationToExistingPage2Inputs();
@@ -2412,7 +2320,6 @@ document.addEventListener('DOMContentLoaded', function() {
                addRowsToTable(testingTableBody2, rowsToAdd);
                addRowsToTable(testingTableBody3, rowsToAdd);
                addRowsToTable(testingTableBody4, rowsToAdd);
-               addRowsToTable(testingTableBody5, rowsToAdd);
                
                // Update row counts
                updateRowCount();
@@ -2490,33 +2397,22 @@ document.addEventListener('DOMContentLoaded', function() {
            const isPage2 = tableBody.id === 'testingTableBody2';
            const isPage3 = tableBody.id === 'testingTableBody3';
            const isPage4 = tableBody.id === 'testingTableBody4';
-           const isPage5 = tableBody.id === 'testingTableBody5';
            
            let columnCount;
            if (isPage2 || isPage3) {
                columnCount = 15;
            } else if (isPage4) {
-               columnCount = 11; // 3 Sample No + 4 Color + 4 Gloss
-           } else if (isPage5) {
-               columnCount = 5; // 3 Sample No + 1 PG Quality + 1 blank column
+               columnCount = 8;
            } else {
-               columnCount = 7; // Updated Page 1 column count after removing Cut Width and Color Delta columns
+               columnCount = 10;
            }
 
            // Use DocumentFragment for better performance
            const fragment = document.createDocumentFragment();
 
-           // Calculate the starting row index for tab order (existing rows)
-           const existingRowsForTabOrder = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
-               const firstCell = row.querySelector('td');
-               return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
-           });
-           const startingRowIndex = existingRowsForTabOrder.length;
-           
            // Add new empty rows
             for (let i = 0; i < n; i++) {
                 const tr = document.createElement('tr');
-                const rowIndex = startingRowIndex + i; // This is the index of the row being added
                 
                 for (let j = 0; j < columnCount; j++) {
                     const td = document.createElement('td');
@@ -2595,18 +2491,13 @@ document.addEventListener('DOMContentLoaded', function() {
                        }
                        
                        td.appendChild(input);
-                    } else {
-                        // Other columns: Input fields
-                        const input = document.createElement('input');
-                        input.type = 'text';
-                        input.className = 'testing-input';
-                        input.value = '';
-                        input.placeholder = '';
-                        
-                        // Ensure input is always editable unless specifically made read-only
-                        input.disabled = false;
-                        input.readOnly = false;
-                        
+                   } else {
+                       // Other columns: Input fields
+                       const input = document.createElement('input');
+                       input.type = 'text';
+                       input.className = 'testing-input';
+                    input.value = '';
+                    input.placeholder = '';
                     
                     // Apply validation and conditional formatting to Page 1 columns
                     if (tableBody.id === 'testingTableBody') {
@@ -2622,6 +2513,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         } else if (j === 6) {
                             applyCOFValidation(input);
                             applyConditionalFormatting(input, 'cof');
+                        } else if (j === 7) {
+                            applyCutWidthValidation(input);
+                            applyConditionalFormatting(input, 'cutWidth');
+                        } else if (j === 8) {
+                            applyColorDeltaValidation(input);
+                            applyConditionalFormatting(input, 'colorDelta');
+                        } else if (j === 9) {
+                            applyColorDeltaValidation(input);
+                            applyConditionalFormatting(input, 'colorDelta');
                         }
                     }
                     
@@ -2662,72 +2562,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     // Page 4 validations and conditional formatting
-                    // Color columns
-                    if (tableBody.id === 'testingTableBody4' && j === 3) {
-                        applyColorLValidation(input);
-                        applyConditionalFormatting(input, 'colorL');
-                    } else if (tableBody.id === 'testingTableBody4' && j === 4) {
-                        applyColorAValidation(input);
-                        applyConditionalFormatting(input, 'colorA');
-                    } else if (tableBody.id === 'testingTableBody4' && j === 5) {
-                        applyColorBValidation(input);
-                        applyConditionalFormatting(input, 'colorB');
-                    } else if (tableBody.id === 'testingTableBody4' && j === 6) {
-                        // Force Color Delta E input to be editable
-                        input.disabled = false;
-                        input.readOnly = false;
-                        input.style.pointerEvents = 'auto';
-                        input.style.backgroundColor = 'transparent';
-                        input.style.color = 'black';
-                        input.style.opacity = '1';
-                        input.style.visibility = 'visible';
-                        input.style.cursor = 'text';
-                        input.tabIndex = 0;
-                        
-                        applyColorDeltaEValidation(input);
-                        applyConditionalFormatting(input, 'colorDeltaE');
-                        
-                        // Add event listener to ensure it stays editable
-                        input.addEventListener('focus', function() {
-                            this.disabled = false;
-                            this.readOnly = false;
-                            this.style.pointerEvents = 'auto';
-                            this.style.backgroundColor = 'white';
-                            this.style.color = 'black';
-                        });
-                    }
                     // Gloss columns (00.0 format)
-                    if (tableBody.id === 'testingTableBody4' && (j === 7 || j === 8 || j === 9)) {
+                    if (tableBody.id === 'testingTableBody4' && (j === 3 || j === 4 || j === 5)) {
                         applyTwoDigitOneDecimalValidation(input);
                         applyConditionalFormatting(input, 'gloss');
                     }
-                    // Gloss Ave column (read-only, calculated)
-                    if (tableBody.id === 'testingTableBody4' && j === 10) {
-                        input.readOnly = true;
-                        input.style.backgroundColor = '#f0f0f0';
-                        input.style.color = '#666';
-                        input.placeholder = '';
-                        applyConditionalFormatting(input, 'gloss');
-                    }
-                    
-                    // Page 5 validations and conditional formatting
-                    // PG Quality System Requirements column (Pass=0, Fail=1)
-                    if (tableBody.id === 'testingTableBody5' && j === 3) {
-                        applyPGQualityValidation(input);
+                    // PG Quality column
+                    if (tableBody.id === 'testingTableBody4' && j === 7) {
                         applyConditionalFormatting(input, 'pgQuality');
-                    }
-                    // Page 5 blank column (5th column) - no input, just empty cell
-                    if (tableBody.id === 'testingTableBody5' && j === 4) {
-                        input.style.display = 'none'; // Hide input for blank column
-                        td.style.backgroundColor = 'transparent';
+                        applyPGQualityValidation(input);
                     }
                     
                     // Add event listener for automatic average calculation
                     // Skip validated columns as they have their own comprehensive event listeners
-                    const isPage1Validated = tableBody.id === 'testingTableBody' && (j === 0 || j === 1 || j === 2 || j === 4 || j === 5 || j === 6);
+                    const isPage1Validated = tableBody.id === 'testingTableBody' && (j === 0 || j === 1 || j === 2 || j === 4 || j === 5 || j === 6 || j === 7 || j === 8 || j === 9);
                     const isPage2Validated = tableBody.id === 'testingTableBody2' && (j === 3 || j === 4 || j === 5 || j === 7 || j === 8 || j === 9 || j === 11 || j === 12 || j === 13);
                     const isPage3Validated = tableBody.id === 'testingTableBody3' && (j === 3 || j === 4 || j === 5 || j === 7 || j === 8 || j === 9 || j === 11 || j === 12 || j === 13);
-                    const isPage4Validated = tableBody.id === 'testingTableBody4' && (j === 3 || j === 4 || j === 5 || j === 6 || j === 7 || j === 8 || j === 9);
+                    const isPage4Validated = tableBody.id === 'testingTableBody4' && (j === 3 || j === 4 || j === 5);
                     
                     if (!(isPage1Validated || isPage2Validated || isPage3Validated || isPage4Validated)) {
                         input.addEventListener('input', function() {
@@ -2738,8 +2589,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (tableBody.id !== 'testingTableBody') {
                                 calculateRowAverages(tr, tableBody);
                             }
-                            // Also calculate summary statistics for vertical Ave columns (Page 2, 3 & 4)
-                            if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
+                            // Also calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
+                            if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
                                 calculateSummaryStatistics(tableBody);
                             }
                             // Calculate individual column stats for Page 1 (only the changed column)
@@ -2753,15 +2604,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                     }
                     
-                    // Set tab order for proper navigation
-                    input.tabIndex = rowIndex * columnCount + j;
-                    
                     td.appendChild(input);
                    }
                    
                     tr.appendChild(td);
                 }
-                
                 
                 // Add to fragment instead of directly to table for better performance
                 fragment.appendChild(tr);
@@ -2772,9 +2619,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
            // Add all new rows to table at once (much faster)
            tableBody.appendChild(fragment);
-
-           // Update tab order for all existing rows to ensure proper navigation
-           updateTabOrderForAllRows(tableBody);
 
            // Re-add summary rows
            summaryRows.forEach(row => {
@@ -2797,31 +2641,6 @@ document.addEventListener('DOMContentLoaded', function() {
            
            // Save the updated table state to database after adding rows
            debouncedSave();
-       }
-
-       // Function to update tab order for all rows in a table
-       function updateTabOrderForAllRows(tableBody) {
-           const dataRows = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
-               const firstCell = row.querySelector('td');
-               return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
-           });
-           
-           // Determine column count based on table
-           let columnCount;
-           if (tableBody.id === 'testingTableBody') {
-               columnCount = 7; // Page 1: 3 Sample No + 4 data columns
-           } else if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
-               columnCount = 15; // Pages 2, 3: 3 Sample No + 12 data columns
-           } else if (tableBody.id === 'testingTableBody4') {
-               columnCount = 11; // Page 4: 3 Sample No + 4 Color + 4 Gloss
-           }
-           
-           dataRows.forEach((row, rowIndex) => {
-               const inputs = row.querySelectorAll('input');
-               inputs.forEach((input, columnIndex) => {
-                   input.tabIndex = rowIndex * columnCount + columnIndex;
-               });
-           });
        }
 
        // Function to delete rows from any table
@@ -2893,10 +2712,10 @@ document.addEventListener('DOMContentLoaded', function() {
                    calculateSubgroupAverage(inputs, 7, 10, 'testingTableBody3'); // Force CD: cols 7,8,9 -> Ave at 10
                    calculateSubgroupAverage(inputs, 11, 14, 'testingTableBody3'); // Modulus: cols 11,12,13 -> Ave at 14
            } else if (tableBody.id === 'testingTableBody4') {
-               // Page 4: Color (4 cols), Gloss (4 cols: 1,2,3,Ave)
-               // Columns: Sample No (3 cols), Color (4 cols), Gloss (4 cols)
-                   calculateSubgroupAverage(inputs, 7, 10, 'testingTableBody4'); // Gloss: cols 7,8,9 -> Ave at 10
-               // Color columns don't have average calculation
+               // Page 4: Gloss (Gloss unit), PG Quality System Requirements
+               // Columns: Sample No (3 cols), Gloss (4 cols), PG Quality (1 col)
+                   calculateSubgroupAverage(inputs, 3, 6, 'testingTableBody4'); // Gloss: cols 3,4,5 -> Ave at 6
+               // PG Quality column doesn't have average calculation
            }
        }
 
@@ -3037,155 +2856,19 @@ document.addEventListener('DOMContentLoaded', function() {
            if (dataRows.length === 0) return;
            
            // Calculate for Ave columns based on table type
-            if (tableBody.id === 'testingTableBody4') {
-                // Page 4: Calculate summary for ALL data columns: Color L(3), A(4), B(5), Delta E(6), Gloss 1(7), 2(8), 3(9), Ave(10)
-                calculatePage4SummaryStats(dataRows, tableBody);
-            } else {
+           if (tableBody.id === 'testingTableBody4') {
+               // Page 4: Sample No (3 cols), Gloss (4 cols: 1,2,3,Ave), PG Quality (1 col)
+               // Only one Ave column at position 6
+               calculateVerticalAveStats(dataRows, [6], tableBody);
+           } else {
                // Page 2 & 3: 3 Ave columns (positions 6, 10, 14)
                // Page 2: Sample No (3 cols), Elongation MD (4 cols: 1,2,3,Ave), Force MD (4 cols: 1,2,3,Ave), Force 5% MD (4 cols: 1,2,3,Ave)
                // Page 3: Sample No (3 cols), Elongation CD (4 cols: 1,2,3,Ave), Force CD (4 cols: 1,2,3,Ave), Modulus (4 cols: 1,2,3,Ave)
            calculateVerticalAveStats(dataRows, [6, 10, 14], tableBody);
            }
-        }
+       }
 
-        // Function to calculate individual column statistics for Page 4
-        function calculatePage4ColumnStats(tableBody, changedColumnIndex = null) {
-            if (tableBody.id !== 'testingTableBody4') {
-                return;
-            }
-            
-            const rows = tableBody.querySelectorAll('tr');
-            const dataRows = Array.from(rows).filter(row => {
-                const firstCell = row.querySelector('td');
-                return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
-            });
-            
-            if (dataRows.length === 0) return;
-            
-            // Page 4 data columns: Color L(3), A(4), B(5), Delta E(6), Gloss 1(7), 2(8), 3(9), Ave(10)
-            // Page 4 summary rows: [Average/Min/Max label, Color L, A, B, Delta E, Gloss 1, 2, 3, Ave]
-            const summaryColumnIndices = [1, 2, 3, 4, 5, 6, 7, 8]; // 8 data columns
-            const inputColumnIndices = [3, 4, 5, 6, 7, 8, 9, 10]; // Input columns in data rows
-            
-            // If a specific column changed, only update that column
-            if (changedColumnIndex !== null) {
-                const columnIndex = inputColumnIndices.indexOf(changedColumnIndex);
-                if (columnIndex !== -1) {
-                    const inputColIndex = inputColumnIndices[columnIndex];
-                    const summaryColIndex = summaryColumnIndices[columnIndex];
-                    const values = [];
-                    
-                    // Collect values from this input column
-                    dataRows.forEach(row => {
-                        const inputs = row.querySelectorAll('input');
-                        if (inputs[inputColIndex] && inputs[inputColIndex].value) {
-                            const value = parseFloat(inputs[inputColIndex].value);
-                            if (!isNaN(value)) {
-                                values.push(value);
-                            }
-                        }
-                    });
-                    
-                    if (values.length > 0) {
-                        const average = values.reduce((sum, val) => sum + val, 0) / values.length;
-                        const minimum = Math.min(...values);
-                        const maximum = Math.max(...values);
-                        
-                        // Format based on column type
-                        let avgFormatted, minFormatted, maxFormatted;
-                        if (inputColIndex === 10) {
-                            // Gloss Ave: 1 decimal (0.0)
-                            avgFormatted = average.toFixed(1);
-                            minFormatted = minimum.toFixed(1);
-                            maxFormatted = maximum.toFixed(1);
-                        } else if (inputColIndex >= 7 && inputColIndex <= 9) {
-                            // Gloss 1, 2, 3: 1 decimal (0.0)
-                            avgFormatted = average.toFixed(1);
-                            minFormatted = minimum.toFixed(1);
-                            maxFormatted = maximum.toFixed(1);
-                        } else {
-                            // Color columns: 1 decimal (0.0)
-                            avgFormatted = average.toFixed(1);
-                            minFormatted = minimum.toFixed(1);
-                            maxFormatted = maximum.toFixed(1);
-                        }
-                        
-                        updateSummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
-                        updateSummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
-                        updateSummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
-                    } else {
-                        updateSummaryRow(tableBody, 'Average', summaryColIndex, '0.0');
-                        updateSummaryRow(tableBody, 'Minimum', summaryColIndex, '0.0');
-                        updateSummaryRow(tableBody, 'Maximum', summaryColIndex, '0.0');
-                    }
-                }
-            } else {
-                // Update all columns
-                calculatePage4SummaryStats(dataRows, tableBody);
-            }
-        }
-
-        // Function to calculate summary statistics for Page 4 (all data columns)
-        function calculatePage4SummaryStats(dataRows, tableBody) {
-            // Page 4 input columns: Color L(3), A(4), B(5), Delta E(6), Gloss 1(7), 2(8), 3(9), Ave(10)
-            // Page 4 summary columns: [Label(colspan=3), Color L(1), A(2), B(3), Delta E(4), Gloss 1(5), 2(6), 3(7), Ave(8)]
-            const inputColumns = [3, 4, 5, 6, 7, 8, 9, 10];
-            const summaryColumns = [1, 2, 3, 4, 5, 6, 7, 8];
-            
-            inputColumns.forEach((inputColIndex, arrayIndex) => {
-                const summaryColIndex = summaryColumns[arrayIndex];
-                const values = [];
-                
-                // Collect all values from this input column across all data rows
-                dataRows.forEach(row => {
-                    const inputs = row.querySelectorAll('input');
-                    if (inputs[inputColIndex] && inputs[inputColIndex].value) {
-                        const value = parseFloat(inputs[inputColIndex].value);
-                        if (!isNaN(value)) {
-                            values.push(value);
-                        }
-                    }
-                });
-                
-                if (values.length > 0) {
-                    // Calculate Average, Min, Max
-                    const average = values.reduce((sum, val) => sum + val, 0) / values.length;
-                    const minimum = Math.min(...values);
-                    const maximum = Math.max(...values);
-                    
-                    // Format based on column type
-                    let avgFormatted, minFormatted, maxFormatted;
-                    
-                    if (inputColIndex === 10) {
-                        // Gloss Ave: 1 decimal (0.0)
-                        avgFormatted = average.toFixed(1);
-                        minFormatted = minimum.toFixed(1);
-                        maxFormatted = maximum.toFixed(1);
-                    } else if (inputColIndex >= 7 && inputColIndex <= 9) {
-                        // Gloss 1, 2, 3: 1 decimal (0.0)
-                        avgFormatted = average.toFixed(1);
-                        minFormatted = minimum.toFixed(1);
-                        maxFormatted = maximum.toFixed(1);
-                    } else {
-                        // Color columns: 1 decimal (0.0)
-                        avgFormatted = average.toFixed(1);
-                        minFormatted = minimum.toFixed(1);
-                        maxFormatted = maximum.toFixed(1);
-                    }
-                    
-                    updateSummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
-                    updateSummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
-                    updateSummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
-                } else {
-                    // Clear summary rows if no data
-                    updateSummaryRow(tableBody, 'Average', summaryColIndex, '0.0');
-                    updateSummaryRow(tableBody, 'Minimum', summaryColIndex, '0.0');
-                    updateSummaryRow(tableBody, 'Maximum', summaryColIndex, '0.0');
-                }
-            });
-        }
-
-        // Function to calculate individual column statistics for Page 1
+       // Function to calculate individual column statistics for Page 1
        function calculatePage1ColumnStats(tableBody, changedColumnIndex = null) {
            if (tableBody.id !== 'testingTableBody') {
                return;
@@ -3559,11 +3242,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                  minFormatted = minimum.toFixed(3);
                                  maxFormatted = maximum.toFixed(3);
                              }
-                         } else if (tableBody.id === 'testingTableBody5') {
-                             // Page 5: PG Quality - format as integers (0 or 1)
-                             avgFormatted = average.toFixed(0);
-                             minFormatted = minimum.toFixed(0);
-                             maxFormatted = maximum.toFixed(0);
                          } else {
                              // Other pages: Default formatting
                              avgFormatted = average.toFixed(3);
@@ -3651,11 +3329,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                  defaultMin = '0.000';
                                  defaultMax = '0.000';
                              }
-                         } else if (tableBody.id === 'testingTableBody5') {
-                             // Page 5: PG Quality - format as integers (0 or 1)
-                             defaultAvg = '0';
-                             defaultMin = '0';
-                             defaultMax = '0';
                          } else {
                              // Other pages: Default formatting
                              defaultAvg = '0.000';
@@ -3904,8 +3577,9 @@ document.addEventListener('DOMContentLoaded', function() {
         function formatThicknessOnEnter(input) {
             let value = input.value.trim();
             
-            // If empty, leave it empty (don't set default values)
+            // If empty, set to 0.000
             if (value === '') {
+                input.value = '0.000';
                 return;
             }
             
@@ -4039,8 +3713,9 @@ document.addEventListener('DOMContentLoaded', function() {
         function formatOpacityOnEnter(input) {
             let value = input.value.trim();
             
-            // If empty, leave it empty (don't set default values)
+            // If empty, set to 00.0
             if (value === '') {
+                input.value = '00.0';
                 return;
             }
             
@@ -4181,8 +3856,9 @@ document.addEventListener('DOMContentLoaded', function() {
         function formatCOFOnEnter(input) {
             let value = input.value.trim();
             
-            // If empty, leave it empty (don't set default values)
+            // If empty, set to 0.00
             if (value === '') {
+                input.value = '0.00';
                 return;
             }
             
@@ -4195,17 +3871,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Convert integer values to decimal format (e.g., 42 -> 0.42, 0 -> 0.0)
+            // Convert integer input to decimal format (e.g., 30 -> 0.30)
             let finalValue;
-            if (Number.isInteger(numValue)) {
-                // If it's an integer, convert to decimal by dividing by 100
+            if (Number.isInteger(numValue) && !value.includes('.')) {
+                // If it's an integer without decimal point, treat as hundredths
                 finalValue = numValue / 100;
             } else {
-                // If it already has decimal places, use as-is
+                // If it already has decimal point, use as is
                 finalValue = numValue;
             }
             
-            // Ensure value is between 0 and 0.99 (since we're dividing by 100)
+            // Ensure value is between 0 and 0.99 (since max input is 99)
             if (finalValue < 0) {
                 input.value = '0.00';
                 return;
@@ -4222,7 +3898,250 @@ document.addEventListener('DOMContentLoaded', function() {
             input.value = formattedValue;
         }
         
+        // Cut Width validation function - exactly 000 format
+        function applyCutWidthValidation(input) {
+            input.addEventListener('input', function() {
+                validateCutWidth(this);
+                
+                // Auto-save to database after each change (debounced)
+                debouncedSave();
+                
+                // Also handle calculations (to avoid duplicate event listeners)
+                const tr = this.closest('tr');
+                const tableBody = tr.closest('tbody');
+                
+                // Calculate individual column stats for Page 1 (only the changed column)
+                if (tableBody.id === 'testingTableBody') {
+                    const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
+                    calculatePage1ColumnStats(tableBody, inputIndex);
+                }
+                
+                // Force immediate recalculation of ALL summary statistics for instant sync
+                triggerSummaryRecalculation(); // Small delay to ensure current calculations complete first
+                
+                // Auto-save handled by consolidated input listener
+            });
             
+            // Add Enter key listener for auto-formatting
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    formatCutWidthOnEnter(this);
+                    
+                    // Recalculate summary statistics after formatting
+                    const tr = this.closest('tr');
+                    const tableBody = tr.closest('tbody');
+                    
+                    if (tableBody.id === 'testingTableBody') {
+                        const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
+                        calculatePage1ColumnStats(tableBody, inputIndex);
+                        
+                        // Force immediate recalculation of ALL summary statistics after conversion
+                        triggerSummaryRecalculation();
+                    }
+                    
+                    // Move to next row after formatting
+                    const row = this.closest('tr');
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow) {
+                        const nextInput = nextRow.querySelector('input');
+                        if (nextInput) {
+                            nextInput.focus();
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Cut Width validation function - allow typing up to 3 digits, format on Enter
+        function validateCutWidth(input) {
+            let value = input.value;
+            
+            // Remove any non-numeric characters (no decimal point allowed)
+            value = value.replace(/[^0-9]/g, '');
+            
+            // Limit to 3 digits maximum
+            if (value.length > 3) {
+                value = value.substring(0, 3);
+            }
+            
+            // Update input value with validated format
+            input.value = value;
+        }
+        
+        // Function to format Cut Width to 000 format on Enter key
+        function formatCutWidthOnEnter(input) {
+            let value = input.value.trim();
+            
+            // If empty, set to 000
+            if (value === '') {
+                input.value = '000';
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseInt(value);
+            
+            // If not a valid number, set to 000
+            if (isNaN(numValue)) {
+                input.value = '000';
+                return;
+            }
+            
+            // Ensure value is between 0 and 999
+            if (numValue < 0) {
+                input.value = '000';
+                return;
+            }
+            if (numValue > 999) {
+                input.value = '999';
+                return;
+            }
+            
+            // Format to exactly 3 digits with leading zeros
+            const formattedValue = numValue.toString().padStart(3, '0');
+            
+            // Update input value with formatted result
+            input.value = formattedValue;
+        }
+        
+        // Color-Delta E validation function - exactly 0.00 format
+        function applyColorDeltaValidation(input) {
+            input.addEventListener('input', function() {
+                validateColorDelta(this);
+                
+                // Auto-save to database after each change (debounced)
+                debouncedSave();
+                
+                // Also handle calculations (to avoid duplicate event listeners)
+                const tr = this.closest('tr');
+                const tableBody = tr.closest('tbody');
+                
+                // Calculate individual column stats for Page 1 (only the changed column)
+                if (tableBody.id === 'testingTableBody') {
+                    const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
+                    calculatePage1ColumnStats(tableBody, inputIndex);
+                }
+                
+                // Force immediate recalculation of ALL summary statistics for instant sync
+                triggerSummaryRecalculation(); // Small delay to ensure current calculations complete first
+                
+                // Auto-save handled by consolidated input listener
+            });
+            
+            // Add Enter key listener for auto-formatting
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    formatColorDeltaOnEnter(this);
+                    
+                    // Recalculate summary statistics after formatting
+                    const tr = this.closest('tr');
+                    const tableBody = tr.closest('tbody');
+                    
+                    if (tableBody.id === 'testingTableBody') {
+                        const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
+                        calculatePage1ColumnStats(tableBody, inputIndex);
+                        
+                        // Force immediate recalculation of ALL summary statistics after conversion
+                        triggerSummaryRecalculation();
+                    }
+                    
+                    // Move to next row after formatting
+                    const row = this.closest('tr');
+                    const nextRow = row.nextElementSibling;
+                    if (nextRow) {
+                        const nextInput = nextRow.querySelector('input');
+                        if (nextInput) {
+                            nextInput.focus();
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Color-Delta E validation function - allow typing up to 3 digits, format on Enter
+        function validateColorDelta(input) {
+            let value = input.value;
+            
+            // Remove any non-numeric characters except decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // Allow up to 3 digits before decimal for typing (like 0, 30, 999, etc.)
+            // Only limit if there's a decimal point
+            if (parts.length === 2) {
+                // Before decimal: allow up to 3 digits (for values like 0, 30, 999)
+                if (parts[0].length > 3) {
+                    parts[0] = parts[0].substring(0, 3);
+                }
+                // After decimal: max 2 digits
+                if (parts[1].length > 2) {
+                    parts[1] = parts[1].substring(0, 2);
+                }
+                value = parts[0] + '.' + parts[1];
+            } else if (parts.length === 1) {
+                // No decimal point yet, allow up to 3 digits for typing
+                if (parts[0].length > 3) {
+                    parts[0] = parts[0].substring(0, 3);
+                    value = parts[0];
+                }
+            }
+            
+            // Update input value with validated format
+            input.value = value;
+        }
+        
+        // Function to format Color-Delta E to 0.00 format on Enter key
+        function formatColorDeltaOnEnter(input) {
+            let value = input.value.trim();
+            
+            // If empty, set to 0.00
+            if (value === '') {
+                input.value = '0.00';
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseFloat(value);
+            
+            // If not a valid number, set to 0.00
+            if (isNaN(numValue)) {
+                input.value = '0.00';
+                return;
+            }
+            
+            // Convert integer input to decimal format (e.g., 30 -> 0.30)
+            let finalValue;
+            if (Number.isInteger(numValue) && !value.includes('.')) {
+                // If it's an integer without decimal point, treat as hundredths
+                finalValue = numValue / 100;
+            } else {
+                // If it already has decimal point, use as is
+                finalValue = numValue;
+            }
+            
+            // Ensure value is between 0 and 9.99 (allow values like 1.22, 2.50, etc.)
+            if (finalValue < 0) {
+                input.value = '0.00';
+                return;
+            }
+            if (finalValue > 9.99) {
+                input.value = '9.99';
+                return;
+            }
+            
+            // Format to exactly 2 decimal places
+            const formattedValue = finalValue.toFixed(2);
+            
+            // Update input value with formatted result
+            input.value = formattedValue;
+        }
         
         // Lot & Roll validation function - exactly 00-00 format
         function applyLotRollValidation(input) {
@@ -4515,7 +4434,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
-                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
+                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
                     calculateSummaryStatistics(tableBody);
                 }
                 
@@ -4559,7 +4478,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
-                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
+                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
                     calculateSummaryStatistics(tableBody);
                 }
                 
@@ -4603,7 +4522,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
-                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
+                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
                     calculateSummaryStatistics(tableBody);
                 }
                 
@@ -4719,8 +4638,9 @@ document.addEventListener('DOMContentLoaded', function() {
         function formatThreeDigitsOnEnter(input) {
             let value = input.value.trim();
             
-            // If empty, leave it empty (don't set default values)
+            // If empty, set to 000
             if (value === '') {
+                input.value = '000';
                 return;
             }
             
@@ -4753,8 +4673,9 @@ document.addEventListener('DOMContentLoaded', function() {
         function formatTwoDigitOneDecimalOnEnter(input) {
             let value = input.value.trim();
             
-            // If empty, leave it empty (don't set default values)
+            // If empty, set to 00.0
             if (value === '') {
+                input.value = '00.0';
                 return;
             }
             
@@ -4787,8 +4708,9 @@ document.addEventListener('DOMContentLoaded', function() {
         function formatOneDigitOneDecimalOnEnter(input) {
             let value = input.value.trim();
             
-            // If empty, leave it empty (don't set default values)
+            // If empty, set to 0.0
             if (value === '') {
+                input.value = '0.0';
                 return;
             }
             
@@ -4847,6 +4769,56 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
+        // Apply PG Quality validation (Page 4, column 7) - Only 0 or 1 allowed
+        function applyPGQualityValidation(input) {
+            input.addEventListener('keydown', function(e) {
+                // Allow: backspace, delete, tab, escape, enter, home, end, left, right
+                if ([8, 9, 27, 13, 46, 35, 36, 37, 39].indexOf(e.keyCode) !== -1 ||
+                    // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                    (e.keyCode === 65 && e.ctrlKey === true) ||
+                    (e.keyCode === 67 && e.ctrlKey === true) ||
+                    (e.keyCode === 86 && e.ctrlKey === true) ||
+                    (e.keyCode === 88 && e.ctrlKey === true)) {
+                    return;
+                }
+                
+                // Only allow 0 or 1, and only if field is empty
+                if ((e.key === '0' || e.key === '1') && this.value === '') {
+                    return;
+                }
+                
+                e.preventDefault();
+            });
+            
+            input.addEventListener('input', function() {
+                let value = this.value;
+                
+                // Only allow single digit 0 or 1
+                if (value === '0' || value === '1') {
+                    this.value = value;
+                } else {
+                    // Clear any invalid input
+                    this.value = '';
+                }
+                
+                // Trigger conditional formatting
+                applyColorFormatting(this, 'pgQuality');
+            });
+            
+            input.addEventListener('blur', function() {
+                let value = this.value;
+                
+                // Only allow single digit 0 or 1
+                if (value === '0' || value === '1') {
+                    this.value = value;
+                } else {
+                    this.value = '';
+                }
+                
+                // Trigger conditional formatting
+                applyColorFormatting(this, 'pgQuality');
+            });
+        }
 
         // Apply conditional formatting to ALL columns across ALL pages
         function applyConditionalFormattingToAllColumns() {
@@ -4889,14 +4861,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Page 4
             const page4Columns = [
-                { tableBody: testingTableBody4, columnIndex: 3, columnType: 'colorL' },
-                { tableBody: testingTableBody4, columnIndex: 4, columnType: 'colorA' },
-                { tableBody: testingTableBody4, columnIndex: 5, columnType: 'colorB' },
-                { tableBody: testingTableBody4, columnIndex: 6, columnType: 'colorDeltaE' },
-                { tableBody: testingTableBody4, columnIndex: 7, columnType: 'gloss' },
-                { tableBody: testingTableBody4, columnIndex: 8, columnType: 'gloss' },
-                { tableBody: testingTableBody4, columnIndex: 9, columnType: 'gloss' },
-                { tableBody: testingTableBody4, columnIndex: 10, columnType: 'gloss' },
+                { tableBody: testingTableBody4, columnIndex: 3, columnType: 'gloss' },
+                { tableBody: testingTableBody4, columnIndex: 4, columnType: 'gloss' },
+                { tableBody: testingTableBody4, columnIndex: 5, columnType: 'gloss' },
+                { tableBody: testingTableBody4, columnIndex: 7, columnType: 'pgQuality' }
             ];
             
             // Apply to all pages
@@ -4913,6 +4881,13 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
+        // Apply validation to existing PG Quality inputs (Page 4, column 7)
+        function applyValidationToExistingPGQualityInputs() {
+            const pgQualityInputs = testingTableBody4.querySelectorAll('tr td:nth-child(8) input');
+            pgQualityInputs.forEach(input => {
+                applyPGQualityValidation(input);
+            });
+        }
         
         // Apply validation to existing COF inputs (Page 1, column 6)
         function applyValidationToExistingCOFInputs() {
@@ -4922,279 +4897,27 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // Color L validation function - allow decimal values
-        function applyColorLValidation(input) {
-            input.addEventListener('input', function() {
-                validateColorL(this);
-                
-                // Auto-save to database after each change (debounced)
-                debouncedSave();
-                
-                // Also handle calculations (to avoid duplicate event listeners)
-                const tr = this.closest('tr');
-                const tableBody = tr.closest('tbody');
-                
-                // Calculate individual column stats for Page 4 (only the changed column)
-                if (tableBody.id === 'testingTableBody4') {
-                    const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
-                    calculatePage4ColumnStats(tableBody, inputIndex);
-                }
-                
-                // Force immediate recalculation of ALL summary statistics for instant sync
-                triggerSummaryRecalculation();
+        // Apply validation to existing Cut Width inputs (Page 1, column 7)
+        function applyValidationToExistingCutWidthInputs() {
+            const cutWidthInputs = testingTableBody.querySelectorAll('tr td:nth-child(8) input');
+            cutWidthInputs.forEach(input => {
+                applyCutWidthValidation(input);
             });
         }
         
-        // Color A validation function - allow decimal values
-        function applyColorAValidation(input) {
-            input.addEventListener('input', function() {
-                validateColorA(this);
-                
-                // Auto-save to database after each change (debounced)
-                debouncedSave();
-                
-                // Also handle calculations (to avoid duplicate event listeners)
-                const tr = this.closest('tr');
-                const tableBody = tr.closest('tbody');
-                
-                // Calculate individual column stats for Page 4 (only the changed column)
-                if (tableBody.id === 'testingTableBody4') {
-                    const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
-                    calculatePage4ColumnStats(tableBody, inputIndex);
-                }
-                
-                // Force immediate recalculation of ALL summary statistics for instant sync
-                triggerSummaryRecalculation();
-            });
-        }
-        
-        // Color B validation function - allow decimal values
-        function applyColorBValidation(input) {
-            input.addEventListener('input', function() {
-                validateColorB(this);
-                
-                // Auto-save to database after each change (debounced)
-                debouncedSave();
-                
-                // Also handle calculations (to avoid duplicate event listeners)
-                const tr = this.closest('tr');
-                const tableBody = tr.closest('tbody');
-                
-                // Calculate individual column stats for Page 4 (only the changed column)
-                if (tableBody.id === 'testingTableBody4') {
-                    const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
-                    calculatePage4ColumnStats(tableBody, inputIndex);
-                }
-                
-                // Force immediate recalculation of ALL summary statistics for instant sync
-                triggerSummaryRecalculation();
-            });
-        }
-        
-        // Color Delta E validation function - allow decimal values
-        function applyColorDeltaEValidation(input) {
-            input.addEventListener('input', function() {
-                validateColorDeltaE(this);
-                
-                // Auto-save to database after each change (debounced)
-                debouncedSave();
-                
-                // Also handle calculations (to avoid duplicate event listeners)
-                const tr = this.closest('tr');
-                const tableBody = tr.closest('tbody');
-                
-                // Calculate individual column stats for Page 4 (only the changed column)
-                if (tableBody.id === 'testingTableBody4') {
-                    const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(input);
-                    calculatePage4ColumnStats(tableBody, inputIndex);
-                }
-                
-                // Force immediate recalculation of ALL summary statistics for instant sync
-                triggerSummaryRecalculation();
+        // Apply validation to existing Color-Delta E inputs (Page 1, columns 8 & 9)
+        function applyValidationToExistingColorDeltaInputs() {
+            const colorDeltaUnprintedInputs = testingTableBody.querySelectorAll('tr td:nth-child(9) input');
+            const colorDeltaPrintedInputs = testingTableBody.querySelectorAll('tr td:nth-child(10) input');
+            
+            colorDeltaUnprintedInputs.forEach(input => {
+                applyColorDeltaValidation(input);
             });
             
-            // Add Enter key listener for auto-formatting
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    formatColorDeltaEOnEnter(this);
-                    
-                    // Move to next row after formatting
-                    const row = this.closest('tr');
-                    const nextRow = row.nextElementSibling;
-                    if (nextRow) {
-                        const nextInput = nextRow.querySelector('input');
-                        if (nextInput) {
-                            nextInput.focus();
-                        }
-                    }
-                }
+            colorDeltaPrintedInputs.forEach(input => {
+                applyColorDeltaValidation(input);
             });
         }
-        
-        // Color L validation - allow decimal values
-        function validateColorL(input) {
-            let value = input.value;
-            
-            // Remove any non-numeric characters except decimal point and minus sign
-            value = value.replace(/[^0-9.-]/g, '');
-            
-            // Ensure only one decimal point
-            const parts = value.split('.');
-            if (parts.length > 2) {
-                value = parts[0] + '.' + parts.slice(1).join('');
-            }
-            
-            // Allow up to 3 digits before decimal and 1 after
-            if (parts.length === 2) {
-                if (parts[0].length > 3) {
-                    parts[0] = parts[0].substring(0, 3);
-                }
-                if (parts[1].length > 1) {
-                    parts[1] = parts[1].substring(0, 1);
-                }
-                value = parts[0] + '.' + parts[1];
-            } else if (parts.length === 1) {
-                if (parts[0].length > 3) {
-                    parts[0] = parts[0].substring(0, 3);
-                    value = parts[0];
-                }
-            }
-            
-            input.value = value;
-        }
-        
-        // Color A validation - allow decimal values
-        function validateColorA(input) {
-            let value = input.value;
-            
-            // Remove any non-numeric characters except decimal point and minus sign
-            value = value.replace(/[^0-9.-]/g, '');
-            
-            // Ensure only one decimal point
-            const parts = value.split('.');
-            if (parts.length > 2) {
-                value = parts[0] + '.' + parts.slice(1).join('');
-            }
-            
-            // Allow up to 2 digits before decimal and 1 after
-            if (parts.length === 2) {
-                if (parts[0].length > 2) {
-                    parts[0] = parts[0].substring(0, 2);
-                }
-                if (parts[1].length > 1) {
-                    parts[1] = parts[1].substring(0, 1);
-                }
-                value = parts[0] + '.' + parts[1];
-            } else if (parts.length === 1) {
-                if (parts[0].length > 2) {
-                    parts[0] = parts[0].substring(0, 2);
-                    value = parts[0];
-                }
-            }
-            
-            input.value = value;
-        }
-        
-        // Color B validation - allow decimal values
-        function validateColorB(input) {
-            let value = input.value;
-            
-            // Remove any non-numeric characters except decimal point and minus sign
-            value = value.replace(/[^0-9.-]/g, '');
-            
-            // Ensure only one decimal point
-            const parts = value.split('.');
-            if (parts.length > 2) {
-                value = parts[0] + '.' + parts.slice(1).join('');
-            }
-            
-            // Allow up to 2 digits before decimal and 1 after
-            if (parts.length === 2) {
-                if (parts[0].length > 2) {
-                    parts[0] = parts[0].substring(0, 2);
-                }
-                if (parts[1].length > 1) {
-                    parts[1] = parts[1].substring(0, 1);
-                }
-                value = parts[0] + '.' + parts[1];
-            } else if (parts.length === 1) {
-                if (parts[0].length > 2) {
-                    parts[0] = parts[0].substring(0, 2);
-                    value = parts[0];
-                }
-            }
-            
-            input.value = value;
-        }
-        
-        // Color Delta E validation - allow decimal values
-        function validateColorDeltaE(input) {
-            let value = input.value;
-            
-            // Remove any non-numeric characters except decimal point
-            value = value.replace(/[^0-9.]/g, '');
-            
-            // Ensure only one decimal point
-            const parts = value.split('.');
-            if (parts.length > 2) {
-                value = parts[0] + '.' + parts.slice(1).join('');
-            }
-            
-            // Allow up to 2 digits before decimal and 2 after
-            if (parts.length === 2) {
-                if (parts[0].length > 2) {
-                    parts[0] = parts[0].substring(0, 2);
-                }
-                if (parts[1].length > 2) {
-                    parts[1] = parts[1].substring(0, 2);
-                }
-                value = parts[0] + '.' + parts[1];
-            } else if (parts.length === 1) {
-                if (parts[0].length > 2) {
-                    parts[0] = parts[0].substring(0, 2);
-                    value = parts[0];
-                }
-            }
-            
-            input.value = value;
-        }
-        
-        // Format Color Delta E to 0.00 format on Enter key
-        function formatColorDeltaEOnEnter(input) {
-            let value = input.value.trim();
-            
-            // If empty, leave it empty (don't set default values)
-            if (value === '') {
-                return;
-            }
-            
-            // Parse as number
-            const numValue = parseFloat(value);
-            
-            // If not a valid number, set to 0.00
-            if (isNaN(numValue)) {
-                input.value = '0.00';
-                return;
-            }
-            
-            // Ensure value is between 0 and 99.99
-            if (numValue < 0) {
-                input.value = '0.00';
-                return;
-            }
-            if (numValue > 99.99) {
-                input.value = '99.99';
-                return;
-            }
-            
-            // Format to exactly 2 decimal places (0.00 format)
-            const formattedValue = numValue.toFixed(2);
-            
-            // Update input value with formatted result
-            input.value = formattedValue;
-        }
-        
         
         // Apply validation to existing Page 2 inputs
         function applyValidationToExistingPage2Inputs() {
@@ -5240,108 +4963,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Apply validation to existing Page 4 inputs
         function applyValidationToExistingPage4Inputs() {
-            // Color L column (column 4)
-            const colorLInputs = testingTableBody4.querySelectorAll('tr td:nth-child(4) input');
-            colorLInputs.forEach(input => {
-                applyColorLValidation(input);
-            });
-            
-            // Color A column (column 5)
-            const colorAInputs = testingTableBody4.querySelectorAll('tr td:nth-child(5) input');
-            colorAInputs.forEach(input => {
-                applyColorAValidation(input);
-            });
-            
-            // Color B column (column 6)
-            const colorBInputs = testingTableBody4.querySelectorAll('tr td:nth-child(6) input');
-            colorBInputs.forEach(input => {
-                applyColorBValidation(input);
-            });
-            
-            // Color Delta E column (column 7)
-            const colorDeltaEInputs = testingTableBody4.querySelectorAll('tr td:nth-child(7) input');
-            colorDeltaEInputs.forEach(input => {
-                applyColorDeltaEValidation(input);
-                applyConditionalFormatting(input, 'colorDeltaE');
-            });
-            
-            // Gloss columns (00.0 format) - columns 8, 9, 10
-            const glossInputs = testingTableBody4.querySelectorAll('tr td:nth-child(8) input, tr td:nth-child(9) input, tr td:nth-child(10) input');
+            // Gloss columns (00.0 format)
+            const glossInputs = testingTableBody4.querySelectorAll('tr td:nth-child(4) input, tr td:nth-child(5) input, tr td:nth-child(6) input');
             glossInputs.forEach(input => {
                 applyTwoDigitOneDecimalValidation(input);
             });
-        }
-
-        // PG Quality System Requirements validation (Pass=0, Fail=1)
-        function applyPGQualityValidation(input) {
-            input.addEventListener('input', function() {
-                validatePGQuality(this);
-                
-                // Auto-save to database after each change (debounced)
-                debouncedSave();
-                
-                // Force immediate recalculation of ALL summary statistics for instant sync
-                triggerSummaryRecalculation();
-            });
-            
-            // Add Enter key listener for auto-formatting
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    formatPGQualityOnEnter(this);
-                    
-                    // Move to next row after formatting
-                    const row = this.closest('tr');
-                    const nextRow = row.nextElementSibling;
-                    if (nextRow) {
-                        const nextInput = nextRow.querySelector('input');
-                        if (nextInput) {
-                            nextInput.focus();
-                        }
-                    }
-                }
-            });
-        }
-
-        // Validate PG Quality input (only 0 or 1 allowed)
-        function validatePGQuality(input) {
-            let value = input.value.trim();
-            
-            // Only allow 0 or 1, but don't clear if user is still typing
-            if (value === '0' || value === '1') {
-                input.value = value;
-            } else if (value === '') {
-                // Allow empty for now
-                input.value = '';
-            } else if (value.length === 1 && (value === '0' || value === '1')) {
-                // Single character 0 or 1 is valid
-                input.value = value;
-            } else if (value.length > 1) {
-                // If more than 1 character, keep only the last valid character
-                const lastChar = value.slice(-1);
-                if (lastChar === '0' || lastChar === '1') {
-                    input.value = lastChar;
-                } else {
-                    // If last character is not valid, keep previous valid value
-                    input.value = input.value.slice(0, -1);
-                }
-            }
-        }
-
-        // Format PG Quality on Enter (Pass=0, Fail=1)
-        function formatPGQualityOnEnter(input) {
-            let value = input.value.trim();
-            
-            if (value === '0') {
-                input.value = '0'; // Pass
-            } else if (value === '1') {
-                input.value = '1'; // Fail
-            } else if (value === '') {
-                input.value = '';
-            } else {
-                // Clear invalid input
-                input.value = '';
-            }
         }
 
         // Unified conditional formatting system
@@ -5375,124 +5001,74 @@ document.addEventListener('DOMContentLoaded', function() {
         // Apply red formatting based on column type
         let shouldHighlight = false;
         
-        
         switch(columnType) {
             // Page 1
             case 'basicWeight':
-                shouldHighlight = !isNaN(value) && value !== 0 && value !== '' && (value < 14 || value > 18);
+                shouldHighlight = !isNaN(value) && (value < 16.00 || value > 20.00);
                 break;
             case 'thickness':
-                shouldHighlight = !isNaN(value) && value !== 0 && value !== '' && (value < 0.025 || value > 0.035);
+                shouldHighlight = !isNaN(value) && (value < 0.025 || value > 0.035);
                 break;
             case 'opacity':
-                shouldHighlight = !isNaN(value) && value !== 0 && value !== '' && (value < 45.0 || value > 55.0);
+                shouldHighlight = !isNaN(value) && (value < 45.0 || value > 55.0);
                 break;
             case 'cof':
-                shouldHighlight = !isNaN(value) && value !== 0 && value !== '' && (value < 0.20 || value > 0.60);
+                shouldHighlight = !isNaN(value) && (value < 0.20 || value > 0.60);
+                break;
+            case 'cutWidth':
+                shouldHighlight = !isNaN(value) && (value < 174 || value > 178);
+                break;
+            case 'colorDelta':
+                shouldHighlight = !isNaN(value) && value > 4.00;
                 break;
             // Page 2
             case 'elongationMD':
-                // Only check lower limit (L-350), ignore upper limit (T-450)
                 shouldHighlight = !isNaN(value) && value < 350;
                 break;
             case 'forceMD':
-                // Only check lower limit (L-9.0), ignore upper limit (T-12.0)
-                shouldHighlight = !isNaN(value) && value < 9.0;
+                shouldHighlight = !isNaN(value) && value < 9.5;
                 break;
             case 'force5pMD':
                 shouldHighlight = !isNaN(value) && (value < 2.5 || value > 5.5);
                 break;
             // Page 3
             case 'elongationCD':
-                // Only check lower limit (L-400), ignore upper limit (T-500)
                 shouldHighlight = !isNaN(value) && value < 400;
                 break;
             case 'forceCD':
-                // Only check lower limit (L-6.0), ignore upper limit (T-9.0)
-                shouldHighlight = !isNaN(value) && value < 6.0;
+                shouldHighlight = !isNaN(value) && value < 6.5;
                 break;
             case 'modulus':
                 shouldHighlight = !isNaN(value) && (value < 20.0 || value > 40.0);
                 break;
             // Page 4
-            case 'colorL':
-                shouldHighlight = !isNaN(value) && (value < 90.6 || value > 98.6);
-                break;
-            case 'colorA':
-                // Only check lower limit (L-(-5.1)), ignore upper limit (T-(-1.1))
-                // For negative values: red if value is ABOVE -5.1 (i.e., value > -5.1)
-                shouldHighlight = !isNaN(value) && value > -5.1;
-                break;
-            case 'colorB':
-                // Only check lower limit (L-(-3.6)), ignore upper limit (T-0.4)
-                // For negative values: red if value is ABOVE -3.6 (i.e., value > -3.6)
-                shouldHighlight = !isNaN(value) && value > -3.6;
-                break;
-            case 'colorDeltaE':
-                // Only check upper limit (U-5.00), ignore target (T-0.00)
-                shouldHighlight = !isNaN(value) && value > 5.00;
-                break;
             case 'gloss':
                 shouldHighlight = !isNaN(value) && (value < 9.0 || value > 11.0);
                 break;
-            // Page 5 - PG Quality System Requirements
             case 'pgQuality':
-                // Pass=0, Fail=1 - highlight if value is 1 (Fail)
-                shouldHighlight = !isNaN(value) && value === 1;
+                shouldHighlight = !isNaN(value) && (value !== 0 && value !== 1);
                 break;
         }
         
         if (shouldHighlight) {
-            if (viewMode) {
-                // In view mode: ONLY red text, no boxes or borders
-                input.style.setProperty('color', '#dc2626', 'important');
+            // Use inline styles for disabled inputs to ensure visibility
+            if (input.disabled || input.readOnly) {
+                input.style.color = '#dc2626'; // red-600
+                input.style.backgroundColor = '#fef2f2'; // red-50
+                input.style.borderColor = '#fca5a5'; // red-300
+                input.style.borderWidth = '1px';
+                input.style.borderStyle = 'solid';
             } else {
-                // In edit mode: full highlighting with boxes/borders
-                if (columnType === 'colorDeltaE') {
-                    input.classList.add('oos-highlight');
-                } else {
-                    // Use inline styles for disabled inputs to ensure visibility
-                    if (input.disabled || input.readOnly) {
-                        input.style.setProperty('color', '#dc2626', 'important');
-                        input.style.setProperty('background-color', '#fef2f2', 'important');
-                        input.style.setProperty('border-color', '#dc2626', 'important');
-                        input.style.setProperty('border-width', '2px', 'important');
-                        input.style.setProperty('border-style', 'solid', 'important');
-                    } else {
-                        input.classList.add('text-red-600', 'bg-red-50', 'border-red-300');
-                    }
-                }
+                input.classList.add('text-red-600', 'bg-red-50', 'border-red-300');
             }
-        } else {
-            // Remove any existing highlighting
-            input.classList.remove('oos-highlight', 'text-red-600', 'bg-red-50', 'border-red-300');
-            input.style.color = '';
-            input.style.backgroundColor = '';
-            input.style.borderColor = '';
-            input.style.borderWidth = '';
-            input.style.borderStyle = '';
         }
-    }
+        }
 
         // Apply conditional formatting to ALL inputs in a column
         function applyConditionalFormattingToColumn(tableBody, columnIndex, columnType) {
             const inputs = tableBody.querySelectorAll(`tr td:nth-child(${columnIndex + 1}) input`);
             inputs.forEach(input => {
                 applyConditionalFormatting(input, columnType);
-            });
-        }
-        
-        // Clear all conditional formatting (for view mode)
-        function clearAllConditionalFormatting() {
-            const allInputs = document.querySelectorAll('input');
-            allInputs.forEach(input => {
-                // Remove all conditional formatting classes and styles
-                input.classList.remove('oos-highlight', 'text-red-600', 'bg-red-50', 'border-red-300');
-                input.style.color = '';
-                input.style.backgroundColor = '';
-                input.style.borderColor = '';
-                input.style.borderWidth = '';
-                input.style.borderStyle = '';
             });
         }
         
@@ -5503,9 +5079,4 @@ document.addEventListener('DOMContentLoaded', function() {
          // validateTimeInput()
          // validateAlphanumericInput()
          
-    // Fix tab order for all existing rows on page load
-    updateTabOrderForAllRows(testingTableBody);
-    updateTabOrderForAllRows(testingTableBody2);
-    updateTabOrderForAllRows(testingTableBody3);
-    updateTabOrderForAllRows(testingTableBody4);
 });
