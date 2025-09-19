@@ -1974,7 +1974,7 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
     // 4. Map pre-store data to Excel cells
     // Product and Production Information Section
     if (data.production_order) {
-      worksheet.getCell('B3').value = data.production_order;
+      worksheet.getCell('B4').value = data.production_order;
     }
     
     if (data.customer) {
@@ -1983,45 +1983,45 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
       if (data.location) {
         customerValue = `${data.customer} (${data.location})`;
       }
-      worksheet.getCell('B4').value = customerValue;
+      worksheet.getCell('B5').value = customerValue;
     }
     
     if (data.standard_packing) {
-      worksheet.getCell('B5').value = data.standard_packing;
+      worksheet.getCell('B6').value = data.standard_packing;
     }
     
     if (data.product_code) {
-      worksheet.getCell('G3').value = data.product_code;
+      worksheet.getCell('G4').value = data.product_code;
     }
     
     if (data.specification) {
-      worksheet.getCell('G4').value = data.specification;
+      worksheet.getCell('G5').value = data.specification;
     }
     
     if (data.quantity) {
-      worksheet.getCell('O3').value = `${data.quantity} Rolls`;
+      worksheet.getCell('O4').value = `${data.quantity} Rolls`;
     }
     
     if (data.batch) {
-      worksheet.getCell('O4').value = data.batch;
+      worksheet.getCell('O5').value = data.batch;
     }
     
     if (data.production_date) {
       // Format date to dd/mm/yyyy
       const prodDate = new Date(data.production_date);
       const formattedProdDate = `${String(prodDate.getDate()).padStart(2, '0')}/${String(prodDate.getMonth() + 1).padStart(2, '0')}/${prodDate.getFullYear()}`;
-      worksheet.getCell('T3').value = formattedProdDate;
+      worksheet.getCell('T4').value = formattedProdDate;
     }
     
     if (data.inspection_date) {
       // Format date to dd/mm/yyyy
       const inspDate = new Date(data.inspection_date);
       const formattedInspDate = `${String(inspDate.getDate()).padStart(2, '0')}/${String(inspDate.getMonth() + 1).padStart(2, '0')}/${inspDate.getFullYear()}`;
-      worksheet.getCell('T4').value = formattedInspDate;
+      worksheet.getCell('T5').value = formattedInspDate;
     }
     
     if (data.pallet_size) {
-      worksheet.getCell('P5').value = data.pallet_size;
+      worksheet.getCell('P6').value = data.pallet_size;
     }
     
     // Palletized Finished Goods Status Section
@@ -2038,35 +2038,35 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
     };
     
     if (data.pallet_list) {
-      worksheet.getCell('C8').value = getStatusSymbol(data.pallet_list);
+      worksheet.getCell('C9').value = getStatusSymbol(data.pallet_list);
     }
     
     if (data.product_label) {
-      worksheet.getCell('P8').value = getStatusSymbol(data.product_label);
+      worksheet.getCell('P9').value = getStatusSymbol(data.product_label);
     }
     
     if (data.wrapping) {
-      worksheet.getCell('C9').value = getStatusSymbol(data.wrapping);
+      worksheet.getCell('C10').value = getStatusSymbol(data.wrapping);
     }
     
     if (data.layer_pad) {
-      worksheet.getCell('P9').value = getStatusSymbol(data.layer_pad);
+      worksheet.getCell('P10').value = getStatusSymbol(data.layer_pad);
     }
     
     if (data.contamination) {
-      worksheet.getCell('C10').value = getStatusSymbol(data.contamination);
+      worksheet.getCell('C11').value = getStatusSymbol(data.contamination);
     }
     
     if (data.kraft_paper) {
-      worksheet.getCell('P10').value = getStatusSymbol(data.kraft_paper);
+      worksheet.getCell('P11').value = getStatusSymbol(data.kraft_paper);
     }
     
     if (data.no_damage) {
-      worksheet.getCell('C11').value = getStatusSymbol(data.no_damage);
+      worksheet.getCell('C12').value = getStatusSymbol(data.no_damage);
     }
     
     if (data.pallet) {
-      worksheet.getCell('P11').value = getStatusSymbol(data.pallet);
+      worksheet.getCell('P12').value = getStatusSymbol(data.pallet);
     }
     
     if (data.prestore_done_by) {
@@ -2074,9 +2074,9 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
     }
     
     if (data.remarks) {
-      // Handle remarks - each row A13-V13, A14-V14, etc. is merged
-      // Put text in A13, A14, A15, etc. and it will flow across the merged cells
-      const maxRows = 9; // From row 13 to 21 (9 rows)
+      // Handle remarks - each row A14-V14, A15-V15, etc. is merged
+      // Put text in A14, A15, A16, etc. and it will flow across the merged cells
+      const maxRows = 9; // From row 14 to 22 (9 rows)
       const maxCharsPerRow = 200; // Approximate characters per merged row (A to V)
       
       // Remove newlines and create one continuous text
@@ -2110,13 +2110,13 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
       
       // Map each row text to A13, A14, A15, etc. (merged cells)
       for (let i = 0; i < Math.min(rowTexts.length, maxRows); i++) {
-        const rowNum = 13 + i;
+        const rowNum = 14 + i;
         worksheet.getCell(`A${rowNum}`).value = rowTexts[i].trim(); // Trim spaces at end
       }
     }
     
     if (data.prestore_ref_no) {
-      worksheet.getCell('V2').value = data.prestore_ref_no;
+      worksheet.getCell('V3').value = data.prestore_ref_no;
     }
 
     // 5. Set response headers for file download
