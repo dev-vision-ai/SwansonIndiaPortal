@@ -503,10 +503,13 @@ document.addEventListener('DOMContentLoaded', function() {
                // Upsert data into Supabase (update if exists, insert if new)
                let result;
                if (currentFormId) {
-                   // Update existing record
+                   // Update existing record (DO NOT update prepared_by to preserve original author)
+                   const updateData = { ...completeData };
+                   delete updateData.prepared_by; // Remove prepared_by from update to preserve original author
+                   
                    result = await supabase
                        .from('176_18cp_ww')
-                       .update(completeData)
+                       .update(updateData)
                        .eq('form_id', currentFormId)
                        .select('form_id');
                } else {
@@ -1491,7 +1494,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (historicalData.lot_time && historicalData.lot_time[rowKey] && inputs[2]) {
                     inputs[2].value = historicalData.lot_time[rowKey];
                 }
-                // Page 2 specific data
+                // Page 2 specific data - Correct input indices based on HTML structure
+                // HTML columns: 0(Sample No), 1(Roll ID), 2(Lot Time), 3(Elongation1), 4(Elongation2), 5(Elongation3), 6(ElongationAve), 7(Force1), 8(Force2), 9(Force3), 10(ForceAve), 11(Force5%1), 12(Force5%2), 13(Force5%3), 14(Force5%Ave)
                 if (historicalData.page2_elongation_md_1 && historicalData.page2_elongation_md_1[rowKey] && inputs[3]) {
                     inputs[3].value = historicalData.page2_elongation_md_1[rowKey];
                 }
@@ -1501,23 +1505,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (historicalData.page2_elongation_md_3 && historicalData.page2_elongation_md_3[rowKey] && inputs[5]) {
                     inputs[5].value = historicalData.page2_elongation_md_3[rowKey];
                 }
-                if (historicalData.page2_force_md_1 && historicalData.page2_force_md_1[rowKey] && inputs[6]) {
-                    inputs[6].value = historicalData.page2_force_md_1[rowKey];
+                if (historicalData.page2_force_md_1 && historicalData.page2_force_md_1[rowKey] && inputs[7]) {
+                    inputs[7].value = historicalData.page2_force_md_1[rowKey];
                 }
-                if (historicalData.page2_force_md_2 && historicalData.page2_force_md_2[rowKey] && inputs[7]) {
-                    inputs[7].value = historicalData.page2_force_md_2[rowKey];
+                if (historicalData.page2_force_md_2 && historicalData.page2_force_md_2[rowKey] && inputs[8]) {
+                    inputs[8].value = historicalData.page2_force_md_2[rowKey];
                 }
-                if (historicalData.page2_force_md_3 && historicalData.page2_force_md_3[rowKey] && inputs[8]) {
-                    inputs[8].value = historicalData.page2_force_md_3[rowKey];
+                if (historicalData.page2_force_md_3 && historicalData.page2_force_md_3[rowKey] && inputs[9]) {
+                    inputs[9].value = historicalData.page2_force_md_3[rowKey];
                 }
-                if (historicalData.page2_force_5p_md_1 && historicalData.page2_force_5p_md_1[rowKey] && inputs[9]) {
-                    inputs[9].value = historicalData.page2_force_5p_md_1[rowKey];
+                if (historicalData.page2_force_5p_md_1 && historicalData.page2_force_5p_md_1[rowKey] && inputs[11]) {
+                    inputs[11].value = historicalData.page2_force_5p_md_1[rowKey];
                 }
-                if (historicalData.page2_force_5p_md_2 && historicalData.page2_force_5p_md_2[rowKey] && inputs[10]) {
-                    inputs[10].value = historicalData.page2_force_5p_md_2[rowKey];
+                if (historicalData.page2_force_5p_md_2 && historicalData.page2_force_5p_md_2[rowKey] && inputs[12]) {
+                    inputs[12].value = historicalData.page2_force_5p_md_2[rowKey];
                 }
-                if (historicalData.page2_force_5p_md_3 && historicalData.page2_force_5p_md_3[rowKey] && inputs[11]) {
-                    inputs[11].value = historicalData.page2_force_5p_md_3[rowKey];
+                if (historicalData.page2_force_5p_md_3 && historicalData.page2_force_5p_md_3[rowKey] && inputs[13]) {
+                    inputs[13].value = historicalData.page2_force_5p_md_3[rowKey];
                 }
             } else if (row.closest('#testingTableBody3')) {
                 // Page 3 data - Load lot_and_roll, roll_id, lot_time for all pages
@@ -1530,7 +1534,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (historicalData.lot_time && historicalData.lot_time[rowKey] && inputs[2]) {
                     inputs[2].value = historicalData.lot_time[rowKey];
                 }
-                // Page 3 specific data
+                // Page 3 specific data - Correct input indices based on HTML structure
+                // HTML columns: 0(Sample No), 1(Roll ID), 2(Lot Time), 3(Elongation1), 4(Elongation2), 5(Elongation3), 6(ElongationAve), 7(Force1), 8(Force2), 9(Force3), 10(ForceAve), 11(Modulus1), 12(Modulus2), 13(Modulus3), 14(ModulusAve)
                 if (historicalData.page3_elongation_cd_1 && historicalData.page3_elongation_cd_1[rowKey] && inputs[3]) {
                     inputs[3].value = historicalData.page3_elongation_cd_1[rowKey];
                 }
@@ -1540,23 +1545,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (historicalData.page3_elongation_cd_3 && historicalData.page3_elongation_cd_3[rowKey] && inputs[5]) {
                     inputs[5].value = historicalData.page3_elongation_cd_3[rowKey];
                 }
-                if (historicalData.page3_force_cd_1 && historicalData.page3_force_cd_1[rowKey] && inputs[6]) {
-                    inputs[6].value = historicalData.page3_force_cd_1[rowKey];
+                if (historicalData.page3_force_cd_1 && historicalData.page3_force_cd_1[rowKey] && inputs[7]) {
+                    inputs[7].value = historicalData.page3_force_cd_1[rowKey];
                 }
-                if (historicalData.page3_force_cd_2 && historicalData.page3_force_cd_2[rowKey] && inputs[7]) {
-                    inputs[7].value = historicalData.page3_force_cd_2[rowKey];
+                if (historicalData.page3_force_cd_2 && historicalData.page3_force_cd_2[rowKey] && inputs[8]) {
+                    inputs[8].value = historicalData.page3_force_cd_2[rowKey];
                 }
-                if (historicalData.page3_force_cd_3 && historicalData.page3_force_cd_3[rowKey] && inputs[8]) {
-                    inputs[8].value = historicalData.page3_force_cd_3[rowKey];
+                if (historicalData.page3_force_cd_3 && historicalData.page3_force_cd_3[rowKey] && inputs[9]) {
+                    inputs[9].value = historicalData.page3_force_cd_3[rowKey];
                 }
-                if (historicalData.page3_modulus_1 && historicalData.page3_modulus_1[rowKey] && inputs[9]) {
-                    inputs[9].value = historicalData.page3_modulus_1[rowKey];
+                if (historicalData.page3_modulus_1 && historicalData.page3_modulus_1[rowKey] && inputs[11]) {
+                    inputs[11].value = historicalData.page3_modulus_1[rowKey];
                 }
-                if (historicalData.page3_modulus_2 && historicalData.page3_modulus_2[rowKey] && inputs[10]) {
-                    inputs[10].value = historicalData.page3_modulus_2[rowKey];
+                if (historicalData.page3_modulus_2 && historicalData.page3_modulus_2[rowKey] && inputs[12]) {
+                    inputs[12].value = historicalData.page3_modulus_2[rowKey];
                 }
-                if (historicalData.page3_modulus_3 && historicalData.page3_modulus_3[rowKey] && inputs[11]) {
-                    inputs[11].value = historicalData.page3_modulus_3[rowKey];
+                if (historicalData.page3_modulus_3 && historicalData.page3_modulus_3[rowKey] && inputs[13]) {
+                    inputs[13].value = historicalData.page3_modulus_3[rowKey];
                 }
             } else if (row.closest('#testingTableBody4')) {
                 // Page 4 data - Load lot_and_roll, roll_id, lot_time for all pages
@@ -1569,7 +1574,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (historicalData.lot_time && historicalData.lot_time[rowKey] && inputs[2]) {
                     inputs[2].value = historicalData.lot_time[rowKey];
                 }
-                // Page 4 specific data
+                // Page 4 specific data - Correct input indices based on HTML structure
+                // HTML columns: 0(Sample No), 1(Roll ID), 2(Lot Time), 3(Gloss1), 4(Gloss2), 5(Gloss3), 6(GlossAve), 7(PG Quality)
                 if (historicalData.page4_gloss_1 && historicalData.page4_gloss_1[rowKey] && inputs[3]) {
                     inputs[3].value = historicalData.page4_gloss_1[rowKey];
                 }
@@ -1579,8 +1585,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (historicalData.page4_gloss_3 && historicalData.page4_gloss_3[rowKey] && inputs[5]) {
                     inputs[5].value = historicalData.page4_gloss_3[rowKey];
                 }
-                if (historicalData.page4_pg_quality && historicalData.page4_pg_quality[rowKey] && inputs[6]) {
-                    inputs[6].value = historicalData.page4_pg_quality[rowKey];
+                if (historicalData.page4_pg_quality && historicalData.page4_pg_quality[rowKey] && inputs[7]) {
+                    inputs[7].value = historicalData.page4_pg_quality[rowKey];
                 }
             }
         }
@@ -5043,7 +5049,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
             // Page 4
             case 'gloss':
-                shouldHighlight = !isNaN(value) && (value < 9.0 || value > 11.0);
+                // Gloss specs: T=9.0, U=11.0 - ONLY highlight values above U (no lower limit)
+                shouldHighlight = !isNaN(value) && value > 11.0;
                 break;
             case 'pgQuality':
                 shouldHighlight = !isNaN(value) && (value !== 0 && value !== 1);

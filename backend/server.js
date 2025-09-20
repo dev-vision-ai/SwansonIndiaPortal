@@ -1524,12 +1524,17 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Elongation MD 1 data to column D (D9-D38)
       if (data.page2_elongation_md_1) {
         const elongationData = data.page2_elongation_md_1;
-        const dataValues = Object.values(elongationData).filter(value => value && value !== '');
+        const dataValues = Object.values(elongationData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
-          const numValue = parseFloat(dataValues[i]);
-          page2Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          const value = dataValues[i];
+          if (value && value !== '') {
+            const numValue = parseFloat(value);
+            page2Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : value;
+          } else {
+            page2Worksheet.getCell(`D${row}`).value = ''; // Preserve empty values
+          }
           row--;
         }
       }
@@ -1537,12 +1542,17 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Elongation MD 2 data to column E (E9-E38) - fill from bottom up
       if (data.page2_elongation_md_2) {
         const elongationData = data.page2_elongation_md_2;
-        const dataValues = Object.values(elongationData).filter(value => value && value !== '');
+        const dataValues = Object.values(elongationData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
-          const numValue = parseFloat(dataValues[i]);
-          page2Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          const value = dataValues[i];
+          if (value && value !== '') {
+            const numValue = parseFloat(value);
+            page2Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : value;
+          } else {
+            page2Worksheet.getCell(`E${row}`).value = ''; // Preserve empty values
+          }
           row--;
         }
       }
@@ -1550,12 +1560,17 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Elongation MD 3 data to column F (F9-F38) - fill from bottom up
       if (data.page2_elongation_md_3) {
         const elongationData = data.page2_elongation_md_3;
-        const dataValues = Object.values(elongationData).filter(value => value && value !== '');
+        const dataValues = Object.values(elongationData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
-          const numValue = parseFloat(dataValues[i]);
-          page2Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          const value = dataValues[i];
+          if (value && value !== '') {
+            const numValue = parseFloat(value);
+            page2Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : value;
+          } else {
+            page2Worksheet.getCell(`F${row}`).value = ''; // Preserve empty values
+          }
           row--;
         }
       }
@@ -1563,12 +1578,17 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Force MD 1 data to column H (H9-H38) - fill from bottom up
       if (data.page2_force_md_1) {
         const forceData = data.page2_force_md_1;
-        const dataValues = Object.values(forceData).filter(value => value && value !== '');
+        const dataValues = Object.values(forceData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
-          const numValue = parseFloat(dataValues[i]);
-          page2Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          const value = dataValues[i];
+          if (value && value !== '') {
+            const numValue = parseFloat(value);
+            page2Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : value;
+          } else {
+            page2Worksheet.getCell(`H${row}`).value = ''; // Preserve empty values
+          }
           row--;
         }
       }
@@ -1576,12 +1596,17 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Force MD 2 data to column I (I9-I38) - fill from bottom up
       if (data.page2_force_md_2) {
         const forceData = data.page2_force_md_2;
-        const dataValues = Object.values(forceData).filter(value => value && value !== '');
+        const dataValues = Object.values(forceData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
-          const numValue = parseFloat(dataValues[i]);
-          page2Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          const value = dataValues[i];
+          if (value && value !== '') {
+            const numValue = parseFloat(value);
+            page2Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : value;
+          } else {
+            page2Worksheet.getCell(`I${row}`).value = ''; // Preserve empty values
+          }
           row--;
         }
       }
@@ -1589,12 +1614,17 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Force MD 3 data to column J (J9-J38) - fill from bottom up
       if (data.page2_force_md_3) {
         const forceData = data.page2_force_md_3;
-        const dataValues = Object.values(forceData).filter(value => value && value !== '');
+        const dataValues = Object.values(forceData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
-          const numValue = parseFloat(dataValues[i]);
-          page2Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          const value = dataValues[i];
+          if (value && value !== '') {
+            const numValue = parseFloat(value);
+            page2Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : value;
+          } else {
+            page2Worksheet.getCell(`J${row}`).value = ''; // Preserve empty values
+          }
           row--;
         }
       }
@@ -1602,12 +1632,17 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Force 5% MD 1 data to column L (L9-L38) - fill from bottom up
       if (data.page2_force_5p_md_1) {
         const force5pData = data.page2_force_5p_md_1;
-        const dataValues = Object.values(force5pData).filter(value => value && value !== '');
+        const dataValues = Object.values(force5pData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
-          const numValue = parseFloat(dataValues[i]);
-          page2Worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          const value = dataValues[i];
+          if (value && value !== '') {
+            const numValue = parseFloat(value);
+            page2Worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : value;
+          } else {
+            page2Worksheet.getCell(`L${row}`).value = ''; // Preserve empty values
+          }
           row--;
         }
       }
@@ -1615,12 +1650,17 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Force 5% MD 2 data to column M (M9-M38) - fill from bottom up
       if (data.page2_force_5p_md_2) {
         const force5pData = data.page2_force_5p_md_2;
-        const dataValues = Object.values(force5pData).filter(value => value && value !== '');
+        const dataValues = Object.values(force5pData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
-          const numValue = parseFloat(dataValues[i]);
-          page2Worksheet.getCell(`M${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          const value = dataValues[i];
+          if (value && value !== '') {
+            const numValue = parseFloat(value);
+            page2Worksheet.getCell(`M${row}`).value = !isNaN(numValue) ? numValue : value;
+          } else {
+            page2Worksheet.getCell(`M${row}`).value = ''; // Preserve empty values
+          }
           row--;
         }
       }
@@ -1628,12 +1668,17 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Force 5% MD 3 data to column N (N9-N38) - fill from bottom up
       if (data.page2_force_5p_md_3) {
         const force5pData = data.page2_force_5p_md_3;
-        const dataValues = Object.values(force5pData).filter(value => value && value !== '');
+        const dataValues = Object.values(force5pData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
-          const numValue = parseFloat(dataValues[i]);
-          page2Worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          const value = dataValues[i];
+          if (value && value !== '') {
+            const numValue = parseFloat(value);
+            page2Worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : value;
+          } else {
+            page2Worksheet.getCell(`N${row}`).value = ''; // Preserve empty values
+          }
           row--;
         }
       }
@@ -1659,7 +1704,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Elongation CD 1 data to column D (D9-D38)
       if (data.page3_elongation_cd_1) {
         const elongationData = data.page3_elongation_cd_1;
-        const dataValues = Object.values(elongationData).filter(value => value && value !== '');
+        const dataValues = Object.values(elongationData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
@@ -1672,7 +1717,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Elongation CD 2 data to column E (E9-E38) - fill from bottom up
       if (data.page3_elongation_cd_2) {
         const elongationData = data.page3_elongation_cd_2;
-        const dataValues = Object.values(elongationData).filter(value => value && value !== '');
+        const dataValues = Object.values(elongationData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
@@ -1685,7 +1730,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Elongation CD 3 data to column F (F9-F38) - fill from bottom up
       if (data.page3_elongation_cd_3) {
         const elongationData = data.page3_elongation_cd_3;
-        const dataValues = Object.values(elongationData).filter(value => value && value !== '');
+        const dataValues = Object.values(elongationData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
@@ -1698,7 +1743,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Force CD 1 data to column H (H9-H38) - fill from bottom up
       if (data.page3_force_cd_1) {
         const forceData = data.page3_force_cd_1;
-        const dataValues = Object.values(forceData).filter(value => value && value !== '');
+        const dataValues = Object.values(forceData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
@@ -1711,7 +1756,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Force CD 2 data to column I (I9-I38) - fill from bottom up
       if (data.page3_force_cd_2) {
         const forceData = data.page3_force_cd_2;
-        const dataValues = Object.values(forceData).filter(value => value && value !== '');
+        const dataValues = Object.values(forceData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
@@ -1724,7 +1769,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Force CD 3 data to column J (J9-J38) - fill from bottom up
       if (data.page3_force_cd_3) {
         const forceData = data.page3_force_cd_3;
-        const dataValues = Object.values(forceData).filter(value => value && value !== '');
+        const dataValues = Object.values(forceData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
@@ -1737,7 +1782,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Modulus 1 data to column L (L9-L38) - fill from bottom up
       if (data.page3_modulus_1) {
         const modulusData = data.page3_modulus_1;
-        const dataValues = Object.values(modulusData).filter(value => value && value !== '');
+        const dataValues = Object.values(modulusData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
@@ -1750,7 +1795,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Modulus 2 data to column M (M9-M38) - fill from bottom up
       if (data.page3_modulus_2) {
         const modulusData = data.page3_modulus_2;
-        const dataValues = Object.values(modulusData).filter(value => value && value !== '');
+        const dataValues = Object.values(modulusData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
@@ -1763,7 +1808,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Modulus 3 data to column N (N9-N38) - fill from bottom up
       if (data.page3_modulus_3) {
         const modulusData = data.page3_modulus_3;
-        const dataValues = Object.values(modulusData).filter(value => value && value !== '');
+        const dataValues = Object.values(modulusData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
@@ -1794,7 +1839,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Gloss 1 data to column D (D9-D38)
       if (data.page4_gloss_1) {
         const glossData = data.page4_gloss_1;
-        const dataValues = Object.values(glossData).filter(value => value && value !== '');
+        const dataValues = Object.values(glossData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
@@ -1807,7 +1852,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Gloss 2 data to column E (E9-E38) - fill from bottom up
       if (data.page4_gloss_2) {
         const glossData = data.page4_gloss_2;
-        const dataValues = Object.values(glossData).filter(value => value && value !== '');
+        const dataValues = Object.values(glossData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
@@ -1820,7 +1865,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // Gloss 3 data to column F (F9-F38) - fill from bottom up
       if (data.page4_gloss_3) {
         const glossData = data.page4_gloss_3;
-        const dataValues = Object.values(glossData).filter(value => value && value !== '');
+        const dataValues = Object.values(glossData); // Don't filter empty values
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
@@ -1849,11 +1894,13 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // 5. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     
-    // Generate filename with batch number
-    const filename = `Film Inspection Form - ${data.batch || form_id}.xlsx`;
+    // Generate filename with standardized format: FIF-{product_code}-{batch_no}
+    const productCode = data.product_code || 'UNKNOWN';
+    const batchNo = data.batch || form_id;
+    const filename = `FIF-${productCode}-${batchNo}.xlsx`;
     console.log('Film inspection filename:', filename);
-    console.log('Using batch value:', data.batch);
-    console.log('Fallback form_id:', form_id);
+    console.log('Product code:', productCode);
+    console.log('Batch number:', batchNo);
     
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
@@ -2146,9 +2193,13 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
     }
 
     // 5. Set response headers for file download
-    const filename = `Pre-Store Inspection Form - ${data.batch || formId}.xlsx`;
+    // Generate filename with standardized format: Pre-Store-{product_code}-{batch_no}
+    const productCode = data.product_code || 'UNKNOWN';
+    const batchNo = data.batch || formId;
+    const filename = `Pre-Store-${productCode}-${batchNo}.xlsx`;
     console.log('Generated filename:', filename);
-    console.log('Using batch value:', data.batch);
+    console.log('Product code:', productCode);
+    console.log('Batch number:', batchNo);
     console.log('Fallback formId:', formId);
     
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

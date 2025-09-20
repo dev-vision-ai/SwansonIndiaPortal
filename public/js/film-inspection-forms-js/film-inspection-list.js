@@ -35,19 +35,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             const [krantiResult, whiteResult, wwResult, jeddahResult] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('168_16c_white')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('176_18cp_ww')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('168_18c_white_jeddah')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
                     .order('created_at', { ascending: false })
             ]);
 
@@ -702,7 +702,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (error) {
                 console.error('Error saving prestore data:', error.message);
-                alert('Error saving data: ' + error.message);
+                // Handle specific error types without browser popup
+                if (error.message.includes('duplicate key value violates unique constraint')) {
+                    if (error.message.includes('lot_no_key')) {
+                        console.error('Duplicate lot number detected. Please use a different lot number.');
+                    } else {
+                        console.error('Duplicate key constraint violation:', error.message);
+                    }
+                } else {
+                    console.error('Database error:', error.message);
+                }
                 
                 // Reset button state on error
                 submitButton.textContent = originalButtonText;
@@ -1897,11 +1906,7 @@ window.viewFilmForm = function(formId, productCode) {
                 data.quantity = parseInt(data.quantity);
             }
 
-            // Only include lot_no if it was actually entered by the user
-            const lotNo = formData.get('lot_no');
-            if (lotNo && lotNo.trim() !== '') {
-                data.lot_no = lotNo.trim();
-            }
+            // lot_no field removed - not present in HTML form
 
             // Convert "N/A" values to null for database storage
             Object.keys(data).forEach(key => {
@@ -1951,7 +1956,8 @@ window.viewFilmForm = function(formId, productCode) {
                 }
 
                 if (existingLots && existingLots.length > 0) {
-                    alert('Error: LOT NO already exists. Please enter a unique LOT NO.');
+                    console.error('Error: LOT NO already exists. Please enter a unique LOT NO.');
+                    // You could show a user-friendly message in the UI instead of alert
                     return;
                 }
             }
@@ -1965,10 +1971,10 @@ window.viewFilmForm = function(formId, productCode) {
             const { data: resultData, error } = await dbOperation;
             if (error) {
                 if (error.code === '23505') { // PostgreSQL unique violation error code
-                    alert('Error: This LOT NO already exists. Please use a unique LOT NO.');
+                    console.error('Error: This LOT NO already exists. Please use a unique LOT NO.');
                 } else {
                     console.error('Error inserting data:', error.message);
-                    alert('An error occurred during form submission. Please try again.');
+                    console.error('An error occurred during form submission. Please try again.');
                 }
                 return;
             }
@@ -1978,7 +1984,7 @@ window.viewFilmForm = function(formId, productCode) {
             } else {
                 sessionStorage.removeItem('filmInspectionData'); // Clear if no data was inserted
             }
-            alert(`Film Inspection Form submitted successfully!`);
+            console.log(`Film Inspection Form submitted successfully!`);
             
             // Close modal and refresh the list
             closeFilmModal();
@@ -2202,7 +2208,7 @@ window.viewFilmForm = function(formId, productCode) {
                 pallet_size: formData.get('pallet-size') || '',
                 machine_no: formData.get('machine_no') || '',
                 purchase_order: formData.get('purchase_order') || '',
-                lot_no: formData.get('lot_no') || '',
+                // lot_no field removed - not present in HTML form
                 pallet_list: formData.get('pallet-list') || '',
                 product_label: formData.get('product-label') || '',
                 wrapping: formData.get('wrapping') || '',
@@ -2300,9 +2306,21 @@ window.viewFilmForm = function(formId, productCode) {
 
             if (upsertError) {
                 console.error('Error saving data:', upsertError.message);
-                alert('Error saving data: ' + upsertError.message);
+                
+                // Handle specific error types without browser popup
+                if (upsertError.message.includes('duplicate key value violates unique constraint')) {
+                    if (upsertError.message.includes('lot_no_key')) {
+                        console.error('Duplicate lot number detected. Please use a different lot number.');
+                        // You could show a user-friendly message in the UI instead of alert
+                        // For now, just log to console to avoid browser popup
+                    } else {
+                        console.error('Duplicate key constraint violation:', upsertError.message);
+                    }
+                } else {
+                    console.error('Database error:', upsertError.message);
+                }
             } else {
-                alert('Data saved successfully!');
+                console.log('Data saved successfully!');
                 if (!preStoreFormId) { // Only clear sessionStorage and reset form if it was a new entry
                     preStoreForm.reset();
                     sessionStorage.removeItem('filmInspectionData');
