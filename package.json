@@ -32,7 +32,8 @@
     "jsuites": "^5.13.1",
     "multer": "^1.4.5-lts.1",
     "path": "^0.12.7",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "xlsx-populate": "^1.21.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

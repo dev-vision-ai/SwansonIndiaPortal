@@ -1,4 +1,5 @@
 const express = require('express');
+const XlsxPopulate = require('xlsx-populate');
 const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
@@ -32,63 +33,33 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3p5ZG52c2NhaWN5Z3dsbWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyMTg5NDYsImV4cCI6MjA1OTc5NDk0Nn0.0TUriXYvPuml-Jzr9v1jvcuzKjh-cZgnZhYKkQEj3t0'
 );
 
-// Enhanced 24/7 Keep-alive system to prevent cold starts
-// Multiple ping intervals for maximum reliability
+// Keep-alive system to prevent cold starts
 setInterval(() => {
   try {
-    console.log('🔄 24/7 Keep-alive ping - Server staying warm');
-    console.log(`⏰ Keep-alive at: ${new Date().toISOString()}`);
-    console.log('✅ Server is active and responding');
-    
     // Additional memory cleanup to prevent cold starts
     if (global.gc) {
       global.gc();
-      console.log('🧹 Memory cleanup performed');
     }
   } catch (error) {
-    console.log('❌ Keep-alive ping error:', error.message);
+    console.log('Keep-alive error:', error.message);
   }
-}, 5 * 60 * 1000); // Every 5 minutes (more frequent for cold start prevention)
+}, 5 * 60 * 1000); // Every 5 minutes
 
-// Secondary keep-alive for redundancy
-setInterval(() => {
-  try {
-    console.log('🔄 Secondary keep-alive ping');
-    console.log(`⏰ Secondary ping at: ${new Date().toISOString()}`);
-    
-    // Warm up critical endpoints
-    fetch(`http://localhost:${PORT}/ping`).catch(() => {});
-    fetch(`http://localhost:${PORT}/health`).catch(() => {});
-    
-  } catch (error) {
-    console.log('❌ Secondary keep-alive error:', error.message);
-  }
-}, 10 * 60 * 1000); // Every 10 minutes
-
-// Enhanced keep-alive endpoint to prevent cold starts
+// Keep-alive endpoint to prevent cold starts
 app.get('/ping', async (req, res) => {
   const uptime = process.uptime();
   const days = Math.floor(uptime / 86400);
   const hours = Math.floor((uptime % 86400) / 3600);
   const minutes = Math.floor((uptime % 3600) / 60);
   
-  // Log the ping request for monitoring
-  console.log(`📡 Ping request received at: ${new Date().toISOString()}`);
-  
   // Perform a light database query to keep connections warm
   try {
-    const { data, error } = await supabase
+    await supabase
       .from('inline_inspection_form_master_2')
       .select('id')
       .limit(1);
-    
-    if (error) {
-      console.log('⚠️ Ping database check failed:', error.message);
-    } else {
-      console.log('✅ Ping database connection warm');
-    }
   } catch (dbError) {
-    console.log('⚠️ Ping database error:', dbError.message);
+    console.log('Ping database error:', dbError.message);
   }
   
   res.json({ 
@@ -107,7 +78,6 @@ app.get('/ping', async (req, res) => {
 
 // Additional keep-alive endpoint for external services
 app.get('/keep-alive', (req, res) => {
-  console.log(`🔋 Keep-alive request received at: ${new Date().toISOString()}`);
   res.json({ 
     status: 'awake', 
     message: 'Server is actively kept alive',
@@ -129,15 +99,12 @@ app.get('/export', async (req, res) => {
     // Get query parameters for specific form
     const { traceability_code, lot_letter } = req.query;
     
-    console.log('Export request received:', { traceability_code, lot_letter });
-    
     // 1. Fetch data from Supabase - filter by specific form if parameters provided
     let query = supabase.from('inline_inspection_form_master_2').select('*');
     
     if (traceability_code && lot_letter) {
       // Export specific form
       query = query.eq('traceability_code', traceability_code).eq('lot_letter', lot_letter);
-      console.log('Filtering by traceability_code and lot_letter:', { traceability_code, lot_letter });
     }
     // If no parameters, export all forms (existing behavior)
     
@@ -147,11 +114,6 @@ app.get('/export', async (req, res) => {
       return res.status(500).send('Error fetching data');
     }
 
-    console.log('Data fetched:', data ? data.length : 0, 'records');
-    if (data && data.length > 0) {
-      console.log('First record keys:', Object.keys(data[0]));
-      console.log('First record lot_letter:', data[0].lot_letter);
-    }
 
     if (!data || data.length === 0) {
       return res.status(404).send('No data found for the specified form');
@@ -159,7 +121,6 @@ app.get('/export', async (req, res) => {
 
     // 2. Load the client's Excel template
     const templatePath = path.join(__dirname, 'templates', 'Inline-inspection-form.xlsx');
-    console.log('Template path:', templatePath);
     
     // Check if template file exists
     if (!fs.existsSync(templatePath)) {
@@ -169,22 +130,17 @@ app.get('/export', async (req, res) => {
     
     const workbook = new ExcelJS.Workbook();
     try {
-    await workbook.xlsx.readFile(templatePath);
-      console.log('Template loaded successfully');
+      await workbook.xlsx.readFile(templatePath);
     } catch (templateError) {
       console.error('Error loading template:', templateError);
-      console.error('Template error details:', templateError.message);
       return res.status(500).send(`Error loading Excel template: ${templateError.message}`);
     }
-
     // 3. Get the first worksheet (or specify by name if needed)
-    console.log('Workbook worksheets count:', workbook.worksheets.length);
     const worksheet = workbook.worksheets[0];
     if (!worksheet) {
       console.error('No worksheets found in template');
       return res.status(500).send('Template worksheet not found');
     }
-    console.log('Worksheet found:', worksheet.name);
 
     // 4. Find the starting row for data insertion (you may need to adjust this based on template)
     // Let's assume data starts after headers, around row 10
@@ -201,21 +157,7 @@ app.get('/export', async (req, res) => {
 
     // 5. Insert data into the template (fine-tuned mapping for merged cells)
     // Map header data from the specific lot being exported (not just the first lot)
-    console.log('Looking for lot_letter:', lot_letter);
-    console.log('Available lot_letters in data:', data.map(d => d.lot_letter));
-    
     const targetLot = data.find(lot => lot.lot_letter === lot_letter) || data[0];
-    
-    console.log('Selected targetLot lot_letter:', targetLot?.lot_letter);
-    
-    // Debug: Log the target lot data to see what fields are available
-    console.log('Target lot data:', JSON.stringify(targetLot, null, 2));
-    console.log('Target lot prod_code:', targetLot?.prod_code);
-    console.log('Target lot shift:', targetLot?.shift);
-    console.log('Target lot traceability_code:', targetLot?.traceability_code);
-    console.log('Target lot lot_letter:', targetLot?.lot_letter);
-    console.log('Target lot inspected_by:', targetLot?.inspected_by);
-    console.log('Target lot inspected_by type:', typeof targetLot?.inspected_by);
     
     // Initialize header variables
     let customer = '';
@@ -297,9 +239,6 @@ app.get('/export', async (req, res) => {
             if (!non_printed) non_printed = otherForm.non_printed || false;
             if (!ct) ct = otherForm.ct || false;
             
-            console.log('  Found header data from other forms with same lot_letter:', {
-              customer, production_no, prod_code, spec, shift, mc_no, emboss_type
-            });
           }
         } catch (err) {
           console.log('  Error searching for header data in other forms:', err.message);
@@ -351,21 +290,6 @@ app.get('/export', async (req, res) => {
         date = now.getDate().toString().padStart(2, '0');
       }
       
-      // Debug: Log what header data we're using
-      console.log('Header mapping debug:');
-      console.log('  customer:', customer);
-      console.log('  production_no:', production_no);
-      console.log('  prod_code:', prod_code);
-      console.log('  spec:', spec);
-      console.log('  shift:', shift);
-      console.log('  mc_no:', mc_no);
-      console.log('  emboss_type:', emboss_type);
-      console.log('  printed:', printed);
-      console.log('  non_printed:', non_printed);
-      console.log('  ct:', ct);
-      console.log('  year:', year);
-      console.log('  month:', month);
-      console.log('  date:', date);
     }
     
     // Function to apply header mapping to any worksheet
@@ -531,9 +455,6 @@ app.get('/export', async (req, res) => {
             worksheet.getCell(`E${currentRow}`).value = lot.arm || '';
             // First row: show first inspector name (before comma)
             const names = (lot.inspected_by || '').split(/[,\n\r]+/);
-            console.log('Inspected by data:', lot.inspected_by);
-            console.log('Split names:', names);
-            console.log('First name:', names[0]?.trim());
             worksheet.getCell(`AF${currentRow}`).value = names[0]?.trim() || '';
           } else if (rollIndex === 1) {
             // Second row of the lot - show second inspector name
@@ -544,7 +465,6 @@ app.get('/export', async (req, res) => {
             worksheet.getCell(`E${currentRow}`).value = '';
             // Second row: show second inspector name (after comma)
             const names = (lot.inspected_by || '').split(/[,\n\r]+/);
-            console.log('Second name:', names[1]?.trim());
             worksheet.getCell(`AF${currentRow}`).value = names[1]?.trim() || '';
           } else {
             // Other rows of the lot - leave all lot-associated data empty
@@ -1038,22 +958,6 @@ app.get('/export', async (req, res) => {
     let shiftNumber = targetLot.shift || '';
     let mcNo = targetLot.mc_no || '';
     
-    // Store original product code for filename (with Jeddah)
-    let originalProdCodeForFilename = prodCode;
-    
-    // Remove extra spaces around "(Jeddah)" for filename (e.g., "APE-168(18)C (Jeddah)" → "APE-168(18)C(Jeddah)")
-    if (originalProdCodeForFilename.toLowerCase().includes('jeddah')) {
-      originalProdCodeForFilename = originalProdCodeForFilename.replace(/\s*\(([^)]*jeddah[^)]*)\)/gi, '($1)').trim();
-      console.log('🧹 Cleaned filename product code spacing:', prodCode, '→', originalProdCodeForFilename);
-    }
-    
-    // Clean product code by removing "(Jeddah)" part if present (for Excel content only)
-    if (prodCode.toLowerCase().includes('jeddah')) {
-      // Remove "(Jeddah)" or "(JEDDAH)" or any case variation
-      prodCode = prodCode.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
-      console.log('🧹 Cleaned product code from "Jeddah":', targetLot.prod_code || '', '→', prodCode);
-    }
-    
     // If main fields are null, try to extract from header_data
     if (!prodCode && targetLot.header_data) {
       // Try to get from header_data
@@ -1130,18 +1034,6 @@ app.get('/export', async (req, res) => {
       }
     }
     
-    // Debug: Log the values being used for filename
-    console.log('Filename generation debug:');
-    console.log('  targetLot.traceability_code:', targetLot.traceability_code);
-    console.log('  targetLot.lot_letter:', targetLot.lot_letter);
-    console.log('  prodCode:', prodCode);
-    console.log('  shiftNumber:', shiftNumber);
-    console.log('  targetLot object keys:', Object.keys(targetLot));
-    console.log('  header_data keys:', targetLot.header_data ? Object.keys(targetLot.header_data) : 'null');
-    if (targetLot.header_data) {
-      console.log('  header_data.prod_code:', targetLot.header_data.prod_code);
-      console.log('  header_data.shift:', targetLot.header_data.shift);
-    }
     
     // Convert shift number to letter
     let shiftLetter = '';
@@ -1150,24 +1042,17 @@ app.get('/export', async (req, res) => {
     else if (shiftNumber === '3' || shiftNumber === 3) shiftLetter = 'C';
     else shiftLetter = shiftNumber; // Keep original if not 1, 2, or 3
     
-    console.log('  shiftLetter:', shiftLetter);
-    
     // Create filename with format: ILIF-trace code-prod code-Shift-A-B-C.xlsx
-    // Use original product code (with Jeddah) for filename
-    const filename = `ILIF-${targetLot.traceability_code}-${originalProdCodeForFilename}-Shift-${shiftLetter}.xlsx`;
+    const filename = `ILIF-${targetLot.traceability_code}-${prodCode}-Shift-${shiftLetter}.xlsx`;
     
-    console.log('Generated filename:', filename); // Debug log
-    
-    // 12. Send the buffer as a response
+    // 14. Send the buffer as a response
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
-    console.log('Content-Disposition header set:', `attachment; filename="${filename}"`); // Debug log
     res.send(buffer);
 
   } catch (error) {
     console.error('Error exporting inspection report:', error);
-    console.error('Error stack:', error.stack);
     res.status(500).send(`Error exporting inspection report: ${error.message}`);
   }
 });
@@ -1177,8 +1062,6 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
   try {
     // Get form_id parameter
     const { form_id } = req.query;
-    
-    console.log('168-16CP Kranti form export request received:', { form_id });
     
     if (!form_id) {
       return res.status(400).send('form_id parameter is required');
@@ -1200,33 +1083,12 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       return res.status(404).send('Form not found');
     }
 
-    console.log('Data fetched successfully:', data);
-    console.log('Data keys:', Object.keys(data));
-    console.log('Sample data preview:', {
-      form_id: data.form_id,
-      lot_no: data.lot_no,
-      product_code: data.product_code,
-      has_lot_and_roll: !!data.lot_and_roll,
-      has_roll_id: !!data.roll_id,
-      has_lot_time: !!data.lot_time
-    });
 
-    // 2. Try to load the actual template with better error handling
+    // 2. Load the template
     const templatePath = path.join(__dirname, 'templates', '168-16cp-kranti.xlsx');
-    console.log('Template path:', templatePath);
-    console.log('__dirname:', __dirname);
-    console.log('Full path:', path.resolve(templatePath));
     
-    // Check if file exists and get stats
-    if (fs.existsSync(templatePath)) {
-      const stats = fs.statSync(templatePath);
-      console.log('Template file exists:', {
-        size: stats.size,
-        isFile: stats.isFile(),
-        modified: stats.mtime,
-        readable: true
-      });
-    } else {
+    // Check if file exists
+    if (!fs.existsSync(templatePath)) {
       console.error('Template file does not exist at:', templatePath);
       return res.status(500).send('Template file not found');
     }
@@ -1234,96 +1096,74 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     let workbook;
     let worksheet;
     
-    // Load the actual template file
-    console.log('Loading template file...');
-    
+    // Load the template file
     try {
-      // Check if template file exists
-      if (fs.existsSync(templatePath)) {
-        console.log('Template file exists, loading...');
-        workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.readFile(templatePath);
-        worksheet = workbook.getWorksheet('Page1');
-        console.log('Template loaded successfully with Page1 worksheet');
-      } else {
-        console.log('Template file not found, creating basic workbook...');
-        workbook = new ExcelJS.Workbook();
-        const page1Worksheet = workbook.addWorksheet('Page1');
-        worksheet = page1Worksheet;
-        console.log('Basic workbook created with Page1 worksheet');
-      }
+      workbook = await XlsxPopulate.fromFileAsync(templatePath);
+      worksheet = workbook.sheet('Page1');
     } catch (error) {
       console.log('Error loading template:', error.message);
-      console.log('Creating basic workbook as fallback...');
-      workbook = new ExcelJS.Workbook();
-      const page1Worksheet = workbook.addWorksheet('Page1');
+      workbook = await XlsxPopulate.fromBlankAsync();
+      const page1Worksheet = workbook.addSheet('Page1');
       worksheet = page1Worksheet;
-      console.log('Basic workbook created with Page1 worksheet');
     }
 
-    // 4. MANUAL CELL MAPPING - User will specify which data goes where
-    console.log('Starting manual cell mapping...');
-    
-    // Map header data to correct cells based on template structure
-    console.log('Mapping header data to template structure...');
+    // 4. Map data to Excel cells
     
     // Product Code (C4)
-    worksheet.getCell('C4').value = data.product_code || '';
+    worksheet.cell('C4').value(data.product_code || '');
     
     // Specification (C5) 
-    worksheet.getCell('C5').value = data.specification || '';
+    worksheet.cell('C5').value(data.specification || '');
     
     // Production Order (H4)
-    worksheet.getCell('H4').value = data.production_order || '';
+    worksheet.cell('H4').value(data.production_order || '');
     
     // Purchase Order (H5)
-    worksheet.getCell('H5').value = data.purchase_order || '';
+    worksheet.cell('H5').value(data.purchase_order || '');
     
     // Machine (K4)
-    worksheet.getCell('K4').value = data.machine_no || '';
+    worksheet.cell('K4').value(data.machine_no || '');
     
     // Quantity (K5) - Add "Rolls" text like prestore form
-    worksheet.getCell('K5').value = data.quantity ? `${data.quantity} Rolls` : '';
+    worksheet.cell('K5').value(data.quantity ? `${data.quantity} Rolls` : '');
     
     // Production Date (N4) - format as DD/MM/YYYY
-    worksheet.getCell('N4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
+    worksheet.cell('N4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
     
     // Inspection Date (N5) - format as DD/MM/YYYY  
-    worksheet.getCell('N5').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+    worksheet.cell('N5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
     
     // User Name (Prepared by) (B41)
-    worksheet.getCell('B41').value = data.prepared_by || 'Unknown User';
+    worksheet.cell('B41').value(data.prepared_by || 'Unknown User');
     
     // Film Inspection Form Ref No (O3)
-    worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+    worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
     
     // Map equipment data to Excel cells
-    console.log('Mapping equipment data to template...');
     if (data.equipment_used && data.equipment_used.page1) {
       const equipment = data.equipment_used.page1;
       
       // Basic Weight Equipment (D6)
-      worksheet.getCell('D6').value = equipment.basic_weight || '';
+      worksheet.cell('D6').value(equipment.basic_weight || '');
       
       // Thickness Equipment (F6)
-      worksheet.getCell('F6').value = equipment.thickness || '';
+      worksheet.cell('F6').value(equipment.thickness || '');
       
       // Opacity Equipment (H6)
-      worksheet.getCell('H6').value = equipment.opacity || '';
+      worksheet.cell('H6').value(equipment.opacity || '');
       
       // COF Equipment (J6)
-      worksheet.getCell('J6').value = equipment.cof || '';
+      worksheet.cell('J6').value(equipment.cof || '');
       
       // Cut Width Equipment (L6)
-      worksheet.getCell('L6').value = equipment.cut_width || '';
+      worksheet.cell('L6').value(equipment.cut_width || '');
       
       // Color Equipment (N6) - Use unprinted equipment for both unprinted and printed
       // Since both use the same equipment type (X-RITE), use unprinted equipment ID
-      worksheet.getCell('N6').value = equipment.color_unprinted || '';
+      worksheet.cell('N6').value(equipment.color_unprinted || '');
     }
     
-    // Map sample data to the correct columns based on template structure
-    console.log('Mapping sample data to template...');
+    // Map sample data to the correct columns
     
     // Sample data should go in rows 8-37 (30 rows) - preserve HTML form structure
     // Top rows (8-25): Historical data, Bottom rows (26-37): Fresh data
@@ -1336,9 +1176,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
+          worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
         } else {
-          worksheet.getCell(`A${row}`).value = ''; // Empty row
+          worksheet.cell(`A${row}`).value(''); // Empty row
         }
       }
     }
@@ -1352,9 +1192,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
+          worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
         } else {
-          worksheet.getCell(`B${row}`).value = ''; // Empty row
+          worksheet.cell(`B${row}`).value(''); // Empty row
         }
       }
     }
@@ -1368,9 +1208,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
+          worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
         } else {
-          worksheet.getCell(`C${row}`).value = ''; // Empty row
+          worksheet.cell(`C${row}`).value(''); // Empty row
         }
       }
     }
@@ -1386,9 +1226,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
+          worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
         } else {
-          worksheet.getCell(`D${row}`).value = ''; // Empty row
+          worksheet.cell(`D${row}`).value(''); // Empty row
         }
       }
     }
@@ -1403,9 +1243,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
+          worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
         } else {
-          worksheet.getCell(`F${row}`).value = ''; // Empty row
+          worksheet.cell(`F${row}`).value(''); // Empty row
         }
       }
     }
@@ -1420,9 +1260,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
+          worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
         } else {
-          worksheet.getCell(`H${row}`).value = ''; // Empty row
+          worksheet.cell(`H${row}`).value(''); // Empty row
         }
       }
     }
@@ -1437,9 +1277,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
+          worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
         } else {
-          worksheet.getCell(`J${row}`).value = ''; // Empty row
+          worksheet.cell(`J${row}`).value(''); // Empty row
         }
       }
     }
@@ -1454,9 +1294,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
+          worksheet.cell(`L${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
         } else {
-          worksheet.getCell(`L${row}`).value = ''; // Empty row
+          worksheet.cell(`L${row}`).value(''); // Empty row
         }
       }
     }
@@ -1471,9 +1311,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
+          worksheet.cell(`N${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
         } else {
-          worksheet.getCell(`N${row}`).value = ''; // Empty row
+          worksheet.cell(`N${row}`).value(''); // Empty row
         }
       }
     }
@@ -1488,36 +1328,33 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.getCell(`O${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
+          worksheet.cell(`O${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
         } else {
-          worksheet.getCell(`O${row}`).value = ''; // Empty row
+          worksheet.cell(`O${row}`).value(''); // Empty row
         }
       }
     }
 
 
-    // Set Excel to automatically calculate formulas when opened
-    workbook.calcProperties.fullCalcOnLoad = true;
-    workbook.calcProperties.calcMode = 'automatic';
+    // Note: xlsx-populate doesn't support calcProperties like ExcelJS
+    // Formulas will be calculated when the file is opened in Excel
     
-    // Force recalculation by setting a dummy value and removing it
-    const dummyCell = worksheet.getCell('Z1');
-    dummyCell.value = '=NOW()';
-    dummyCell.value = null;
+    // Note: xlsx-populate handles formula calculation differently
+    // No need for dummy cell manipulation
     
 
     // Map Page 2 data if Page2 worksheet exists
-    const page2Worksheet = workbook.getWorksheet('Page2');
+    const page2Worksheet = workbook.sheet('Page2');
     if (page2Worksheet) {
       // User Name (Prepared by) (B42)
-      page2Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page2Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
       
       // Film Inspection Form Ref No (O3)
-      page2Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page2Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
       
       // Equipment data for Page 2 (D6)
       if (data.equipment_used && data.equipment_used.page2) {
-        page2Worksheet.getCell('D6').value = data.equipment_used.page2.common || '';
+        page2Worksheet.cell('D6').value(data.equipment_used.page2.common || '');
       }
       
       // Page 2 data mapping - Elongation MD and Force MD data - fill from bottom up
@@ -1531,9 +1368,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : value;
+            page2Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : value);
           } else {
-            page2Worksheet.getCell(`D${row}`).value = ''; // Preserve empty values
+            page2Worksheet.cell(`D${row}`).value(''); // Preserve empty values
           }
           row--;
         }
@@ -1549,9 +1386,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : value;
+            page2Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : value);
           } else {
-            page2Worksheet.getCell(`E${row}`).value = ''; // Preserve empty values
+            page2Worksheet.cell(`E${row}`).value(''); // Preserve empty values
           }
           row--;
         }
@@ -1567,9 +1404,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : value;
+            page2Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : value);
           } else {
-            page2Worksheet.getCell(`F${row}`).value = ''; // Preserve empty values
+            page2Worksheet.cell(`F${row}`).value(''); // Preserve empty values
           }
           row--;
         }
@@ -1585,9 +1422,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : value;
+            page2Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : value);
           } else {
-            page2Worksheet.getCell(`H${row}`).value = ''; // Preserve empty values
+            page2Worksheet.cell(`H${row}`).value(''); // Preserve empty values
           }
           row--;
         }
@@ -1603,9 +1440,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : value;
+            page2Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : value);
           } else {
-            page2Worksheet.getCell(`I${row}`).value = ''; // Preserve empty values
+            page2Worksheet.cell(`I${row}`).value(''); // Preserve empty values
           }
           row--;
         }
@@ -1621,9 +1458,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : value;
+            page2Worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : value);
           } else {
-            page2Worksheet.getCell(`J${row}`).value = ''; // Preserve empty values
+            page2Worksheet.cell(`J${row}`).value(''); // Preserve empty values
           }
           row--;
         }
@@ -1639,9 +1476,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : value;
+            page2Worksheet.cell(`L${row}`).value(!isNaN(numValue) ? numValue : value);
           } else {
-            page2Worksheet.getCell(`L${row}`).value = ''; // Preserve empty values
+            page2Worksheet.cell(`L${row}`).value(''); // Preserve empty values
           }
           row--;
         }
@@ -1657,9 +1494,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.getCell(`M${row}`).value = !isNaN(numValue) ? numValue : value;
+            page2Worksheet.cell(`M${row}`).value(!isNaN(numValue) ? numValue : value);
           } else {
-            page2Worksheet.getCell(`M${row}`).value = ''; // Preserve empty values
+            page2Worksheet.cell(`M${row}`).value(''); // Preserve empty values
           }
           row--;
         }
@@ -1675,9 +1512,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : value;
+            page2Worksheet.cell(`N${row}`).value(!isNaN(numValue) ? numValue : value);
           } else {
-            page2Worksheet.getCell(`N${row}`).value = ''; // Preserve empty values
+            page2Worksheet.cell(`N${row}`).value(''); // Preserve empty values
           }
           row--;
         }
@@ -1687,17 +1524,17 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     }
 
     // Map Page 3 data if Page3 worksheet exists
-    const page3Worksheet = workbook.getWorksheet('Page3');
+    const page3Worksheet = workbook.sheet('Page3');
     if (page3Worksheet) {
       // User Name (Prepared by) (B42)
-      page3Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page3Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
       
       // Film Inspection Form Ref No (O3)
-      page3Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page3Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
       
       // Equipment data for Page 3 (D6)
       if (data.equipment_used && data.equipment_used.page3) {
-        page3Worksheet.getCell('D6').value = data.equipment_used.page3.common || '';
+        page3Worksheet.cell('D6').value(data.equipment_used.page3.common || '');
       }
       
       // Page 3 data mapping - Elongation CD, Force CD, and Modulus data - fill from bottom up
@@ -1709,7 +1546,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          page3Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
           row--;
         }
       }
@@ -1722,7 +1559,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          page3Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
           row--;
         }
       }
@@ -1735,7 +1572,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          page3Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
           row--;
         }
       }
@@ -1748,7 +1585,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          page3Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
           row--;
         }
       }
@@ -1761,7 +1598,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          page3Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
           row--;
         }
       }
@@ -1774,7 +1611,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          page3Worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
           row--;
         }
       }
@@ -1787,7 +1624,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          page3Worksheet.cell(`L${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
           row--;
         }
       }
@@ -1800,7 +1637,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.getCell(`M${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          page3Worksheet.cell(`M${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
           row--;
         }
       }
@@ -1813,7 +1650,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          page3Worksheet.cell(`N${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
           row--;
         }
       }
@@ -1822,17 +1659,17 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     }
 
     // Map Page 4 data if Page4 worksheet exists
-    const page4Worksheet = workbook.getWorksheet('Page4');
+    const page4Worksheet = workbook.sheet('Page4');
     if (page4Worksheet) {
       // User Name (Prepared by) (B42)
-      page4Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page4Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
       
       // Film Inspection Form Ref No (O3)
-      page4Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page4Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
       
       // Equipment data for Page 4 (D6)
       if (data.equipment_used && data.equipment_used.page4) {
-        page4Worksheet.getCell('D6').value = data.equipment_used.page4.gloss || '';
+        page4Worksheet.cell('D6').value(data.equipment_used.page4.gloss || '');
       }
       
       // Page 4 data mapping - Gloss and PG Quality data - fill from bottom up
@@ -1844,7 +1681,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page4Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          page4Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
           row--;
         }
       }
@@ -1857,7 +1694,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page4Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          page4Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
           row--;
         }
       }
@@ -1870,7 +1707,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page4Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          page4Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
           row--;
         }
       }
@@ -1883,7 +1720,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page4Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
+          page4Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
           row--;
         }
       }
@@ -1906,7 +1743,8 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
 
     // 6. Write the workbook to response
-    await workbook.xlsx.write(res);
+    const buffer = await workbook.outputAsync();
+    res.send(buffer);
 
   } catch (error) {
     console.error('Error exporting 168-16CP Kranti form:', error);
@@ -2014,27 +1852,26 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
 
 
     // 3. Load the workbook
-    const workbook = new ExcelJS.Workbook();
+    const workbook = await XlsxPopulate.fromFileAsync(templatePath);
     try {
-      await workbook.xlsx.readFile(templatePath);
     } catch (readError) {
       console.error('Error reading Pre-Store template file:', readError);
       return res.status(500).send('Error reading Pre-Store template file');
     }
     
     // Try to get the first worksheet (index 0) or by name
-    let worksheet = workbook.getWorksheet(1);
+    let worksheet = workbook.sheet(1);
     if (!worksheet) {
-      worksheet = workbook.getWorksheet(0);
+      worksheet = workbook.sheet(0);
     }
     if (!worksheet) {
-      worksheet = workbook.getWorksheet('Sheet1');
+      worksheet = workbook.sheet('Sheet1');
     }
     if (!worksheet) {
       // Get the first available worksheet
-      const worksheetNames = workbook.worksheets.map(ws => ws.name);
+      const worksheetNames = workbook.sheets().map(ws => ws.name());
       if (worksheetNames.length > 0) {
-        worksheet = workbook.getWorksheet(worksheetNames[0]);
+        worksheet = workbook.sheet(worksheetNames[0]);
       }
     }
     
@@ -2047,7 +1884,7 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
     // 4. Map pre-store data to Excel cells
     // Product and Production Information Section
     if (data.production_order) {
-      worksheet.getCell('B4').value = data.production_order;
+      worksheet.cell('B4').value(data.production_order);
     }
     
     if (data.customer) {
@@ -2056,45 +1893,45 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
       if (data.location) {
         customerValue = `${data.customer} (${data.location})`;
       }
-      worksheet.getCell('B5').value = customerValue;
+      worksheet.cell('B5').value(customerValue);
     }
     
     if (data.standard_packing) {
-      worksheet.getCell('B6').value = data.standard_packing;
+      worksheet.cell('B6').value(data.standard_packing);
     }
     
     if (data.product_code) {
-      worksheet.getCell('G4').value = data.product_code;
+      worksheet.cell('G4').value(data.product_code);
     }
     
     if (data.specification) {
-      worksheet.getCell('G5').value = data.specification;
+      worksheet.cell('G5').value(data.specification);
     }
     
     if (data.quantity) {
-      worksheet.getCell('O4').value = `${data.quantity} Rolls`;
+      worksheet.cell('O4').value(`${data.quantity} Rolls`);
     }
     
     if (data.batch) {
-      worksheet.getCell('O5').value = data.batch;
+      worksheet.cell('O5').value(data.batch);
     }
     
     if (data.production_date) {
       // Format date to dd/mm/yyyy
       const prodDate = new Date(data.production_date);
       const formattedProdDate = `${String(prodDate.getDate()).padStart(2, '0')}/${String(prodDate.getMonth() + 1).padStart(2, '0')}/${prodDate.getFullYear()}`;
-      worksheet.getCell('T4').value = formattedProdDate;
+      worksheet.cell('T4').value(formattedProdDate);
     }
     
     if (data.inspection_date) {
       // Format date to dd/mm/yyyy
       const inspDate = new Date(data.inspection_date);
       const formattedInspDate = `${String(inspDate.getDate()).padStart(2, '0')}/${String(inspDate.getMonth() + 1).padStart(2, '0')}/${inspDate.getFullYear()}`;
-      worksheet.getCell('T5').value = formattedInspDate;
+      worksheet.cell('T5').value(formattedInspDate);
     }
     
     if (data.pallet_size) {
-      worksheet.getCell('P6').value = data.pallet_size;
+      worksheet.cell('P6').value(data.pallet_size);
     }
     
     // Palletized Finished Goods Status Section
@@ -2111,39 +1948,39 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
     };
     
     if (data.pallet_list) {
-      worksheet.getCell('C9').value = getStatusSymbol(data.pallet_list);
+      worksheet.cell('C9').value(getStatusSymbol(data.pallet_list));
     }
     
     if (data.product_label) {
-      worksheet.getCell('P9').value = getStatusSymbol(data.product_label);
+      worksheet.cell('P9').value(getStatusSymbol(data.product_label));
     }
     
     if (data.wrapping) {
-      worksheet.getCell('C10').value = getStatusSymbol(data.wrapping);
+      worksheet.cell('C10').value(getStatusSymbol(data.wrapping));
     }
     
     if (data.layer_pad) {
-      worksheet.getCell('P10').value = getStatusSymbol(data.layer_pad);
+      worksheet.cell('P10').value(getStatusSymbol(data.layer_pad));
     }
     
     if (data.contamination) {
-      worksheet.getCell('C11').value = getStatusSymbol(data.contamination);
+      worksheet.cell('C11').value(getStatusSymbol(data.contamination));
     }
     
     if (data.kraft_paper) {
-      worksheet.getCell('P11').value = getStatusSymbol(data.kraft_paper);
+      worksheet.cell('P11').value(getStatusSymbol(data.kraft_paper));
     }
     
     if (data.no_damage) {
-      worksheet.getCell('C12').value = getStatusSymbol(data.no_damage);
+      worksheet.cell('C12').value(getStatusSymbol(data.no_damage));
     }
     
     if (data.pallet) {
-      worksheet.getCell('P12').value = getStatusSymbol(data.pallet);
+      worksheet.cell('P12').value(getStatusSymbol(data.pallet));
     }
     
     if (data.prestore_done_by) {
-      worksheet.getCell('A29').value = data.prestore_done_by;
+      worksheet.cell('A29').value(data.prestore_done_by);
     }
     
     if (data.remarks) {
@@ -2184,12 +2021,12 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
       // Map each row text to A13, A14, A15, etc. (merged cells)
       for (let i = 0; i < Math.min(rowTexts.length, maxRows); i++) {
         const rowNum = 14 + i;
-        worksheet.getCell(`A${rowNum}`).value = rowTexts[i].trim(); // Trim spaces at end
+        worksheet.cell(`A${rowNum}`).value(rowTexts[i].trim()); // Trim spaces at end
       }
     }
     
     if (data.prestore_ref_no) {
-      worksheet.getCell('V3').value = data.prestore_ref_no;
+      worksheet.cell('V3').value(data.prestore_ref_no);
     }
 
     // 5. Set response headers for file download
@@ -2197,17 +2034,14 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
     const productCode = data.product_code || 'UNKNOWN';
     const batchNo = data.batch || formId;
     const filename = `Pre-Store-${productCode}-${batchNo}.xlsx`;
-    console.log('Generated filename:', filename);
-    console.log('Product code:', productCode);
-    console.log('Batch number:', batchNo);
-    console.log('Fallback formId:', formId);
     
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
 
     // 6. Write the workbook to response
-    await workbook.xlsx.write(res);
+    const buffer = await workbook.outputAsync();
+    res.send(buffer);
     res.end();
 
 
@@ -2220,20 +2054,6 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Swanson India Portal Backend Server Started!`);
   console.log(`📡 Server listening on port ${PORT}`);
-  console.log(`⏰ Enhanced keep-alive system active - preventing cold starts`);
   console.log(`🌐 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔗 Ping endpoint: http://localhost:${PORT}/ping`);
-  console.log(`🔋 Keep-alive endpoint: http://localhost:${PORT}/keep-alive`);
   console.log(`📊 Excel export: http://localhost:${PORT}/export`);
-  console.log(`📊 168-16CP Kranti form export: http://localhost:${PORT}/export-168-16cp-kranti-form`);
-  console.log(`🔄 Client-side keep-alive also active for redundancy`);
-  
-  // Immediate warm-up to prevent cold starts
-  setTimeout(() => {
-    console.log('🔥 Immediate server warm-up initiated');
-    // Warm up critical endpoints immediately
-    fetch(`http://localhost:${PORT}/ping`).catch(() => {});
-    fetch(`http://localhost:${PORT}/health`).catch(() => {});
-    console.log('✅ Server warm-up completed');
-  }, 1000);
 }); 

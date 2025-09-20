@@ -8,9 +8,11 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.52.1",
+    "cors": "^2.8.5",
     "exceljs": "^4.4.0",
     "express": "^5.1.0",
-    "cors": "^2.8.5"
+    "xlsx": "^0.18.5",
+    "xlsx-populate": "^1.21.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.0"
@@ -18,4 +20,4 @@
   "engines": {
     "node": ">=18.0.0"
   }
-} 
+}
