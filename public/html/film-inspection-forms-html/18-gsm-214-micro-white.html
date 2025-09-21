@@ -3,7 +3,7 @@
     <meta charset="UTF-8" />
     <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>18 GSM 176 WW Inspection Form</title>
+    <title>18 GSM 214 Micro White Inspection Form</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
     <link rel="stylesheet" href="../../css/employee-dashboard.css">
@@ -252,16 +252,13 @@
             max-width: 70px;
         }
         
-        /* Parameter columns (remaining 7 columns) - for Page 1 */
+        /* Parameter columns (remaining 4 columns) - for Page 1 */
         .testing-table td:nth-child(4), .testing-table th:nth-child(4),
         .testing-table td:nth-child(5), .testing-table th:nth-child(5),
         .testing-table td:nth-child(6), .testing-table th:nth-child(6),
-        .testing-table td:nth-child(7), .testing-table th:nth-child(7),
-        .testing-table td:nth-child(8), .testing-table th:nth-child(8),
-        .testing-table td:nth-child(9), .testing-table th:nth-child(9),
-        .testing-table td:nth-child(10), .testing-table th:nth-child(10) {
-            width: 11.5%;
-            min-width: 80px;
+        .testing-table td:nth-child(7), .testing-table th:nth-child(7) {
+            width: 20.125%;
+            min-width: 120px;
         }
         /* Page 2 - Sample No. columns (1st and 3rd columns) */
         .page2-table td:nth-child(1), .page2-table th:nth-child(1),
@@ -352,15 +349,21 @@
             max-width: 70px !important;
         }
         
-        /* Page 4 - Parameter columns (remaining 7 columns) - equal width */
+        /* Page 4 - Color columns (4 columns) - equal width */
         .page4-table td:nth-child(4), .page4-table th:nth-child(4),
         .page4-table td:nth-child(5), .page4-table th:nth-child(5),
         .page4-table td:nth-child(6), .page4-table th:nth-child(6),
-        .page4-table td:nth-child(7), .page4-table th:nth-child(7),
+        .page4-table td:nth-child(7), .page4-table th:nth-child(7) {
+            width: 10.5% !important; /* (100% - 18%) / 8 = 10.25% each for color columns */
+            min-width: 80px !important;
+        }
+        
+        /* Page 4 - Gloss columns (4 columns) - equal width */
         .page4-table td:nth-child(8), .page4-table th:nth-child(8),
         .page4-table td:nth-child(9), .page4-table th:nth-child(9),
-        .page4-table td:nth-child(10), .page4-table th:nth-child(10) {
-            width: 11.71% !important; /* (100% - 18%) / 7 = 11.71% each */
+        .page4-table td:nth-child(10), .page4-table th:nth-child(10),
+        .page4-table td:nth-child(11), .page4-table th:nth-child(11) {
+            width: 10.5% !important; /* (100% - 18%) / 8 = 10.25% each for gloss columns */
             min-width: 80px !important;
         }
         
@@ -369,15 +372,43 @@
             width: 18% !important; /* 5.5% + 7% + 5.5% = 18% */
             min-width: 170px !important;
         }
-        /* Increase width of PG Quality System Requirements column (8th column) */
-        .page4-table td:nth-child(8), .page4-table th:nth-child(8) {
-            width: 25% !important;
-            min-width: 150px !important;
+        
+        /* Page 5 - Sample No. columns (1st and 3rd columns) - slightly reduced width */
+        .page5-table td:nth-child(1), .page5-table th:nth-child(1),
+        .page5-table td:nth-child(3), .page5-table th:nth-child(3) {
+            width: 2.5% !important;
+            min-width: 35px !important;
+            max-width: 35px !important;
         }
-        /* Increase width of empty column (9th column) on the right */
-        .page4-table td:nth-child(9), .page4-table th:nth-child(9) {
-            width: 15% !important;
-            min-width: 90px !important;
+        
+        /* Page 5 - Roll ID column (2nd column) - slightly reduced width */
+        .page5-table td:nth-child(2), .page5-table th:nth-child(2) {
+            width: 3.5% !important;
+            min-width: 45px !important;
+            max-width: 45px !important;
+        }
+        
+        /* Page 5 - PG Quality System Requirements column (4th column) - narrow, leave right side blank */
+        .page5-table td:nth-child(4), .page5-table th:nth-child(4) {
+            width: 15% !important; /* Narrow column, rest of space will be blank */
+            min-width: 120px !important;
+        }
+        
+        /* Page 5 - Blank column (5th column) - additional blank space */
+        .page5-table td:nth-child(5), .page5-table th:nth-child(5) {
+            width: 20% !important; /* Increased blank column width */
+            min-width: 160px !important;
+        }
+        
+        /* Override for merged Sample No. header in Page 5 */
+        .page5-table th[colspan="3"] {
+            width: 8.5% !important; /* 2.5% + 3.5% + 2.5% = 8.5% */
+            min-width: 115px !important;
+        }
+        
+        /* Page 5 header background - use same gray as other pages */
+        .page5-table thead tr th {
+            background: #f3f4f6 !important; /* Same gray as bg-gray-100 */
         }
         
         /* Light orange background for summary rows - ONLY in testing parameter tables */
@@ -451,10 +482,28 @@
             background: #fed7aa !important; /* Light orange background for Ave columns in Page 3 dynamic rows */
         }
         
+        
+        /* Ensure Color Delta E column in Page 4 is editable (override any conflicting styles) */
+        .page4-table tbody tr td:nth-child(7) input {
+            background: transparent !important;
+            color: black !important;
+            pointer-events: auto !important;
+            cursor: text !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        
+        /* Override for OOS Color Delta E values - ONLY RED TEXT */
+        .page4-table tbody tr td:nth-child(7) input.oos-highlight {
+            color: #dc2626 !important;
+        }
+        
         /* Orange background for Ave column in dynamic rows - Page 4 */
-        .page4-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(7) {
+        .page4-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(11) {
             background: #fed7aa !important; /* Light orange background for Gloss Ave column in Page 4 dynamic rows */
         }
+        
+        /* Page 5 doesn't need orange background for Ave columns since it's just Pass/Fail */
         
         /* Simple square button styles for row management */
         .modern-btn {
@@ -774,22 +823,32 @@
                             <tr class="bg-gray-100">
                                 <td class="border-b-2 border-gray-800 px-3 py-2 text-left font-semibold" colspan="3" style="font-size: 13px;">Testing Equipment Identification Number:</td>
                                 <td class="border-b-2 border-gray-800 p-0" style="font-size: 13px;"><select id="basic-weight-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
-                                <td class="border-b-2 border-gray-800 p-0" style="font-size: 13px;"><select id="thickness-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" style="font-size: 13px;"><select id="cof-rr-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" style="font-size: 13px;"><select id="cof-rs-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
                                 <td class="border-b-2 border-gray-800 p-0" style="font-size: 13px;"><select id="opacity-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
-                                <td class="border-b-2 border-gray-800 p-0" style="font-size: 13px;"><select id="cof-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
-                                <td class="border-b-2 border-gray-800 p-0" style="font-size: 13px;"><select id="cut-width-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
-                                <td class="border-b-2 border-gray-800 p-0" style="font-size: 13px;"><select id="color-unprinted-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
-                                <td class="border-b-2 border-gray-800 p-0" style="font-size: 13px;"><select id="color-printed-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" colspan="4" style="font-size: 13px;"><select id="modulus-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" style="font-size: 13px;"><select id="gloss-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
                             </tr>
                             <tr class="bg-gray-100">
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Sample No.</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Basic Weight<br>(L-16.00 T-18.00 U-20.00)<br>GSM</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Thickness<br>(L-0.025 T-0.030 U-0.035)<br>mm</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Opacity<br>(L-45.0 T-50.0 U-55.0)<br>%</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">COF Kinetic<br>(L-0.20 T-0.40 U-0.60)</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Cut Width<br>(L-174 T-176 U-178)<br>mm</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Color-Delta E<br>(Unprinted Film)<br>10 Layers<br>(T-0.00 U-4.00)</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Color-Delta E<br>(Printed Film)<br>1 Layer<br>(T-0.00 U-4.00)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Basic Weight<br>(L-15.70 T-18.00 U-20.30)<br>GSM</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">COF-Kinetic(R-R)<br>(L-0.30 T-0.40 U-0.50)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">COF-Kinetic(R-S)<br>(L-0.10 T-0.20 U-0.35)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Opacity<br>(L-57.0 T-60.0 U-63.0)<br>%</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Modulus-MD-web@ 2%<br>(L-18.2 T-24.7 U-31.2) N/cm</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Gloss Level<br>(T-7.0 U-10.0)<br>(Gloss Unit)</th>
+                            </tr>
+                            <tr class="bg-gray-100">
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;"></th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;"></th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;"></th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;"></th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;"></th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">1</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">2</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">3</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Avg</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;"></th>
                             </tr>
                         </thead>
                         <tbody id="testingTableBody">
@@ -797,32 +856,38 @@
                             <tr class="average-row">
                                 <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Average</td>
                                 <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.000</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
                                 <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
                             </tr>
                             <tr>
                                 <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Minimum</td>
                                 <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.000</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
                                 <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
                             </tr>
                             <tr>
                                 <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Maximum</td>
                                 <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.000</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
                                 <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
                             </tr>
                         </tbody>
                     </table>
@@ -846,56 +911,53 @@
                         <thead>
                             <tr class="bg-gray-100">
                                 <td class="border-b-2 border-gray-800 px-3 py-2 text-left font-semibold" colspan="3" style="font-size: 13px;">Testing Equipment Identification Number:</td>
-                                <td class="border-b-2 border-gray-800 p-0" colspan="12" style="font-size: 13px;"><select id="page2-common-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" colspan="9" style="font-size: 13px;"><select id="page2-common-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
                             </tr>
                             <tr class="bg-gray-100">
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" rowspan="2" style="font-size: 13px;">Sample No.</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Elongation@ Break(%) MD<br>(L-350 T-450)</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Force~Tensile Strength@Break(N)MD<br>(L-9.5 T-13.0)</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Force-Tensile Strength@Break 5% (N)MD<br>(L-2.5 T-4.0 U-5.5)</th>
-                            </tr>
-                            <tr class="bg-gray-100">
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">1</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">2</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">3</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Ave</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">1</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">2</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">3</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Ave</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">1</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">2</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">3</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Ave</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Sample No.</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Force-elongation-MD@5%<br>(L-1.77 T-2.77) N</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Force-Tensile Strength-MD-peak<br>(L-9.07 T-12.57) N</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Force-elongation-CD@5%<br>(L-1.49 T-2.49) N</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Force-Tensile Strength-CD-peak<br>(L-6.13 T-9.63) N</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Colour L<br>(L-91.5 T-95.5 U-99.5)<br>(Colour units-H)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Colour A<br>(L-(-4.4) T-(-0.4) U-(3.6))<br>(Colour units-H)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Colour B<br>(L-(-4.5) T-(-0.5) U-(3.5))<br>(Colour units-H)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Delta E<br>(T-0.00 U-5.00)<br>(Colour Units-Delta E)</th>
                             </tr>
                         </thead>
                         <tbody id="testingTableBody2">
                             <!-- Summary Statistics Rows -->
                             <tr class="average-row">
                                 <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Average</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
                                 <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
                                 <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
                                 <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
                             </tr>
                             <tr>
                                 <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Minimum</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
                                 <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
                                 <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
                                 <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
                             </tr>
                             <tr>
                                 <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Maximum</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
                                 <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
                                 <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
                                 <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
                             </tr>
                         </tbody>
@@ -903,136 +965,8 @@
                 </div>
             </section>
 
-            <!-- Page 3 Section - Testing Parameters Table -->
-            <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 3</h3>
-                
-                <!-- Row Count Display -->
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center gap-4">
-                        <span id="rowCountDisplay3" class="text-sm font-bold text-gray-700">Rows: 0</span>
-                    </div>
-                </div>
-                
-                <!-- Testing Parameters Table with merged header -->
-                <div class="overflow-x-auto">
-                    <table class="w-full border-2 border-gray-800 bg-white testing-table page3-table" style="font-size: 13px;">
-                        <thead>
-                            <tr class="bg-gray-100">
-                                <td class="border-b-2 border-gray-800 px-3 py-2 text-left font-semibold" colspan="3" style="font-size: 13px;">Testing Equipment Identification Number:</td>
-                                <td class="border-b-2 border-gray-800 p-0" colspan="12" style="font-size: 13px;"><select id="page3-common-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
-                            </tr>
-                            <tr class="bg-gray-100">
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" rowspan="2" style="font-size: 13px;">Sample No.</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Elongation@ Break(%) CD<br>(L-400 T-500)</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Force-Tensile Strength@Break (N) CD<br>(L-6.5 T-9.5)</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Modulus Fresh @ 2%<br>(L-20.0 T-30.0 U-40.0) N/cm</th>
-                            </tr>
-                            <tr class="bg-gray-100">
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">1</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">2</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">3</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Ave</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">1</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">2</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">3</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Ave</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">1</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">2</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">3</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Ave</th>
-                            </tr>
-                        </thead>
-                        <tbody id="testingTableBody3">
-                            <!-- Summary Statistics Rows -->
-                            <tr class="average-row">
-                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Average</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.000</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Minimum</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.000</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Maximum</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.000</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
 
-            <!-- Page 4 Section - Testing Parameters Table -->
-            <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 4</h3>
-                
-                <!-- Row Count Display -->
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center gap-4">
-                        <span id="rowCountDisplay4" class="text-sm font-bold text-gray-700">Rows: 0</span>
-                    </div>
-                </div>
-                
-                <!-- Testing Parameters Table with merged header -->
-                <div class="overflow-x-auto">
-                    <table class="w-full border-2 border-gray-800 bg-white testing-table page4-table" style="font-size: 13px;">
-                        <thead>
-                            <tr class="bg-gray-100">
-                                <td class="border-b-2 border-gray-800 px-3 py-2 text-left font-semibold" colspan="3" style="font-size: 13px;">Testing Equipment Identification number:</td>
-                                <td class="border-b-2 border-gray-800 p-0" colspan="4" style="font-size: 13px;"><select id="gloss-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
-                                <td class="border-b-2 border-gray-800 px-3 py-2"></td>
-                            </tr>
-                            <tr class="bg-gray-100">
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" rowspan="2" style="font-size: 13px;">Sample No.</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Gloss (Gloss unit)<br>(T-9.0 U-11.0)</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" rowspan="2" style="font-size: 13px;">PG Quality System Requirements<br>Pass=0; Fail=1</th>
-                            </tr>
-                            <tr class="bg-gray-100">
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">1</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">2</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">3</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Ave</th>
-                            </tr>
-                        </thead>
-                        <tbody id="testingTableBody4">
-                            <!-- Summary Statistics Rows -->
-                            <tr class="average-row">
-                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Average</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">-</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Minimum</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">-</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Maximum</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" style="font-size: 13px;">-</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+
 
             <!-- Verification and Approval Sections Side by Side -->
             <div class="flex justify-center mt-4 gap-4">
@@ -1180,7 +1114,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module" src="../../supabase-config.js"></script>
-    <script type="module" src="../../js/film-inspection-forms-js/18-gsm-176-WW.js"></script>
+    <script type="module" src="../../js/film-inspection-forms-js/18-gsm-214-micro-white.js"></script>
     
     <script>
         // Function to update form title from the product code input field

@@ -32,22 +32,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function fetchFilmInspectionForms() {
         try {
             // Fetch data from all tables - INCLUDING CUSTOMER AND OTHER FIELDS
-            const [krantiResult, whiteResult, wwResult, jeddahResult] = await Promise.all([
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('168_16c_white')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('176_18cp_ww')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('168_18c_white_jeddah')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .order('created_at', { ascending: false }),
+                supabase
+                    .from('214_18_micro_white')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
                     .order('created_at', { ascending: false })
             ]);
 
@@ -64,13 +68,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (jeddahResult.error) {
                 console.error('Error fetching from 168_18c_white_jeddah:', jeddahResult.error.message);
             }
+            if (microWhiteResult.error) {
+                console.error('Error fetching from 214_18_micro_white:', microWhiteResult.error.message);
+            }
 
             // Combine data from all tables
             const allData = [
                 ...(krantiResult.data || []),
                 ...(whiteResult.data || []),
                 ...(wwResult.data || []),
-                ...(jeddahResult.data || [])
+                ...(jeddahResult.data || []),
+                ...(microWhiteResult.data || [])
             ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Sort by creation date, newest first
 
             const data = allData;
@@ -104,9 +112,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td class="py-2 px-4 border-b border-r text-center">${formData.inspection_date ? new Date(formData.inspection_date).toLocaleDateString('en-GB') : ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.machine_no || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.product_code || ''}</td>
-                <td class="py-2 px-4 border-b border-r text-center">${formData.specification || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">
                     ${formData.prepared_by || ''}
+                </td>
+                <td class="py-2 px-4 border-b border-r text-center">
+                    ${formData.verified_by ? 
+                        `<span class="text-gray-900">${formData.verified_by}</span>` : 
+                        `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Verification Pending</span>`
+                    }
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">-</td>
                 <td class="py-2 px-4 border-b border-r text-center">
@@ -194,8 +207,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Filter results based on search term
             allData = allData.filter(item => 
                 item.production_order?.includes(searchTerm) ||
-                item.product_code?.includes(searchTerm) ||
-                item.specification?.includes(searchTerm)
+                item.product_code?.includes(searchTerm)
             );
         }
     
@@ -218,9 +230,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <td class="py-2 px-4 border-b border-r text-center">${formData.inspection_date ? new Date(formData.inspection_date).toLocaleDateString('en-GB') : ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.machine_no || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.product_code || ''}</td>
-                <td class="py-2 px-4 border-b border-r text-center">${formData.specification || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">
                     ${formData.prepared_by || ''}
+                </td>
+                <td class="py-2 px-4 border-b border-r text-center">
+                    ${formData.verified_by ? 
+                        `<span class="text-gray-900">${formData.verified_by}</span>` : 
+                        `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Verification Pending</span>`
+                    }
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">-</td>
                 <td class="py-2 px-4 border-b border-r text-center">
@@ -472,8 +489,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Function to fetch prestore_ref_no in background
     async function fetchPrestoreRefNo(formId) {
         try {
-            // Try to fetch from all three tables using .maybeSingle() to avoid errors when no data found
-            const [krantiResult, whiteResult, wwResult] = await Promise.all([
+            // Try to fetch from all five tables using .maybeSingle() to avoid errors when no data found
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
                     .select('prestore_ref_no')
@@ -488,6 +505,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     .from('176_18cp_ww')
                     .select('prestore_ref_no')
                     .eq('form_id', formId)
+                    .maybeSingle(),
+                supabase
+                    .from('168_18c_white_jeddah')
+                    .select('prestore_ref_no')
+                    .eq('form_id', formId)
+                    .maybeSingle(),
+                supabase
+                    .from('214_18_micro_white')
+                    .select('prestore_ref_no')
+                    .eq('form_id', formId)
                     .maybeSingle()
             ]);
             
@@ -499,6 +526,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 formData = whiteResult.data;
             } else if (!wwResult.error && wwResult.data) {
                 formData = wwResult.data;
+            } else if (!jeddahResult.error && jeddahResult.data) {
+                formData = jeddahResult.data;
+            } else if (!microWhiteResult.error && microWhiteResult.data) {
+                formData = microWhiteResult.data;
             }
             
             if (!formData) {
@@ -528,8 +559,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Try to fetch full data from database using form_id
             if (formId) {
                 try {
-                    // Try to fetch from all three tables using .maybeSingle() to avoid errors when no data found
-                    const [krantiResult, whiteResult, wwResult] = await Promise.all([
+                    // Try to fetch from all five tables using .maybeSingle() to avoid errors when no data found
+                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult] = await Promise.all([
                         supabase
                             .from('168_16cp_kranti')
                             .select('*')
@@ -544,6 +575,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                             .from('176_18cp_ww')
                             .select('*')
                             .eq('form_id', formId)
+                            .maybeSingle(),
+                        supabase
+                            .from('168_18c_white_jeddah')
+                            .select('*')
+                            .eq('form_id', formId)
+                            .maybeSingle(),
+                        supabase
+                            .from('214_18_micro_white')
+                            .select('*')
+                            .eq('form_id', formId)
                             .maybeSingle()
                     ]);
                     
@@ -555,6 +596,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                         data = whiteResult.data;
                     } else if (!wwResult.error && wwResult.data) {
                         data = wwResult.data;
+                    } else if (!jeddahResult.error && jeddahResult.data) {
+                        data = jeddahResult.data;
+                    } else if (!microWhiteResult.error && microWhiteResult.data) {
+                        data = microWhiteResult.data;
                     }
                     
                     if (data) {
@@ -675,7 +720,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const productTableMap = {
                     'APE-168(16)C': '168_16c_white',            // Updated to correct table
                     'APE-168(16)CP(KRANTI)': '168_16cp_kranti',  // Keep existing mapping
-                    'APE-168(18)C (Jeddah)': '168_18c_white_jeddah' // New Jeddah product
+                    'APE-168(18)C (Jeddah)': '168_18c_white_jeddah', // New Jeddah product
+                    'WHITE-214(18)': '214_18_micro_white' // New 214 Micro White product
                 };
                 tableName = productTableMap[preStoreFormData.product_code] || '168_16cp_kranti';
             }
@@ -858,6 +904,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     targetForm = '18-gsm-168-white-jeddah.html';
                     console.log('Routing to 18-gsm-168-white-jeddah form');
                     break;
+                case 'WHITE-214(18)':
+                    targetForm = '18-gsm-214-micro-white.html';
+                    console.log('Routing to 18-gsm-214-micro-white form');
+                    break;
                 default:
                     // Default fallback
                     targetForm = '16-gsm-kranti.html';
@@ -877,9 +927,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const inspectionDate = row.querySelector('td:nth-child(3)').textContent.trim();
             const machineNo = row.querySelector('td:nth-child(4)').textContent.trim();
             const productCode = row.querySelector('td:nth-child(5)').textContent.trim();
-            const specification = row.querySelector('td:nth-child(6)').textContent.trim();
-            const lotNo = row.querySelector('td:nth-child(7)').textContent.trim();
-            const preparedBy = row.querySelector('td:nth-child(8)').textContent.trim();
+            const lotNo = row.querySelector('td:nth-child(6)').textContent.trim();
+            const preparedBy = row.querySelector('td:nth-child(7)').textContent.trim();
+            const verifiedBy = row.querySelector('td:nth-child(8)').textContent.trim();
             
             // Get additional data from data attributes (INSTANT!)
             const customer = row.getAttribute('data-customer') || '';
@@ -926,8 +976,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Direct deletion function (temporary for development)
     async function deleteFormDirectly(formId) {
         try {
-            // Try to delete from all four tables
-            const [krantiResult, whiteResult, wwResult, jeddahResult] = await Promise.all([
+            // Try to delete from all five tables
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
                     .delete()
@@ -943,6 +993,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 supabase
                     .from('168_18c_white_jeddah')
                     .delete()
+                    .eq('form_id', formId),
+                supabase
+                    .from('214_18_micro_white')
+                    .delete()
                     .eq('form_id', formId)
             ]);
 
@@ -951,12 +1005,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const whiteSuccess = !whiteResult.error;
             const wwSuccess = !wwResult.error;
             const jeddahSuccess = !jeddahResult.error;
+            const microWhiteSuccess = !microWhiteResult.error;
             
-            if (krantiSuccess || whiteSuccess || wwSuccess || jeddahSuccess) {
+            if (krantiSuccess || whiteSuccess || wwSuccess || jeddahSuccess || microWhiteSuccess) {
                 alert('Form deleted successfully!');
                 fetchFilmInspectionForms(); // Refresh the list
             } else {
-                console.error('Error deleting form from all tables:', krantiResult.error, whiteResult.error, wwResult.error, jeddahResult.error);
+                console.error('Error deleting form from all tables:', krantiResult.error, whiteResult.error, wwResult.error, jeddahResult.error, microWhiteResult.error);
                 alert('Error deleting form: Form not found in any table');
             }
         } catch (error) {
@@ -1050,8 +1105,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const isPasswordCorrect = password === 'Swanson@2010'; // DUMMY CHECK - REPLACE WITH REAL AUTHENTICATION
 
             if (isPasswordCorrect) {
-                // Proceed with deletion from all three tables
-                const [krantiResult, whiteResult, wwResult] = await Promise.all([
+                // Proceed with deletion from all five tables
+                const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult] = await Promise.all([
                     supabase
                         .from('168_16cp_kranti')
                         .delete()
@@ -1063,6 +1118,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     supabase
                         .from('176_18cp_ww')
                         .delete()
+                        .eq('form_id', currentDeleteFormId),
+                    supabase
+                        .from('168_18c_white_jeddah')
+                        .delete()
+                        .eq('form_id', currentDeleteFormId),
+                    supabase
+                        .from('214_18_micro_white')
+                        .delete()
                         .eq('form_id', currentDeleteFormId)
                 ]);
 
@@ -1070,12 +1133,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const krantiSuccess = !krantiResult.error;
                 const whiteSuccess = !whiteResult.error;
                 const wwSuccess = !wwResult.error;
+                const jeddahSuccess = !jeddahResult.error;
+                const microWhiteSuccess = !microWhiteResult.error;
                 
-                if (krantiSuccess || whiteSuccess || wwSuccess) {
+                if (krantiSuccess || whiteSuccess || wwSuccess || jeddahSuccess || microWhiteSuccess) {
                     alert('Form deleted successfully!');
                     fetchFilmInspectionForms(); // Refresh the list
                 } else {
-                    console.error('Error deleting form from all tables:', krantiResult.error, whiteResult.error, wwResult.error);
+                    console.error('Error deleting form from all tables:', krantiResult.error, whiteResult.error, wwResult.error, jeddahResult.error, microWhiteResult.error);
                     alert('Error deleting form: Form not found in any table');
                 }
                 hidePasswordConfirmModal();
@@ -1486,8 +1551,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         }
                     });
                     
-                    // Try to update in all three tables with film_insp_form_ref_no for ALL tables
-                    const [krantiResult, whiteResult, wwResult] = await Promise.all([
+                    // Try to update in all five tables with film_insp_form_ref_no for ALL tables
+                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult] = await Promise.all([
                         supabase
                             .from('168_16cp_kranti')
                             .update(updateData)
@@ -1499,6 +1564,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                         supabase
                             .from('176_18cp_ww')
                             .update(updateData)
+                            .eq('form_id', formId),
+                        supabase
+                            .from('168_18c_white_jeddah')
+                            .update(updateData)
+                            .eq('form_id', formId),
+                        supabase
+                            .from('214_18_micro_white')
+                            .update(updateData)
                             .eq('form_id', formId)
                     ]);
                     
@@ -1506,8 +1579,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const krantiSuccess = !krantiResult.error;
                     const whiteSuccess = !whiteResult.error;
                     const wwSuccess = !wwResult.error;
+                    const jeddahSuccess = !jeddahResult.error;
+                    const microWhiteSuccess = !microWhiteResult.error;
                     
-                    if (!krantiSuccess && !whiteSuccess && !wwSuccess) {
+                    if (!krantiSuccess && !whiteSuccess && !wwSuccess && !jeddahSuccess && !microWhiteSuccess) {
                         throw new Error('Form not found in any table');
                     }
                     
@@ -1572,6 +1647,9 @@ window.viewFilmForm = function(formId, productCode) {
         case 'APE-168(18)C (Jeddah)':
                     targetForm = '18-gsm-168-white-jeddah.html';
             break;
+        case 'WHITE-214(18)':
+            targetForm = '18-gsm-214-micro-white.html';
+            break;
         default:
             // Default fallback
             targetForm = '16-gsm-kranti.html';
@@ -1580,6 +1658,50 @@ window.viewFilmForm = function(formId, productCode) {
     
     // Navigate to the form with view mode parameter
     window.location.href = targetForm + '?mode=view';
+};
+
+// Global function to handle Enter Data button click - navigate to form in edit mode
+window.enterData = function(formId) {
+    // Store form data in sessionStorage
+    sessionStorage.setItem('currentFormId', formId);
+    sessionStorage.removeItem('viewMode'); // Ensure edit mode
+    
+    // Find the product code from the table row
+    const tableRow = document.querySelector(`button[onclick="enterData('${formId}')"]`).closest('tr');
+    const productCode = tableRow.querySelector('td:nth-child(5)').textContent.trim();
+    
+    // Route to the correct form based on product code
+    let targetForm = '';
+    console.log('Enter data routing for product code:', productCode);
+    switch(productCode) {
+        case 'APE-168(16)CP(KRANTI)':
+            targetForm = '16-gsm-kranti.html';
+            break;
+        case 'APE-168(16)C':
+            targetForm = '16-gsm-168-white.html';
+            break;
+        case 'APE-176(18)CP(LCC+WW)BS':
+            targetForm = '18-gsm-176-WW.html';
+            break;
+        case 'APE-168(18)C (Jeddah)':
+            targetForm = '18-gsm-168-white-jeddah.html';
+            break;
+        case 'WHITE-214(18)':
+            targetForm = '18-gsm-214-micro-white.html';
+            break;
+        default:
+            targetForm = '16-gsm-kranti.html';
+            break;
+    }
+    
+    window.location.href = targetForm;
+};
+
+// Global function to handle Delete button click
+window.deleteFilmForm = function(formId) {
+    if (confirm('Are you sure you want to delete this film inspection form? This action cannot be undone.')) {
+        deleteFormDirectly(formId);
+    }
 };
 
     // ============================================================================
@@ -1926,7 +2048,8 @@ window.viewFilmForm = function(formId, productCode) {
                     'APE-168(16)C': '168_16c_white',            // Updated to correct table
                     'APE-168(16)CP(KRANTI)': '168_16cp_kranti',  // Keep existing mapping
                     'APE-176(18)CP(LCC+WW)BS': '176_18cp_ww',    // New 18 GSM 176 WW product
-                    'APE-168(18)C (Jeddah)': '168_18c_white_jeddah' // New Jeddah product
+                    'APE-168(18)C (Jeddah)': '168_18c_white_jeddah', // New Jeddah product
+                    'WHITE-214(18)': '214_18_micro_white' // New 214 Micro White product
                     // Add more product-specific tables as they are created
                 };
                 
@@ -2138,8 +2261,8 @@ window.viewFilmForm = function(formId, productCode) {
     if (preStoreFormId) {
         // Fetch existing data for the form
         async function fetchFormData() {
-            // Try to fetch from all three tables
-            const [krantiResult, whiteResult, wwResult] = await Promise.all([
+            // Try to fetch from all five tables
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
                     .select('*')
@@ -2154,6 +2277,16 @@ window.viewFilmForm = function(formId, productCode) {
                     .from('176_18cp_ww')
                     .select('*')
                     .eq('form_id', preStoreFormId)
+                    .maybeSingle(),
+                supabase
+                    .from('168_18c_white_jeddah')
+                    .select('*')
+                    .eq('form_id', preStoreFormId)
+                    .maybeSingle(),
+                supabase
+                    .from('214_18_micro_white')
+                    .select('*')
+                    .eq('form_id', preStoreFormId)
                     .maybeSingle()
             ]);
 
@@ -2165,6 +2298,10 @@ window.viewFilmForm = function(formId, productCode) {
                 data = whiteResult.data;
             } else if (!wwResult.error && wwResult.data) {
                 data = wwResult.data;
+            } else if (!jeddahResult.error && jeddahResult.data) {
+                data = jeddahResult.data;
+            } else if (!microWhiteResult.error && microWhiteResult.data) {
+                data = microWhiteResult.data;
             }
 
             if (!data) {
@@ -2282,7 +2419,8 @@ window.viewFilmForm = function(formId, productCode) {
                     'APE-168(16)C': '168_16c_white',            // Updated to correct table
                     'APE-168(16)CP(KRANTI)': '168_16cp_kranti',  // Keep existing mapping
                     'APE-176(18)CP(LCC+WW)BS': '176_18cp_ww',    // New 18 GSM 176 WW product
-                    'APE-168(18)C (Jeddah)': '168_18c_white_jeddah' // New Jeddah product
+                    'APE-168(18)C (Jeddah)': '168_18c_white_jeddah', // New Jeddah product
+                    'WHITE-214(18)': '214_18_micro_white' // New 214 Micro White product
                     // Add more product-specific tables as they are created
                 };
                 tableName = productTableMap[finalData.product_code] || '168_16cp_kranti';

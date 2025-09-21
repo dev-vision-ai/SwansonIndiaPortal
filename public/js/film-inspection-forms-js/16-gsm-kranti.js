@@ -1,6 +1,370 @@
 // Supabase integration for auto-saving to database
 import { supabase } from '../../supabase-config.js';
 
+// ===== VERIFICATION FUNCTIONALITY =====
+const VERIFICATION_PASSWORD = "QC-2256"; // Verification password for form verification
+
+// Date formatting function
+function formatDateToDDMMYYYY(dateString) {
+    if (!dateString) return '';
+    
+    // Handle both YYYY-MM-DD and DD/MM/YYYY formats
+    let date;
+    if (dateString.includes('/')) {
+        // Already in DD/MM/YYYY format
+        return dateString;
+    } else {
+        // Convert from YYYY-MM-DD to DD/MM/YYYY
+        date = new Date(dateString);
+    }
+    
+    if (isNaN(date.getTime())) {
+        return dateString; // Return original if invalid
+    }
+    
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
+}
+
+// Get form details for confirmation popup (fast version)
+function getFormDetailsForConfirmation() {
+    try {
+        // Get product code from form
+        const productCodeInput = document.querySelector('input[placeholder*="Product Code"]') || 
+                                document.querySelector('input[name="product_code"]') ||
+                                document.querySelector('#product-code') ||
+                                document.querySelector('input[value*="APE"]');
+        const productName = productCodeInput ? productCodeInput.value : 'N/A';
+        
+        // Get production date from form
+        const productionDateInput = document.querySelector('input[type="date"]') ||
+                                   document.querySelector('input[name="production_date"]') ||
+                                   document.querySelector('#production-date');
+        const productionDate = productionDateInput ? formatDateToDDMMYYYY(productionDateInput.value) : 'N/A';
+        
+        // Get inspection date from form (second date input)
+        const allDateInputs = document.querySelectorAll('input[type="date"]');
+        const inspectionDateInput = allDateInputs.length > 1 ? allDateInputs[1] : allDateInputs[0];
+        const inspectionDate = inspectionDateInput ? formatDateToDDMMYYYY(inspectionDateInput.value) : 'N/A';
+        
+        return {
+            productName: productName || 'N/A',
+            productionDate: productionDate || 'N/A',
+            inspectionDate: inspectionDate || 'N/A'
+        };
+    } catch (error) {
+        console.error('Error getting form details:', error);
+        return {
+            productName: 'N/A',
+            productionDate: 'N/A',
+            inspectionDate: 'N/A'
+        };
+    }
+}
+
+// Verification functions
+async function getCurrentUser() {
+    try {
+        // Get the logged-in user from Supabase auth
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+            return "Unknown User";
+        }
+        
+        // Get user's full name from database
+        const { data: userData, error: profileError } = await supabase
+            .from('users')
+            .select('full_name, employee_code')
+            .eq('id', user.id)
+            .single();
+        
+        if (!profileError && userData) {
+            if (userData.full_name && userData.full_name.trim() !== '') {
+                return userData.full_name;
+            } else if (userData.employee_code && userData.employee_code.trim() !== '') {
+                return userData.employee_code;
+            }
+        }
+        
+        return user.email || "Unknown User";
+        
+    } catch (error) {
+        console.error('Error getting current user:', error);
+        return "Unknown User";
+    }
+}
+
+async function updateVerificationInDatabase(verifierName, verificationDate) {
+    try {
+        // Get the current form ID
+        const formId = getCurrentFormId();
+        if (!formId) {
+            console.error('No form ID found');
+            alert('Error: Could not identify the form. Please refresh and try again.');
+            return;
+        }
+        
+        // Update the database with verification data
+        const { data, error } = await supabase
+            .from('168_16cp_kranti')
+            .update({
+                verified_by: verifierName,
+                verified_date: verificationDate
+            })
+            .eq('form_id', formId)
+            .select();
+        
+        if (error) {
+            console.error('Error updating verification:', error);
+            alert('Error saving verification data. Please try again.');
+            return;
+        }
+        
+        if (data && data.length > 0) {
+            // Verification data saved successfully
+        } else {
+            console.error('No data returned from update');
+            alert('Error: Verification data not saved. Please try again.');
+        }
+        
+    } catch (error) {
+        console.error('Error updating verification in database:', error);
+        alert('Error saving verification data. Please try again.');
+    }
+}
+
+function getCurrentFormId() {
+    // Try to get form ID from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const formId = urlParams.get('form_id');
+    if (formId) {
+        return formId;
+    }
+    
+    // Try to get from session storage
+    const storedData = sessionStorage.getItem('filmInspectionData');
+    if (storedData) {
+        const data = JSON.parse(storedData);
+        return data.form_id;
+    }
+    
+    // Try to get from sessionStorage currentFormId
+    const sessionFormId = sessionStorage.getItem('currentFormId');
+    if (sessionFormId) {
+        return sessionFormId;
+    }
+    
+    // Try to get from global variable if available
+    if (typeof currentFormId !== 'undefined' && currentFormId) {
+        return currentFormId;
+    }
+    
+    // Try to get from window.currentFormId
+    if (typeof window.currentFormId !== 'undefined' && window.currentFormId) {
+        return window.currentFormId;
+    }
+    
+    console.error('Could not find form ID');
+    return null;
+}
+
+async function checkVerificationStatus() {
+    try {
+        // Get the current form ID
+        const formId = getCurrentFormId();
+        if (!formId) {
+            console.log('No form ID found, showing verification form');
+            showVerificationForm();
+            return;
+        }
+        
+        // Check if the form is already verified
+        const { data, error } = await supabase
+            .from('168_16cp_kranti')
+            .select('verified_by, verified_date')
+            .eq('form_id', formId)
+            .single();
+        
+        if (error) {
+            console.error('Error checking verification status:', error);
+            showVerificationForm();
+            return;
+        }
+        
+        if (data && data.verified_by && data.verified_date) {
+            // Form is already verified
+            showVerificationStatus();
+            document.getElementById('verifiedByDisplay').textContent = 'Verified by: ' + data.verified_by;
+            // Format date to DD/MM/YYYY
+            const formattedDate = formatDateToDDMMYYYY(data.verified_date);
+            document.getElementById('verifiedDateDisplay').textContent = 'Date: ' + formattedDate;
+        } else {
+            // Form is not verified yet
+            showVerificationForm();
+        }
+        
+    } catch (error) {
+        console.error('Error checking verification status:', error);
+        showVerificationForm();
+    }
+}
+
+function showVerificationStatus() {
+    const verificationForm = document.getElementById('verificationForm');
+    const verificationStatus = document.getElementById('verificationStatus');
+    
+    if (verificationForm) verificationForm.style.display = 'none';
+    if (verificationStatus) verificationStatus.style.display = 'block';
+}
+
+function showVerificationForm() {
+    const verificationForm = document.getElementById('verificationForm');
+    const verificationStatus = document.getElementById('verificationStatus');
+    
+    if (verificationForm) verificationForm.style.display = 'block';
+    if (verificationStatus) verificationStatus.style.display = 'none';
+}
+
+async function verifyForm(verificationDate) {
+    try {
+        // Get current user
+        const currentUser = await getCurrentUser();
+        
+        // Get form details for confirmation
+        const formDetails = getFormDetailsForConfirmation();
+        
+        // Show custom confirmation popup
+        showCustomConfirmationPopup(formDetails, currentUser, verificationDate);
+        
+    } catch (error) {
+        console.error('Error during verification:', error);
+        alert('Error during verification. Please try again.');
+    }
+}
+
+function showCustomConfirmationPopup(formDetails, currentUser, verificationDate) {
+    // Populate the popup with data
+    document.getElementById('confirmProductName').textContent = formDetails.productName;
+    document.getElementById('confirmProductionDate').textContent = formDetails.productionDate;
+    document.getElementById('confirmInspectionDate').textContent = formDetails.inspectionDate;
+    document.getElementById('confirmVerifierName').textContent = currentUser;
+    document.getElementById('confirmVerificationDate').textContent = formatDateToDDMMYYYY(verificationDate);
+    
+    // Show the popup
+    document.getElementById('verificationConfirmPopup').style.display = 'flex';
+    
+    // Set up event listeners
+    document.getElementById('confirmVerificationBtn').onclick = async () => {
+        try {
+            // Hide popup
+            document.getElementById('verificationConfirmPopup').style.display = 'none';
+            
+            // Update database with verification data
+            await updateVerificationInDatabase(currentUser, verificationDate);
+            
+            // Show success message
+            alert('Form verified successfully!');
+            
+            // Update UI to show verification status
+            showVerificationStatus();
+            
+            // Update the display with actual data
+            document.getElementById('verifiedByDisplay').textContent = 'Verified by: ' + currentUser;
+            const formattedDate = formatDateToDDMMYYYY(verificationDate);
+            document.getElementById('verifiedDateDisplay').textContent = 'Date: ' + formattedDate;
+            
+        } catch (error) {
+            console.error('Error during verification:', error);
+            alert('Error during verification. Please try again.');
+        }
+    };
+    
+    document.getElementById('cancelVerificationBtn').onclick = () => {
+        // Hide popup
+        document.getElementById('verificationConfirmPopup').style.display = 'none';
+    };
+}
+
+function initializeVerification() {
+    const verificationForm = document.getElementById('verificationForm');
+    const verificationStatus = document.getElementById('verificationStatus');
+    const verifyBtn = document.getElementById('verifyFormBtn');
+    const cancelBtn = document.getElementById('cancelVerificationBtn');
+    const passwordInput = document.getElementById('verificationPassword');
+    const togglePasswordBtn = document.getElementById('toggleVerificationPassword');
+    
+    // Check if form is already verified
+    checkVerificationStatus();
+    
+    // Enable verification inputs even in view mode
+    if (passwordInput) {
+        passwordInput.disabled = false;
+        passwordInput.readOnly = false;
+    }
+    
+    const verificationDateInput = document.getElementById('verificationDate');
+    if (verificationDateInput) {
+        verificationDateInput.disabled = false;
+        verificationDateInput.readOnly = false;
+    }
+    
+    if (verifyBtn) {
+        verifyBtn.disabled = false;
+    }
+    
+    if (cancelBtn) {
+        cancelBtn.disabled = false;
+    }
+    
+    if (togglePasswordBtn) {
+        togglePasswordBtn.disabled = false;
+    }
+    
+    // Toggle password visibility
+    if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            const icon = togglePasswordBtn.querySelector('i');
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        });
+    }
+    
+    // Verify form button
+    if (verifyBtn) {
+        verifyBtn.addEventListener('click', function() {
+            const enteredPassword = passwordInput.value.trim();
+            const verificationDate = document.getElementById('verificationDate').value;
+            
+            if (!verificationDate) {
+                alert('Please select a verification date.');
+                document.getElementById('verificationDate').focus();
+                return;
+            }
+            
+            if (enteredPassword === VERIFICATION_PASSWORD) {
+                verifyForm(verificationDate);
+            } else {
+                alert('Invalid verification password. Please contact your supervisor.');
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+        });
+    }
+    
+    // Cancel verification button
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            passwordInput.value = '';
+            document.getElementById('verificationDate').value = '';
+        });
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // ===== VIEW MODE DETECTION =====
     // Get URL parameters first
@@ -30,6 +394,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const prestoreSection = document.getElementById('prestore-section');
     if (prestoreSection) {
         prestoreSection.style.display = viewMode ? 'block' : 'none';
+    }
+    
+    // Show/hide verification sections based on mode
+    const verificationSection = document.getElementById('verificationSection');
+    const approvalSection = document.getElementById('approvalSection');
+    
+    if (verificationSection) {
+        verificationSection.style.display = viewMode ? 'block' : 'none';
+    }
+    if (approvalSection) {
+        approvalSection.style.display = viewMode ? 'block' : 'none';
     }
     
     // ===== QC EQUIPMENT DROPDOWNS SETUP =====
@@ -270,6 +645,15 @@ document.addEventListener('DOMContentLoaded', function() {
            setTimeout(() => {
                const allInputs = document.querySelectorAll('input, textarea, select');
                allInputs.forEach(input => {
+                   // Skip verification inputs - they should always be enabled
+                   if (input.id === 'verificationPassword' || 
+                       input.id === 'verificationDate' || 
+                       input.id === 'toggleVerificationPassword' ||
+                       input.id === 'verifyFormBtn' ||
+                       input.id === 'cancelVerificationBtn') {
+                       return; // Skip disabling verification inputs
+                   }
+                   
                    input.readOnly = true;
                    input.disabled = true;
                    // input.style.backgroundColor = '#f9fafb'; // REMOVED for normal appearance
@@ -5112,5 +5496,8 @@ document.addEventListener('DOMContentLoaded', function() {
          // validatePercentageInput()
          // validateTimeInput()
          // validateAlphanumericInput()
+         
+        // Initialize verification functionality
+        initializeVerification();
          
 });

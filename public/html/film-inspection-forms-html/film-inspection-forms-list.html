@@ -112,6 +112,20 @@
             overflow-wrap: break-word !important;
             white-space: normal !important;
         }
+        
+        /* Cursor pointer for radio buttons and their labels */
+        input[type="radio"] {
+            cursor: pointer !important;
+        }
+        
+        input[type="radio"] + label {
+            cursor: pointer !important;
+        }
+        
+        /* Also apply cursor pointer to the container divs for better UX */
+        .flex.items-center {
+            cursor: pointer !important;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
@@ -684,8 +698,8 @@
             <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Inspection Date</th>
             <th class="py-1 px-2 border-r border-gray-300 w-12 whitespace-normal break-words">M/C No</th>
             <th class="py-1 px-2 border-r border-gray-300 w-36 whitespace-normal break-words">Product</th>
-            <th class="py-1 px-2 border-r border-gray-300 w-24 whitespace-normal break-words">Specification</th>
             <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Prepared By</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Verified By</th>
             <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Status</th>
             <th class="py-1 px-2 border-r border-gray-300 w-32 whitespace-normal break-words">Action</th>
             <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Download</th>
