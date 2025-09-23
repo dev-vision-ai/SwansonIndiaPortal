@@ -1631,11 +1631,15 @@ document.addEventListener('DOMContentLoaded', function() {
                          currentFormId = data[0].form_id;
                          currentLotNo = data[0].lot_no;
                          loadTableDataFromDatabase(data[0]);
-                         loadEquipmentSelections(data[0]);
-                         loadPreStoreData(data[0]);
                          
-                         // Update equipment dropdown styling after data is loaded
-                         setTimeout(updateEquipmentDropdownStyling, 100);
+                         // Load equipment selections AFTER dropdowns are populated
+                         setTimeout(() => {
+                             loadEquipmentSelections(data[0]);
+                             // Update equipment dropdown styling after data is loaded
+                             updateEquipmentDropdownStyling();
+                         }, 500);
+                         
+                         loadPreStoreData(data[0]);
                      }
                      
                      // Mark initial loading as complete

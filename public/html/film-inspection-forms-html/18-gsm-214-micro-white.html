@@ -21,20 +21,6 @@
             overflow-wrap: break-word !important;
             white-space: normal !important;
         }
-        
-        /* Specific word wrap for table cells */
-        table, th, td {
-            word-wrap: break-word !important;
-            overflow-wrap: break-word !important;
-            white-space: normal !important;
-        }
-        
-        /* Word wrap for input fields */
-        input, textarea {
-            word-wrap: break-word !important;
-            overflow-wrap: break-word !important;
-            white-space: normal !important;
-        }
         table, th, td {
             font-size: 13px;
             border-radius: 0 !important;
@@ -126,15 +112,11 @@
         .testing-table-cell.highlighted,
         .testing-table td.highlighted,
         .testing-table th.highlighted {
-            background: white !important; /* Keep white background */
-            border: none !important; /* Remove original border */
-            outline: 2px solid #000000 !important; /* Black outline - doesn't affect dimensions */
-            outline-offset: -2px !important; /* Overlap with original border space */
-            border-radius: 6px !important; /* Curved/rounded edges */
-            box-shadow: none !important; /* No shadow */
-            transition: none !important; /* No transition - instant outline change */
-            margin: 0 !important; /* No extra margins */
-            padding: 6px 8px !important; /* Keep same padding as normal cells */
+            border: none !important;
+            outline: 2px solid #000000 !important;
+            outline-offset: -2px !important;
+            border-radius: 6px !important;
+            transition: none !important;
         }
         /* Remove number input spinners */
         input[type="number"]::-webkit-outer-spin-button,
@@ -178,7 +160,7 @@
             vertical-align: middle !important;
         }
         
-        /* Remove any focus styling that might increase height */
+        /* Focus styling for input fields */
         .testing-table input[type="text"]:focus,
         .testing-table input[type="number"]:focus {
             background: transparent !important;
@@ -208,9 +190,7 @@
             border: 1px solid #d1d5db !important; /* Professional border */
             transition: none !important; /* No transitions for read-only fields */
         }
-        
-        
-        
+
         /* Specific styling for testing-input class */
         .testing-input {
             background: transparent !important;
@@ -227,15 +207,6 @@
             line-height: 1 !important;
             vertical-align: middle !important;
         }
-        
-        .testing-input:focus {
-            background: transparent !important;
-            border: none !important;
-            outline: none !important;
-            box-shadow: none !important;
-            transform: none !important;
-        }
-        
 
         /* Sample No. columns (1st and 3rd columns) - for Page 1 */
         .testing-table td:nth-child(1), .testing-table th:nth-child(1),
@@ -252,13 +223,18 @@
             max-width: 70px;
         }
         
-        /* Parameter columns (remaining 4 columns) - for Page 1 */
+        /* Parameter columns (remaining 9 columns) - for Page 1 */
         .testing-table td:nth-child(4), .testing-table th:nth-child(4),
         .testing-table td:nth-child(5), .testing-table th:nth-child(5),
         .testing-table td:nth-child(6), .testing-table th:nth-child(6),
-        .testing-table td:nth-child(7), .testing-table th:nth-child(7) {
-            width: 20.125%;
-            min-width: 120px;
+        .testing-table td:nth-child(7), .testing-table th:nth-child(7),
+        .testing-table td:nth-child(8), .testing-table th:nth-child(8),
+        .testing-table td:nth-child(9), .testing-table th:nth-child(9),
+        .testing-table td:nth-child(10), .testing-table th:nth-child(10),
+        .testing-table td:nth-child(11), .testing-table th:nth-child(11),
+        .testing-table td:nth-child(12), .testing-table th:nth-child(12) {
+            width: 9.11%; /* (100% - 18%) / 9 = 9.11% each */
+            min-width: 80px;
         }
         /* Page 2 - Sample No. columns (1st and 3rd columns) */
         .page2-table td:nth-child(1), .page2-table th:nth-child(1),
@@ -275,7 +251,7 @@
             max-width: 70px !important;
         }
         
-        /* Page 2 - Parameter columns (remaining 12 columns) - equal width */
+        /* Page 2 - Parameter columns (remaining 8 columns) - equal width */
         .page2-table td:nth-child(4), .page2-table th:nth-child(4),
         .page2-table td:nth-child(5), .page2-table th:nth-child(5),
         .page2-table td:nth-child(6), .page2-table th:nth-child(6),
@@ -283,132 +259,15 @@
         .page2-table td:nth-child(8), .page2-table th:nth-child(8),
         .page2-table td:nth-child(9), .page2-table th:nth-child(9),
         .page2-table td:nth-child(10), .page2-table th:nth-child(10),
-        .page2-table td:nth-child(11), .page2-table th:nth-child(11),
-        .page2-table td:nth-child(12), .page2-table th:nth-child(12),
-        .page2-table td:nth-child(13), .page2-table th:nth-child(13),
-        .page2-table td:nth-child(14), .page2-table th:nth-child(14),
-        .page2-table td:nth-child(15), .page2-table th:nth-child(15) {
-            width: 6.83% !important; /* (100% - 18%) / 12 = 6.83% each */
-            min-width: 60px !important;
+        .page2-table td:nth-child(11), .page2-table th:nth-child(11) {
+            width: 10.25% !important; /* (100% - 18%) / 8 = 10.25% each */
+            min-width: 80px !important;
         }
         
         /* Override for merged Sample No. header in Page 2 */
         .page2-table th[colspan="3"][rowspan="2"] {
             width: 18% !important; /* 5.5% + 7% + 5.5% = 18% */
             min-width: 170px !important;
-        }
-        /* Page 3 - Sample No. columns (1st and 3rd columns) */
-        .page3-table td:nth-child(1), .page3-table th:nth-child(1),
-        .page3-table td:nth-child(3), .page3-table th:nth-child(3) {
-            width: 5.5% !important;
-            min-width: 50px !important;
-            max-width: 50px !important;
-        }
-        
-        /* Page 3 - Roll ID column (2nd column) - wider for 8-digit numbers */
-        .page3-table td:nth-child(2), .page3-table th:nth-child(2) {
-            width: 7% !important;
-            min-width: 70px !important;
-            max-width: 70px !important;
-        }
-        
-        /* Page 3 - Parameter columns (remaining 12 columns) - equal width */
-        .page3-table td:nth-child(4), .page3-table th:nth-child(4),
-        .page3-table td:nth-child(5), .page3-table th:nth-child(5),
-        .page3-table td:nth-child(6), .page3-table th:nth-child(6),
-        .page3-table td:nth-child(7), .page3-table th:nth-child(7),
-        .page3-table td:nth-child(8), .page3-table th:nth-child(8),
-        .page3-table td:nth-child(9), .page3-table th:nth-child(9),
-        .page3-table td:nth-child(10), .page3-table th:nth-child(10),
-        .page3-table td:nth-child(11), .page3-table th:nth-child(11),
-        .page3-table td:nth-child(12), .page3-table th:nth-child(12),
-        .page3-table td:nth-child(13), .page3-table th:nth-child(13),
-        .page3-table td:nth-child(14), .page3-table th:nth-child(14),
-        .page3-table td:nth-child(15), .page3-table th:nth-child(15) {
-            width: 6.83% !important; /* (100% - 18%) / 12 = 6.83% each */
-            min-width: 60px !important;
-        }
-        
-        /* Override for merged Sample No. header in Page 3 */
-        .page3-table th[colspan="3"][rowspan="2"] {
-            width: 18% !important; /* 5.5% + 7% + 5.5% = 18% */
-            min-width: 170px !important;
-        }
-        /* Page 4 - Sample No. columns (1st and 3rd columns) */
-        .page4-table td:nth-child(1), .page4-table th:nth-child(1),
-        .page4-table td:nth-child(3), .page4-table th:nth-child(3) {
-            width: 5.5% !important;
-            min-width: 50px !important;
-            max-width: 50px !important;
-        }
-        
-        /* Page 4 - Roll ID column (2nd column) - wider for 8-digit numbers */
-        .page4-table td:nth-child(2), .page4-table th:nth-child(2) {
-            width: 7% !important;
-            min-width: 70px !important;
-            max-width: 70px !important;
-        }
-        
-        /* Page 4 - Color columns (4 columns) - equal width */
-        .page4-table td:nth-child(4), .page4-table th:nth-child(4),
-        .page4-table td:nth-child(5), .page4-table th:nth-child(5),
-        .page4-table td:nth-child(6), .page4-table th:nth-child(6),
-        .page4-table td:nth-child(7), .page4-table th:nth-child(7) {
-            width: 10.5% !important; /* (100% - 18%) / 8 = 10.25% each for color columns */
-            min-width: 80px !important;
-        }
-        
-        /* Page 4 - Gloss columns (4 columns) - equal width */
-        .page4-table td:nth-child(8), .page4-table th:nth-child(8),
-        .page4-table td:nth-child(9), .page4-table th:nth-child(9),
-        .page4-table td:nth-child(10), .page4-table th:nth-child(10),
-        .page4-table td:nth-child(11), .page4-table th:nth-child(11) {
-            width: 10.5% !important; /* (100% - 18%) / 8 = 10.25% each for gloss columns */
-            min-width: 80px !important;
-        }
-        
-        /* Override for merged Sample No. header in Page 4 */
-        .page4-table th[colspan="3"][rowspan="2"] {
-            width: 18% !important; /* 5.5% + 7% + 5.5% = 18% */
-            min-width: 170px !important;
-        }
-        
-        /* Page 5 - Sample No. columns (1st and 3rd columns) - slightly reduced width */
-        .page5-table td:nth-child(1), .page5-table th:nth-child(1),
-        .page5-table td:nth-child(3), .page5-table th:nth-child(3) {
-            width: 2.5% !important;
-            min-width: 35px !important;
-            max-width: 35px !important;
-        }
-        
-        /* Page 5 - Roll ID column (2nd column) - slightly reduced width */
-        .page5-table td:nth-child(2), .page5-table th:nth-child(2) {
-            width: 3.5% !important;
-            min-width: 45px !important;
-            max-width: 45px !important;
-        }
-        
-        /* Page 5 - PG Quality System Requirements column (4th column) - narrow, leave right side blank */
-        .page5-table td:nth-child(4), .page5-table th:nth-child(4) {
-            width: 15% !important; /* Narrow column, rest of space will be blank */
-            min-width: 120px !important;
-        }
-        
-        /* Page 5 - Blank column (5th column) - additional blank space */
-        .page5-table td:nth-child(5), .page5-table th:nth-child(5) {
-            width: 20% !important; /* Increased blank column width */
-            min-width: 160px !important;
-        }
-        
-        /* Override for merged Sample No. header in Page 5 */
-        .page5-table th[colspan="3"] {
-            width: 8.5% !important; /* 2.5% + 3.5% + 2.5% = 8.5% */
-            min-width: 115px !important;
-        }
-        
-        /* Page 5 header background - use same gray as other pages */
-        .page5-table thead tr th {
-            background: #f3f4f6 !important; /* Same gray as bg-gray-100 */
         }
         
         /* Light orange background for summary rows - ONLY in testing parameter tables */
@@ -468,42 +327,6 @@
             background: white !important; /* White background for equipment identification row */
         }
         
-        /* Orange background for Ave columns in dynamic rows - Page 2 */
-        .page2-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(7),
-        .page2-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(11),
-        .page2-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(15) {
-            background: #fed7aa !important; /* Light orange background for Ave columns in Page 2 dynamic rows */
-        }
-        
-        /* Orange background for Ave columns in dynamic rows - Page 3 */
-        .page3-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(7),
-        .page3-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(11),
-        .page3-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(15) {
-            background: #fed7aa !important; /* Light orange background for Ave columns in Page 3 dynamic rows */
-        }
-        
-        
-        /* Ensure Color Delta E column in Page 4 is editable (override any conflicting styles) */
-        .page4-table tbody tr td:nth-child(7) input {
-            background: transparent !important;
-            color: black !important;
-            pointer-events: auto !important;
-            cursor: text !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-        }
-        
-        /* Override for OOS Color Delta E values - ONLY RED TEXT */
-        .page4-table tbody tr td:nth-child(7) input.oos-highlight {
-            color: #dc2626 !important;
-        }
-        
-        /* Orange background for Ave column in dynamic rows - Page 4 */
-        .page4-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(11) {
-            background: #fed7aa !important; /* Light orange background for Gloss Ave column in Page 4 dynamic rows */
-        }
-        
-        /* Page 5 doesn't need orange background for Ave columns since it's just Pass/Fail */
         
         /* Simple square button styles for row management */
         .modern-btn {
@@ -559,6 +382,29 @@
         .testing-table select {
             background-color: transparent !important; /* Transparent background by default */
         }
+
+        /* Consistent font size for view-only form elements */
+        .view-form-element {
+            font-size: 13px !important;
+        }
+
+        /* Consistent styling for span elements in view-only sections */
+        .view-span-element {
+            font-size: 13px !important;
+            color: #111827 !important;
+            padding: 2px 4px !important;
+            font-weight: 500 !important;
+        }
+        
+        /* Equipment dropdown cell background when equipment is selected */
+        .testing-table select.equipment-selected {
+            background-color: #dcfce7 !important; /* Light green background when equipment is selected */
+        }
+        
+        /* Equipment dropdown cell background when no equipment is selected (default state) */
+        .testing-table select {
+            background-color: transparent !important; /* Transparent background by default */
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
@@ -584,68 +430,68 @@
                     <!-- Row 1: Production Instruction, Product Name, Specification, Pallet Size, Customer -->
                     <div class="col-span-full grid grid-cols-5 gap-3 mb-1">
                         <div>
-                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Production Instruction (PI) No.:</label>
-                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-production-order">-</div>
+                            <label class="block font-medium text-black mb-1" class="view-form-element">Production Instruction (PI) No.:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" class="view-form-element" id="view-production-order">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Product Name:</label>
-                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-product-code">-</div>
+                            <label class="block font-medium text-black mb-1" class="view-form-element">Product Name:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" class="view-form-element" id="view-product-code">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Specification:</label>
-                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-specification">-</div>
+                            <label class="block font-medium text-black mb-1" class="view-form-element">Specification:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" class="view-form-element" id="view-specification">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Pallet Size:</label>
-                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-pallet-size">-</div>
+                            <label class="block font-medium text-black mb-1" class="view-form-element">Pallet Size:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" class="view-form-element" id="view-pallet-size">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Customer:</label>
-                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-customer">-</div>
+                            <label class="block font-medium text-black mb-1" class="view-form-element">Customer:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" class="view-form-element" id="view-customer">-</div>
                         </div>
                     </div>
                     
                     <!-- Row 2: Location, Machine No, Quantity, Production Date, Inspection Date -->
                     <div class="col-span-full grid grid-cols-5 gap-3 mb-1">
                         <div>
-                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Location:</label>
-                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-location">-</div>
+                            <label class="block font-medium text-black mb-1" class="view-form-element">Location:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" class="view-form-element" id="view-location">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Machine No.:</label>
-                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-machine-no">-</div>
+                            <label class="block font-medium text-black mb-1" class="view-form-element">Machine No.:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" class="view-form-element" id="view-machine-no">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Quantity (Rolls):</label>
-                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-quantity">-</div>
+                            <label class="block font-medium text-black mb-1" class="view-form-element">Quantity (Rolls):</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" class="view-form-element" id="view-quantity">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Production Date:</label>
-                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-production-date">-</div>
+                            <label class="block font-medium text-black mb-1" class="view-form-element">Production Date:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" class="view-form-element" id="view-production-date">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Inspection Date:</label>
-                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-inspection-date">-</div>
+                            <label class="block font-medium text-black mb-1" class="view-form-element">Inspection Date:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" class="view-form-element" id="view-inspection-date">-</div>
                         </div>
                     </div>
                     
                     <!-- Row 3: Standard Packing, Batch, Reference No, Pre-store Done By -->
                     <div class="col-span-full grid grid-cols-5 gap-3 mb-1">
                         <div>
-                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Standard Packing:</label>
-                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-standard-packing">-</div>
+                            <label class="block font-medium text-black mb-1" class="view-form-element">Standard Packing:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" class="view-form-element" id="view-standard-packing">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Batch:</label>
-                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-batch">-</div>
+                            <label class="block font-medium text-black mb-1" class="view-form-element">Batch:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" class="view-form-element" id="view-batch">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Reference No:</label>
-                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-ref-no">-</div>
+                            <label class="block font-medium text-black mb-1" class="view-form-element">Reference No:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" class="view-form-element" id="view-ref-no">-</div>
                         </div>
                         <div>
-                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Pre-store Done By:</label>
-                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-prestore-done-by">-</div>
+                            <label class="block font-medium text-black mb-1" class="view-form-element">Pre-store Done By:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" class="view-form-element" id="view-prestore-done-by">-</div>
                         </div>
                         <div>
                             <!-- Empty field for consistent grid layout -->
@@ -673,77 +519,77 @@
                     
                     <!-- Palletized Finished Goods Status Section -->
                     <div class="col-span-full mt-1 p-3 border border-black bg-white">
-                        <h3 class="font-medium leading-6 text-black mb-1" style="font-size: 13px;">Palletized Finished Goods Status</h3>
+                        <h3 class="font-medium leading-6 text-black mb-1" class="view-form-element">Palletized Finished Goods Status</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                             <div class="p-2 bg-gray-50 border border-gray-300">
-                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Pallet List:</label>
+                                <label class="block font-medium text-black mb-1" class="view-form-element">Pallet List:</label>
                                 <hr class="border-gray-400 mb-1">
                                 <div class="flex space-x-3">
                                     <div class="flex items-center">
-                                        <span style="font-size: 13px; color: #111827; padding: 2px 4px; font-weight: 500;" id="view-pallet-list">-</span>
+                                        <span class="view-span-element" id="view-pallet-list">-</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="p-2 bg-gray-50 border border-gray-300">
-                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Product Identification Label:</label>
+                                <label class="block font-medium text-black mb-1" class="view-form-element">Product Identification Label:</label>
                                 <hr class="border-gray-400 mb-1">
                                 <div class="flex space-x-3">
                                     <div class="flex items-center">
-                                        <span style="font-size: 13px; color: #111827; padding: 2px 4px; font-weight: 500;" id="view-product-label">-</span>
+                                        <span class="view-span-element" id="view-product-label">-</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="p-2 bg-gray-50 border border-gray-300">
-                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Wrapping Done Properly:</label>
+                                <label class="block font-medium text-black mb-1" class="view-form-element">Wrapping Done Properly:</label>
                                 <hr class="border-gray-400 mb-1">
                                 <div class="flex space-x-3">
                                     <div class="flex items-center">
-                                        <span style="font-size: 13px; color: #111827; padding: 2px 4px; font-weight: 500;" id="view-wrapping">-</span>
+                                        <span class="view-span-element" id="view-wrapping">-</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="p-2 bg-gray-50 border border-gray-300">
-                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Layer Pad:</label>
+                                <label class="block font-medium text-black mb-1" class="view-form-element">Layer Pad:</label>
                                 <hr class="border-gray-400 mb-1">
                                 <div class="flex space-x-3">
                                     <div class="flex items-center">
-                                        <span style="font-size: 13px; color: #111827; padding: 2px 4px; font-weight: 500;" id="view-layer-pad">-</span>
+                                        <span class="view-span-element" id="view-layer-pad">-</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="p-2 bg-gray-50 border border-gray-300">
-                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">No Contamination:</label>
+                                <label class="block font-medium text-black mb-1" class="view-form-element">No Contamination:</label>
                                 <hr class="border-gray-400 mb-1">
                                 <div class="flex space-x-3">
                                     <div class="flex items-center">
-                                        <span style="font-size: 13px; color: #111827; padding: 2px 4px; font-weight: 500;" id="view-contamination">-</span>
+                                        <span class="view-span-element" id="view-contamination">-</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="p-2 bg-gray-50 border border-gray-300">
-                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Kraft Paper:</label>
+                                <label class="block font-medium text-black mb-1" class="view-form-element">Kraft Paper:</label>
                                 <hr class="border-gray-400 mb-1">
                                 <div class="flex space-x-3">
                                     <div class="flex items-center">
-                                        <span style="font-size: 13px; color: #111827; padding: 2px 4px; font-weight: 500;" id="view-kraft-paper">-</span>
+                                        <span class="view-span-element" id="view-kraft-paper">-</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="p-2 bg-gray-50 border border-gray-300">
-                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">No Damage:</label>
+                                <label class="block font-medium text-black mb-1" class="view-form-element">No Damage:</label>
                                 <hr class="border-gray-400 mb-1">
                                 <div class="flex space-x-3">
                                     <div class="flex items-center">
-                                        <span style="font-size: 13px; color: #111827; padding: 2px 4px; font-weight: 500;" id="view-no-damage">-</span>
+                                        <span class="view-span-element" id="view-no-damage">-</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="p-2 bg-gray-50 border border-gray-300">
-                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Pallet:</label>
+                                <label class="block font-medium text-black mb-1" class="view-form-element">Pallet:</label>
                                 <hr class="border-gray-400 mb-1">
                                 <div class="flex space-x-3">
                                     <div class="flex items-center">
-                                        <span style="font-size: 13px; color: #111827; padding: 2px 4px; font-weight: 500;" id="view-pallet">-</span>
+                                        <span class="view-span-element" id="view-pallet">-</span>
                                     </div>
                                 </div>
                             </div>
@@ -752,8 +598,8 @@
                     
                     <!-- Remarks Section -->
                     <div class="col-span-full mt-1">
-                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Remarks:</label>
-                        <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50 min-h-[40px]" style="font-size: 13px;" id="view-remarks">-</div>
+                                <label class="block font-medium text-black mb-1" class="view-form-element">Remarks:</label>
+                        <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50 min-h-[40px]" class="view-form-element" id="view-remarks">-</div>
                     </div>
                 </div>
             </section>
@@ -763,37 +609,37 @@
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">General Product & Production Information</h3>
                 <table class="w-full border-2 border-gray-800 bg-white testing-table modern-header-table" style="font-size: 15px; table-layout: fixed; word-wrap: break-word;">
                     <tr>
-                        <td class="border border-gray-800 font-semibold testing-table-cell" style="font-size: 15px; width: 20%; word-wrap: break-word; overflow-wrap: break-word;">Product Code:</td>
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 20%; word-wrap: break-word; overflow-wrap: break-word;">Product Code:</td>
                         <td class="border border-gray-800 testing-table-cell" style="width: 20%; word-wrap: break-word; overflow-wrap: break-word;">
                             <input type="text" id="productCodeInput" class="w-full testing-input" placeholder="Enter Product Code">
                         </td>
-                        <td class="border border-gray-800 font-semibold testing-table-cell" style="font-size: 15px; width: 12%; word-wrap: break-word; overflow-wrap: break-word;">Prod. Order:</td>
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 12%; word-wrap: break-word; overflow-wrap: break-word;">Prod. Order:</td>
                         <td class="border border-gray-800 testing-table-cell" style="width: 12%; word-wrap: break-word; overflow-wrap: break-word;">
                             <input type="text" class="w-full testing-input" placeholder="Enter Prod. Order">
                         </td>
-                        <td class="border border-gray-800 font-semibold testing-table-cell" style="font-size: 15px; width: 8%; word-wrap: break-word; overflow-wrap: break-word;">Machine:</td>
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 8%; word-wrap: break-word; overflow-wrap: break-word;">Machine:</td>
                         <td class="border border-gray-800 testing-table-cell" style="width: 8%; word-wrap: break-word; overflow-wrap: break-word;">
                             <input type="text" class="w-full testing-input" placeholder="Enter Machine">
                         </td>
-                        <td class="border border-gray-800 font-semibold testing-table-cell" style="font-size: 15px; width: 15%; word-wrap: break-word; overflow-wrap: break-word;">Production Date:</td>
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 15%; word-wrap: break-word; overflow-wrap: break-word;">Production Date:</td>
                         <td class="border border-gray-800 testing-table-cell" style="width: 15%; word-wrap: break-word; overflow-wrap: break-word;">
                             <input type="date" class="w-full testing-input">
                         </td>
                     </tr>
                     <tr>
-                        <td class="border border-gray-800 font-semibold testing-table-cell" style="font-size: 15px; width: 20%; word-wrap: break-word; overflow-wrap: break-word;">Specification:</td>
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 20%; word-wrap: break-word; overflow-wrap: break-word;">Specification:</td>
                         <td class="border border-gray-800 testing-table-cell" style="width: 20%; word-wrap: break-word; overflow-wrap: break-word;">
                             <input type="text" class="w-full testing-input" placeholder="Enter Specification">
                         </td>
-                        <td class="border border-gray-800 font-semibold testing-table-cell" style="font-size: 15px; width: 12%; word-wrap: break-word; overflow-wrap: break-word;">PO:</td>
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 12%; word-wrap: break-word; overflow-wrap: break-word;">PO:</td>
                         <td class="border border-gray-800 testing-table-cell" style="width: 12%; word-wrap: break-word; overflow-wrap: break-word;">
                             <input type="text" class="w-full testing-input" placeholder="Enter PO" value="N/A">
                         </td>
-                        <td class="border border-gray-800 font-semibold testing-table-cell" style="font-size: 15px; width: 8%; word-wrap: break-word; overflow-wrap: break-word;">Quantity (Rolls):</td>
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 8%; word-wrap: break-word; overflow-wrap: break-word;">Quantity (Rolls):</td>
                         <td class="border border-gray-800 testing-table-cell" style="width: 8%; word-wrap: break-word; overflow-wrap: break-word;">
                             <input type="text" class="w-full testing-input" placeholder="Enter Quantity">
                         </td>
-                        <td class="border border-gray-800 font-semibold testing-table-cell" style="font-size: 15px; width: 15%; word-wrap: break-word; overflow-wrap: break-word;">Inspection Date:</td>
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 15%; word-wrap: break-word; overflow-wrap: break-word;">Inspection Date:</td>
                         <td class="border border-gray-800 testing-table-cell" style="width: 15%; word-wrap: break-word; overflow-wrap: break-word;">
                             <input type="date" class="w-full testing-input">
                         </td>
@@ -818,76 +664,65 @@
                 
                 <!-- Testing Parameters Table with merged header -->
                 <div class="overflow-x-auto">
-                    <table class="w-full border-2 border-gray-800 bg-white testing-table" style="font-size: 13px;">
+                    <table class="w-full border-2 border-gray-800 bg-white testing-table" class="view-form-element">
                         <thead>
                             <tr class="bg-gray-100">
-                                <td class="border-b-2 border-gray-800 px-3 py-2 text-left font-semibold" colspan="3" style="font-size: 13px;">Testing Equipment Identification Number:</td>
-                                <td class="border-b-2 border-gray-800 p-0" style="font-size: 13px;"><select id="basic-weight-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
-                                <td class="border-b-2 border-gray-800 p-0" style="font-size: 13px;"><select id="cof-rr-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
-                                <td class="border-b-2 border-gray-800 p-0" style="font-size: 13px;"><select id="cof-rs-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
-                                <td class="border-b-2 border-gray-800 p-0" style="font-size: 13px;"><select id="opacity-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
-                                <td class="border-b-2 border-gray-800 p-0" colspan="4" style="font-size: 13px;"><select id="modulus-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
-                                <td class="border-b-2 border-gray-800 p-0" style="font-size: 13px;"><select id="gloss-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 px-3 py-2 text-left font-semibold" colspan="3" class="view-form-element">Testing Equipment Identification Number:</td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="basic-weight-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="cof-rr-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="cof-rs-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="opacity-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" colspan="4" class="view-form-element"><select id="modulus-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="gloss-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
                             </tr>
                             <tr class="bg-gray-100">
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Sample No.</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Basic Weight<br>(L-15.70 T-18.00 U-20.30)<br>GSM</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">COF-Kinetic(R-R)<br>(L-0.30 T-0.40 U-0.50)</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">COF-Kinetic(R-S)<br>(L-0.10 T-0.20 U-0.35)</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Opacity<br>(L-57.0 T-60.0 U-63.0)<br>%</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Modulus-MD-web@ 2%<br>(L-18.2 T-24.7 U-31.2) N/cm</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Gloss Level<br>(T-7.0 U-10.0)<br>(Gloss Unit)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" rowspan="2" class="view-form-element">Sample No.</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" rowspan="2" class="view-form-element">Basic Weight<br>(L-15.70 T-18.00 U-20.30)<br>GSM</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" rowspan="2" class="view-form-element">COF-Kinetic(R-R)<br>(L-0.30 T-0.40 U-0.50)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" rowspan="2" class="view-form-element">COF-Kinetic(R-S)<br>(L-0.10 T-0.20 U-0.35)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" rowspan="2" class="view-form-element">Opacity<br>(L-57.0 T-60.0 U-63.0)<br>%</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" class="view-form-element">Modulus-MD-web@ 2%<br>(L-18.2 T-24.7 U-31.2) N/cm</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" rowspan="2" class="view-form-element">Gloss Level<br>(T-7.0 U-10.0)<br>(Gloss Unit)</th>
                             </tr>
                             <tr class="bg-gray-100">
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;"></th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;"></th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;"></th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;"></th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;"></th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">1</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">2</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">3</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Avg</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;"></th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">1</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">2</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">3</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Avg</th>
+
                             </tr>
                         </thead>
                         <tbody id="testingTableBody">
                             <!-- Summary Statistics Rows -->
                             <tr class="average-row">
-                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Average</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Average</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" class="view-form-element">-</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
                             </tr>
                             <tr>
-                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Minimum</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Minimum</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" class="view-form-element">-</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
                             </tr>
                             <tr>
-                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Maximum</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Maximum</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" colspan="3" class="view-form-element">-</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
                             </tr>
                         </tbody>
                     </table>
@@ -907,72 +742,70 @@
                 
                 <!-- Testing Parameters Table with merged header -->
                 <div class="overflow-x-auto">
-                    <table class="w-full border-2 border-gray-800 bg-white testing-table page2-table" style="font-size: 13px;">
+                    <table class="w-full border-2 border-gray-800 bg-white testing-table page2-table" class="view-form-element">
                         <thead>
                             <tr class="bg-gray-100">
-                                <td class="border-b-2 border-gray-800 px-3 py-2 text-left font-semibold" colspan="3" style="font-size: 13px;">Testing Equipment Identification Number:</td>
-                                <td class="border-b-2 border-gray-800 p-0" colspan="9" style="font-size: 13px;"><select id="page2-common-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 px-3 py-2 text-left font-semibold" colspan="3" class="view-form-element">Testing Equipment Identification Number:</td>
+                                <td class="border-b-2 border-gray-800 p-0" colspan="4" class="view-form-element"><select id="page2-force-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" colspan="4" class="view-form-element"><select id="page2-colour-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
                             </tr>
                             <tr class="bg-gray-100">
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Sample No.</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Force-elongation-MD@5%<br>(L-1.77 T-2.77) N</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Force-Tensile Strength-MD-peak<br>(L-9.07 T-12.57) N</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Force-elongation-CD@5%<br>(L-1.49 T-2.49) N</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Force-Tensile Strength-CD-peak<br>(L-6.13 T-9.63) N</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Colour L<br>(L-91.5 T-95.5 U-99.5)<br>(Colour units-H)</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Colour A<br>(L-(-4.4) T-(-0.4) U-(3.6))<br>(Colour units-H)</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Colour B<br>(L-(-4.5) T-(-0.5) U-(3.5))<br>(Colour units-H)</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Delta E<br>(T-0.00 U-5.00)<br>(Colour Units-Delta E)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Sample No.</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Force-elongation-MD@5%<br>(L-1.77 T-2.77) N</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Force-Tensile Strength-MD-peak<br>(L-9.07 T-12.57) N</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Force-elongation-CD@5%<br>(L-1.49 T-2.49) N</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Force-Tensile Strength-CD-peak<br>(L-6.13 T-9.63) N</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Colour L<br>(L-91.5 T-95.5 U-99.5)<br>(Colour units-H)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Colour A<br>(L-(-4.4) T-(-0.4) U-(3.6))<br>(Colour units-H)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Colour B<br>(L-(-4.5) T-(-0.5) U-(3.5))<br>(Colour units-H)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Delta E<br>(T-0.00 U-5.00)<br>(Colour Units-Delta E)</th>
                             </tr>
                         </thead>
                         <tbody id="testingTableBody2">
                             <!-- Summary Statistics Rows -->
                             <tr class="average-row">
-                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Average</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Average</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
                             </tr>
                             <tr>
-                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Minimum</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Minimum</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
                             </tr>
                             <tr>
-                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Maximum</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Maximum</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
-
-
-
             <!-- Verification and Approval Sections Side by Side -->
             <div class="flex justify-center mt-4 gap-4">
                 <!-- Verified By Section -->
                 <section id="verificationSection" class="w-80 p-4 bg-gray-50 border border-gray-300 rounded">
-                    <h3 class="font-bold text-gray-800 mb-2 text-center" style="font-size: 13px;">Verified By</h3>
+                    <h3 class="font-bold text-gray-800 mb-2 text-center" class="view-form-element">Verified By</h3>
                     <div class="bg-[#002E7D] h-0.5 w-12 mx-auto rounded mb-2"></div>
                     
                     <!-- Verification Status Display -->
@@ -1036,7 +869,7 @@
                         
                         <div class="space-y-2">
                             <div>
-                                <label for="verificationPassword" class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Password</label>
+                                <label for="verificationPassword" class="block font-medium text-gray-700 mb-1" class="view-form-element">Password</label>
                                 <div class="relative">
                                     <input type="password" id="verificationPassword" class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]" placeholder="Enter password">
                                     <button type="button" id="toggleVerificationPassword" class="absolute inset-y-0 right-0 pr-2 flex items-center">
@@ -1046,7 +879,7 @@
                             </div>
                             
                             <div>
-                                <label for="verificationDate" class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Date <span class="text-red-500">*</span></label>
+                                <label for="verificationDate" class="block font-medium text-gray-700 mb-1" class="view-form-element">Date <span class="text-red-500">*</span></label>
                                 <input type="date" id="verificationDate" class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]" required>
                             </div>
                         </div>
@@ -1064,7 +897,7 @@
 
                 <!-- Approved By Section (Disabled for Future Use) -->
                 <section id="approvalSection" class="w-80 p-4 bg-gray-50 border border-gray-300 rounded opacity-50">
-                    <h3 class="font-bold text-gray-800 mb-2 text-center" style="font-size: 13px;">Approved By</h3>
+                    <h3 class="font-bold text-gray-800 mb-2 text-center" class="view-form-element">Approved By</h3>
                     <div class="bg-[#002E7D] h-0.5 w-12 mx-auto rounded mb-2"></div>
                     
                     <!-- Approval Status Display -->
@@ -1087,12 +920,12 @@
                         
                         <div class="space-y-2">
                             <div>
-                                <label for="approvalPassword" class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Password</label>
+                                <label for="approvalPassword" class="block font-medium text-gray-700 mb-1" class="view-form-element">Password</label>
                                 <input type="password" id="approvalPassword" class="w-full px-2 py-1 text-sm border border-gray-300 rounded bg-gray-100" placeholder="Enter password" disabled>
                             </div>
                             
                             <div>
-                                <label for="approvalDate" class="block font-medium text-gray-700 mb-1" style="font-size: 13px;">Date <span class="text-red-500">*</span></label>
+                                <label for="approvalDate" class="block font-medium text-gray-700 mb-1" class="view-form-element">Date <span class="text-red-500">*</span></label>
                                 <input type="date" id="approvalDate" class="w-full px-2 py-1 text-sm border border-gray-300 rounded bg-gray-100" disabled>
                             </div>
                         </div>
@@ -1116,55 +949,6 @@
     <script type="module" src="../../supabase-config.js"></script>
     <script type="module" src="../../js/film-inspection-forms-js/18-gsm-214-micro-white.js"></script>
     
-    <script>
-        // Function to update form title from the product code input field
-        function updateFormTitleFromInput() {
-            const formTitle = document.getElementById('formTitle');
-            const productCodeInput = document.getElementById('productCodeInput');
-            
-            if (formTitle && productCodeInput) {
-                // Get product code from the input field
-                const productCode = productCodeInput.value.trim();
-                
-                if (productCode) {
-                    // Update title with product code from input field
-                    formTitle.textContent = productCode.toUpperCase();
-                }
-            }
-        }
-        
-        // Function to update equipment dropdown styling
-        function updateEquipmentDropdownStyling() {
-            const equipmentDropdowns = document.querySelectorAll('.testing-table select');
-            equipmentDropdowns.forEach(function(dropdown) {
-                if (dropdown.value && dropdown.value !== '' && dropdown.value !== 'Select Equipment ▼') {
-                    dropdown.classList.add('equipment-selected');
-                } else {
-                    dropdown.classList.remove('equipment-selected');
-                }
-            });
-        }
-
-        // Initialize when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            // Wait a bit for the form data to load, then update title
-            setTimeout(updateFormTitleFromInput, 1000);
-            
-            // Add event listeners to equipment dropdowns and apply initial styling
-            setTimeout(function() {
-                const equipmentDropdowns = document.querySelectorAll('.testing-table select');
-                equipmentDropdowns.forEach(function(dropdown) {
-                    // Apply initial styling based on current value
-                    updateEquipmentDropdownStyling();
-                    
-                    // Add change event listener
-                    dropdown.addEventListener('change', function() {
-                        updateEquipmentDropdownStyling();
-                    });
-                });
-            }, 1500);
-        });
-    </script>
 </body>
 </html>
 
