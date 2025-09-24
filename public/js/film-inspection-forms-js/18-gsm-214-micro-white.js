@@ -1,5 +1,8 @@
 // Supabase integration for auto-saving to database
 
+// ===== DEBUG TEST =====
+//
+
 // Calculate modulus average for Page 1 (columns 7, 8, 9 → average in column 10)
 function calculateModulusAverage(input) {
     // Get the row containing this input
@@ -414,13 +417,18 @@ let testingTableBody2;
 function detectViewMode() {
     // Get URL parameters first
     const urlParams = new URLSearchParams(window.location.search);
+    const modeParam = urlParams.get('mode');
+    const viewParam = urlParams.get('view');
     const viewModeFromStorage = sessionStorage.getItem('viewMode') === 'true';
-    viewMode = urlParams.get('mode') === 'view' || viewModeFromStorage;
+
+    // Support both styles:
+    // - ?mode=view (current)
+    // - ?view=1 / true / on (Kranti style)
+    const viewParamTruthy = typeof viewParam === 'string' && ['1', 'true', 'on', 'yes'].includes(viewParam.toLowerCase());
+
+    viewMode = modeParam === 'view' || viewParamTruthy || viewModeFromStorage;
     
-    // Clear view mode flag from sessionStorage after detection
-    if (viewModeFromStorage) {
-        sessionStorage.removeItem('viewMode');
-    }
+    
     
     return viewMode;
 }
@@ -429,6 +437,7 @@ function detectViewMode() {
 function setupViewMode() {
     // Get view mode status
     const isViewMode = detectViewMode();
+    
     
     // Show prestore section only in view mode
     const prestoreSection = document.getElementById('prestore-section');
@@ -467,30 +476,34 @@ function setupViewMode() {
     
 
     
-    // Synchronize view mode across all pages
-    synchronizeViewModeAcrossPages();
+    // Note: synchronizeViewModeAcrossPages() will be called later after data is loaded
 }
 
 // Function to synchronize view mode across all pages (like 16 GSM Kranti)
 function synchronizeViewModeAcrossPages() {
 
-    
     const isViewMode = detectViewMode();
     
+
     // Apply view mode to all table inputs
     const allTableBodies = [testingTableBody, testingTableBody2];
-    
+
     allTableBodies.forEach(tableBody => {
         if (tableBody) {
             const inputs = tableBody.querySelectorAll('input, select, textarea');
+            
             inputs.forEach((input, index) => {
                 if (isViewMode) {
                     input.disabled = true;
                     input.readOnly = true;
                     input.style.cursor = 'default';
-                    input.style.color = '#000000';
+                    // Preserve OOS/red formatting in view mode
+                    if (!input.classList.contains('text-red-600')) {
+                        input.style.color = '#000000';
+                    }
                     input.style.opacity = '1';
                     
+
             // Special handling for Page 2 sample columns (first 3 columns)
             if (tableBody.id === 'testingTableBody2' && index <= 2) {
                 input.style.backgroundColor = '#f1f5f9'; // Light grey background
@@ -501,11 +514,31 @@ function synchronizeViewModeAcrossPages() {
 
             }
                 } else {
+                    // For edit mode, allow inputs to be editable except certain columns that must remain read-only
+                    let keepReadOnly = false;
+                    if (tableBody.id === 'testingTableBody2') {
+                        // Determine the column index for this input (0-based)
+                        const cell = input.closest('td');
+                        if (cell) {
+                            const colIndex = Array.from(cell.parentElement.children).indexOf(cell);
+                            // Sample columns Lot & Roll, Roll ID, Lot Time correspond to indices 0,1,2
+                            if (colIndex >= 0 && colIndex <= 2) {
+                                keepReadOnly = true;
+                            }
+                        }
+                    }
+
                     input.disabled = false;
-                    input.readOnly = false;
-                    input.style.cursor = 'text';
-                    input.style.backgroundColor = ''; // Reset background
-                    input.style.fontWeight = ''; // Reset font weight
+                    input.readOnly = keepReadOnly ? true : false;
+                    input.style.cursor = keepReadOnly ? 'default' : 'text';
+
+                    if (keepReadOnly) {
+                        // Apply the same styling used when view mode is on for these specific columns
+                        input.style.backgroundColor = '#f1f5f9'; // Light grey background
+                    } else {
+                        input.style.backgroundColor = ''; // Reset background
+                        input.style.fontWeight = ''; // Reset font weight
+                    }
                 }
             });
         }
@@ -517,9 +550,11 @@ function synchronizeViewModeAcrossPages() {
         if (isViewMode) {
             dropdown.disabled = true;
             dropdown.style.cursor = 'default';
+            
         } else {
             dropdown.disabled = false;
             dropdown.style.cursor = 'pointer';
+            
         }
     });
     
@@ -532,10 +567,12 @@ function synchronizeViewModeAcrossPages() {
         if (addRowsBtn) addRowsBtn.style.display = 'none';
         if (deleteRowsBtn) deleteRowsBtn.style.display = 'none';
         if (numRowsInput) numRowsInput.style.display = 'none';
+        
     } else {
         if (addRowsBtn) addRowsBtn.style.display = 'block';
         if (deleteRowsBtn) deleteRowsBtn.style.display = 'block';
         if (numRowsInput) numRowsInput.style.display = 'block';
+        
     }
     
 
@@ -924,7 +961,6 @@ function disableFormInputs() {
                 inputId.includes('navigation') ||
                 inputId.includes('nav')
             )) {
-
                 return;
             }
             
@@ -934,7 +970,6 @@ function disableFormInputs() {
                 inputClass.includes('back') ||
                 inputClass.includes('navigation')
             )) {
-
                 return;
             }
             
@@ -1350,77 +1385,115 @@ function getColumnsPerRow(tableBody) {
 
 // ===== HISTORICAL DATA LOADING =====
 // Load historical data when user enters required fields
-function setupHistoricalDataTrigger() {
-
+function checkAndLoadHistoricalData() {
     
-    const productCodeInput = document.querySelector('input[placeholder="Enter Product Code"]');
-    const machineInput = document.querySelector('input[placeholder="Enter Machine"]');
-    const productionDateInput = document.querySelector('input[type="date"]:nth-of-type(1)');
-    
+    const productCodeInput = document.querySelector('input[name="product_code"]') ||
+                             document.querySelector('#productCodeInput') ||
+                             document.querySelector('input[placeholder*="Product Code"]');
+    const machineInput = document.querySelector('input[name="machine"]') ||
+                         document.querySelector('input[placeholder="Enter Machine"]');
+    const productionDateInput = document.querySelector('input[name="production_date"]') ||
+                                document.querySelector('table input[type="date"]') ||
+                                document.querySelector('input[type="date"]');
+    const currentFormId = (typeof window !== 'undefined' && window.currentFormId) || document.getElementById('form_id')?.value;
 
+    /*
+    console.log('🔍 [HISTORICAL] Current input values:', {
+        productCode: productCodeInput?.value,
+        machine: machineInput?.value,
+        productionDate: productionDateInput?.value,
+        currentFormId: currentFormId
+    });
+    */
 
-
-
-    
-           if (productCodeInput) {
-               productCodeInput.addEventListener('blur', checkAndLoadHistoricalData);
-
-           }
-           if (machineInput) {
-               machineInput.addEventListener('blur', checkAndLoadHistoricalData);
-
-           }
-           if (productionDateInput) {
-               productionDateInput.addEventListener('change', checkAndLoadHistoricalData);
-
-           }
-    
-
-       }
-
-       // Check if all required fields are filled and load historical data
-       async function checkAndLoadHistoricalData() {
-
-    
-    const productCodeInput = document.querySelector('input[placeholder="Enter Product Code"]');
-    const machineInput = document.querySelector('input[placeholder="Enter Machine"]');
-    const productionDateInput = document.querySelector('input[type="date"]:nth-of-type(1)');
-    
-           const productCode = productCodeInput ? productCodeInput.value.trim() : '';
-           const machineNo = machineInput ? machineInput.value.trim() : '';
-           const productionDate = productionDateInput ? productionDateInput.value : '';
-
-
-
-
-
-
-
-           // Only load historical data if all three fields are filled and we don't have a current form ID
-           if (productCode && machineNo && productionDate && !currentFormId) {
-
-               await loadHistoricalDataForNewForm();
+    if (productCodeInput?.value && machineInput?.value && productionDateInput?.value && !currentFormId) {
+        
+        loadHistoricalDataForNewForm();
     } else {
-
-        if (!productCode) console.log('📚 [HISTORICAL] - Missing Product Code');
-        if (!machineNo) console.log('📚 [HISTORICAL] - Missing Machine No');
-        if (!productionDate) console.log('📚 [HISTORICAL] - Missing Production Date');
-        if (currentFormId) console.log('📚 [HISTORICAL] - Form already exists (has Form ID)');
+        
     }
 }
 
+// Safely resolve JSONB/array/string values from historical payload
+function getHistoricalCellValue(historicalData, key, historicalRow) {
+    if (!historicalData || !key) return undefined;
+    let container = historicalData[key];
+    if (!container) return undefined;
+    // Parse JSON strings
+    if (typeof container === 'string') {
+        try {
+            container = JSON.parse(container);
+        } catch (e) {
+            return undefined;
+        }
+    }
+    const rowKey1 = String(historicalRow);
+    const rowKey0 = String(historicalRow - 1);
+    // Object with 1-based or 0-based keys
+    if (typeof container === 'object' && !Array.isArray(container)) {
+        return container[rowKey1] ?? container[rowKey0];
+    }
+    // Array-like
+    if (Array.isArray(container)) {
+        return container[historicalRow - 1] ?? container[historicalRow];
+    }
+    return undefined;
+}
 
+// Determine total historical rows available by inspecting common JSONB fields
+function getHistoricalTotalRows(historicalData) {
+    if (!historicalData) return 0;
+    const candidateKeys = [
+        'lot_and_roll', 'roll_id', 'lot_time',
+        'page1_basis_weight', 'page1_cof_kinetic_r_r', 'page1_cof_kinetic_r_s', 'page1_opacity', 'page1_modulus_1', 'page1_modulus_2', 'page1_modulus_3', 'page1_gloss',
+        'page2_force_elongation_md_5p', 'page2_force_tensile_md', 'page2_force_elongation_cd_5p', 'page2_force_tensile_cd',
+        'page2_color_l', 'page2_color_a', 'page2_color_b', 'page2_color_delta_e'
+    ];
+    let maxRows = 0;
+    for (const key of candidateKeys) {
+        let container = historicalData[key];
+        if (!container) continue;
+        if (typeof container === 'string') {
+            try { container = JSON.parse(container); } catch (e) { continue; }
+        }
+        if (Array.isArray(container)) {
+            maxRows = Math.max(maxRows, container.length);
+            continue;
+        }
+        if (typeof container === 'object') {
+            const numericKeys = Object.keys(container)
+                .map(k => parseInt(k, 10))
+                .filter(n => !Number.isNaN(n));
+            if (numericKeys.length) {
+                maxRows = Math.max(maxRows, Math.max(...numericKeys));
+            }
+        }
+    }
+    // If keys were 1-based, maxRows is good; if 0-based, this still gives the highest index
+    return maxRows;
+}
 
 // Load historical data into top rows
 function loadHistoricalDataIntoTopRows(historicalData, availableForHistorical) {
+    /* console.log('🔍 [HISTORICAL] loadHistoricalDataIntoTopRows CALLED with:', {
+        hasHistoricalData: !!historicalData,
+        availableForHistorical,
+        historicalDataKeys: historicalData ? Object.keys(historicalData).slice(0, 5) : []
+    }); */
+
     const allTables = getAllTableBodies();
     
+
     allTables.forEach(tableBody => {
         if (!tableBody) return;
         
         const rows = Array.from(tableBody.querySelectorAll('tr'));
         let currentRow = 1;
-        let historicalRow = 1;
+        // Match 16 GSM Kranti: map top rows to the BOTTOM segment of previous form
+        const totalHistoricalRows = getHistoricalTotalRows(historicalData);
+        const historicalRowStart = Math.max(1, totalHistoricalRows - availableForHistorical + 1);
+        let historicalRow = historicalRowStart;
+        
         const endRow = Math.min(availableForHistorical, rows.length);
         
         for (let i = 0; i < rows.length && currentRow <= endRow; i++) {
@@ -1443,22 +1516,39 @@ function loadHistoricalDataIntoTopRows(historicalData, availableForHistorical) {
 
 // Load historical data for a specific row
 function loadHistoricalRowData(row, historicalData, historicalRow) {
-    if (!row || !historicalData) return;
+    /* console.log('🔍 [HISTORICAL] loadHistoricalRowData CALLED for row:', {
+        hasRow: !!row,
+        hasHistoricalData: !!historicalData,
+        historicalRow,
+        rowInnerHTML: row?.innerHTML?.substring(0, 100)
+    }); */
+
+    if (!row || !historicalData) {
+        
+        return;
+    }
 
     const inputs = row.querySelectorAll('input');
+    
     const rowKey = String(historicalRow);
 
     // Load data based on table type
+    
+
     if (row.closest('#testingTableBody')) {
+        
         // Page 1 data
-        if (historicalData.lot_and_roll && historicalData.lot_and_roll[rowKey] && inputs[0]) {
-            inputs[0].value = historicalData.lot_and_roll[rowKey];
+        const lotAndRollVal = getHistoricalCellValue(historicalData, 'lot_and_roll', historicalRow);
+        if (inputs[0] && lotAndRollVal !== undefined && lotAndRollVal !== null && lotAndRollVal !== '') {
+            inputs[0].value = lotAndRollVal;
         }
-        if (historicalData.roll_id && historicalData.roll_id[rowKey] && inputs[1]) {
-            inputs[1].value = historicalData.roll_id[rowKey];
+        const rollIdVal = getHistoricalCellValue(historicalData, 'roll_id', historicalRow);
+        if (inputs[1] && rollIdVal !== undefined && rollIdVal !== null && rollIdVal !== '') {
+            inputs[1].value = rollIdVal;
         }
-        if (historicalData.lot_time && historicalData.lot_time[rowKey] && inputs[2]) {
-            inputs[2].value = historicalData.lot_time[rowKey];
+        const lotTimeVal = getHistoricalCellValue(historicalData, 'lot_time', historicalRow);
+        if (inputs[2] && lotTimeVal !== undefined && lotTimeVal !== null && lotTimeVal !== '') {
+            inputs[2].value = lotTimeVal;
         }
         // Load Page 1 data
         const page1Data = [
@@ -1473,20 +1563,24 @@ function loadHistoricalRowData(row, historicalData, historicalRow) {
         ];
         
         page1Data.forEach(({ key, inputIndex }) => {
-            if (historicalData[key] && historicalData[key][rowKey] && inputs[inputIndex]) {
-                inputs[inputIndex].value = historicalData[key][rowKey];
+            const val = getHistoricalCellValue(historicalData, key, historicalRow);
+            if (inputs[inputIndex] && val !== undefined && val !== null && val !== '') {
+                inputs[inputIndex].value = val;
             }
         });
     } else if (row.closest('#testingTableBody2')) {
         // Page 2 data - Load lot_and_roll, roll_id, lot_time for all pages
-        if (historicalData.lot_and_roll && historicalData.lot_and_roll[rowKey] && inputs[0]) {
-            inputs[0].value = historicalData.lot_and_roll[rowKey];
+        const lotAndRollVal2 = getHistoricalCellValue(historicalData, 'lot_and_roll', historicalRow);
+        if (inputs[0] && lotAndRollVal2 !== undefined && lotAndRollVal2 !== null && lotAndRollVal2 !== '') {
+            inputs[0].value = lotAndRollVal2;
         }
-        if (historicalData.roll_id && historicalData.roll_id[rowKey] && inputs[1]) {
-            inputs[1].value = historicalData.roll_id[rowKey];
+        const rollIdVal2 = getHistoricalCellValue(historicalData, 'roll_id', historicalRow);
+        if (inputs[1] && rollIdVal2 !== undefined && rollIdVal2 !== null && rollIdVal2 !== '') {
+            inputs[1].value = rollIdVal2;
         }
-        if (historicalData.lot_time && historicalData.lot_time[rowKey] && inputs[2]) {
-            inputs[2].value = historicalData.lot_time[rowKey];
+        const lotTimeVal2 = getHistoricalCellValue(historicalData, 'lot_time', historicalRow);
+        if (inputs[2] && lotTimeVal2 !== undefined && lotTimeVal2 !== null && lotTimeVal2 !== '') {
+            inputs[2].value = lotTimeVal2;
         }
         // Load Page 2 specific data
         const page2Data = [
@@ -1497,12 +1591,62 @@ function loadHistoricalRowData(row, historicalData, historicalRow) {
         ];
         
         page2Data.forEach(({ key, inputIndex }) => {
-            if (historicalData[key] && historicalData[key][rowKey] && inputs[inputIndex]) {
-                inputs[inputIndex].value = historicalData[key][rowKey];
+            const val = getHistoricalCellValue(historicalData, key, historicalRow);
+            if (inputs[inputIndex] && val !== undefined && val !== null && val !== '') {
+                inputs[inputIndex].value = val;
             }
         });
     }
 }
+
+function setupHistoricalDataTrigger() {
+    
+
+    const productCodeInput = document.querySelector('input[name="product_code"]') ||
+                             document.querySelector('#productCodeInput') ||
+                             document.querySelector('input[placeholder*="Product Code"]');
+    const machineInput = document.querySelector('input[name="machine"]') ||
+                         document.querySelector('input[placeholder="Enter Machine"]');
+    const productionDateInput = document.querySelector('input[name="production_date"]') ||
+                                document.querySelector('table input[type="date"]') ||
+                                document.querySelector('input[type="date"]');
+
+    
+
+    if (productCodeInput) {
+        const handler = () => {
+            
+            checkAndLoadHistoricalData();
+        };
+        productCodeInput.addEventListener('input', handler);
+        productCodeInput.addEventListener('change', handler);
+        productCodeInput.addEventListener('blur', handler);
+    }
+    if (machineInput) {
+        const handler = () => {
+            
+            checkAndLoadHistoricalData();
+        };
+        machineInput.addEventListener('input', handler);
+        machineInput.addEventListener('change', handler);
+        machineInput.addEventListener('blur', handler);
+    }
+    if (productionDateInput) {
+        const handler = () => {
+            
+            checkAndLoadHistoricalData();
+        };
+        productionDateInput.addEventListener('input', handler);
+        productionDateInput.addEventListener('change', handler);
+        productionDateInput.addEventListener('blur', handler);
+    }
+
+    // Initial check on page load
+    checkAndLoadHistoricalData();
+}
+
+// Call setupHistoricalDataTrigger when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', setupHistoricalDataTrigger);
 
 
 // ===== AUTO-SAVE TO DATABASE =====
@@ -1536,9 +1680,13 @@ function debouncedSave() {
 
 // Main auto-save function
 async function autoSaveToDatabase() {
+    // Block saving in view mode
+    if (isViewMode()) {
+        return;
+    }
+
     try {
 
-        
         // Get form data
         const formData = await collectFormData();
         
@@ -3575,8 +3723,11 @@ function clearAllConditionalFormatting() {
     const allInputs = document.querySelectorAll('input');
     allInputs.forEach(input => {
         // Remove all conditional formatting classes and styles
-        input.classList.remove('oos-highlight', 'text-red-600', 'bg-red-50', 'border-red-300');
-        input.style.color = '';
+        input.classList.remove('oos-highlight', 'bg-red-50', 'border-red-300');
+        // Preserve red text if already applied by validation
+        if (!input.classList.contains('text-red-600')) {
+            input.style.color = '';
+        }
         input.style.backgroundColor = '';
         input.style.borderColor = '';
         input.style.borderWidth = '';
@@ -4071,6 +4222,18 @@ function triggerSummaryRecalculation() {
 
 }
 
+// Recalculate averages for all rows on Page 1 (compat with calls in historical loader)
+function recalculateAllRowAverages() {
+    try {
+        const tableBody = document.getElementById('testingTableBody');
+        if (!tableBody) return;
+        // Recalculate all page 1 column stats, which also updates summary rows
+        calculatePage1ColumnStats(tableBody);
+    } catch (error) {
+        console.warn('⚠️  recalculateAllRowAverages fallback failed:', error);
+    }
+}
+
 // ===== FORM INITIALIZATION =====
 // Function to update tab order for all rows in a table
 function updateTabOrderForAllRows(tableBody) {
@@ -4332,6 +4495,9 @@ function updateTabOrderForAllRows(tableBody) {
 
         reloadDataForTable(tableBody);
     }
+
+    // Re-apply view mode styling to newly added rows
+    synchronizeViewModeAcrossPages();
        }
 
 // Reload data for a specific table after rows are added
@@ -4482,9 +4648,12 @@ async function reloadDataForTable(tableBody) {
     
     // Force immediate recalculation of ALL summary statistics across all pages
     forceRecalculateAllSummaryStatistics();
-    
+
     // Also use debounced save for efficiency
     debouncedSave();
+
+    // Re-apply view mode styling after deleting rows
+    synchronizeViewModeAcrossPages();
 }
 
 // Load data from database when page loads
@@ -4955,35 +5124,42 @@ function loadRowCountFromDatabase(data) {
 
 // Function to sync sample data changes from Page 1 to Page 2 in real-time (like 16 GSM Kranti)
 function syncSampleDataToOtherPages(rowIndex, columnIndex, newValue) {
-
-    
-    // Get Page 2 table body
+    // Get Page 2 table body (extendable if more pages need syncing)
     const otherTableBodies = [testingTableBody2];
-    
+
     otherTableBodies.forEach(tableBody => {
-        // Get data rows (excluding summary rows)
-        const dataRows = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
+        // Get current data rows (excluding summary rows)
+        let dataRows = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
             const firstCell = row.querySelector('td');
             return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
         });
-        
-        // Update the corresponding row and column
+
+        // If the required row doesn't exist yet, add additional rows so that indices match
+        if (rowIndex >= dataRows.length) {
+            const rowsToAdd = rowIndex + 1 - dataRows.length; // +1 because rowIndex is 0-based
+            if (rowsToAdd > 0) {
+                addRowsToTable(tableBody, rowsToAdd);
+            }
+            // Refresh the reference after adding rows
+            dataRows = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
+                const firstCell = row.querySelector('td');
+                return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
+            });
+        }
+
+        // Update the corresponding row and column, now guaranteed to exist
         if (dataRows[rowIndex]) {
             const inputs = dataRows[rowIndex].querySelectorAll('input');
-            
-            // Page 2 has same sample column structure as Page 1
-            // Page 1: 0=Lot&Roll, 1=RollID, 2=LotTime
-            // Page 2: 0=Lot&Roll, 1=RollID, 2=LotTime (same structure)
+
+            // Page 2 has the same sample column structure as Page 1 (0-Lot&Roll, 1-RollID, 2-LotTime)
             let targetColumnIndex = columnIndex;
-            
-            // Sync sample columns (0, 1, 2) to corresponding columns in Page 2
+
             if (columnIndex <= 2) {
-                targetColumnIndex = columnIndex; // Direct mapping: 0->0, 1->1, 2->2
+                targetColumnIndex = columnIndex; // Direct mapping: 0→0, 1→1, 2→2
             }
-            
+
             if (inputs[targetColumnIndex]) {
                 inputs[targetColumnIndex].value = newValue;
-
             }
         }
     });
@@ -5271,55 +5447,90 @@ function applyStatusStyling(element, statusValue) {
 
 // Load historical data for new form
 async function loadHistoricalDataForNewForm() {
-
     
-    try {
-        const productCodeInput = document.querySelector('input[placeholder="Enter Product Code"]');
-        const machineInput = document.querySelector('input[placeholder="Enter Machine"]');
-        const productionDateInput = document.querySelector('input[type="date"]:nth-of-type(1)');
-        
-        if (!productCodeInput || !machineInput || !productionDateInput) {
 
+    try {
+        const productCodeInput = document.querySelector('input[name="product_code"]') ||
+                                 document.querySelector('#productCodeInput') ||
+                                 document.querySelector('input[placeholder*="Product Code"]');
+        const machineInput = document.querySelector('input[name="machine"]') ||
+                             document.querySelector('input[placeholder="Enter Machine"]');
+        const productionDateInput = document.querySelector('input[name="production_date"]') ||
+                                    document.querySelector('table input[type="date"]') ||
+                                    document.querySelector('input[type="date"]');
+
+        
+
+        if (!productCodeInput || !machineInput || !productionDateInput) {
+            
                 return;
             }
             
         const productCode = productCodeInput.value.trim();
         const machineNo = machineInput.value.trim();
         const productionDate = productionDateInput.value;
+
         
-        console.log('📚 [HISTORICAL] Searching for historical data:', {
-            productCode,
-            machineNo,
-            productionDate
-        });
+
+        
         
         if (!productCode || !machineNo || !productionDate) {
-
-                return;
-            }
             
-        // Query database for historical data
-        const { data, error } = await supabase
+            return;
+        }
+
+        // Calculate previous date (local, avoid UTC shift)
+        const currentDate = new Date(`${productionDate}T00:00:00`);
+        const previousDate = new Date(currentDate);
+        previousDate.setDate(previousDate.getDate() - 1);
+        const previousDateStr = [
+            previousDate.getFullYear(),
+            String(previousDate.getMonth() + 1).padStart(2, '0'),
+            String(previousDate.getDate()).padStart(2, '0')
+        ].join('-');
+
+        
+
+        // First try to find data from previous day with matching criteria
+        
+        const { data: historicalData, error } = await supabase
             .from('214_18_micro_white')
             .select('*')
             .eq('product_code', productCode)
             .eq('machine_no', machineNo)
-            .eq('production_date', productionDate)
+            .eq('production_date', previousDateStr)
             .order('created_at', { ascending: false })
-            .limit(1);
+            .limit(1)
+            .maybeSingle();
+
         
-        if (error) {
-            console.error('📚 [HISTORICAL] Error querying historical data:', error);
+
+        if (error || !historicalData) {
+            
+
+            // If no data for previous date, find most recent form with same product + machine
+            const { data: recentData, error: recentError } = await supabase
+                .from('214_18_micro_white')
+                .select('*')
+                .eq('product_code', productCode)
+                .eq('machine_no', machineNo)
+                .lt('production_date', productionDate)
+                .order('production_date', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (recentError || !recentData) {
+                
                 return;
             }
-            
-        if (data && data.length > 0) {
 
             
-            // Load the historical data into the form
-            await loadHistoricalDataIntoForm(data[0]);
-                } else {
-
+            // Load most recent historical data
+            await loadHistoricalDataIntoForm(recentData);
+        } else {
+            
+            // Load previous day's data
+            await loadHistoricalDataIntoForm(historicalData);
         }
         
     } catch (error) {
@@ -5327,28 +5538,43 @@ async function loadHistoricalDataForNewForm() {
     }
 }
 
-// Load historical data into form
+// Load historical data into form with dynamic row allocation (like 16 GSM Kranti)
 async function loadHistoricalDataIntoForm(historicalData) {
+    console.log('🔍 [HISTORICAL] loadHistoricalDataIntoForm CALLED with data:', {
+        hasHistoricalData: !!historicalData,
+        historicalDataKeys: historicalData ? Object.keys(historicalData) : []
+    });
 
-    
     try {
-        // Load header data
-        loadFormHeaderData(historicalData);
-        
-        // Load equipment data AFTER dropdowns are populated
-        setTimeout(() => {
-            loadEquipmentSelections(historicalData);
-            // Apply equipment highlighting after loading
-            updateEquipmentHighlighting();
-            // Apply OOS validation to all existing inputs (at the same time as equipment loading)
-            applyOOSValidationToAllInputs();
-        }, 500);
-        
-        // Load pre-store data
-        loadPreStoreData(historicalData);
-        
-        // Load table data
-        loadTableDataFromDatabase(historicalData);
+        console.log('🔍 [HISTORICAL] Loading historical data into form...');
+
+        // Get requested rows for fresh data (from user input)
+        const numRowsInput = document.getElementById('numRowsInput');
+        const requestedRows = parseInt(numRowsInput?.value, 10) || 12;
+        const availableForHistorical = 30 - requestedRows;
+
+        console.log(`Loading historical data: ${availableForHistorical} rows for historical, ${requestedRows} rows for fresh data`);
+
+        // Load historical data into top rows (1 to availableForHistorical)
+        loadHistoricalDataIntoTopRows(historicalData, availableForHistorical);
+
+        // Clear bottom rows for fresh data entry
+        clearBottomRowsForFreshData(requestedRows);
+
+        // Calculate statistics immediately after loading historical data
+        console.log('Calculating statistics for historical data...');
+        calculatePage1ColumnStats(testingTableBody);
+        calculatePage2ColumnStats(testingTableBody2);
+        recalculateAllRowAverages();
+        forceRecalculateAllSummaryStatistics();
+
+        // Apply OOS/red-text validation immediately after data population
+        applyOOSValidationToAllInputs();
+        applyValidationToExistingInputs();
+
+        // Auto-save the form with historical data loaded
+        console.log('Auto-saving form with historical data...');
+        await autoSaveToDatabase();
         
 
         
@@ -5491,6 +5717,7 @@ function clearBottomRowsForFreshData(requestedRows) {
 // ===== INITIALIZATION =====
 // Initialize everything when page loads
 document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🎯 [DEBUG] DOMContentLoaded event fired!');
 
     
     // Initialize global table body references FIRST
@@ -5500,9 +5727,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Initialize session variables
     initializeSession();
-    
+
     // Setup view mode
     setupViewMode();
+
+    // Setup historical data loading triggers
+    console.log('🔍 [HISTORICAL] Setting up historical data triggers in DOMContentLoaded...');
+    console.log('🔍 [HISTORICAL] About to call setupHistoricalDataTrigger()...');
+    setupHistoricalDataTrigger();
+    console.log('🔍 [HISTORICAL] setupHistoricalDataTrigger() called successfully!');
     
     // Debug: Check if modern-header-table class is applied
     const headerTable = document.querySelector('.modern-header-table');
@@ -5564,9 +5797,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Load QC equipment dropdowns
     loadQCEquipmentDropdowns();
-    
-    // Setup historical data trigger
-    setupHistoricalDataTrigger();
+
+    // Note: Historical data trigger is already set up in DOMContentLoaded
     
     // Initialize verification functionality
     initializeVerification();
@@ -5691,9 +5923,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         await loadDataFromDatabase();
                 } else {
 
-        
+
     }
-    
+
+    // Apply view mode styling after data is loaded (this is when table inputs exist)
+    setTimeout(() => {
+        synchronizeViewModeAcrossPages();
+    }, 100);
+
+    // Also apply view mode styling for forms without existing data (after initial row setup)
+    setTimeout(() => {
+        synchronizeViewModeAcrossPages();
+    }, 500);
+
     // Initialize row counts
     updateRowCount();
     updateAllRowCounts();

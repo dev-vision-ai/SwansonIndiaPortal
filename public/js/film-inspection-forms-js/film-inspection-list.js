@@ -877,9 +877,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             sessionStorage.setItem('currentFormId', formId);
             sessionStorage.setItem('currentProductCode', productCode);
             
+            // Ensure we are NOT in view mode
+            sessionStorage.removeItem('viewMode');
+            
             // Route to the correct form based on product code
             let targetForm = '';
-            console.log('Routing form for product code:', productCode);
+            console.log('Routing form for product code (ADD DETAILS):', productCode);
             switch(productCode) {
                 case 'APE-168(16)CP(KRANTI)':
                     targetForm = '16-gsm-kranti.html';
@@ -1694,7 +1697,8 @@ window.enterData = function(formId) {
             break;
     }
     
-    window.location.href = targetForm;
+    // Force edit mode explicitly to avoid accidental view-mode via stale params
+    window.location.href = `${targetForm}?mode=edit`;
 };
 
 // Global function to handle Delete button click
