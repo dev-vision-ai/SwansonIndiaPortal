@@ -17,26 +17,6 @@
             overflow-y: auto;
         }
         
-        /* Clock styling for header */
-        .header-clock {
-            display: flex;
-            align-items: center;
-            margin-left: 30px;
-        }
-        
-        .clock-display {
-            font-family: 'Calibri', 'Arial', sans-serif;
-            font-size: 1.2rem;
-            font-weight: 700;
-            background: rgba(255, 255, 255, 0.15);
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: 2px solid rgba(255, 255, 255, 0.25);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            letter-spacing: 1px;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-            color: #FFD700;
-        }
         
         /* Required field styling */
         .required-field {
@@ -70,12 +50,33 @@
         .checkbox-error {
             color: #ef4444 !important;
         }
+        /* Compact clock styling - smaller than header height */
+        .header-clock {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+
+        .clock-display {
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+            letter-spacing: 0.5px;
+            color: #FFD700;
+            min-width: 80px;
+            text-align: center;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
     <div class="header-container">
-        <button type="button" class="header-back-button">Back</button>
-        <div class="header-title">All Inline Inspection Forms</div>
+        <button type="button" class="header-back-button" onclick="window.location.href='inline-inspection-forms-list.html'">Back</button>
+        <div class="header-title">Inline Inspection Form</div>
         <div class="header-clock">
             <div id="currentTime" class="clock-display">Time: --:--:--</div>
         </div>
@@ -241,7 +242,7 @@
                         </div>
                     </div>
                     <div class="flex justify-center mb-3">
-                        <button type="submit" class="inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 mx-auto">
+                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 mx-auto">
                             Create Inline Inspection Form
                         </button>
                     </div>
@@ -256,10 +257,10 @@
     </main>
     <!-- Create Film Inspection Form Button -->
     <div class="flex justify-center w-full mt-32 mb-2 gap-4">
-      <button id="showInspectionFormOverlay" type="button" class="bg-[#002E7D] hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl shadow text-lg transition-all duration-200">
+      <button id="showInspectionFormOverlay" type="button" class="bg-[#002E7D] hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow text-base transition-all duration-200">
         + Create Inline Inspection Form
       </button>
-      <button id="openProductionReport" type="button" class="bg-black hover:bg-gray-800 text-white font-bold py-3 px-8 rounded-xl shadow text-lg transition-all duration-200">
+      <button id="openProductionReport" type="button" class="bg-black hover:bg-gray-800 text-white font-semibold py-2 px-6 rounded-lg shadow text-base transition-all duration-200">
         View All Production Reports
       </button>
     </div>
@@ -277,34 +278,34 @@
             </span>
           </div>
         </div>
-        <div class="flex flex-wrap items-end justify-center gap-3">
+        <div class="flex flex-wrap items-end justify-center gap-2">
           <!-- Date Range -->
           <div class="flex flex-col items-center">
-            <label class="block text-sm font-semibold text-gray-700 mb-1">From Date:</label>
-            <input type="date" id="filterFromDate" class="w-32 h-8 px-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+            <label class="block text-xs font-medium text-gray-700 mb-1">From:</label>
+            <input type="date" id="filterFromDate" class="w-24 h-7 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
           </div>
           <div class="flex flex-col items-center">
-            <label class="block text-sm font-semibold text-gray-700 mb-1">To Date:</label>
-            <input type="date" id="filterToDate" class="w-32 h-8 px-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+            <label class="block text-xs font-medium text-gray-700 mb-1">To:</label>
+            <input type="date" id="filterToDate" class="w-24 h-7 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
           </div>
           <!-- Machine Filter -->
           <div class="flex flex-col items-center">
-            <label class="block text-sm font-semibold text-gray-700 mb-1">M/C No:</label>
-            <select id="filterMachine" class="w-24 h-8 px-2 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+            <label class="block text-xs font-medium text-gray-700 mb-1">M/C:</label>
+            <select id="filterMachine" class="w-20 h-7 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
               <option value="">All</option>
             </select>
           </div>
           <!-- Product Filter -->
           <div class="flex flex-col items-center">
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Product:</label>
-            <select id="filterProduct" class="w-32 h-8 px-2 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+            <label class="block text-xs font-medium text-gray-700 mb-1">Product:</label>
+            <select id="filterProduct" class="w-24 h-7 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
               <option value="">All</option>
             </select>
           </div>
           <!-- Shift Filter -->
           <div class="flex flex-col items-center">
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Shift:</label>
-            <select id="filterShift" class="w-20 h-8 px-2 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+            <label class="block text-xs font-medium text-gray-700 mb-1">Shift:</label>
+            <select id="filterShift" class="w-16 h-7 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
               <option value="">All</option>
               <option value="1">A</option>
               <option value="2">B</option>
@@ -313,37 +314,37 @@
           </div>
           <!-- Operator Filter -->
           <div class="flex flex-col items-center">
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Operator:</label>
-            <select id="filterOperator" class="w-32 h-8 px-2 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+            <label class="block text-xs font-medium text-gray-700 mb-1">Operator:</label>
+            <select id="filterOperator" class="w-24 h-7 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
               <option value="">All</option>
             </select>
           </div>
           <!-- Supervisor Filter -->
           <div class="flex flex-col items-center">
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Supervisor:</label>
-            <select id="filterSupervisor" class="w-36 h-8 px-2 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+            <label class="block text-xs font-medium text-gray-700 mb-1">Supervisor:</label>
+            <select id="filterSupervisor" class="w-28 h-7 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
               <option value="">All</option>
             </select>
           </div>
           <!-- Line Leader Filter -->
           <div class="flex flex-col items-center">
-            <label class="block text-sm font-semibold text-gray-700 mb-1">Line Leader:</label>
-            <select id="filterLineLeader" class="w-40 h-8 px-2 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+            <label class="block text-xs font-medium text-gray-700 mb-1">Line Leader:</label>
+            <select id="filterLineLeader" class="w-28 h-7 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
               <option value="">All</option>
             </select>
           </div>
           <!-- QC Inspector Filter -->
           <div class="flex flex-col items-center">
-            <label class="block text-sm font-semibold text-gray-700 mb-1">QC Inspector:</label>
-            <select id="filterQCInspector" class="w-40 h-8 px-2 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+            <label class="block text-xs font-medium text-gray-700 mb-1">QC Inspector:</label>
+            <select id="filterQCInspector" class="w-28 h-7 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
               <option value="">All</option>
             </select>
           </div>
           <!-- Filter Buttons -->
           <div class="flex flex-col items-center">
-            <div class="h-5"></div> <!-- Spacer to align with inputs -->
-            <div class="flex space-x-2">
-              <button id="clearFilter" class="w-16 h-8 bg-gray-500 text-white text-xs font-semibold rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+            <div class="h-4"></div> <!-- Spacer to align with inputs -->
+            <div class="flex">
+              <button id="clearFilter" class="w-14 h-7 bg-gray-500 text-white text-xs font-medium rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
                 Clear
               </button>
             </div>
@@ -392,5 +393,29 @@
       table tbody tr { border-bottom: 1px solid #d1d5db; }
     </style>
     <script type="module" src="../js/inline-inspection-form.js?v=1.1"></script>
+
+    <script>
+        // Compact clock functionality for header
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const timeString = `${hours}:${minutes}:${seconds}`;
+
+            const timeElement = document.getElementById('currentTime');
+            if (timeElement) {
+                timeElement.textContent = `Time: ${timeString}`;
+            }
+        }
+
+        // Update time every second
+        setInterval(updateTime, 1000);
+
+        // Initialize time on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTime();
+        });
+    </script>
 </body>
 </html>

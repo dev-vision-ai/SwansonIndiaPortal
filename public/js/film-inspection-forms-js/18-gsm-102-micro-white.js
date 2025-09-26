@@ -109,7 +109,7 @@ async function updateVerificationInDatabase(verifierName, verificationDate) {
         
         // Update the database with verification data
         const { data, error } = await supabase
-            .from('168_18c_white_jeddah')
+            .from('102_18c_micro_white')
             .update({
                 verified_by: verifierName,
                 verified_date: verificationDate
@@ -183,7 +183,7 @@ async function checkVerificationStatus() {
         
         // Check if the form is already verified
         const { data, error } = await supabase
-            .from('168_18c_white_jeddah')
+            .from('102_18c_micro_white')
             .select('verified_by, verified_date')
             .eq('form_id', formId)
             .single();
@@ -814,7 +814,7 @@ document.addEventListener('DOMContentLoaded', function() {
                    lot_time: convertColumnToJSONB(testingTableBody, 2),          // Lot Time (HTML column 2)
                    
                    // Page 1: Convert to JSONB arrays for each column
-                   // HTML: Sample No (colspan="3"), Basic Weight (GSM), Thickness, Opacity, COF, Cut Width, Color Delta Unprinted, Color Delta Printed
+                   // HTML: Sample No (colspan="3"), Basic Weight (GSM), Thickness, Opacity, COF Kinetic, Cut Width, Color Delta Unprinted, Color Delta Printed
                    // HTML columns: 0(Sample No), 1(Basic Weight), 2(Thickness), 3(Opacity), 4(COF), 5(Cut Width), 6(Color Unprinted), 7(Color Printed)
                    page1_basis_weight: convertColumnToJSONB(testingTableBody, 3), // Basic Weight (GSM) - HTML column 3
                    page1_thickness: convertColumnToJSONB(testingTableBody, 4),   // Thickness - HTML column 4
@@ -882,14 +882,14 @@ document.addEventListener('DOMContentLoaded', function() {
                    delete updateData.prepared_by; // Remove prepared_by from update to preserve original author
                    
                    result = await supabase
-                       .from('168_18c_white_jeddah')
+                       .from('102_18c_micro_white')
                        .update(updateData)
                        .eq('form_id', currentFormId)
                        .select('form_id');
                } else {
                    // Insert new record
                    result = await supabase
-                       .from('168_18c_white_jeddah')
+                       .from('102_18c_micro_white')
                        .insert([completeData])
                        .select('form_id');
                }
@@ -1697,7 +1697,7 @@ document.addEventListener('DOMContentLoaded', function() {
                  if (currentFormId) {
                      // Load form data directly - no timeout needed
                      const { data, error } = await supabase
-                         .from('168_18c_white_jeddah')
+                         .from('102_18c_micro_white')
                          .select('*')
                          .eq('form_id', currentFormId)
                          .single();
@@ -1761,7 +1761,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Searching for historical data:', { productCode, machineNo, previousDateStr });
                 
                 const { data: historicalData, error } = await supabase
-                    .from('168_18c_white_jeddah')
+                    .from('102_18c_micro_white')
                     .select('*')
                     .eq('product_code', productCode)
                     .eq('machine_no', machineNo)
@@ -1779,7 +1779,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Searching for recent data:', { productCode, machineNo, productionDate });
                     
                     const { data: recentData, error: recentError } = await supabase
-                        .from('168_18c_white_jeddah')
+                        .from('102_18c_micro_white')
                         .select('*')
                         .eq('product_code', productCode)
                         .eq('machine_no', machineNo)
@@ -3284,13 +3284,13 @@ document.addEventListener('DOMContentLoaded', function() {
            
            // Determine which table we're working with based on tableBody ID
            if (tableBody.id === 'testingTableBody2') {
-               // Page 2: Elongation@ Break(%) MD, Force~Tensile Strength@Break(N)MD, Force~Tensile Strength@Break 5% (N)MD
+               // Page 2: Elongation@ Break(%) MD, Force Tensile Strength@Break(N)MD, Force Elongation 5% (N) MD
                // Columns: Sample No (3 cols), Elongation MD (4 cols), Force MD (4 cols), Force 5% MD (4 cols)
                    calculateSubgroupAverage(inputs, 3, 6, 'testingTableBody2'); // Elongation MD: cols 3,4,5 -> Ave at 6
                    calculateSubgroupAverage(inputs, 7, 10, 'testingTableBody2'); // Force MD: cols 7,8,9 -> Ave at 10
                    calculateSubgroupAverage(inputs, 11, 14, 'testingTableBody2'); // Force 5% MD: cols 11,12,13 -> Ave at 14
            } else if (tableBody.id === 'testingTableBody3') {
-               // Page 3: Elongation@ Break (%) CD, Force~Tensile Strength@Break (N) CD, Modulus Fresh @ 2%
+               // Page 3: Elongation@ Break (%) CD, Force-Tensile Strength@Break (N) CD, Modulus Web MD Fresh@2%
                // Columns: Sample No (3 cols), Elongation CD (4 cols), Force CD (4 cols), Modulus (4 cols)
                    calculateSubgroupAverage(inputs, 3, 6, 'testingTableBody3'); // Elongation CD: cols 3,4,5 -> Ave at 6
                    calculateSubgroupAverage(inputs, 7, 10, 'testingTableBody3'); // Force CD: cols 7,8,9 -> Ave at 10
@@ -3344,10 +3344,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Elongation@ Break(%) MD Ave: 3 digits, no decimals (000)
                         formattedValue = Math.round(average).toString();
                     } else if (aveIndex === 10) {
-                        // Force~Tensile Strength@Break(N)MD Ave: 2 digits + 1 decimal (00.0)
+                        // Force Tensile Strength@Break(N)MD Ave: 2 digits + 1 decimal (00.0)
                         formattedValue = average.toFixed(1);
                     } else if (aveIndex === 14) {
-                        // Force~Tensile Strength@Break 5% (N)MD Ave: 1 digit + 1 decimal (0.0)
+                        // Force Elongation 5% (N) MD Ave: 1 digit + 1 decimal (0.0)
                         formattedValue = average.toFixed(1);
                     } else {
                         formattedValue = average.toFixed(3);
@@ -3358,17 +3358,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Elongation@ Break (%) CD Ave: 3 digits, no decimals (000)
                         formattedValue = Math.round(average).toString();
                     } else if (aveIndex === 10) {
-                        // Force~Tensile Strength@Break (N) CD Ave: 1 digit + 1 decimal (0.0)
+                        // Force-Tensile Strength@Break (N) CD Ave: 1 digit + 1 decimal (0.0)
                         formattedValue = average.toFixed(1);
                     } else if (aveIndex === 14) {
-                        // Modulus Fresh @ 2% Ave: 2 digits + 1 decimal (00.0)
+                        // Modulus Web MD Fresh@2% Ave: 2 digits + 1 decimal (00.0)
                         formattedValue = average.toFixed(1);
                     } else {
                         formattedValue = average.toFixed(3);
                     }
                 } else if (tableBodyId === 'testingTableBody4') {
                     // Page 4: Specific formatting
-                    if (aveIndex === 6) {
+                    if (aveIndex === 10) {
                         // Gloss Ave: 1 digit + 1 decimal (0.0)
                         formattedValue = average.toFixed(1);
                     } else {
@@ -5785,7 +5785,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 shouldHighlight = !isNaN(value) && value !== 0 && value !== '' && (value < 16 || value > 20);
                 break;
             case 'thickness':
-                shouldHighlight = !isNaN(value) && value !== 0 && value !== '' && (value < 0.025 || value > 0.035);
+                shouldHighlight = !isNaN(value) && value !== 0 && value !== '' && (value < 0.040 || value > 0.065);
                 break;
             case 'opacity':
                 shouldHighlight = !isNaN(value) && value !== 0 && value !== '' && (value < 45.0 || value > 55.0);
@@ -5803,7 +5803,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 shouldHighlight = !isNaN(value) && value < 9.5;
                 break;
             case 'force5pMD':
-                shouldHighlight = !isNaN(value) && (value < 2.5 || value > 5.5);
+                shouldHighlight = !isNaN(value) && (value < 2.0 || value > 5.0);
                 break;
             // Page 3
             case 'elongationCD':
@@ -5815,7 +5815,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 shouldHighlight = !isNaN(value) && value < 6.5;
                 break;
             case 'modulus':
-                shouldHighlight = !isNaN(value) && (value < 20.0 || value > 40.0);
+                shouldHighlight = !isNaN(value) && (value < 15.0 || value > 35.0);
                 break;
             // Page 4
             case 'colorL':
@@ -5836,7 +5836,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 shouldHighlight = !isNaN(value) && value > 5.00;
                 break;
             case 'gloss':
-                // Gloss specs: T=9.0, U=11.0 - ONLY highlight values above U (no lower limit)
+                // Gloss specs: T=7.0, U=11.0 - ONLY highlight values above U (no lower limit)
                 shouldHighlight = !isNaN(value) && value > 11.0;
                 break;
             // Page 5 - PG Quality System Requirements

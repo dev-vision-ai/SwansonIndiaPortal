@@ -447,12 +447,12 @@
             font-size: 15px !important; /* Match the header font size exactly */
         }
         
-        /* OVERRIDE: Larger font size for populated data cells - MUST be after general rule */
+        /* Reasonable font size for populated data cells - prevents overflow */
         .testing-table.modern-header-table td:nth-child(2),
         .testing-table.modern-header-table td:nth-child(4),
         .testing-table.modern-header-table td:nth-child(6),
         .testing-table.modern-header-table td:nth-child(8) {
-            font-size: 20px !important; /* Larger font size for populated data - OVERRIDE */
+            font-size: 14px !important; /* Reasonable font size for populated data - prevents overflow */
         }
         
         /* Light greyish background for headers in testing parameter tables (Pages 1, 2, 3, 4) */
@@ -761,41 +761,41 @@
             <!-- General Product & Production Information Section -->
             <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">General Product & Production Information</h3>
-                <table class="w-full border-2 border-gray-800 bg-white testing-table modern-header-table" style="font-size: 15px; table-layout: fixed; word-wrap: break-word;">
+                <table class="w-full border-2 border-gray-800 bg-white testing-table modern-header-table" style="font-size: 15px; table-layout: auto; word-wrap: break-word;">
                     <tr>
-                        <td class="border border-gray-800 font-semibold testing-table-cell" style="font-size: 15px; width: 20%; word-wrap: break-word; overflow-wrap: break-word;">Product Code:</td>
-                        <td class="border border-gray-800 testing-table-cell" style="width: 20%; word-wrap: break-word; overflow-wrap: break-word;">
-                            <input type="text" id="productCodeInput" class="w-full testing-input" placeholder="Enter Product Code">
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 20%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">Product Code:</td>
+                        <td class="border border-gray-800 testing-table-cell" style="width: 20%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+                            <input type="text" id="productCodeInput" class="w-full testing-input" placeholder="Enter Product Code" style="white-space: normal;">
                         </td>
-                        <td class="border border-gray-800 font-semibold testing-table-cell" style="font-size: 15px; width: 12%; word-wrap: break-word; overflow-wrap: break-word;">Prod. Order:</td>
-                        <td class="border border-gray-800 testing-table-cell" style="width: 12%; word-wrap: break-word; overflow-wrap: break-word;">
-                            <input type="text" class="w-full testing-input" placeholder="Enter Prod. Order">
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 15%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">Prod. Order:</td>
+                        <td class="border border-gray-800 testing-table-cell" style="width: 15%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+                            <input type="text" class="w-full testing-input" placeholder="Enter Prod. Order" style="white-space: normal;">
                         </td>
-                        <td class="border border-gray-800 font-semibold testing-table-cell" style="font-size: 15px; width: 8%; word-wrap: break-word; overflow-wrap: break-word;">Machine:</td>
-                        <td class="border border-gray-800 testing-table-cell" style="width: 8%; word-wrap: break-word; overflow-wrap: break-word;">
-                            <input type="text" class="w-full testing-input" placeholder="Enter Machine">
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 5%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">Machine:</td>
+                        <td class="border border-gray-800 testing-table-cell" style="width: 5%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+                            <input type="text" class="w-full testing-input" placeholder="Enter Machine" style="white-space: normal;">
                         </td>
-                        <td class="border border-gray-800 font-semibold testing-table-cell" style="font-size: 15px; width: 15%; word-wrap: break-word; overflow-wrap: break-word;">Production Date:</td>
-                        <td class="border border-gray-800 testing-table-cell" style="width: 15%; word-wrap: break-word; overflow-wrap: break-word;">
-                            <input type="date" class="w-full testing-input">
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 10%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">Production Date:</td>
+                        <td class="border border-gray-800 testing-table-cell" style="width: 10%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+                            <input type="date" class="w-full testing-input" style="white-space: normal;">
                         </td>
                     </tr>
                     <tr>
-                        <td class="border border-gray-800 font-semibold testing-table-cell" style="font-size: 15px; width: 20%; word-wrap: break-word; overflow-wrap: break-word;">Specification:</td>
-                        <td class="border border-gray-800 testing-table-cell" style="width: 20%; word-wrap: break-word; overflow-wrap: break-word;">
-                            <input type="text" class="w-full testing-input" placeholder="Enter Specification">
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 20%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">Specification:</td>
+                        <td class="border border-gray-800 testing-table-cell" style="width: 20%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+                            <input type="text" class="w-full testing-input" placeholder="Enter Specification" style="white-space: normal;">
                         </td>
-                        <td class="border border-gray-800 font-semibold testing-table-cell" style="font-size: 15px; width: 12%; word-wrap: break-word; overflow-wrap: break-word;">PO:</td>
-                        <td class="border border-gray-800 testing-table-cell" style="width: 12%; word-wrap: break-word; overflow-wrap: break-word;">
-                            <input type="text" class="w-full testing-input" placeholder="Enter PO" value="N/A">
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 5%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">PO:</td>
+                        <td class="border border-gray-800 testing-table-cell" style="width: 5%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+                            <input type="text" class="w-full testing-input" placeholder="Enter PO" value="N/A" style="white-space: normal;">
                         </td>
-                        <td class="border border-gray-800 font-semibold testing-table-cell" style="font-size: 15px; width: 8%; word-wrap: break-word; overflow-wrap: break-word;">Quantity (Rolls):</td>
-                        <td class="border border-gray-800 testing-table-cell" style="width: 8%; word-wrap: break-word; overflow-wrap: break-word;">
-                            <input type="text" class="w-full testing-input" placeholder="Enter Quantity">
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 12%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">Quantity (Rolls):</td>
+                        <td class="border border-gray-800 testing-table-cell" style="width: 12%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+                            <input type="text" class="w-full testing-input" placeholder="Enter Quantity" style="white-space: normal;">
                         </td>
-                        <td class="border border-gray-800 font-semibold testing-table-cell" style="font-size: 15px; width: 15%; word-wrap: break-word; overflow-wrap: break-word;">Inspection Date:</td>
-                        <td class="border border-gray-800 testing-table-cell" style="width: 15%; word-wrap: break-word; overflow-wrap: break-word;">
-                            <input type="date" class="w-full testing-input">
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 13%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">Inspection Date:</td>
+                        <td class="border border-gray-800 testing-table-cell" style="width: 13%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+                            <input type="date" class="w-full testing-input" style="white-space: normal;">
                         </td>
                     </tr>
 
@@ -829,7 +829,7 @@
                             </tr>
                             <tr class="bg-gray-100">
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Sample No.</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Basis Weight<br>(L-14.00 T-16.00 U-18.00)<br>GSM</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Basic Weight<br>(L-16.00 T-18.00 U-20.00)<br>GSM</th>
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Thickness<br>(L-0.025 T-0.030 U-0.035)<br>mm</th>
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">Opacity<br>(L-45.0 T-50.0 U-55.0)<br>%</th>
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">COF Kinetic<br>(L-0.20 T-0.40 U-0.60)</th>
@@ -885,7 +885,7 @@
                             <tr class="bg-gray-100">
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" rowspan="2" style="font-size: 13px;">Sample No.</th>
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Elongation@ Break(%) MD<br>(L-350 T-450)</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Force~Tensile Strength@Break(N)MD<br>(L-9.0 T-12.0)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Force~Tensile Strength@Break(N)MD<br>(L-9.5 T-13.0)</th>
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Force~Tensile Strength@Break 5% (N)MD<br>(L-2.5 T-4.0 U-5.5)</th>
                             </tr>
                             <tr class="bg-gray-100">
@@ -959,7 +959,7 @@
                             <tr class="bg-gray-100">
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" rowspan="2" style="font-size: 13px;">Sample No.</th>
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Elongation@ Break (%) CD<br>(L-400 T-500)</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Force~Tensile Strength@Break (N) CD<br>(L-6.0 T-9.0)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Force~Tensile Strength@Break (N) CD<br>(L-6.5 T-9.5)</th>
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Modulus Fresh @ 2%<br>(L-20.0 T-30.0 U-40.0) N/cm</th>
                             </tr>
                             <tr class="bg-gray-100">
@@ -1243,7 +1243,7 @@
                     <!-- Approval Form (Disabled for Future Use) -->
                     <div id="approvalForm" class="space-y-2">
                         <div class="text-center mb-2">
-                            <p class="text-sm text-gray-600">Feature disabled - will be enabled in future</p>
+                            <p class="text-sm text-gray-600">Enter Password</p>
                         </div>
                         
                         <div class="space-y-2">

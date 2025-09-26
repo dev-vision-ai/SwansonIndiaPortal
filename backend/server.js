@@ -1133,9 +1133,18 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // Inspection Date (N5) - format as DD/MM/YYYY  
     worksheet.cell('N5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
     
-    // User Name (Prepared by) (B41)
+    // Inspected By (B41)
     worksheet.cell('B41').value(data.prepared_by || 'Unknown User');
-    
+
+    // Inspection Date (B42) - format as DD/MM/YYYY
+    worksheet.cell('B42').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+
+    // Verified By (M41)
+    worksheet.cell('M41').value(data.verified_by || 'Not Verified');
+
+    // Verified Date (M42) - format as DD/MM/YYYY
+    worksheet.cell('M42').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+
     // Film Inspection Form Ref No (O3)
     worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
     
@@ -1346,9 +1355,18 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // Map Page 2 data if Page2 worksheet exists
     const page2Worksheet = workbook.sheet('Page2');
     if (page2Worksheet) {
-      // User Name (Prepared by) (B42)
+      // Inspected By (B42)
       page2Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      
+
+      // Inspection Date (B43) - format as DD/MM/YYYY
+      page2Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+
+      // Verified By (M42)
+      page2Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
+
+      // Verified Date (M43) - format as DD/MM/YYYY
+      page2Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+
       // Film Inspection Form Ref No (O3)
       page2Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
       
@@ -1526,9 +1544,18 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // Map Page 3 data if Page3 worksheet exists
     const page3Worksheet = workbook.sheet('Page3');
     if (page3Worksheet) {
-      // User Name (Prepared by) (B42)
+      // Inspected By (B42)
       page3Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      
+
+      // Inspection Date (B43) - format as DD/MM/YYYY
+      page3Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+
+      // Verified By (M42)
+      page3Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
+
+      // Verified Date (M43) - format as DD/MM/YYYY
+      page3Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+
       // Film Inspection Form Ref No (O3)
       page3Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
       
@@ -1661,9 +1688,18 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // Map Page 4 data if Page4 worksheet exists
     const page4Worksheet = workbook.sheet('Page4');
     if (page4Worksheet) {
-      // User Name (Prepared by) (B42)
+      // Inspected By (B42)
       page4Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      
+
+      // Inspection Date (B43) - format as DD/MM/YYYY
+      page4Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+
+      // Verified By (M42)
+      page4Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
+
+      // Verified Date (M43) - format as DD/MM/YYYY
+      page4Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+
       // Film Inspection Form Ref No (O3)
       page4Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
       
@@ -1824,9 +1860,61 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
               error = null;
               tableName = '168_18c_white_jeddah';
             } else {
-              data = null;
-              error = new Error('Form not found in any table');
-              tableName = null;
+              // Check 214_18_micro_white table
+              const { data: microWhiteData, error: microWhiteError } = await supabase
+                .from('214_18_micro_white')
+                .select('*')
+                .eq('form_id', formId)
+                .single();
+
+              if (!microWhiteError && microWhiteData) {
+                data = microWhiteData;
+                error = null;
+                tableName = '214_18_micro_white';
+              } else {
+                // Check 234_18_micro_white table
+                const { data: microWhite234Data, error: microWhite234Error } = await supabase
+                  .from('234_18_micro_white')
+                  .select('*')
+                  .eq('form_id', formId)
+                  .single();
+
+                if (!microWhite234Error && microWhite234Data) {
+                  data = microWhite234Data;
+                  error = null;
+                  tableName = '234_18_micro_white';
+                } else {
+                  // Check 102_18c_micro_white table
+                  const { data: microWhite102Data, error: microWhite102Error } = await supabase
+                    .from('102_18c_micro_white')
+                    .select('*')
+                    .eq('form_id', formId)
+                    .single();
+
+                  if (!microWhite102Error && microWhite102Data) {
+                    data = microWhite102Data;
+                    error = null;
+                    tableName = '102_18c_micro_white';
+                  } else {
+                    // Check 168_18c_white table (new 168 white product)
+                    const { data: white168Data, error: white168Error } = await supabase
+                      .from('168_18c_white')
+                      .select('*')
+                      .eq('form_id', formId)
+                      .single();
+
+                    if (!white168Error && white168Data) {
+                      data = white168Data;
+                      error = null;
+                      tableName = '168_18c_white';
+                    } else {
+                      data = null;
+                      error = new Error('Form not found in any table');
+                      tableName = null;
+                    }
+                  }
+                }
+              }
             }
           }
         }

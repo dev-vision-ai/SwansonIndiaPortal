@@ -109,7 +109,7 @@ async function updateVerificationInDatabase(verifierName, verificationDate) {
         
         // Update the database with verification data
         const { data, error } = await supabase
-            .from('168_18c_white_jeddah')
+            .from('168_18c_white')
             .update({
                 verified_by: verifierName,
                 verified_date: verificationDate
@@ -183,7 +183,7 @@ async function checkVerificationStatus() {
         
         // Check if the form is already verified
         const { data, error } = await supabase
-            .from('168_18c_white_jeddah')
+            .from('168_18c_white')
             .select('verified_by, verified_date')
             .eq('form_id', formId)
             .single();
@@ -882,14 +882,14 @@ document.addEventListener('DOMContentLoaded', function() {
                    delete updateData.prepared_by; // Remove prepared_by from update to preserve original author
                    
                    result = await supabase
-                       .from('168_18c_white_jeddah')
+                       .from('168_18c_white')
                        .update(updateData)
                        .eq('form_id', currentFormId)
                        .select('form_id');
                } else {
                    // Insert new record
                    result = await supabase
-                       .from('168_18c_white_jeddah')
+                       .from('168_18c_white')
                        .insert([completeData])
                        .select('form_id');
                }
@@ -1697,7 +1697,7 @@ document.addEventListener('DOMContentLoaded', function() {
                  if (currentFormId) {
                      // Load form data directly - no timeout needed
                      const { data, error } = await supabase
-                         .from('168_18c_white_jeddah')
+                         .from('168_18c_white')
                          .select('*')
                          .eq('form_id', currentFormId)
                          .single();
@@ -1761,7 +1761,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Searching for historical data:', { productCode, machineNo, previousDateStr });
                 
                 const { data: historicalData, error } = await supabase
-                    .from('168_18c_white_jeddah')
+                    .from('168_18c_white')
                     .select('*')
                     .eq('product_code', productCode)
                     .eq('machine_no', machineNo)
@@ -1779,7 +1779,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Searching for recent data:', { productCode, machineNo, productionDate });
                     
                     const { data: recentData, error: recentError } = await supabase
-                        .from('168_18c_white_jeddah')
+                        .from('168_18c_white')
                         .select('*')
                         .eq('product_code', productCode)
                         .eq('machine_no', machineNo)

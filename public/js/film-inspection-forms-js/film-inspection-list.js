@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function fetchFilmInspectionForms() {
         try {
             // Fetch data from all tables - INCLUDING CUSTOMER AND OTHER FIELDS
-            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult] = await Promise.all([
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
                     .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
@@ -51,6 +51,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('214_18_micro_white')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .order('created_at', { ascending: false }),
+                supabase
+                    .from('234_18_micro_white')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .order('created_at', { ascending: false }),
+                supabase
+                    .from('102_18c_micro_white')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .order('created_at', { ascending: false }),
+                supabase
+                    .from('168_18c_white')
                     .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
                     .order('created_at', { ascending: false })
             ]);
@@ -71,6 +83,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (microWhiteResult.error) {
                 console.error('Error fetching from 214_18_micro_white:', microWhiteResult.error.message);
             }
+            if (microWhite234Result.error) {
+                console.error('Error fetching from 234_18_micro_white:', microWhite234Result.error.message);
+            }
+            if (microWhite102Result.error) {
+                console.error('Error fetching from 102_18c_micro_white:', microWhite102Result.error.message);
+            }
+            if (white168Result.error) {
+                console.error('Error fetching from 168_18c_white:', white168Result.error.message);
+            }
 
             // Combine data from all tables
             const allData = [
@@ -78,7 +99,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ...(whiteResult.data || []),
                 ...(wwResult.data || []),
                 ...(jeddahResult.data || []),
-                ...(microWhiteResult.data || [])
+                ...(microWhiteResult.data || []),
+                ...(microWhite234Result.data || []),
+                ...(microWhite102Result.data || []),
+                ...(white168Result.data || [])
             ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Sort by creation date, newest first
 
             const data = allData;
@@ -103,6 +127,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.setAttribute('data-production-order', formData.production_order || '');
             row.setAttribute('data-film-insp-form-ref-no', formData.film_insp_form_ref_no || '');
             row.setAttribute('data-lot-no', formData.lot_no || '');
+            row.setAttribute('data-specification', formData.specification || '');
             
             // Serial number based on creation order: latest entry gets highest number
             const serialNumber = data.length - index;
@@ -222,6 +247,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.setAttribute('data-production-order', formData.production_order || '');
             row.setAttribute('data-film-insp-form-ref-no', formData.film_insp_form_ref_no || '');
             row.setAttribute('data-lot-no', formData.lot_no || '');
+            row.setAttribute('data-specification', formData.specification || '');
             // Serial number based on creation order: latest entry gets highest number
             const serialNumber = data.length - index;
             row.innerHTML = `
@@ -490,7 +516,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function fetchPrestoreRefNo(formId) {
         try {
             // Try to fetch from all five tables using .maybeSingle() to avoid errors when no data found
-            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult] = await Promise.all([
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
                     .select('prestore_ref_no')
@@ -515,6 +541,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                     .from('214_18_micro_white')
                     .select('prestore_ref_no')
                     .eq('form_id', formId)
+                    .maybeSingle(),
+                supabase
+                    .from('234_18_micro_white')
+                    .select('prestore_ref_no')
+                    .eq('form_id', formId)
+                    .maybeSingle(),
+                supabase
+                    .from('102_18c_micro_white')
+                    .select('prestore_ref_no')
+                    .eq('form_id', formId)
+                    .maybeSingle(),
+                supabase
+                    .from('168_18c_white')
+                    .select('prestore_ref_no')
+                    .eq('form_id', formId)
                     .maybeSingle()
             ]);
             
@@ -530,6 +571,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 formData = jeddahResult.data;
             } else if (!microWhiteResult.error && microWhiteResult.data) {
                 formData = microWhiteResult.data;
+            } else if (!microWhite234Result.error && microWhite234Result.data) {
+                formData = microWhite234Result.data;
+            } else if (!microWhite102Result.error && microWhite102Result.data) {
+                formData = microWhite102Result.data;
+            } else if (!white168Result.error && white168Result.data) {
+                formData = white168Result.data;
             }
             
             if (!formData) {
@@ -560,7 +607,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (formId) {
                 try {
                     // Try to fetch from all five tables using .maybeSingle() to avoid errors when no data found
-                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult] = await Promise.all([
+                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
                         supabase
                             .from('168_16cp_kranti')
                             .select('*')
@@ -585,6 +632,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                             .from('214_18_micro_white')
                             .select('*')
                             .eq('form_id', formId)
+                            .maybeSingle(),
+                        supabase
+                            .from('234_18_micro_white')
+                            .select('*')
+                            .eq('form_id', formId)
+                            .maybeSingle(),
+                        supabase
+                            .from('102_18c_micro_white')
+                            .select('*')
+                            .eq('form_id', formId)
+                            .maybeSingle(),
+                        supabase
+                            .from('168_18c_white')
+                            .select('*')
+                            .eq('form_id', formId)
                             .maybeSingle()
                     ]);
                     
@@ -600,6 +662,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                         data = jeddahResult.data;
                     } else if (!microWhiteResult.error && microWhiteResult.data) {
                         data = microWhiteResult.data;
+                    } else if (!microWhite234Result.error && microWhite234Result.data) {
+                        data = microWhite234Result.data;
+                    } else if (!microWhite102Result.error && microWhite102Result.data) {
+                        data = microWhite102Result.data;
+                    } else if (!white168Result.error && white168Result.data) {
+                        data = white168Result.data;
                     }
                     
                     if (data) {
@@ -721,7 +789,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     'APE-168(16)C': '168_16c_white',            // Updated to correct table
                     'APE-168(16)CP(KRANTI)': '168_16cp_kranti',  // Keep existing mapping
                     'APE-168(18)C (Jeddah)': '168_18c_white_jeddah', // New Jeddah product
-                    'WHITE-214(18)': '214_18_micro_white' // New 214 Micro White product
+                    'WHITE-214(18)': '214_18_micro_white', // New 214 Micro White product
+                    'WHITE-234(18)': '234_18_micro_white', // New 234 Micro White product
+                    'APE-102(18)C': '102_18c_micro_white', // New 102 Micro White product
+                    'APE-168(18)C': '168_18c_white' // New 168 White product
                 };
                 tableName = productTableMap[preStoreFormData.product_code] || '168_16cp_kranti';
             }
@@ -894,10 +965,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     break;
                 case 'APE-168(18)CP(KRANTI)':
                 case 'APE-168(18)C':
-                    targetForm = '18-gsm-kranti.html'; // Future form
+                    targetForm = '18-gsm-168-white.html'; // New 168 White product
                     break;
                 case 'WHITE-234(18)':
-                    targetForm = 'white-234-18.html'; // Future form
+                    targetForm = '18-gsm-234-micro-white.html'; // New 234 Micro White product
+                    break;
+                case 'APE-102(18)C':
+                    targetForm = '18-gsm-102-micro-white.html'; // New 102 Micro White product
                     break;
                 case 'APE-176(18)CP(LCC+WW)BS':
                     targetForm = '18-gsm-176-WW.html';
@@ -938,8 +1012,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const customer = row.getAttribute('data-customer') || '';
             const productionOrder = row.getAttribute('data-production-order') || '';
             const filmInspFormRefNo = row.getAttribute('data-film-insp-form-ref-no') || '';
-            
-            
+            const specification = row.getAttribute('data-specification') || '';
+
+
             // Open the Edit Film Inspection Form Details modal with populated data
             openEditFilmInspectionFormModal({
                 formId: formId,
@@ -980,7 +1055,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function deleteFormDirectly(formId) {
         try {
             // Try to delete from all five tables
-            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult] = await Promise.all([
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
                     .delete()
@@ -1000,6 +1075,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 supabase
                     .from('214_18_micro_white')
                     .delete()
+                    .eq('form_id', formId),
+                supabase
+                    .from('234_18_micro_white')
+                    .delete()
+                    .eq('form_id', formId),
+                supabase
+                    .from('102_18c_micro_white')
+                    .delete()
                     .eq('form_id', formId)
             ]);
 
@@ -1009,12 +1092,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             const wwSuccess = !wwResult.error;
             const jeddahSuccess = !jeddahResult.error;
             const microWhiteSuccess = !microWhiteResult.error;
-            
-            if (krantiSuccess || whiteSuccess || wwSuccess || jeddahSuccess || microWhiteSuccess) {
+            const microWhite234Success = !microWhite234Result.error;
+            const microWhite102Success = !microWhite102Result.error;
+            const white168Success = !white168Result.error;
+
+            if (krantiSuccess || whiteSuccess || wwSuccess || jeddahSuccess || microWhiteSuccess || microWhite234Success || microWhite102Success || white168Success) {
                 alert('Form deleted successfully!');
                 fetchFilmInspectionForms(); // Refresh the list
             } else {
-                console.error('Error deleting form from all tables:', krantiResult.error, whiteResult.error, wwResult.error, jeddahResult.error, microWhiteResult.error);
+                console.error('Error deleting form from all tables:', krantiResult.error, whiteResult.error, wwResult.error, jeddahResult.error, microWhiteResult.error, microWhite234Result.error, microWhite102Result.error, white168Result.error);
                 alert('Error deleting form: Form not found in any table');
             }
         } catch (error) {
@@ -1109,7 +1195,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (isPasswordCorrect) {
                 // Proceed with deletion from all five tables
-                const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult] = await Promise.all([
+                const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result] = await Promise.all([
                     supabase
                         .from('168_16cp_kranti')
                         .delete()
@@ -1129,6 +1215,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     supabase
                         .from('214_18_micro_white')
                         .delete()
+                        .eq('form_id', currentDeleteFormId),
+                    supabase
+                        .from('234_18_micro_white')
+                        .delete()
+                        .eq('form_id', currentDeleteFormId),
+                    supabase
+                        .from('102_18c_micro_white')
+                        .delete()
                         .eq('form_id', currentDeleteFormId)
                 ]);
 
@@ -1138,12 +1232,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const wwSuccess = !wwResult.error;
                 const jeddahSuccess = !jeddahResult.error;
                 const microWhiteSuccess = !microWhiteResult.error;
-                
-                if (krantiSuccess || whiteSuccess || wwSuccess || jeddahSuccess || microWhiteSuccess) {
+                const microWhite234Success = !microWhite234Result.error;
+            const microWhite102Success = !microWhite102Result.error;
+            const white168Success = !white168Result.error;
+
+            if (krantiSuccess || whiteSuccess || wwSuccess || jeddahSuccess || microWhiteSuccess || microWhite234Success || microWhite102Success || white168Success) {
                     alert('Form deleted successfully!');
                     fetchFilmInspectionForms(); // Refresh the list
                 } else {
-                    console.error('Error deleting form from all tables:', krantiResult.error, whiteResult.error, wwResult.error, jeddahResult.error, microWhiteResult.error);
+                    console.error('Error deleting form from all tables:', krantiResult.error, whiteResult.error, wwResult.error, jeddahResult.error, microWhiteResult.error, microWhite234Result.error, microWhite102Result.error, white168Result.error);
                     alert('Error deleting form: Form not found in any table');
                 }
                 hidePasswordConfirmModal();
@@ -1555,7 +1652,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     });
                     
                     // Try to update in all five tables with film_insp_form_ref_no for ALL tables
-                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult] = await Promise.all([
+                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result] = await Promise.all([
                         supabase
                             .from('168_16cp_kranti')
                             .update(updateData)
@@ -1575,6 +1672,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                         supabase
                             .from('214_18_micro_white')
                             .update(updateData)
+                            .eq('form_id', formId),
+                        supabase
+                            .from('234_18_micro_white')
+                            .update(updateData)
+                            .eq('form_id', formId),
+                        supabase
+                            .from('102_18c_micro_white')
+                            .update(updateData)
                             .eq('form_id', formId)
                     ]);
                     
@@ -1584,8 +1689,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const wwSuccess = !wwResult.error;
                     const jeddahSuccess = !jeddahResult.error;
                     const microWhiteSuccess = !microWhiteResult.error;
-                    
-                    if (!krantiSuccess && !whiteSuccess && !wwSuccess && !jeddahSuccess && !microWhiteSuccess) {
+                    const microWhite234Success = !microWhite234Result.error;
+            const microWhite102Success = !microWhite102Result.error;
+            const white168Success = !white168Result.error;
+
+            if (!krantiSuccess && !whiteSuccess && !wwSuccess && !jeddahSuccess && !microWhiteSuccess && !microWhite234Success && !microWhite102Success && !white168Success) {
                         throw new Error('Form not found in any table');
                     }
                     
@@ -1639,10 +1747,13 @@ window.viewFilmForm = function(formId, productCode) {
             break;
         case 'APE-168(18)CP(KRANTI)':
         case 'APE-168(18)C':
-            targetForm = '18-gsm-kranti.html'; // Future form
+            targetForm = '18-gsm-168-white.html'; // New 168 White product
             break;
         case 'WHITE-234(18)':
-                    targetForm = 'white-234-18.html'; // Future form
+                    targetForm = '18-gsm-234-micro-white.html'; // New 234 Micro White product
+            break;
+        case 'APE-102(18)C':
+                    targetForm = '18-gsm-102-micro-white.html'; // New 102 Micro White product
             break;
         case 'APE-176(18)CP(LCC+WW)BS':
                     targetForm = '18-gsm-176-WW.html';
@@ -1682,6 +1793,9 @@ window.enterData = function(formId) {
             break;
         case 'APE-168(16)C':
             targetForm = '16-gsm-168-white.html';
+            break;
+        case 'APE-168(18)C':
+            targetForm = '18-gsm-168-white.html';
             break;
         case 'APE-176(18)CP(LCC+WW)BS':
             targetForm = '18-gsm-176-WW.html';
@@ -2053,10 +2167,13 @@ window.deleteFilmForm = function(formId) {
                     'APE-168(16)CP(KRANTI)': '168_16cp_kranti',  // Keep existing mapping
                     'APE-176(18)CP(LCC+WW)BS': '176_18cp_ww',    // New 18 GSM 176 WW product
                     'APE-168(18)C (Jeddah)': '168_18c_white_jeddah', // New Jeddah product
-                    'WHITE-214(18)': '214_18_micro_white' // New 214 Micro White product
+                    'WHITE-214(18)': '214_18_micro_white', // New 214 Micro White product
+                    'WHITE-234(18)': '234_18_micro_white', // New 234 Micro White product
+                    'APE-102(18)C': '102_18c_micro_white', // New 102 Micro White product
+                    'APE-168(18)C': '168_18c_white' // New 168 White product
                     // Add more product-specific tables as they are created
                 };
-                
+
                 tableName = productTableMap[data.product_code] || 'prestore_and_film_inspection_form';
             }
 
@@ -2266,7 +2383,7 @@ window.deleteFilmForm = function(formId) {
         // Fetch existing data for the form
         async function fetchFormData() {
             // Try to fetch from all five tables
-            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult] = await Promise.all([
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
                     .select('*')
@@ -2291,6 +2408,16 @@ window.deleteFilmForm = function(formId) {
                     .from('214_18_micro_white')
                     .select('*')
                     .eq('form_id', preStoreFormId)
+                    .maybeSingle(),
+                supabase
+                    .from('234_18_micro_white')
+                    .select('*')
+                    .eq('form_id', preStoreFormId)
+                    .maybeSingle(),
+                supabase
+                    .from('102_18c_micro_white')
+                    .select('*')
+                    .eq('form_id', preStoreFormId)
                     .maybeSingle()
             ]);
 
@@ -2306,6 +2433,10 @@ window.deleteFilmForm = function(formId) {
                 data = jeddahResult.data;
             } else if (!microWhiteResult.error && microWhiteResult.data) {
                 data = microWhiteResult.data;
+            } else if (!microWhite234Result.error && microWhite234Result.data) {
+                data = microWhite234Result.data;
+            } else if (!microWhite102Result.error && microWhite102Result.data) {
+                data = microWhite102Result.data;
             }
 
             if (!data) {
@@ -2424,7 +2555,10 @@ window.deleteFilmForm = function(formId) {
                     'APE-168(16)CP(KRANTI)': '168_16cp_kranti',  // Keep existing mapping
                     'APE-176(18)CP(LCC+WW)BS': '176_18cp_ww',    // New 18 GSM 176 WW product
                     'APE-168(18)C (Jeddah)': '168_18c_white_jeddah', // New Jeddah product
-                    'WHITE-214(18)': '214_18_micro_white' // New 214 Micro White product
+                    'WHITE-214(18)': '214_18_micro_white', // New 214 Micro White product
+                    'WHITE-234(18)': '234_18_micro_white', // New 234 Micro White product
+                    'APE-102(18)C': '102_18c_micro_white', // New 102 Micro White product
+                    'APE-168(18)C': '168_18c_white' // New 168 White product
                     // Add more product-specific tables as they are created
                 };
                 tableName = productTableMap[finalData.product_code] || '168_16cp_kranti';
