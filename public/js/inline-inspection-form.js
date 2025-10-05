@@ -2183,11 +2183,10 @@ window.downloadFormExcel = async function(traceability_code, lot_letter, buttonE
     // Show progress indicator
     showProgressIndicator('Fetching data...');
 
-    // Call the Node.js export server with specific form parameters
-    // Use localhost for IDE testing, Render URL for production
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
-    const exportUrl = `${backendUrl}/export?traceability_code=${encodeURIComponent(traceability_code)}&lot_letter=${encodeURIComponent(lot_letter)}`;
+    // Use Supabase Edge Function for Excel export
+    // This replaces the Node.js server export functionality
+    const supabaseUrl = 'https://ufczydnvscaicygwlmhz.supabase.co';
+    const exportUrl = `${supabaseUrl}/functions/v1/export-inline-inspection?traceability_code=${encodeURIComponent(traceability_code)}&lot_letter=${encodeURIComponent(lot_letter)}`;
 
     // Add timeout for slow connections
     const controller = new AbortController();
@@ -2202,9 +2201,8 @@ window.downloadFormExcel = async function(traceability_code, lot_letter, buttonE
     const response = await fetch(exportUrl, {
       method: 'GET',
       signal: controller.signal,
-      credentials: 'include',
       headers: {
-        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       }
     });
 
