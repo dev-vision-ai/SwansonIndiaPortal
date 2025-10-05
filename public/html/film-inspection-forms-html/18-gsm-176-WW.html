@@ -352,32 +352,25 @@
             max-width: 70px !important;
         }
         
-        /* Page 4 - Parameter columns (remaining 7 columns) - equal width */
+        /* Page 4 - Parameter columns (4 gloss columns) - equal width */
         .page4-table td:nth-child(4), .page4-table th:nth-child(4),
         .page4-table td:nth-child(5), .page4-table th:nth-child(5),
         .page4-table td:nth-child(6), .page4-table th:nth-child(6),
-        .page4-table td:nth-child(7), .page4-table th:nth-child(7),
-        .page4-table td:nth-child(8), .page4-table th:nth-child(8),
-        .page4-table td:nth-child(9), .page4-table th:nth-child(9),
-        .page4-table td:nth-child(10), .page4-table th:nth-child(10) {
-            width: 11.71% !important; /* (100% - 18%) / 7 = 11.71% each */
+        .page4-table td:nth-child(7), .page4-table th:nth-child(7) {
+            width: 13.5% !important; /* Adjusted to increase blank column a bit more */
             min-width: 80px !important;
         }
-        
+
+        /* Page 4 - Blank column (8th column) */
+        .page4-table td:nth-child(8), .page4-table th:nth-child(8) {
+            width: 28% !important;
+            min-width: 130px !important;
+        }
+
         /* Override for merged Sample No. header in Page 4 */
         .page4-table th[colspan="3"][rowspan="2"] {
             width: 18% !important; /* 5.5% + 7% + 5.5% = 18% */
             min-width: 170px !important;
-        }
-        /* Increase width of PG Quality System Requirements column (8th column) */
-        .page4-table td:nth-child(8), .page4-table th:nth-child(8) {
-            width: 25% !important;
-            min-width: 150px !important;
-        }
-        /* Increase width of empty column (9th column) on the right */
-        .page4-table td:nth-child(9), .page4-table th:nth-child(9) {
-            width: 15% !important;
-            min-width: 90px !important;
         }
         
         /* Light orange background for summary rows - ONLY in testing parameter tables */
@@ -1000,7 +993,7 @@
                             <tr class="bg-gray-100">
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" rowspan="2" style="font-size: 13px;">Sample No.</th>
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="4" style="font-size: 13px;">Gloss (Gloss unit)<br>(T-9.0 U-11.0)</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" rowspan="2" style="font-size: 13px;">PG Quality System Requirements<br>Pass=0; Fail=1</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" rowspan="2" style="font-size: 13px;"></th>
                             </tr>
                             <tr class="bg-gray-100">
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px;">1</th>

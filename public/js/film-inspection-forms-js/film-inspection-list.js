@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
-                                            <button onclick="download16GSMKrantiExcel('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
+                                            <button onclick="${formData.product_code === 'APE-168(16)C' ? 'download16GSMWhiteExcel' : (formData.product_code === 'APE-176(18)CP(LCC+WW)BS' ? 'download18GSM176WWExcel' : (formData.product_code === 'WHITE-214(18)' ? 'download214WhiteExcel' : (formData.product_code === 'WHITE-234(18)' ? 'download234WhiteExcel' : 'download16GSMKrantiExcel'))) }('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -217,16 +217,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Example for a search function
     async function searchFilmInspectionForms(searchTerm) {
         // Search across all three tables
-        const [krantiResult, whiteResult, wwResult] = await Promise.all([
+        const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
             supabase.from('168_16cp_kranti').select('*'),
             supabase.from('168_16c_white').select('*'),
-            supabase.from('176_18cp_ww').select('*')
+            supabase.from('176_18cp_ww').select('*'),
+            supabase.from('168_18c_white_jeddah').select('*'),
+            supabase.from('214_18_micro_white').select('*'),
+            supabase.from('234_18_micro_white').select('*'),
+            supabase.from('102_18c_micro_white').select('*'),
+            supabase.from('168_18c_white').select('*')
         ]);
     
         let allData = [];
         if (!krantiResult.error) allData = allData.concat(krantiResult.data);
         if (!whiteResult.error) allData = allData.concat(whiteResult.data);
         if (!wwResult.error) allData = allData.concat(wwResult.data);
+        if (!jeddahResult.error) allData = allData.concat(jeddahResult.data);
+        if (!microWhiteResult.error) allData = allData.concat(microWhiteResult.data);
+        if (!microWhite234Result.error) allData = allData.concat(microWhite234Result.data);
+        if (!microWhite102Result.error) allData = allData.concat(microWhite102Result.data);
+        if (!white168Result.error) allData = allData.concat(white168Result.data);
     
         if (searchTerm) {
             // Filter results based on search term
@@ -296,7 +306,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
-                                            <button onclick="download16GSMKrantiExcel('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
+                                            <button onclick="${formData.product_code === 'APE-168(16)C' ? 'download16GSMWhiteExcel' : (formData.product_code === 'APE-176(18)CP(LCC+WW)BS' ? 'download18GSM176WWExcel' : (formData.product_code === 'WHITE-214(18)' ? 'download214WhiteExcel' : (formData.product_code === 'WHITE-234(18)' ? 'download234WhiteExcel' : 'download16GSMKrantiExcel'))) }('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -1055,7 +1065,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function deleteFormDirectly(formId) {
         try {
             // Try to delete from all five tables
-            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result] = await Promise.all([
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
                     .delete()
@@ -1082,6 +1092,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     .eq('form_id', formId),
                 supabase
                     .from('102_18c_micro_white')
+                    .delete()
+                    .eq('form_id', formId),
+                supabase
+                    .from('168_18c_white')
                     .delete()
                     .eq('form_id', formId)
             ]);
@@ -1195,7 +1209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (isPasswordCorrect) {
                 // Proceed with deletion from all five tables
-                const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result] = await Promise.all([
+                const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
                     supabase
                         .from('168_16cp_kranti')
                         .delete()
@@ -1222,6 +1236,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                         .eq('form_id', currentDeleteFormId),
                     supabase
                         .from('102_18c_micro_white')
+                        .delete()
+                        .eq('form_id', currentDeleteFormId),
+                    supabase
+                        .from('168_18c_white')
                         .delete()
                         .eq('form_id', currentDeleteFormId)
                 ]);
@@ -1330,6 +1348,350 @@ document.addEventListener('DOMContentLoaded', async () => {
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
             downloadBtn.title = 'Download failed';
             
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 3000);
+        }
+    };
+
+    // Function to download 18 GSM 176 WW Excel file (APE-176(18)CP(LCC+WW)BS)
+    window.download18GSM176WWExcel = async function(formId, buttonElement) {
+        // Store original button state immediately
+        const downloadBtn = buttonElement || event.target;
+        const originalContent = downloadBtn.innerHTML;
+        const originalTitle = downloadBtn.title;
+        const originalDisabled = downloadBtn.disabled;
+
+        try {
+            // Show loading state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+            downloadBtn.title = 'Downloading...';
+            downloadBtn.disabled = true;
+
+            // Make API call to download film inspection Excel
+            // Use localhost for IDE testing, Render URL for production
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+            const downloadUrl = `${backendUrl}/export-176-18cp-ww-form?form_id=${encodeURIComponent(formId)}`;
+
+            const response = await fetch(downloadUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Get the blob data
+            const blob = await response.blob();
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            // Get filename from response headers or use default
+            const contentDisposition = response.headers.get('Content-Disposition');
+            console.log('Film inspection Content-Disposition header:', contentDisposition);
+            let filename = `FIF-APE-176(18)CP(LCC+WW)BS-${formId}.xlsx`; // fallback
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                    console.log('Extracted film inspection filename from header:', filename);
+                }
+            } else {
+                console.log('No Content-Disposition header found for film inspection, using fallback filename');
+            }
+            console.log('Final film inspection download filename:', filename);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            // Show success state briefly
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            downloadBtn.title = 'Downloaded!';
+
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 2000);
+
+        } catch (error) {
+            console.error('Error downloading 18 GSM 176 WW Excel:', error);
+
+            // Show error state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            downloadBtn.title = 'Download failed';
+
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 3000);
+        }
+    };
+
+    // Function to download 16 GSM White Excel file (APE-168(16)C)
+    window.download16GSMWhiteExcel = async function(formId, buttonElement) {
+        // Store original button state immediately
+        const downloadBtn = buttonElement || event.target;
+        const originalContent = downloadBtn.innerHTML;
+        const originalTitle = downloadBtn.title;
+        const originalDisabled = downloadBtn.disabled;
+
+        try {
+            // Show loading state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+            downloadBtn.title = 'Downloading...';
+            downloadBtn.disabled = true;
+
+            // Make API call to download film inspection Excel
+            // Use localhost for IDE testing, Render URL for production
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+            const downloadUrl = `${backendUrl}/export-168-16c-white-form?form_id=${encodeURIComponent(formId)}`;
+
+            const response = await fetch(downloadUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Get the blob data
+            const blob = await response.blob();
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            // Get filename from response headers or use default
+            const contentDisposition = response.headers.get('Content-Disposition');
+            console.log('Film inspection Content-Disposition header:', contentDisposition);
+            let filename = `FIF-APE-168(16)C-${formId}.xlsx`; // fallback
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                    console.log('Extracted film inspection filename from header:', filename);
+                }
+            } else {
+                console.log('No Content-Disposition header found for film inspection, using fallback filename');
+            }
+            console.log('Final film inspection download filename:', filename);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            // Show success state briefly
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            downloadBtn.title = 'Downloaded!';
+
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 2000);
+
+        } catch (error) {
+            console.error('Error downloading 16 GSM White Excel:', error);
+
+            // Show error state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            downloadBtn.title = 'Download failed';
+
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 3000);
+        }
+    };
+
+    // Function to download 214 18 White Excel file (WHITE-214(18))
+    window.download214WhiteExcel = async function(formId, buttonElement) {
+        // Store original button state immediately
+        const downloadBtn = buttonElement || event.target;
+        const originalContent = downloadBtn.innerHTML;
+        const originalTitle = downloadBtn.title;
+        const originalDisabled = downloadBtn.disabled;
+
+        try {
+            // Show loading state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+            downloadBtn.title = 'Downloading...';
+            downloadBtn.disabled = true;
+
+            // Make API call to download film inspection Excel
+            // Use localhost for IDE testing, Render URL for production
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+            const downloadUrl = `${backendUrl}/export-214-18-micro-white-form?form_id=${encodeURIComponent(formId)}`;
+
+            const response = await fetch(downloadUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Get the blob data
+            const blob = await response.blob();
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            // Get filename from response headers or use default
+            const contentDisposition = response.headers.get('Content-Disposition');
+            console.log('Film inspection Content-Disposition header:', contentDisposition);
+            let filename = `FIF-WHITE-214(18)-${formId}.xlsx`; // fallback
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                    console.log('Extracted film inspection filename from header:', filename);
+                }
+            } else {
+                console.log('No Content-Disposition header found for film inspection, using fallback filename');
+            }
+            console.log('Final film inspection download filename:', filename);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            // Show success state briefly
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            downloadBtn.title = 'Downloaded!';
+
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 2000);
+
+        } catch (error) {
+            console.error('Error downloading 214 18 White Excel:', error);
+
+            // Show error state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            downloadBtn.title = 'Download failed';
+
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 3000);
+        }
+    };
+
+    // Function to download 234 18 White Excel file (WHITE-234(18))
+    window.download234WhiteExcel = async function(formId, buttonElement) {
+        // Store original button state immediately
+        const downloadBtn = buttonElement || event.target;
+        const originalContent = downloadBtn.innerHTML;
+        const originalTitle = downloadBtn.title;
+        const originalDisabled = downloadBtn.disabled;
+
+        try {
+            // Show loading state immediately
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+            downloadBtn.title = 'Downloading...';
+            downloadBtn.disabled = true;
+
+            // Make API call to download film inspection Excel
+            // Use localhost for IDE testing, Render URL for production
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+            const downloadUrl = `${backendUrl}/export-234-18-micro-white-form?form_id=${encodeURIComponent(formId)}`;
+
+            const response = await fetch(downloadUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Get the blob from response
+            const blob = await response.blob();
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            // Get filename from response headers or use default
+            const contentDisposition = response.headers.get('Content-Disposition');
+            console.log('234 White Content-Disposition header:', contentDisposition);
+            let filename = `Film Inspection Form-${formId}.xlsx`; // fallback
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                    console.log('Extracted 234 White filename from header:', filename);
+                }
+            } else {
+                console.log('No Content-Disposition header found for 234 White, using fallback filename');
+            }
+            console.log('Final 234 White download filename:', filename);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            // Show success state briefly
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            downloadBtn.title = 'Downloaded!';
+
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 2000);
+
+        } catch (error) {
+            console.error('Error downloading 234 18 White Excel:', error);
+
+            // Show error state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            downloadBtn.title = 'Download failed';
+
             // Reset button after 3 seconds
             setTimeout(() => {
                 downloadBtn.innerHTML = originalContent;
@@ -1652,7 +2014,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     });
                     
                     // Try to update in all five tables with film_insp_form_ref_no for ALL tables
-                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result] = await Promise.all([
+                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
                         supabase
                             .from('168_16cp_kranti')
                             .update(updateData)
@@ -1680,6 +2042,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                         supabase
                             .from('102_18c_micro_white')
                             .update(updateData)
+                            .eq('form_id', formId),
+                        supabase
+                            .from('168_18c_white')
+                            .update(updateData)
                             .eq('form_id', formId)
                     ]);
                     
@@ -1690,10 +2056,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const jeddahSuccess = !jeddahResult.error;
                     const microWhiteSuccess = !microWhiteResult.error;
                     const microWhite234Success = !microWhite234Result.error;
-            const microWhite102Success = !microWhite102Result.error;
-            const white168Success = !white168Result.error;
+                    const microWhite102Success = !microWhite102Result.error;
+                    const white168Success = !white168Result.error;
 
-            if (!krantiSuccess && !whiteSuccess && !wwSuccess && !jeddahSuccess && !microWhiteSuccess && !microWhite234Success && !microWhite102Success && !white168Success) {
+                    if (!krantiSuccess && !whiteSuccess && !wwSuccess && !jeddahSuccess && !microWhiteSuccess && !microWhite234Success && !microWhite102Success && !white168Success) {
                         throw new Error('Form not found in any table');
                     }
                     

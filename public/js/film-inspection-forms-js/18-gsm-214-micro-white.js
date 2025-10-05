@@ -516,13 +516,20 @@ function synchronizeViewModeAcrossPages() {
                 } else {
                     // For edit mode, allow inputs to be editable except certain columns that must remain read-only
                     let keepReadOnly = false;
-                    if (tableBody.id === 'testingTableBody2') {
-                        // Determine the column index for this input (0-based)
-                        const cell = input.closest('td');
-                        if (cell) {
-                            const colIndex = Array.from(cell.parentElement.children).indexOf(cell);
+
+                    // Determine the column index for this input (0-based)
+                    const cell = input.closest('td');
+                    if (cell) {
+                        const colIndex = Array.from(cell.parentElement.children).indexOf(cell);
+
+                        if (tableBody.id === 'testingTableBody2') {
                             // Sample columns Lot & Roll, Roll ID, Lot Time correspond to indices 0,1,2
                             if (colIndex >= 0 && colIndex <= 2) {
+                                keepReadOnly = true;
+                            }
+                        } else if (tableBody.id === 'testingTableBody') {
+                            // Modulus average column (column 10) must always remain read-only
+                            if (colIndex === 10) {
                                 keepReadOnly = true;
                             }
                         }
@@ -3153,16 +3160,16 @@ function applyValidationToExistingInputs() {
                 if (inputs[4]) applyFlexibleTwoDecimalValidation(inputs[4]);
                 // Force-elongation-CD column (index 5) - 0.00 format
                 if (inputs[5]) applyOneDigitTwoDecimalValidation(inputs[5]);
-                // Force-Tensile-CD column (index 6) - 00.00 format
-                if (inputs[6]) applyTwoDigitTwoDecimalValidation(inputs[6]);
+                // Force-Tensile-CD column (index 6) - flexible format (9.00 or 12.00, no leading zeros)
+                if (inputs[6]) applyFlexibleTwoDecimalValidation(inputs[6]);
                 // Colour L column (index 7) - 00.0 format
                 if (inputs[7]) applyTwoDigitOneDecimalValidation(inputs[7]);
                 // Colour A column (index 8) - 0.0 format (negative values)
                 if (inputs[8]) applyOneDigitOneDecimalValidation(inputs[8]);
                 // Colour B column (index 9) - 0.0 format (negative values)
                 if (inputs[9]) applyOneDigitOneDecimalValidation(inputs[9]);
-                // Delta E column (index 10) - 00.00 format
-                if (inputs[10]) applyTwoDigitTwoDecimalValidation(inputs[10]);
+                // Delta E column (index 10) - flexible format (9.00 or 12.00, no leading zeros)
+                if (inputs[10]) applyFlexibleTwoDecimalValidation(inputs[10]);
                 
                 // Calculate summary statistics for existing data on page load
                 calculatePage2ColumnStats(testingTableBody2);
@@ -4412,8 +4419,8 @@ function updateTabOrderForAllRows(tableBody) {
                         // Force-Tensile-MD column - flexible format (9.00 or 12.00, no leading zeros)
                         applyFlexibleTwoDecimalValidation(input);
                     } else if (j === 6) {
-                        // Force-Tensile-CD column - 00.00 format
-                        applyTwoDigitTwoDecimalValidation(input);
+                        // Force-Tensile-CD column - flexible format (9.00 or 12.00, no leading zeros)
+                        applyFlexibleTwoDecimalValidation(input);
                     } else if (j === 7) {
                         // Colour L column - 00.0 format
                         applyTwoDigitOneDecimalValidation(input);
@@ -4421,8 +4428,8 @@ function updateTabOrderForAllRows(tableBody) {
                         // Colour A and Colour B columns - 0.0 format (negative values)
                         applyOneDigitOneDecimalValidation(input);
                     } else if (j === 10) {
-                        // Delta E column - 00.00 format
-                        applyTwoDigitTwoDecimalValidation(input);
+                        // Delta E column - flexible format (9.00 or 12.00, no leading zeros)
+                        applyFlexibleTwoDecimalValidation(input);
                     }
                 }
             }

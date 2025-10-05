@@ -846,12 +846,11 @@ document.addEventListener('DOMContentLoaded', function() {
                    page3_modulus_3: convertColumnToJSONB(testingTableBody3, 13),          // Modulus 3 - HTML column 13
                    
                    // Page 4: Convert to JSONB arrays for each column
-                   // HTML: Sample No (colspan="3"), Gloss (colspan="3"), PG Quality
-                   // HTML columns: 0(Sample No), 1(Gloss1), 2(Gloss2), 3(Gloss3), 4(PG Quality)
+                   // HTML: Sample No (colspan="3"), Gloss (colspan="4"), blank
+                   // HTML columns: 0(Sample No), 1(Gloss1), 2(Gloss2), 3(Gloss3), 4(GlossAve), 5(blank)
                            page4_gloss_1: convertColumnToJSONB(testingTableBody4, 3),            // Gloss 1 - HTML column 3
         page4_gloss_2: convertColumnToJSONB(testingTableBody4, 4),            // Gloss 2 - HTML column 4
         page4_gloss_3: convertColumnToJSONB(testingTableBody4, 5),            // Gloss 3 - HTML column 5
-        page4_pg_quality: convertColumnToJSONB(testingTableBody4, 7),         // PG Quality - HTML column 7
                };
                
                // Get equipment selections
@@ -1944,7 +1943,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     inputs[2].value = historicalData.lot_time[rowKey];
                 }
                 // Page 4 specific data - Correct input indices based on HTML structure
-                // HTML columns: 0(Sample No), 1(Roll ID), 2(Lot Time), 3(Gloss1), 4(Gloss2), 5(Gloss3), 6(GlossAve), 7(PG Quality)
+                // HTML columns: 0(Sample No), 1(Roll ID), 2(Lot Time), 3(Gloss1), 4(Gloss2), 5(Gloss3), 6(GlossAve), 7(blank)
                 if (historicalData.page4_gloss_1 && historicalData.page4_gloss_1[rowKey] && inputs[3]) {
                     inputs[3].value = historicalData.page4_gloss_1[rowKey];
                 }
@@ -1953,9 +1952,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 if (historicalData.page4_gloss_3 && historicalData.page4_gloss_3[rowKey] && inputs[5]) {
                     inputs[5].value = historicalData.page4_gloss_3[rowKey];
-                }
-                if (historicalData.page4_pg_quality && historicalData.page4_pg_quality[rowKey] && inputs[7]) {
-                    inputs[7].value = historicalData.page4_pg_quality[rowKey];
                 }
             }
         }
@@ -2065,7 +2061,6 @@ document.addEventListener('DOMContentLoaded', function() {
                      if (dbData.page4_gloss_1) loadColumnDataToTable(testingTableBody4, 3, dbData.page4_gloss_1);
         if (dbData.page4_gloss_2) loadColumnDataToTable(testingTableBody4, 4, dbData.page4_gloss_2);
         if (dbData.page4_gloss_3) loadColumnDataToTable(testingTableBody4, 5, dbData.page4_gloss_3);
-        if (dbData.page4_pg_quality) loadColumnDataToTable(testingTableBody4, 7, dbData.page4_pg_quality);
              
              // Populate Sample Identification columns across ALL pages (Page 1 editable, others uneditable)
              populateSampleColumnsAcrossAllPages(dbData);
@@ -2866,6 +2861,10 @@ document.addEventListener('DOMContentLoaded', function() {
                        }
                        
                        td.appendChild(input);
+                   } else if (tableBody.id === 'testingTableBody4' && j === 7) {
+                       // Page 4, Column 8: Blank column - no input field, just empty cell
+                       td.innerHTML = '';
+                       td.style.backgroundColor = 'transparent';
                    } else {
                        // Other columns: Input fields
                        const input = document.createElement('input');

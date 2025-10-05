@@ -516,13 +516,20 @@ function synchronizeViewModeAcrossPages() {
                 } else {
                     // For edit mode, allow inputs to be editable except certain columns that must remain read-only
                     let keepReadOnly = false;
-                    if (tableBody.id === 'testingTableBody2') {
-                        // Determine the column index for this input (0-based)
-                        const cell = input.closest('td');
-                        if (cell) {
-                            const colIndex = Array.from(cell.parentElement.children).indexOf(cell);
+
+                    // Determine the column index for this input (0-based)
+                    const cell = input.closest('td');
+                    if (cell) {
+                        const colIndex = Array.from(cell.parentElement.children).indexOf(cell);
+
+                        if (tableBody.id === 'testingTableBody2') {
                             // Sample columns Lot & Roll, Roll ID, Lot Time correspond to indices 0,1,2
                             if (colIndex >= 0 && colIndex <= 2) {
+                                keepReadOnly = true;
+                            }
+                        } else if (tableBody.id === 'testingTableBody') {
+                            // Modulus average column (column 10) must always remain read-only
+                            if (colIndex === 10) {
                                 keepReadOnly = true;
                             }
                         }
@@ -2600,16 +2607,8 @@ function formatTwoDigitTwoDecimalOnEnter(input) {
         return;
     }
     
-    // Format to 2 decimal places and ensure 2 digits before decimal
-    const formatted = numValue.toFixed(2);
-    const parts = formatted.split('.');
-    
-    // Ensure 2 digits before decimal
-    if (parts[0].length === 1) {
-        parts[0] = '0' + parts[0];
-    }
-    
-    input.value = parts[0] + '.' + parts[1];
+    // Format to 2 decimal places (don't force leading zeros)
+    input.value = numValue.toFixed(2);
 }
 
 function formatTwoDigitOneDecimalOnEnter(input) {
@@ -2630,16 +2629,8 @@ function formatTwoDigitOneDecimalOnEnter(input) {
         return;
     }
     
-    // Format to 2 decimal places and ensure 2 digits before decimal
-    const formatted = numValue.toFixed(1);
-    const parts = formatted.split('.');
-    
-    // Ensure 2 digits before decimal
-    if (parts[0].length === 1) {
-        parts[0] = '0' + parts[0];
-    }
-    
-    input.value = parts[0] + '.' + parts[1];
+    // Format to 1 decimal place (don't force leading zeros)
+    input.value = numValue.toFixed(1);
 }
 
 function formatOneDigitOneDecimalOnEnter(input) {
