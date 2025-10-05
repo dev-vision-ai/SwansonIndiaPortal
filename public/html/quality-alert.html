@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quality Alert Form</title>
+    <link rel="stylesheet" href="../css/quality-alert.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <main>
+        <section class="incident-section auth-form">
+            <div class="header-container">
+                <div class="header-title">Quality Alert Form</div>
+            </div>
+            <div class="container">
+                <form id="qualityAlertForm">
+                    <div class="form-group">
+                        <label for="incidentTitle">Incident Name:</label>
+                        <textarea id="incidentTitle" placeholder="Enter incident title" rows="1"></textarea>
+                    </div>
+                    <div class="split-container">
+                        <div class="split-item form-group">
+                            <label for="incidentDate">Date of Occurrence:</label>
+                            <input type="date" id="incidentDate">
+                        </div>
+                        <div class="split-item form-group">
+                            <label for="incidentTime">Time of Occurrence:</label>
+                            <input type="time" id="incidentTime">
+                        </div>
+                    </div>
+                    <div class="split-container">
+                        <div class="split-item form-group">
+                            <label for="responsibleDept">Responsible Dept. for Incident:</label>
+                            <select id="responsibleDept">
+                                <option>Select Department</option>
+                                <option>Production</option>
+                                <option>Quality Control</option>
+                                <option>Administration</option>
+                                <option>Quality Assurance</option>
+                                <option>Sales</option>
+                                <option>Human Resource</option>
+                                <option>Warehouse</option>
+                                <option>Logistics</option>
+                                <option>Purchase</option>
+                                <option>Maintenance</option>
+                            </select>
+                        </div>
+                        <div class="split-item form-group">
+                            <label for="locationArea">Location Occured / Machine:</label>
+                            <input type="text" id="locationArea" placeholder="Enter location">
+                        </div>
+                    </div>
+                    
+                    <div class="split-container">
+                        <div class="split-item form-group">
+                            <label for="abnormalityType">Type of Abnormality:</label>
+                            <select id="abnormalityType" required>
+                                <option value="">Select Type</option>
+                                <option value="Safety">Safety</option>
+                                <option value="Personal">Personal</option>
+                                <option value="Raw/Sub Material">Raw/Sub Material</option>
+                                <option value="Documents/Records">Documents/Records</option>
+                                <option value="SOP Deviation">SOP Deviation</option>
+                                <option value="Packing Material">Packing Material</option>
+                                <option value="Insects/Pests">Insects/Pests</option>
+                                <option value="Machine/Equipment">Machine/Equipment</option>
+                                <option value="Semi/Finished Goods">Semi/Finished Goods</option>
+                                <option value="Environment/ Facility">Environment/ Facility</option>
+                                <option value="Process">Process</option>
+                                <option value="Labelling">Labelling</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="split-item form-group">
+                            <label for="qualityRisk">Potential Quality Risk:</label>
+                            <select id="qualityRisk">
+                                <option value="">Select Risk</option>
+                                <option value="Poor Appearance">Poor Appearance</option>
+                                <option value="Print defect">Print defect</option>
+                                <option value="MP Changes">MP Changes</option>
+                                <option value="Damage">Damage</option>
+                                <option value="Contamination">Contamination</option>
+                                <option value="Injury/ Hazardous">Injury/ Hazardous</option>
+                                <option value="MMM">MMM</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="keptInViewContainer" style="display: none;">
+                        <div class="form-group">
+                            <label for="keptInView">Kept in View?</label>
+                            <select id="keptInView" name="keptInView" required>
+                                <option value="">Select</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="incidentDescriptionDetails" style="display: block;">
+                        <div class="form-group" id="incidentDescriptionContainer">
+                            <label for="incidentDesc">Incident / Defect Description:</label>
+                            <textarea id="incidentDesc" class="form-control" placeholder="Describe the incident"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Container for Product Specific Details (Initially Hidden) -->
+                    <div id="productDetailsContainer" style="display: none;">
+                        <!-- --- ADDED Shift Dropdown --- -->
+                        <div class="form-group">
+                            <label for="shift">Shift:</label>
+                            <select id="shift" class="form-control">
+                                <option value="">Select Shift</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="G">G</option>
+                            </select>
+                        </div>
+                        <!-- --- End of Addition --- -->
+
+                        <div class="form-group">
+                            <label for="productCode">Product Code:</label>
+                            <input type="text" id="productCode" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="rollID">Roll ID:</label>
+                            <input type="text" id="rollID" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="lotNo">Lot No:</label>
+                            <input type="text" id="lotNo" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="rollPositions">Roll Positions:</label>
+                            <input type="text" id="rollPositions" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="lotTime">Lot Time:</label>
+                            <input type="time" id="lotTime" class="form-control">
+                        </div>
+                    </div>
+
+                    <!-- Always show Immediate Action Taken section -->
+                    <div id="actionFieldsContainer">
+                        <div class="immediate-action-row">
+                            <div class="form-group">
+                                <label for="actionTaken">Immediate Action</label>
+                                <textarea id="actionTaken" placeholder="Describe action"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="whoAction">Who:</label>
+                                <textarea id="whoAction" placeholder="Enter name"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="whenActionDate">When:</label>
+                                <textarea id="whenActionDate" placeholder="Enter date"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="statusAction">Status:</label>
+                                <textarea id="statusAction" placeholder="Enter status"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="imageUploadContainer">
+                        <label for="imageUpload">
+                            <button type="button" id="chooseImageBtn" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                <i class="fas fa-camera"></i> Choose Images/Files
+                            </button>
+                        </label>
+                        <input type="file" id="imageUpload" accept="image/*" multiple style="display: none;">
+                        <div id="imagePreviews" style="text-align: center;"></div>
+                    </div>
+                    <div class="button-container">
+                        <button type="submit" class="submit-btn">Submit</button>
+                        <button type="button" id="saveAsDraft" class="draft-btn btn btn-secondary">Save as Draft</button>
+                    </div>
+                </form>
+                <div class="submission-message-overlay"></div>
+                <div class="submission-message"></div>
+            </div>
+        </section>
+    </main>
+<script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.0/dist/browser-image-compression.js"></script>
+<script type="module" src="../js/quality-alert.js"></script>
+</body>
+</html>

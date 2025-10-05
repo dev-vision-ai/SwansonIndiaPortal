@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="description" content="Fire Extinguisher Inspection Form - Swanson Plastics India - Public Access">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Fire Extinguisher Inspection Form - Swanson Plastics India</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="../css/employee-dashboard.css">
+  <link rel="stylesheet" href="../css/common-header.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { 
+      font-family: 'Roboto', sans-serif; 
+      font-weight: 500; 
+    }
+    
+    main {
+      margin-top: 100px;
+      padding: 0 20px;
+      width: 100%;
+    }
+    
+    .container {
+      padding: 0 !important;
+      margin: 0 !important;
+      max-width: none !important;
+      width: 100% !important;
+    }
+
+
+
+    /* Status badges */
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-active {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-expired {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-service-due {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-no-inspection {
+      background-color: #f3f4f6;
+      color: #374151;
+    }
+
+    /* Form input focus styles */
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #000 !important;
+      box-shadow: 0 0 0 3px rgba(0, 46, 125, 0.1) !important;
+    }
+
+    /* Button hover effects - removed for back button */
+    button[type="submit"]:hover {
+      background: linear-gradient(135deg, #1e40af 0%, #000 100%) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 46, 125, 0.3);
+    }
+
+    button[type="submit"]:hover {
+      background: linear-gradient(135deg, #1e40af 0%, #000 100%) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 46, 125, 0.3);
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+      }
+      
+      div[style*="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))"] {
+        grid-template-columns: 1fr !important;
+      }
+      
+      /* Mobile optimizations for QR code access */
+      main {
+        margin-top: 60px;
+        padding: 0 10px;
+      }
+      
+      .header-container {
+        padding: 10px 15px;
+      }
+      
+      .header-title {
+        font-size: 18px;
+      }
+      
+      /* Optimize table for mobile viewing */
+      table {
+        font-size: 12px;
+      }
+      
+      th, td {
+        padding: 6px 4px !important;
+      }
+    }
+    
+    /* QR Code Access Optimizations */
+    @media (max-width: 480px) {
+      /* Extra small screens - typical QR code access */
+      main {
+        margin-top: 50px;
+        padding: 0 5px;
+      }
+      
+      .header-title {
+        font-size: 16px;
+      }
+      
+      /* Ensure form is readable on small screens */
+      table {
+        font-size: 11px;
+      }
+      
+      th, td {
+        padding: 4px 2px !important;
+      }
+    }
+
+
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <main>
+      <div class="container page-fade-in">
+                 <div class="header-container header-fade-in">
+           <div class="left-section">
+             <div class="user-info">
+               <!-- Back button only shows if user is authenticated -->
+               <button type="button" class="header-back-button" id="backButton" onclick="window.location.href='fire-extinguisher-mgmt.html'" style="display: none;">Back</button>
+             </div>
+           </div>
+           <div class="header-title">Fire Extinguisher Inspection Form</div>
+           <div class="company-logo">
+             <img src="../assets/logo.png" alt="Company Logo" class="auth-logo">
+           </div>
+         </div>
+
+         <!-- Download QR Code Button -->
+         <div id="qrDownloadContainer" style="text-align: right; margin: 2px 0 0 0;">
+           <button id="qrDownloadButton" onclick="downloadQRCode()" style="background: #002E7D; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+             <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+               <path d="M3 3h6v6H3V3zm2 2v2h2V5H5zm8-2h6v6h-6V3zm2 2v2h2V5h-2zM3 11h6v6H3v-6zm2 2v2h2v-2H5zm8 2h2v2h-2v-2zm4 0h2v2h-2v-2zm-4-4h2v2h-2V9zm4 0h2v2h-2V9zm-4-4h2v2h-2V5zm4 0h2v2h-2V5z"/>
+             </svg>
+             Download QR
+           </button>
+         </div>
+
+         <!-- Fire Extinguisher Inspection Log Table -->
+         <div style="max-width: 1400px; margin: 2px auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: relative;">
+           
+           <!-- Document Identifier and Effective Date -->
+           <div style="position: absolute; top: 20px; right: 20px; background: white; padding: 8px 12px; font-size: 10px; line-height: 1.2;">
+             <div style="text-align: right; color: #000;">FWI-GA01-01</div>
+             <div style="border-top: 1px solid #e5e7eb; margin-top: 4px; padding-top: 4px; text-align: right; color: #000; font-style: italic;">Eff. Date: 01/08/2017</div>
+           </div>
+           
+           <!-- Top Header Section - Fire Extinguisher General Details -->
+           <div style="margin-bottom: 30px;">
+              <!-- Company Header Banner -->
+              <div style="background: white; padding: 20px; text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 24px; font-weight: 700; color: #000; margin-bottom: 8px;">SWANSON PLASTICS (I) PRIVATE LIMITED</div>
+                <div style="font-size: 18px; font-weight: 400; color: #000;">Fire Extinguisher Inspection Form</div>
+              </div>
+              
+              <!-- Fire Extinguisher Details Table -->
+             <div style="overflow-x: auto; margin-bottom: 20px;">
+               <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; table-layout: fixed;">
+                 <!-- Row 1 -->
+                 <tr>
+                   <td style="border: 1px solid #000; padding: 8px; font-weight: 600; font-size: 16px; background-color: #f0f0f0;">Type of Extinguisher:</td>
+                   <td style="border: 1px solid #000; padding: 8px; height: 40px; font-size: 16px;"></td>
+                   <td style="border: 1px solid #000; padding: 8px; font-weight: 600; font-size: 16px; background-color: #f0f0f0;">Fire Extinguisher No.:</td>
+                   <td style="border: 1px solid #000; padding: 8px; height: 40px; font-size: 16px;"></td>
+                   <td style="border: 1px solid #000; padding: 8px; font-weight: 600; font-size: 16px; background-color: #f0f0f0;">Location:</td>
+                   <td style="border: 1px solid #000; padding: 8px; height: 40px; font-size: 16px;"></td>
+                   <td style="border: 1px solid #000; padding: 8px; font-weight: 600; font-size: 16px; background-color: #f0f0f0;">Capacity:</td>
+                   <td style="border: 1px solid #000; padding: 8px; height: 40px; font-size: 16px;"></td>
+                 </tr>
+                 
+                 <!-- Row 2 -->
+                 <tr>
+                   <td style="border: 1px solid #000; padding: 8px; font-weight: 600; font-size: 16px; background-color: #f0f0f0;">Date:</td>
+                   <td style="border: 1px solid #000; padding: 8px; height: 40px; font-size: 16px;"></td>
+                   <td style="border: 1px solid #000; padding: 8px; font-weight: 600; font-size: 16px; background-color: #f0f0f0;">Refilled Date:</td>
+                   <td style="border: 1px solid #000; padding: 8px; height: 40px; font-size: 16px;"></td>
+                   <td style="border: 1px solid #000; padding: 8px; font-weight: 600; font-size: 16px; background-color: #f0f0f0;">Expiry Date:</td>
+                   <td style="border: 1px solid #000; padding: 8px; height: 40px; font-size: 16px;"></td>
+                   <td style="border: 1px solid #000; padding: 8px;"></td>
+                   <td style="border: 1px solid #000; padding: 8px;"></td>
+                 </tr>
+               </table>
+             </div>
+           </div>
+
+           <!-- Main Table Section - Inspection Log -->
+           <div style="overflow-x: auto;">
+             <table style="width: 100%; border-collapse: collapse; border: 2px solid #000;">
+               <!-- Table Header Row 1 -->
+               <tr style="background: #f0f0f0;">
+                 <th rowspan="2" style="border: 1px solid #000; padding: 12px 8px; text-align: center; font-weight: 600; font-size: 16px; width: 150px;">Inspection Date</th>
+                 <th rowspan="2" style="border: 1px solid #000; padding: 12px 8px; text-align: center; font-weight: 600; font-size: 16px; width: 150px;">Next Due Date for Inspection</th>
+                 <th rowspan="2" style="border: 1px solid #000; padding: 12px 8px; text-align: center; font-weight: 600; font-size: 16px;">Inspected by Name/Sign</th>
+                 <th colspan="6" style="border: 1px solid #000; padding: 12px 8px; text-align: center; font-weight: 600; font-size: 16px;">Check List</th>
+                 <th rowspan="2" style="border: 1px solid #000; padding: 12px 8px; text-align: center; font-weight: 600; font-size: 16px; width: 350px;">Remarks</th>
+               </tr>
+               
+               <!-- Table Header Row 2 -->
+               <tr style="background: #f0f0f0;">
+                 <th style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: 600; font-size: 14px; width: 80px;">Pin/Tamper Seal</th>
+                 <th style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: 600; font-size: 14px; width: 80px;">Pressure</th>
+                 <th style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: 600; font-size: 14px; width: 80px;">Hose/Nozzle</th>
+                 <th style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: 600; font-size: 14px; width: 80px;">Operating Handle/Nob</th>
+                 <th style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: 600; font-size: 14px; width: 80px;">Dent, Rust, Leak Check</th>
+                 <th style="border: 1px solid #000; padding: 8px; text-align: center; font-weight: 600; font-size: 14px; width: 80px;">Easy Access</th>
+               </tr>
+               
+               <!-- Data Rows (12 rows) - Completely Empty -->
+               <tr>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+               </tr>
+               <tr>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+               </tr>
+               <tr>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+               </tr>
+               <tr>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+               </tr>
+               <tr>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+               </tr>
+               <tr>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+               </tr>
+               <tr>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+               </tr>
+               <tr>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+               </tr>
+               <tr>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+               </tr>
+               <tr>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+               </tr>
+               <tr>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+               </tr>
+               <tr>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+                 <td style="border: 1px solid #000; padding: 8px; text-align: center; height: 40px;"></td>
+               </tr>
+             </table>
+           </div>
+
+           <!-- Bottom Section - Legend and Sign-off -->
+           <div style="margin-top: 30px;">
+             <!-- Legend -->
+             <div style="text-align: center; margin-bottom: 20px;">
+               <p style="color: #666; font-size: 14px; font-weight: 500;">(✔ Ok, ✕ Not Ok, - NA)</p>
+             </div>
+             
+             <!-- Sign-off Fields -->
+             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 20px;">
+               <div style="display: flex; flex-direction: column;">
+                  <label style="font-weight: 600; color: #374151; margin-bottom: 8px; font-size: 14px;">Checked by: Admin</label>
+               </div>
+               <div style="display: flex; flex-direction: column;">
+                  <label style="font-weight: 600; color: #374151; margin-bottom: 8px; font-size: 14px;">Verified by: HOD Admin</label>
+               </div>
+             </div>
+             
+             <!-- Distribution and Retention Period -->
+             <div style="margin-top: 30px; display: flex; justify-content: flex-start;">
+               <div style="padding: 8px 12px; font-size: 14px; line-height: 1.4;">
+                 <div style="color: #000;">Distribution: Nil</div>
+                 <div style="margin-top: 4px; color: #000;">Retention Period: 01 Year</div>
+               </div>
+             </div>
+           </div>
+         </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="../js/fire-extinguisher-inspection-form.js"></script>
+</body>
+</html>

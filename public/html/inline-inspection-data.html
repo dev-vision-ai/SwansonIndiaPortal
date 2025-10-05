@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Inline Inspection Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../css/inline-responsive.css">
+    <link rel="stylesheet" href="../css/common-header.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; font-weight: 500; }
+        .vertical-header {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            white-space: nowrap;
+            text-align: left;
+            vertical-align: bottom;
+            font-size: 13px;
+            padding: 4px 2px;
+        }
+        table, th, td {
+            font-size: 13px;
+            border-radius: 0 !important;
+        }
+        .bg-white, .rounded-xl, .rounded-lg, .rounded-none, .rounded {
+            border-radius: 0 !important;
+        }
+        tbody tr:nth-child(even) {
+            background: #fff;
+        }
+        tbody tr:nth-child(odd) {
+            background: #f6f8fa;
+        }
+
+        #summaryTable tr {
+            border-bottom: 1px solid #bbb;
+        }
+        #summaryTable tr:last-child {
+            border-bottom: 2px solid #000;
+        }
+        #summaryTable tr:nth-child(even) {
+            background: #f6f8fa;
+        }
+        #summaryTable tr:nth-child(odd) {
+            background: #fff;
+        }
+        #summaryTable td {
+            padding: 6px 8px;
+        }
+        #summaryTable td, #summaryTable th {
+            border-right: 1px solid #bbb;
+        }
+        #summaryTable td:last-child, #summaryTable th:last-child {
+            border-right: none;
+        }
+        #summaryTable td:first-child {
+            width: 120px;
+            min-width: 100px;
+            max-width: 160px;
+        }
+        #summaryTable td:nth-child(2),
+        #summaryTable td:nth-child(3) {
+            width: 60px;
+            min-width: 50px;
+            max-width: 80px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        #summaryTable td:last-child {
+            width: 40px;
+            min-width: 30px;
+            max-width: 60px;
+        }
+        #tablesContainer table tbody tr:hover {
+            background-color: #d0e7ff !important;
+            transition: background 0.2s;
+        }
+        #tablesContainer table td[rowspan] {
+            background-color: #f8fafc !important;
+            transition: background 0.2s;
+        }
+        
+        /* Shift styling for header */
+        .header-shift {
+            color: white;
+            font-weight: bold;
+            font-size: 1.15rem;
+            margin-left: 18px;
+        }
+        
+        /* Clock styling for header */
+        .header-clock {
+            display: flex;
+            align-items: center;
+            margin-left: 30px;
+        }
+        
+        .clock-display {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            color: #FFD700;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
+    <div class="header-container">
+        <button type="button" class="header-back-button">Back</button>
+        <div id="shiftDisplay" class="header-shift"></div>
+        <div class="header-title">Inline Inspection Form</div>
+        <div class="header-clock">
+            <div id="currentTime" class="clock-display">Time: --:--:--</div>
+        </div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+    <main class="flex flex-col w-full min-h-screen pt-20 gap-8 p-0">
+        <!-- Delete Table Confirmation Overlay -->
+        <div id="deleteTableConfirmationOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
+            <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+                <div class="text-center">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                        <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                    <h3 id="deleteTableConfirmationTitle" class="text-lg font-medium text-gray-900 mb-2">Confirm Table Deletion</h3>
+                    <p id="deleteTableConfirmationMessage" class="text-sm text-gray-500 mb-6">Are you sure you want to delete this table?</p>
+                    <div class="flex justify-center space-x-3">
+                        <button id="cancelDeleteTableBtn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            Cancel
+                        </button>
+                        <button id="confirmDeleteTableBtn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Success Message Overlay -->
+        <div id="successMessageOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
+            <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+                <div class="text-center">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                        <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h3 id="successMessageTitle" class="text-lg font-medium text-gray-900 mb-2">Success!</h3>
+                    <p id="successMessageText" class="text-sm text-gray-500 mb-6">Operation completed successfully.</p>
+                    <div class="flex justify-center">
+                        <button id="closeSuccessMessageBtn" class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            OK
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-none shadow-2xl w-full h-full min-h-[calc(100vh-96px)] p-8">
+        <!-- Header Details Section -->
+        <section class="mb-8 border border-gray-200 rounded-lg p-6">
+            <div class="flex flex-col lg:flex-row items-start gap-6 lg:gap-8 w-full">
+                <!-- Left column: All production details -->
+                <div class="w-full lg:w-auto lg:flex-1 max-w-full lg:max-w-[500px]">
+                    <table class="w-full border border-gray-400 bg-white production-details-table" style="font-size: 15px;">
+                        <style>
+                            .production-details-table tr {
+                                background-color: white !important;
+                            }
+                            .production-details-table td {
+                                background-color: white !important;
+                            }
+                            .production-details-table td:first-child {
+                                background-color: #f8fafc !important;
+                            }
+                        </style>
+                        <tr>
+                            <td class="border border-gray-400 px-3 py-2 font-semibold w-52" style="font-size: 15px;">Customer :</td>
+                            <td class="border border-gray-400 px-3 py-2" id="customer" style="font-size: 15px;">[Customer]</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-gray-400 px-3 py-2 font-semibold w-52" style="font-size: 15px;">Production No. 1 :</td>
+                            <td class="border border-gray-400 px-3 py-2" id="production_no" style="font-size: 15px;">[Production No.]</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-gray-400 px-3 py-2 font-semibold w-52" style="font-size: 15px;">Production No. 2 & 3 :</td>
+                            <td class="border border-gray-400 px-3 py-2">
+                                <input type="text" id="production_no_2" class="w-full bg-transparent outline-none border-none focus:outline-none focus:ring-0 focus:border-none" placeholder="Auto-detects from PI change" value="" style="font-size: 15px;" readonly>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="border border-gray-400 px-3 py-2 font-semibold w-52" style="font-size: 15px;">Prod. Code :</td>
+                            <td class="border border-gray-400 px-3 py-2" id="prod_code" style="font-size: 15px;">[Prod. Code]</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-gray-400 px-3 py-2 font-semibold w-52" style="font-size: 15px;">Spec :</td>
+                            <td class="border border-gray-400 px-3 py-2" id="spec" style="font-size: 15px;">[Spec]</td>
+                        </tr>
+                    </table>
+                        </div>
+                <!-- Table column: Year table and checkboxes -->
+                <div class="w-full lg:w-auto lg:flex-1 max-w-full lg:max-w-[500px] mt-6 lg:mt-0">
+                    <div class="flex flex-col gap-4">
+                        <table class="w-full border border-gray-400" style="font-size:15px; font-weight:700;">
+                            <tr>
+                                <td class="border border-gray-400 px-4 py-2 text-center" style="font-size:15px;">Year</td>
+                                <td class="border border-gray-400 px-4 py-2 text-center" style="font-size:15px;">Month</td>
+                                <td class="border border-gray-400 px-4 py-2 text-center" style="font-size:15px;">Date</td>
+                                <td class="border border-gray-400 px-4 py-2 text-center" style="font-size:15px;">M/C No.</td>
+                                <td class="border border-gray-400 px-4 py-2 text-center" style="font-size:15px;">Shift</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-400 px-4 py-2 text-center"><span id="year" style="font-size:15px; font-weight:700;">[Year]</span></td>
+                                <td class="border border-gray-400 px-4 py-2 text-center"><span id="month" style="font-size:15px; font-weight:700;">[Month]</span></td>
+                                <td class="border border-gray-400 px-4 py-2 text-center"><span id="date" style="font-size:15px; font-weight:700;">[Date]</span></td>
+                                <td class="border border-gray-400 px-4 py-2 text-center"><span id="mc_no" style="font-size:15px; font-weight:700;">[M/C No.]</span></td>
+                                <td class="border border-gray-400 px-4 py-2 text-center"><span id="shift" style="font-size:15px; font-weight:700;">[Shift]</span></td>
+                            </tr>
+                        </table>
+                        <table class="w-full border border-gray-400" style="font-size: 15px;">
+                            <tr>
+                                <td class="border border-gray-400 px-3 py-2 font-semibold w-1/3 bg-gray-100 text-center" style="font-size: 15px;">Printed</td>
+                                <td class="border border-gray-400 px-3 py-2 font-semibold w-1/3 bg-gray-100 text-center" style="font-size: 15px;">Non-Printed</td>
+                                <td class="border border-gray-400 px-3 py-2 font-semibold w-1/3 bg-gray-100 text-center" style="font-size: 15px;">CT</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-400 px-3 py-2 text-center">
+                                    <input type="checkbox" id="printed" class="w-5 h-5 accent-blue-600 border-2 border-gray-400 rounded" style="pointer-events: none; opacity: 1;">
+                                </td>
+                                <td class="border border-gray-400 px-3 py-2 text-center">
+                                    <input type="checkbox" id="non_printed" class="w-5 h-5 accent-blue-600 border-2 border-gray-400 rounded" style="pointer-events: none; opacity: 1;">
+                                </td>
+                                <td class="border border-gray-400 px-3 py-2 text-center">
+                                    <input type="checkbox" id="ct" class="w-5 h-5 accent-blue-600 border-2 border-gray-400 rounded" style="pointer-events: none; opacity: 1;">
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Team Members Table - Right Side -->
+                <div class="w-full lg:w-auto lg:flex-1 max-w-full lg:max-w-[400px] mt-6 lg:mt-0">
+                    <table class="w-full border border-gray-400" style="font-size: 15px;">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="border border-gray-400 px-3 py-2 text-center font-semibold" colspan="2" style="font-size: 15px;">Shift Members</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="background-color: white;">
+                                <td class="border border-gray-400 px-3 py-2 text-left" style="font-size: 15px; background-color: white;">Supervisor</td>
+                                <td class="border border-gray-400 px-3 py-2 text-left" id="supervisor_name" style="font-size: 15px; background-color: white;">[Supervisor Name]</td>
+                            </tr>
+                            <tr style="background-color: white;">
+                                <td class="border border-gray-400 px-3 py-2 text-left" style="font-size: 15px; background-color: white;">Line Leader</td>
+                                <td class="border border-gray-400 px-3 py-2 text-left" id="line_leader_name" style="font-size: 15px; background-color: white;">[Line Leader Name]</td>
+                            </tr>
+                            <tr style="background-color: white;">
+                                <td class="border border-gray-400 px-3 py-2 text-left" style="font-size: 15px; background-color: white;">Operator</td>
+                                <td class="border border-gray-400 px-3 py-2 text-left" id="operator_name" style="font-size: 15px; background-color: white;">[Operator Name]</td>
+                            </tr>
+                            <tr style="background-color: white;">
+                                <td class="border border-gray-400 px-3 py-2 text-left" style="font-size: 15px; background-color: white;">QC Inspector</td>
+                                <td class="border border-gray-400 px-3 py-2 text-left" id="qc_inspector_name" style="font-size: 15px; background-color: white;">[QC Inspector Name]</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Roll Entry Grid Placeholder -->
+        <section>
+            <h2 class="text-xl font-semibold mb-4">Roll Entry Grid</h2>
+                <div class="flex justify-between items-center mb-2">
+                    <div>
+                        <span id="rowCountDisplay" class="text-sm font-bold text-gray-700">Rows: 0</span>
+                        <input id="numRowsInput" type="number" min="1" value="1" class="w-16 px-2 py-1 border rounded text-sm" style="height:28px;" title="Number of rows to add" />
+        
+                        <button id="addNewRowsBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm">Add New Rows</button>
+                    </div>
+                </div>
+            <div class="border border-gray-200 rounded-lg p-0 bg-gray-50 overflow-x-auto" id="tablesContainer">
+                <!-- Dynamic tables will be inserted here by JS -->
+            </div>
+        </section>
+        <!-- Summary Tables Section -->
+        <section class="mt-8">
+            <h2 class="text-xl font-semibold mb-4 text-center">Summary Tables</h2>
+            <div id="dynamicSummaryTableContainer" class="flex justify-center"></div>
+        </section>
+        </div>
+    </main>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const backBtn = document.querySelector('.header-back-button');
+        if (backBtn) {
+          backBtn.addEventListener('click', function() {
+            window.location.href = 'inline-inspection-form.html';
+          });
+        }
+      });
+    </script>
+    <script type="module" src="../js/inline-inspection-data-simple.js"></script>
+</body>
+</html> 

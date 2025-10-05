@@ -1,0 +1,172 @@
+/* Common Header Styles - Reusable across all pages */
+
+.header-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--accent-color);
+    padding: 6px 20px;
+    margin: 0;
+    border-radius: 0;
+    border-bottom: 5px solid #e4c829;
+    height: auto;
+}
+
+.header-title {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    width: auto;
+    pointer-events: auto;
+}
+
+.company-logo {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    position: relative;
+    right: auto;
+    top: auto;
+    transform: none;
+    align-self: center;
+}
+
+.company-logo img {
+    height: 36px;
+    filter: none;
+    object-fit: contain;
+    border: 2px solid white;
+}
+
+.auth-logo {
+    height: 60px;
+    border: 3px solid white;
+}
+
+.header-back-button {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    background-color: #e4c829;
+    color: #000000;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-right: 12px;
+    font-weight: 600;
+    position: relative;
+    top: auto;
+    left: auto;
+    align-self: center;
+    z-index: auto;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .header-container {
+        padding: 4px 10px;
+    }
+    
+    .header-title {
+        font-size: 1.0rem;
+    }
+    
+    .company-logo img {
+        height: 32px;
+    }
+    
+    .header-back-button {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .header-container {
+        position: fixed;
+        top: 0;
+        padding: 8px 20px;
+        border-bottom: 5px solid #e4c829;
+        height: 60px;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .header-title {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.0rem;
+        align-self: center;
+        width: auto;
+    }
+    
+    .company-logo {
+        position: relative;
+        right: auto;
+        top: auto;
+        transform: none;
+        align-self: center;
+    }
+    
+    .company-logo img {
+        height: 32px;
+    }
+    
+    .header-back-button {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        position: relative;
+        top: auto;
+        left: auto;
+        align-self: center;
+    }
+}
+
+/* Override styles for specific page layouts */
+.header-container.centered-layout {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    height: auto !important;
+}
+
+.header-container.centered-layout .header-back-button {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    align-self: center !important;
+    z-index: auto !important;
+}
+
+.header-container.centered-layout .header-title {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    align-self: center !important;
+    width: auto !important;
+    pointer-events: auto !important;
+}
+
+.header-container.centered-layout .company-logo {
+    position: relative !important;
+    right: auto !important;
+    top: auto !important;
+    transform: none !important;
+    align-self: center !important;
+    margin-left: auto !important;
+}

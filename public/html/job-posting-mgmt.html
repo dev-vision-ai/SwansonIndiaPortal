@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Job Posting Management</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Main styles for this page -->
+  <link rel="stylesheet" href="../css/job-posting-mgmt.css">
+  <!-- Common admin styles (adjust if needed) -->
+  <link rel="stylesheet" href="../css/admin-adhr.css"> 
+  <link rel="stylesheet" href="../css/admin-qa.css">
+  <link rel="stylesheet" href="../css/common-header.css">
+  <!-- ADD THIS LINE for mobile responsiveness -->
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+  <div class="container page-fade-in">
+    <section class="dashboard-section">
+      <div class="header-container header-fade-in">
+        <!-- Back button first -->
+        <button type="button" class="header-back-button" onclick="window.location.href='admin-adhr.html';">Back</button>
+        
+        <!-- Header title second -->
+        <div class="header-title">Job Posting Management</div> 
+        
+        <!-- Logo last -->
+        <div class="company-logo">
+          <img src="../assets/logo.png" class="auth-logo" alt="Logo"/>
+        </div>
+    </div>
+
+  <main class="main-content">
+    <section id="add-job-section">
+      <h2>Add New Job Posting</h2>
+      <!-- Apply the 'user-form' class -->
+      <form id="add-job-form" class="user-form">
+        <div class="form-group">
+          <label for="job-title">Job Title:</label>
+          <input type="text" id="job-title" name="job-title" required>
+        </div>
+        <div class="form-group">
+          <label for="job-description">Description:</label>
+          <textarea id="job-description" name="job-description" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="job-location">Location:</label>
+          <input type="text" id="job-location" name="job-location">
+        </div>
+        <div class="form-group">
+          <label for="job-salary">Salary:</label>
+          <input type="text" id="job-salary" name="job-salary"> <!-- <<< ADDED id="job-salary" -->
+        </div>
+        <div class="form-group">
+          <label for="job-experience">Experience Needed (Optional):</label>
+          <input type="text" id="job-experience" name="job-experience">
+        </div>
+
+        <!-- <<< ADD THIS NEW FIELD >>> -->
+        <div class="form-group">
+          <label for="job-qualification">Qualification:</label>
+          <textarea id="job-qualification" name="job-qualification" rows="3"></textarea> <!-- Using textarea for potentially longer text -->
+        </div>
+        <!-- <<< END OF NEW FIELD >>> -->
+
+        <!-- NEW FIELDS START -->
+        <div class="form-group">
+          <label for="num-positions">Number of Vacant Positions:</label>
+          <input type="number" id="num-positions" name="num-positions" min="1"> <!-- <<< ADDED id="num-positions" and changed type to number -->
+        </div>
+
+        <div class="form-group">
+          <label for="employment-type">Employment Type:</label>
+          <select id="employment-type" name="employment-type">
+            <option value="Full-time" selected>Full-time</option>
+            <option value="Part-time">Part-time</option>
+            <option value="Contract">Contract</option>
+            <option value="Internship">Internship</option>
+            <option value="Apprenticeship">Apprenticeship</option>
+            <option value="Trainee">Trainee</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="department">Department:</label>
+          <input type="text" id="department" name="department"> <!-- <<< ADDED id="department" -->
+        </div>
+
+        <div class="form-group">
+          <label for="program-duration">Program Duration (if applicable):</label>
+          <input type="text" id="program-duration" name="program-duration"> <!-- <<< ADDED id="program-duration" -->
+        </div>
+
+        <div class="form-group">
+          <label for="job-status">Status:</label>
+          <select id="job-status" name="job-status" required>
+            <option value="active" selected>Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        
+        <!-- NEW: Apply Before Date Input -->
+        <div class="form-group">
+          <label for="apply_before">Apply Before:</label>
+          <input type="date" id="apply_before" name="apply_before">
+        </div>
+        
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save Job Posting</button> <!-- Keep this one -->
+          <button type="button" id="clear-form-btn" class="btn btn-secondary">Clear Form</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="job-list-section">
+      <h2>Existing Job Postings</h2>
+      <!-- Apply the 'table-container' class for consistency -->
+      <div id="job-list-table-container" class="table-container">
+        <!-- JS will populate this -->
+        <p>Loading jobs...</p> 
+      </div>
+    </section>
+  </main>
+  </section>
+  <footer class="designer-watermark">
+    <i class="bi bi-gear-fill" style="margin-right:6px;"></i> Designed by <span>GGC</span>
+  </footer>
+  <script type="module" src="../js/job-posting-mgmt.js"></script> 
+</body>
+</html>

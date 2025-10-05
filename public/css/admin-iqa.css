@@ -1,0 +1,310 @@
+/* Import Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary-gradient: linear-gradient(45deg, #002E7D, #0046C7);
+    --accent-color: #002E7D;
+    --bg-color: #f5f5f5;
+    --card-bg: #ffffff;
+    --text-dark: #2D3436;
+    --text-light: #666666;
+    --border-color: #eee;
+    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.15);
+    --transition: all 0.3s ease-in-out;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    background-image: url('../assets/page-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-color: var(--bg-color);
+    min-height: fixed;
+}
+
+
+.auth-logo {
+    height: 60px; /* Increase height for larger logo */
+    border: 3px solid white; /* Add white border */
+}
+
+
+
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px 20px;
+    color: var(--text-dark);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.nav-item:hover {
+    background: var(--bg-color);
+    color: var(--accent-color);
+}
+
+.qa-container {
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.controls {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Basic styling - you can customize this further */
+.recent-alerts-container {
+    /* Add margin-top to push content below the fixed header */
+    /* Adjust the value (100px) if needed based on your header's exact height */
+    margin-top: 100px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 5px;
+    /* Add some horizontal margin for better spacing */
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+    gap: 1.5rem;
+    padding: 1rem; 
+    /* margin: 2rem 0; */ /* Old margin */
+    margin: 5rem 0; /* New: Increased top margin to move it down */
+    max-width: 320px; 
+}
+
+.action-card {
+    background: white; 
+    padding: 1.5rem;
+    border-radius: 0;
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    transition: var(--transition);
+    border: 2px solid #ccc; /* Copied from employee_dashboard.css */
+    animation: fadeIn 0.5s ease-out forwards;
+    height: 140px; /* Set a fixed height for uniformity */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* Removed color and font-weight from admin_iqa.css */
+}
+
+.action-card:hover {
+    border-color: var(--accent-color); /* Copied from employee_dashboard.css */
+    box-shadow: 0 0 8px rgba(0, 46, 125, 0.4);
+}
+
+/* Added background tint styles from employee_dashboard.css */
+.action-card:nth-child(1) {
+    background-color: rgba(0, 46, 125, 0.2); /* Blue tint */
+}
+
+/* Remove old table styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    /* Remove rounded corners */
+    border-radius: 0;
+    overflow: visible; /* Change from hidden */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Remove rounded corners from container */
+.recent-alerts-container {
+    margin-top: 100px;
+    margin-bottom: 20px;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 0; /* Changed from 8px */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+th, td {
+    padding: 18px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb; /* Add vertical separator */
+}
+
+/* Remove right border from last column */
+th:last-child,
+td:last-child {
+    border-right: none;
+}
+
+/* Add left border to first column for better separation */
+th:first-child,
+td:first-child {
+    border-left: 1px solid #e5e7eb;
+}
+
+/* Header column separators */
+th {
+    border-right-color: #374151; /* Darker separator for header */
+}
+
+th {
+    background-color: #1e293b;
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+}
+
+tr:hover td {
+    background-color: #f8fafc;
+}
+
+/* Loading row style */
+.loading-row td {
+    padding: 20px;
+    text-align: center;
+    color: #64748b;
+}
+
+/* Zebra striping */
+tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+/* Responsive table container */
+.recent-alerts-container {
+    margin-top: 100px;
+    margin-bottom: 20px;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Keep your existing button styles */
+.action-btn {
+    padding: 8px 16px;
+    margin-right: 8px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: var(--transition);
+}
+
+.view-btn {
+    background-color: var(--accent-color); /* Using your theme's blue */
+    color: white;
+}
+
+.view-btn:hover {
+    background-color: #001f4d;
+}
+
+.edit-btn {
+    background-color: #28a745; /* Bootstrap-style green */
+    color: white;
+}
+
+.edit-btn:hover {
+    background-color: #218838;
+}
+
+.recent-alerts-container h2 {
+    text-align: center;
+    width: 100%;
+}
+
+.user-name {
+    color: white;
+}
+
+.employee-profile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1em;
+    background-color: #004080;
+    border-radius: 8px;
+}
+
+.employee-profile img {
+    border-radius: 50%;
+    margin-right: 1em;
+}
+
+.employee-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.employee-details span {
+    color: #fff;
+}
+
+.filter-input,
+.filter-select {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  transition: var(--transition);
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  border-color: var(--accent-color);
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 46, 125, 0.3);
+}
+
+.filter-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding-top: 0.5rem;
+}
+
+.filter-controls span {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  color: var(--text-dark);
+  margin-right: 0.5rem;
+}
+
+.filter-btn { 
+   background-color: #ffe342; 
+   color: #000000; 
+   padding: 0.5rem 1rem; 
+   border: 1px solid #ccc; 
+   border-radius: 4px; 
+   cursor: pointer; 
+   transition: all 0.3s ease; 
+}
+
+.filter-btn:hover { 
+   background-color: #e0e0e0; 
+}
