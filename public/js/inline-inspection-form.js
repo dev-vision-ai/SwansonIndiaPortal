@@ -2176,13 +2176,22 @@ window.downloadFormExcel = async function(traceability_code, lot_letter, buttonE
     // Wait for countdown to complete (5 seconds) before making the request
     await new Promise(resolve => setTimeout(resolve, 5000));
 
+    // Get the current session for authentication
+    const session = await supabase.auth.getSession();
+    const headers = {
+      'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    };
+
+    // Add authorization header if session exists
+    if (session.data.session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
+    }
+
     const response = await fetch(exportUrl, {
       method: 'GET',
       signal: controller.signal,
       credentials: 'include',
-      headers: {
-        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      }
+      headers: headers,
     });
 
     clearTimeout(timeoutId);

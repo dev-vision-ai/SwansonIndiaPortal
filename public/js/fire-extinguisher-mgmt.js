@@ -268,27 +268,27 @@ function renderTable() {
             <td>${inspection.remarks || ''}</td>
             <td style="text-align: center;">
                 <div class="action-buttons">
-                    <button onclick="viewInspection(${inspection.id})" class="btn-small btn-view" title="View Details">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button onclick="viewInspection(${inspection.id})" class="btn-small" title="View Details" style="background-color: #dbeafe; color: #1e40af; border: 1px solid #93c5fd;">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                         </svg>
-                </button>
-                    <button onclick="addInspectionForExtinguisher(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small btn-add" title="Add Inspection" style="background-color: #10b981;">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    </button>
+                    <button onclick="addInspectionForExtinguisher(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small" title="Add Inspection" style="background-color: #dbeafe; color: #0369a1; border: 1px solid #7dd3fc;">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>
                     </button>
-                    <button onclick="editFireExtinguisher(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small btn-edit" title="Edit Fire Extinguisher" style="background-color: #f59e0b;">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button onclick="editFireExtinguisher(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small" title="Edit Fire Extinguisher" style="background-color: #dcfce7; color: #166534; border: 1px solid #86efac;">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                         </svg>
-                </button>
-                    <button onclick="openDeleteOptionsModal(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small btn-delete" title="Delete Options">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    </button>
+                    <button onclick="openDeleteOptionsModal(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small" title="Delete Options" style="background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                         </svg>
-                </button>
+                    </button>
                 </div>
             </td>
         `;

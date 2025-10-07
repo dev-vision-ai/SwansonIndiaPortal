@@ -1290,12 +1290,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Prestore download endpoint (with /api/ prefix)
             const downloadUrl = `${backendUrl}/api/download-prestore-excel/${encodeURIComponent(formId)}`;
-            
+
+            // Get the current session for authentication
+            const session = await supabase.auth.getSession();
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            // Add authorization header if session exists
+            if (session.data.session?.access_token) {
+                headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
+            }
+
             const response = await fetch(downloadUrl, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
+                headers: headers,
             });
             
             if (!response.ok) {
@@ -1377,11 +1386,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
             const downloadUrl = `${backendUrl}/export-176-18cp-ww-form?form_id=${encodeURIComponent(formId)}`;
 
+            // Get the current session for authentication
+            const session = await supabase.auth.getSession();
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            // Add authorization header if session exists
+            if (session.data.session?.access_token) {
+                headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
+            }
+
             const response = await fetch(downloadUrl, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: headers,
             });
 
             if (!response.ok) {
@@ -1463,11 +1481,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
             const downloadUrl = `${backendUrl}/export-168-16c-white-form?form_id=${encodeURIComponent(formId)}`;
 
+            // Get the current session for authentication
+            const session = await supabase.auth.getSession();
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            // Add authorization header if session exists
+            if (session.data.session?.access_token) {
+                headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
+            }
+
             const response = await fetch(downloadUrl, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: headers,
             });
 
             if (!response.ok) {
@@ -1549,11 +1576,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
             const downloadUrl = `${backendUrl}/export-214-18-micro-white-form?form_id=${encodeURIComponent(formId)}`;
 
+            // Get the current session for authentication
+            const session = await supabase.auth.getSession();
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            // Add authorization header if session exists
+            if (session.data.session?.access_token) {
+                headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
+            }
+
             const response = await fetch(downloadUrl, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: headers,
             });
 
             if (!response.ok) {
@@ -1635,11 +1671,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
             const downloadUrl = `${backendUrl}/export-234-18-micro-white-form?form_id=${encodeURIComponent(formId)}`;
 
+            // Get the current session for authentication
+            const session = await supabase.auth.getSession();
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            // Add authorization header if session exists
+            if (session.data.session?.access_token) {
+                headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
+            }
+
             const response = await fetch(downloadUrl, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
+                headers: headers,
             });
 
             if (!response.ok) {
@@ -1720,12 +1765,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
             const downloadUrl = `${backendUrl}/export-168-16cp-kranti-form?form_id=${encodeURIComponent(formId)}`;
-            
+
+            // Get the current session for authentication
+            const session = await supabase.auth.getSession();
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            // Add authorization header if session exists
+            if (session.data.session?.access_token) {
+                headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
+            }
+
             const response = await fetch(downloadUrl, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
+                headers: headers,
             });
             
             if (!response.ok) {
