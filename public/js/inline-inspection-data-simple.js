@@ -247,57 +247,57 @@ const lotTheadHTML = `
 <thead>
 <tr>
     <th colspan="2" class="border border-gray-300 px-2 py-1">Time</th>
-    <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Lot No.</th>
-    <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Roll Position</th>
-    <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Arm</th>
-    <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:50px; min-width:50px; max-width:50px;">
+    <th rowspan="2" class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Lot No.</th>
+    <th rowspan="2" class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Roll Position</th>
+    <th rowspan="2" class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Arm</th>
+    <th rowspan="2" class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:40px; min-width:40px; max-width:40px; font-size: 11px;">
         Roll Weight
         <span style="display: inline-block; transform: rotate(-180deg); writing-mode: initial;">
             <input type="checkbox" id="rollWeightLock" style="vertical-align: middle; margin-left: 4px; margin-bottom: 40px;">
             <span style="font-size: 16px; vertical-align: top; margin-left: 2px;">🔒</span>
         </span>
     </th>
-    <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:40px; min-width:40px; max-width:40px;">Roll Width (mm)</th>
-    <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:40px; min-width:40px; max-width:40px;">Film Weight (GSM)</th>
-    <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:40px; min-width:40px; max-width:40px;">Thickness</th>
-    <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header" style="width:40px; min-width:40px; max-width:40px;">
+    <th rowspan="2" class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:35px; min-width:35px; max-width:35px; font-size: 11px;">Roll Width (mm)</th>
+    <th rowspan="2" class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:35px; min-width:35px; max-width:35px; font-size: 11px;">Film Weight (GSM)</th>
+    <th rowspan="2" class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:35px; min-width:35px; max-width:35px; font-size: 11px;">Thickness</th>
+    <th rowspan="2" class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:35px; min-width:35px; max-width:35px; font-size: 11px;">
         Roll θ
         <span style="display: inline-block; transform: rotate(-180deg); writing-mode: initial;">
             <input type="checkbox" id="rollThetaLock" style="vertical-align: middle; margin-left: 4px; margin-bottom: 80px;">
             <span style="font-size: 16px; vertical-align: top; margin-left: 2px;">🔒</span>
         </span>
     </th>
-    <th colspan="2" class="border border-gray-300 px-2 py-1">Paper Core θ</th>
-    <th colspan="7" class="border border-gray-300 px-2 py-1">Film Appearance</th>
-    <th colspan="5" class="border border-gray-300 px-2 py-1">Printing</th>
-    <th colspan="4" class="border border-gray-300 px-2 py-1">Roll Appearance</th>
-    <th rowspan="2" class="border border-gray-300 px-2 py-1 vertical-header"" style="width:33px; min-width:33px; max-width:33px;">Others</th>
-    <th rowspan="2" class="border border-gray-300 px-2 py-1" style="width:55px; min-width:55px; max-width:55px;">Accept / Reject</th>
-    <th rowspan="2" class="border border-gray-300 px-2 py-1" style="width:100px; min-width:100px; max-width:100px;">Defect Name</th>
-    <th rowspan="2" class="border border-gray-300 px-2 py-1" style="width:100px; min-width:100px; max-width:100px;">PI Changed</th>
-    <th rowspan="2" class="border border-gray-300 px-2 py-1" style="width:100px; min-width:100px; max-width:100px;">Inspected By</th>
+    <th colspan="2" class="border border-gray-300 px-1 py-0.5" style="font-size: 11px;">Paper Core θ</th>
+    <th colspan="7" class="border border-gray-300 px-1 py-0.5" style="font-size: 11px;">Film Appearance</th>
+    <th colspan="5" class="border border-gray-300 px-1 py-0.5" style="font-size: 11px;">Printing</th>
+    <th colspan="4" class="border border-gray-300 px-1 py-0.5" style="font-size: 11px;">Roll Appearance</th>
+    <th rowspan="2" class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:28px; min-width:28px; max-width:28px; font-size: 11px;">Others</th>
+    <th rowspan="2" class="border border-gray-300 px-1 py-0.5" style="width:45px; min-width:45px; max-width:45px; font-size: 11px;">Accept / Reject</th>
+    <th rowspan="2" class="border border-gray-300 px-1 py-0.5" style="width:80px; min-width:80px; max-width:80px; font-size: 11px;">Defect Name</th>
+    <th rowspan="2" class="border border-gray-300 px-1 py-0.5" style="width:80px; min-width:80px; max-width:80px; font-size: 11px;">PI Changed</th>
+    <th rowspan="2" class="border border-gray-300 px-1 py-0.5" style="width:80px; min-width:80px; max-width:80px; font-size: 11px;">Inspected By</th>
 </tr>
 <tr>
-    <th class="border border-gray-300 px-2 py-1" style="width:30px; min-width:30px; max-width:30px;">Hr.</th>
-    <th class="border border-gray-300 px-2 py-1" style="width:30px; min-width:30px; max-width:30px;">Min.</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Paper Core θ (ID)</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Paper Core θ (OD)</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Lines/Strips</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Glossy</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Film Color</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Pin Hole</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Patch Mark</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Odour</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">CT</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Print Color</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Mis Print</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Dirty Print</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Tape Test</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Centralization</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Wrinkles</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">PRS</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Roll Curve</th>
-    <th class="border border-gray-300 px-2 py-1 vertical-header" style="width:30px; min-width:30px; max-width:30px;">Core Misalignment</th>
+    <th class="border border-gray-300 px-1 py-0.5" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Hr.</th>
+    <th class="border border-gray-300 px-1 py-0.5" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Min.</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Paper Core θ (ID)</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Paper Core θ (OD)</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Lines/Strips</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Glossy</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Film Color</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Pin Hole</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Patch Mark</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Odour</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">CT</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Print Color</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Mis Print</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Dirty Print</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Tape Test</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Centralization</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Wrinkles</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">PRS</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Roll Curve</th>
+    <th class="border border-gray-300 px-1 py-0.5 vertical-header" style="width:25px; min-width:25px; max-width:25px; font-size: 11px;">Core Misalignment</th>
 </tr>
 </thead>
 `;
@@ -355,14 +355,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Add view-only indicator immediately
         const viewOnlyIndicator = document.createElement('div');
         viewOnlyIndicator.id = 'viewOnlyIndicator';
-        viewOnlyIndicator.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-center';
+        viewOnlyIndicator.className = 'fixed top-12 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-3 py-1.5 rounded-md shadow-lg z-50 text-center';
         viewOnlyIndicator.innerHTML = `
-            <div class="flex items-center gap-2 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center gap-1.5 text-xs">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                 </svg>
-                <span class="font-semibold">YOU ARE IN VIEW ONLY MODE - Form cannot be edited here</span>
+                <span class="font-semibold">READ-ONLY MODE</span>
             </div>
         `;
         document.body.appendChild(viewOnlyIndicator);
@@ -588,7 +588,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     function createCell(contentEditable = true, rowspan = 1, isDropdown = false, colIndex = null, isFirstRow = false, rowIndex = 0) {
         const td = document.createElement('td');
-        td.className = 'border border-gray-300 px-1 py-1';
+        td.className = 'border border-gray-300 px-0.5 py-0.5';
+        td.style.fontSize = '11px';
         // Add word wrap and text center
         td.style.whiteSpace = 'pre-wrap';
         td.style.wordBreak = 'break-word';
@@ -2800,8 +2801,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Create delete button for the latest table
             const deleteTableButton = document.createElement('button');
             deleteTableButton.textContent = 'Delete Table';
-            deleteTableButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm ml-2';
-            deleteTableButton.style.marginBottom = '8px';
+            deleteTableButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-1.5 rounded mb-1 text-xs ml-1';
             deleteTableButton.onclick = function() {
                 // Store the table reference for the overlay
                 window.currentDeleteTable = latestTable;
@@ -3448,8 +3448,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!viewMode) {
         const fillOButton = document.createElement('button');
         fillOButton.textContent = 'Fill O';
-            fillOButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm mr-2';
-        fillOButton.style.marginBottom = '8px';
+            fillOButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-0.5 px-1.5 rounded mb-1 text-xs mr-1';
         fillOButton.onclick = async function() {
             // Disable button during operation
             fillOButton.disabled = true;
@@ -3573,8 +3572,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Add Clear O button
             const clearOButton = document.createElement('button');
             clearOButton.textContent = 'Clear O';
-            clearOButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-2 rounded mb-2 text-sm';
-            clearOButton.style.marginBottom = '8px';
+            clearOButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-1.5 rounded mb-1 text-xs';
             clearOButton.onclick = async function() {
                 // Disable button during operation
                 clearOButton.disabled = true;
@@ -4625,13 +4623,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         dropdown.style.background = '#eaf4fb'; // Light blue background
         dropdown.style.border = '1px solid #bbb';
         dropdown.style.zIndex = 10000;
-        dropdown.style.maxHeight = '180px';
+        dropdown.style.maxHeight = '120px';
         dropdown.style.overflowY = 'auto';
-        dropdown.style.fontSize = '14px'; // Match table cell font size
+        dropdown.style.fontSize = '11px'; // Match compact table cell font size
         matches.forEach(defect => {
             const item = document.createElement('div');
             item.textContent = defect;
-            item.style.padding = '6px 12px';
+            item.style.padding = '4px 8px';
             item.style.cursor = 'pointer';
             item.addEventListener('mousedown', function(e) {
                 e.preventDefault();
@@ -4680,13 +4678,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         dropdown.style.background = '#eaf4fb'; // Light blue background
         dropdown.style.border = '1px solid #bbb';
         dropdown.style.zIndex = 10000;
-        dropdown.style.maxHeight = '180px';
+        dropdown.style.maxHeight = '120px';
         dropdown.style.overflowY = 'auto';
-        dropdown.style.fontSize = '14px'; // Match table cell font size
+        dropdown.style.fontSize = '11px'; // Match compact table cell font size
         matches.forEach(user => {
             const item = document.createElement('div');
             item.textContent = user;
-            item.style.padding = '6px 12px';
+            item.style.padding = '4px 8px';
             item.style.cursor = 'pointer';
             item.addEventListener('mousedown', function(e) {
                 e.preventDefault();

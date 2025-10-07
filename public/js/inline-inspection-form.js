@@ -338,7 +338,6 @@ window.addEventListener('DOMContentLoaded', async function() {
   // Auto-capitalization for Team section input fields
   const teamInputs = [
     'supervisor', 'supervisor2', 
-    'line_leader', 'line_leader2', 
     'operator', 'operator2', 
     'qc_inspector', 'qc_inspector2'
   ];
@@ -385,7 +384,7 @@ function setupFilterHandlers() {
   
   // Add event listeners for non-cascading filters
   const nonCascadingFilters = [
-    'filterOperator', 'filterSupervisor', 'filterLineLeader', 'filterQCInspector'
+    'filterOperator', 'filterSupervisor', 'filterQCInspector'
   ];
   
   nonCascadingFilters.forEach(inputId => {
@@ -631,13 +630,11 @@ async function populateFilterDropdowns() {
   // Get unique values for non-cascading filters from current data
   const operators = [...new Set(allForms.flatMap(form => [form.operator, form.operator2]).filter(Boolean))].sort();
   const supervisors = [...new Set(allForms.flatMap(form => [form.supervisor, form.supervisor2]).filter(Boolean))].sort();
-  const lineLeaders = [...new Set(allForms.flatMap(form => [form.line_leader, form.line_leader2]).filter(Boolean))].sort();
   const qcInspectors = [...new Set(allForms.flatMap(form => [form.qc_inspector, form.qc_inspector2]).filter(Boolean))].sort();
   
   // Populate non-cascading dropdowns
   populateSelect('filterOperator', operators);
   populateSelect('filterSupervisor', supervisors);
-  populateSelect('filterLineLeader', lineLeaders);
   populateSelect('filterQCInspector', qcInspectors);
   
   // Initialize cascading dropdowns with all available values
@@ -660,7 +657,7 @@ async function populateNonCascadingDropdowns(fromDate, toDate) {
   try {
     let query = supabase
       .from('inline_inspection_form_master_2')
-      .select('operator, operator2, supervisor, supervisor2, line_leader, line_leader2, qc_inspector, qc_inspector2')
+      .select('operator, operator2, supervisor, supervisor2, qc_inspector, qc_inspector2')
       .not('customer', 'is', null)
       .neq('customer', '');
     
@@ -682,13 +679,11 @@ async function populateNonCascadingDropdowns(fromDate, toDate) {
       // Get unique values for non-cascading filters from historical data
       const operators = [...new Set(historicalData.flatMap(form => [form.operator, form.operator2]).filter(Boolean))].sort();
       const supervisors = [...new Set(historicalData.flatMap(form => [form.supervisor, form.supervisor2]).filter(Boolean))].sort();
-      const lineLeaders = [...new Set(historicalData.flatMap(form => [form.line_leader, form.line_leader2]).filter(Boolean))].sort();
       const qcInspectors = [...new Set(historicalData.flatMap(form => [form.qc_inspector, form.qc_inspector2]).filter(Boolean))].sort();
       
       // Populate non-cascading dropdowns with historical data
       populateSelect('filterOperator', operators);
       populateSelect('filterSupervisor', supervisors);
-      populateSelect('filterLineLeader', lineLeaders);
       populateSelect('filterQCInspector', qcInspectors);
     }
   } catch (error) {
@@ -739,7 +734,6 @@ function saveFilterState() {
     shift: document.getElementById('filterShift').value,
     operator: document.getElementById('filterOperator').value,
     supervisor: document.getElementById('filterSupervisor').value,
-    lineLeader: document.getElementById('filterLineLeader').value,
     qcInspector: document.getElementById('filterQCInspector').value
   };
   localStorage.setItem('inlineInspectionFilters', JSON.stringify(currentFilters));
@@ -758,7 +752,6 @@ async function restoreFilterState() {
     // Restore non-cascading filters
     document.getElementById('filterOperator').value = currentFilters.operator || '';
     document.getElementById('filterSupervisor').value = currentFilters.supervisor || '';
-    document.getElementById('filterLineLeader').value = currentFilters.lineLeader || '';
     document.getElementById('filterQCInspector').value = currentFilters.qcInspector || '';
     
     // Restore cascading filters with proper population
@@ -816,10 +809,9 @@ function updateFilterStatus() {
   const shift = document.getElementById('filterShift').value;
   const operator = document.getElementById('filterOperator').value;
   const supervisor = document.getElementById('filterSupervisor').value;
-  const lineLeader = document.getElementById('filterLineLeader').value;
   const qcInspector = document.getElementById('filterQCInspector').value;
-  
-  const hasFilters = fromDate || toDate || product || machine || shift || operator || supervisor || lineLeader || qcInspector;
+
+  const hasFilters = fromDate || toDate || product || machine || shift || operator || supervisor || qcInspector;
   
   if (hasFilters) {
     filterStatus.textContent = 'On';
@@ -842,7 +834,6 @@ async function applyFilters() {
   const shift = document.getElementById('filterShift').value;
   const operator = document.getElementById('filterOperator').value;
   const supervisor = document.getElementById('filterSupervisor').value;
-  const lineLeader = document.getElementById('filterLineLeader').value;
   const qcInspector = document.getElementById('filterQCInspector').value;
   
   // Save current filter state
@@ -863,7 +854,7 @@ async function applyFilters() {
         .select(`
           id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
           production_date, emboss_type, printed, non_printed, ct, year, month, date,
-          mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
+          mc_no, shift, supervisor, supervisor2,
           operator, operator2, qc_inspector, qc_inspector2, status,
           total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
           created_at, updated_at
@@ -920,10 +911,6 @@ async function applyFilters() {
           if (form.supervisor !== supervisor && form.supervisor2 !== supervisor) return false;
         }
         
-        // Line Leader filter
-        if (lineLeader && (form.line_leader || form.line_leader2)) {
-          if (form.line_leader !== lineLeader && form.line_leader2 !== lineLeader) return false;
-        }
         
         // QC Inspector filter
         if (qcInspector && (form.qc_inspector || form.qc_inspector2)) {
@@ -965,10 +952,6 @@ async function applyFilters() {
         if (form.supervisor !== supervisor && form.supervisor2 !== supervisor) return false;
       }
       
-      // Line Leader filter
-      if (lineLeader && (form.line_leader || form.line_leader2)) {
-        if (form.line_leader !== lineLeader && form.line_leader2 !== lineLeader) return false;
-      }
       
       // QC Inspector filter
       if (qcInspector && (form.qc_inspector || form.qc_inspector2)) {
@@ -995,7 +978,6 @@ async function clearFilters() {
   document.getElementById('filterToDate').value = '';
   document.getElementById('filterOperator').value = '';
   document.getElementById('filterSupervisor').value = '';
-  document.getElementById('filterLineLeader').value = '';
   document.getElementById('filterQCInspector').value = '';
   
   // Reset cascading dropdowns
@@ -1138,7 +1120,7 @@ async function handleFormSubmit(e) {
           .select(`
             id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
             production_date, emboss_type, printed, non_printed, ct, year, month, date,
-            mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
+            mc_no, shift, supervisor, supervisor2,
             operator, operator2, qc_inspector, qc_inspector2, status,
             total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
             created_at, updated_at
@@ -1169,8 +1151,6 @@ async function handleFormSubmit(e) {
           shift: parseInt(formData.get('shift')),
           supervisor: formData.get('supervisor'),
           supervisor2: formData.get('supervisor2'),
-          line_leader: formData.get('line_leader'),
-          line_leader2: formData.get('line_leader2'),
           operator: formData.get('operator'),
           operator2: formData.get('operator2'),
           qc_inspector: formData.get('qc_inspector'),
@@ -1274,8 +1254,6 @@ async function handleFormSubmit(e) {
         shift: parseInt(formData.get('shift')),
         supervisor: formData.get('supervisor'),
         supervisor2: formData.get('supervisor2'),
-        line_leader: formData.get('line_leader'),
-        line_leader2: formData.get('line_leader2'),
         operator: formData.get('operator'),
         operator2: formData.get('operator2'),
         qc_inspector: formData.get('qc_inspector'),
@@ -1622,7 +1600,7 @@ async function handleFormSubmit(e) {
         .select(`
           id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
           production_date, emboss_type, printed, non_printed, ct, year, month, date,
-          mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
+          mc_no, shift, supervisor, supervisor2,
           operator, operator2, qc_inspector, qc_inspector2, status,
           total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
           created_at, updated_at
@@ -1736,7 +1714,7 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
     
     tbody.innerHTML = `
       <tr>
-        <td colspan="12" class="py-4 text-center text-gray-500">
+        <td colspan="11" class="py-4 text-center text-gray-500">
           ${message}
         </td>
       </tr>
@@ -1754,7 +1732,6 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
     // Combine names with '/'
     const supervisorDisplay = [form.supervisor, form.supervisor2].filter(Boolean).join(' / ');
     const operatorDisplay = [form.operator, form.operator2].filter(Boolean).join(' / ');
-    const lineLeaderDisplay = [form.line_leader, form.line_leader2].filter(Boolean).join(' / ');
     const qcInspectorDisplay = [form.qc_inspector, form.qc_inspector2].filter(Boolean).join(' / ');
     
     // Convert shift number to letter for display
@@ -1800,45 +1777,49 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${shiftDisplay}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${operatorDisplay || '-'}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${supervisorDisplay || '-'}</td>
-      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${lineLeaderDisplay || '-'}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${qcInspectorDisplay || '-'}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words ${statusColor}">${statusDisplay}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">
-        <div class="flex justify-center space-x-3 flex-wrap max-w-full overflow-hidden">
-          ${(!isSubmitted || hasPermission) ? `
-            <!-- Sky blue Enter Data button - show if not submitted OR user has permission -->
-            <button onclick="enterData('${form.traceability_code}', '${form.lot_letter}')" class="p-1.5 rounded-md bg-sky-50 hover:bg-sky-100 text-sky-600 hover:text-sky-800 transition-all duration-200 border border-sky-200 hover:border-sky-300 flex-shrink-0" title="Enter Inspection Data">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        <div class="flex flex-col justify-center items-center space-y-1 max-w-full overflow-hidden">
+          <div class="flex space-x-3">
+            ${(!isSubmitted || hasPermission) ? `
+              <!-- Sky blue Enter Data button - show if not submitted OR user has permission -->
+              <button onclick="enterData('${form.traceability_code}', '${form.lot_letter}')" class="p-1.5 rounded-md bg-sky-50 hover:bg-sky-100 text-sky-600 hover:text-sky-800 transition-all duration-200 border border-sky-200 hover:border-sky-300 flex-shrink-0" title="Enter Inspection Data">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+              </button>
+              <!-- Green Edit button - show if not submitted OR user has permission -->
+              <button onclick="editForm('${form.traceability_code}', '${form.lot_letter}')" class="p-1.5 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0" title="Edit Form">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+              </button>
+            ` : ''}
+          </div>
+          <div class="flex space-x-3">
+            <!-- Dark blue View button - always show -->
+            <button onclick="viewForm('${form.traceability_code}', '${form.lot_letter}')" class="p-1.5 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-800 hover:text-blue-900 transition-all duration-200 border border-blue-200 hover:border-blue-300 flex-shrink-0" title="View Form">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
               </svg>
             </button>
-            <!-- Green Edit button - show if not submitted OR user has permission -->
-            <button onclick="editForm('${form.traceability_code}', '${form.lot_letter}')" class="p-1.5 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0" title="Edit Form">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-              </svg>
-            </button>
-          ` : ''}
-          <!-- Dark blue View button - always show -->
-          <button onclick="viewForm('${form.traceability_code}', '${form.lot_letter}')" class="p-1.5 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-800 hover:text-blue-900 transition-all duration-200 border border-blue-200 hover:border-blue-300 flex-shrink-0" title="View Form">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-            </svg>
-          </button>
-          ${(!isSubmitted || hasPermission) ? `
+            
             <!-- Red Delete button - show if not submitted OR user has permission -->
-            <button onclick="deleteForm('${form.traceability_code}', '${form.lot_letter}')" class="p-1.5 rounded-md bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition-all duration-200 border border-red-200 hover:border-red-300 flex-shrink-0" title="Delete Form">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-              </svg>
-            </button>
-          ` : ''}
+            ${(!isSubmitted || hasPermission) ? `
+              <button onclick="deleteForm('${form.traceability_code}', '${form.lot_letter}')" class="p-1.5 rounded-md bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition-all duration-200 border border-red-200 hover:border-red-300 flex-shrink-0" title="Delete Form">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            ` : ''}
+          </div>
         </div>
       </td>
       <td class="py-3 px-4 text-center whitespace-normal break-words">
         <button onclick="downloadFormExcel('${form.traceability_code}', '${form.lot_letter}', this)" class="p-1.5 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Download Form Excel">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 10l5 5 5-5M12 15V3" />
           </svg>
@@ -1904,8 +1885,6 @@ function populateFormWithData(formData, form, submitButton) {
     shift: formData.shift || '',
     supervisor: formData.supervisor || '',
     supervisor2: formData.supervisor2 || '',
-    line_leader: formData.line_leader || '',
-    line_leader2: formData.line_leader2 || '',
     operator: formData.operator || '',
     operator2: formData.operator2 || '',
     qc_inspector: formData.qc_inspector || '',
@@ -1948,8 +1927,6 @@ function populateFormWithData(formData, form, submitButton) {
       shift: form.querySelector('[name="shift"]'),
       supervisor: form.querySelector('[name="supervisor"]'),
       supervisor2: form.querySelector('[name="supervisor2"]'),
-      line_leader: form.querySelector('[name="line_leader"]'),
-      line_leader2: form.querySelector('[name="line_leader2"]'),
       operator: form.querySelector('[name="operator"]'),
       operator2: form.querySelector('[name="operator2"]'),
       qc_inspector: form.querySelector('[name="qc_inspector"]'),
@@ -2287,43 +2264,44 @@ function showProgressIndicator(message) {
       transform: translate(-50%, -50%);
       background: rgba(255, 255, 255, 0.95);
       color: #333;
-      padding: 30px;
-      border-radius: 15px;
+      padding: 20px;
+      border-radius: 12px;
       z-index: 9999;
       text-align: center;
-      min-width: 350px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      min-width: 250px;
+      max-width: 320px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.18);
       border: 1px solid rgba(0,0,0,0.1);
       backdrop-filter: blur(10px);
     `;
     document.body.appendChild(progressDiv);
   }
   progressDiv.innerHTML = `
-    <div style="margin-bottom: 20px;">
-      <div style="font-size: 18px; font-weight: 600; margin-bottom: 15px; color: #002E7D;">Downloading...</div>
+    <div style="margin-bottom: 15px;">
+      <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #002E7D;">Downloading...</div>
       <div class="spinner" style="
         border: 3px solid rgba(0,46,125,0.3);
         border-top: 3px solid #002E7D;
         border-radius: 50%;
-        width: 50px;
-        height: 50px;
+        width: 40px;
+        height: 40px;
         animation: spin 1s linear infinite;
-        margin: 0 auto 20px;
+        margin: 0 auto 15px;
       "></div>
-      <div id="countdown-message" style="font-size: 14px; opacity: 0.8; margin-bottom: 20px; color: #666;">${message}</div>
+      <div id="countdown-message" style="font-size: 13px; opacity: 0.8; margin-bottom: 12px; color: #666;">${message}</div>
       <div class="diagonal-progress" style="
-        height: 6px;
+        height: 5px;
         background: repeating-linear-gradient(
           45deg,
           #002E7D 0px,
-          #002E7D 8px,
-          #1e40af 8px,
-          #1e40af 16px,
-          transparent 16px,
-          transparent 24px
+          #002E7D 7px,
+          #1e40af 7px,
+          #1e40af 14px,
+          transparent 14px,
+          transparent 21px
         );
-        margin-top: 35px;
-        border-radius: 3px;
+        margin-top: 20px;
+        border-radius: 2px;
         border: 1px solid #002E7D;
         animation: diagonalMove 1.5s linear infinite;
       "></div>
@@ -2335,11 +2313,11 @@ function showProgressIndicator(message) {
       }
       @keyframes diagonalMove {
         0% { background-position: 0px 0px; }
-        100% { background-position: 40px 0px; }
+        100% { background-position: 35px 0px; }
       }
     </style>
   `;
-  
+
   // Start countdown if message is "Fetching data..."
   if (message === 'Fetching data...') {
     startCountdown();
@@ -2590,8 +2568,6 @@ async function setupPersonnelAutocomplete() {
     const personnelFields = [
         { name: 'supervisor', users: productionUsers },
         { name: 'supervisor2', users: productionUsers },
-        { name: 'line_leader', users: productionUsers },
-        { name: 'line_leader2', users: productionUsers },
         { name: 'operator', users: productionUsers },
         { name: 'operator2', users: productionUsers },
         { name: 'qc_inspector', users: qcUsers },

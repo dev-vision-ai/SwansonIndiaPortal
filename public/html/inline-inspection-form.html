@@ -87,20 +87,20 @@
     
     <!-- Delete Confirmation Overlay -->
     <div id="deleteConfirmationOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+        <div class="bg-white rounded-lg shadow-xl p-4 max-w-sm w-full mx-4">
             <div class="text-center">
-                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="mx-auto flex items-center justify-center h-10 w-10 rounded-full bg-red-100 mb-3">
+                    <svg class="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                     </svg>
                 </div>
-                <h3 id="deleteConfirmationTitle" class="text-lg font-medium text-gray-900 mb-2">Confirm Deletion</h3>
-                <p id="deleteConfirmationMessage" class="text-sm text-gray-500 mb-6">Are you sure you want to delete this form?</p>
-                <div class="flex justify-center space-x-3">
-                    <button id="cancelDeleteBtn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                <h3 id="deleteConfirmationTitle" class="text-base font-medium text-gray-900 mb-1.5">Confirm Deletion</h3>
+                <p id="deleteConfirmationMessage" class="text-xs text-gray-500 mb-4">Are you sure you want to delete this form?</p>
+                <div class="flex justify-center space-x-2">
+                    <button id="cancelDeleteBtn" class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                         Cancel
                     </button>
-                    <button id="confirmDeleteBtn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    <button id="confirmDeleteBtn" class="px-3 py-1.5 text-xs font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                         Delete
                     </button>
                 </div>
@@ -110,20 +110,20 @@
     
     <!-- Final Delete Warning Overlay -->
     <div id="finalDeleteWarningOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+        <div class="bg-white rounded-lg shadow-xl p-4 max-w-sm w-full mx-4">
             <div class="text-center">
-                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="mx-auto flex items-center justify-center h-10 w-10 rounded-full bg-red-100 mb-3">
+                    <svg class="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">⚠️ FINAL WARNING</h3>
-                <p class="text-sm text-gray-500 mb-6">This action cannot be undone. Are you absolutely sure you want to delete this form?</p>
-                <div class="flex justify-center space-x-3">
-                    <button id="cancelFinalDeleteBtn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                <h3 class="text-base font-medium text-gray-900 mb-1.5">⚠️ FINAL WARNING</h3>
+                <p class="text-xs text-gray-500 mb-4">This action cannot be undone. Are you absolutely sure you want to delete this form?</p>
+                <div class="flex justify-center space-x-2">
+                    <button id="cancelFinalDeleteBtn" class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                         Cancel
                     </button>
-                    <button id="confirmFinalDeleteBtn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    <button id="confirmFinalDeleteBtn" class="px-3 py-1.5 text-xs font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                         Delete Permanently
                     </button>
                 </div>
@@ -133,40 +133,40 @@
     
     <!-- Overlay for Inline Inspection Form -->
     <div id="inspectionFormOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
-      <main class="w-full max-w-4xl bg-white rounded-xl shadow-2xl p-3 md:p-4 flex flex-col items-center max-h-fit overflow-visible relative mt-16">
-        <button id="closeInspectionFormOverlay" class="absolute top-4 right-4 text-2xl text-red-500 hover:text-red-700 font-bold bg-white rounded-full w-10 h-10 flex items-center justify-center shadow transition">&times;</button>
-                          <div class="w-full p-2 md:p-8">
-                <h3 class="text-2xl font-bold text-gray-800 mb-3 text-center">Enter Inline Inspection Form Details</h3>
-                <div class="bg-[#002E7D] h-1 w-24 mx-auto rounded mb-3"></div>
-                <form id="inlineInspectionEntryForm" class="space-y-4" autocomplete="off">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mb-5">
+      <main class="w-full max-w-2xl bg-white rounded-xl shadow-2xl p-2 md:p-3 flex flex-col items-center max-h-fit overflow-visible relative mt-12">
+        <button id="closeInspectionFormOverlay" class="absolute top-2 right-2 text-lg text-red-500 hover:text-red-700 font-bold bg-white rounded-full w-7 h-7 flex items-center justify-center shadow transition">&times;</button>
+                          <div class="w-full p-1 md:p-2">
+                <h3 class="text-lg font-bold text-gray-800 mb-1 text-center">Enter Inline Inspection Form Details</h3>
+                <div class="bg-[#002E7D] h-0.5 w-12 mx-auto rounded mb-1"></div>
+                <form id="inlineInspectionEntryForm" class="space-y-2" autocomplete="off">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 mb-2">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Prod. Code: <span class="text-red-500">*</span></label>
-                            <input type="text" name="prod_code" autocomplete="off" required class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
+                            <label class="block text-sm font-semibold text-gray-700 mb-0.5">Prod. Code: <span class="text-red-500">*</span></label>
+                            <input type="text" name="prod_code" autocomplete="off" required class="mt-0.5 block w-full px-3 py-1.5 h-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Customer: <span class="text-red-500">*</span></label>
-                            <input type="text" name="customer" autocomplete="off" required class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mb-5">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Spec: <span class="text-red-500">*</span></label>
-                            <input type="text" name="spec" autocomplete="off" required class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Production No.:</label>
-                            <input type="text" name="production_no" autocomplete="off" class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
+                            <label class="block text-sm font-semibold text-gray-700 mb-0.5">Customer: <span class="text-red-500">*</span></label>
+                            <input type="text" name="customer" autocomplete="off" required class="mt-0.5 block w-full px-3 py-1.5 h-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mb-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 mb-2">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Production Date: <span class="text-red-500">*</span></label>
-                            <input type="date" name="production_date" required class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}">
+                            <label class="block text-sm font-semibold text-gray-700 mb-0.5">Spec: <span class="text-red-500">*</span></label>
+                            <input type="text" name="spec" autocomplete="off" required class="mt-0.5 block w-full px-3 py-1.5 h-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Emboss Type: <span class="text-red-500">*</span></label>
-                            <select name="emboss_type" required class="mt-1 block w-full px-4 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <label class="block text-sm font-semibold text-gray-700 mb-0.5">Production No.:</label>
+                            <input type="text" name="production_no" autocomplete="off" class="mt-0.5 block w-full px-3 py-1.5 h-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 mb-2">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-0.5">Production Date: <span class="text-red-500">*</span></label>
+                            <input type="date" name="production_date" required class="mt-0.5 block w-full px-3 py-1.5 h-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="DD/MM/YYYY" pattern="\d{2}/\d{2}/\d{4}">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-0.5">Emboss Type: <span class="text-red-500">*</span></label>
+                            <select name="emboss_type" required class="mt-0.5 block w-full px-3 py-1.5 h-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
                                 <option value="">Select</option>
                                 <option value="Random">Random</option>
                                 <option value="Matte">Matte</option>
@@ -175,79 +175,74 @@
                         </div>
                     </div>
                     <div class="flex flex-col items-center">
-                        <div class="flex flex-row items-center gap-10 border border-gray-200 bg-gray-50 rounded-lg px-4 py-3 w-fit mb-2">
-                            <div class="flex items-center mr-2">
+                        <div class="flex flex-row items-center gap-4 border border-gray-200 bg-gray-50 rounded-lg px-2 py-1.5 w-fit mb-1">
+                            <div class="flex items-center mr-1">
                                 <span class="text-sm font-semibold text-gray-700">Product Type: <span class="text-red-500">*</span></span>
                             </div>
                             <label class="inline-flex items-center text-sm font-semibold text-gray-700">
-                                <input type="checkbox" name="printed" class="h-5 w-5 text-[#002E7D] border-gray-300 rounded mr-2"> Printed
+                                <input type="checkbox" name="printed" class="h-3 w-3 text-[#002E7D] border-gray-300 rounded mr-1"> Printed
                             </label>
                             <label class="inline-flex items-center text-sm font-semibold text-gray-700">
-                                <input type="checkbox" name="non_printed" class="h-5 w-5 text-[#002E7D] border-gray-300 rounded mr-2"> Non-Printed
+                                <input type="checkbox" name="non_printed" class="h-3 w-3 text-[#002E7D] border-gray-300 rounded mr-1"> Non-Printed
                             </label>
                             <label class="inline-flex items-center text-sm font-semibold text-gray-700">
-                                <input type="checkbox" name="ct" class="h-5 w-5 text-[#002E7D] border-gray-300 rounded mr-2"> CT
+                                <input type="checkbox" name="ct" class="h-3 w-3 text-[#002E7D] border-gray-300 rounded mr-1"> CT
                             </label>
                         </div>
                         <div id="productTypeError" class="text-red-500 text-sm font-medium hidden">Please select at least one product type</div>
                     </div>
-                    <div class="p-2 border border-gray-200 rounded-lg flex flex-row gap-2 justify-center mx-auto mb-5">
-                        <div class="flex items-center mr-4">
-                            <label class="block text-base font-semibold text-gray-700">Lot ID:</label>
+                    <div class="p-1.5 border border-gray-200 rounded-lg flex flex-row gap-1.5 justify-center mx-auto mb-2">
+                        <div class="flex items-center mr-2">
+                            <label class="block text-sm font-semibold text-gray-700">Lot ID:</label>
                         </div>
-                        <div class="flex flex-col w-20">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Year <span class="text-red-500">*</span></label>
-                            <input type="text" name="year" autocomplete="off" required class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <div class="flex flex-col w-16">
+                            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Year <span class="text-red-500">*</span></label>
+                            <input type="text" name="year" autocomplete="off" required class="block w-full px-1.5 py-1 h-7 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                         </div>
-                        <div class="flex flex-col w-20">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Month <span class="text-red-500">*</span></label>
-                            <input type="text" name="month" autocomplete="off" required class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <div class="flex flex-col w-16">
+                            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Month <span class="text-red-500">*</span></label>
+                            <input type="text" name="month" autocomplete="off" required class="block w-full px-1.5 py-1 h-7 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                         </div>
-                        <div class="flex flex-col w-20">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Date <span class="text-red-500">*</span></label>
-                            <input type="text" name="date" autocomplete="off" required class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <div class="flex flex-col w-16">
+                            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Date <span class="text-red-500">*</span></label>
+                            <input type="text" name="date" autocomplete="off" required class="block w-full px-1.5 py-1 h-7 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                         </div>
-                        <div class="flex flex-col w-20">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">M/C No. <span class="text-red-500">*</span></label>
-                            <input type="text" name="mc_no" autocomplete="off" required class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
+                        <div class="flex flex-col w-16">
+                            <label class="block text-xs font-semibold text-gray-700 mb-0.5">M/C No. <span class="text-red-500">*</span></label>
+                            <input type="text" name="mc_no" autocomplete="off" required class="block w-full px-1.5 py-1 h-7 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
                         </div>
-                        <div class="flex flex-col w-20">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Shift <span class="text-red-500">*</span></label>
-                            <input type="text" name="shift" autocomplete="off" required class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
-                        </div>
-                    </div>
-                    <div class="p-2 border border-gray-200 rounded-lg flex flex-row gap-2 justify-center mx-auto mb-5">
-                        <div class="flex items-center mr-4">
-                            <label class="block text-base font-semibold text-gray-700">Team:</label>
-                        </div>
-                        <div class="flex flex-col w-44">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Supervisor <span class="text-red-500">*</span></label>
-                            <input type="text" name="supervisor" placeholder="Supervisor 1" autocomplete="off" required class="block w-full px-2 py-2 h-10 mb-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
-                            <input type="text" name="supervisor2" placeholder="Supervisor 2" autocomplete="off" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
-                        </div>
-                        <div class="flex flex-col w-44">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Line Leader</label>
-                            <input type="text" name="line_leader" placeholder="Line Leader 1" autocomplete="off" class="block w-full px-2 py-2 h-10 mb-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
-                            <input type="text" name="line_leader2" placeholder="Line Leader 2" autocomplete="off" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
-                        </div>
-                        <div class="flex flex-col w-44">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Operator <span class="text-red-500">*</span></label>
-                            <input type="text" name="operator" placeholder="Operator 1" autocomplete="off" required class="block w-full px-2 py-2 h-10 mb-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
-                            <input type="text" name="operator2" placeholder="Operator 2" autocomplete="off" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
-                        </div>
-                        <div class="flex flex-col w-44">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">QC Inspector <span class="text-red-500">*</span></label>
-                            <input type="text" name="qc_inspector" placeholder="QC Inspector 1" autocomplete="off" required class="block w-full px-2 py-2 h-10 mb-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
-                            <input type="text" name="qc_inspector2" placeholder="QC Inspector 2" autocomplete="off" class="block w-full px-2 py-2 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
+                        <div class="flex flex-col w-16">
+                            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Shift <span class="text-red-500">*</span></label>
+                            <input type="text" name="shift" autocomplete="off" required class="block w-full px-1.5 py-1 h-7 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
                         </div>
                     </div>
-                    <div class="flex justify-center mb-3">
-                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 mx-auto">
+                    <div class="p-1.5 border border-gray-200 rounded-lg flex flex-row gap-1.5 justify-center mx-auto mb-2">
+                        <div class="flex items-center mr-2">
+                            <label class="block text-sm font-semibold text-gray-700">Team:</label>
+                        </div>
+                        <div class="flex flex-col w-36">
+                            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Supervisor <span class="text-red-500">*</span></label>
+                            <input type="text" name="supervisor" placeholder="Supervisor 1" autocomplete="off" required class="block w-full px-2 py-1 h-7 mb-0.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
+                            <input type="text" name="supervisor2" placeholder="Supervisor 2" autocomplete="off" class="block w-full px-2 py-1 h-7 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
+                        </div>
+                        <div class="flex flex-col w-36">
+                            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Operator <span class="text-red-500">*</span></label>
+                            <input type="text" name="operator" placeholder="Operator 1" autocomplete="off" required class="block w-full px-2 py-1 h-7 mb-0.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
+                            <input type="text" name="operator2" placeholder="Operator 2" autocomplete="off" class="block w-full px-2 py-1 h-7 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
+                        </div>
+                        <div class="flex flex-col w-36">
+                            <label class="block text-xs font-semibold text-gray-700 mb-0.5">QC Inspector <span class="text-red-500">*</span></label>
+                            <input type="text" name="qc_inspector" placeholder="QC Inspector 1" autocomplete="off" required class="block w-full px-2 py-1 h-7 mb-0.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
+                            <input type="text" name="qc_inspector2" placeholder="QC Inspector 2" autocomplete="off" class="block w-full px-2 py-1 h-7 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
+                        </div>
+                    </div>
+                    <div class="flex justify-center mb-2">
+                        <button type="submit" class="inline-flex justify-center py-1.5 px-3 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 mx-auto">
                             Create Inline Inspection Form
                         </button>
                     </div>
-                    <div class="flex justify-center mb-3">
-                        <p class="text-red-600 text-base font-medium text-center">
+                    <div class="flex justify-center mb-2">
+                        <p class="text-red-600 text-sm font-medium text-center">
                             *Note : Please ensure all entered details are correct before creating form
                         </p>
                     </div>
@@ -256,7 +251,7 @@
         </div>
     </main>
     <!-- Create Film Inspection Form Button -->
-    <div class="flex justify-center w-full mt-32 mb-2 gap-4">
+    <div class="flex justify-center w-full mt-20 mb-2 gap-4">
       <button id="showInspectionFormOverlay" type="button" class="bg-[#002E7D] hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow text-base transition-all duration-200">
         + Create Inline Inspection Form
       </button>
@@ -266,7 +261,7 @@
     </div>
     
     <!-- Filter Section -->
-    <div id="filterSection" class="w-full flex justify-center mt-8 mb-6">
+    <div id="filterSection" class="w-full flex justify-center mt-6 mb-6">
       <div id="filterContainer" class="bg-white rounded-lg shadow-md p-4">
         <div class="flex items-center justify-between mb-3">
           <div class="flex-1"></div>
@@ -326,13 +321,6 @@
               <option value="">All</option>
             </select>
           </div>
-          <!-- Line Leader Filter -->
-          <div class="flex flex-col items-center">
-            <label class="block text-xs font-medium text-gray-700 mb-1">Line Leader:</label>
-            <select id="filterLineLeader" class="w-28 h-7 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
-              <option value="">All</option>
-            </select>
-          </div>
           <!-- QC Inspector Filter -->
           <div class="flex flex-col items-center">
             <label class="block text-xs font-medium text-gray-700 mb-1">QC Inspector:</label>
@@ -355,29 +343,28 @@
     </div>
     
     <!-- Inline Inspection Forms Table -->
-    <div class="w-full flex justify-center mt-8">
+    <div class="w-full flex justify-center mt-6">
       <div class="w-full overflow-x-auto">
-        <table class="w-full bg-white shadow-md rounded table-fixed">
+        <table class="w-full bg-white shadow-md rounded table-fixed text-sm">
                     <thead>
           <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center text-sm">
-            <th class="py-2 px-4 border-r border-gray-300 w-16 whitespace-normal break-words">Sr No</th>
-            <th class="py-2 px-4 border-r border-gray-300 w-32 whitespace-normal break-words">Production Date</th>
-            <th class="py-2 px-4 border-r border-gray-300 w-56 whitespace-normal break-words">Product</th>
-            <th class="py-2 px-4 border-r border-gray-300 w-20 whitespace-normal break-words">
+            <th class="py-2 px-3 border-r border-gray-300 w-10 whitespace-normal break-words">Sr</th>
+            <th class="py-2 px-3 border-r border-gray-300 w-24 whitespace-normal break-words">Prod. Date</th>
+            <th class="py-2 px-3 border-r border-gray-300 w-36 whitespace-normal break-words">Product</th>
+            <th class="py-2 px-3 border-r border-gray-300 w-16 whitespace-normal break-words">
               M/C No
               <div class="text-xs font-normal mt-1">
-                <span class="text-red-600 font-semibold">MC1</span> | 
+                <span class="text-red-600 font-semibold">MC1</span> |
                 <span class="text-green-600 font-semibold">MC2</span>
               </div>
             </th>
-            <th class="py-2 px-4 border-r border-gray-300 w-20 whitespace-normal break-words">Shift</th>
-            <th class="py-2 px-4 border-r border-gray-300 w-32 whitespace-normal break-words">Operator</th>
-            <th class="py-2 px-4 border-r border-gray-300 w-32 whitespace-normal break-words">Supervisor</th>
-            <th class="py-2 px-4 border-r border-gray-300 w-32 whitespace-normal break-words">Line Leader</th>
-            <th class="py-2 px-4 border-r border-gray-300 w-32 whitespace-normal break-words">QC Inspector</th>
-            <th class="py-2 px-4 border-r border-gray-300 w-28 whitespace-normal break-words">Status</th>
-            <th class="py-2 px-4 border-r border-gray-300 w-40 whitespace-normal break-words">Action</th>
-            <th class="py-2 px-4 border-r border-gray-300 w-24 whitespace-normal break-words">Download In-Line</th>
+            <th class="py-2 px-3 border-r border-gray-300 w-16 whitespace-normal break-words">Shift</th>
+            <th class="py-2 px-3 border-r border-gray-300 w-24 whitespace-normal break-words">Operator</th>
+            <th class="py-2 px-3 border-r border-gray-300 w-24 whitespace-normal break-words">Supervisor</th>
+            <th class="py-2 px-3 border-r border-gray-300 w-24 whitespace-normal break-words">QC Inspector</th>
+            <th class="py-2 px-3 border-r border-gray-300 w-20 whitespace-normal break-words">Status</th>
+            <th class="py-2 px-3 border-r border-gray-300 w-24 whitespace-normal break-words">Action</th>
+            <th class="py-2 px-3 border-r border-gray-300 w-24 whitespace-normal break-words">Download</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -388,9 +375,41 @@
     </div>
     <style>
       /* Striped rows and hover for tbody */
-      table tbody tr { background-color: #ffffff; }
+      table tbody tr {
+        background-color: #ffffff;
+        font-size: 0.875rem; /* Consistent with page content */
+      }
       table tbody tr:hover { background-color: #e2e8f0; }
       table tbody tr { border-bottom: 1px solid #d1d5db; }
+      table tbody td {
+        padding: 0.5rem 0.75rem; /* Slightly increased padding for better readability */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      
+      /* Compact action icons */
+      .action-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        padding: 0.125rem;
+        margin: 0 0.125rem;
+      }
+      .action-icon svg {
+        width: 0.875rem;
+        height: 0.875rem;
+      }
+      
+      /* Compact download icon */
+      .download-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        padding: 0.125rem;
+      }
+      .download-icon svg {
+        width: 0.875rem;
+        height: 0.875rem;
+      }
     </style>
     <script type="module" src="../js/inline-inspection-form.js?v=1.1"></script>
 
