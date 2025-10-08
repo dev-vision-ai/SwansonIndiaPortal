@@ -16,7 +16,7 @@
     }
     
     main {
-      margin-top: 100px;
+      margin-top: 80px;
       padding: 0 20px;
       width: 100%;
     }
@@ -34,7 +34,6 @@
       border-collapse: collapse;
       margin-top: 20px;
       background: white;
-      border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -157,17 +156,25 @@
 
     .fire-inspection-table th:nth-child(10),
     .fire-inspection-table td:nth-child(10) {
+      width: 95px;
+      min-width: 95px;
+      max-width: 95px;
+      text-align: center;
+    }
+
+    .fire-inspection-table th:nth-child(11),
+    .fire-inspection-table td:nth-child(11) {
       width: 140px;
       min-width: 140px;
       max-width: 140px;
       text-align: center;
     }
 
-    .fire-inspection-table th:nth-child(11),
-    .fire-inspection-table td:nth-child(11) {
-      width: 85px;
-      min-width: 85px;
-      max-width: 85px;
+    .fire-inspection-table th:nth-child(12),
+    .fire-inspection-table td:nth-child(12) {
+      width: 140px;
+      min-width: 140px;
+      max-width: 140px;
       text-align: center;
     }
     
@@ -187,13 +194,19 @@
     .status-badge {
       padding: 4px 10px;
       border-radius: 16px;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
-      min-width: 60px;
+      min-width: 55px;
+      max-width: 95px;
+      white-space: nowrap;
+      line-height: 1.2;
+      vertical-align: middle;
     }
     
     .status-active {
@@ -223,50 +236,45 @@
     /* Action buttons */
     .action-buttons {
       display: flex;
-      gap: 4px;
+      gap: 3px;
       justify-content: center;
       align-items: center;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
     }
     
     .btn-small {
-      padding: 6px 8px;
-      font-size: 11px;
+      padding: 4px 6px;
+      font-size: 10px;
       border: none;
-      border-radius: 4px;
+      border-radius: 3px;
       cursor: pointer;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 28px;
-      height: 28px;
+      min-width: 24px;
+      height: 24px;
       transition: all 0.2s ease;
     }
     
     
     .btn-edit {
-      background-color: #007bff;
+      background-color: #f59e0b;
       color: white;
     }
-    
+
     .btn-view {
       background-color: #28a745;
       color: white;
     }
-    
+
     .btn-qr {
       background-color: #6f42c1;
       color: white;
     }
-    
+
     .btn-delete {
       background-color: #dc3545;
-      color: white;
-    }
-    
-    .btn-edit {
-      background-color: #f59e0b;
       color: white;
     }
     
@@ -274,9 +282,50 @@
     .filter-container {
       background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
       border: 1px solid #e5e7eb;
-      border-radius: 16px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      margin-bottom: 16px;
+      padding: 12px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Responsive filter layout */
+    @media (max-width: 650px) {
+      .filter-container {
+        max-width: 100%;
+        margin: 0 2px 16px 2px;
+        padding: 10px;
+      }
+
+      .filter-container div[style*="grid-template-columns"] {
+        grid-template-columns: 2.5fr 1fr 1fr !important;
+        gap: 6px !important;
+      }
+
+      .filter-container > div > div:last-child {
+        grid-column: 1 / -1;
+        justify-content: center;
+        margin-top: 6px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .filter-container {
+        margin: 0 1px 16px 1px;
+        padding: 8px;
+      }
+
+      .filter-container div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr 1fr !important;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .filter-container div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+      }
     }
     
     .filter-input {
@@ -331,7 +380,7 @@
 
     .modal-content {
       background-color: #fefefe;
-      margin: 2% auto;
+      margin: 0;
       padding: 15px;
       border: 1px solid #888;
       width: 70%;
@@ -339,6 +388,10 @@
       border-radius: 8px;
       max-height: 90vh;
       overflow-y: auto;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
     }
 
     .close {
@@ -536,8 +589,43 @@
         </div>
       </div>
 
+      <!-- Filter Section -->
+      <div class="filter-container">
+        <div style="text-align: center; margin-bottom: 8px;">
+          <h4 style="margin: 0; color: #002E7D; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Filter</h4>
+        </div>
+        <div style="display: grid; grid-template-columns: 3fr 1fr 1fr auto; gap: 6px; align-items: center; max-width: 600px; margin: 0;">
+          <div class="form-group" style="margin-bottom: 0; position: relative;">
+            <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Search</div>
+            <input type="text" id="filterLocation" class="filter-input" placeholder="🔍 Location/Ext/Type/Inspector" style="width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; height: 28px;" title="Search by Location, Extinguisher Number, Type, or Inspector">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Type</div>
+            <select id="filterType" class="filter-input" style="width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; height: 28px;" title="Filter by Extinguisher Type">
+              <option value="">All</option>
+              <option value="ABC">ABC</option>
+              <option value="BC">BC</option>
+              <option value="CO2">CO2</option>
+              <option value="MECH FOAM">FOAM</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Status</div>
+            <select id="filterStatus" class="filter-input" style="width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; height: 28px;" title="Filter by Status">
+              <option value="">All</option>
+              <option value="Active">Active</option>
+              <option value="Expired">Expired</option>
+              <option value="Service Due">Due</option>
+              <option value="No Inspection">None</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 4px; align-items: center;">
+            <button id="clearFilter" style="background: #6b7280; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 10px; font-weight: 600; white-space: nowrap; height: 28px;" title="Clear All Filters">Clear</button>
+            <div id="filterStatusIndicator" class="px-1 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700" style="height: 28px; display: flex; align-items: center; min-width: 30px; justify-content: center;" title="Filter Status">Off</div>
+          </div>
+        </div>
+      </div>
 
-      
       <!-- Add New Fire Extinguisher Button -->
       <div class="w-full flex justify-center mt-8 mb-4">
         <button class="add-button" onclick="openAddNewExtinguisherModal()">
@@ -556,6 +644,7 @@
                 <th>Type</th>
                 <th>Location</th>
                 <th>Capacity</th>
+                <th>Refilled Date</th>
                 <th>Expiry Date</th>
                 <th>Inspection Date</th>
                 <th>Next Due Date</th>
@@ -573,49 +662,46 @@
     </main>
   </div>
 
-  <!-- Delete Options Modal -->
+  <!-- More Options Modal -->
   <div id="deleteOptionsModal" class="modal">
-    <div class="modal-content" style="width: 75%; max-width: 600px;">
+    <div class="modal-content" style="width: 85%; max-width: 350px; min-width: 280px;">
       <span class="close" onclick="closeDeleteOptionsModal()">&times;</span>
-      <h2 style="margin-bottom: 15px; color: #dc3545;">Delete Options</h2>
-      <p style="margin-bottom: 20px; color: #666;">Choose what you want to delete for <strong id="deleteOptionsExtinguisherNo"></strong>:</p>
-      
-      <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
-        <button onclick="deleteEntireExtinguisher()" style="background: #dc3545; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">
-          🗑️ Delete Fire Extinguisher
-        </button>
-        <button onclick="openClearInspectionDataModal()" style="background: #ffc107; color: #000; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+      <h2 style="margin-bottom: 12px; color: #002E7D; font-size: 1.1em;">More Options</h2>
+      <p style="margin-bottom: 16px; color: #666; font-size: 13px;">Choose an action for <strong id="deleteOptionsExtinguisherNo"></strong>:</p>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
+        <button onclick="openClearInspectionDataModal()" style="background: #ffc107; color: #000; border: none; padding: 10px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px;">
           🧹 Clear Inspection Data
         </button>
       </div>
-      
+
       <div style="text-align: right;">
-        <button onclick="closeDeleteOptionsModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Cancel</button>
+        <button onclick="closeDeleteOptionsModal()" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;">Cancel</button>
       </div>
     </div>
   </div>
 
   <!-- Clear Inspection Data Modal -->
   <div id="clearInspectionDataModal" class="modal">
-    <div class="modal-content" style="width: 75%; max-width: 600px;">
+    <div class="modal-content" style="width: 90%; max-width: 700px; min-width: 500px;">
       <span class="close" onclick="closeClearInspectionDataModal()">&times;</span>
-      <h2 style="margin-bottom: 15px; color: #ffc107;">Clear Inspection Data</h2>
-      <p style="margin-bottom: 20px; color: #666;">Select inspection records to clear for <strong id="clearInspectionDataExtinguisherNo"></strong>:</p>
-      
-      <div style="margin-bottom: 20px;">
-        <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-weight: 600;">
+      <h2 style="margin-bottom: 12px; color: #ffc107; font-size: 1.1em;">Clear Inspection Data</h2>
+      <p style="margin-bottom: 16px; color: #666; font-size: 11px;">Select inspection records to clear for <strong id="clearInspectionDataExtinguisherNo"></strong>:</p>
+
+      <div style="margin-bottom: 16px;">
+        <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-weight: 600; font-size: 11px;">
           <input type="checkbox" id="selectAllInspections" onchange="toggleSelectAllInspections()">
           Select All
         </label>
       </div>
-      
-      <div id="inspectionDataList" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;">
+
+      <div id="inspectionDataList" style="max-height: 250px; overflow-y: auto; margin-bottom: 16px;">
         <!-- Inspection records will be populated here -->
       </div>
-      
+
       <div style="text-align: right;">
-        <button onclick="closeClearInspectionDataModal()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-right: 10px;">Cancel</button>
-        <button onclick="confirmClearSelectedInspections()" style="background: #ffc107; color: #000; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">Clear Selected</button>
+        <button onclick="closeClearInspectionDataModal()" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 8px; font-size: 11px;">Cancel</button>
+        <button onclick="confirmClearSelectedInspections()" style="background: #ffc107; color: #000; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 11px;">Clear Selected</button>
       </div>
     </div>
   </div>

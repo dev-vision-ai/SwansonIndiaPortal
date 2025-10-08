@@ -5,12 +5,13 @@ let allInspections = [];
 let filteredInspections = [];
 let allExtinguishers = [];
 let currentFilters = {
-    fromDate: '',
-    toDate: '',
     type: '',
     status: '',
     location: ''
 };
+
+// Debug flag for troubleshooting
+const DEBUG_DATES = true;
 
 
 // DOM elements
@@ -18,7 +19,6 @@ const tableBody = document.getElementById('fireInspectionTableBody');
 const searchInput = document.getElementById('filterLocation');
 const typeFilter = document.getElementById('filterType');
 const statusFilter = document.getElementById('filterStatus');
-const toDateFilter = document.getElementById('filterToDate');
 const clearFilterBtn = document.getElementById('clearFilter');
 const filterStatusEl = document.getElementById('filterStatusIndicator');
 
@@ -100,11 +100,13 @@ function setupEventListeners() {
     if (searchInput) searchInput.addEventListener('input', filterInspections);
     if (typeFilter) typeFilter.addEventListener('change', filterInspections);
     if (statusFilter) statusFilter.addEventListener('change', filterInspections);
-    if (toDateFilter) toDateFilter.addEventListener('change', filterInspections);
 
     // Clear filter
     if (clearFilterBtn) {
+        console.log('Clear button found, adding event listener');
         clearFilterBtn.addEventListener('click', clearAllFilters);
+    } else {
+        console.error('Clear button not found!');
     }
 
     // Form submission
@@ -169,6 +171,16 @@ async function loadFireExtinguisherInspections() {
                 
                 if (sortedInspections.length > 0) {
                     const latestInspection = sortedInspections[0]; // Get the latest inspection
+
+                    // Debug date processing
+                    if (DEBUG_DATES) {
+                        console.log('Processing inspection for extinguisher:', extinguisher.extinguisher_no);
+                        console.log('Latest inspection date:', latestInspection.date);
+                        console.log('Next due date:', latestInspection.next_due_date);
+                        console.log('Formatted inspection date:', formatDate(latestInspection.date));
+                        console.log('Formatted next due date:', formatDate(latestInspection.next_due_date));
+                    }
+
                     allInspections.push({
                         id: inspectionId++,
                         extinguisher_id: extinguisher.id,
@@ -191,7 +203,7 @@ async function loadFireExtinguisherInspections() {
                         dent_rust_leak: latestInspection.dent_rust_leak,
                         easy_access: latestInspection.easy_access,
                         remarks: latestInspection.remarks,
-                        status: getInspectionStatus(latestInspection.next_due_date)
+                        status: getInspectionStatus(latestInspection.next_due_date, latestInspection.date)
                     });
                 }
             } else {
@@ -244,7 +256,7 @@ function renderTable() {
     if (filteredInspections.length === 0) {
     const row = document.createElement('tr');
         row.innerHTML = `
-            <td colspan="10" style="text-align: center; padding: 40px; color: #666; font-style: italic;">
+            <td colspan="12" style="text-align: center; padding: 40px; color: #666; font-style: italic;">
                 No inspection records found
             </td>
         `;
@@ -261,6 +273,7 @@ function renderTable() {
             <td>${inspection.type || ''}</td>
             <td>${inspection.location || ''}</td>
             <td>${inspection.capacity || ''} kg</td>
+            <td>${formatDate(inspection.refilled_date)}</td>
             <td>${formatDate(inspection.expiry_date)}</td>
             <td>${formatDate(inspection.inspection_date)}</td>
             <td>${formatDate(inspection.next_due_date)}</td>
@@ -269,24 +282,29 @@ function renderTable() {
             <td style="text-align: center;">
                 <div class="action-buttons">
                     <button onclick="viewInspection(${inspection.id})" class="btn-small" title="View Details" style="background-color: #dbeafe; color: #1e40af; border: 1px solid #93c5fd;">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                         </svg>
                     </button>
                     <button onclick="addInspectionForExtinguisher(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small" title="Add Inspection" style="background-color: #dbeafe; color: #0369a1; border: 1px solid #7dd3fc;">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>
                     </button>
                     <button onclick="editFireExtinguisher(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small" title="Edit Fire Extinguisher" style="background-color: #dcfce7; color: #166534; border: 1px solid #86efac;">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                         </svg>
                     </button>
-                    <button onclick="openDeleteOptionsModal(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small" title="Delete Options" style="background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    <button onclick="deleteInspectionRecord(${inspection.id}, '${inspection.extinguisher_no}')" class="btn-small" title="Delete This Inspection" style="background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </button>
+                    <button onclick="openDeleteOptionsModal(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small" title="More Options" style="background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db;">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
                         </svg>
                     </button>
                 </div>
@@ -302,10 +320,9 @@ function filterInspections() {
     const searchTerm = (searchInput?.value || '').toLowerCase();
     const typeFilterValue = typeFilter?.value || '';
     const statusFilterValue = statusFilter?.value || '';
-    const toDateValue = toDateFilter?.value || '';
 
     filteredInspections = allInspections.filter(inspection => {
-        const matchesSearch = 
+        const matchesSearch =
             (inspection.extinguisher_no && inspection.extinguisher_no.toLowerCase().includes(searchTerm)) ||
             (inspection.location && inspection.location.toLowerCase().includes(searchTerm)) ||
             (inspection.type && inspection.type.toLowerCase().includes(searchTerm)) ||
@@ -313,10 +330,8 @@ function filterInspections() {
 
         const matchesType = !typeFilterValue || inspection.type === typeFilterValue;
         const matchesStatus = !statusFilterValue || inspection.status === statusFilterValue;
-        
-        const matchesDateRange = !toDateValue || new Date(inspection.inspection_date) <= new Date(toDateValue);
 
-        return matchesSearch && matchesType && matchesStatus && matchesDateRange;
+        return matchesSearch && matchesType && matchesStatus;
     });
 
     renderTable();
@@ -325,33 +340,43 @@ function filterInspections() {
 
 // Clear all filters
 function clearAllFilters() {
-    if (searchInput) searchInput.value = '';
-    if (typeFilter) typeFilter.value = '';
-    if (statusFilter) statusFilter.value = '';
-    if (toDateFilter) toDateFilter.value = '';
+    console.log('Clear button clicked!');
+
+    if (searchInput) {
+        searchInput.value = '';
+        console.log('Search input cleared');
+    }
+    if (typeFilter) {
+        typeFilter.value = '';
+        console.log('Type filter cleared');
+    }
+    if (statusFilter) {
+        statusFilter.value = '';
+        console.log('Status filter cleared');
+    }
 
     currentFilters = {
-        toDate: '',
         type: '',
         status: '',
         location: ''
     };
 
     filteredInspections = [...allInspections];
+    console.log('Filtered inspections reset to:', filteredInspections.length);
+
     renderTable();
     updateFilterStatus();
+    console.log('Table rendered and filter status updated');
 }
 
 // Update filter status display
 function updateFilterStatus() {
     if (!filterStatusEl) return;
 
-    const hasActiveFilters = 
+    const hasActiveFilters =
         (searchInput?.value || '') ||
         (typeFilter?.value || '') ||
-        (statusFilter?.value || '') ||
-        (fromDateFilter?.value || '') ||
-        (toDateFilter?.value || '');
+        (statusFilter?.value || '');
 
     if (hasActiveFilters) {
         filterStatusEl.textContent = 'On';
@@ -363,16 +388,43 @@ function updateFilterStatus() {
 }
 
 // Get inspection status
-function getInspectionStatus(nextDueDate) {
+function getInspectionStatus(nextDueDate, inspectionDate) {
     if (!nextDueDate) return 'Unknown';
-    
-    const today = new Date();
-    const dueDate = new Date(nextDueDate);
-    const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-    
-    if (daysUntilDue < 0) return 'Expired';
-    if (daysUntilDue <= 30) return 'Service Due';
-    return 'Active';
+
+    try {
+        const today = new Date();
+        const dueDate = new Date(nextDueDate);
+
+        // Validate due date
+        if (isNaN(dueDate.getTime())) {
+            console.warn('Invalid next due date:', nextDueDate);
+            return 'Unknown';
+        }
+
+        const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+
+        // If inspection date is provided, check if inspection was recent
+        if (inspectionDate) {
+            const lastInspection = new Date(inspectionDate);
+            if (!isNaN(lastInspection.getTime())) {
+                const daysSinceInspection = Math.floor((today - lastInspection) / (1000 * 60 * 60 * 24));
+
+                // If inspection was done within last 30 days, consider it Active
+                // (prevents immediate "Service Due" status after recent inspection)
+                if (daysSinceInspection <= 30) {
+                    return 'Active';
+                }
+            }
+        }
+
+        if (daysUntilDue < 0) return 'Expired';
+        if (daysUntilDue <= 60) return 'Service Due'; // Increased to 60 days for better UX
+        return 'Active';
+
+    } catch (error) {
+        console.error('Error calculating inspection status:', error, 'Next due date:', nextDueDate);
+        return 'Unknown';
+    }
 }
 
 // Format inspection result
@@ -387,7 +439,29 @@ function formatInspectionResult(result) {
 // Format date
 function formatDate(dateString) {
     if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-GB'); // DD/MM/YYYY format
+
+    try {
+        // Handle different date formats that might come from database
+        let date;
+
+        // If it's already a valid date string, use it directly
+        if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}/)) {
+            date = new Date(dateString + 'T00:00:00.000Z'); // Assume UTC for database dates
+        } else {
+            date = new Date(dateString);
+        }
+
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+            console.warn('Invalid date string:', dateString);
+            return dateString; // Return original string if parsing fails
+        }
+
+        return date.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+    } catch (error) {
+        console.error('Error formatting date:', error, 'Input:', dateString);
+        return dateString; // Return original string on error
+    }
 }
 
 // Update statistics
@@ -421,19 +495,8 @@ function openAddInspectionModal() {
     // Setup location autocomplete
     setupLocationAutocomplete();
     
-    // Set default dates
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('inspectionDate').value = today;
-    
-    // Set next due date to 1 year from today
-    const nextYear = new Date();
-    nextYear.setFullYear(nextYear.getFullYear() + 1);
-    document.getElementById('nextDueDate').value = nextYear.toISOString().split('T')[0];
-    
-    // Set expiry date to 5 years from today (typical fire extinguisher lifespan)
-    const expiryYear = new Date();
-    expiryYear.setFullYear(expiryYear.getFullYear() + 5);
-    if (expiryDate) expiryDate.value = expiryYear.toISOString().split('T')[0];
+    // Leave all dates empty for user to fill manually
+    // Users should enter actual inspection date, expiry date, and next due date
     
     inspectionModal.style.display = 'block';
 }
@@ -681,15 +744,8 @@ window.addInspectionForExtinguisher = function(extinguisherId, extinguisherNo) {
             console.log('Capacity set to:', capacity.value);
         }
         
-        // Set today's date as default
-        const today = new Date().toISOString().split('T')[0];
-        
-        // Set next month as default next due date
-        const nextMonth = new Date();
-        nextMonth.setMonth(nextMonth.getMonth() + 1);
-        if (document.getElementById('nextDueDate')) {
-            document.getElementById('nextDueDate').value = nextMonth.toISOString().split('T')[0];
-        }
+        // Leave inspection date empty for user to fill
+        // Leave next due date empty for user to fill (they can use current year or set manually)
         
         // Update modal title
         if (modalTitle) {
@@ -905,6 +961,64 @@ window.confirmDeleteSelected = async function() {
     }
 }
 
+// Delete individual inspection record
+window.deleteInspectionRecord = async function(inspectionId, extinguisherNo) {
+    if (confirm(`Are you sure you want to delete this inspection record for ${extinguisherNo}?`)) {
+        try {
+            console.log('Deleting inspection:', inspectionId, 'for extinguisher:', extinguisherNo);
+
+            const inspection = allInspections.find(i => i.id === inspectionId);
+            if (!inspection) {
+                showErrorMessage('Inspection record not found.');
+                return;
+            }
+
+            // Get current inspection data
+            const { data: currentData, error: fetchError } = await supabase
+                .from('fire_extinguishers')
+                .select('inspection_data')
+                .eq('id', inspection.extinguisher_id)
+                .single();
+
+            if (fetchError) throw fetchError;
+
+            // Remove the specific inspection from the array
+            const updatedInspectionData = currentData.inspection_data || { inspections: [] };
+            updatedInspectionData.inspections = updatedInspectionData.inspections || [];
+
+            // Find and remove the inspection by matching multiple fields for accuracy
+            const inspectionIndex = updatedInspectionData.inspections.findIndex(insp =>
+                insp.date === inspection.inspection_date &&
+                insp.inspector === inspection.inspector &&
+                insp.next_due_date === inspection.next_due_date
+            );
+
+            if (inspectionIndex !== -1) {
+                updatedInspectionData.inspections.splice(inspectionIndex, 1);
+                console.log('Inspection removed from database');
+            } else {
+                showErrorMessage('Inspection record not found in database.');
+                return;
+            }
+
+            // Update the database
+            const { error: updateError } = await supabase
+                .from('fire_extinguishers')
+                .update({ inspection_data: updatedInspectionData })
+                .eq('id', inspection.extinguisher_id);
+
+            if (updateError) throw updateError;
+
+            // Reload the data and show success message
+            await loadFireExtinguisherInspections();
+            showSuccessMessage(`Inspection record for ${extinguisherNo} deleted successfully!`);
+        } catch (error) {
+            console.error('Error deleting inspection:', error);
+            showErrorMessage('Error deleting inspection record. Please try again.');
+        }
+    }
+}
+
 // Delete inspection (old function - kept for backward compatibility)
 window.deleteInspection = async function(id) {
     if (confirm('Are you sure you want to delete this inspection record?')) {
@@ -927,10 +1041,10 @@ window.deleteInspection = async function(id) {
             // Remove the specific inspection from the array
             const updatedInspectionData = currentData.inspection_data || { inspections: [] };
             updatedInspectionData.inspections = updatedInspectionData.inspections || [];
-            
+
             // Find and remove the inspection by matching date and inspector
-            const inspectionIndex = updatedInspectionData.inspections.findIndex(insp => 
-                insp.date === inspection.inspection_date && 
+            const inspectionIndex = updatedInspectionData.inspections.findIndex(insp =>
+                insp.date === inspection.inspection_date &&
                 insp.inspector === inspection.inspector
             );
 
@@ -1150,6 +1264,7 @@ async function handleAddNewExtinguisherSubmit(event) {
 
 // Make functions globally available
 window.viewInspection = viewInspection;
+window.deleteInspectionRecord = deleteInspectionRecord;
 window.deleteInspection = deleteInspection;
 window.editFireExtinguisher = editFireExtinguisher;
 window.closeEditExtinguisherModal = closeEditExtinguisherModal;
@@ -1250,9 +1365,9 @@ function openClearInspectionDataModal() {
         inspectionDiv.innerHTML = `
             <input type="checkbox" id="inspection_${index}" value="${index}" onchange="toggleInspectionSelection(${index})">
             <div style="flex: 1;">
-                <div style="font-weight: 600; color: #374151;">Date: ${formatDate(inspection.date)}</div>
-                <div style="font-size: 14px; color: #6b7280;">Inspector: ${inspection.inspector || 'N/A'}</div>
-                <div style="font-size: 14px; color: #6b7280;">Remarks: ${inspection.remarks || 'N/A'}</div>
+                <div style="font-weight: 600; color: #374151; font-size: 13px;">Inspection Date: ${formatDate(inspection.date)}</div>
+                <div style="font-size: 12px; color: #6b7280;">Inspector: ${inspection.inspector || 'N/A'}</div>
+                <div style="font-size: 12px; color: #6b7280;">Remarks: ${inspection.remarks || 'N/A'}</div>
             </div>
         `;
         
