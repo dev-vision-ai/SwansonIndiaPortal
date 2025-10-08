@@ -2149,16 +2149,15 @@ window.downloadFormExcel = async function(traceability_code, lot_letter, buttonE
   // Show loading state
   const downloadBtn = buttonElement || document.querySelector('[onclick*="downloadFormExcel"]');
   const originalContent = downloadBtn ? downloadBtn.innerHTML : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" /></svg>';
-  
+  const originalTitle = downloadBtn ? downloadBtn.title : '';
+
   if (downloadBtn) {
-    downloadBtn.innerHTML = '⏳ Generating Excel...';
+    downloadBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+    downloadBtn.title = 'Downloading...';
     downloadBtn.disabled = true;
   }
 
   try {
-
-    // Show progress indicator
-    showProgressIndicator('Fetching data...');
 
     // Call the Node.js export server with specific form parameters
     // Use localhost for IDE testing, Render URL for production
@@ -2169,12 +2168,6 @@ window.downloadFormExcel = async function(traceability_code, lot_letter, buttonE
     // Add timeout for slow connections
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 60000); // 1 minute timeout
-
-    // Start countdown after showing "Fetching data..."
-    startCountdown();
-    
-    // Wait for countdown to complete (5 seconds) before making the request
-    await new Promise(resolve => setTimeout(resolve, 5000));
 
     // Get the current session for authentication
     const session = await supabase.auth.getSession();
@@ -2201,8 +2194,6 @@ window.downloadFormExcel = async function(traceability_code, lot_letter, buttonE
     }
 
     const blob = await response.blob();
-    
-    updateProgressIndicator('Preparing download...');
 
     // Create download link
     const url = window.URL.createObjectURL(blob);
@@ -2253,118 +2244,12 @@ window.downloadFormExcel = async function(traceability_code, lot_letter, buttonE
     const downloadBtn = buttonElement || document.querySelector('[onclick*="downloadFormExcel"]');
     if (downloadBtn) {
       downloadBtn.innerHTML = originalContent;
+      downloadBtn.title = originalTitle;
       downloadBtn.disabled = false;
     }
-    
-    hideProgressIndicator();
   }
 };
 
-// Progress indicator functions
-function showProgressIndicator(message) {
-  let progressDiv = document.getElementById('progress-indicator');
-  if (!progressDiv) {
-    progressDiv = document.createElement('div');
-    progressDiv.id = 'progress-indicator';
-    progressDiv.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(255, 255, 255, 0.95);
-      color: #333;
-      padding: 20px;
-      border-radius: 12px;
-      z-index: 9999;
-      text-align: center;
-      min-width: 250px;
-      max-width: 320px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.18);
-      border: 1px solid rgba(0,0,0,0.1);
-      backdrop-filter: blur(10px);
-    `;
-    document.body.appendChild(progressDiv);
-  }
-  progressDiv.innerHTML = `
-    <div style="margin-bottom: 15px;">
-      <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px; color: #002E7D;">Downloading...</div>
-      <div class="spinner" style="
-        border: 3px solid rgba(0,46,125,0.3);
-        border-top: 3px solid #002E7D;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 15px;
-      "></div>
-      <div id="countdown-message" style="font-size: 13px; opacity: 0.8; margin-bottom: 12px; color: #666;">${message}</div>
-      <div class="diagonal-progress" style="
-        height: 5px;
-        background: repeating-linear-gradient(
-          45deg,
-          #002E7D 0px,
-          #002E7D 7px,
-          #1e40af 7px,
-          #1e40af 14px,
-          transparent 14px,
-          transparent 21px
-        );
-        margin-top: 20px;
-        border-radius: 2px;
-        border: 1px solid #002E7D;
-        animation: diagonalMove 1.5s linear infinite;
-      "></div>
-    </div>
-    <style>
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      @keyframes diagonalMove {
-        0% { background-position: 0px 0px; }
-        100% { background-position: 35px 0px; }
-      }
-    </style>
-  `;
-
-  // Start countdown if message is "Fetching data..."
-  if (message === 'Fetching data...') {
-    startCountdown();
-  }
-}
-
-function startCountdown() {
-  const countdownElement = document.getElementById('countdown-message');
-  if (!countdownElement) return;
-  
-  let count = 5;
-  const countdownInterval = setInterval(() => {
-    if (count > 0) {
-      countdownElement.textContent = `${count}`;
-      count--;
-    } else {
-      clearInterval(countdownInterval);
-      countdownElement.textContent = 'Starting download...';
-    }
-  }, 1000);
-}
-
-function updateProgressIndicator(message) {
-  const progressDiv = document.getElementById('progress-indicator');
-  if (progressDiv) {
-    const messageDiv = progressDiv.querySelector('div:last-child');
-    if (messageDiv) {
-      messageDiv.textContent = message;
-    }
-  }
-}
-
-function hideProgressIndicator() {
-  const progressDiv = document.getElementById('progress-indicator');
-  if (progressDiv) {
-    progressDiv.remove();
-  }
-}
 
 function showSuccessMessage(message) {
   showMessage(message, 'success');
