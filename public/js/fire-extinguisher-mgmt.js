@@ -92,7 +92,7 @@ function setupEventListeners() {
     const backBtn = document.querySelector('.header-back-button');
     if (backBtn) {
         backBtn.addEventListener('click', function() {
-            window.location.href = 'employee-dashboard.html';
+            window.location.href = 'admin-adhr.html';
         });
     }
 
