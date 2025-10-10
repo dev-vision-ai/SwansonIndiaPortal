@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Job Requisition Form</title>
+    <link rel="stylesheet" href="../css/MT-job-requisition-form.css">
+    <link rel="stylesheet" href="../css/MT-job-requisition-form-action.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <main>
+        <section class="maintenance-form-section">
+            <div class="header-container">
+                <div class="header-title">MJR Action Form</div>
+            </div>
+
+            <form id="maintenanceForm">
+                <!-- Equipment Details Section -->
+                <div class="form-section">
+                    <div class="equipment-details-container">
+                        <div class="section-header">Equipment Details</div>
+                        <div class="equipment-layout">
+                        <!-- Left Side -->
+                        <div class="equipment-left">
+                            <!-- Row 1: Req. Dept (left) -->
+                            <div class="form-group">
+                                <label for="reqDept">Req. Dept.:</label>
+                                <select id="reqDept" disabled>
+                                    <option value="">Select Department</option>
+                                    <option value="Production">Production</option>
+                                    <option value="Quality Control">Quality Control</option>
+                                    <option value="Maintenance">Maintenance</option>
+                                    <option value="Administration">Administration</option>
+                                    <option value="Quality Assurance">Quality Assurance</option>
+                                    <option value="Sales">Sales</option>
+                                    <option value="Human Resource">Human Resource</option>
+                                    <option value="Warehouse">Warehouse</option>
+                                    <option value="Logistics">Logistics</option>
+                                    <option value="Purchase">Purchase</option>
+                                </select>
+                            </div>
+
+                            <!-- Row 2: Requestor Name (left) -->
+                            <div class="form-group">
+                                <label for="requestorName">Requestor Name:</label>
+                                <input type="text" id="requestorName" placeholder="Enter requestor name" disabled>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="equipmentName">Equipment Name:</label>
+                                <input type="text" id="equipmentName" placeholder="Enter equipment name">
+                            </div>
+                        </div>
+
+                        <!-- Right Side -->
+                        <div class="equipment-right">
+                            <!-- Row 1: Requisition No (right) -->
+                            <div class="form-group">
+                                <label for="requisitionNo">Requisition No.:</label>
+                                <input type="text" id="requisitionNo" placeholder="Enter requisition number">
+                            </div>
+
+                            <!-- Row 2: Machine No (right) -->
+                            <div class="form-group">
+                                <label for="machineNo">Machine No.:</label>
+                                <input type="text" id="machineNo" placeholder="Enter machine number">
+                            </div>
+
+                            <!-- Equipment No (right) - aligned with Equipment Name (left) -->
+                            <div class="form-group">
+                                <label for="equipmentNo">Equipment No.:</label>
+                                <input type="text" id="equipmentNo" placeholder="Enter equipment number">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Occur Time and Require Completion Date Row -->
+                    <div class="time-completion-row">
+                        <!-- Left Side - Occur Time -->
+                        <div class="time-completion-left">
+                            <div class="form-group">
+                                <div class="section-label">Occur Time:</div>
+                                <div class="occur-time-row">
+                                    <div class="occur-field">
+                                        <label for="occurDate">Date:</label>
+                                        <input type="date" id="occurDate">
+                                    </div>
+                                    <div class="occur-field">
+                                        <label for="occurTime">Time:</label>
+                                        <input type="time" id="occurTime">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Side - Require Completion Date -->
+                        <div class="time-completion-right">
+                            <div class="form-group">
+                                <div class="section-label">Require Completion Date:</div>
+                                <div class="completion-date-row">
+                                    <div class="completion-field">
+                                        <label for="requireCompletionDate">Date :</label>
+                                        <input type="date" id="requireCompletionDate">
+                                    </div>
+                                    <div class="completion-field">
+                                        <label for="completionTime">Time</label>
+                                        <input type="time" id="completionTime" placeholder="Time">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Combined Condition, Breakdown & Description Section -->
+                <div class="form-section">
+                    <div class="condition-breakdown-container">
+                        <!-- Existing Condition (heading only) -->
+                        <div class="section-header">Existing Condition</div>
+
+                        <!-- Breakdown Codes -->
+                        <div class="breakdown-header">
+                            <span class="breakdown-title">Breakdown Code</span>
+                            <div class="tick-instruction">✓ Tick the required code</div>
+                        </div>
+                        <div class="breakdown-codes">
+                        <label class="code-item">
+                            <input type="checkbox" id="codeA" name="breakdownCode" value="A">
+                            <span class="code-letter">A</span>
+                            <span class="code-desc">Broken</span>
+                        </label>
+                        <label class="code-item">
+                            <input type="checkbox" id="codeB" name="breakdownCode" value="B">
+                            <span class="code-letter">B</span>
+                            <span class="code-desc">Sparking</span>
+                        </label>
+                        <label class="code-item">
+                            <input type="checkbox" id="codeC" name="breakdownCode" value="C">
+                            <span class="code-letter">C</span>
+                            <span class="code-desc">Injure</span>
+                        </label>
+                        <label class="code-item">
+                            <input type="checkbox" id="codeD" name="breakdownCode" value="D">
+                            <span class="code-letter">D</span>
+                            <span class="code-desc">Leakage</span>
+                        </label>
+                        <label class="code-item">
+                            <input type="checkbox" id="codeE" name="breakdownCode" value="E">
+                            <span class="code-letter">E</span>
+                            <span class="code-desc">Stop</span>
+                        </label>
+                        <label class="code-item">
+                            <input type="checkbox" id="codeF" name="breakdownCode" value="F">
+                            <span class="code-letter">F</span>
+                            <span class="code-desc">Vibration</span>
+                        </label>
+                        <label class="code-item">
+                            <input type="checkbox" id="codeG" name="breakdownCode" value="G">
+                            <span class="code-letter">G</span>
+                            <span class="code-desc">Loose</span>
+                        </label>
+                        <label class="code-item">
+                            <input type="checkbox" id="codeH" name="breakdownCode" value="H">
+                            <span class="code-letter">H</span>
+                            <span class="code-desc">Malfunction</span>
+                        </label>
+                        <label class="code-item">
+                            <input type="checkbox" id="codeI" name="breakdownCode" value="I">
+                            <span class="code-letter">I</span>
+                            <span class="code-desc">Sound</span>
+                        </label>
+                        <label class="code-item">
+                            <input type="checkbox" id="codeJ" name="breakdownCode" value="J">
+                            <span class="code-letter">J</span>
+                            <span class="code-desc">Over Heat</span>
+                        </label>
+                        <label class="code-item">
+                            <input type="checkbox" id="codeK" name="breakdownCode" value="K">
+                            <span class="code-letter">K</span>
+                            <span class="code-desc">Bend</span>
+                        </label>
+                        <label class="code-item">
+                            <input type="checkbox" id="codeL" name="breakdownCode" value="L">
+                            <span class="code-letter">L</span>
+                            <span class="code-desc">Others</span>
+                        </label>
+                        <label class="code-item">
+                            <input type="checkbox" id="codeM" name="breakdownCode" value="M">
+                            <span class="code-letter">M</span>
+                            <span class="code-desc">Chockup</span>
+                        </label>
+                        <label class="code-item">
+                            <input type="checkbox" id="codeN" name="breakdownCode" value="N">
+                            <span class="code-letter">N</span>
+                            <span class="code-desc">Preventive</span>
+                        </label>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label for="existingCondition">Description:-</label>
+                        <textarea id="existingCondition" placeholder="Describe the existing condition" rows="3"></textarea>
+                    </div>
+                    </div>
+                </div>
+
+
+                <!-- Power Options -->
+                <div class="form-section power-section">
+                    <div class="power-container">
+                        <div class="breakdown-header power-header">
+                            <span class="breakdown-title power-title">Power</span>
+                            <div class="tick-instruction power-instruction">✓ Tick the required option</div>
+                        </div>
+                        <div class="power-options-grid">
+                        <!-- Power Options -->
+                        <div class="power-row">
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="switchOffPower" name="powerOption">
+                                <span>Switch off power</span>
+                            </label>
+                            <span class="power-label">OP</span>
+                        </div>
+
+                        <div class="power-row">
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="noSwitchPower" name="powerOption">
+                                <span>No switch off power</span>
+                            </label>
+                            <span class="power-label">NOP</span>
+                        </div>
+
+                        <!-- Machine Options -->
+                        <div class="power-row">
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="stopMachine" name="machineOption">
+                                <span>Stop machine</span>
+                            </label>
+                            <span class="power-label">SM</span>
+                        </div>
+
+                        <div class="power-row">
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="noStopMachine" name="machineOption">
+                                <span>No stop machine</span>
+                            </label>
+                            <span class="power-label">NSM</span>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Handle By -->
+                <div class="form-section">
+                    <div class="handle-by-main-container">
+                        <div class="section-header">Handle by</div>
+                        <div class="handle-by-container">
+                        <div class="handle-by-content">
+                            <div class="handle-options-row">
+                                <div class="handle-option">
+                                    <input type="checkbox" id="handleMT" name="handleBy" value="MT">
+                                    <span class="handle-code">MT</span>
+                                    <div class="handle-label">Maintenance</div>
+                                </div>
+                                <div class="handle-option">
+                                    <input type="checkbox" id="handleOTS" name="handleBy" value="OTS">
+                                    <span class="handle-code">OTS</span>
+                                    <div class="handle-label">Out Source</div>
+                                </div>
+                                <div class="handle-option">
+                                    <input type="checkbox" id="handleBT" name="handleBy" value="BT">
+                                    <span class="handle-code">BT</span>
+                                    <div class="handle-label">Both</div>
+                                </div>
+                            </div>
+
+                            <div class="ots-bt-section">
+                                <span class="ots-bt-label">IF OTS or BT</span>
+                                <div class="form-group">
+                                    <label for="purchaseReqNo">Purchase Req. No. :</label>
+                                    <input type="text" id="purchaseReqNo" placeholder="Enter purchase requisition number">
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Combined Correction, Technician & Schedule Section -->
+                <div class="form-section">
+                    <div class="correction-tech-schedule-container">
+                        <!-- Correction -->
+                        <div class="correction-container">
+                            <div class="correction-box">
+                                <label for="correction">Correction:</label>
+                                <textarea id="correction" placeholder="Describe the correction made" rows="3"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Material & Cleaning Row -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="materialRetrieval">Material Retrieval:</label>
+                                <textarea id="materialRetrieval" placeholder="Material retrieval details" rows="2"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="cleaningInspection">Cleaning & Inspection:</label>
+                                <textarea id="cleaningInspection" placeholder="Cleaning & inspection details" rows="2"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Technician & Checked By Row -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="technicianName">Technician Name:</label>
+                                <input type="text" id="technicianName" placeholder="Technician name">
+                            </div>
+                            <div class="form-group">
+                                <label for="technicianCheckedBy">Checked By:</label>
+                                <input type="text" id="cleanRetrCheckedBy" placeholder="Enter name">
+                            </div>
+                        </div>
+
+                        <!-- Schedule -->
+                        <div class="schedule-container">
+                        <!-- Schedule Start -->
+                        <div class="schedule-item">
+                            <div class="schedule-header">Schedule Start:</div>
+                            <div class="schedule-inputs">
+                                <div class="date-time-group">
+                                    <input type="date" id="scheduleStartDate" class="date-input" placeholder="Select date">
+                                </div>
+                                <div class="date-time-group">
+                                    <input type="time" id="scheduleStartTime" class="time-input" placeholder="Select time">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Schedule End -->
+                        <div class="schedule-item">
+                            <div class="schedule-header">Schedule End:</div>
+                            <div class="schedule-inputs">
+                                <div class="date-time-group">
+                                    <input type="date" id="scheduleEndDate" class="date-input" placeholder="Select date">
+                                </div>
+                                <div class="date-time-group">
+                                    <input type="time" id="scheduleEndTime" class="time-input" placeholder="Select time">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Hours -->
+                        <div class="schedule-item">
+                            <div class="schedule-header">Total Hours:</div>
+                            <div class="total-hours-input">
+                                <input type="text" id="totalHrs" placeholder="00:00" class="hours-input" readonly>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Combined Inspection, Material & Records Section -->
+                <div class="form-section">
+                    <div class="inspection-material-container">
+                        <!-- Inspection & Acceptance -->
+                        <div class="inspection-header">
+                            <span class="inspection-title">Inspection & Acceptance records</span>
+                        </div>
+
+                        <!-- Material Tracking Table -->
+                        <table class="material-tracking-table">
+                        <thead>
+                            <tr>
+                                <th>Material Used</th>
+                                <th>Specification</th>
+                                <th>Quantity Used</th>
+                                <th>Quantity Retrieved</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="text" id="materialUsed1" placeholder="Enter material" class="material-input"></td>
+                                <td><input type="text" id="specification1" placeholder="Enter specification" class="material-input"></td>
+                                <td><input type="text" id="quantityUsed1" placeholder="Enter qty" class="material-input"></td>
+                                <td><input type="text" id="quantityRetrieved1" placeholder="Enter qty" class="material-input"></td>
+                            </tr>
+                            <tr>
+                                <td><input type="text" id="materialUsed2" placeholder="Enter material" class="material-input"></td>
+                                <td><input type="text" id="specification2" placeholder="Enter specification" class="material-input"></td>
+                                <td><input type="text" id="quantityUsed2" placeholder="Enter qty" class="material-input"></td>
+                                <td><input type="text" id="quantityRetrieved2" placeholder="Enter qty" class="material-input"></td>
+                            </tr>
+                            <tr>
+                                <td><input type="text" id="materialUsed3" placeholder="Enter material" class="material-input"></td>
+                                <td><input type="text" id="specification3" placeholder="Enter specification" class="material-input"></td>
+                                <td><input type="text" id="quantityUsed3" placeholder="Enter qty" class="material-input"></td>
+                                <td><input type="text" id="quantityRetrieved3" placeholder="Enter qty" class="material-input"></td>
+                            </tr>
+                            <tr>
+                                <td><input type="text" id="materialUsed4" placeholder="Enter material" class="material-input"></td>
+                                <td><input type="text" id="specification4" placeholder="Enter specification" class="material-input"></td>
+                                <td><input type="text" id="quantityUsed4" placeholder="Enter qty" class="material-input"></td>
+                                <td><input type="text" id="quantityRetrieved4" placeholder="Enter qty" class="material-input"></td>
+                            </tr>
+                            <tr>
+                                <td><input type="text" id="materialUsed5" placeholder="Enter material" class="material-input"></td>
+                                <td><input type="text" id="specification5" placeholder="Enter specification" class="material-input"></td>
+                                <td><input type="text" id="quantityUsed5" placeholder="Enter qty" class="material-input"></td>
+                                <td><input type="text" id="quantityRetrieved5" placeholder="Enter qty" class="material-input"></td>
+                            </tr>
+                            <tr>
+                                <td><input type="text" id="materialUsed6" placeholder="Enter material" class="material-input"></td>
+                                <td><input type="text" id="specification6" placeholder="Enter specification" class="material-input"></td>
+                                <td><input type="text" id="quantityUsed6" placeholder="Enter qty" class="material-input"></td>
+                                <td><input type="text" id="quantityRetrieved6" placeholder="Enter qty" class="material-input"></td>
+                            </tr>
+                            <tr>
+                                <td><input type="text" id="materialUsed7" placeholder="Enter material" class="material-input"></td>
+                                <td><input type="text" id="specification7" placeholder="Enter specification" class="material-input"></td>
+                                <td><input type="text" id="quantityUsed7" placeholder="Enter qty" class="material-input"></td>
+                                <td><input type="text" id="quantityRetrieved7" placeholder="Enter qty" class="material-input"></td>
+                            </tr>
+                            <tr>
+                                <td><input type="text" id="materialUsed8" placeholder="Enter material" class="material-input"></td>
+                                <td><input type="text" id="specification8" placeholder="Enter specification" class="material-input"></td>
+                                <td><input type="text" id="quantityUsed8" placeholder="Enter qty" class="material-input"></td>
+                                <td><input type="text" id="quantityRetrieved8" placeholder="Enter qty" class="material-input"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Inspection Remarks -->
+                    <div class="form-group">
+                        <label for="inspectionRemarks">Inspection Remarks:</label>
+                        <textarea id="inspectionRemarks" placeholder="Enter inspection remarks" rows="2"></textarea>
+                    </div>
+
+                    <!-- Inspection & Acceptance Options -->
+                    <div class="inspection-options">
+                        <label class="inspection-item">
+                            <input type="checkbox" id="inspectionAccepted" name="inspectionResult" value="Accepted">
+                            <span class="inspection-label">Accepted</span>
+                        </label>
+                        <label class="inspection-item">
+                            <input type="checkbox" id="inspectionRejected" name="inspectionResult" value="Rejected">
+                            <span class="inspection-label">Rejected</span>
+                        </label>
+                    </div>
+
+                    <!-- Checked By -->
+                    <div class="form-group">
+                        <label for="inspectionCheckedBy">Checked By:</label>
+                        <input type="text" id="inspectionCheckedBy" placeholder="Enter name">
+                    </div>
+
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="button-container">
+                    <button type="submit" class="submit-btn">Close MJR</button>
+                    <button type="button" class="delete-btn">Delete MJR</button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <!-- Message overlay -->
+    <div class="submission-message-overlay">
+        <div class="submission-message"></div>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.0/dist/browser-image-compression.js"></script>
+<script type="module" src="../js/MT-job-requisition-form-action.js"></script>
+</body>
+</html>
