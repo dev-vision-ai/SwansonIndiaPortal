@@ -218,8 +218,10 @@
           }
           const from = getQueryParam('from');
           backBtn.addEventListener('click', function() {
-            if (from === 'admin_qc') {
+            if (from === 'admin-qc') {
               window.location.href = 'admin-qc.html';
+            } else if (from === 'admin-mt') {
+              window.location.href = 'admin-mt.html';
             } else {
               window.location.href = 'admin-qa.html';
             }

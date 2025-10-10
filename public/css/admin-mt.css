@@ -1,4 +1,4 @@
-/* Import Fonts */
+ /* Import Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
@@ -262,64 +262,71 @@ body {
     }
 }
 
-/* Remove old table styles */
+/* Table styles for MT tables */
 table {
     width: 100%;
     border-collapse: collapse;
     background: white;
-    /* Remove rounded corners */
-    border-radius: 0;
-    overflow: visible; /* Change from hidden */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    table-layout: fixed;
+    min-width: 100%;
 }
 
 /* Remove rounded corners from container */
 .recent-alerts-container {
     margin-top: 100px;
     margin-bottom: 20px;
-    padding: 1.5rem;
+    padding: 1rem;
     background: white;
-    border-radius: 0; /* Changed from 8px */
+    border-radius: 0;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 th, td {
-    padding: 18px 15px;
-    text-align: left;
+    padding: 8px 10px;
+    text-align: center;
     border-bottom: 1px solid #e5e7eb;
-    border-right: 1px solid #e5e7eb; /* Add vertical separator */
+    border-right: 1px solid #e5e7eb;
+    font-size: 0.8rem;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+    overflow-wrap: break-word;
 }
 
-/* Add this rule */
-tbody tr td:last-child {
-    white-space: nowrap; /* Prevent buttons from wrapping */
-}
-
-/* Remove right border from last column */
+/* Actions column should not wrap (contains buttons) and remove right border */
+tbody tr td:last-child,
 th:last-child,
 td:last-child {
+    white-space: nowrap;
     border-right: none;
 }
 
-/* Add left border to first column for better separation */
-th:first-child,
-td:first-child {
+/* Column width specifications - balanced for table-layout: fixed */
+th:nth-child(1), td:nth-child(1) {
+    width: 8%;
     border-left: 1px solid #e5e7eb;
-    width: 110px; /* Slightly increased width for ALERT NO. column */
 }
+th:nth-child(2), td:nth-child(2) { width: 7%; }     /* Date - reduced even more */
+th:nth-child(3), td:nth-child(3) { width: 11%; }    /* Reported By - reduced */
+th:nth-child(4), td:nth-child(4) { width: 11%; }    /* Reporter Dept - reduced */
+th:nth-child(5), td:nth-child(5) { width: 11%; }    /* Equipment Name - reduced even more */
+th:nth-child(6), td:nth-child(6) { width: 32%; }    /* Description - increased even more */
+th:nth-child(7), td:nth-child(7) { width: 10%; }    /* Machine No */
+th:nth-child(8), td:nth-child(8) { width: 10%; }    /* Actions - increased */
 
-/* Header column separators */
-th {
-    border-right-color: #374151; /* Darker separator for header */
-}
 
+/* Header styling */
 th {
     background-color: #1e293b;
     color: white;
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     letter-spacing: 0.5px;
+    border-right-color: #374151;
 }
 
 tr:hover td {
@@ -350,12 +357,12 @@ tbody tr:nth-child(even) {
 
 /* Keep your existing button styles */
 .action-btn {
-    padding: 8px 16px;
-    margin-right: 8px;
+    padding: 6px 12px;
+    margin-right: 6px;
     border: none;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: 0.8em;
     transition: var(--transition);
 }
 
@@ -428,8 +435,8 @@ tbody tr:nth-child(even) {
 .filter-controls {
   display: flex;
   justify-content: center;
-  gap: 1rem;
-  margin: 1.5rem 0;
+  gap: 0.75rem;
+  margin: 1rem 0;
   padding-top: 0.5rem;
 }
 
@@ -692,4 +699,27 @@ tbody tr:nth-child(even) {
   background: #fff;
   display: block;
   box-sizing: border-box;
+}
+
+.clear-btn {
+    background: #6c757d;
+    color: white;
+    padding: 6px 16px;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.clear-btn:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.clear-btn:active {
+    transform: translateY(0);
 }

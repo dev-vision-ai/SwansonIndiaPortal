@@ -1,0 +1,1283 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary-gradient: linear-gradient(45deg, #002E7D, #0046C7);
+    --primary-color: #002E7D;
+    --primary-hover: #0046C7;
+    --text-dark: #2D3436;
+    --text-light: #666666;
+    --border-color: #ced4da;
+    --background-light: #f8f9fa;
+    --form-bg: #fff;
+    --shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    --form-element-spacing-desktop: 1.25rem;
+    --form-element-spacing-mobile: 1rem;
+    --header-desktop-height: 45px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    background-color: #eaf1fa;
+    background-image: url('data:image/svg+xml;utf8,<svg width="60" height="30" viewBox="0 0 60 30" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><circle cx="45" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><line x1="25" y1="15" x2="35" y2="15" stroke="%2399aabb" stroke-width="1" opacity="0.10"/></svg>');
+    background-size: 60px 30px;
+    background-repeat: repeat;
+    padding: 0.5rem;
+    padding-top: 5px;
+    font-size: 0.8rem;
+}
+
+main {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.maintenance-form-section {
+    width: 100%;
+    max-width: 800px;
+    background: var(--form-bg);
+    border-radius: 0.5rem;
+    padding: 1.5rem 1.5rem;
+    padding-top: calc(var(--header-desktop-height) + 1.5rem);
+    margin: 0 auto;
+    margin-top: 0.7rem;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+/* Header */
+.header-container {
+    background: var(--primary-color);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    margin-bottom: 0;
+    text-align: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    height: var(--header-desktop-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-title {
+    color: white;
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+/* Form Layout */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* Form Rows */
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+/* Form Groups */
+.form-group {
+    text-align: left;
+    margin-bottom: 0.75rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+}
+
+/* Input Fields */
+input[type="text"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="number"],
+select,
+textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+    min-height: 35px;
+    height: 35px;
+    line-height: 1.4;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+textarea {
+    height: 35px;
+    resize: none;
+    overflow: hidden;
+}
+
+/* Section Labels */
+.section-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+/* Form Sections */
+.form-section {
+    margin-bottom: 0.75rem;
+}
+
+/* Reduce gap for Existing Condition section */
+.form-section:nth-child(2) {
+    margin-bottom: 0.5rem;
+}
+
+.section-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Equipment Layout */
+.equipment-layout {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.equipment-left,
+.equipment-right {
+    flex: 1;
+    min-width: 300px;
+}
+
+.equipment-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.equipment-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+
+/* Time and Completion Row Layout */
+.time-completion-row {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+}
+
+.time-completion-left,
+.time-completion-right {
+    flex: 1;
+    min-width: 300px;
+}
+
+.time-completion-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.time-completion-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Occur Time Layout */
+.occur-time-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.occur-field {
+    flex: 1;
+    min-width: 120px;
+}
+
+.occur-field label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+/* Completion Date Layout */
+.completion-date-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.completion-field {
+    flex: 1;
+    min-width: 120px;
+}
+
+.completion-field label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+/* Breakdown Codes */
+.breakdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.breakdown-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    text-transform: none;
+}
+
+.tick-instruction {
+    font-size: 0.9rem;
+    color: #666;
+    font-style: italic;
+}
+
+.breakdown-codes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.code-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.code-item:hover {
+    background: #f8f9fa;
+    border-color: #007bff;
+}
+
+.code-item input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.code-letter {
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 14px;
+}
+
+.code-desc {
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+/* Checkbox Items */
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+}
+
+.checkbox-item:hover {
+    background: var(--background-light);
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+/* Power Section Styling */
+.power-section {
+    margin-bottom: 1rem;
+}
+
+.power-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.power-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.power-instruction {
+    font-size: 0.8rem;
+    color: var(--secondary-text-color);
+    font-style: italic;
+}
+
+.power-options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+.power-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.power-row:hover {
+    background: #e9ecef;
+}
+
+.power-row .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    background: transparent;
+}
+
+.power-row .checkbox-item input[type="checkbox"] {
+    background: transparent;
+    border: none;
+}
+
+.power-row .power-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--primary-color);
+    min-width: 40px;
+    text-align: center;
+}
+
+/* Handle By Section */
+.handle-by-container {
+    width: 100%;
+}
+
+.handle-by-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.handle-by-content {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.handle-options-row {
+    display: flex;
+    gap: 1.5rem;
+    flex: 1;
+    align-items: stretch;
+}
+
+.handle-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 120px;
+    height: 100px;
+    padding: 0.75rem;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+}
+
+.handle-option:hover {
+    background: #f8f9fa;
+    border-color: #007bff;
+}
+
+.handle-option input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+}
+
+.handle-code {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    text-align: center;
+}
+
+.handle-label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    text-align: center;
+}
+
+.ots-bt-section {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 1rem;
+    min-width: 280px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.ots-bt-section:hover {
+    background: #f8f9fa;
+    border-color: #007bff;
+}
+
+.ots-bt-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    display: block;
+    margin: 1rem 0 0.75rem 0;
+    text-align: center;
+}
+
+/* Button Container */
+.button-container {
+    display: flex;
+    gap: var(--form-element-spacing-desktop);
+    justify-content: center;
+    margin-top: calc(var(--form-element-spacing-desktop) * 1.25);
+}
+
+.submit-btn {
+    padding: 8px 16px;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-align: center;
+    white-space: nowrap;
+    border: none;
+    background: var(--primary-gradient);
+    color: white;
+}
+#imageUploadContainer label button:hover {
+    box-shadow: 0 5px 10px rgba(0, 46, 125, 0.2);
+}
+#imageUploadContainer label button:active {
+    transform: translateY(1px);
+}
+
+/* Schedule Section */
+.schedule-container {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.schedule-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.schedule-header {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.schedule-inputs {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.date-time-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+}
+
+.date-input,
+.time-input {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background: var(--background-light);
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.date-input:focus,
+.time-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: white;
+}
+
+.total-hours-input {
+    display: flex;
+    align-items: flex-end;
+}
+
+.hours-input {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background: var(--background-light);
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+    width: 100%;
+}
+
+.hours-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: white;
+}
+
+/* Inspection & Acceptance Section */
+.inspection-header {
+    margin-bottom: 1rem;
+}
+
+.inspection-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    text-transform: none;
+}
+
+.inspection-options {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.inspection-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    min-width: 120px;
+}
+
+.inspection-item:hover {
+    background: #f8f9fa;
+    border-color: #007bff;
+}
+
+.inspection-item input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+}
+
+.inspection-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+/* Material Tracking Table */
+.material-tracking-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    border: 0.25px solid #e5e7eb;
+}
+
+.material-tracking-table thead th {
+    background: #f8fafc;
+    border: 0.25px solid #e5e7eb;
+    border-right: 0.25px solid #e5e7eb;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #002E7D;
+    text-align: center;
+    border-radius: 0;
+}
+
+.material-tracking-table thead th:last-child {
+    border-right: 0.25px solid #e5e7eb;
+}
+
+.material-tracking-table tbody td {
+    border: 0.25px solid #e5e7eb;
+    border-right: 0.25px solid #e5e7eb;
+    padding: 0;
+    background: #fff;
+    border-radius: 0;
+}
+
+.material-tracking-table tbody td:last-child {
+    border-right: 0.25px solid #e5e7eb;
+}
+
+.material-tracking-table tbody tr:nth-child(even) {
+    background: #fff;
+}
+
+.material-tracking-table tbody tr:nth-child(odd) {
+    background: #f6f8fa;
+}
+
+.material-tracking-table tbody tr:hover {
+    background-color: #d0e7ff !important;
+    transition: background 0.2s;
+}
+
+.material-input {
+    width: 100%;
+    height: 100%;
+    padding: 0.4rem;
+    border: none;
+    border-radius: 0;
+    font-size: 0.9rem;
+    background: transparent;
+    transition: background-color 0.15s ease;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.material-input:focus {
+    outline: none;
+    background: white;
+}
+
+/* Checked By field styling */
+#finalCheckedBy {
+    width: 200px;
+    padding: 0.4rem;
+    font-size: 0.9rem;
+}
+
+/* Equipment Details Container */
+.equipment-details-container {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: #fafafa;
+    margin-bottom: 1rem;
+}
+
+/* Spacing within the equipment details container */
+.equipment-details-container .section-header {
+    margin-bottom: 1rem;
+}
+
+.equipment-details-container .equipment-layout {
+    margin-bottom: 1.5rem;
+}
+
+.equipment-details-container .time-completion-row {
+    margin-top: 1.5rem;
+}
+
+/* Combined Condition, Breakdown & Description Container */
+.condition-breakdown-container {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: #fafafa;
+    margin-bottom: 1rem;
+}
+
+/* Handle By Main Container */
+.handle-by-main-container {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: #fafafa;
+    margin-bottom: 1rem;
+}
+
+/* Spacing within the handle by container */
+.handle-by-main-container .section-header {
+    margin-bottom: 1rem;
+}
+
+
+/* Combined Correction, Technician & Schedule Container */
+.correction-tech-schedule-container {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: #fafafa;
+    margin-bottom: 1rem;
+}
+
+/* Spacing within the combined container */
+.correction-tech-schedule-container .correction-container {
+    margin-bottom: 1.5rem;
+}
+
+.correction-tech-schedule-container .form-row {
+    margin-bottom: 1.5rem;
+}
+
+.correction-tech-schedule-container .schedule-container {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* White backgrounds for inputs within correction-tech-schedule container */
+.correction-tech-schedule-container .correction-container textarea,
+.correction-tech-schedule-container .form-row input,
+.correction-tech-schedule-container .form-row textarea,
+.correction-tech-schedule-container .schedule-container input,
+.correction-tech-schedule-container .schedule-container select {
+    background: white !important;
+}
+
+/* Combined Inspection, Material & Records Container */
+.inspection-material-container {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: #fafafa;
+    margin-bottom: 1rem;
+}
+
+/* Spacing within the inspection material container */
+.inspection-material-container .inspection-header {
+    margin-bottom: 1rem;
+}
+
+.inspection-material-container .material-tracking-table {
+    margin-bottom: 1.5rem;
+}
+
+.inspection-material-container .form-group {
+    margin-top: 1rem;
+}
+
+/* White backgrounds for inputs within containers */
+.inspection-material-container .inspection-item,
+.inspection-material-container .material-input,
+.inspection-material-container input,
+.inspection-material-container textarea,
+.inspection-material-container input[type="text"] {
+    background: white !important;
+}
+
+/* Spacing within the combined container */
+.condition-breakdown-container .section-header {
+    margin-bottom: 1rem;
+}
+
+.condition-breakdown-container .breakdown-header {
+    margin-bottom: 1rem;
+    margin-top: 1.5rem;
+}
+
+.condition-breakdown-container .form-group {
+    margin-top: 1.5rem;
+}
+
+/* Power Container */
+.power-container {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background: #fafafa;
+    margin-bottom: 1rem;
+}
+
+/* Spacing within the power container */
+.power-container .breakdown-header {
+    margin-bottom: 1rem;
+}
+
+/* Make power options smaller and centered */
+.power-options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.power-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+}
+
+.power-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+    background: #007bff;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    min-width: 30px;
+    text-align: center;
+}
+
+/* Ensure table has no rounded corners */
+.material-tracking-table,
+.material-tracking-table * {
+    border-radius: 0 !important;
+}
+
+.material-tracking-table tbody td:focus-within {
+    background: white;
+}
+
+/* Remarks & Correction Section */
+.remarks-correction-container {
+    display: flex;
+    gap: 2rem;
+    width: 100%;
+}
+
+.remarks-box,
+.correction-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.remarks-box label,
+.correction-box label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.remarks-box textarea,
+.correction-box textarea {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--background-light);
+    font-family: inherit;
+    font-size: 0.9rem;
+    resize: vertical;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.remarks-box textarea:focus,
+.correction-box textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: white;
+}
+
+/* Image Upload */
+#imageUploadContainer {
+    text-align: center;
+    margin: 0.75rem 0;
+}
+#imageUploadContainer label button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 10px 20px;
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+#imageUploadContainer label button:hover {
+    box-shadow: 0 5px 10px rgba(0, 46, 125, 0.2);
+}
+#imageUploadContainer input[type="file"] {
+    display: none;
+}
+#imagePreviews {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+#imagePreviews img {
+    max-width: 100px;
+    max-height: 100px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.image-upload-btn {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background-color 0.15s ease;
+}
+
+.image-upload-btn:hover {
+    background: var(--primary-hover);
+}
+
+#imagePreviews {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+#imagePreviews img {
+    max-height: 80px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+/* Buttons */
+.button-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid #dee2e6;
+}
+
+
+/* Message Overlay (same as quality alert) */
+.submission-message-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: none;
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.submission-message-overlay.show {
+    display: flex;
+}
+
+.submission-message {
+    position: fixed !important;
+    top: 50vh !important;
+    left: 50vw !important;
+    transform: translate(-50%, -50%) !important;
+    min-width: 300px;
+    max-width: 90vw;
+    padding: 24px 32px;
+    border-radius: 8px;
+    background: #d4edda;
+    color: #155724;
+    font-weight: bold;
+    font-size: 1.1rem;
+    text-align: center;
+    z-index: 100000 !important;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.submission-message.show {
+    display: block !important;
+    opacity: 1 !important;
+    transform: scale(1) !important;
+    z-index: 100000 !important;
+}
+
+.submission-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    position: fixed !important;
+    top: 50vh !important;
+    left: 50vw !important;
+    transform: translate(-50%, -50%) !important;
+    min-width: 300px;
+    max-width: 90vw;
+    padding: 24px 32px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    text-align: center;
+    z-index: 100000 !important;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.submission-message.error.show {
+    display: block !important;
+    opacity: 1 !important;
+    transform: scale(1) !important;
+    z-index: 100000 !important;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    body {
+        padding: 0.5rem;
+    }
+
+    .maintenance-form-section {
+        padding: 1.5rem 1rem;
+    }
+
+    .header-container {
+        padding: 1rem;
+    }
+
+    .header-title {
+        font-size: 1.2rem;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .equipment-layout {
+        flex-direction: column;
+    }
+
+    .equipment-left,
+    .equipment-right {
+        min-width: auto;
+    }
+
+
+    .occur-time-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .completion-date-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .time-completion-row {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .time-completion-left,
+    .time-completion-right {
+        min-width: auto;
+    }
+
+    .breakdown-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .breakdown-codes {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .handle-options {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .power-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .power-label {
+        margin-left: 2rem;
+    }
+
+    .handle-by-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .handle-options-row {
+        justify-content: space-around;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: stretch;
+    }
+
+    .handle-option {
+        width: 100px;
+        height: 80px;
+        min-width: auto;
+    }
+
+    .ots-bt-section {
+        min-width: auto;
+        height: 80px;
+        padding: 0.75rem;
+    }
+
+    .remarks-correction-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .schedule-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .schedule-inputs {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .inspection-options {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .inspection-item {
+        min-width: auto;
+        justify-content: center;
+    }
+
+    .material-tracking-table {
+        font-size: 0.9rem;
+    }
+
+    .material-tracking-table thead th,
+    .material-tracking-table tbody td {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .button-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    #imageUploadContainer {
+        margin: 12px 0;
+    }
+
+    #imageUploadContainer label button {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        min-height: 40px;
+    }
+
+    #imagePreviews {
+        margin-top: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .breakdown-codes {
+        grid-template-columns: 1fr;
+    }
+
+    .code-item {
+        justify-content: center;
+        text-align: center;
+    }
+}

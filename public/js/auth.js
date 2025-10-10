@@ -156,6 +156,9 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
             } else if (department === 'QC' || department === 'Quality Control') {
                 console.log("Department matches 'QC' or 'Quality Control'. Redirecting to admin_qc.");
                 window.location.href = `${basePath}/html/admin-qc.html`;
+            } else if (department === 'Maintenance' || department === 'MT') {
+                console.log("Department matches 'Maintenance' or 'MT'. Redirecting to admin_mt.");
+                window.location.href = `${basePath}/html/admin-mt.html`;
             } else {
                 // Fallback for admins with unexpected departments
                 console.warn("Admin user has an unrecognized department:", department);
