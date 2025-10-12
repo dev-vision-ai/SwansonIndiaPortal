@@ -22,6 +22,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Calculate total hours after form is populated with data
     setTimeout(calculateTotalHoursFromFields, 100);
+
+    // Setup equipment name auto-suggestions
+    setupEquipmentNameSuggestions();
+
+    // Setup dynamic roller fields
+    setupDynamicRollerFields();
 });
 
 function setupScheduleCalculation() {
@@ -43,14 +49,15 @@ function setupScheduleCalculation() {
 
         if (startDate && startTime && endDate && endTime) {
             try {
-                const startDateTime = new Date(`${startDate}T${startTime}`);
-                const endDateTime = new Date(`${endDate}T${endTime}`);
+                // Parse dates more reliably
+                const startDateTime = new Date(startDate + ' ' + startTime);
+                const endDateTime = new Date(endDate + ' ' + endTime);
 
-                if (startDateTime < endDateTime) {
+                if (endDateTime > startDateTime) {
                     const diffMs = endDateTime - startDateTime;
-                    const diffHours = diffMs / (1000 * 60 * 60); // Convert to hours
-                    const hours = Math.floor(diffHours);
-                    const minutes = Math.round((diffHours - hours) * 60);
+                    const diffMinutes = Math.floor(diffMs / (1000 * 60)); // Get total minutes
+                    const hours = Math.floor(diffMinutes / 60);
+                    const minutes = diffMinutes % 60;
 
                     totalHrs.value = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
                 } else {
@@ -94,14 +101,15 @@ function calculateTotalHoursFromFields() {
 
     if (startDate && startTime && endDate && endTime) {
         try {
-            const startDateTime = new Date(`${startDate}T${startTime}`);
-            const endDateTime = new Date(`${endDate}T${endTime}`);
+            // Parse dates more reliably
+            const startDateTime = new Date(startDate + ' ' + startTime);
+            const endDateTime = new Date(endDate + ' ' + endTime);
 
             if (startDateTime < endDateTime) {
                 const diffMs = endDateTime - startDateTime;
-                const diffHours = diffMs / (1000 * 60 * 60);
-                const hours = Math.floor(diffHours);
-                const minutes = Math.round((diffHours - hours) * 60);
+                const diffMinutes = Math.floor(diffMs / (1000 * 60)); // Get total minutes
+                const hours = Math.floor(diffMinutes / 60);
+                const minutes = diffMinutes % 60;
 
                 totalHrs.value = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
             }
@@ -111,7 +119,7 @@ function calculateTotalHoursFromFields() {
     }
 }
 
-function showMessage(message, isError = false) {
+function showActionMessage(message, isError = false) {
     const overlay = document.querySelector('.submission-message-overlay');
     const submissionMessage = document.querySelector('.submission-message');
     if (submissionMessage && overlay) {
@@ -150,10 +158,8 @@ async function handleUrlParameters() {
     const action = urlParams.get('action');
 
     if (requisitionId && action === 'view') {
-        console.log(`Loading MT job requisition ${requisitionId} in view mode`);
         await loadRequisitionForView(requisitionId);
     } else if (requisitionId && action === 'edit') {
-        console.log(`Loading MT job requisition ${requisitionId} in edit mode`);
         await loadRequisitionForEdit(requisitionId);
     }
 }
@@ -168,7 +174,7 @@ async function loadRequisitionForView(requisitionId) {
 
         if (error) {
             console.error('Error fetching requisition:', error);
-            showMessage('Error loading requisition data', true);
+            showActionMessage('Error loading requisition data', true);
             return;
         }
 
@@ -191,7 +197,7 @@ async function loadRequisitionForEdit(requisitionId) {
 
         if (error) {
             console.error('Error fetching requisition:', error);
-            showMessage('Error loading requisition data', true);
+            showActionMessage('Error loading requisition data', true);
             return;
         }
 
@@ -208,28 +214,36 @@ function populateFormFields(data) {
     // Populate form fields with data
     const fieldMappings = {
         'reqDept': data.reqdept,
+        'reqDeptHOD': data.reqdepthod,
         'requestorName': data.requestorname,
         'equipmentName': data.equipmentname,
         'equipmentNo': data.equipmentno,
+        'equipmentInstallDate': data.equipmentinstalldate ? formatDateForDisplay(data.equipmentinstalldate) : '',
         'requisitionNo': data.requisitionno,
         'machineNo': data.machineno,
-        'occurDate': data.occurdate,
+        'occurDate': data.occurdate, // HTML date inputs expect yyyy-mm-dd format
         'occurTime': data.occurtime,
-        'requireCompletionDate': data.requirecompletiondate,
+        'requireCompletionDate': data.requirecompletiondate, // HTML date inputs expect yyyy-mm-dd format
         'completionTime': data.completiontime,
         'existingCondition': data.existingcondition,
         'purchaseReqNo': data.purchasereqno,
+        'costIncurred': data.costincurred !== null && data.costincurred !== undefined ? String(data.costincurred) : '',
         'correction': data.correction,
+        'rootCause': data.rootcause,
         'technicianName': data.technicianname,
         'materialRetrieval': data.materialretrieval,
         'cleaningInspection': data.cleaninginspection,
-        'scheduleStartDate': data.schedulestartdate || '',
+        'scheduleStartDate': formatDateForHTMLInput(data.schedulestartdate) || '',
         'scheduleStartTime': data.schedulestarttime || '',
-        'scheduleEndDate': data.scheduleenddate || '',
+        'scheduleEndDate': formatDateForHTMLInput(data.scheduleenddate) || '',
         'scheduleEndTime': data.scheduleendtime || '',
         'totalHrs': (() => {
-            const hours = data.totalhours || 0;
-            if (typeof hours === 'number') {
+            const hours = data.totalhours;
+            if (hours && typeof hours === 'string') {
+                // If it's already a time string format, return as is
+                return hours;
+            } else if (typeof hours === 'number') {
+                // Handle legacy decimal format
                 const wholeHours = Math.floor(hours);
                 const minutes = Math.round((hours - wholeHours) * 60);
                 return `${wholeHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
@@ -247,6 +261,12 @@ function populateFormFields(data) {
         if (element) {
             if (element.type === 'checkbox') {
                 element.checked = Boolean(value);
+            } else if (element.type === 'date') {
+                // Convert dd/mm/yyyy to yyyy-mm-dd for HTML date inputs
+                element.value = formatDateForHTMLInput(value);
+            } else if (element.type === 'time') {
+                // HTML time inputs expect HH:MM format, which is what we store
+                element.value = value || '';
             } else if (element.tagName === 'SELECT') {
                 if (value) element.value = value;
             } else {
@@ -256,29 +276,23 @@ function populateFormFields(data) {
     });
 
     // Handle JSON fields
-    console.log('Raw data for debugging:', data);
     if (data.breakdowncodes) {
-        console.log('Breakdown codes data:', data.breakdowncodes);
         populateBreakdownCodes(data.breakdowncodes);
     }
 
     if (data.poweroptions) {
-        console.log('Power options data:', data.poweroptions);
         populatePowerOptions(data.poweroptions);
     }
 
     if (data.machineoptions) {
-        console.log('Machine options data:', data.machineoptions);
         populateMachineOptions(data.machineoptions);
     }
 
     if (data.handleby) {
-        console.log('Handle by data:', data.handleby);
         populateHandleBy(data.handleby);
     }
 
     if (data.materials_used) {
-        console.log('Materials used data:', data.materials_used);
         populateMaterialsUsed(data.materials_used);
     }
 
@@ -290,7 +304,33 @@ function populateFormFields(data) {
         if (rejectedRadio) rejectedRadio.checked = data.inspectionresult === 'Rejected';
     }
 
-    console.log('Form fields populated');
+    // Check if this is roller equipment and populate roller fields
+    if (data.equipmentname) {
+        const equipmentNameInput = document.getElementById('equipmentName');
+        const rollerFields = document.getElementById('rollerFields');
+
+        if (equipmentNameInput && rollerFields) {
+            // Set the equipment name value (this will trigger the toggle via event listeners)
+            equipmentNameInput.value = data.equipmentname;
+            equipmentNameInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+            // Also populate roller fields if they exist in the data
+            if (data.recoatingdate) {
+                const recoatingDateInput = document.getElementById('recoatingDate');
+                if (recoatingDateInput) {
+                    recoatingDateInput.value = data.recoatingdate;
+                }
+            }
+
+            if (data.regrindingdate) {
+                const regrindingDateInput = document.getElementById('regrindingDate');
+                if (regrindingDateInput) {
+                    regrindingDateInput.value = data.regrindingdate;
+                }
+            }
+        }
+    }
+
 }
 
 function populateFormForView(data) {
@@ -299,8 +339,6 @@ function populateFormForView(data) {
 
     // Populate form fields with data
     populateFormFields(data);
-
-    console.log('Form populated for view mode');
 }
 
 function populateFormForEdit(data) {
@@ -309,8 +347,6 @@ function populateFormForEdit(data) {
 
     // Populate form fields with data
     populateFormFields(data);
-
-    console.log('Form populated for edit mode');
 }
 
 function disableAllFormFields() {
@@ -366,10 +402,7 @@ function enableFormFieldsForEdit() {
 
 function populateBreakdownCodes(breakdownCodes) {
     // Handle breakdown codes checkboxes
-    console.log('populateBreakdownCodes called with:', breakdownCodes, 'type:', typeof breakdownCodes);
-
     if (!breakdownCodes) {
-        console.log('Breakdown codes data is null or undefined');
         return;
     }
 
@@ -380,7 +413,6 @@ function populateBreakdownCodes(breakdownCodes) {
     if (typeof breakdownCodes === 'string') {
         try {
             codesData = JSON.parse(breakdownCodes);
-            console.log('Parsed breakdown codes from string:', codesData);
         } catch (e) {
             console.error('Failed to parse breakdown codes string:', e);
             return;
@@ -389,10 +421,8 @@ function populateBreakdownCodes(breakdownCodes) {
 
     if (Array.isArray(codesData)) {
         // Handle array format: ['A', 'B', 'I']
-        console.log('Processing breakdown codes as array:', codesData);
         codesData.forEach(code => {
             const checkbox = document.getElementById(`code${code.toUpperCase()}`);
-            console.log(`Looking for checkbox code${code.toUpperCase()}, found:`, checkbox, 'setting checked: true');
             if (checkbox) {
                 checkbox.checked = true;
             } else {
@@ -401,27 +431,20 @@ function populateBreakdownCodes(breakdownCodes) {
         });
     } else if (typeof codesData === 'object' && codesData !== null && !Array.isArray(codesData)) {
         // Handle object format: {"A": true, "B": false, "I": true}
-        console.log('Processing breakdown codes as object:', codesData);
         Object.entries(codesData).forEach(([code, isChecked]) => {
             const checkbox = document.getElementById(`code${code.toUpperCase()}`);
-            console.log(`Looking for checkbox code${code.toUpperCase()}, found:`, checkbox, 'setting checked:', Boolean(isChecked));
             if (checkbox) {
                 checkbox.checked = Boolean(isChecked);
             } else {
                 console.warn(`Checkbox with ID code${code.toUpperCase()} not found`);
             }
         });
-    } else {
-        console.log('Breakdown codes data is not an array or object:', codesData);
     }
 }
 
 function populatePowerOptions(powerOptions) {
     // Handle power options checkboxes
-    console.log('populatePowerOptions called with:', powerOptions, 'type:', typeof powerOptions);
-
     if (!powerOptions) {
-        console.log('Power options data is null or undefined');
         return;
     }
 
@@ -432,7 +455,6 @@ function populatePowerOptions(powerOptions) {
     if (typeof powerOptions === 'string') {
         try {
             optionsData = JSON.parse(powerOptions);
-            console.log('Parsed power options from string:', optionsData);
         } catch (e) {
             console.error('Failed to parse power options string:', e);
             return;
@@ -441,10 +463,8 @@ function populatePowerOptions(powerOptions) {
 
     if (Array.isArray(optionsData)) {
         // Handle array format: ['switchOffPower', 'stopMachine']
-        console.log('Processing power options as array:', optionsData);
         optionsData.forEach(optionId => {
             const checkbox = document.getElementById(optionId);
-            console.log(`Looking for checkbox ${optionId}, found:`, checkbox, 'setting checked: true');
             if (checkbox) {
                 checkbox.checked = true;
             } else {
@@ -453,27 +473,20 @@ function populatePowerOptions(powerOptions) {
         });
     } else if (typeof optionsData === 'object' && optionsData !== null && !Array.isArray(optionsData)) {
         // Handle object format: {"switchOffPower": true, "noSwitchPower": false}
-        console.log('Processing power options as object:', optionsData);
         Object.entries(optionsData).forEach(([option, isChecked]) => {
             const checkbox = document.getElementById(option);
-            console.log(`Looking for checkbox ${option}, found:`, checkbox, 'setting checked:', Boolean(isChecked));
             if (checkbox) {
                 checkbox.checked = Boolean(isChecked);
             } else {
                 console.warn(`Checkbox with ID ${option} not found`);
             }
         });
-    } else {
-        console.log('Power options data is not an array or object after processing:', optionsData);
     }
 }
 
 function populateMachineOptions(machineOptions) {
     // Handle machine options checkboxes
-    console.log('populateMachineOptions called with:', machineOptions, 'type:', typeof machineOptions);
-
     if (!machineOptions) {
-        console.log('Machine options data is null or undefined');
         return;
     }
 
@@ -484,7 +497,6 @@ function populateMachineOptions(machineOptions) {
     if (typeof machineOptions === 'string') {
         try {
             optionsData = JSON.parse(machineOptions);
-            console.log('Parsed machine options from string:', optionsData);
         } catch (e) {
             console.error('Failed to parse machine options string:', e);
             return;
@@ -493,10 +505,8 @@ function populateMachineOptions(machineOptions) {
 
     if (Array.isArray(optionsData)) {
         // Handle array format: ['stopMachine', 'noStopMachine']
-        console.log('Processing machine options as array:', optionsData);
         optionsData.forEach(optionId => {
             const checkbox = document.getElementById(optionId);
-            console.log(`Looking for checkbox ${optionId}, found:`, checkbox, 'setting checked: true');
             if (checkbox) {
                 checkbox.checked = true;
             } else {
@@ -505,27 +515,20 @@ function populateMachineOptions(machineOptions) {
         });
     } else if (typeof optionsData === 'object' && optionsData !== null && !Array.isArray(optionsData)) {
         // Handle object format: {"stopMachine": true, "noStopMachine": false}
-        console.log('Processing machine options as object:', optionsData);
         Object.entries(optionsData).forEach(([option, isChecked]) => {
             const checkbox = document.getElementById(option);
-            console.log(`Looking for checkbox ${option}, found:`, checkbox, 'setting checked:', Boolean(isChecked));
             if (checkbox) {
                 checkbox.checked = Boolean(isChecked);
             } else {
                 console.warn(`Checkbox with ID ${option} not found`);
             }
         });
-    } else {
-        console.log('Machine options data is not an array or object after processing:', optionsData);
     }
 }
 
 function populateHandleBy(handleBy) {
     // Handle handle by checkboxes
-    console.log('populateHandleBy called with:', handleBy, 'type:', typeof handleBy);
-
     if (!handleBy) {
-        console.log('Handle by data is null or undefined');
         return;
     }
 
@@ -536,7 +539,6 @@ function populateHandleBy(handleBy) {
     if (typeof handleBy === 'string') {
         try {
             handleData = JSON.parse(handleBy);
-            console.log('Parsed handle by from string:', handleData);
         } catch (e) {
             console.error('Failed to parse handle by string:', e);
             return;
@@ -545,10 +547,8 @@ function populateHandleBy(handleBy) {
 
     if (Array.isArray(handleData)) {
         // Handle array format: ['MT', 'OTS', 'BT']
-        console.log('Processing handle by as array:', handleData);
         handleData.forEach(option => {
             const checkbox = document.getElementById(`handle${option.toUpperCase()}`);
-            console.log(`Looking for checkbox handle${option.toUpperCase()}, found:`, checkbox, 'setting checked: true');
             if (checkbox) {
                 checkbox.checked = true;
             } else {
@@ -557,18 +557,14 @@ function populateHandleBy(handleBy) {
         });
     } else if (typeof handleData === 'object' && handleData !== null && !Array.isArray(handleData)) {
         // Handle object format: {"MT": true, "OTS": false, "BT": true}
-        console.log('Processing handle by as object:', handleData);
         Object.entries(handleData).forEach(([option, isChecked]) => {
             const checkbox = document.getElementById(`handle${option.toUpperCase()}`);
-            console.log(`Looking for checkbox handle${option.toUpperCase()}, found:`, checkbox, 'setting checked:', Boolean(isChecked));
             if (checkbox) {
                 checkbox.checked = Boolean(isChecked);
             } else {
                 console.warn(`Checkbox with ID handle${option.toUpperCase()} not found`);
             }
         });
-    } else {
-        console.log('Handle by data is not an array or object after processing:', handleData);
     }
 }
 
@@ -595,6 +591,86 @@ async function getLoggedInUserId() {
     return user?.id;
 }
 
+
+// Helper function to format date from yyyy-mm-dd to dd/mm/yyyy
+function formatDateToDDMMYYYY(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+// Helper function to convert dd/mm/yyyy back to yyyy-mm-dd for HTML date inputs
+function formatDateForHTMLInput(dateString) {
+    if (!dateString) return '';
+    // If already in yyyy-mm-dd format, return as is
+    if (dateString.includes('-') && dateString.length === 10) return dateString;
+
+    // Convert dd/mm/yyyy to yyyy-mm-dd
+    const [day, month, year] = dateString.split('/');
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+}
+
+// Helper function to format date for display as dd/mm/yyyy
+function formatDateForDisplay(dateString) {
+    if (!dateString) return '';
+
+    // If already in dd/mm/yyyy format, return as is
+    if (dateString.includes('/') && dateString.length === 10) return dateString;
+
+    // If in yyyy-mm-dd format, convert to dd/mm/yyyy
+    if (dateString.includes('-') && dateString.length === 10) {
+        const [year, month, day] = dateString.split('-');
+        return `${day}/${month}/${year}`;
+    }
+
+    // Try to parse as Date object and format
+    try {
+        const date = new Date(dateString);
+        if (!isNaN(date.getTime())) {
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+    } catch (error) {
+        console.warn('Could not parse date:', dateString);
+    }
+
+    return dateString; // Return original if parsing fails
+}
+
+// Helper function to convert dd/mm/yyyy to yyyy-mm-dd for database storage
+function formatDateForDatabase(dateString) {
+    if (!dateString) return null;
+
+    // If already in yyyy-mm-dd format, return as is
+    if (dateString.includes('-') && dateString.length === 10) return dateString;
+
+    // If in dd/mm/yyyy format, convert to yyyy-mm-dd
+    if (dateString.includes('/') && dateString.length === 10) {
+        const [day, month, year] = dateString.split('/');
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+
+    // Try to parse as Date object and format for database
+    try {
+        const date = new Date(dateString);
+        if (!isNaN(date.getTime())) {
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+    } catch (error) {
+        console.warn('Could not parse date for database:', dateString);
+    }
+
+    return dateString; // Return original if parsing fails
+}
+
 function setupFormEventListeners(userId) {
     const form = document.getElementById('maintenanceForm');
     const deleteBtn = document.querySelector('.delete-btn');
@@ -606,32 +682,32 @@ function setupFormEventListeners(userId) {
             const existingId = urlParams.get('id');
 
             if (!existingId) {
-                showMessage('No MJR record found to delete.', true);
+                showActionMessage('No MJR record found to delete.', true);
                 return;
             }
 
             if (window.confirm('Are you sure you want to delete this MJR record? This action cannot be undone.')) {
                 try {
-                    showUploadOverlay(0, null, 'deleting...');
+                    showActionUploadOverlay(0, null, 'deleting...');
 
                     const { error } = await supabase
                         .from('mt_job_requisition_master')
                         .delete()
                         .eq('id', existingId);
 
-                    hideUploadOverlay();
+                    hideActionUploadOverlay();
 
                     if (error) {
                         console.error('Delete error:', error);
-                        showMessage('Error deleting MJR record. Please try again.', true);
+                        showActionMessage('Error deleting MJR record. Please try again.', true);
                     } else {
-                        showMessage('MJR record deleted successfully!');
+                        showActionMessage('MJR record deleted successfully!');
                         setTimeout(() => {
-                            window.location.href = '../html/admin-mt.html';
+                            window.location.href = '../html/MT-job-requisition-table.html';
                         }, 1500);
                     }
                 } catch (error) {
-                    hideUploadOverlay();
+                    hideActionUploadOverlay();
                     console.error('Unexpected error during deletion:', error);
                     showMessage('Error deleting MJR record. Please try again.', true);
                 }
@@ -643,10 +719,10 @@ function setupFormEventListeners(userId) {
         event.preventDefault();
 
         if (validateForm()) {
-            showUploadOverlay(0, null, 'submitting...');
+            showActionUploadOverlay(0, null, 'submitting...');
             const cancelBtn = document.getElementById('cancel-upload-btn');
             if (cancelBtn) cancelBtn.style.display = 'none';
-            updateUploadProgress(0);
+            updateActionUploadProgress(0);
 
             // Check if we're in edit mode
             const urlParams = new URLSearchParams(window.location.search);
@@ -655,41 +731,42 @@ function setupFormEventListeners(userId) {
 
             const insertData = {
                 form_type: 'action',
-                reqdept: document.getElementById('reqDept').value,
-                requestorname: document.getElementById('requestorName').value.trim(),
-                equipmentname: document.getElementById('equipmentName').value.trim(),
-                equipmentno: document.getElementById('equipmentNo').value.trim(),
-                occurdate: document.getElementById('occurDate').value,
-                occurtime: document.getElementById('occurTime').value,
-                requisitionno: document.getElementById('requisitionNo').value.trim(),
-                machineno: document.getElementById('machineNo').value.trim(),
-                requirecompletiondate: document.getElementById('requireCompletionDate').value,
-                completiontime: document.getElementById('completionTime').value,
-                existingcondition: document.getElementById('existingCondition').value.trim(),
-                correction: document.getElementById('correction').value.trim(),
-                technicianname: document.getElementById('technicianName').value.trim(),
-                materialretrieval: document.getElementById('materialRetrieval').value.trim(),
-                cleaninginspection: document.getElementById('cleaningInspection').value.trim(),
-                schedulestartdate: document.getElementById('scheduleStartDate')?.value || '',
-                schedulestarttime: document.getElementById('scheduleStartTime')?.value || '',
-                scheduleenddate: document.getElementById('scheduleEndDate')?.value || '',
-                scheduleendtime: document.getElementById('scheduleEndTime')?.value || '',
+                reqdept: document.getElementById('reqDept').value || null,
+                reqdepthod: document.getElementById('reqDeptHOD').value.trim() || null,
+                requestorname: document.getElementById('requestorName').value.trim() || null,
+                equipmentname: document.getElementById('equipmentName').value.trim() || null,
+                equipmentno: document.getElementById('equipmentNo').value.trim() || null,
+                equipmentinstalldate: document.getElementById('equipmentInstallDate').value ? formatDateForDatabase(document.getElementById('equipmentInstallDate').value) : null,
+                occurdate: document.getElementById('occurDate').value || null,
+                occurtime: document.getElementById('occurTime').value || null,
+                requisitionno: document.getElementById('requisitionNo').value.trim() || null,
+                machineno: document.getElementById('machineNo').value.trim() || null,
+                requirecompletiondate: document.getElementById('requireCompletionDate').value || null,
+                completiontime: document.getElementById('completionTime').value || null,
+                existingcondition: document.getElementById('existingCondition').value.trim() || null,
+                correction: document.getElementById('correction').value.trim() || null,
+                rootcause: document.getElementById('rootCause').value.trim() || null,
+                technicianname: document.getElementById('technicianName').value.trim() || null,
+                materialretrieval: document.getElementById('materialRetrieval').value.trim() || null,
+                cleaninginspection: document.getElementById('cleaningInspection').value.trim() || null,
+                schedulestartdate: formatDateToDDMMYYYY(document.getElementById('scheduleStartDate')?.value) || null,
+                schedulestarttime: document.getElementById('scheduleStartTime')?.value || null,
+                scheduleenddate: formatDateToDDMMYYYY(document.getElementById('scheduleEndDate')?.value) || null,
+                scheduleendtime: document.getElementById('scheduleEndTime')?.value || null,
                 totalhours: (() => {
                     const timeValue = document.getElementById('totalHrs')?.value || '00:00';
-                    if (!timeValue || timeValue === '00:00') return 0;
-                    const [hours, minutes] = timeValue.split(':').map(Number);
-                    return hours + (minutes / 60);
+                    return timeValue;
                 })(),
-                inspectionremarks: document.getElementById('inspectionRemarks')?.value?.trim() || '',
+                inspectionremarks: document.getElementById('inspectionRemarks')?.value?.trim() || null,
                 inspectionresult: (() => {
                     const accepted = document.getElementById('inspectionAccepted');
                     const rejected = document.getElementById('inspectionRejected');
                     if (accepted?.checked) return 'Accepted';
                     if (rejected?.checked) return 'Rejected';
-                    return '';
+                    return null;
                 })(),
-                inspectioncheckedby: document.getElementById('inspectionCheckedBy')?.value?.trim() || '',
-                cleanretrcheckedby: document.getElementById('cleanRetrCheckedBy')?.value?.trim() || '',
+                inspectioncheckedby: document.getElementById('inspectionCheckedBy')?.value?.trim() || null,
+                cleanretrcheckedby: document.getElementById('cleanRetrCheckedBy')?.value?.trim() || null,
                 timestamp: new Date().toISOString(),
                 submission_status: 'submitted'
             };
@@ -763,13 +840,36 @@ function setupFormEventListeners(userId) {
                 insertData.purchasereqno = purchaseReqNoElement.value.trim();
             }
 
+            // Only collect costIncurred if the field exists and has a value
+            const costIncurredElement = document.getElementById('costIncurred');
+            if (costIncurredElement && costIncurredElement.value.trim()) {
+                const costValue = parseFloat(costIncurredElement.value.trim());
+                if (!isNaN(costValue)) {
+                    insertData.costincurred = costValue;
+                }
+            }
+
+            // Collect roller-specific fields if they are visible
+            const rollerFields = document.getElementById('rollerFields');
+            if (rollerFields && rollerFields.style.display !== 'none') {
+                const recoatingDateElement = document.getElementById('recoatingDate');
+                const regrindingDateElement = document.getElementById('regrindingDate');
+
+                if (recoatingDateElement && recoatingDateElement.value) {
+                    insertData.recoatingdate = recoatingDateElement.value;
+                }
+
+                if (regrindingDateElement && regrindingDateElement.value) {
+                    insertData.regrindingdate = regrindingDateElement.value;
+                }
+            }
+
             try {
-                updateUploadProgress(50);
+                updateActionUploadProgress(50);
                 let result;
 
                 if (action === 'edit' && existingId) {
                     // Update existing record
-                    console.log('Updating existing MJR:', existingId);
                     result = await supabase
                         .from('mt_job_requisition_master')
                         .update(insertData)
@@ -786,13 +886,13 @@ function setupFormEventListeners(userId) {
                 const { data, error } = result;
 
                 if (error) {
-                    hideUploadOverlay();
+                    hideActionUploadOverlay();
                     console.error('Submission error:', error);
-                    showMessage('Error submitting form. Please try again. Details: ' + error.message, true);
+                    showActionMessage('Error submitting form. Please try again. Details: ' + error.message, true);
                 } else {
-                    updateUploadProgress(100);
+                    updateActionUploadProgress(100);
                     setTimeout(() => {
-                        hideUploadOverlay();
+                        hideActionUploadOverlay();
                         // Ensure any blur effects are completely removed
                         setTimeout(() => {
                             // Double-check that all blur effects are removed
@@ -802,18 +902,18 @@ function setupFormEventListeners(userId) {
                             document.documentElement.style.filter = 'none';
 
                             if (action === 'edit') {
-                                showMessage('Maintenance Request updated successfully!');
+                                showActionMessage('Maintenance Request updated successfully!');
                             } else {
-                                showMessage('Maintenance Request submitted successfully!');
+                                showActionMessage('Maintenance Request submitted successfully!');
                             document.getElementById('maintenanceForm').reset();
                             }
                         }, 200);
                     }, 500);
                 }
             } catch (error) {
-                hideUploadOverlay();
+                hideActionUploadOverlay();
                 console.error('Unexpected error:', error);
-                showMessage('Error submitting form. Please try again.', true);
+                showActionMessage('Error submitting form. Please try again.', true);
             }
         }
     });
@@ -832,14 +932,14 @@ function validateForm() {
 
     // Basic required fields check
     if (!reqDept || !requestorName || !equipmentName || !equipmentNo || !occurDate || !occurTime || !requireCompletionDate || !completionTime || !existingCondition) {
-        showMessage('Please fill in all required fields (Req. Dept., Requestor Name, Equipment Name, No., Date, Time, Completion Date, Completion Time, Condition).', true);
+        showActionMessage('Please fill in all required fields (Req. Dept., Requestor Name, Equipment Name, No., Date, Time, Completion Date, Completion Time, Condition).', true);
         return false;
     }
 
     // Validate that at least one breakdown code is selected
     const breakdownCodes = document.querySelectorAll('input[name="breakdownCode"]:checked');
     if (breakdownCodes.length === 0) {
-        showMessage('Please select at least one breakdown code.', true);
+        showActionMessage('Please select at least one breakdown code.', true);
         return false;
     }
 
@@ -850,12 +950,19 @@ function validateForm() {
     const scheduleEndTime = document.getElementById('scheduleEndTime')?.value || '';
 
     if (scheduleStartDate && scheduleStartTime && scheduleEndDate && scheduleEndTime) {
-        const startDateTime = new Date(`${scheduleStartDate}T${scheduleStartTime}`);
-        const endDateTime = new Date(`${scheduleEndDate}T${scheduleEndTime}`);
+        try {
+            // Parse dates more reliably
+            const startDateTime = new Date(scheduleStartDate + ' ' + scheduleStartTime);
+            const endDateTime = new Date(scheduleEndDate + ' ' + scheduleEndTime);
 
-        if (startDateTime >= endDateTime) {
-        showMessage('Schedule end time must be after start time.', true);
-        return false;
+            if (startDateTime >= endDateTime) {
+                showActionMessage('Schedule end time must be after start time.', true);
+                return false;
+            }
+        } catch (error) {
+            console.error('Error validating schedule times:', error);
+            showActionMessage('Error validating schedule times. Please check the date and time format.', true);
+            return false;
         }
     }
 
@@ -863,57 +970,35 @@ function validateForm() {
 }
 
 async function getNextMaintenanceId() {
-    const now = new Date();
-    const year = now.getFullYear() % 100;
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const prefix = `MT${year}${month}`;
+    try {
+        // Generate a proper UUID v4
+        const uuid = generateUUID();
+        return uuid;
+    } catch (error) {
+        console.error('Error generating UUID:', error);
+        // Fallback: use timestamp-based ID
+        const fallbackId = `MT${Date.now().toString().slice(-10)}`;
+        return fallbackId;
+    }
+}
 
-    const { data, error } = await supabase
-        .from('mt_job_requisition_master')
-        .select('id')
-        .like('id', `${prefix}-%`);
-
-    if (error) {
-        console.error('Error fetching maintenance IDs:', error);
-        throw error;
+// UUID v4 generator function
+function generateUUID() {
+    // Check if crypto.randomUUID is available (modern browsers)
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
     }
 
-    let maxSerial = 0;
-    if (data && data.length > 0) {
-        data.forEach(row => {
-            const match = row.id.match(/^\w{5}-(\d{2})$/);
-            if (match) {
-                const serial = parseInt(match[1], 10);
-                if (serial > maxSerial) maxSerial = serial;
-            }
-        });
-    }
-
-    // Ensure we generate a unique ID
-    let nextSerial = maxSerial + 1;
-    let attempts = 0;
-    let newId;
-
-    do {
-        newId = `${prefix}-${String(nextSerial).padStart(2, '0')}`;
-        nextSerial++;
-        attempts++;
-
-        // Prevent infinite loop
-        if (attempts > 100) {
-            console.error('❌ Could not generate unique ID after 100 attempts');
-            // Use timestamp as fallback
-            newId = `${prefix}-${Date.now().toString().slice(-2)}`;
-            break;
-        }
-    } while (attempts <= maxSerial + 10); // Check reasonable range
-
-    console.log('✅ Generated new ID:', newId);
-    return newId;
+    // Fallback UUID v4 generator for older browsers
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
 }
 
 // Spinner Overlay functions (same as quality alert)
-function showUploadOverlay(progress = 0, onCancel, message = 'uploading...') {
+function showActionUploadOverlay(progress = 0, onCancel, message = 'uploading...') {
     let overlay = document.getElementById('image-upload-overlay');
     if (!overlay) {
         overlay = document.createElement('div');
@@ -939,12 +1024,12 @@ function showUploadOverlay(progress = 0, onCancel, message = 'uploading...') {
     }
 }
 
-function updateUploadProgress(progress) {
+function updateActionUploadProgress(progress) {
     const progressElem = document.getElementById('upload-progress');
     if (progressElem) progressElem.textContent = progress;
 }
 
-function hideUploadOverlay() {
+function hideActionUploadOverlay() {
     const overlay = document.getElementById('image-upload-overlay');
     if (overlay) {
         overlay.style.display = 'none';
@@ -1030,3 +1115,232 @@ function hideUploadOverlay() {
 `;
     document.head.appendChild(style);
 })();
+
+// Equipment Name Auto-Suggestions Functionality
+async function setupEquipmentNameSuggestions() {
+    const equipmentNameInput = document.getElementById('equipmentName');
+    if (!equipmentNameInput) {
+        console.warn('Equipment name input field not found');
+        return;
+    }
+
+    let suggestionsContainer = null;
+    let equipmentList = [];
+
+    // Fetch equipment names from master data table
+    try {
+        const { data, error } = await supabase
+            .from('mt_machines_and_equipments_masterdata')
+            .select('equipment_name, equipment_identification_no, installation_area, equipment_installation_date')
+            .order('equipment_name');
+
+        if (error) {
+            console.error('Error fetching equipment data:', error);
+            return;
+        }
+
+        equipmentList = data || [];
+        console.log('✅ Loaded', equipmentList.length, 'equipment records for suggestions');
+
+    } catch (error) {
+        console.error('Error setting up equipment suggestions:', error);
+        return;
+    }
+
+    // Create suggestions container
+    function createSuggestionsContainer() {
+        if (suggestionsContainer) return suggestionsContainer;
+
+        suggestionsContainer = document.createElement('div');
+        suggestionsContainer.className = 'equipment-suggestions';
+        suggestionsContainer.style.cssText = `
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        `;
+
+        equipmentNameInput.parentNode.style.position = 'relative';
+        equipmentNameInput.parentNode.appendChild(suggestionsContainer);
+        return suggestionsContainer;
+    }
+
+    // Show suggestions
+    function showSuggestions(suggestions) {
+        const container = createSuggestionsContainer();
+        container.innerHTML = '';
+
+        if (suggestions.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        suggestions.forEach(equipment => {
+            const suggestionItem = document.createElement('div');
+            suggestionItem.className = 'suggestion-item';
+            suggestionItem.style.cssText = `
+                padding: 8px 12px;
+                cursor: pointer;
+                border-bottom: 1px solid #eee;
+                font-size: 14px;
+            `;
+            suggestionItem.innerHTML = `
+                <div style="font-weight: 500; color: #333;">${equipment.equipment_name}</div>
+                <div style="font-size: 12px; color: #666; margin-top: 2px;">
+                    ${equipment.equipment_identification_no} • ${equipment.installation_area || 'No area specified'}
+                </div>
+            `;
+
+            suggestionItem.addEventListener('mouseenter', () => {
+                suggestionItem.style.backgroundColor = '#f8f9fa';
+            });
+
+            suggestionItem.addEventListener('mouseleave', () => {
+                suggestionItem.style.backgroundColor = 'white';
+            });
+
+            suggestionItem.addEventListener('click', () => {
+                equipmentNameInput.value = equipment.equipment_name;
+
+                // Also populate equipment number and installation date if available
+                const equipmentNoInput = document.getElementById('equipmentNo');
+                const equipmentInstallDateInput = document.getElementById('equipmentInstallDate');
+
+                if (equipmentNoInput && equipment.equipment_identification_no) {
+                    equipmentNoInput.value = equipment.equipment_identification_no;
+                }
+
+                if (equipmentInstallDateInput && equipment.equipment_installation_date) {
+                    // Format date from yyyy-mm-dd to dd/mm/yyyy for display
+                    const date = new Date(equipment.equipment_installation_date);
+                    const day = date.getDate().toString().padStart(2, '0');
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const year = date.getFullYear();
+                    equipmentInstallDateInput.value = `${day}/${month}/${year}`;
+                }
+
+                container.style.display = 'none';
+            });
+
+            container.appendChild(suggestionItem);
+        });
+
+        container.style.display = 'block';
+    }
+
+    // Hide suggestions
+    function hideSuggestions() {
+        if (suggestionsContainer) {
+            suggestionsContainer.style.display = 'none';
+        }
+    }
+
+    // Filter equipment based on input
+    function filterEquipment(query) {
+        if (!query || query.length < 2) {
+            hideSuggestions();
+            return [];
+        }
+
+        return equipmentList.filter(equipment =>
+            equipment.equipment_name.toLowerCase().includes(query.toLowerCase())
+        );
+    }
+
+    // Event listeners
+    equipmentNameInput.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        const suggestions = filterEquipment(query);
+        showSuggestions(suggestions);
+    });
+
+    equipmentNameInput.addEventListener('focus', () => {
+        const query = equipmentNameInput.value.trim();
+        if (query.length >= 2) {
+            const suggestions = filterEquipment(query);
+            showSuggestions(suggestions);
+        }
+    });
+
+    equipmentNameInput.addEventListener('blur', () => {
+        // Delay hiding to allow for clicks on suggestions
+        setTimeout(hideSuggestions, 200);
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!equipmentNameInput.contains(e.target) && (!suggestionsContainer || !suggestionsContainer.contains(e.target))) {
+            hideSuggestions();
+        }
+    });
+
+    console.log('✅ Equipment name auto-suggestions setup complete');
+}
+
+// Dynamic Roller Fields Functionality
+function setupDynamicRollerFields() {
+    const equipmentNameInput = document.getElementById('equipmentName');
+    const rollerFields = document.getElementById('rollerFields');
+
+    if (!equipmentNameInput || !rollerFields) {
+        console.warn('Equipment name input or roller fields not found');
+        return;
+    }
+
+    // Equipment type detection
+    function isRollerEquipment(equipmentName) {
+        if (!equipmentName) return false;
+        const rollerTypes = ['Rubber Roller', 'Emboss Roller', 'Rubber roller', 'Emboss roller'];
+        return rollerTypes.some(type => equipmentName.includes(type));
+    }
+
+    // Toggle roller fields visibility
+    function toggleRollerFields() {
+        const equipmentName = equipmentNameInput.value.trim();
+        const isRoller = isRollerEquipment(equipmentName);
+
+        if (isRoller) {
+            rollerFields.style.display = 'block';
+            console.log('✅ Showing roller fields for:', equipmentName);
+        } else {
+            rollerFields.style.display = 'none';
+            // Clear roller fields when hiding
+            document.getElementById('recoatingDate').value = '';
+            document.getElementById('regrindingDate').value = '';
+            console.log('❌ Hiding roller fields');
+        }
+    }
+
+    // Initial check
+    toggleRollerFields();
+
+    // Monitor equipment name changes
+    equipmentNameInput.addEventListener('input', toggleRollerFields);
+    equipmentNameInput.addEventListener('change', toggleRollerFields);
+
+    // Also check when form is populated with existing data
+    // This handles cases where equipment name is loaded from database
+    const checkInterval = setInterval(() => {
+        const currentValue = equipmentNameInput.value.trim();
+        if (currentValue && !equipmentNameInput.hasAttribute('data-initial-checked')) {
+            equipmentNameInput.setAttribute('data-initial-checked', 'true');
+            toggleRollerFields();
+            clearInterval(checkInterval);
+        }
+    }, 100);
+
+    // Stop checking after 5 seconds
+    setTimeout(() => {
+        clearInterval(checkInterval);
+    }, 5000);
+
+    console.log('✅ Dynamic roller fields setup complete');
+}

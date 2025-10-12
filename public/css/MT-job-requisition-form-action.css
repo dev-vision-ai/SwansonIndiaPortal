@@ -40,8 +40,8 @@ main {
     max-width: 800px;
     background: var(--form-bg);
     border-radius: 0.5rem;
-    padding: 1.5rem 1.0rem;
-    padding-top: calc(var(--header-desktop-height) + 1.5rem);
+    padding: 1.5rem 1.0rem !important;
+    padding-top: calc(var(--header-desktop-height) + 1.5rem) !important;
     margin-top: 0.7rem;
     box-shadow: var(--shadow);
     border: 1px solid rgba(0, 0, 0, 0.1);
@@ -83,11 +83,25 @@ form {
     gap: 0.75rem;
 }
 
-/* Form Rows */
-.form-row {
+/* Form Rows - Grid layout for responsive design */
+.form-row.grid-layout {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
+}
+
+/* Form row for side-by-side fields */
+.form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    width: 100%;
+}
+
+.form-row .form-group {
+    flex: 1;
+    margin-bottom: 0;
+    min-width: 0; /* Allow flex items to shrink */
 }
 
 /* Form Groups */
@@ -131,6 +145,18 @@ textarea:focus {
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
+/* Hide number input spinner controls */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
 textarea {
     height: 40px;
     resize: none;
@@ -146,21 +172,27 @@ textarea {
     display: block;
 }
 
-/* Form Sections */
+/* Form Sections - Consistent spacing */
 .form-section {
-    margin-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
 }
 
-/* Reduce gap for Existing Condition section */
-.form-section:nth-child(2) {
-    margin-bottom: 0.5rem;
+/* Dynamic Roller Fields - Consistent spacing */
+#rollerFields {
+    margin-bottom: 1.5rem;
+}
+
+/* Ensure consistent spacing for all sections */
+.form-section:last-child,
+#rollerFields:last-child {
+    margin-bottom: 0;
 }
 
 .section-header {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--primary-color);
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid #dee2e6;
 }
@@ -168,8 +200,8 @@ textarea {
 /* Equipment Layout */
 .equipment-layout {
     display: flex;
+    flex-direction: column;
     gap: 1.5rem;
-    flex-wrap: wrap;
 }
 
 .equipment-left,
@@ -288,11 +320,11 @@ textarea {
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem;
-    background: var(--background-light);
-    border: 1px solid var(--border-color);
+    background: white;
+    border: 1px solid #dee2e6;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.15s ease;
+    transition: all 0.15s ease;
 }
 
 .code-item:hover {
@@ -337,7 +369,7 @@ textarea {
 
 /* Power Section Styling */
 .power-section {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .power-header {
@@ -370,11 +402,11 @@ textarea {
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem;
-    background: var(--background-light);
-    border: 1px solid var(--border-color);
+    background: white;
+    border: 1px solid #dee2e6;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.15s ease;
+    transition: all 0.15s ease;
 }
 
 .power-row:hover {
@@ -418,15 +450,30 @@ textarea {
 
 .handle-by-content {
     display: flex;
-    gap: 2rem;
+    flex-direction: column;
+    gap: 1.5rem;
     align-items: flex-start;
+}
+
+.handle-by-lower-row {
+    display: flex;
+    gap: 1.5rem;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.handle-by-lower-row .ots-bt-section,
+.handle-by-lower-row .cost-incurred-section {
+    flex: 1;
+    min-width: 280px;
 }
 
 .handle-options-row {
     display: flex;
     gap: 1.5rem;
-    flex: 1;
-    align-items: stretch;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
 }
 
 .handle-option {
@@ -438,11 +485,11 @@ textarea {
     width: 120px;
     height: 100px;
     padding: 0.75rem;
-    background: var(--background-light);
-    border: 1px solid var(--border-color);
+    background: white;
+    border: 1px solid #dee2e6;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.15s ease;
+    transition: all 0.15s ease;
     text-align: center;
 }
 
@@ -484,7 +531,25 @@ textarea {
     justify-content: center;
 }
 
+.cost-incurred-section {
+    background: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 1rem;
+    min-width: 280px;
+    transition: background-color 0.15s ease;
+    cursor: pointer;
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
 .ots-bt-section:hover {
+    background: #e9ecef;
+}
+
+.cost-incurred-section:hover {
     background: #e9ecef;
 }
 
@@ -508,6 +573,7 @@ textarea {
     flex: 1;
     display: flex;
     flex-direction: column;
+    margin-bottom: 1.5rem;
 }
 
 .remarks-box label,
@@ -537,10 +603,48 @@ textarea {
     background: white;
 }
 
+/* Root Cause Container */
+.root-cause-container {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    margin-bottom: 1.5rem; /* Consistent spacing */
+}
+
+.root-cause-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.root-cause-box label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.root-cause-box textarea {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: white !important;
+    font-family: inherit;
+    font-size: 0.9rem;
+    resize: vertical;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.root-cause-box textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: white;
+}
+
 /* Image Upload */
 #imageUploadContainer {
     text-align: center;
-    margin: 2rem 0;
+    margin: 1.5rem 0;
 }
 
 .image-upload-btn {
@@ -582,6 +686,7 @@ textarea {
     gap: 1rem;
     justify-content: center;
     margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
     padding-top: 1.5rem;
     border-top: 1px solid #dee2e6;
 }
@@ -684,22 +789,22 @@ textarea {
 
 /* Message Overlay (same as quality alert) */
 .submission-message-overlay {
-    position: fixed;
+    position: fixed !important;
     top: 0; left: 0; right: 0; bottom: 0;
     width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.25);
-    backdrop-filter: blur(3px);
-    z-index: 9998;
+    background: rgba(0,0,0,0.25) !important;
+    backdrop-filter: blur(3px) !important;
+    z-index: 9998 !important;
     display: none;
 }
 
 .submission-message-overlay.show {
-    display: block;
+    display: block !important;
 }
 
 /* Centered message box */
 .submission-message {
-    position: fixed;
+    position: fixed !important;
     top: 50%; left: 50%;
     margin-left: -150px; margin-top: -50px;
     min-width: 300px;
@@ -719,18 +824,18 @@ textarea {
 }
 
 .submission-message.show {
-    display: block;
-    opacity: 1;
+    display: block !important;
+    opacity: 1 !important;
 }
 
 .submission-message.error {
-    background-color: #f8d7da;
-    color: #721c24;
+    background-color: #f8d7da !important;
+    color: #721c24 !important;
 }
 
 .submission-message.error.show {
-    display: block;
-    opacity: 1;
+    display: block !important;
+    opacity: 1 !important;
 }
 
 /* Material Tracking Table */

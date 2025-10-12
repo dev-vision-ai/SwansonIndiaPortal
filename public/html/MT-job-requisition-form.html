@@ -15,61 +15,59 @@
             </div>
 
             <form id="maintenanceForm">
-                <!-- Equipment Details Section -->
+                <!-- General Information Section -->
                 <div class="form-section">
                     <div class="equipment-details-container">
-                        <div class="section-header">Equipment Details</div>
+                        <div class="section-header">General Information</div>
                         <div class="equipment-layout">
                         <!-- Left Side -->
                         <div class="equipment-left">
-                            <!-- Row 1: Req. Dept (left) -->
-                            <div class="form-group">
-                                <label for="reqDept">Req. Dept.:</label>
-                                <select id="reqDept">
-                                    <option value="">Select Department</option>
-                                    <option value="Production">Production</option>
-                                    <option value="Quality Control">Quality Control</option>
-                                    <option value="Maintenance">Maintenance</option>
-                                    <option value="Administration">Administration</option>
-                                    <option value="Quality Assurance">Quality Assurance</option>
-                                    <option value="Sales">Sales</option>
-                                    <option value="Human Resource">Human Resource</option>
-                                    <option value="Warehouse">Warehouse</option>
-                                    <option value="Logistics">Logistics</option>
-                                    <option value="Purchase">Purchase</option>
-                                </select>
+                            <!-- Row 1: Req. Dept., Requestor Name & HOD (side by side) -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="reqDept">Req. Dept.:</label>
+                                    <input type="text" id="reqDept" placeholder="Auto-filled from profile" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label for="requestorName">Requestor Name:</label>
+                                    <input type="text" id="requestorName" placeholder="Auto-filled from profile" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reqDeptHOD">Req. Dept. HOD:</label>
+                                    <input type="text" id="reqDeptHOD" placeholder="Enter HOD name">
+                                </div>
                             </div>
 
-                            <!-- Row 2: Requestor Name (left) -->
-                            <div class="form-group">
-                                <label for="requestorName">Requestor Name:</label>
-                                <input type="text" id="requestorName" placeholder="Enter requestor name">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="equipmentName">Equipment Name:</label>
-                                <input type="text" id="equipmentName" placeholder="Enter equipment name">
-                            </div>
                         </div>
 
                         <!-- Right Side -->
                         <div class="equipment-right">
-                            <!-- Row 1: Requisition No (right) -->
-                            <div class="form-group">
-                                <label for="requisitionNo">Requisition No.:</label>
-                                <input type="text" id="requisitionNo" placeholder="Enter requisition number">
+                            <!-- Row 2: Requisition No & Machine No (right) -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="requisitionNo">Requisition No.:</label>
+                                    <input type="text" id="requisitionNo" placeholder="Enter requisition number">
+                                </div>
+                                <div class="form-group">
+                                    <label for="machineNo">Machine No.:</label>
+                                    <input type="text" id="machineNo" placeholder="Enter machine number">
+                                </div>
                             </div>
 
-                            <!-- Row 2: Machine No (right) -->
-                            <div class="form-group">
-                                <label for="machineNo">Machine No.:</label>
-                                <input type="text" id="machineNo" placeholder="Enter machine number">
-                            </div>
-
-                            <!-- Equipment No (right) - aligned with Equipment Name (left) -->
-                            <div class="form-group">
-                                <label for="equipmentNo">Equipment No.:</label>
-                                <input type="text" id="equipmentNo" placeholder="Enter equipment number">
+                            <!-- Row 3: Equipment Name, Equipment No & Installation Date (right) -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="equipmentName">Equipment Name:</label>
+                                    <input type="text" id="equipmentName" placeholder="Enter equipment name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="equipmentNo">Equipment No.:</label>
+                                    <input type="text" id="equipmentNo" placeholder="Enter equipment number">
+                                </div>
+                                <div class="form-group">
+                                    <label for="equipmentInstallDate">Equipment Installation Date:</label>
+                                    <input type="text" id="equipmentInstallDate" placeholder="Enter installation date (dd/mm/yyyy)">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -103,7 +101,7 @@
                                         <input type="date" id="requireCompletionDate">
                                     </div>
                                     <div class="completion-field">
-                                        <label for="completionTime">Time</label>
+                                        <label for="completionTime">Time:</label>
                                         <input type="time" id="completionTime" placeholder="Time">
                                     </div>
                                 </div>

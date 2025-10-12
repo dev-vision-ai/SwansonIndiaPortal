@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Machine History Card</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <link rel="stylesheet" href="../css/machine-history-card.css">
+  <link rel="stylesheet" href="../css/common-header.css">
+</head>
+<body>
+  <div class="container page-fade-in">
+    <section class="dashboard-section">
+  <!-- Pasted Header -->
+  <div class="header-container bg-white shadow-md p-4 flex justify-between items-center">
+    <!-- Changed Back Button Action -->
+    <button type="button" class="header-back-button" onclick="window.location.href='admin-mt.html'">Back</button>
+
+    <div class="header-title text-2xl font-bold">Machine History Card</div>
+    <div class="company-logo">
+      <!-- Adjust logo path relative to this file's location -->
+      <img src="../assets/logo.png" class="auth-logo h-10" alt="Logo"/>
+    </div>
+  </div>
+  <!-- End Pasted Header -->
+
+      <main class="history-container">
+        <!-- Filters Section -->
+        <div class="filters-section">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex-1"></div>
+            <h4 style="margin: 0; color: #002E7D; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Filter</h4>
+            <div class="flex items-center space-x-2 flex-1 justify-end">
+              <span style="font-size: 10px; color: #6b7280;">Filter Status:</span>
+              <span id="filterStatus" class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700">
+                Off
+              </span>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 2fr 2fr 1fr 1fr 1fr auto; gap: 6px; align-items: center; max-width: 700px; margin: 0 auto;">
+            <div class="form-group" style="margin-bottom: 0; position: relative;">
+              <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Equipment Name</div>
+              <select id="equipmentNameFilter" class="filter-input" style="width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; height: 28px;" title="Filter by Equipment Name">
+                <option value="">All Equipment Names</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0; position: relative;">
+              <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Equipment</div>
+              <select id="equipmentFilter" class="filter-input" style="width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; height: 28px;" title="Filter by Equipment">
+                <option value="">All Equipment</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">From</div>
+              <input type="date" id="dateFromFilter" class="filter-input" style="width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; height: 28px;" title="Filter from date">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">To</div>
+              <input type="date" id="dateToFilter" class="filter-input" style="width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; height: 28px;" title="Filter to date">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Status</div>
+              <select id="statusFilter" class="filter-input" style="width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; height: 28px;" title="Filter by Status">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+            <div style="display: flex; justify-content: center;">
+              <button id="clearFilters" class="clear-btn" title="Clear All Filters">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="history-table-container">
+          <div class="table-header">
+            <h2>Machine Breakdown History</h2>
+            <button id="exportBtn" class="export-btn" title="Download Excel File">
+              <i class="fas fa-download"></i> Machine History Card
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table id="historyTable" class="history-table">
+              <thead>
+                <tr>
+                  <th>Breakdown Date</th>
+                  <th>MJR#</th>
+                  <th>BD Code</th>
+                  <th>Equipment ID No.</th>
+                  <th>Equipment Name</th>
+                  <th>Equipment Installation Date</th>
+                  <th>Breakdown Descr.</th>
+                  <th>M/C BD Start Time</th>
+                  <th>M/C BD Finish Time</th>
+                  <th>Total M/C BD Time</th>
+                  <th>Root Cause</th>
+                  <th>Corrective Action</th>
+                  <th>Cost Incurred</th>
+                  <th>Done By</th>
+                  <th>Verify By</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                <tr class="loading-row">
+                  <td colspan="16">Loading machine history data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+          <div class="pagination-info">
+            <span id="paginationInfo">Showing 0-0 of 0 entries</span>
+          </div>
+          <div class="pagination-controls">
+            <button id="prevPage" class="pagination-btn" disabled>Previous</button>
+            <span id="currentPage" class="current-page">1</span>
+            <button id="nextPage" class="pagination-btn" disabled>Next</button>
+          </div>
+        </div>
+      </main>
+    </section>
+  </div>
+
+  <script type="module" src="../js/machine-history-card.js"></script>
+</body>
+</html>
