@@ -16,61 +16,58 @@
             </div>
 
             <form id="maintenanceForm">
-                <!-- Equipment Details Section -->
+                <!-- General Information Section -->
                 <div class="form-section">
                     <div class="equipment-details-container">
-                        <div class="section-header">Equipment Details</div>
+                        <div class="section-header">General Information</div>
                         <div class="equipment-layout">
                         <!-- Left Side -->
                         <div class="equipment-left">
-                            <!-- Row 1: Req. Dept (left) -->
-                            <div class="form-group">
-                                <label for="reqDept">Req. Dept.:</label>
-                                <select id="reqDept" disabled>
-                                    <option value="">Select Department</option>
-                                    <option value="Production">Production</option>
-                                    <option value="Quality Control">Quality Control</option>
-                                    <option value="Maintenance">Maintenance</option>
-                                    <option value="Administration">Administration</option>
-                                    <option value="Quality Assurance">Quality Assurance</option>
-                                    <option value="Sales">Sales</option>
-                                    <option value="Human Resource">Human Resource</option>
-                                    <option value="Warehouse">Warehouse</option>
-                                    <option value="Logistics">Logistics</option>
-                                    <option value="Purchase">Purchase</option>
-                                </select>
-                            </div>
-
-                            <!-- Row 2: Requestor Name (left) -->
-                            <div class="form-group">
-                                <label for="requestorName">Requestor Name:</label>
-                                <input type="text" id="requestorName" placeholder="Enter requestor name" disabled>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="equipmentName">Equipment Name:</label>
-                                <input type="text" id="equipmentName" placeholder="Enter equipment name">
+                            <!-- Row 1: Req. Dept., Requestor Name & HOD (side by side) -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="reqDept">Req. Dept.:</label>
+                                    <input type="text" id="reqDept" placeholder="Auto-filled from profile" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label for="requestorName">Requestor Name:</label>
+                                    <input type="text" id="requestorName" placeholder="Auto-filled from profile" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label for="reqDeptHOD">Req. Dept. HOD:</label>
+                                    <input type="text" id="reqDeptHOD" placeholder="Auto-filled from profile" readonly>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Right Side -->
                         <div class="equipment-right">
-                            <!-- Row 1: Requisition No (right) -->
-                            <div class="form-group">
-                                <label for="requisitionNo">Requisition No.:</label>
-                                <input type="text" id="requisitionNo" placeholder="Enter requisition number">
+                            <!-- Row 2: Requisition No & Machine No (right) -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="requisitionNo">Requisition No.:</label>
+                                    <input type="text" id="requisitionNo" placeholder="Enter requisition number">
+                                </div>
+                                <div class="form-group">
+                                    <label for="machineNo">Machine No.:</label>
+                                    <input type="text" id="machineNo" placeholder="Enter machine number">
+                                </div>
                             </div>
 
-                            <!-- Row 2: Machine No (right) -->
-                            <div class="form-group">
-                                <label for="machineNo">Machine No.:</label>
-                                <input type="text" id="machineNo" placeholder="Enter machine number">
-                            </div>
-
-                            <!-- Equipment No (right) - aligned with Equipment Name (left) -->
-                            <div class="form-group">
-                                <label for="equipmentNo">Equipment No.:</label>
-                                <input type="text" id="equipmentNo" placeholder="Enter equipment number">
+                            <!-- Row 3: Equipment Name, Equipment No & Installation Date (right) -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="equipmentName">Equipment Name:</label>
+                                    <input type="text" id="equipmentName" placeholder="Enter equipment name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="equipmentNo">Equipment No.:</label>
+                                    <input type="text" id="equipmentNo" placeholder="Enter equipment number">
+                                </div>
+                                <div class="form-group">
+                                    <label for="equipmentInstallDate">Equipment Installation Date:</label>
+                                    <input type="text" id="equipmentInstallDate" placeholder="Enter installation date (dd/mm/yyyy)">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -104,7 +101,7 @@
                                         <input type="date" id="requireCompletionDate">
                                     </div>
                                     <div class="completion-field">
-                                        <label for="completionTime">Time</label>
+                                        <label for="completionTime">Time:</label>
                                         <input type="time" id="completionTime" placeholder="Time">
                                     </div>
                                 </div>
@@ -258,6 +255,7 @@
                         <div class="section-header">Handle by</div>
                         <div class="handle-by-container">
                         <div class="handle-by-content">
+                            <!-- First Row: Handle Options -->
                             <div class="handle-options-row">
                                 <div class="handle-option">
                                     <input type="checkbox" id="handleMT" name="handleBy" value="MT">
@@ -276,11 +274,21 @@
                                 </div>
                             </div>
 
-                            <div class="ots-bt-section">
-                                <span class="ots-bt-label">IF OTS or BT</span>
-                                <div class="form-group">
-                                    <label for="purchaseReqNo">Purchase Req. No. :</label>
-                                    <input type="text" id="purchaseReqNo" placeholder="Enter purchase requisition number">
+                            <!-- Second Row: OTS/BT and Cost Incurred -->
+                            <div class="handle-by-lower-row">
+                                <div class="ots-bt-section">
+                                    <span class="ots-bt-label">IF OTS or BT</span>
+                                    <div class="form-group">
+                                        <label for="purchaseReqNo">Purchase Req. No. :</label>
+                                        <input type="text" id="purchaseReqNo" placeholder="Enter purchase requisition number">
+                                    </div>
+                                </div>
+
+                                <div class="cost-incurred-section">
+                                    <div class="form-group">
+                                        <label for="costIncurred">Cost Incurred (INR):</label>
+                                        <input type="number" id="costIncurred" placeholder="Enter cost amount" step="0.01" min="0">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -297,6 +305,14 @@
                             <div class="correction-box">
                                 <label for="correction">Correction:</label>
                                 <textarea id="correction" placeholder="Describe the correction made" rows="3"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Root Cause -->
+                        <div class="root-cause-container">
+                            <div class="root-cause-box">
+                                <label for="rootCause">Root Cause:</label>
+                                <textarea id="rootCause" placeholder="Describe the root cause of the issue" rows="3"></textarea>
                             </div>
                         </div>
 
@@ -319,7 +335,7 @@
                                 <input type="text" id="technicianName" placeholder="Technician name">
                             </div>
                             <div class="form-group">
-                                <label for="technicianCheckedBy">Checked By:</label>
+                                <label for="cleanRetrCheckedBy">Checked By:</label>
                                 <input type="text" id="cleanRetrCheckedBy" placeholder="Enter name">
                             </div>
                         </div>
@@ -432,6 +448,20 @@
                             </tr>
                         </tbody>
                     </table>
+
+                    <!-- Dynamic Roller Fields (shown only for Rubber/Emboss Roller) -->
+                    <div id="rollerFields" class="roller-fields" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="recoatingDate">Recoating Date:</label>
+                                <input type="date" id="recoatingDate" placeholder="Select recoating date">
+                            </div>
+                            <div class="form-group">
+                                <label for="regrindingDate">Regrinding Date:</label>
+                                <input type="date" id="regrindingDate" placeholder="Select regrinding date">
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Inspection Remarks -->
                     <div class="form-group">

@@ -16,11 +16,28 @@ function formatDateToDDMMYYYY(dateString) {
   return `${day}/${month}/${year}`;
 }
 
+// Helper function to create SVG icons (same as film inspection forms)
+function createIcon(iconType) {
+  const icons = {
+    view: `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+    </svg>`,
+    edit: `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+    </svg>`,
+    download: `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+    </svg>`
+  };
+  return icons[iconType] || '';
+}
+
 function renderTable(data) {
   const tbody = document.getElementById('alertsBody');
   tbody.innerHTML = data.map(requisition => `
     <tr>
-      <td>${requisition.id}</td>
+      <td>${requisition.requisitionno || 'N/A'}</td>
       <td>${formatDateToDDMMYYYY(requisition.occurdate)}</td>
       <td>${requisition.requestorname || 'Unknown'}</td>
       <td>${requisition.reqdept || 'N/A'}</td>
@@ -28,12 +45,24 @@ function renderTable(data) {
       <td>${requisition.existingcondition || 'N/A'}</td>
       <td>${requisition.machineno || 'N/A'}</td>
       <td>
-        <!-- Add View and Edit buttons with specific classes and data-id -->
-        <button class="action-btn view-btn" data-id="${requisition.id}">View</button>
-        <button class="action-btn edit-btn" data-id="${requisition.id}">Edit</button>
+        <!-- Action buttons with SVG icons (same as film inspection forms) -->
+        <div style="display: flex; justify-content: center; gap: 4px;">
+          <button style="padding: 4px; border-radius: 6px; background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px;" data-uuid="${requisition.id}" title="View Details" onmouseover="this.style.backgroundColor='#bfdbfe'; this.style.color='#1d4ed8'" onmouseout="this.style.backgroundColor='#dbeafe'; this.style.color='#1e40af'">
+            ${createIcon('view')}
+          </button>
+          <button style="padding: 4px; border-radius: 6px; background-color: #f3e8ff; color: #7c3aed; border: 1px solid #e9d5ff; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px;" data-uuid="${requisition.id}" title="Edit Record" onmouseover="this.style.backgroundColor='#e9d5ff'; this.style.color='#6d28d9'" onmouseout="this.style.backgroundColor='#f3e8ff'; this.style.color='#7c3aed'">
+            ${createIcon('edit')}
+          </button>
+          <button style="padding: 4px; border-radius: 6px; background-color: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px;" data-uuid="${requisition.id}" title="Download as Excel" onmouseover="this.style.backgroundColor='#c7d2fe'; this.style.color='#3730a3'" onmouseout="this.style.backgroundColor='#e0e7ff'; this.style.color='#4338ca'">
+            ${createIcon('download')}
+          </button>
+        </div>
       </td>
     </tr>
   `).join('');
+
+  // Set up event listeners for newly created buttons
+  setupButtonEventListeners();
 }
 
 function sortData(column) {
@@ -64,7 +93,6 @@ function applyFilters(render = true) {
   const dateValue = document.getElementById('filterDate')?.value || '';
   const deptValue = document.getElementById('filterDept')?.value || '';
   const equipmentValue = document.getElementById('filterEquipment')?.value || '';
-  console.log(`Applying filters: Date='${dateValue}', Dept='${deptValue}', Equipment='${equipmentValue}'`);
 
   let filteredData = requisitionsData;
 
@@ -79,8 +107,6 @@ function applyFilters(render = true) {
   if (equipmentValue) {
     filteredData = filteredData.filter(req => req.equipmentname && req.equipmentname.toLowerCase().includes(equipmentValue.toLowerCase()));
   }
-
-  console.log('Filtered data count:', filteredData.length);
 
   if (render) {
     renderTable(filteredData);
@@ -99,7 +125,6 @@ function clearFilters() {
   if (equipmentInput) equipmentInput.value = '';
 
   applyFilters();
-  console.log('Filters cleared.');
 }
 
 
@@ -113,6 +138,7 @@ async function fetchMTJobRequisitions() {
       .from('mt_job_requisition_master')
       .select(`
         id,
+        requisitionno,
         occurdate,
         requestorname,
         reqdept,
@@ -128,9 +154,9 @@ async function fetchMTJobRequisitions() {
       return;
     }
 
-    console.log("Fetched MT Job Requisitions:", data);
     requisitionsData = data.map(requisition => ({
       id: requisition.id,
+      requisitionno: requisition.requisitionno,
       occurdate: requisition.occurdate,
       requestorname: requisition.requestorname,
       reqdept: requisition.reqdept,
@@ -210,20 +236,6 @@ async function loadUserProfile() {
   }
 }
 
-function handleButtonActions(e) {
-  if (e.target.classList.contains('action-btn')) {
-    const requisitionId = e.target.dataset.id;
-    const targetUrl = '../html/MT-job-requisition-form-action.html';
-
-    if (e.target.classList.contains('view-btn')) {
-      console.log(`Viewing MT job requisition ${requisitionId}`);
-      window.location.href = `${targetUrl}?id=${requisitionId}&action=view`;
-    } else if (e.target.classList.contains('edit-btn')) {
-      console.log(`Editing MT job requisition ${requisitionId}`);
-      window.location.href = `${targetUrl}?id=${requisitionId}&action=edit`;
-    }
-  }
-}
 
 // Enhanced setup function that includes table functionality
 function setupEventListeners() {
@@ -240,10 +252,8 @@ function setupEventListeners() {
   if (logoutButton) {
     logoutButton.addEventListener('click', async (e) => {
       e.preventDefault();
-        console.log('Logout button clicked');
 
         if (window.confirm("Are you sure you want to log out?")) {
-          console.log('Logout confirmed, signing out...');
         try {
           const { error } = await supabase.auth.signOut();
           if (error) {
@@ -271,8 +281,7 @@ function setupEventListeners() {
                 localStorage.removeItem(key);
               }
             }
-            
-              console.log('Logout successful, redirecting...');
+
             window.location.replace('../html/auth.html');
           }
         } catch (err) {
@@ -280,13 +289,199 @@ function setupEventListeners() {
           alert('An unexpected error occurred during logout.');
         }
         } else {
-          console.log('Logout cancelled by user.');
+          // User cancelled logout
       }
     });
     }
   });
+}
 
-  document.addEventListener('click', handleButtonActions);
+setupEventListeners();
+
+function setupButtonEventListeners() {
+  // Set up view button listeners (using data-uuid attribute)
+  const viewButtons = document.querySelectorAll('button[data-uuid][title="View Details"]');
+
+  viewButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const requisitionId = e.currentTarget.dataset.uuid;
+
+      if (!requisitionId) {
+        console.error('No requisition ID found in button data-uuid attribute');
+        alert('Error: No requisition ID found');
+        return;
+      }
+
+      const targetUrl = '../html/MT-job-requisition-form-action.html';
+      window.location.href = `${targetUrl}?id=${requisitionId}&action=view`;
+    });
+  });
+
+  // Set up edit button listeners (using data-uuid attribute)
+  const editButtons = document.querySelectorAll('button[data-uuid][title="Edit Record"]');
+
+  editButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const requisitionId = e.currentTarget.dataset.uuid;
+
+      if (!requisitionId) {
+        console.error('No requisition ID found in button data-uuid attribute');
+        alert('Error: No requisition ID found');
+        return;
+      }
+
+      const targetUrl = '../html/MT-job-requisition-form-action.html';
+      window.location.href = `${targetUrl}?id=${requisitionId}&action=edit`;
+    });
+  });
+
+  // Set up download button listeners (using data-uuid attribute)
+  const downloadButtons = document.querySelectorAll('button[data-uuid][title="Download as Excel"]');
+
+  downloadButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation(); // Prevent any parent event handlers
+      const requisitionId = e.currentTarget.dataset.uuid;
+
+      if (!requisitionId) {
+        console.error('No requisition ID found in button data-uuid attribute');
+        alert('Error: No requisition ID found');
+        return;
+      }
+
+      downloadRequisitionAsExcel(requisitionId);
+    });
+  });
+}
+
+async function downloadRequisitionAsExcel(requisitionId) {
+  // Show loading state immediately
+  const downloadBtn = event.target;
+  if (!downloadBtn) {
+    console.error('No download button found');
+    return;
   }
 
-setupEventListeners(); 
+  const originalContent = downloadBtn.innerHTML;
+  const originalTitle = downloadBtn.title;
+
+  // Show loading state
+  downloadBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+  downloadBtn.title = 'Downloading...';
+  downloadBtn.disabled = true;
+
+  try {
+    // Determine backend URL
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+
+    // First, test if backend is reachable
+    try {
+      const testResponse = await fetch(`${backendUrl}/api/test`);
+      if (testResponse.ok) {
+        // Backend server is reachable
+      } else {
+        console.warn('Backend server responded with status:', testResponse.status);
+      }
+    } catch (testError) {
+      console.error('❌ Cannot reach backend server at', backendUrl);
+      throw new Error(`Cannot connect to backend server. Please ensure the backend is running on port 3000.`);
+    }
+
+    // Call the Excel export API endpoint
+    const endpoint = `${backendUrl}/api/export-mjr-record/${encodeURIComponent(requisitionId)}`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+    const response = await fetch(endpoint, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorMessage;
+      } catch (parseError) {
+        // Could not parse error response as JSON
+      }
+      throw new Error(errorMessage);
+    }
+
+    // Get the Excel blob from response
+    const blob = await response.blob();
+
+    if (blob.size === 0) {
+      throw new Error('Received empty file from server');
+    }
+
+    // Create download link
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+
+    // Get filename from response headers or use default
+    let filename = `MJR-${requisitionId}.xlsx`;
+    const contentDisposition = response.headers.get('Content-Disposition');
+
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (filenameMatch && filenameMatch[1]) {
+        filename = filenameMatch[1].replace(/['"]/g, '');
+      }
+    }
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    // Show success state briefly
+    downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+    downloadBtn.title = 'Downloaded!';
+
+    // Reset button after 2 seconds
+    setTimeout(() => {
+      downloadBtn.innerHTML = originalContent;
+      downloadBtn.title = originalTitle;
+      downloadBtn.disabled = false;
+    }, 2000);
+
+  } catch (error) {
+    console.error('Error downloading MJR Excel:', error);
+
+    // Show error state on button
+    downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+    downloadBtn.title = 'Download failed';
+
+    // Reset button after 3 seconds
+    setTimeout(() => {
+      downloadBtn.innerHTML = createIcon('download');
+      downloadBtn.title = 'Download as Excel';
+      downloadBtn.disabled = false;
+    }, 3000);
+
+    // Show user-friendly error message
+    let errorMessage = error.message;
+    if (error.name === 'AbortError') {
+      errorMessage = 'Download timed out. Please check if the backend server is running.';
+    } else if (error.message.includes('fetch')) {
+      errorMessage = 'Cannot connect to server. Please check if the backend is running on port 3000.';
+    }
+
+    alert(`Error downloading Excel file: ${errorMessage}\n\nCheck the browser console for more details.`);
+  }
+} 

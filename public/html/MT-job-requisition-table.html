@@ -4,18 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MT Job Requisitions Table</title>
+  <title>Maintenance Job Requisitions Table</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
   <link rel="stylesheet" href="../css/admin-mt.css">
   <link rel="stylesheet" href="../css/common-header.css">
 </head>
-<body class="bg-gray-100 text-gray-900">
+<body>
   <!-- Pasted Header -->
   <div class="header-container bg-white shadow-md p-4 flex justify-between items-center">
     <!-- Changed Back Button Action -->
     <button type="button" class="header-back-button" onclick="if(sessionStorage.getItem('mjrTablePrevPage')) { window.location.href = sessionStorage.getItem('mjrTablePrevPage'); } else { window.location.href='admin-mt.html'; }">Back</button>
     
-    <div class="header-title text-2xl font-bold">MT Job Requisitions</div>
+    <div class="header-title text-2xl font-bold">Maintenance Job Requisitions</div>
     <div class="company-logo">
       <!-- Adjust logo path relative to this file's location -->
       <img src="../assets/logo.png" class="auth-logo h-10" alt="Logo"/>
@@ -24,7 +24,7 @@
   <!-- End Pasted Header -->
 
     <div class="recent-alerts-container p-6">
-        <h2 class="text-xl font-semibold mb-4 text-center">All MT Job Requisitions</h2>
+        <h2 class="text-xl font-semibold mb-4 text-center">All Maintenance Job Requisitions</h2>
 
         <!-- Filter Controls -->
         <div class="filter-controls mb-4 flex justify-center space-x-4">
@@ -52,7 +52,7 @@
       <thead>
         <tr class="bg-gray-200 text-left">
           <!-- MT Job Requisition table headers -->
-          <th class="py-1 px-2" data-sort="id">ID</th>
+          <th class="py-1 px-2" data-sort="requisitionno">Requisition No.</th>
           <th class="py-1 px-2" data-sort="occurdate">Date</th>
           <th class="py-1 px-2" data-sort="requestorname">Reported By</th>
           <th class="py-1 px-2" data-sort="reqdept">Reporter Dept.</th>

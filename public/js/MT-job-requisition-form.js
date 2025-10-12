@@ -44,6 +44,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = '/';
         return;
     }
+
+    // Auto-populate requestor information from user profile
+    await autoPopulateRequestorInfo();
+
+    // Setup equipment name auto-suggestions
+    await setupEquipmentNameSuggestions();
+
     setupFormEventListeners(userId);
 });
 
@@ -53,13 +60,100 @@ async function getLoggedInUserId() {
     return user?.id;
 }
 
+
+// Helper function to format date from yyyy-mm-dd to dd/mm/yyyy
+function formatDateToDDMMYYYY(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+// Helper function to convert dd/mm/yyyy back to yyyy-mm-dd for HTML date inputs
+function formatDateForHTMLInput(dateString) {
+    if (!dateString) return '';
+    // If already in yyyy-mm-dd format, return as is
+    if (dateString.includes('-') && dateString.length === 10) return dateString;
+
+    // Convert dd/mm/yyyy to yyyy-mm-dd
+    const [day, month, year] = dateString.split('/');
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+}
+
+// Helper function to convert dd/mm/yyyy to yyyy-mm-dd for database storage
+function formatDateForDatabase(dateString) {
+    if (!dateString) return null;
+
+    // If already in yyyy-mm-dd format, return as is
+    if (dateString.includes('-') && dateString.length === 10) return dateString;
+
+    // If in dd/mm/yyyy format, convert to yyyy-mm-dd
+    if (dateString.includes('/') && dateString.length === 10) {
+        const [day, month, year] = dateString.split('/');
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+
+    // Try to parse as Date object and format for database
+    try {
+        const date = new Date(dateString);
+        if (!isNaN(date.getTime())) {
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+    } catch (error) {
+        console.warn('Could not parse date for database:', dateString);
+    }
+
+    return dateString; // Return original if parsing fails
+}
+
+// Auto-populate requestor information from user profile
+async function autoPopulateRequestorInfo() {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            return;
+        }
+
+        // Fetch user profile including department
+        const { data: profile, error } = await supabase
+            .from('users')
+            .select('full_name, employee_code, department')
+            .eq('id', user.id)
+            .single();
+
+        if (error) {
+            console.error('Error fetching user profile:', error);
+            return;
+        }
+
+        if (profile) {
+            // Auto-populate requestor name
+            const requestorNameField = document.getElementById('requestorName');
+            if (requestorNameField && !requestorNameField.value) {
+                requestorNameField.value = profile.full_name || profile.employee_code || '';
+            }
+
+            // Auto-populate department
+            const reqDeptField = document.getElementById('reqDept');
+            if (reqDeptField) {
+                reqDeptField.value = profile.department || '';
+            }
+        }
+    } catch (error) {
+        console.error('Error in auto-populate requestor info:', error);
+    }
+}
+
 function setupFormEventListeners(userId) {
     const form = document.getElementById('maintenanceForm');
-    console.log('🔧 Setting up form event listeners...');
-    console.log('Form element found:', !!form);
 
     if (!form) {
-        console.error('❌ Form element not found!');
+        console.error('Form element not found!');
         return;
     }
 
@@ -81,72 +175,35 @@ function setupFormEventListeners(userId) {
         rejectedCheckbox.addEventListener('change', handleInspectionCheckboxes);
     }
 
-    // Auto-calculate Total Hours when Schedule Start/End changes
-    const scheduleStartDate = document.getElementById('scheduleStartDate');
-    const scheduleStartTime = document.getElementById('scheduleStartTime');
-    const scheduleEndDate = document.getElementById('scheduleEndDate');
-    const scheduleEndTime = document.getElementById('scheduleEndTime');
-    const totalHoursField = document.getElementById('totalHrs');
-
-    function calculateTotalHours() {
-        if (scheduleStartDate.value && scheduleStartTime.value && scheduleEndDate.value && scheduleEndTime.value) {
-            const startDateTime = new Date(`${scheduleStartDate.value}T${scheduleStartTime.value}`);
-            const endDateTime = new Date(`${scheduleEndDate.value}T${scheduleEndTime.value}`);
-
-            if (endDateTime > startDateTime) {
-                const diffMs = endDateTime - startDateTime;
-                const diffMinutes = Math.floor(diffMs / (1000 * 60));
-                const hours = Math.floor(diffMinutes / 60);
-                const minutes = diffMinutes % 60;
-
-                // Display as HH:MM format
-                totalHoursField.value = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-            } else {
-                totalHoursField.value = '00:00';
-            }
-        } else {
-            totalHoursField.value = '00:00';
-        }
-    }
-
-    if (scheduleStartDate && scheduleStartTime && scheduleEndDate && scheduleEndTime && totalHoursField) {
-        scheduleStartDate.addEventListener('change', calculateTotalHours);
-        scheduleStartTime.addEventListener('change', calculateTotalHours);
-        scheduleEndDate.addEventListener('change', calculateTotalHours);
-        scheduleEndTime.addEventListener('change', calculateTotalHours);
-    }
 
     // Simple test - add a basic click handler first
     const submitBtn = document.querySelector('button[type="submit"]');
     if (submitBtn) {
         submitBtn.addEventListener('click', function(e) {
-            console.log('🖱️ Submit button clicked!');
         });
     }
 
     form.addEventListener('submit', async function(event) {
         event.preventDefault();
-        console.log('🚀 Form submission started');
 
         if (validateForm()) {
-            console.log('✅ Form validation passed');
             showUploadOverlay(0, null, 'submitting...');
             const cancelBtn = document.getElementById('cancel-upload-btn');
             if (cancelBtn) cancelBtn.style.display = 'none';
             updateUploadProgress(0);
-            console.log('⏳ Generating maintenance ID...');
 
             const id = await getNextMaintenanceId();
-            console.log('✅ Generated ID:', id);
 
             // Build insertData object with only existing fields
             const insertData = {
                 id,
                 form_type: 'regular',
-                reqdept: document.getElementById('reqDept').value,
+                reqdept: document.getElementById('reqDept').value || 'Unknown',
+                reqdepthod: document.getElementById('reqDeptHOD').value.trim(),
                 requestorname: document.getElementById('requestorName').value.trim(),
                 equipmentname: document.getElementById('equipmentName').value.trim(),
                 equipmentno: document.getElementById('equipmentNo').value.trim(),
+                equipmentinstalldate: document.getElementById('equipmentInstallDate').value ? formatDateForDatabase(document.getElementById('equipmentInstallDate').value) : null,
                 occurdate: document.getElementById('occurDate').value,
                 occurtime: document.getElementById('occurTime').value,
                 requisitionno: document.getElementById('requisitionNo').value.trim(),
@@ -241,17 +298,11 @@ function setupFormEventListeners(userId) {
 
                 if (error) {
                     hideUploadOverlay();
-                    console.error('❌ Database error:', error);
-                    console.log('🔧 Error details:', error.message);
-                    console.log('💡 Possible solutions:');
-                    console.log('   - Check if users table exists');
-                    console.log('   - Verify user_id is valid UUID');
-                    console.log('   - Check RLS policies');
+                    console.error('Database error:', error);
                     showMessage('Error submitting form. Please try again. Details: ' + error.message, true);
                 } else {
                     updateUploadProgress(100);
                     setTimeout(hideUploadOverlay, 500);
-                    console.log('✅ Form submitted successfully!', data);
                     showMessage('Maintenance Request submitted successfully!');
                     document.getElementById('maintenanceForm').reset();
                 }
@@ -267,7 +318,7 @@ function setupFormEventListeners(userId) {
 function validateForm() {
     console.log('🔍 Starting form validation...');
 
-    const reqDept = document.getElementById('reqDept').value;
+    const reqDept = document.getElementById('reqDept').value || '';
     const requestorName = document.getElementById('requestorName').value.trim();
     const equipmentName = document.getElementById('equipmentName').value.trim();
     const equipmentNo = document.getElementById('equipmentNo').value.trim();
@@ -277,23 +328,18 @@ function validateForm() {
     const completionTime = document.getElementById('completionTime').value;
     const existingCondition = document.getElementById('existingCondition').value.trim();
 
-    console.log('Form field values:', {
-        reqDept, requestorName, equipmentName, equipmentNo,
-        occurDate, occurTime, requireCompletionDate, completionTime, existingCondition
-    });
+    // Get equipment installation date (optional field)
+    const equipmentInstallDate = document.getElementById('equipmentInstallDate')?.value?.trim() || '';
 
-    // Basic required fields check
-    if (!reqDept || !requestorName || !equipmentName || !equipmentNo || !occurDate || !occurTime || !requireCompletionDate || !completionTime || !existingCondition) {
-        console.log('❌ Required fields missing');
-        showMessage('Please fill in all required fields (Req. Dept., Requestor Name, Equipment Name, No., Date, Time, Completion Date, Completion Time, Condition).', true);
+    // Basic required fields check (reqDept is auto-populated from user profile)
+    if (!requestorName || !equipmentName || !equipmentNo || !occurDate || !occurTime || !requireCompletionDate || !completionTime || !existingCondition) {
+        showMessage('Please fill in all required fields (Requestor Name, Equipment Name, No., Date, Time, Completion Date, Completion Time, Condition).', true);
         return false;
     }
 
     // Validate that at least one breakdown code is selected
     const breakdownCodes = document.querySelectorAll('input[name="breakdownCode"]:checked');
-    console.log('Breakdown codes selected:', breakdownCodes.length);
     if (breakdownCodes.length === 0) {
-        console.log('❌ No breakdown codes selected');
         showMessage('Please select at least one breakdown code.', true);
         return false;
     }
@@ -303,84 +349,41 @@ function validateForm() {
     const rejectedCheckbox = document.getElementById('inspectionRejected');
 
     if (acceptedCheckbox && rejectedCheckbox) {
-        console.log('Inspection checkboxes:', { accepted: acceptedCheckbox.checked, rejected: rejectedCheckbox.checked });
         if (!acceptedCheckbox.checked && !rejectedCheckbox.checked) {
-            console.log('❌ No inspection result selected');
             showMessage('Please select either Accepted or Rejected for the inspection.', true);
             return false;
         }
-    } else {
-        console.log('ℹ️ Inspection checkboxes not found in this form (regular form)');
     }
 
-    console.log('✅ All validation passed');
     return true;
 }
 
 async function getNextMaintenanceId() {
-    console.log('🔍 Checking existing maintenance IDs...');
-    const now = new Date();
-    const year = now.getFullYear() % 100;
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const prefix = `MT${year}${month}`;
-
     try {
-        const { data, error } = await supabase
-            .from('mt_job_requisition_master')
-            .select('id')
-            .like('id', `${prefix}-%`);
-
-        if (error) {
-            console.error('❌ Error fetching maintenance IDs:', error);
-            console.log('🔧 This might be due to:');
-            console.log('   - Table doesn\'t exist');
-            console.log('   - RLS policies blocking access');
-            console.log('   - Foreign key constraint issues');
-            throw error;
-        }
-
-        console.log('✅ Found existing IDs:', data?.length || 0);
-
-        let maxSerial = 0;
-        if (data && data.length > 0) {
-            data.forEach(row => {
-                const match = row.id.match(/^\w{5}-(\d{2})$/);
-                if (match) {
-                    const serial = parseInt(match[1], 10);
-                    if (serial > maxSerial) maxSerial = serial;
-                }
-            });
-        }
-
-        // Ensure we generate a unique ID
-        let nextSerial = maxSerial + 1;
-        let attempts = 0;
-        let newId;
-
-        do {
-            newId = `${prefix}-${String(nextSerial).padStart(2, '0')}`;
-            nextSerial++;
-            attempts++;
-
-            // Prevent infinite loop
-            if (attempts > 100) {
-                console.error('❌ Could not generate unique ID after 100 attempts');
-                // Use timestamp as fallback
-                newId = `${prefix}-${Date.now().toString().slice(-2)}`;
-                break;
-            }
-        } while (attempts <= maxSerial + 10); // Check reasonable range
-
-        console.log('✅ Generated new ID:', newId);
-        return newId;
+        // Generate a proper UUID v4
+        const uuid = generateUUID();
+        return uuid;
     } catch (error) {
-        console.error('💥 Error in getNextMaintenanceId:', error);
-        // Fallback: generate ID without checking database
-        const nextSerial = String(Math.floor(Math.random() * 99) + 1).padStart(2, '0');
-        const fallbackId = `${prefix}-${nextSerial}`;
-        console.log('🔄 Using fallback ID:', fallbackId);
+        console.error('Error generating UUID:', error);
+        // Fallback: use timestamp-based ID
+        const fallbackId = `MT${Date.now().toString().slice(-10)}`;
         return fallbackId;
     }
+}
+
+// UUID v4 generator function
+function generateUUID() {
+    // Check if crypto.randomUUID is available (modern browsers)
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+
+    // Fallback UUID v4 generator for older browsers
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
 }
 
 // Spinner Overlay functions (same as quality alert)
@@ -494,3 +497,172 @@ function hideUploadOverlay() {
 `;
     document.head.appendChild(style);
 })();
+
+// Equipment Name Auto-Suggestions Functionality
+async function setupEquipmentNameSuggestions() {
+    const equipmentNameInput = document.getElementById('equipmentName');
+    if (!equipmentNameInput) {
+        console.warn('Equipment name input field not found');
+        return;
+    }
+
+    let suggestionsContainer = null;
+    let equipmentList = [];
+
+    // Fetch equipment names from master data table
+    try {
+        const { data, error } = await supabase
+            .from('mt_machines_and_equipments_masterdata')
+            .select('equipment_name, equipment_identification_no, installation_area, equipment_installation_date')
+            .order('equipment_name');
+
+        if (error) {
+            console.error('Error fetching equipment data:', error);
+            return;
+        }
+
+        equipmentList = data || [];
+        console.log('✅ Loaded', equipmentList.length, 'equipment records for suggestions');
+
+    } catch (error) {
+        console.error('Error setting up equipment suggestions:', error);
+        return;
+    }
+
+    // Create suggestions container
+    function createSuggestionsContainer() {
+        if (suggestionsContainer) return suggestionsContainer;
+
+        suggestionsContainer = document.createElement('div');
+        suggestionsContainer.className = 'equipment-suggestions';
+        suggestionsContainer.style.cssText = `
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        `;
+
+        equipmentNameInput.parentNode.style.position = 'relative';
+        equipmentNameInput.parentNode.appendChild(suggestionsContainer);
+        return suggestionsContainer;
+    }
+
+    // Show suggestions
+    function showSuggestions(suggestions) {
+        const container = createSuggestionsContainer();
+        container.innerHTML = '';
+
+        if (suggestions.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        suggestions.forEach(equipment => {
+            const suggestionItem = document.createElement('div');
+            suggestionItem.className = 'suggestion-item';
+            suggestionItem.style.cssText = `
+                padding: 8px 12px;
+                cursor: pointer;
+                border-bottom: 1px solid #eee;
+                font-size: 14px;
+            `;
+            suggestionItem.innerHTML = `
+                <div style="font-weight: 500; color: #333;">${equipment.equipment_name}</div>
+                <div style="font-size: 12px; color: #666; margin-top: 2px;">
+                    ${equipment.equipment_identification_no} • ${equipment.installation_area || 'No area specified'}
+                </div>
+            `;
+
+            suggestionItem.addEventListener('mouseenter', () => {
+                suggestionItem.style.backgroundColor = '#f8f9fa';
+            });
+
+            suggestionItem.addEventListener('mouseleave', () => {
+                suggestionItem.style.backgroundColor = 'white';
+            });
+
+            suggestionItem.addEventListener('click', () => {
+                equipmentNameInput.value = equipment.equipment_name;
+
+                // Also populate equipment number and installation date if available
+                const equipmentNoInput = document.getElementById('equipmentNo');
+                const equipmentInstallDateInput = document.getElementById('equipmentInstallDate');
+
+                if (equipmentNoInput && equipment.equipment_identification_no) {
+                    equipmentNoInput.value = equipment.equipment_identification_no;
+                }
+
+                if (equipmentInstallDateInput && equipment.equipment_installation_date) {
+                    // Format date from yyyy-mm-dd to dd/mm/yyyy for display
+                    const date = new Date(equipment.equipment_installation_date);
+                    const day = date.getDate().toString().padStart(2, '0');
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const year = date.getFullYear();
+                    equipmentInstallDateInput.value = `${day}/${month}/${year}`;
+                }
+
+                container.style.display = 'none';
+            });
+
+            container.appendChild(suggestionItem);
+        });
+
+        container.style.display = 'block';
+    }
+
+    // Hide suggestions
+    function hideSuggestions() {
+        if (suggestionsContainer) {
+            suggestionsContainer.style.display = 'none';
+        }
+    }
+
+    // Filter equipment based on input
+    function filterEquipment(query) {
+        if (!query || query.length < 2) {
+            hideSuggestions();
+            return [];
+        }
+
+        return equipmentList.filter(equipment =>
+            equipment.equipment_name.toLowerCase().includes(query.toLowerCase())
+        );
+    }
+
+    // Event listeners
+    equipmentNameInput.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        const suggestions = filterEquipment(query);
+        showSuggestions(suggestions);
+    });
+
+    equipmentNameInput.addEventListener('focus', () => {
+        const query = equipmentNameInput.value.trim();
+        if (query.length >= 2) {
+            const suggestions = filterEquipment(query);
+            showSuggestions(suggestions);
+        }
+    });
+
+    equipmentNameInput.addEventListener('blur', () => {
+        // Delay hiding to allow for clicks on suggestions
+        setTimeout(hideSuggestions, 200);
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!equipmentNameInput.contains(e.target) && (!suggestionsContainer || !suggestionsContainer.contains(e.target))) {
+            hideSuggestions();
+        }
+    });
+
+    console.log('✅ Equipment name auto-suggestions setup complete');
+}
