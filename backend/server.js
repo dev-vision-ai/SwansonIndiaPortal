@@ -4802,6 +4802,7 @@ app.get('/api/test', (req, res) => {
     endpoints: [
       '/api/export-mjr-record/:id',
       '/api/export-machine-history-card',
+      '/api/export-roller-history-card',
       '/api/test',
       '/health'
     ]
@@ -4884,8 +4885,14 @@ app.get('/api/export-mjr-record/:requisitionId', async (req, res) => {
       // Schedule information
       if (data.schedulestartdate) {
         sheet.cell('D42').value(formatDateToDDMMYYYY(data.schedulestartdate)); // Schedule Start Date
+      }
+      if (data.schedulestarttime) {
         sheet.cell('H42').value(formatTimeToHHMM(data.schedulestarttime)); // Schedule Start Time (ensure HH:MM)
+      }
+      if (data.scheduleenddate) {
         sheet.cell('M42').value(formatDateToDDMMYYYY(data.scheduleenddate)); // Schedule End Date
+      }
+      if (data.scheduleendtime) {
         sheet.cell('Q42').value(formatTimeToHHMM(data.scheduleendtime)); // Schedule End Time (ensure HH:MM)
       }
 
@@ -5202,8 +5209,16 @@ async function processAndExportData(data, res, method, filterSummary = null, sel
 
       // Column A: Breakdown Date (occurdate)
       if (record.occurdate) {
+        try {
         const date = new Date(record.occurdate);
+          if (!isNaN(date.getTime())) {
         sheet.cell(`A${rowNum}`).value(date.toLocaleDateString('en-IN'));
+          } else {
+            sheet.cell(`A${rowNum}`).value('N/A');
+          }
+        } catch (error) {
+          sheet.cell(`A${rowNum}`).value('N/A');
+        }
       }
 
       // Column B: MJR# (requisitionno)
@@ -5223,8 +5238,16 @@ async function processAndExportData(data, res, method, filterSummary = null, sel
 
       // Column E: Equipment Installation Date (equipmentinstalldate)
       if (record.equipmentinstalldate) {
+        try {
         const installDate = new Date(record.equipmentinstalldate);
+          if (!isNaN(installDate.getTime())) {
         sheet.cell(`E${rowNum}`).value(installDate.toLocaleDateString('en-IN'));
+          } else {
+            sheet.cell(`E${rowNum}`).value('N/A');
+          }
+        } catch (error) {
+          sheet.cell(`E${rowNum}`).value('N/A');
+        }
       }
 
       // Column F: Breakdown Description (existingcondition)
@@ -5421,8 +5444,10 @@ function getStatusForExport(inspectionresult) {
 
 // Helper function to format date to DD/MM/YYYY
 function formatDateToDDMMYYYY(dateString) {
-  if (!dateString) return '';
+  if (!dateString) return 'N/A';
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return 'N/A';
+
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
   const year = date.getFullYear();
@@ -5778,6 +5803,317 @@ app.listen(PORT, () => {
   console.log(`🌐 Health check: http://localhost:${PORT}/health`);
   console.log(`📊 Excel export: http://localhost:${PORT}/export`);
   console.log(`📊 Machine History Card export: http://localhost:${PORT}/api/export-machine-history-card`);
-}); 
+  console.log(`📊 Emboss/Rubber Roller History Card export: http://localhost:${PORT}/api/export-roller-history-card`);
+});
+
+// Emboss/Rubber Roller History Card Excel Export Endpoint
+app.get('/api/export-roller-history-card', async (req, res) => {
+  try {
+    console.log('🔄 Emboss/Rubber Roller History Card Export Request (GET)');
+    console.log('📋 Request query params:', req.query);
+
+    // 1. Get query parameters for filtering
+    const { equipmentName, equipment, fromDate, toDate, status } = req.query;
+
+    // 2. Build query for roller history data
+    let query = supabase
+      .from('mt_job_requisition_master')
+      .select(`
+        id,
+        requisitionno,
+        occurdate,
+        occurtime,
+        requestorname,
+        reqdept,
+        equipmentname,
+        equipmentno,
+        equipmentinstalldate,
+        existingcondition,
+        technicianname,
+        rootcause,
+        correction,
+        costincurred,
+        inspectioncheckedby,
+        totalhours,
+        completiontime,
+        breakdowncodes,
+        inspectionresult,
+        recoatingdate,
+        regrindingdate
+      `)
+      .not('recoatingdate', 'is', null)
+      .not('regrindingdate', 'is', null)
+      .order('occurdate', { ascending: false });
+
+    // Apply filters if provided
+    if (equipmentName) {
+      query = query.eq('equipmentname', equipmentName);
+    }
+    if (equipment) {
+      query = query.eq('equipmentno', equipment);
+    }
+    if (fromDate) {
+      query = query.gte('occurdate', fromDate);
+    }
+    if (toDate) {
+      query = query.lte('occurdate', toDate);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('❌ Database error:', error);
+      return res.status(500).json({ error: 'Database error: ' + error.message });
+    }
+
+    if (!data || data.length === 0) {
+      console.error('❌ No roller history data found for export');
+      return res.status(404).json({ error: 'No roller history data found for export' });
+    }
+
+    console.log('✅ Found', data.length, 'roller history records for export');
+
+    // Process the data for export
+    await processRollerHistoryData(data, res, 'GET', null, null, null);
+  } catch (error) {
+    console.error('❌ Error in GET roller export:', error);
+    res.status(500).json({ error: `Error exporting roller history card: ${error.message}` });
+  }
+});
+
+// POST endpoint for exporting filtered roller data from frontend
+app.post('/api/export-roller-history-card', async (req, res) => {
+  try {
+    console.log('🔄 Emboss/Rubber Roller History Card Export Request (POST)');
+    console.log('📋 Request body:', req.body);
+
+    const { data, filterSummary, selectedEquipmentName, selectedEquipmentId } = req.body;
+
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      console.error('❌ No filtered roller data provided for export');
+      return res.status(400).json({ error: 'No filtered roller data provided for export' });
+    }
+
+    console.log('✅ Received', data.length, 'filtered roller records for export');
+    if (filterSummary) {
+      console.log('📊 Filter summary:', filterSummary);
+    }
+    if (selectedEquipmentName) {
+      console.log('🏷️ Selected equipment name:', selectedEquipmentName);
+    }
+
+    // Use the filtered data directly
+    await processRollerHistoryData(data, res, 'POST', filterSummary, selectedEquipmentName, selectedEquipmentId);
+  } catch (error) {
+    console.error('❌ Error in POST roller export:', error);
+    res.status(500).json({ error: `Error exporting roller history card: ${error.message}` });
+  }
+});
+
+// Common function to process and export roller history data
+async function processRollerHistoryData(data, res, method, filterSummary = null, selectedEquipmentName = null, selectedEquipmentId = null) {
+  try {
+    console.log('🔄 Processing roller history export data for method:', method);
+    if (selectedEquipmentName) {
+      console.log('🏷️ Equipment name for header:', selectedEquipmentName);
+    }
+
+    // 3. Load the roller history card template
+    const templatePath = path.join(__dirname, 'templates', 'emboss-rubber-roller-history-card.xlsx');
+
+    // Check if template file exists
+    if (!fs.existsSync(templatePath)) {
+      console.error('❌ Roller history card template file not found:', templatePath);
+      return res.status(500).json({ error: 'Template file not found at: ' + templatePath });
+    }
+
+    console.log('📁 Template file found, loading...');
+
+    // 4. Load and populate the template
+    const workbook = await XlsxPopulate.fromFileAsync(templatePath);
+    console.log('✅ Template loaded successfully');
+
+    // Get the first sheet (Page1)
+    let sheet;
+    try {
+      sheet = workbook.sheet('Page1');
+      console.log('✅ Using sheet by name: Page1');
+    } catch (error) {
+      console.log('⚠️ Sheet name "Page1" not found, trying by index...');
+      sheet = workbook.sheet(0); // Fallback to first sheet by index
+      console.log('✅ Using sheet by index: 0');
+    }
+
+    // 5. Get equipment info directly from database records
+    if (data.length > 0) {
+      // Get equipment name and ID from the first record (all records should have same equipment for roller history)
+      const firstRecord = data[0];
+      const equipmentName = firstRecord.equipmentname;
+      const equipmentId = firstRecord.equipmentno;
+
+      if (equipmentName && equipmentName.trim() !== '') {
+        try {
+          sheet.cell('C5').value(equipmentName);
+          console.log('✅ Added equipment name to cell C5:', equipmentName);
+        } catch (error) {
+          console.error('❌ Error adding equipment name to C5:', error);
+        }
+      }
+
+      if (equipmentId && equipmentId.trim() !== '') {
+        try {
+          sheet.cell('C6').value(equipmentId);
+          console.log('✅ Added equipment ID to cell C6:', equipmentId);
+        } catch (error) {
+          console.error('❌ Error adding equipment ID to C6:', error);
+        }
+      }
+    }
+
+    // 6. Map roller data to template (using specified cell ranges)
+    data.forEach((record, index) => {
+      const rowNum = index + 10; // Start from row 10 (a10, b10, etc.)
+
+      // Column A: Date (breakdown_date) - a10 to a109
+      if (record.occurdate) {
+        try {
+          const date = new Date(record.occurdate);
+          if (!isNaN(date.getTime())) {
+            sheet.cell(`A${rowNum}`).value(date.toLocaleDateString('en-IN'));
+          } else {
+            sheet.cell(`A${rowNum}`).value('N/A');
+          }
+        } catch (error) {
+          sheet.cell(`A${rowNum}`).value('N/A');
+        }
+      }
+
+      // Column B: MJR# No. (mjr_number) - b10 to b109
+      if (record.requisitionno) {
+        sheet.cell(`B${rowNum}`).value(record.requisitionno);
+      }
+
+      // Column C: Recoated Date (recoatingdate) - c10 to c109
+      if (record.recoatingdate) {
+        try {
+          const recoatingDate = new Date(record.recoatingdate);
+          if (!isNaN(recoatingDate.getTime())) {
+            sheet.cell(`C${rowNum}`).value(recoatingDate.toLocaleDateString('en-IN'));
+          } else {
+            sheet.cell(`C${rowNum}`).value('N/A');
+          }
+        } catch (error) {
+          sheet.cell(`C${rowNum}`).value('N/A');
+        }
+      }
+
+      // Column D: Regrind date (regrindingdate) - d10 to d109
+      if (record.regrindingdate) {
+        try {
+          const regrindingDate = new Date(record.regrindingdate);
+          if (!isNaN(regrindingDate.getTime())) {
+            sheet.cell(`D${rowNum}`).value(regrindingDate.toLocaleDateString('en-IN'));
+          } else {
+            sheet.cell(`D${rowNum}`).value('N/A');
+          }
+        } catch (error) {
+          sheet.cell(`D${rowNum}`).value('N/A');
+        }
+      }
+
+      // Column E: Work Description (breakdown_description) - e10 to e109
+      if (record.existingcondition) {
+        sheet.cell(`E${rowNum}`).value(record.existingcondition);
+      }
+
+      // Column F: Start Time (start_time) - f10 to f109
+      if (record.occurtime) {
+        const startTime = record.occurtime.length > 5 ? record.occurtime.substring(0, 5) : record.occurtime;
+        sheet.cell(`F${rowNum}`).value(startTime);
+      }
+
+      // Column G: Finish Time (finish_time) - g10 to g109
+      if (record.completiontime) {
+        const finishTime = record.completiontime.length > 5 ? record.completiontime.substring(0, 5) : record.completiontime;
+        sheet.cell(`G${rowNum}`).value(finishTime);
+      }
+
+      // Column H: Total BD Time (calculated) - h10 to h109
+      if (record.occurtime && record.completiontime) {
+        try {
+          const startTime = record.occurtime.length > 5 ? record.occurtime.substring(0, 5) : record.occurtime;
+          const finishTime = record.completiontime.length > 5 ? record.completiontime.substring(0, 5) : record.completiontime;
+
+          const totalTime = calculateTotalBDTimeForExport(startTime, finishTime);
+          sheet.cell(`H${rowNum}`).value(totalTime);
+        } catch (error) {
+          console.error(`Error calculating total time for row ${rowNum}:`, error);
+          sheet.cell(`H${rowNum}`).value('N/A');
+        }
+      }
+
+      // Column I: Reason for changeover (root_cause) - i10 to i109
+      if (record.rootcause) {
+        sheet.cell(`I${rowNum}`).value(record.rootcause);
+      }
+
+      // Column J: Corrective Action (corrective_action) - j10 to j109
+      if (record.correction) {
+        sheet.cell(`J${rowNum}`).value(record.correction);
+      }
+
+      // Column K: Cost Incurred (cost_incurred) - k10 to k109
+      if (record.costincurred) {
+        sheet.cell(`K${rowNum}`).value(`₹${record.costincurred}`);
+      }
+
+      // Column L: Done By (done_by) - l10 to l109
+      if (record.technicianname) {
+        sheet.cell(`L${rowNum}`).value(record.technicianname);
+      }
+
+      // Column M: Verify By (verified_by) - m10 to m109
+      if (record.inspectioncheckedby) {
+        sheet.cell(`M${rowNum}`).value(record.inspectioncheckedby);
+      }
+
+    });
+
+    // 7. Generate Excel buffer
+    const buffer = await workbook.outputAsync();
+    console.log('✅ Buffer generated, size:', buffer.length, 'bytes');
+
+    // 8. Set response headers for Excel download
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const recordCount = data.length;
+    const methodType = method === 'POST' ? 'Filtered' : 'Full';
+
+    // Create filename with equipment name if available, otherwise "All-Rollers"
+    let filename;
+    if (selectedEquipmentName && selectedEquipmentName.trim() !== '') {
+      const sanitizedEquipmentName = selectedEquipmentName.replace(/[^a-zA-Z0-9]/g, '_');
+      filename = `Roller-History-Card-${sanitizedEquipmentName}-${timestamp}.xlsx`;
+    } else {
+      filename = `Roller-History-Card-All-Rollers-${recordCount}-Records-${timestamp}.xlsx`;
+    }
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+
+    console.log('📤 Sending Excel file:', filename);
+    if (filterSummary) {
+      console.log('📊 Export Summary:', filterSummary);
+    }
+    res.send(buffer);
+
+    console.log('✅ Roller history card export completed successfully');
+
+  } catch (error) {
+    console.error('❌ Error in processRollerHistoryData:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ error: `Error exporting roller history card: ${error.message}` });
+  }
+} 
 
 
