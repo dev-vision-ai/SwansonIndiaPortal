@@ -53,8 +53,7 @@ const tableConfigs = {
       { key: 'corrective_action', header: 'Corrective Action', field: 'corrective_action' },
       { key: 'cost_incurred', header: 'Cost Incurred', field: 'cost_incurred' },
       { key: 'done_by', header: 'Done By', field: 'done_by' },
-      { key: 'verified_by', header: 'Verify By', field: 'verified_by' },
-      { key: 'status', header: 'Status', field: 'status' }
+      { key: 'verified_by', header: 'Verify By', field: 'verified_by' }
     ]
   }
 };
@@ -76,7 +75,7 @@ function formatDateToDDMMYYYY(dateString, isOptional = false) {
   if (!dateString) return 'N/A';
 
   const date = new Date(dateString);
-  if (isNaN(date.getTime())) return isOptional ? 'N/A' : 'Invalid Date';
+  if (isNaN(date.getTime())) return 'N/A';
 
   const day = date.getDate().toString().padStart(2, '0');
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -352,6 +351,7 @@ function applyCascadingFilters() {
   if (newTableConfig !== currentTableConfig) {
     currentTableConfig = newTableConfig;
     renderTableHeaders();
+    updateExportButtonText(); // Update button text when config changes
   }
 
   renderTable();
@@ -414,6 +414,7 @@ function clearAllFilters() {
   // Reset table configuration to standard
   currentTableConfig = 'standard';
   renderTableHeaders();
+  updateExportButtonText(); // Update button text when resetting
 
   // Repopulate equipment filter with all options
   populateEquipmentFilter();
@@ -440,11 +441,18 @@ function updateFilterStatus() {
 
 // Export table data to Excel using backend endpoint
 async function exportToExcel() {
+  // Determine which export endpoint to use based on equipment type (declare outside try block)
+  const selectedEquipmentName = document.getElementById('equipmentNameFilter')?.value || '';
+  const selectedEquipmentId = document.getElementById('equipmentFilter')?.value || '';
+  const isRollerExport = isRollerEquipment(selectedEquipmentName);
+  const exportEndpoint = isRollerExport ? '/api/export-roller-history-card' : '/api/export-machine-history-card';
+  const exportType = isRollerExport ? 'Roller' : 'Machine';
+
   try {
     // Show loading state
     const exportBtn = document.getElementById('exportBtn');
     const originalText = exportBtn.innerHTML;
-    exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+    exportBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Exporting ${exportType} History Card...`;
     exportBtn.disabled = true;
 
     // Determine backend URL
@@ -470,7 +478,9 @@ async function exportToExcel() {
       costincurred: record.cost_incurred ? record.cost_incurred.replace('₹', '') : '',
       technicianname: record.done_by,
       inspectioncheckedby: record.verified_by,
-      inspectionresult: record.status === 'Completed' ? 'Accepted' : 'Pending'
+      inspectionresult: record.status === 'Completed' ? 'Accepted' : 'Pending',
+      recoatingdate: record.recoatingdate,
+      regrindingdate: record.regrindingdate
     }));
 
     // Test if backend is reachable first
@@ -481,15 +491,13 @@ async function exportToExcel() {
       }
     } catch (testError) {
       console.error('❌ Cannot reach backend server at', backendUrl);
-      throw new Error(`Cannot connect to backend server. Please ensure the backend is running on port 3000.`);
+      throw new Error(`Cannot connect to backend server. Please ensure the backend is running on port 3000 for ${exportType} History Card export.`);
     }
 
-    // Get the selected equipment name for display in Excel
-    const selectedEquipmentName = document.getElementById('equipmentNameFilter')?.value || '';
-    const selectedEquipmentId = document.getElementById('equipmentFilter')?.value || '';
+    console.log(`🔄 Exporting as ${exportType} History Card to endpoint: ${exportEndpoint}`);
 
     // Send filtered data to backend for export
-    const response = await fetch(`${backendUrl}/api/export-machine-history-card`, {
+    const response = await fetch(`${backendUrl}${exportEndpoint}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -525,7 +533,7 @@ async function exportToExcel() {
 
     // Get filename from response headers first (before reading the body)
     const contentDisposition = response.headers.get('Content-Disposition');
-    let filename = 'Machine-History-Card.xlsx'; // default filename
+    let filename = `${exportType}-History-Card.xlsx`; // default filename
 
     if (contentDisposition) {
       const filenameMatch = contentDisposition.match(/filename="(.+)"/);
@@ -545,7 +553,7 @@ async function exportToExcel() {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    console.log('✅ Machine history card exported successfully');
+    console.log(`✅ ${exportType} history card exported successfully`);
 
   } catch (error) {
     console.error('❌ Export failed:', error);
@@ -554,7 +562,7 @@ async function exportToExcel() {
     // Restore button state
     const exportBtn = document.getElementById('exportBtn');
     if (exportBtn) {
-      exportBtn.innerHTML = '<i class="fas fa-download"></i> Machine History Card';
+      exportBtn.innerHTML = `<i class="fas fa-download"></i> ${exportType} History Card`;
       exportBtn.disabled = false;
     }
   }
@@ -733,6 +741,9 @@ function setupEventListeners() {
       window.location.href = '../html/admin-mt.html';
     });
 
+    // Update export button text based on current table config
+    updateExportButtonText();
+
     // Logout functionality removed - this is a navigation page with only back button
 
     // Load initial data
@@ -741,6 +752,15 @@ function setupEventListeners() {
     // Setup pagination listeners
     setupPaginationListeners();
   });
+}
+
+// Update export button text based on current table configuration
+function updateExportButtonText() {
+  const exportBtn = document.getElementById('exportBtn');
+  if (exportBtn) {
+    const exportType = currentTableConfig === 'roller' ? 'Roller' : 'Machine';
+    exportBtn.innerHTML = `<i class="fas fa-download"></i> ${exportType} History Card`;
+  }
 }
 
 // Initialize the page

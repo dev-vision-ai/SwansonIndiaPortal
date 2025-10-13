@@ -7,7 +7,7 @@ function formatDateToDDMMYYYY(dateString) {
   if (!dateString) return 'N/A';
 
   const date = new Date(dateString);
-  if (isNaN(date.getTime())) return 'Invalid Date';
+  if (isNaN(date.getTime())) return 'N/A';
 
   const day = date.getDate().toString().padStart(2, '0');
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -44,6 +44,7 @@ function renderTable(data) {
       <td>${requisition.equipmentname || 'N/A'}</td>
       <td>${requisition.existingcondition || 'N/A'}</td>
       <td>${requisition.machineno || 'N/A'}</td>
+      <td><span class="status-${requisition.status?.toLowerCase() || 'pending'}">${requisition.status || 'Pending'}</span></td>
       <td>
         <!-- Action buttons with SVG icons (same as film inspection forms) -->
         <div style="display: flex; justify-content: center; gap: 4px;">
@@ -144,7 +145,8 @@ async function fetchMTJobRequisitions() {
         reqdept,
         equipmentname,
         existingcondition,
-        machineno
+        machineno,
+        inspectionresult
       `)
       .order('occurdate', { ascending: false });
 
@@ -162,7 +164,15 @@ async function fetchMTJobRequisitions() {
       reqdept: requisition.reqdept,
       equipmentname: requisition.equipmentname,
       existingcondition: requisition.existingcondition,
-      machineno: requisition.machineno
+      machineno: requisition.machineno,
+      status: (() => {
+        const result = requisition.inspectionresult;
+        if (!result) return 'Pending';
+        if (result.toLowerCase().includes('accepted') || result.toLowerCase().includes('rejected')) {
+          return 'Completed';
+        }
+        return result || 'Pending';
+      })()
     }));
 
     if (requisitionsData.length === 0) {
