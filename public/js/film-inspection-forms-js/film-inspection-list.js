@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function fetchFilmInspectionForms() {
         try {
             // Fetch data from all tables - INCLUDING CUSTOMER AND OTHER FIELDS
-            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
                     .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
@@ -51,6 +51,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('214_18_micro_white')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .order('created_at', { ascending: false }),
+                supabase
+                    .from('uc-18gsm-250p-abqr')
                     .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
                     .order('created_at', { ascending: false }),
                 supabase
@@ -80,8 +84,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (jeddahResult.error) {
                 console.error('Error fetching from 168_18c_white_jeddah:', jeddahResult.error.message);
             }
-            if (microWhiteResult.error) {
-                console.error('Error fetching from 214_18_micro_white:', microWhiteResult.error.message);
+            if (microWhite214Result.error) {
+                console.error('Error fetching from 214_18_micro_white:', microWhite214Result.error.message);
+            }
+            if (uc250pResult.error) {
+                console.error('Error fetching from uc-18gsm-250p-abqr:', uc250pResult.error.message);
             }
             if (microWhite234Result.error) {
                 console.error('Error fetching from 234_18_micro_white:', microWhite234Result.error.message);
@@ -99,7 +106,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ...(whiteResult.data || []),
                 ...(wwResult.data || []),
                 ...(jeddahResult.data || []),
-                ...(microWhiteResult.data || []),
+                ...(microWhite214Result.data || []),
+                ...(uc250pResult.data || []),
                 ...(microWhite234Result.data || []),
                 ...(microWhite102Result.data || []),
                 ...(white168Result.data || [])
@@ -183,7 +191,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
-                                            <button onclick="${formData.product_code === 'APE-168(16)C' ? 'download16GSMWhiteExcel' : (formData.product_code === 'APE-176(18)CP(LCC+WW)BS' ? 'download18GSM176WWExcel' : (formData.product_code === 'WHITE-214(18)' ? 'download214WhiteExcel' : (formData.product_code === 'WHITE-234(18)' ? 'download234WhiteExcel' : 'download16GSMKrantiExcel'))) }('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
+                                            <button onclick="${formData.product_code === 'APE-168(16)C' ? 'download16GSMWhiteExcel' : (formData.product_code === 'APE-176(18)CP(LCC+WW)BS' ? 'download18GSM176WWExcel' : ((formData.product_code === 'WHITE-214(18)' || formData.product_code === 'INUE1C18-250P(AB-QR)') ? 'download214WhiteExcel' : (formData.product_code === 'WHITE-234(18)' ? 'download234WhiteExcel' : (formData.product_code === 'APE-102(18)C' ? 'download102MicroWhiteExcel' : 'alert(\"Download not available for this product type\")')))) }('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -217,12 +225,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Example for a search function
     async function searchFilmInspectionForms(searchTerm) {
         // Search across all three tables
-        const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
+        const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
             supabase.from('168_16cp_kranti').select('*'),
             supabase.from('168_16c_white').select('*'),
             supabase.from('176_18cp_ww').select('*'),
             supabase.from('168_18c_white_jeddah').select('*'),
             supabase.from('214_18_micro_white').select('*'),
+            supabase.from('uc-18gsm-250p-abqr').select('*'),
             supabase.from('234_18_micro_white').select('*'),
             supabase.from('102_18c_micro_white').select('*'),
             supabase.from('168_18c_white').select('*')
@@ -233,7 +242,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!whiteResult.error) allData = allData.concat(whiteResult.data);
         if (!wwResult.error) allData = allData.concat(wwResult.data);
         if (!jeddahResult.error) allData = allData.concat(jeddahResult.data);
-        if (!microWhiteResult.error) allData = allData.concat(microWhiteResult.data);
+        if (!microWhite214Result.error) allData = allData.concat(microWhite214Result.data);
+        if (!uc250pResult.error) allData = allData.concat(uc250pResult.data);
         if (!microWhite234Result.error) allData = allData.concat(microWhite234Result.data);
         if (!microWhite102Result.error) allData = allData.concat(microWhite102Result.data);
         if (!white168Result.error) allData = allData.concat(white168Result.data);
@@ -306,7 +316,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
-                                            <button onclick="${formData.product_code === 'APE-168(16)C' ? 'download16GSMWhiteExcel' : (formData.product_code === 'APE-176(18)CP(LCC+WW)BS' ? 'download18GSM176WWExcel' : (formData.product_code === 'WHITE-214(18)' ? 'download214WhiteExcel' : (formData.product_code === 'WHITE-234(18)' ? 'download234WhiteExcel' : 'download16GSMKrantiExcel'))) }('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
+                                            <button onclick="${formData.product_code === 'APE-168(16)C' ? 'download16GSMWhiteExcel' : (formData.product_code === 'APE-176(18)CP(LCC+WW)BS' ? 'download18GSM176WWExcel' : ((formData.product_code === 'WHITE-214(18)' || formData.product_code === 'INUE1C18-250P(AB-QR)') ? 'download214WhiteExcel' : (formData.product_code === 'WHITE-234(18)' ? 'download234WhiteExcel' : (formData.product_code === 'APE-102(18)C' ? 'download102MicroWhiteExcel' : 'alert(\"Download not available for this product type\")')))) }('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -526,7 +536,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function fetchPrestoreRefNo(formId) {
         try {
             // Try to fetch from all five tables using .maybeSingle() to avoid errors when no data found
-            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
                     .select('prestore_ref_no')
@@ -549,6 +559,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     .maybeSingle(),
                 supabase
                     .from('214_18_micro_white')
+                    .select('prestore_ref_no')
+                    .eq('form_id', formId)
+                    .maybeSingle(),
+                supabase
+                    .from('uc-18gsm-250p-abqr')
                     .select('prestore_ref_no')
                     .eq('form_id', formId)
                     .maybeSingle(),
@@ -579,8 +594,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 formData = wwResult.data;
             } else if (!jeddahResult.error && jeddahResult.data) {
                 formData = jeddahResult.data;
-            } else if (!microWhiteResult.error && microWhiteResult.data) {
-                formData = microWhiteResult.data;
+            } else if (!microWhite214Result.error && microWhite214Result.data) {
+                formData = microWhite214Result.data;
+            } else if (!uc250pResult.error && uc250pResult.data) {
+                formData = uc250pResult.data;
             } else if (!microWhite234Result.error && microWhite234Result.data) {
                 formData = microWhite234Result.data;
             } else if (!microWhite102Result.error && microWhite102Result.data) {
@@ -617,7 +634,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (formId) {
                 try {
                     // Try to fetch from all five tables using .maybeSingle() to avoid errors when no data found
-                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
+                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
                         supabase
                             .from('168_16cp_kranti')
                             .select('*')
@@ -640,6 +657,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                             .maybeSingle(),
                         supabase
                             .from('214_18_micro_white')
+                            .select('*')
+                            .eq('form_id', formId)
+                            .maybeSingle(),
+                        supabase
+                            .from('uc-18gsm-250p-abqr')
                             .select('*')
                             .eq('form_id', formId)
                             .maybeSingle(),
@@ -670,8 +692,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                         data = wwResult.data;
                     } else if (!jeddahResult.error && jeddahResult.data) {
                         data = jeddahResult.data;
-                    } else if (!microWhiteResult.error && microWhiteResult.data) {
-                        data = microWhiteResult.data;
+                    } else if (!microWhite214Result.error && microWhite214Result.data) {
+                        data = microWhite214Result.data;
+                    } else if (!uc250pResult.error && uc250pResult.data) {
+                        data = uc250pResult.data;
                     } else if (!microWhite234Result.error && microWhite234Result.data) {
                         data = microWhite234Result.data;
                     } else if (!microWhite102Result.error && microWhite102Result.data) {
@@ -799,12 +823,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     'APE-168(16)C': '168_16c_white',            // Updated to correct table
                     'APE-168(16)CP(KRANTI)': '168_16cp_kranti',  // Keep existing mapping
                     'APE-168(18)C (Jeddah)': '168_18c_white_jeddah', // New Jeddah product
-                    'WHITE-214(18)': '214_18_micro_white', // New 214 Micro White product
+                    'WHITE-214(18)': '214_18_micro_white', // Existing 214 Micro White product
+                    'INUE1C18-250P(AB-QR)': 'uc-18gsm-250p-abqr', // UC-18gsm-250P-ABQR form
                     'WHITE-234(18)': '234_18_micro_white', // New 234 Micro White product
                     'APE-102(18)C': '102_18c_micro_white', // New 102 Micro White product
                     'APE-168(18)C': '168_18c_white' // New 168 White product
                 };
-                tableName = productTableMap[preStoreFormData.product_code] || '168_16cp_kranti';
+                tableName = productTableMap[preStoreFormData.product_code] || 'uc-18gsm-250p-abqr';
             }
 
             // Update existing record if form_id exists, otherwise insert new
@@ -995,6 +1020,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     targetForm = '18-gsm-214-micro-white.html';
                     console.log('Routing to 18-gsm-214-micro-white form');
                     break;
+                case 'INUE1C18-250P(AB-QR)':
+                    targetForm = 'UC-18gsm-250P-ABQR.html';
+                    console.log('Routing to UC-18gsm-250P-ABQR form');
+                    break;
                 default:
                     // Default fallback
                     targetForm = '16-gsm-kranti.html';
@@ -1065,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function deleteFormDirectly(formId) {
         try {
             // Try to delete from all five tables
-            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
                     .delete()
@@ -1087,6 +1116,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     .delete()
                     .eq('form_id', formId),
                 supabase
+                    .from('uc-18gsm-250p-abqr')
+                    .delete()
+                    .eq('form_id', formId),
+                supabase
                     .from('234_18_micro_white')
                     .delete()
                     .eq('form_id', formId),
@@ -1105,16 +1138,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             const whiteSuccess = !whiteResult.error;
             const wwSuccess = !wwResult.error;
             const jeddahSuccess = !jeddahResult.error;
-            const microWhiteSuccess = !microWhiteResult.error;
+            const microWhite214Success = !microWhite214Result.error;
+            const uc250pSuccess = !uc250pResult.error;
             const microWhite234Success = !microWhite234Result.error;
             const microWhite102Success = !microWhite102Result.error;
             const white168Success = !white168Result.error;
 
-            if (krantiSuccess || whiteSuccess || wwSuccess || jeddahSuccess || microWhiteSuccess || microWhite234Success || microWhite102Success || white168Success) {
+            if (krantiSuccess || whiteSuccess || wwSuccess || jeddahSuccess || microWhite214Success || uc250pSuccess || microWhite234Success || microWhite102Success || white168Success) {
                 alert('Form deleted successfully!');
                 fetchFilmInspectionForms(); // Refresh the list
             } else {
-                console.error('Error deleting form from all tables:', krantiResult.error, whiteResult.error, wwResult.error, jeddahResult.error, microWhiteResult.error, microWhite234Result.error, microWhite102Result.error, white168Result.error);
+                console.error('Error deleting form from all tables:', krantiResult.error, whiteResult.error, wwResult.error, jeddahResult.error, microWhite214Result.error, uc250pResult.error, microWhite234Result.error, microWhite102Result.error, white168Result.error);
                 alert('Error deleting form: Form not found in any table');
             }
         } catch (error) {
@@ -1209,7 +1243,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (isPasswordCorrect) {
                 // Proceed with deletion from all five tables
-                const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
+                const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
                     supabase
                         .from('168_16cp_kranti')
                         .delete()
@@ -1231,6 +1265,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                         .delete()
                         .eq('form_id', currentDeleteFormId),
                     supabase
+                        .from('uc-18gsm-250p-abqr')
+                        .delete()
+                        .eq('form_id', currentDeleteFormId),
+                    supabase
                         .from('234_18_micro_white')
                         .delete()
                         .eq('form_id', currentDeleteFormId),
@@ -1249,16 +1287,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const whiteSuccess = !whiteResult.error;
                 const wwSuccess = !wwResult.error;
                 const jeddahSuccess = !jeddahResult.error;
-                const microWhiteSuccess = !microWhiteResult.error;
+                const microWhite214Success = !microWhite214Result.error;
+                const uc250pSuccess = !uc250pResult.error;
                 const microWhite234Success = !microWhite234Result.error;
-            const microWhite102Success = !microWhite102Result.error;
-            const white168Success = !white168Result.error;
+                const microWhite102Success = !microWhite102Result.error;
+                const white168Success = !white168Result.error;
 
-            if (krantiSuccess || whiteSuccess || wwSuccess || jeddahSuccess || microWhiteSuccess || microWhite234Success || microWhite102Success || white168Success) {
+                if (krantiSuccess || whiteSuccess || wwSuccess || jeddahSuccess || microWhite214Success || uc250pSuccess || microWhite234Success || microWhite102Success || white168Success) {
                     alert('Form deleted successfully!');
                     fetchFilmInspectionForms(); // Refresh the list
                 } else {
-                    console.error('Error deleting form from all tables:', krantiResult.error, whiteResult.error, wwResult.error, jeddahResult.error, microWhiteResult.error, microWhite234Result.error, microWhite102Result.error, white168Result.error);
+                    console.error('Error deleting form from all tables:', krantiResult.error, whiteResult.error, wwResult.error, jeddahResult.error, microWhite214Result.error, uc250pResult.error, microWhite234Result.error, microWhite102Result.error, white168Result.error);
                     alert('Error deleting form: Form not found in any table');
                 }
                 hidePasswordConfirmModal();
@@ -1319,20 +1358,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            // Get filename from response headers or use default
+            // Use backend-provided filename
             const contentDisposition = response.headers.get('Content-Disposition');
-            console.log('Content-Disposition header:', contentDisposition);
-            let filename = `Pre-Store Inspection Form-${formId}.xlsx`; // fallback
+            let filename = `Pre-Store-${formId}.xlsx`; // fallback
             if (contentDisposition) {
                 const filenameMatch = contentDisposition.match(/filename="(.+)"/);
                 if (filenameMatch) {
                     filename = filenameMatch[1];
-                    console.log('Extracted filename from header:', filename);
                 }
-            } else {
-                console.log('No Content-Disposition header found, using fallback filename');
             }
-            console.log('Final download filename:', filename);
             a.download = filename;
             document.body.appendChild(a);
             a.click();
@@ -1414,20 +1448,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            // Get filename from response headers or use default
-            const contentDisposition = response.headers.get('Content-Disposition');
-            console.log('Film inspection Content-Disposition header:', contentDisposition);
-            let filename = `FIF-APE-176(18)CP(LCC+WW)BS-${formId}.xlsx`; // fallback
-            if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-                if (filenameMatch) {
-                    filename = filenameMatch[1];
-                    console.log('Extracted film inspection filename from header:', filename);
-                }
-            } else {
-                console.log('No Content-Disposition header found for film inspection, using fallback filename');
-            }
-            console.log('Final film inspection download filename:', filename);
+            // Use consistent filename pattern
+            const filename = `FIF-APE-176(18)CP(LCC+WW)BS-${formId}.xlsx`;
+            
             a.download = filename;
             document.body.appendChild(a);
             a.click();
@@ -1447,6 +1470,91 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Error downloading 18 GSM 176 WW Excel:', error);
+
+            // Show error state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            downloadBtn.title = 'Download failed';
+
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 3000);
+        }
+    };
+
+    // Function to download 102 18 Micro White Excel file (APE-102(18)C)
+    window.download102MicroWhiteExcel = async function(formId, buttonElement) {
+        // Store original button state immediately
+        const downloadBtn = buttonElement || event.target;
+        const originalContent = downloadBtn.innerHTML;
+        const originalTitle = downloadBtn.title;
+        const originalDisabled = downloadBtn.disabled;
+
+        try {
+            // Show loading state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+            downloadBtn.title = 'Downloading...';
+            downloadBtn.disabled = true;
+
+            // Make API call to download film inspection Excel
+            // Use localhost for IDE testing, Render URL for production
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+            const downloadUrl = `${backendUrl}/export-102-18c-white-form?form_id=${encodeURIComponent(formId)}`;
+
+            // Get the current session for authentication
+            const session = await supabase.auth.getSession();
+
+            // Prepare headers with authentication
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            if (session.data.session?.access_token) {
+                headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
+            }
+
+            const response = await fetch(downloadUrl, {
+                method: 'GET',
+                headers: headers,
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Use consistent filename pattern
+            const filename = `FIF-APE-102(18)C-${formId}.xlsx`;
+            console.log('APE-102 download filename:', filename);
+
+            // Create blob and download
+            const blob = await response.blob();
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            // Show success state briefly
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            downloadBtn.title = 'Downloaded!';
+
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 2000);
+
+        } catch (error) {
+            console.error('Error downloading 102 Micro White Excel:', error);
 
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -1509,20 +1617,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            // Get filename from response headers or use default
-            const contentDisposition = response.headers.get('Content-Disposition');
-            console.log('Film inspection Content-Disposition header:', contentDisposition);
-            let filename = `FIF-APE-168(16)C-${formId}.xlsx`; // fallback
-            if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-                if (filenameMatch) {
-                    filename = filenameMatch[1];
-                    console.log('Extracted film inspection filename from header:', filename);
-                }
-            } else {
-                console.log('No Content-Disposition header found for film inspection, using fallback filename');
-            }
-            console.log('Final film inspection download filename:', filename);
+            // Use consistent filename pattern
+            const filename = `FIF-APE-168(16)C-${formId}.xlsx`;
+            
             a.download = filename;
             document.body.appendChild(a);
             a.click();
@@ -1604,20 +1701,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            // Get filename from response headers or use default
-            const contentDisposition = response.headers.get('Content-Disposition');
-            console.log('Film inspection Content-Disposition header:', contentDisposition);
-            let filename = `FIF-WHITE-214(18)-${formId}.xlsx`; // fallback
-            if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-                if (filenameMatch) {
-                    filename = filenameMatch[1];
-                    console.log('Extracted film inspection filename from header:', filename);
-                }
-            } else {
-                console.log('No Content-Disposition header found for film inspection, using fallback filename');
-            }
-            console.log('Final film inspection download filename:', filename);
+            // Use consistent filename pattern
+            const filename = `FIF-WHITE-214(18)-${formId}.xlsx`;
+            
             a.download = filename;
             document.body.appendChild(a);
             a.click();
@@ -1699,20 +1785,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            // Get filename from response headers or use default
-            const contentDisposition = response.headers.get('Content-Disposition');
-            console.log('234 White Content-Disposition header:', contentDisposition);
-            let filename = `Film Inspection Form-${formId}.xlsx`; // fallback
-            if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-                if (filenameMatch) {
-                    filename = filenameMatch[1];
-                    console.log('Extracted 234 White filename from header:', filename);
-                }
-            } else {
-                console.log('No Content-Disposition header found for 234 White, using fallback filename');
-            }
-            console.log('Final 234 White download filename:', filename);
+            // Use consistent filename pattern
+            const filename = `FIF-WHITE-234(18)-${formId}.xlsx`;
+            console.log('234 White download filename:', filename);
             a.download = filename;
             document.body.appendChild(a);
             a.click();
@@ -1794,20 +1869,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            // Get filename from response headers or use default
-            const contentDisposition = response.headers.get('Content-Disposition');
-            console.log('Film inspection Content-Disposition header:', contentDisposition);
-            let filename = `Film Inspection Form-${formId}.xlsx`; // fallback
-            if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-                if (filenameMatch) {
-                    filename = filenameMatch[1];
-                    console.log('Extracted film inspection filename from header:', filename);
-                }
-            } else {
-                console.log('No Content-Disposition header found for film inspection, using fallback filename');
-            }
-            console.log('Final film inspection download filename:', filename);
+            // Use consistent filename pattern
+            const filename = `FIF-16GSM-Kranti-${formId}.xlsx`;
+            console.log('16 GSM Kranti download filename:', filename);
             a.download = filename;
             document.body.appendChild(a);
             a.click();
@@ -2068,7 +2132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     });
                     
                     // Try to update in all five tables with film_insp_form_ref_no for ALL tables
-                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
+                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
                         supabase
                             .from('168_16cp_kranti')
                             .update(updateData)
@@ -2090,6 +2154,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                             .update(updateData)
                             .eq('form_id', formId),
                         supabase
+                            .from('uc-18gsm-250p-abqr')
+                            .update(updateData)
+                            .eq('form_id', formId),
+                        supabase
                             .from('234_18_micro_white')
                             .update(updateData)
                             .eq('form_id', formId),
@@ -2108,12 +2176,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const whiteSuccess = !whiteResult.error;
                     const wwSuccess = !wwResult.error;
                     const jeddahSuccess = !jeddahResult.error;
-                    const microWhiteSuccess = !microWhiteResult.error;
+                    const microWhite214Success = !microWhite214Result.error;
+                    const uc250pSuccess = !uc250pResult.error;
                     const microWhite234Success = !microWhite234Result.error;
                     const microWhite102Success = !microWhite102Result.error;
                     const white168Success = !white168Result.error;
 
-                    if (!krantiSuccess && !whiteSuccess && !wwSuccess && !jeddahSuccess && !microWhiteSuccess && !microWhite234Success && !microWhite102Success && !white168Success) {
+                    if (!krantiSuccess && !whiteSuccess && !wwSuccess && !jeddahSuccess && !microWhite214Success && !uc250pSuccess && !microWhite234Success && !microWhite102Success && !white168Success) {
                         throw new Error('Form not found in any table');
                     }
                     
@@ -2183,6 +2252,10 @@ window.viewFilmForm = function(formId, productCode) {
             break;
         case 'WHITE-214(18)':
             targetForm = '18-gsm-214-micro-white.html';
+            break;
+        case 'INUE1C18-250P(AB-QR)':
+            targetForm = 'UC-18gsm-250P-ABQR.html';
+            console.log('View routing to UC-18gsm-250P-ABQR form');
             break;
         default:
             // Default fallback
@@ -2587,14 +2660,15 @@ window.deleteFilmForm = function(formId) {
                     'APE-168(16)CP(KRANTI)': '168_16cp_kranti',  // Keep existing mapping
                     'APE-176(18)CP(LCC+WW)BS': '176_18cp_ww',    // New 18 GSM 176 WW product
                     'APE-168(18)C (Jeddah)': '168_18c_white_jeddah', // New Jeddah product
-                    'WHITE-214(18)': '214_18_micro_white', // New 214 Micro White product
+                    'WHITE-214(18)': '214_18_micro_white', // Existing 214 Micro White product
+                    'INUE1C18-250P(AB-QR)': 'uc-18gsm-250p-abqr', // UC-18gsm-250P-ABQR form
                     'WHITE-234(18)': '234_18_micro_white', // New 234 Micro White product
                     'APE-102(18)C': '102_18c_micro_white', // New 102 Micro White product
                     'APE-168(18)C': '168_18c_white' // New 168 White product
                     // Add more product-specific tables as they are created
                 };
 
-                tableName = productTableMap[data.product_code] || 'prestore_and_film_inspection_form';
+                tableName = productTableMap[data.product_code] || 'uc-18gsm-250p-abqr';
             }
 
             // Map ref_no to film_insp_form_ref_no for ALL tables
@@ -2803,7 +2877,7 @@ window.deleteFilmForm = function(formId) {
         // Fetch existing data for the form
         async function fetchFormData() {
             // Try to fetch from all five tables
-            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhiteResult, microWhite234Result, microWhite102Result] = await Promise.all([
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, microWhite234Result, microWhite102Result] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
                     .select('*')
@@ -2830,6 +2904,11 @@ window.deleteFilmForm = function(formId) {
                     .eq('form_id', preStoreFormId)
                     .maybeSingle(),
                 supabase
+                    .from('uc-18gsm-250p-abqr')
+                    .select('*')
+                    .eq('form_id', preStoreFormId)
+                    .maybeSingle(),
+                supabase
                     .from('234_18_micro_white')
                     .select('*')
                     .eq('form_id', preStoreFormId)
@@ -2851,8 +2930,10 @@ window.deleteFilmForm = function(formId) {
                 data = wwResult.data;
             } else if (!jeddahResult.error && jeddahResult.data) {
                 data = jeddahResult.data;
-            } else if (!microWhiteResult.error && microWhiteResult.data) {
-                data = microWhiteResult.data;
+            } else if (!microWhite214Result.error && microWhite214Result.data) {
+                data = microWhite214Result.data;
+            } else if (!uc250pResult.error && uc250pResult.data) {
+                data = uc250pResult.data;
             } else if (!microWhite234Result.error && microWhite234Result.data) {
                 data = microWhite234Result.data;
             } else if (!microWhite102Result.error && microWhite102Result.data) {
@@ -2975,13 +3056,14 @@ window.deleteFilmForm = function(formId) {
                     'APE-168(16)CP(KRANTI)': '168_16cp_kranti',  // Keep existing mapping
                     'APE-176(18)CP(LCC+WW)BS': '176_18cp_ww',    // New 18 GSM 176 WW product
                     'APE-168(18)C (Jeddah)': '168_18c_white_jeddah', // New Jeddah product
-                    'WHITE-214(18)': '214_18_micro_white', // New 214 Micro White product
+                    'WHITE-214(18)': '214_18_micro_white', // Existing 214 Micro White product
+                    'INUE1C18-250P(AB-QR)': 'uc-18gsm-250p-abqr', // UC-18gsm-250P-ABQR form
                     'WHITE-234(18)': '234_18_micro_white', // New 234 Micro White product
                     'APE-102(18)C': '102_18c_micro_white', // New 102 Micro White product
                     'APE-168(18)C': '168_18c_white' // New 168 White product
                     // Add more product-specific tables as they are created
                 };
-                tableName = productTableMap[finalData.product_code] || '168_16cp_kranti';
+                tableName = productTableMap[finalData.product_code] || 'uc-18gsm-250p-abqr';
             }
 
             let upsertError = null;

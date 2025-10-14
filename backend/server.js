@@ -625,7 +625,7 @@ app.get('/export', async (req, res) => {
               const acceptRejectStatus = lot.accept_reject_status?.[rollPosition] || '';
               const defectName = lot.defect_names?.[rollPosition] || '';
               
-                            // Map to Excel cells - Handle inspected_by for first and second rows
+              // Map to Excel cells - Handle inspected_by for first and second rows
               if (rollIndex === 0) {
                 // First row of the lot - include all lot-associated data
                 page2Worksheet.getCell(`A${page2CurrentRow}`).value = hour;
@@ -693,8 +693,6 @@ app.get('/export', async (req, res) => {
               
               page2Worksheet.getCell(`AE${page2CurrentRow}`).value = defectName;
               
-              // Inspected By - already handled above for first and second rows
-              
               page2CurrentRow++;
             }
           });
@@ -725,7 +723,6 @@ app.get('/export', async (req, res) => {
         // Page2 worksheet not found in template
       }
     }
-
     // 11. If there are lots for Page3, map them to Page3
     if (page3Lots.length > 0) {
       // Use the existing Page3 worksheet from the template
@@ -982,7 +979,6 @@ app.get('/export', async (req, res) => {
         
         if (!error && otherForms && otherForms.length > 0) {
           prodCode = otherForms[0].prod_code;
-          console.log('  Found prod_code from other forms:', prodCode);
           
           // Update original product code for filename if we found it from other forms
           originalProdCodeForFilename = prodCode;
@@ -990,7 +986,6 @@ app.get('/export', async (req, res) => {
           // Remove extra spaces around "(Jeddah)" for filename from other forms too
           if (originalProdCodeForFilename.toLowerCase().includes('jeddah')) {
             originalProdCodeForFilename = originalProdCodeForFilename.replace(/\s*\(([^)]*jeddah[^)]*)\)/gi, '($1)').trim();
-            console.log('🧹 Cleaned filename product code spacing from other forms:', prodCode, '→', originalProdCodeForFilename);
           }
           
           // Clean the retrieved product code by removing "(Jeddah)" part if present (for Excel content only)
@@ -998,14 +993,11 @@ app.get('/export', async (req, res) => {
             // Remove "(Jeddah)" or "(JEDDAH)" or any case variation
             const originalProdCode = prodCode;
             prodCode = prodCode.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
-            console.log('🧹 Cleaned product code from other forms: "Jeddah" removed:', originalProdCode, '→', prodCode);
           }
         } else {
           prodCode = 'PROD-CODE'; // Default value
-          console.log('  No prod_code found in other forms, using default');
         }
       } catch (err) {
-        console.log('  Error searching for prod_code in other forms:', err.message);
         prodCode = 'PROD-CODE'; // Default value
       }
     }
@@ -1023,13 +1015,10 @@ app.get('/export', async (req, res) => {
         
         if (!error && otherForms && otherForms.length > 0) {
           shiftNumber = otherForms[0].shift;
-          console.log('  Found shift from other forms:', shiftNumber);
         } else {
           shiftNumber = '1'; // Default to shift 1
-          console.log('  No shift found in other forms, using default');
         }
       } catch (err) {
-        console.log('  Error searching for shift in other forms:', err.message);
         shiftNumber = '1'; // Default value
       }
     }
@@ -1052,11 +1041,9 @@ app.get('/export', async (req, res) => {
     res.send(buffer);
 
   } catch (error) {
-    console.error('Error exporting inspection report:', error);
     res.status(500).send(`Error exporting inspection report: ${error.message}`);
   }
 });
-
 // 168-16CP Kranti Film Inspection Form Excel Export Endpoint
 app.get('/export-168-16cp-kranti-form', async (req, res) => {
   try {
@@ -1770,9 +1757,6 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     const productCode = data.product_code || 'UNKNOWN';
     const batchNo = data.batch || form_id;
     const filename = `FIF-${productCode}-${batchNo}.xlsx`;
-    console.log('Film inspection filename:', filename);
-    console.log('Product code:', productCode);
-    console.log('Batch number:', batchNo);
     
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
@@ -1787,7 +1771,6 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     res.status(500).send(`Error exporting 168-16CP Kranti form: ${error.message}`);
   }
 });
-
 // APE-168(16)C White Film Inspection Form Excel Export Endpoint
 app.get('/export-168-16c-white-form', async (req, res) => {
   try {
@@ -2535,9 +2518,6 @@ app.get('/export-168-16c-white-form', async (req, res) => {
     const productCode = data.product_code || 'UNKNOWN';
     const batchNo = data.batch || form_id;
     const filename = `FIF-${productCode}-${batchNo}.xlsx`;
-    console.log('Film inspection filename:', filename);
-    console.log('Product code:', productCode);
-    console.log('Batch number:', batchNo);
 
     // 5. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -2554,7 +2534,6 @@ app.get('/export-168-16c-white-form', async (req, res) => {
     res.status(500).send(`Error exporting APE-168(16)C White form: ${error.message}`);
   }
 });
-
 // APE-176(18)CP(LCC+WW)BS Film Inspection Form Excel Export Endpoint
 app.get('/export-176-18cp-ww-form', async (req, res) => {
   try {
@@ -3250,9 +3229,6 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
     const productCode = data.product_code || 'UNKNOWN';
     const batchNo = data.batch || form_id;
     const filename = `FIF-${productCode}-${batchNo}.xlsx`;
-    console.log('Film inspection filename:', filename);
-    console.log('Product code:', productCode);
-    console.log('Batch number:', batchNo);
 
     // 5. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -3269,8 +3245,6 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
     res.status(500).send(`Error exporting APE-176(18)CP(LCC+WW)BS form: ${error.message}`);
   }
 });
-
-
 // Export 234-18-micro-white form endpoint
 app.get('/export-234-18-micro-white-form', async (req, res) => {
   try {
@@ -4072,7 +4046,6 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
     } else {
       console.log('No Page 2 data detected');
     }
-
     // Map Page 2 headers if Page2 sheet exists
     if (page2Worksheet) {
       console.log('Mapping Page 2 headers');
@@ -4793,6 +4766,744 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
     res.status(500).send(`Error exporting WHITE-214(18) form: ${error.message}`);
   }
 });
+// APE-102(18)C White Film Inspection Form Excel Export Endpoint
+app.get('/export-102-18c-white-form', async (req, res) => {
+  try {
+    // Get form_id parameter
+    const { form_id } = req.query;
+
+    if (!form_id) {
+      return res.status(400).send('form_id parameter is required');
+    }
+
+    const { data, error } = await supabase
+      .from('102_18c_micro_white')
+      .select('*')
+      .eq('form_id', form_id)
+      .single();
+
+    if (error) {
+      // Handle case where form doesn't exist in this table
+      console.log('Supabase error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+
+      if (error.code === 'PGRST116' || error.message?.includes('No rows found') || error.message?.includes('JSON object requested, multiple (or no) rows returned')) {
+        console.log(`Form ${form_id} not found in 102_18c_micro_white table`);
+        return res.status(404).send('Form not found in 102 micro white table');
+      }
+      console.error('Supabase error:', error);
+      return res.status(500).send('Error fetching data from database');
+    }
+
+    if (!data) {
+      return res.status(404).send('Form not found');
+    }
+
+    // 2. Load the template
+    const templatePath = path.join(__dirname, 'templates', '102-18c-white.xlsx');
+
+    // Check if file exists
+    if (!fs.existsSync(templatePath)) {
+      console.error('Template file does not exist at:', templatePath);
+      return res.status(500).send('Template file not found');
+    }
+
+    let workbook;
+    let page1Worksheet;
+    let page2Worksheet;
+    let page3Worksheet;
+    let page4Worksheet;
+
+    // Load the template file
+    try {
+      workbook = await XlsxPopulate.fromFileAsync(templatePath);
+      page1Worksheet = workbook.sheet('Page1');
+
+      // Create or get Page2 sheet for Page 2 data
+      try {
+        page2Worksheet = workbook.sheet('Page2');
+      } catch (error) {
+        // Page2 sheet doesn't exist, create it by copying Page1 structure
+        page2Worksheet = workbook.addSheet('Page2');
+      }
+
+      // Create or get Page3 sheet for Page 3 data
+      try {
+        page3Worksheet = workbook.sheet('Page3');
+      } catch (error) {
+        // Page3 sheet doesn't exist, create it
+        page3Worksheet = workbook.addSheet('Page3');
+      }
+
+      // Create or get Page4 sheet for Page 4 data
+      try {
+        page4Worksheet = workbook.sheet('Page4');
+      } catch (error) {
+        // Page4 sheet doesn't exist, create it
+        page4Worksheet = workbook.addSheet('Page4');
+      }
+    } catch (error) {
+      console.log('Error loading template:', error.message);
+      workbook = await XlsxPopulate.fromBlankAsync();
+      page1Worksheet = workbook.addSheet('Page1');
+      page2Worksheet = workbook.addSheet('Page2');
+      page3Worksheet = workbook.addSheet('Page3');
+      page4Worksheet = workbook.addSheet('Page4');
+    }
+
+    // 3. Map data to Excel cells for Page 1
+    if (page1Worksheet) {
+      // Product Code (B4)
+      page1Worksheet.cell('B4').value(data.product_code || '');
+
+      // Specification (B5)
+      page1Worksheet.cell('B5').value(data.specification || '');
+
+      // Production Order (F4)
+      page1Worksheet.cell('F4').value(data.production_order || '');
+
+      // Purchase Order (F5)
+      page1Worksheet.cell('F5').value(data.purchase_order || '');
+
+      // Machine (J4)
+      page1Worksheet.cell('J4').value(data.machine_no || '');
+
+      // Quantity (J5) - Add "Rolls" text like prestore form
+      page1Worksheet.cell('J5').value(data.quantity ? `${data.quantity} Rolls` : '');
+
+      // Production Date (N4) - format as DD/MM/YYYY
+      page1Worksheet.cell('N4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+
+      // Inspection Date (N5) - format as DD/MM/YYYY
+      page1Worksheet.cell('N5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+
+      // Inspected By (B41)
+      page1Worksheet.cell('B41').value(data.prepared_by || 'Unknown User');
+
+      // Inspection Date (B42) - format as DD/MM/YYYY (duplicate for verification)
+      page1Worksheet.cell('B42').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+
+      // Verified By (L41)
+      page1Worksheet.cell('L41').value(data.verified_by || 'Not Verified');
+
+      // Verified Date (L42) - format as DD/MM/YYYY
+      page1Worksheet.cell('L42').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+
+      // Film Inspection Form Ref No (O3)
+      page1Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+
+      // Map equipment data to Excel cells
+      if (data.equipment_used && data.equipment_used.page1) {
+        const equipment = data.equipment_used.page1;
+
+        // Basic Weight Equipment (D6)
+        page1Worksheet.cell('D6').value(equipment.basic_weight || '');
+
+        // Thickness Equipment (G6)
+        page1Worksheet.cell('G6').value(equipment.thickness || '');
+
+        // Opacity Equipment (J6)
+        page1Worksheet.cell('J6').value(equipment.opacity || '');
+
+        // COF Equipment (M6)
+        page1Worksheet.cell('M6').value(equipment.cof || '');
+      }
+    }
+
+    // Map sample data to the correct columns - WHITE-102(18) has Page 1, Page 2, Page 3, and Page 4
+
+    // Sample data should go in rows 8-37 (30 rows) - Updated to match template
+    // Top rows (8-26): Historical data, Bottom rows (27-37): Fresh data
+    // Lot & Roll data to Sample No. column (A8-A37)
+    if (data.lot_and_roll) {
+      const lotAndRollData = data.lot_and_roll;
+      const dataValues = Object.values(lotAndRollData).filter(value => value && value !== '');
+
+      // Fill all 30 rows to match HTML form structure
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        if (dataIndex < dataValues.length) {
+          page1Worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`A${row}`).value(''); // Empty row
+        }
+      }
+    }
+
+    // Roll ID data to column B (B8-B37) - Updated to match template
+    if (data.roll_id) {
+      const rollIdData = data.roll_id;
+      const dataValues = Object.values(rollIdData).filter(value => value && value !== '');
+
+      // Fill all 30 rows to match HTML form structure
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        if (dataIndex < dataValues.length) {
+          page1Worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`B${row}`).value(''); // Empty row
+        }
+      }
+    }
+
+    // Lot Time data to column C (C8-C37) - Updated to match template
+    if (data.lot_time) {
+      const lotTimeData = data.lot_time;
+      const dataValues = Object.values(lotTimeData).filter(value => value && value !== '');
+
+      // Fill all 30 rows to match HTML form structure
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        if (dataIndex < dataValues.length) {
+          page1Worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`C${row}`).value(''); // Empty row
+        }
+      }
+    }
+
+    // PAGE 1 DATA MAPPING - WHITE-102(18) - Updated to match template structure
+    // Basic Weight data to column D (D8-D37)
+    if (data.page1_basis_weight) {
+      const basicWeightData = data.page1_basis_weight;
+
+      // Get data in correct order (keys 1-30)
+      const dataValues = [];
+      for (let i = 1; i <= 30; i++) {
+        const key = i.toString();
+        const value = basicWeightData[key];
+        if (value && value !== '' && value !== null && value !== undefined) {
+          dataValues.push(value);
+        } else {
+          dataValues.push(''); // Empty cell if no data
+        }
+      }
+
+      // Fill the Excel column D (rows 8-37)
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        page1Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+      }
+    }
+
+    // Thickness data to column G (G8-G37)
+    if (data.page1_thickness) {
+      const thicknessData = data.page1_thickness;
+
+      // Get data in correct order (keys 1-30)
+      const dataValues = [];
+      for (let i = 1; i <= 30; i++) {
+        const key = i.toString();
+        const value = thicknessData[key];
+        if (value && value !== '' && value !== null && value !== undefined) {
+          dataValues.push(value);
+        } else {
+          dataValues.push(''); // Empty cell if no data
+        }
+      }
+
+      // Fill the Excel column G (rows 8-37)
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        page1Worksheet.cell(`G${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+      }
+    }
+
+    // Opacity data to column J (J8-J37)
+    if (data.page1_opacity) {
+      const opacityData = data.page1_opacity;
+
+      // Get data in correct order (keys 1-30)
+      const dataValues = [];
+      for (let i = 1; i <= 30; i++) {
+        const key = i.toString();
+        const value = opacityData[key];
+        if (value && value !== '' && value !== null && value !== undefined) {
+          dataValues.push(value);
+        } else {
+          dataValues.push(''); // Empty cell if no data
+        }
+      }
+
+      // Fill the Excel column J (rows 8-37)
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        page1Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+      }
+    }
+
+    // COF Kinetic data to column M (M8-M37)
+    if (data.page1_cof_kinetic) {
+      const cofKineticData = data.page1_cof_kinetic;
+
+      // Get data in correct order (keys 1-30)
+      const dataValues = [];
+      for (let i = 1; i <= 30; i++) {
+        const key = i.toString();
+        const value = cofKineticData[key];
+        if (value && value !== '' && value !== null && value !== undefined) {
+          dataValues.push(value);
+        } else {
+          dataValues.push(''); // Empty cell if no data
+        }
+      }
+
+      // Fill the Excel column M (rows 8-37)
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        page1Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+      }
+    }
+
+    // Now handle PAGE 2, 3, and 4 data mapping - WHITE-102(18) has 4 pages total
+
+    // Map Page 2 data if Page2 worksheet exists
+    if (page2Worksheet) {
+      // Copy header info to Page 2
+      page2Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
+      page2Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+      page2Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
+      page2Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+      page2Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+
+      // Equipment data for Page 2 (D6)
+      if (data.equipment_used && data.equipment_used.page2) {
+        page2Worksheet.cell('D6').value(data.equipment_used.page2.common || '');
+      }
+
+      // Page 2 data mapping - Mechanical Properties MD - fill from top down (rows 9-38)
+      // Elongation@ Break(%) MD 1 to column D (D9-D38)
+      if (data.page2_elongation_md_1) {
+        const elongationData = data.page2_elongation_md_1;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = elongationData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page2Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Elongation@ Break(%) MD 2 to column E (E9-E38)
+      if (data.page2_elongation_md_2) {
+        const elongationData = data.page2_elongation_md_2;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = elongationData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page2Worksheet.cell(`E${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Elongation@ Break(%) MD 3 to column F (F9-F38)
+      if (data.page2_elongation_md_3) {
+        const elongationData = data.page2_elongation_md_3;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = elongationData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page2Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Continue with other Page 2 measurements...
+      // Force Tensile Strength@Break(N)MD 1: H9-H38
+      if (data.page2_force_md_1) {
+        const forceData = data.page2_force_md_1;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = forceData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page2Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Force Tensile Strength@Break(N)MD 2: I9-I38
+      if (data.page2_force_md_2) {
+        const forceData = data.page2_force_md_2;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = forceData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page2Worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Force Tensile Strength@Break(N)MD 3: J9-J38
+      if (data.page2_force_md_3) {
+        const forceData = data.page2_force_md_3;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = forceData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page2Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Force Elongation 5% (N) MD 1: L9-L38
+      if (data.page2_force_5pct_md_1) {
+        const forceData = data.page2_force_5pct_md_1;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = forceData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page2Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Force Elongation 5% (N) MD 2: M9-M38
+      if (data.page2_force_5pct_md_2) {
+        const forceData = data.page2_force_5pct_md_2;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = forceData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page2Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Force Elongation 5% (N) MD 3: N9-N38
+      if (data.page2_force_5pct_md_3) {
+        const forceData = data.page2_force_5pct_md_3;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = forceData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page2Worksheet.cell(`N${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+    }
+
+    // Map Page 3 data if Page3 worksheet exists
+    if (page3Worksheet) {
+      // Copy header info to Page 3
+      page3Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
+      page3Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+      page3Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
+      page3Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+      page3Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+
+      // Equipment data for Page 3 (D6)
+      if (data.equipment_used && data.equipment_used.page3) {
+        page3Worksheet.cell('D6').value(data.equipment_used.page3.common || '');
+      }
+
+      // Page 3 data mapping - Mechanical Properties CD - fill from top down (rows 9-38)
+      // Elongation@ Break (%) CD 1 to column D (D9-D38)
+      if (data.page3_elongation_cd_1) {
+        const elongationData = data.page3_elongation_cd_1;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = elongationData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page3Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Continue with other Page 3 measurements...
+      // Force-Tensile Strength@Break (N) CD 1: H9-H38
+      if (data.page3_force_cd_1) {
+        const forceData = data.page3_force_cd_1;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = forceData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page3Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Modulus Web MD Fresh@2% 1: L9-L38
+      if (data.page3_modulus_1) {
+        const modulusData = data.page3_modulus_1;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = modulusData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page3Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+    }
+
+    // Map Page 4 data if Page4 worksheet exists
+    if (page4Worksheet) {
+      // Copy header info to Page 4
+      page4Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
+      page4Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+      page4Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
+      page4Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+      page4Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+
+      // Equipment data for Page 4 (D6, L6)
+      if (data.equipment_used && data.equipment_used.page4) {
+        page4Worksheet.cell('D6').value(data.equipment_used.page4.color_common || '');
+        page4Worksheet.cell('L6').value(data.equipment_used.page4.gloss || '');
+      }
+
+      // Page 4 data mapping - Optical Properties - fill from top down (rows 9-38)
+      // Color L to column D (D9-D38)
+      if (data.page4_color_l) {
+        const colorData = data.page4_color_l;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = colorData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page4Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Color A to column F (F9-F38)
+      if (data.page4_color_a) {
+        const colorData = data.page4_color_a;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = colorData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page4Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Color B to column H (H9-H38)
+      if (data.page4_color_b) {
+        const colorData = data.page4_color_b;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = colorData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page4Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Color Delta E to column J (J9-J38)
+      if (data.page4_color_delta_e) {
+        const colorData = data.page4_color_delta_e;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = colorData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page4Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Gloss Level 1 to column L (L9-L38)
+      if (data.page4_gloss_1) {
+        const glossData = data.page4_gloss_1;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = glossData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page4Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Gloss Level 2 to column M (M9-M38)
+      if (data.page4_gloss_2) {
+        const glossData = data.page4_gloss_2;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = glossData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page4Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Gloss Level 3 to column N (N9-N38)
+      if (data.page4_gloss_3) {
+        const glossData = data.page4_gloss_3;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = glossData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page4Worksheet.cell(`N${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+    }
+
+    // 4. Generate and send the Excel file
+    const buffer = await workbook.outputAsync();
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="FIF-APE-102(18)C-${form_id}.xlsx"`);
+    res.send(buffer);
+
+  } catch (error) {
+    console.error('Error exporting WHITE-102(18) form:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).send(`Error exporting WHITE-102(18) form: ${error.message}`);
+  }
+});
 
 // Test endpoint to verify backend is working
 app.get('/api/test', (req, res) => {
@@ -4808,7 +5519,6 @@ app.get('/api/test', (req, res) => {
     ]
   });
 });
-
 // MT Job Requisition Excel Export Endpoint
 app.get('/api/export-mjr-record/:requisitionId', async (req, res) => {
   try {
@@ -5469,7 +6179,6 @@ function convertToNumber(value) {
   const numValue = parseFloat(value);
   return !isNaN(numValue) ? numValue : value;
 }
-
 // Pre-Store Form Excel Export Endpoint
 app.get('/api/download-prestore-excel/:formId', async (req, res) => {
   try {
@@ -5543,33 +6252,46 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
                 error = null;
                 tableName = '234_18_micro_white';
               } else {
-                // Check 102_18c_micro_white table
-                const { data: microWhite102Data, error: microWhite102Error } = await supabase
-                  .from('102_18c_micro_white')
+                // Check 214_18_micro_white table (WHITE-214(18))
+                const { data: microWhite214Data, error: microWhite214Error } = await supabase
+                  .from('214_18_micro_white')
                   .select('*')
                   .eq('form_id', formId)
                   .single();
 
-                if (!microWhite102Error && microWhite102Data) {
-                  data = microWhite102Data;
+                if (!microWhite214Error && microWhite214Data) {
+                  data = microWhite214Data;
                   error = null;
-                  tableName = '102_18c_micro_white';
+                  tableName = '214_18_micro_white';
                 } else {
-                  // Check 168_18c_white table (new 168 white product)
-                  const { data: white168Data, error: white168Error } = await supabase
-                    .from('168_18c_white')
+                  // Check 102_18c_micro_white table
+                  const { data: microWhite102Data, error: microWhite102Error } = await supabase
+                    .from('102_18c_micro_white')
                     .select('*')
                     .eq('form_id', formId)
                     .single();
 
-                  if (!white168Error && white168Data) {
-                    data = white168Data;
+                  if (!microWhite102Error && microWhite102Data) {
+                    data = microWhite102Data;
                     error = null;
-                    tableName = '168_18c_white';
+                    tableName = '102_18c_micro_white';
                   } else {
-                    data = null;
-                    error = new Error('Form not found in any table');
-                    tableName = null;
+                    // Check 168_18c_white table (new 168 white product)
+                    const { data: white168Data, error: white168Error } = await supabase
+                      .from('168_18c_white')
+                      .select('*')
+                      .eq('form_id', formId)
+                      .single();
+
+                    if (!white168Error && white168Data) {
+                      data = white168Data;
+                      error = null;
+                      tableName = '168_18c_white';
+                    } else {
+                      data = null;
+                      error = new Error('Form not found in any table');
+                      tableName = null;
+                    }
                   }
                 }
               }
@@ -5632,7 +6354,8 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
     if (data.production_order) {
       worksheet.cell('B4').value(data.production_order);
     }
-    
+
+    // Handle customer field - may not exist in all tables
     if (data.customer) {
       // Add location in brackets if available
       let customerValue = data.customer;
@@ -5640,35 +6363,40 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
         customerValue = `${data.customer} (${data.location})`;
       }
       worksheet.cell('B5').value(customerValue);
+    } else if (data.product_code) {
+      // Fallback to product code if customer not available
+      worksheet.cell('B5').value(data.product_code);
     }
-    
+
+    // Handle standard_packing field - may not exist in all tables
     if (data.standard_packing) {
       worksheet.cell('B6').value(data.standard_packing);
     }
-    
+
     if (data.product_code) {
       worksheet.cell('G4').value(data.product_code);
     }
-    
+
     if (data.specification) {
       worksheet.cell('G5').value(data.specification);
     }
-    
+
     if (data.quantity) {
       worksheet.cell('O4').value(`${data.quantity} Rolls`);
     }
-    
+
+    // Handle batch field - may not exist in all tables
     if (data.batch) {
       worksheet.cell('O5').value(data.batch);
     }
-    
+
     if (data.production_date) {
       // Format date to dd/mm/yyyy
       const prodDate = new Date(data.production_date);
       const formattedProdDate = `${String(prodDate.getDate()).padStart(2, '0')}/${String(prodDate.getMonth() + 1).padStart(2, '0')}/${prodDate.getFullYear()}`;
       worksheet.cell('T4').value(formattedProdDate);
     }
-    
+
     if (data.inspection_date) {
       // Format date to dd/mm/yyyy
       const inspDate = new Date(data.inspection_date);
@@ -5676,8 +6404,9 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
       worksheet.cell('T5').value(formattedInspDate);
     }
     
-    if (data.pallet_size) {
-      worksheet.cell('P6').value(data.pallet_size);
+    // Handle pallet_size field - may not exist in all tables
+    if (data.pallet_size !== undefined) {
+      worksheet.cell('P6').value(data.pallet_size || 'N/A');
     }
     
     // Palletized Finished Goods Status Section
@@ -5690,62 +6419,64 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
       } else if (status === 'NA' || status === 'na' || status === 'N/A' || status === 'n/a') {
         return 'N/A';
       }
-      return status; // Return original value if no match
+      return status || 'N/A'; // Return original value if no match, or N/A if undefined
     };
-    
-    if (data.pallet_list) {
+
+    // Handle pre-store status fields - may not exist in all tables
+    if (data.pallet_list !== undefined) {
       worksheet.cell('C9').value(getStatusSymbol(data.pallet_list));
     }
-    
-    if (data.product_label) {
+
+    if (data.product_label !== undefined) {
       worksheet.cell('P9').value(getStatusSymbol(data.product_label));
     }
-    
-    if (data.wrapping) {
+
+    if (data.wrapping !== undefined) {
       worksheet.cell('C10').value(getStatusSymbol(data.wrapping));
     }
-    
-    if (data.layer_pad) {
+
+    if (data.layer_pad !== undefined) {
       worksheet.cell('P10').value(getStatusSymbol(data.layer_pad));
     }
-    
-    if (data.contamination) {
+
+    if (data.contamination !== undefined) {
       worksheet.cell('C11').value(getStatusSymbol(data.contamination));
     }
-    
-    if (data.kraft_paper) {
+
+    if (data.kraft_paper !== undefined) {
       worksheet.cell('P11').value(getStatusSymbol(data.kraft_paper));
     }
-    
-    if (data.no_damage) {
+
+    if (data.no_damage !== undefined) {
       worksheet.cell('C12').value(getStatusSymbol(data.no_damage));
     }
-    
-    if (data.pallet) {
+
+    if (data.pallet !== undefined) {
       worksheet.cell('P12').value(getStatusSymbol(data.pallet));
     }
     
-    if (data.prestore_done_by) {
-      worksheet.cell('A29').value(data.prestore_done_by);
+    // Handle prestore fields - may not exist in all tables
+    if (data.prestore_done_by !== undefined) {
+      worksheet.cell('A29').value(data.prestore_done_by || 'N/A');
     }
-    
-    if (data.remarks) {
+
+    if (data.remarks !== undefined) {
       // Handle remarks - each row A14-V14, A15-V15, etc. is merged
       // Put text in A14, A15, A16, etc. and it will flow across the merged cells
       const maxRows = 9; // From row 14 to 22 (9 rows)
       const maxCharsPerRow = 200; // Approximate characters per merged row (A to V)
-      
+
       // Remove newlines and create one continuous text
-      const continuousText = data.remarks.replace(/\n/g, ' ').trim();
-      
+      const continuousText = (data.remarks || '').replace(/\n/g, ' ').trim();
+
       // Split text into chunks that fit in each merged row
       const words = continuousText.split(' ');
       let currentRowText = '';
       const rowTexts = [];
-      
+
       words.forEach(word => {
         const testText = currentRowText + (currentRowText ? ' ' : '') + word;
-        
+
         if (testText.length <= maxCharsPerRow) {
           currentRowText = testText;
         } else {
@@ -5758,27 +6489,27 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
           }
         }
       });
-      
+
       // Add remaining text
       if (currentRowText) {
         rowTexts.push(currentRowText);
       }
-      
+
       // Map each row text to A13, A14, A15, etc. (merged cells)
       for (let i = 0; i < Math.min(rowTexts.length, maxRows); i++) {
         const rowNum = 14 + i;
         worksheet.cell(`A${rowNum}`).value(rowTexts[i].trim()); // Trim spaces at end
       }
     }
-    
-    if (data.prestore_ref_no) {
-      worksheet.cell('V3').value(data.prestore_ref_no);
+
+    if (data.prestore_ref_no !== undefined) {
+      worksheet.cell('V3').value(data.prestore_ref_no || 'N/A');
     }
 
     // 5. Set response headers for file download
     // Generate filename with standardized format: Pre-Store-{product_code}-{batch_no}
     const productCode = data.product_code || 'UNKNOWN';
-    const batchNo = data.batch || data.production_order || formId;
+    const batchNo = data.batch || data.production_order || data.lot_no || formId;
     const filename = `Pre-Store-${productCode}-${batchNo}.xlsx`;
     
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -6115,5 +6846,3 @@ async function processRollerHistoryData(data, res, method, filterSummary = null,
     res.status(500).json({ error: `Error exporting roller history card: ${error.message}` });
   }
 } 
-
-
