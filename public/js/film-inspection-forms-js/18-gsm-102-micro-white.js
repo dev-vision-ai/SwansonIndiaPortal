@@ -559,7 +559,7 @@ document.addEventListener('DOMContentLoaded', function() {
        // Get column count for a specific table
        const getTableColumnCount = (tableBody) => {
            if (tableBody.id === 'testingTableBody') return 7;      // Page 1: 7 columns (3 for Sample No + 4 parameters)
-           if (tableBody.id === 'testingTableBody2') return 15;     // Page 2: 15 columns  
+           if (tableBody.id === 'testingTableBody2') return 15;     // Page 2: 15 columns
            if (tableBody.id === 'testingTableBody3') return 15;     // Page 3: 15 columns
            if (tableBody.id === 'testingTableBody4') return 11;     // Page 4: 11 columns (3 for Sample No + 4 Color + 4 Gloss columns)
            if (tableBody.id === 'testingTableBody5') return 5;      // Page 5: 5 columns (3 for Sample No + 1 PG Quality + 1 blank column)
@@ -738,18 +738,6 @@ document.addEventListener('DOMContentLoaded', function() {
                        const dropdown = document.getElementById('cof-equipment');
                        if (dropdown) dropdown.value = equipment.page1.cof;
                    }
-                   if (equipment.page1.cut_width) {
-                       const dropdown = document.getElementById('cut-width-equipment');
-                       if (dropdown) dropdown.value = equipment.page1.cut_width;
-                   }
-                   if (equipment.page1.color_unprinted) {
-                       const dropdown = document.getElementById('color-unprinted-equipment');
-                       if (dropdown) dropdown.value = equipment.page1.color_unprinted;
-                   }
-                   if (equipment.page1.color_printed) {
-                       const dropdown = document.getElementById('color-printed-equipment');
-                       if (dropdown) dropdown.value = equipment.page1.color_printed;
-                   }
                }
                
                // Load Page 2 equipment
@@ -814,8 +802,8 @@ document.addEventListener('DOMContentLoaded', function() {
                    lot_time: convertColumnToJSONB(testingTableBody, 2),          // Lot Time (HTML column 2)
                    
                    // Page 1: Convert to JSONB arrays for each column
-                   // HTML: Sample No (colspan="3"), Basic Weight (GSM), Thickness, Opacity, COF Kinetic, Cut Width, Color Delta Unprinted, Color Delta Printed
-                   // HTML columns: 0(Sample No), 1(Basic Weight), 2(Thickness), 3(Opacity), 4(COF), 5(Cut Width), 6(Color Unprinted), 7(Color Printed)
+                   // HTML: Sample No (colspan="3"), Basic Weight (GSM), Thickness, Opacity, COF Kinetic
+                   // HTML columns: 0(Sample No), 1(Basic Weight), 2(Thickness), 3(Opacity), 4(COF Kinetic)
                    page1_basis_weight: convertColumnToJSONB(testingTableBody, 3), // Basic Weight (GSM) - HTML column 3
                    page1_thickness: convertColumnToJSONB(testingTableBody, 4),   // Thickness - HTML column 4
                    page1_opacity: convertColumnToJSONB(testingTableBody, 5),     // Opacity - HTML column 5

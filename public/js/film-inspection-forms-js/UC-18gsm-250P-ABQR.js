@@ -114,7 +114,7 @@ async function updateVerificationInDatabase(verifierName, verificationDate) {
         
         // Update the database with verification data
         const { data, error } = await supabase
-            .from('214_18_micro_white')
+            .from('uc-18gsm-250p-abqr')
             .update({
                 verified_by: verifierName,
                 verified_date: verificationDate
@@ -187,7 +187,7 @@ async function checkVerificationStatus() {
         
         // Check if the form is already verified
         const { data, error } = await supabase
-            .from('214_18_micro_white')
+            .from('uc-18gsm-250p-abqr')
             .select('verified_by, verified_date')
             .eq('form_id', formId)
             .single();
@@ -373,6 +373,23 @@ let testingTableBody;
 let testingTableBody2;
 let testingTableBody3;
 
+// Function to set form title based on product code
+function setFormTitle() {
+    const formTitle = document.getElementById('formTitle');
+    if (formTitle) {
+        // Try to get product code from various sources
+        const productCodeInput = document.querySelector('input[placeholder="Enter Product Code"]') ||
+                                document.querySelector('input[name="product_code"]') ||
+                                document.querySelector('#product-code');
+
+        if (productCodeInput && productCodeInput.value) {
+            formTitle.textContent = productCodeInput.value;
+        } else {
+            formTitle.textContent = 'UC-18gsm-250P-ABQR';
+        }
+    }
+}
+
 // Function to detect and set view mode
 function detectViewMode() {
     // Get URL parameters first
@@ -446,7 +463,7 @@ function synchronizeViewModeAcrossPages() {
     
 
     // Apply view mode to all table inputs
-    const allTableBodies = [testingTableBody, testingTableBody2];
+    const allTableBodies = [testingTableBody, testingTableBody2, testingTableBody3];
 
     allTableBodies.forEach(tableBody => {
         if (tableBody) {
@@ -464,8 +481,8 @@ function synchronizeViewModeAcrossPages() {
                     input.style.opacity = '1';
                     
 
-            // Special handling for Page 2 sample columns (first 3 columns)
-            if (tableBody.id === 'testingTableBody2' && index <= 2) {
+            // Special handling for Page 2 and 3 sample columns (first 3 columns)
+            if ((tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') && index <= 2) {
                 input.style.backgroundColor = '#f1f5f9'; // Light grey background
                 input.style.fontWeight = '600'; // Bold text
                 input.disabled = true;
@@ -487,9 +504,14 @@ function synchronizeViewModeAcrossPages() {
                             if (colIndex >= 0 && colIndex <= 2) {
                                 keepReadOnly = true;
                             }
+                        } else if (tableBody.id === 'testingTableBody3') {
+                            // Sample columns Lot & Roll, Roll ID, Lot Time correspond to indices 0,1,2
+                            if (colIndex >= 0 && colIndex <= 2) {
+                                keepReadOnly = true;
+                            }
                         } else if (tableBody.id === 'testingTableBody') {
-                            // Modulus average column (column 10) must always remain read-only
-                            if (colIndex === 10) {
+                            // Modulus average column (column 11) must always remain read-only
+                            if (colIndex === 11) {
                                 keepReadOnly = true;
                             }
                         }
@@ -1444,9 +1466,8 @@ function getHistoricalTotalRows(historicalData) {
     if (!historicalData) return 0;
     const candidateKeys = [
         'lot_and_roll', 'roll_id', 'lot_time',
-        'page1_basis_weight', 'page1_cof_kinetic_r_r', 'page1_cof_kinetic_r_s', 'page1_opacity', 'page1_modulus_1', 'page1_modulus_2', 'page1_modulus_3', 'page1_gloss',
-        'page2_force_elongation_md_5p', 'page2_force_tensile_md', 'page2_force_elongation_cd_5p', 'page2_force_tensile_cd',
-        'page2_color_l', 'page2_color_a', 'page2_color_b', 'page2_color_delta_e'
+        'page1_basis_weight', 'page1_thickness', 'page1_wettability', 'page1_cof_rr', 'page1_cof_cc', 'page1_tensile_break', 'page1_elongation', 'page1_modulus',
+        'page2_tensile_break', 'page2_cd_elongation', 'page2_modulus', 'page2_opacity', 'page2_roll_width', 'page2_diameter'
     ];
     let maxRows = 0;
     for (const key of candidateKeys) {
@@ -1549,16 +1570,16 @@ function loadHistoricalRowData(row, historicalData, historicalRow) {
         if (inputs[2] && lotTimeVal !== undefined && lotTimeVal !== null && lotTimeVal !== '') {
             inputs[2].value = lotTimeVal;
         }
-        // Load Page 1 data
+        // Load Page 1 data - CORRECTED to match actual HTML structure (8 columns, not 9)
         const page1Data = [
-            { key: 'page1_basis_weight', inputIndex: 3 },
-            { key: 'page1_cof_kinetic_r_r', inputIndex: 4 },
-            { key: 'page1_cof_kinetic_r_s', inputIndex: 5 },
-            { key: 'page1_opacity', inputIndex: 6 },
-            { key: 'page1_modulus_1', inputIndex: 7 },
-            { key: 'page1_modulus_2', inputIndex: 8 },
-            { key: 'page1_modulus_3', inputIndex: 9 },
-            { key: 'page1_gloss', inputIndex: 11 }
+            { key: 'page1_basis_weight', inputIndex: 3 }, // Film Weight
+            { key: 'page1_thickness', inputIndex: 4 }, // Thickness
+            { key: 'page1_wettability', inputIndex: 5 }, // Wettability
+            { key: 'page1_cof_rr', inputIndex: 6 }, // COF (R-R)
+            { key: 'page1_cof_cc', inputIndex: 7 }, // COF (C-C)
+            { key: 'page1_tensile_break', inputIndex: 8 }, // Tensile Break
+            { key: 'page1_elongation', inputIndex: 9 }, // MD Elongation Break
+            { key: 'page1_modulus', inputIndex: 10 } // 10% Modulus
         ];
         
         page1Data.forEach(({ key, inputIndex }) => {
@@ -1583,10 +1604,12 @@ function loadHistoricalRowData(row, historicalData, historicalRow) {
         }
         // Load Page 2 specific data
         const page2Data = [
-            { key: 'page2_force_elongation_md_5p', inputIndex: 3 },
-            { key: 'page2_force_tensile_md', inputIndex: 7 },
-            { key: 'page2_force_elongation_cd_5p', inputIndex: 11 },
-            { key: 'page2_force_tensile_cd', inputIndex: 15 }
+            { key: 'page2_tensile_break', inputIndex: 3 },
+            { key: 'page2_cd_elongation', inputIndex: 4 },
+            { key: 'page2_modulus', inputIndex: 5 },
+            { key: 'page2_opacity', inputIndex: 6 },
+            { key: 'page2_roll_width', inputIndex: 7 },
+            { key: 'page2_diameter', inputIndex: 8 }
         ];
         
         page2Data.forEach(({ key, inputIndex }) => {
@@ -1804,25 +1827,30 @@ function getTableDataFromAllTables() {
             tableData.roll_id = convertColumnToJSONB(tableBody, 1);
             tableData.lot_time = convertColumnToJSONB(tableBody, 2);
             
-            // Page 1 data - Test columns
-            tableData.page1_basis_weight = convertColumnToJSONB(tableBody, 3);
-            tableData.page1_cof_kinetic_r_r = convertColumnToJSONB(tableBody, 4);
-            tableData.page1_cof_kinetic_r_s = convertColumnToJSONB(tableBody, 5);
-            tableData.page1_opacity = convertColumnToJSONB(tableBody, 6);
-            tableData.page1_modulus_1 = convertColumnToJSONB(tableBody, 7);
-            tableData.page1_modulus_2 = convertColumnToJSONB(tableBody, 8);
-            tableData.page1_modulus_3 = convertColumnToJSONB(tableBody, 9);
-            tableData.page1_gloss = convertColumnToJSONB(tableBody, 11);
+            // Page 1 data - CORRECTED to match actual HTML structure
+            tableData.page1_basis_weight = convertColumnToJSONB(tableBody, 3); // Film Weight
+            tableData.page1_thickness = convertColumnToJSONB(tableBody, 4); // Thickness
+            tableData.page1_wettability = convertColumnToJSONB(tableBody, 5); // Wettability
+            tableData.page1_cof_rr = convertColumnToJSONB(tableBody, 6); // COF (R-R)
+            tableData.page1_cof_cc = convertColumnToJSONB(tableBody, 7); // COF (C-C)
+            tableData.page1_tensile_break = convertColumnToJSONB(tableBody, 8); // Tensile Break
+            tableData.page1_elongation = convertColumnToJSONB(tableBody, 9); // MD Elongation Break
+            tableData.page1_modulus = convertColumnToJSONB(tableBody, 10); // 10% Modulus
         } else if (tableId === 'testingTableBody2') {
-            // Page 2 data - Correct column indices
-            tableData.page2_force_elongation_md_5p = convertColumnToJSONB(tableBody, 3);
-            tableData.page2_force_tensile_md = convertColumnToJSONB(tableBody, 4);
-            tableData.page2_force_elongation_cd_5p = convertColumnToJSONB(tableBody, 5);
-            tableData.page2_force_tensile_cd = convertColumnToJSONB(tableBody, 6);
-            tableData.page2_color_l = convertColumnToJSONB(tableBody, 7);
-            tableData.page2_color_a = convertColumnToJSONB(tableBody, 8);
-            tableData.page2_color_b = convertColumnToJSONB(tableBody, 9);
-            tableData.page2_color_delta_e = convertColumnToJSONB(tableBody, 10);
+            // Page 2 data - 6 columns (Mechanical Properties)
+            tableData.page2_tensile_break = convertColumnToJSONB(tableBody, 3);
+            tableData.page2_cd_elongation = convertColumnToJSONB(tableBody, 4);
+            tableData.page2_modulus = convertColumnToJSONB(tableBody, 5);
+            tableData.page2_opacity = convertColumnToJSONB(tableBody, 6);
+            tableData.page2_roll_width = convertColumnToJSONB(tableBody, 7);
+            tableData.page2_diameter = convertColumnToJSONB(tableBody, 8);
+        } else if (tableId === 'testingTableBody3') {
+            // Page 3 data - 5 columns (Color Measurements)
+            tableData.page3_colour_l = convertColumnToJSONB(tableBody, 3);
+            tableData.page3_colour_a = convertColumnToJSONB(tableBody, 4);
+            tableData.page3_colour_b = convertColumnToJSONB(tableBody, 5);
+            tableData.page3_delta_e = convertColumnToJSONB(tableBody, 6);
+            tableData.page3_base_film_pink = convertColumnToJSONB(tableBody, 7);
         }
     });
     
@@ -2073,18 +2101,18 @@ function applyOOSValidation(input, columnType) {
     }
 }
 
-// Apply OOS validation to all existing inputs in Page 1 and Page 2
+// Apply OOS validation to all existing inputs in Page 1, Page 2, and Page 3
 function applyOOSValidationToAllInputs() {
     // Page 1 validation
     const testingTableBody = document.getElementById('testingTableBody');
     if (testingTableBody) {
         const rows = testingTableBody.querySelectorAll('tr');
-        
+
         rows.forEach((row, rowIndex) => {
             const firstCell = row.querySelector('td');
             if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
                 const inputs = row.querySelectorAll('input');
-                
+
                 inputs.forEach((input, columnIndex) => {
                     if (columnIndex > 2) { // Data columns only
                         let columnType = '';
@@ -2105,11 +2133,11 @@ function applyOOSValidationToAllInputs() {
                         } else if (columnIndex === 10) {
                             columnType = 'modulus10';
                         }
-                        
+
                         if (columnType) {
                             // Apply validation to current value
                             applyOOSValidation(input, columnType);
-                            
+
                             // Add real-time validation event listener (only if not already added)
                             if (!input.hasAttribute('data-oos-listener')) {
                                 input.addEventListener('input', function() {
@@ -2123,17 +2151,17 @@ function applyOOSValidationToAllInputs() {
             }
         });
     }
-    
+
     // Page 2 validation
     const testingTableBody2 = document.getElementById('testingTableBody2');
     if (testingTableBody2) {
         const rows = testingTableBody2.querySelectorAll('tr');
-        
+
         rows.forEach((row, rowIndex) => {
             const firstCell = row.querySelector('td');
             if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
                 const inputs = row.querySelectorAll('input');
-                
+
                 inputs.forEach((input, columnIndex) => {
                     if (columnIndex > 2) { // Data columns only
                         let columnType = '';
@@ -2150,8 +2178,34 @@ function applyOOSValidationToAllInputs() {
                         } else if (columnIndex === 8) {
                             columnType = 'diameter';
                         }
-                    } else if (tableBody.id === 'testingTableBody3') {
-                        // Page 3 columns
+                        if (columnType) {
+                            // Apply validation to current value
+                            applyOOSValidation(input, columnType);
+
+                            // Add real-time validation event listener
+                            input.addEventListener('input', function() {
+                                applyOOSValidation(this, columnType);
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    // Page 3 validation
+    const testingTableBody3 = document.getElementById('testingTableBody3');
+    if (testingTableBody3) {
+        const rows = testingTableBody3.querySelectorAll('tr');
+
+        rows.forEach((row, rowIndex) => {
+            const firstCell = row.querySelector('td');
+            if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
+                const inputs = row.querySelectorAll('input');
+
+                inputs.forEach((input, columnIndex) => {
+                    if (columnIndex > 2) { // Data columns only
+                        let columnType = '';
                         if (columnIndex === 3) {
                             columnType = 'colourL';
                         } else if (columnIndex === 4) {
@@ -2163,11 +2217,11 @@ function applyOOSValidationToAllInputs() {
                         } else if (columnIndex === 7) {
                             columnType = 'baseFilmPink';
                         }
-                        
+
                         if (columnType) {
                             // Apply validation to current value
                             applyOOSValidation(input, columnType);
-                            
+
                             // Add real-time validation event listener
                             input.addEventListener('input', function() {
                                 applyOOSValidation(this, columnType);
@@ -2246,7 +2300,7 @@ async function createFormInDatabase(formData) {
     
     try {
         const { data, error } = await supabase
-            .from('214_18_micro_white')
+            .from('uc-18gsm-250p-abqr')
             .insert([formData])
             .select();
         
@@ -2280,7 +2334,7 @@ async function updateFormInDatabase(formData) {
         
         
         const { data, error } = await supabase
-            .from('214_18_micro_white')
+            .from('uc-18gsm-250p-abqr')
             .update(updateData)
             .eq('form_id', currentFormId)
             .select();
@@ -4177,15 +4231,15 @@ function calculatePage2ColumnStats(tableBody, changedColumnIndex = null) {
                 }
                 
                 // Update summary rows
-                updatePage2SummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
-                updatePage2SummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
-                updatePage2SummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
+                updatePageSummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
+                updatePageSummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
+                updatePageSummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
             } else {
                 // No data - show zeros
                 const zeroFormatted = summaryColIndex <= 4 || summaryColIndex === 8 ? '0.00' : '0.0';
-                updatePage2SummaryRow(tableBody, 'Average', summaryColIndex, zeroFormatted);
-                updatePage2SummaryRow(tableBody, 'Minimum', summaryColIndex, zeroFormatted);
-                updatePage2SummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
+                updatePageSummaryRow(tableBody, 'Average', summaryColIndex, zeroFormatted);
+                updatePageSummaryRow(tableBody, 'Minimum', summaryColIndex, zeroFormatted);
+                updatePageSummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
             }
         }
         return;
@@ -4275,13 +4329,13 @@ function calculatePage2SummaryStatistics(tableBody) {
             }
             
             // Update summary rows
-            updatePage2SummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
-            updatePage2SummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
-            updatePage2SummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
+            updatePageSummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
+            updatePageSummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
+            updatePageSummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
         } else {
             // No data - show zeros
             let zeroFormatted;
-            if (isPage3) {
+            if (tableBody.id === 'testingTableBody3') {
                 // Page 3 formatting
                 if (summaryColIndex <= 3) { // Colour L, A, B (1 decimal)
                     zeroFormatted = '0.0';
@@ -4298,15 +4352,90 @@ function calculatePage2SummaryStatistics(tableBody) {
                     zeroFormatted = '0';
                 }
             }
-            updatePage2SummaryRow(tableBody, 'Average', summaryColIndex, zeroFormatted);
-            updatePage2SummaryRow(tableBody, 'Minimum', summaryColIndex, zeroFormatted);
-            updatePage2SummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
+            updatePageSummaryRow(tableBody, 'Average', summaryColIndex, zeroFormatted);
+            updatePageSummaryRow(tableBody, 'Minimum', summaryColIndex, zeroFormatted);
+            updatePageSummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
         }
     });
 }
 
+// Function to calculate Page 3 summary statistics
+function calculatePage3SummaryStatistics(tableBody) {
+    if (tableBody.id !== 'testingTableBody3') {
+        return;
+    }
+
+    const rows = tableBody.querySelectorAll('tr');
+    const dataRows = Array.from(rows).filter(row => {
+        const firstCell = row.querySelector('td');
+        return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
+    });
+
+    if (dataRows.length === 0) return;
+
+    // Page 3 columns: Colour L (3), Colour A (4), Colour B (5), Delta E (6), Base Film Pink (7)
+    const summaryColumnIndices = [1, 2, 3, 4, 5]; // Summary row column positions (5 data columns)
+    const inputColumnIndices = [3, 4, 5, 6, 7]; // Input columns in data rows (after Sample No colspan=3)
+
+    // Calculate statistics for each column
+    inputColumnIndices.forEach((inputColIndex, index) => {
+        const summaryColIndex = summaryColumnIndices[index];
+        const values = [];
+
+        // Collect values from this input column
+        dataRows.forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            if (inputs[inputColIndex] && inputs[inputColIndex].value.trim() !== '') {
+                const value = parseFloat(inputs[inputColIndex].value);
+                if (!isNaN(value)) {
+                    values.push(value);
+                }
+            }
+        });
+
+        // Calculate statistics
+        if (values.length > 0) {
+            const avg = values.reduce((sum, val) => sum + val, 0) / values.length;
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+
+            // Format based on column type
+            let avgFormatted, minFormatted, maxFormatted;
+
+            // Page 3 formatting
+            if (summaryColIndex <= 3) { // Colour L, A, B (1 decimal)
+                avgFormatted = avg.toFixed(1);
+                minFormatted = min.toFixed(1);
+                maxFormatted = max.toFixed(1);
+            } else { // Delta E, Base Film Pink (2 decimals)
+                avgFormatted = avg.toFixed(2);
+                minFormatted = min.toFixed(2);
+                maxFormatted = max.toFixed(2);
+            }
+
+            // Update summary rows
+            updatePageSummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
+            updatePageSummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
+            updatePageSummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
+        } else {
+            // No data - show zeros
+            let zeroFormatted;
+            // Page 3 formatting
+            if (summaryColIndex <= 3) { // Colour L, A, B (1 decimal)
+                zeroFormatted = '0.0';
+            } else { // Delta E, Base Film Pink (2 decimals)
+                zeroFormatted = '0.00';
+            }
+            updatePageSummaryRow(tableBody, 'Average', summaryColIndex, zeroFormatted);
+            updatePageSummaryRow(tableBody, 'Minimum', summaryColIndex, zeroFormatted);
+            updatePageSummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
+        }
+    });
+
+}
+
 // Helper function to update Page 2 and 3 summary row
-function updatePage2SummaryRow(tableBody, rowType, columnIndex, value) {
+function updatePageSummaryRow(tableBody, rowType, columnIndex, value) {
     const rows = tableBody.querySelectorAll('tr');
     const summaryRow = Array.from(rows).find(row => {
         const firstCell = row.querySelector('td');
@@ -4393,7 +4522,7 @@ function triggerSummaryRecalculation() {
 // Force recalculation of all summary statistics
          function forceRecalculateAllSummaryStatistics() {
 
-    
+
     const allTables = getAllTableBodies();
     allTables.forEach(tableBody => {
         // Page 2 has NO Ave columns - all columns are individual data collectors
@@ -4402,8 +4531,13 @@ function triggerSummaryRecalculation() {
             // Skip Page 2 - no summary statistics needed
             return;
         }
+
+        // Calculate summary statistics for Page 3
+        if (tableBody.id === 'testingTableBody3') {
+            calculatePage3SummaryStatistics(tableBody);
+        }
     });
-    
+
 
 }
 
@@ -4639,18 +4773,6 @@ function updateTabOrderForAllRows(tableBody) {
                         input.addEventListener('input', function() {
                             applyOOSValidation(this, 'modulus10');
                         });
-                        // Add listener to calculate modulus average when data changes
-                        input.addEventListener('input', function() {
-                            calculateModulusAverage(this);
-                        });
-                        input.addEventListener('blur', function() {
-                            calculateModulusAverage(this);
-                        });
-                    } else if (j === 11) {
-                        // Modulus average column - read-only, auto-calculated
-                        input.readOnly = true;
-                        input.style.backgroundColor = 'transparent';
-                        input.style.color = 'black';
                     }
                 } else if (isPage2) {
                     // Page 2 validation
@@ -4779,7 +4901,7 @@ async function reloadDataForTable(tableBody) {
     try {
         // Get the current form data from database
         const { data, error } = await supabase
-            .from('214_18_micro_white')
+            .from('uc-18gsm-250p-abqr')
             .select('*')
             .eq('form_id', currentFormId)
             .single();
@@ -4810,26 +4932,26 @@ async function reloadDataForTable(tableBody) {
             if (data.page1_basis_weight) {
                 loadColumnDataToTable(tableBody, 3, data.page1_basis_weight);
             }
-            if (data.page1_cof_kinetic_r_r) {
-                loadColumnDataToTable(tableBody, 4, data.page1_cof_kinetic_r_r);
+            if (data.page1_thickness) {
+                loadColumnDataToTable(tableBody, 4, data.page1_thickness);
             }
-            if (data.page1_cof_kinetic_r_s) {
-                loadColumnDataToTable(tableBody, 5, data.page1_cof_kinetic_r_s);
+            if (data.page1_wettability) {
+                loadColumnDataToTable(tableBody, 5, data.page1_wettability);
             }
-            if (data.page1_opacity) {
-                loadColumnDataToTable(tableBody, 6, data.page1_opacity);
+            if (data.page1_cof_rr) {
+                loadColumnDataToTable(tableBody, 6, data.page1_cof_rr);
             }
-            if (data.page1_modulus_1) {
-                loadColumnDataToTable(tableBody, 7, data.page1_modulus_1);
+            if (data.page1_cof_cc) {
+                loadColumnDataToTable(tableBody, 7, data.page1_cof_cc);
             }
-            if (data.page1_modulus_2) {
-                loadColumnDataToTable(tableBody, 8, data.page1_modulus_2);
+            if (data.page1_tensile_break) {
+                loadColumnDataToTable(tableBody, 8, data.page1_tensile_break);
             }
-            if (data.page1_modulus_3) {
-                loadColumnDataToTable(tableBody, 9, data.page1_modulus_3);
+            if (data.page1_elongation) {
+                loadColumnDataToTable(tableBody, 9, data.page1_elongation);
             }
-            if (data.page1_gloss) {
-                loadColumnDataToTable(tableBody, 11, data.page1_gloss);
+            if (data.page1_modulus) {
+                loadColumnDataToTable(tableBody, 10, data.page1_modulus);
             }
             
             // Calculate summary statistics after all data is loaded
@@ -4847,29 +4969,23 @@ async function reloadDataForTable(tableBody) {
             if (data.lot_time) {
                 loadColumnDataToTable(tableBody, 2, data.lot_time);
             }
-            if (data.page2_force_elongation_md_5p) {
-                loadColumnDataToTable(tableBody, 3, data.page2_force_elongation_md_5p);
+            if (data.page2_tensile_break) {
+                loadColumnDataToTable(tableBody, 3, data.page2_tensile_break);
             }
-            if (data.page2_force_tensile_md) {
-                loadColumnDataToTable(tableBody, 4, data.page2_force_tensile_md);
+            if (data.page2_cd_elongation) {
+                loadColumnDataToTable(tableBody, 4, data.page2_cd_elongation);
             }
-            if (data.page2_force_elongation_cd_5p) {
-                loadColumnDataToTable(tableBody, 5, data.page2_force_elongation_cd_5p);
+            if (data.page2_modulus) {
+                loadColumnDataToTable(tableBody, 5, data.page2_modulus);
             }
-            if (data.page2_force_tensile_cd) {
-                loadColumnDataToTable(tableBody, 6, data.page2_force_tensile_cd);
+            if (data.page2_opacity) {
+                loadColumnDataToTable(tableBody, 6, data.page2_opacity);
             }
-            if (data.page2_color_l) {
-                loadColumnDataToTable(tableBody, 7, data.page2_color_l);
+            if (data.page2_roll_width) {
+                loadColumnDataToTable(tableBody, 7, data.page2_roll_width);
             }
-            if (data.page2_color_a) {
-                loadColumnDataToTable(tableBody, 8, data.page2_color_a);
-            }
-            if (data.page2_color_b) {
-                loadColumnDataToTable(tableBody, 9, data.page2_color_b);
-            }
-            if (data.page2_color_delta_e) {
-                loadColumnDataToTable(tableBody, 10, data.page2_color_delta_e);
+            if (data.page2_diameter) {
+                loadColumnDataToTable(tableBody, 8, data.page2_diameter);
             }
         }
         
@@ -4934,7 +5050,7 @@ async function loadDataFromDatabase() {
             
             // Load form data directly - no timeout needed
             const { data, error } = await supabase
-                .from('214_18_micro_white')
+                .from('uc-18gsm-250p-abqr')
                 .select('*')
                 .eq('form_id', currentFormId)
                 .single();
@@ -5010,8 +5126,10 @@ function loadFormHeaderData(data) {
     const viewProductCode = document.getElementById('view-product-code');
     if (viewProductCode && data.product_code) {
         viewProductCode.textContent = data.product_code;
-
     }
+
+    // Update form title when data is loaded
+    setFormTitle();
     
     if (productionOrderInput && data.production_order) {
         productionOrderInput.value = data.production_order;
@@ -5223,99 +5341,96 @@ function loadTableDataFromDatabase(data) {
         loadColumnDataToTable(testingTableBody, 0, data.lot_and_roll);
 
     }
-    
+
     if (data.roll_id) {
         loadColumnDataToTable(testingTableBody, 1, data.roll_id);
 
     }
-    
+
     if (data.lot_time) {
         loadColumnDataToTable(testingTableBody, 2, data.lot_time);
 
     }
-    
+
     // Load Page 1 data
     if (data.page1_basis_weight) {
         loadColumnDataToTable(testingTableBody, 3, data.page1_basis_weight);
+    }
 
+    if (data.page1_thickness) {
+        loadColumnDataToTable(testingTableBody, 4, data.page1_thickness);
+    }
+
+    if (data.page1_wettability) {
+        loadColumnDataToTable(testingTableBody, 5, data.page1_wettability);
+    }
+
+    if (data.page1_cof_rr) {
+        loadColumnDataToTable(testingTableBody, 6, data.page1_cof_rr);
+    }
+
+    if (data.page1_cof_cc) {
+        loadColumnDataToTable(testingTableBody, 7, data.page1_cof_cc);
     }
     
-    if (data.page1_cof_kinetic_r_r) {
-        loadColumnDataToTable(testingTableBody, 4, data.page1_cof_kinetic_r_r);
-
+    if (data.page1_tensile_break) {
+        loadColumnDataToTable(testingTableBody, 8, data.page1_tensile_break);
     }
-    
-    if (data.page1_cof_kinetic_r_s) {
-        loadColumnDataToTable(testingTableBody, 5, data.page1_cof_kinetic_r_s);
 
+    if (data.page1_elongation) {
+        loadColumnDataToTable(testingTableBody, 9, data.page1_elongation);
     }
-    
-    if (data.page1_opacity) {
-        loadColumnDataToTable(testingTableBody, 6, data.page1_opacity);
 
-    }
-    
-    if (data.page1_modulus_1) {
-        loadColumnDataToTable(testingTableBody, 7, data.page1_modulus_1);
-
-    }
-    
-    if (data.page1_modulus_2) {
-        loadColumnDataToTable(testingTableBody, 8, data.page1_modulus_2);
-
-    }
-    
-    if (data.page1_modulus_3) {
-        loadColumnDataToTable(testingTableBody, 9, data.page1_modulus_3);
-
-    }
-    
-    if (data.page1_gloss) {
-        loadColumnDataToTable(testingTableBody, 11, data.page1_gloss);
-
+    if (data.page1_modulus) {
+        loadColumnDataToTable(testingTableBody, 10, data.page1_modulus);
     }
     
     // Load Page 2 data
-    if (data.page2_force_elongation_md_5p) {
-        loadColumnDataToTable(testingTableBody2, 3, data.page2_force_elongation_md_5p);
-
+    if (data.page2_tensile_break) {
+        loadColumnDataToTable(testingTableBody2, 3, data.page2_tensile_break);
     }
     
-    if (data.page2_force_tensile_md) {
-        loadColumnDataToTable(testingTableBody2, 4, data.page2_force_tensile_md);
-
+    if (data.page2_cd_elongation) {
+        loadColumnDataToTable(testingTableBody2, 4, data.page2_cd_elongation);
     }
     
-    if (data.page2_force_elongation_cd_5p) {
-        loadColumnDataToTable(testingTableBody2, 5, data.page2_force_elongation_cd_5p);
-
+    if (data.page2_modulus) {
+        loadColumnDataToTable(testingTableBody2, 5, data.page2_modulus);
     }
     
-    if (data.page2_force_tensile_cd) {
-        loadColumnDataToTable(testingTableBody2, 6, data.page2_force_tensile_cd);
-
+    if (data.page2_opacity) {
+        loadColumnDataToTable(testingTableBody2, 6, data.page2_opacity);
     }
     
-    if (data.page2_color_l) {
-        loadColumnDataToTable(testingTableBody2, 7, data.page2_color_l);
-
+    if (data.page2_roll_width) {
+        loadColumnDataToTable(testingTableBody2, 7, data.page2_roll_width);
     }
-    
-    if (data.page2_color_a) {
-        loadColumnDataToTable(testingTableBody2, 8, data.page2_color_a);
 
+    if (data.page2_diameter) {
+        loadColumnDataToTable(testingTableBody2, 8, data.page2_diameter);
     }
-    
-    if (data.page2_color_b) {
-        loadColumnDataToTable(testingTableBody2, 9, data.page2_color_b);
 
+    // Load Page 3 data
+    if (data.page3_colour_l) {
+        loadColumnDataToTable(testingTableBody3, 3, data.page3_colour_l);
     }
-    
-    if (data.page2_color_delta_e) {
-        loadColumnDataToTable(testingTableBody2, 10, data.page2_color_delta_e);
 
+    if (data.page3_colour_a) {
+        loadColumnDataToTable(testingTableBody3, 4, data.page3_colour_a);
     }
-    
+
+    if (data.page3_colour_b) {
+        loadColumnDataToTable(testingTableBody3, 5, data.page3_colour_b);
+    }
+
+    if (data.page3_delta_e) {
+        loadColumnDataToTable(testingTableBody3, 6, data.page3_delta_e);
+    }
+
+    if (data.page3_base_film_pink) {
+        loadColumnDataToTable(testingTableBody3, 7, data.page3_base_film_pink);
+    }
+
 
 }
 
@@ -5332,35 +5447,59 @@ function loadRowCountFromDatabase(data) {
     let page2RowsNeeded = 0;
     let page3RowsNeeded = 0;
     
-    // Check Page 1 data to determine row count
+    // Check Page 1 data to determine row count - CORRECTED field names
     if (data.page1_basis_weight) {
         const basisWeightData = data.page1_basis_weight;
         const maxRow = Math.max(...Object.keys(basisWeightData).map(key => parseInt(key)).filter(num => !isNaN(num)));
         page1RowsNeeded = Math.max(page1RowsNeeded, maxRow);
     }
+
+    if (data.page1_thickness) {
+        const thicknessData = data.page1_thickness;
+        const maxRow = Math.max(...Object.keys(thicknessData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+        page1RowsNeeded = Math.max(page1RowsNeeded, maxRow);
+    }
     
-    if (data.page1_cof_kinetic_r_r) {
-        const cofData = data.page1_cof_kinetic_r_r;
+    if (data.page1_cof_rr) {
+        const cofData = data.page1_cof_rr;
         const maxRow = Math.max(...Object.keys(cofData).map(key => parseInt(key)).filter(num => !isNaN(num)));
         page1RowsNeeded = Math.max(page1RowsNeeded, maxRow);
     }
     
-    if (data.page1_opacity) {
-        const opacityData = data.page1_opacity;
-        const maxRow = Math.max(...Object.keys(opacityData).map(key => parseInt(key)).filter(num => !isNaN(num)));
-        page1RowsNeeded = Math.max(page1RowsNeeded, maxRow);
-    }
-    
     // Check Page 2 data to determine row count
-    if (data.page2_force_elongation_md_5p) {
-        const forceData = data.page2_force_elongation_md_5p;
-        const maxRow = Math.max(...Object.keys(forceData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+    if (data.page2_tensile_break) {
+        const tensileData = data.page2_tensile_break;
+        const maxRow = Math.max(...Object.keys(tensileData).map(key => parseInt(key)).filter(num => !isNaN(num)));
         page2RowsNeeded = Math.max(page2RowsNeeded, maxRow);
     }
-    
-    if (data.page2_color_l) {
-        const colorData = data.page2_color_l;
-        const maxRow = Math.max(...Object.keys(colorData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+
+    if (data.page2_cd_elongation) {
+        const cdElongationData = data.page2_cd_elongation;
+        const maxRow = Math.max(...Object.keys(cdElongationData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+        page2RowsNeeded = Math.max(page2RowsNeeded, maxRow);
+    }
+
+    if (data.page2_modulus) {
+        const modulusData = data.page2_modulus;
+        const maxRow = Math.max(...Object.keys(modulusData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+        page2RowsNeeded = Math.max(page2RowsNeeded, maxRow);
+    }
+
+    if (data.page2_opacity) {
+        const opacityData = data.page2_opacity;
+        const maxRow = Math.max(...Object.keys(opacityData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+        page2RowsNeeded = Math.max(page2RowsNeeded, maxRow);
+    }
+
+    if (data.page2_roll_width) {
+        const rollWidthData = data.page2_roll_width;
+        const maxRow = Math.max(...Object.keys(rollWidthData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+        page2RowsNeeded = Math.max(page2RowsNeeded, maxRow);
+    }
+
+    if (data.page2_diameter) {
+        const diameterData = data.page2_diameter;
+        const maxRow = Math.max(...Object.keys(diameterData).map(key => parseInt(key)).filter(num => !isNaN(num)));
         page2RowsNeeded = Math.max(page2RowsNeeded, maxRow);
     }
 
@@ -5567,10 +5706,6 @@ function loadColumnDataToTable(tableBody, inputIndex, jsonbData) {
                     }
                 }
                 
-                // Calculate modulus average if this is a modulus column (7, 8, or 9)
-                if (tableBody.id === 'testingTableBody' && (inputIndex >= 7 && inputIndex <= 9)) {
-                    calculateModulusAverage(input);
-                }
                 
                 // Calculate summary statistics for Page 1 when data is loaded
                 if (tableBody.id === 'testingTableBody') {
@@ -5861,7 +5996,7 @@ async function loadHistoricalDataForNewForm() {
         // First try to find data from previous day with matching criteria
         
         const { data: historicalData, error } = await supabase
-            .from('214_18_micro_white')
+            .from('uc-18gsm-250p-abqr')
             .select('*')
             .eq('product_code', productCode)
             .eq('machine_no', machineNo)
@@ -5877,7 +6012,7 @@ async function loadHistoricalDataForNewForm() {
 
             // If no data for previous date, find most recent form with same product + machine
             const { data: recentData, error: recentError } = await supabase
-                .from('214_18_micro_white')
+                .from('uc-18gsm-250p-abqr')
                 .select('*')
                 .eq('product_code', productCode)
                 .eq('machine_no', machineNo)
@@ -6100,6 +6235,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Setup view mode
     setupViewMode();
 
+    // Set form title
+    setFormTitle();
+
     // Setup historical data loading triggers
     console.log('🔍 [HISTORICAL] Setting up historical data triggers in DOMContentLoaded...');
     console.log('🔍 [HISTORICAL] About to call setupHistoricalDataTrigger()...');
@@ -6216,10 +6354,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 addRowsToTable(testingTableBody, rowsToAdd);
                 addRowsToTable(testingTableBody2, rowsToAdd);
                 addRowsToTable(testingTableBody3, rowsToAdd);
-                
-                // Update row counts
+
+                // Update row counts for all pages
                 updateRowCount();
                 updateRowCountByPage(2);
+                updateRowCountByPage(3);
             }
             
             // Load historical data if available
