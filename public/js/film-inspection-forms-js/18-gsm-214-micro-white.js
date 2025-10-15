@@ -1802,10 +1802,9 @@ function getTableDataFromAllTables() {
     
     allTables.forEach(tableBody => {
         if (!tableBody) return;
-        
+
         const tableId = tableBody.id;
-        const data = getTableData(tableBody);
-        
+
         if (tableId === 'testingTableBody') {
             // Page 1 data - Sample columns (Lot & Roll, Roll ID, Lot Time)
             tableData.lot_and_roll = convertColumnToJSONB(tableBody, 0);
@@ -1838,24 +1837,6 @@ function getTableDataFromAllTables() {
     return tableData;
        }
        
-       // Get table data (excluding summary rows)
-       function getTableData(tableBody) {
-
-    
-           const rows = Array.from(tableBody.querySelectorAll('tr'));
-           const dataRows = rows.filter(row => {
-               const firstCell = row.querySelector('td');
-               return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
-           });
-           
-    const tableData = dataRows.map(row => {
-               const inputs = row.querySelectorAll('input');
-               return Array.from(inputs).map(input => input.value);
-           });
-    
-
-    return tableData;
-       }
        
               // Load table data
        function loadTableData(tableBody, data) {

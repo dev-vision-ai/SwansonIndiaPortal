@@ -849,7 +849,7 @@ document.addEventListener('DOMContentLoaded', function() {
                    
                    // Page 4: Convert to JSONB arrays for each column
                    // HTML: Sample No (colspan="3"), Color L, Color A, Color B, Color~Delta E, Gloss (colspan="4")
-                   // HTML columns: 0(Sample No), 1(Color L), 2(Color A), 3(Color B), 4(Color~Delta E), 5(Gloss1), 6(Gloss2), 7(Gloss3), 8(GlossAve)
+                   // HTML columns: 0-2(Sample No), 3(Color L), 4(Color A), 5(Color B), 6(Color~Delta E), 7(Gloss1), 8(Gloss2), 9(Gloss3), 10(GlossAve)
                    page4_color_l: convertColumnToJSONB(testingTableBody4, 3),            // Color L - HTML column 3
                    page4_color_a: convertColumnToJSONB(testingTableBody4, 4),            // Color A - HTML column 4
                    page4_color_b: convertColumnToJSONB(testingTableBody4, 5),            // Color B - HTML column 5
@@ -3368,7 +3368,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 } else if (tableBodyId === 'testingTableBody4') {
                     // Page 4: Specific formatting
-                    if (aveIndex === 6) {
+                    if (aveIndex === 10) {
                         // Gloss Ave: 1 digit + 1 decimal (0.0)
                         formattedValue = average.toFixed(1);
                     } else {
@@ -3501,13 +3501,18 @@ document.addEventListener('DOMContentLoaded', function() {
                             avgFormatted = average.toFixed(1);
                             minFormatted = minimum.toFixed(1);
                             maxFormatted = maximum.toFixed(1);
+                        } else if (inputColIndex === 6) {
+                            // Color Delta E: 2 decimals (0.00)
+                            avgFormatted = average.toFixed(2);
+                            minFormatted = minimum.toFixed(2);
+                            maxFormatted = maximum.toFixed(2);
                         } else if (inputColIndex >= 7 && inputColIndex <= 9) {
                             // Gloss 1, 2, 3: 1 decimal (0.0)
                             avgFormatted = average.toFixed(1);
                             minFormatted = minimum.toFixed(1);
                             maxFormatted = maximum.toFixed(1);
                         } else {
-                            // Color columns: 1 decimal (0.0)
+                            // Other Color columns: 1 decimal (0.0)
                             avgFormatted = average.toFixed(1);
                             minFormatted = minimum.toFixed(1);
                             maxFormatted = maximum.toFixed(1);
@@ -3564,13 +3569,18 @@ document.addEventListener('DOMContentLoaded', function() {
                         avgFormatted = average.toFixed(1);
                         minFormatted = minimum.toFixed(1);
                         maxFormatted = maximum.toFixed(1);
+                    } else if (inputColIndex === 6) {
+                        // Color Delta E: 2 decimals (0.00)
+                        avgFormatted = average.toFixed(2);
+                        minFormatted = minimum.toFixed(2);
+                        maxFormatted = maximum.toFixed(2);
                     } else if (inputColIndex >= 7 && inputColIndex <= 9) {
                         // Gloss 1, 2, 3: 1 decimal (0.0)
                         avgFormatted = average.toFixed(1);
                         minFormatted = minimum.toFixed(1);
                         maxFormatted = maximum.toFixed(1);
                     } else {
-                        // Color columns: 1 decimal (0.0)
+                        // Other Color columns: 1 decimal (0.0)
                         avgFormatted = average.toFixed(1);
                         minFormatted = minimum.toFixed(1);
                         maxFormatted = maximum.toFixed(1);
@@ -3888,8 +3898,8 @@ document.addEventListener('DOMContentLoaded', function() {
                    // Map data Ave column position to summary column position
                    let summaryColPos;
                    if (tableBody.id === 'testingTableBody4') {
-                       // Page 4: Only one Ave column at position 6 -> Summary column 2 (after merged Gloss columns)
-                       if (avePos === 6) summaryColPos = 2; // Gloss Ave
+                       // Page 4: Only one Ave column at position 10 -> Summary column 2 (after merged Gloss columns)
+                       if (avePos === 10) summaryColPos = 2; // Gloss Ave
                    } else {
                        // Page 2 & 3: 3 Ave columns (positions 6, 10, 14) -> Summary columns: [2, 4, 6] (after merging)
                        // Column 6 (Elongation Ave) -> Summary column 2
@@ -3981,8 +3991,8 @@ document.addEventListener('DOMContentLoaded', function() {
                    // Clear summary rows if no data
                    let summaryColPos;
                    if (tableBody.id === 'testingTableBody4') {
-                       // Page 4: Only one Ave column at position 6 -> Summary column 2 (after merged Gloss columns)
-                       if (avePos === 6) summaryColPos = 2; // Gloss Ave
+                       // Page 4: Only one Ave column at position 10 -> Summary column 2 (after merged Gloss columns)
+                       if (avePos === 10) summaryColPos = 2; // Gloss Ave
                    } else {
                        // Page 2 & 3: 3 Ave columns (positions 6, 10, 14) -> Summary columns: [2, 4, 6] (after merging)
                        // Column 6 (Elongation Ave) -> Summary column 2
@@ -4043,7 +4053,7 @@ document.addEventListener('DOMContentLoaded', function() {
                              }
                          } else if (tableBody.id === 'testingTableBody4') {
                              // Page 4: Apply specific formatting
-                             if (avePos === 6) {
+                             if (avePos === 10) {
                                  // Gloss Ave: 1 digit + 1 decimal (0.0)
                                  defaultAvg = '0.0';
                                  defaultMin = '0.0';
@@ -5822,14 +5832,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 shouldHighlight = !isNaN(value) && (value < 90.6 || value > 98.6);
                 break;
             case 'colorA':
-                // Only check lower limit (L-(-5.1)), ignore upper limit (T-(-1.1))
-                // For negative values: red if value is ABOVE -5.1 (i.e., value > -5.1)
-                shouldHighlight = !isNaN(value) && value > -5.1;
+                // Color A: L-(-5.1) T-(-1.1) U-2.9
+                // Red if value < -5.1 OR value > 2.9
+                shouldHighlight = !isNaN(value) && (value < -5.1 || value > 2.9);
                 break;
             case 'colorB':
-                // Only check lower limit (L-(-3.6)), ignore upper limit (T-0.4)
-                // For negative values: red if value is ABOVE -3.6 (i.e., value > -3.6)
-                shouldHighlight = !isNaN(value) && value > -3.6;
+                // Color B: L-(-3.6) T-0.4 U-4.4
+                // Red if value < -3.6 OR value > 4.4
+                shouldHighlight = !isNaN(value) && (value < -3.6 || value > 4.4);
                 break;
             case 'colorDeltaE':
                 // Only check upper limit (U-5.00), ignore target (T-0.00)

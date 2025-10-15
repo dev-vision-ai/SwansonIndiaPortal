@@ -1166,7 +1166,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // Lot & Roll data to Sample No. column (A8-A37)
     if (data.lot_and_roll) {
       const lotAndRollData = data.lot_and_roll;
-      const dataValues = Object.values(lotAndRollData).filter(value => value && value !== '');
+      const dataValues = Object.values(lotAndRollData).filter(value => value !== null && value !== undefined && value !== '');
       
       // Fill all 30 rows to match HTML form structure
       for (let row = 8; row <= 37; row++) {
@@ -1182,7 +1182,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // Roll ID data to column B (B8-B37) - preserve HTML form structure
     if (data.roll_id) {
       const rollIdData = data.roll_id;
-      const dataValues = Object.values(rollIdData).filter(value => value && value !== '');
+      const dataValues = Object.values(rollIdData).filter(value => value !== null && value !== undefined && value !== '');
 
       // Fill all 30 rows to match HTML form structure
       for (let row = 8; row <= 37; row++) {
@@ -1198,7 +1198,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // Lot Time data to column C (C8-C37) - preserve HTML form structure
     if (data.lot_time) {
       const lotTimeData = data.lot_time;
-      const dataValues = Object.values(lotTimeData).filter(value => value && value !== '');
+      const dataValues = Object.values(lotTimeData).filter(value => value !== null && value !== undefined && value !== '');
 
       // Fill all 30 rows to match HTML form structure
       for (let row = 8; row <= 37; row++) {
@@ -1215,16 +1215,15 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // Basic Weight data to column D (D8-D37)
     if (data.page1_basis_weight) {
       const basicWeightData = data.page1_basis_weight;
-      const dataValues = Object.values(basicWeightData).filter(value => value && value !== '');
-      
-      // Fill all 30 rows to match HTML form structure
+      const dataValues = Object.values(basicWeightData).filter(value => value !== null && value !== undefined && value !== '');
+
       for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
+        const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
           worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
         } else {
-          worksheet.cell(`D${row}`).value(''); // Empty row
+          worksheet.cell(`D${row}`).value('');
         }
       }
     }
@@ -1232,50 +1231,47 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // Thickness data to column F (F8-F37)
     if (data.page1_thickness) {
       const thicknessData = data.page1_thickness;
-      const dataValues = Object.values(thicknessData).filter(value => value && value !== '');
-      
-      // Fill all 30 rows to match HTML form structure
+      const dataValues = Object.values(thicknessData).filter(value => value !== null && value !== undefined && value !== '');
+
       for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
+        const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
           worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
         } else {
-          worksheet.cell(`F${row}`).value(''); // Empty row
+          worksheet.cell(`F${row}`).value('');
         }
       }
     }
     
-    // Opacity data to column H (H8-H37) - preserve HTML form structure
+    // Opacity data to column H (H8-H37)
     if (data.page1_opacity) {
       const opacityData = data.page1_opacity;
-      const dataValues = Object.values(opacityData).filter(value => value && value !== '');
-      
-      // Fill all 30 rows to match HTML form structure
+      const dataValues = Object.values(opacityData).filter(value => value !== null && value !== undefined && value !== '');
+
       for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
+        const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
           worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
         } else {
-          worksheet.cell(`H${row}`).value(''); // Empty row
+          worksheet.cell(`H${row}`).value('');
         }
       }
     }
     
-    // COF Kinetic data to column J (J8-J37)
+    // COF data to column J (J8-J37)
     if (data.page1_cof_kinetic) {
       const cofData = data.page1_cof_kinetic;
-      const dataValues = Object.values(cofData).filter(value => value && value !== '');
-      
-      // Fill all 30 rows to match HTML form structure
+      const dataValues = Object.values(cofData).filter(value => value !== null && value !== undefined && value !== '');
+
       for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
+        const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
           worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
         } else {
-          worksheet.cell(`J${row}`).value(''); // Empty row
+          worksheet.cell(`J${row}`).value('');
         }
       }
     }
@@ -1283,50 +1279,47 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // Cut Width data to column L (L8-L37)
     if (data.page1_cut_width) {
       const cutWidthData = data.page1_cut_width;
-      const dataValues = Object.values(cutWidthData).filter(value => value && value !== '');
-      
-      // Fill all 30 rows to match HTML form structure
+      const dataValues = Object.values(cutWidthData).filter(value => value !== null && value !== undefined && value !== '');
+
       for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
+        const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
           worksheet.cell(`L${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
         } else {
-          worksheet.cell(`L${row}`).value(''); // Empty row
+          worksheet.cell(`L${row}`).value('');
         }
       }
     }
     
-    // Color-Delta E (Unprinted Film) data to column N (N8-N37)
+    // Color Unprinted data to column N (N8-N37)
     if (data.page1_color_delta_unprinted) {
-      const colorDeltaUnprintedData = data.page1_color_delta_unprinted;
-      const dataValues = Object.values(colorDeltaUnprintedData).filter(value => value && value !== '');
-      
-      // Fill all 30 rows to match HTML form structure
+      const colorUnprintedData = data.page1_color_delta_unprinted;
+      const dataValues = Object.values(colorUnprintedData).filter(value => value !== null && value !== undefined && value !== '');
+
       for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
+        const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
           worksheet.cell(`N${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
         } else {
-          worksheet.cell(`N${row}`).value(''); // Empty row
+          worksheet.cell(`N${row}`).value('');
         }
       }
     }
     
     // Color-Delta E (Printed Film) data to column O (O8-O37)
     if (data.page1_color_delta_printed) {
-      const colorDeltaPrintedData = data.page1_color_delta_printed;
-      const dataValues = Object.values(colorDeltaPrintedData).filter(value => value && value !== '');
+      const colorPrintedData = data.page1_color_delta_printed;
+      const dataValues = Object.values(colorPrintedData).filter(value => value !== null && value !== undefined && value !== '');
 
-      // Fill all 30 rows to match HTML form structure
       for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
+        const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
           worksheet.cell(`O${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
         } else {
-          worksheet.cell(`O${row}`).value(''); // Empty row
+          worksheet.cell(`O${row}`).value('');
         }
       }
     }
@@ -1737,7 +1730,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       // PG Quality data to column H (H9-H38) - fill from bottom up
       if (data.page4_pg_quality) {
         const pgQualityData = data.page4_pg_quality;
-        const dataValues = Object.values(pgQualityData).filter(value => value && value !== '');
+        const dataValues = Object.values(pgQualityData).filter(value => value !== null && value !== undefined && value !== '');
         let row = 38;
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
@@ -1885,7 +1878,7 @@ app.get('/export-168-16c-white-form', async (req, res) => {
     // Lot & Roll data to Sample No. column (A8-A37)
     if (data.lot_and_roll) {
       const lotAndRollData = data.lot_and_roll;
-      const dataValues = Object.values(lotAndRollData).filter(value => value && value !== '');
+      const dataValues = Object.values(lotAndRollData).filter(value => value !== null && value !== undefined && value !== '');
 
       // Fill all 30 rows to match HTML form structure
       for (let row = 8; row <= 37; row++) {
@@ -1901,7 +1894,7 @@ app.get('/export-168-16c-white-form', async (req, res) => {
     // Roll ID data to column B (B8-B37) - preserve HTML form structure
     if (data.roll_id) {
       const rollIdData = data.roll_id;
-      const dataValues = Object.values(rollIdData).filter(value => value && value !== '');
+      const dataValues = Object.values(rollIdData).filter(value => value !== null && value !== undefined && value !== '');
 
       // Fill all 30 rows to match HTML form structure
       for (let row = 8; row <= 37; row++) {
@@ -1914,15 +1907,32 @@ app.get('/export-168-16c-white-form', async (req, res) => {
       }
     }
 
+    // Lot Time data to column C (C8-C37) - preserve HTML form structure
+    if (data.lot_time) {
+      const lotTimeData = data.lot_time;
+      const dataValues = Object.values(lotTimeData).filter(value => value !== null && value !== undefined && value !== '');
+
+      // Fill all 30 rows to match HTML form structure
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        if (dataIndex < dataValues.length) {
+          worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+        } else {
+          worksheet.cell(`C${row}`).value(''); // Empty row
+        }
+      }
+    }
+
     // Basic Weight data to column D (D8-D37)
-    if (data.basic_weight) {
-      const basicWeightData = data.basic_weight;
-      const dataValues = Object.values(basicWeightData).filter(value => value && value !== '');
+    if (data.page1_basis_weight) {
+      const basicWeightData = data.page1_basis_weight;
+      const dataValues = Object.values(basicWeightData).filter(value => value !== null && value !== undefined && value !== '');
 
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`D${row}`).value(dataValues[dataIndex]);
+          const numValue = parseFloat(dataValues[dataIndex]);
+          worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
         } else {
           worksheet.cell(`D${row}`).value('');
         }
@@ -1932,7 +1942,7 @@ app.get('/export-168-16c-white-form', async (req, res) => {
     // Thickness data to column G (G8-G37)
     if (data.page1_thickness) {
       const thicknessData = data.page1_thickness;
-      const dataValues = Object.values(thicknessData).filter(value => value && value !== '');
+      const dataValues = Object.values(thicknessData).filter(value => value !== null && value !== undefined && value !== '');
 
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8;
@@ -1948,7 +1958,7 @@ app.get('/export-168-16c-white-form', async (req, res) => {
     // Opacity data to column J (J8-J37)
     if (data.page1_opacity) {
       const opacityData = data.page1_opacity;
-      const dataValues = Object.values(opacityData).filter(value => value && value !== '');
+      const dataValues = Object.values(opacityData).filter(value => value !== null && value !== undefined && value !== '');
 
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8;
@@ -1964,7 +1974,7 @@ app.get('/export-168-16c-white-form', async (req, res) => {
     // COF data to column M (M8-M37)
     if (data.page1_cof_kinetic) {
       const cofData = data.page1_cof_kinetic;
-      const dataValues = Object.values(cofData).filter(value => value && value !== '');
+      const dataValues = Object.values(cofData).filter(value => value !== null && value !== undefined && value !== '');
 
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8;
@@ -2340,10 +2350,10 @@ app.get('/export-168-16c-white-form', async (req, res) => {
     const page4Worksheet = workbook.sheet('Page4');
     if (page4Worksheet) {
       // Copy header info to Page 4
-      page4Worksheet.cell('B41').value(data.prepared_by || 'Unknown User');
-      page4Worksheet.cell('B42').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page4Worksheet.cell('M41').value(data.verified_by || 'Not Verified');
-      page4Worksheet.cell('M42').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+      page4Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
+      page4Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+      page4Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
+      page4Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
       page4Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
 
       // Equipment data for Page 4 (D6, L6)
@@ -2614,18 +2624,21 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
     // Inspection Date (B42) - format as DD/MM/YYYY
     worksheet.cell('B42').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
 
-    // Verified By (L41)
-    worksheet.cell('L41').value(data.verified_by || 'Not Verified');
+    // Verified By (M41)
+    worksheet.cell('M41').value(data.verified_by || 'Not Verified');
 
-    // Verified Date (L42) - format as DD/MM/YYYY
-    worksheet.cell('L42').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+    // Verified Date (M42) - format as DD/MM/YYYY
+    worksheet.cell('M42').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
 
     // Film Inspection Form Ref No (O3)
     worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
-      const equipment = data.equipment_used.page1;
+      // Parse JSON data if it's a string, otherwise use as is
+      const equipment = typeof data.equipment_used.page1 === 'string'
+        ? JSON.parse(data.equipment_used.page1)
+        : data.equipment_used.page1;
 
       // Basic Weight Equipment (D6)
       worksheet.cell('D6').value(equipment.basic_weight || '');
@@ -2653,7 +2666,7 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
     // Lot & Roll data to Sample No. column (A8-A37)
     if (data.lot_and_roll) {
       const lotAndRollData = data.lot_and_roll;
-      const dataValues = Object.values(lotAndRollData).filter(value => value && value !== '');
+      const dataValues = Object.values(lotAndRollData).filter(value => value !== null && value !== undefined && value !== '');
 
       // Fill all 30 rows to match HTML form structure
       for (let row = 8; row <= 37; row++) {
@@ -2669,7 +2682,7 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
     // Roll ID data to column B (B8-B37) - preserve HTML form structure
     if (data.roll_id) {
       const rollIdData = data.roll_id;
-      const dataValues = Object.values(rollIdData).filter(value => value && value !== '');
+      const dataValues = Object.values(rollIdData).filter(value => value !== null && value !== undefined && value !== '');
 
       // Fill all 30 rows to match HTML form structure
       for (let row = 8; row <= 37; row++) {
@@ -2685,7 +2698,7 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
     // Lot Time data to column C (C8-C37) - preserve HTML form structure
     if (data.lot_time) {
       const lotTimeData = data.lot_time;
-      const dataValues = Object.values(lotTimeData).filter(value => value && value !== '');
+      const dataValues = Object.values(lotTimeData).filter(value => value !== null && value !== undefined && value !== '');
 
       // Fill all 30 rows to match HTML form structure
       for (let row = 8; row <= 37; row++) {
@@ -2698,10 +2711,11 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
       }
     }
 
+    // Map page1 data to the measurement columns - preserve HTML form structure
     // Basic Weight data to column D (D8-D37)
     if (data.page1_basis_weight) {
       const basicWeightData = data.page1_basis_weight;
-      const dataValues = Object.values(basicWeightData).filter(value => value && value !== '');
+      const dataValues = Object.values(basicWeightData).filter(value => value !== null && value !== undefined && value !== '');
 
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8;
@@ -2717,7 +2731,7 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
     // Thickness data to column F (F8-F37)
     if (data.page1_thickness) {
       const thicknessData = data.page1_thickness;
-      const dataValues = Object.values(thicknessData).filter(value => value && value !== '');
+      const dataValues = Object.values(thicknessData).filter(value => value !== null && value !== undefined && value !== '');
 
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8;
@@ -2733,7 +2747,7 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
     // Opacity data to column H (H8-H37)
     if (data.page1_opacity) {
       const opacityData = data.page1_opacity;
-      const dataValues = Object.values(opacityData).filter(value => value && value !== '');
+      const dataValues = Object.values(opacityData).filter(value => value !== null && value !== undefined && value !== '');
 
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8;
@@ -2746,10 +2760,10 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
       }
     }
 
-    // COF data to column J (J8-J37)
+    // COF Kinetic data to column J (J8-J37)
     if (data.page1_cof_kinetic) {
       const cofData = data.page1_cof_kinetic;
-      const dataValues = Object.values(cofData).filter(value => value && value !== '');
+      const dataValues = Object.values(cofData).filter(value => value !== null && value !== undefined && value !== '');
 
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8;
@@ -2765,7 +2779,7 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
     // Cut Width data to column L (L8-L37)
     if (data.page1_cut_width) {
       const cutWidthData = data.page1_cut_width;
-      const dataValues = Object.values(cutWidthData).filter(value => value && value !== '');
+      const dataValues = Object.values(cutWidthData).filter(value => value !== null && value !== undefined && value !== '');
 
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8;
@@ -2781,7 +2795,7 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
     // Color Unprinted data to column N (N8-N37)
     if (data.page1_color_delta_unprinted) {
       const colorUnprintedData = data.page1_color_delta_unprinted;
-      const dataValues = Object.values(colorUnprintedData).filter(value => value && value !== '');
+      const dataValues = Object.values(colorUnprintedData).filter(value => value !== null && value !== undefined && value !== '');
 
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8;
@@ -2794,7 +2808,21 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
       }
     }
 
-    // Note: Removed page1_color_delta_printed mapping - not used in 168-16C White form
+    // Color-Delta E (Printed Film) data to column O (O8-O37)
+    if (data.page1_color_delta_printed) {
+      const colorPrintedData = data.page1_color_delta_printed;
+      const dataValues = Object.values(colorPrintedData).filter(value => value !== null && value !== undefined && value !== '');
+
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8;
+        if (dataIndex < dataValues.length) {
+          const numValue = parseFloat(dataValues[dataIndex]);
+          worksheet.cell(`O${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+        } else {
+          worksheet.cell(`O${row}`).value('');
+        }
+      }
+    }
 
     // Map Page 2 data if Page2 worksheet exists
     const page2Worksheet = workbook.sheet('Page2');
@@ -3391,7 +3419,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
     // Lot & Roll data to Sample No. column (A9-A38)
     if (data.lot_and_roll) {
       const lotAndRollData = data.lot_and_roll;
-      const dataValues = Object.values(lotAndRollData).filter(value => value && value !== '');
+      const dataValues = Object.values(lotAndRollData).filter(value => value !== null && value !== undefined && value !== '');
 
       // Fill all 30 rows to match HTML form structure
       for (let row = 9; row <= 38; row++) {
@@ -3407,7 +3435,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
     // Roll ID data to column B (B9-B38) - Updated to match template
     if (data.roll_id) {
       const rollIdData = data.roll_id;
-      const dataValues = Object.values(rollIdData).filter(value => value && value !== '');
+      const dataValues = Object.values(rollIdData).filter(value => value !== null && value !== undefined && value !== '');
 
       // Fill all 30 rows to match HTML form structure
       for (let row = 9; row <= 38; row++) {
@@ -3423,7 +3451,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
     // Lot Time data to column C (C9-C38) - Updated to match template
     if (data.lot_time) {
       const lotTimeData = data.lot_time;
-      const dataValues = Object.values(lotTimeData).filter(value => value && value !== '');
+      const dataValues = Object.values(lotTimeData).filter(value => value !== null && value !== undefined && value !== '');
 
       // Fill all 30 rows to match HTML form structure
       for (let row = 9; row <= 38; row++) {
@@ -3461,53 +3489,6 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       }
     }
 
-    // COF-Kinetic(R-R) data to column E (E9-E38) - Template shows COF-Kinetic(R-R)
-    if (data.page1_cof_kinetic_r_r) {
-      const cofKineticRRData = data.page1_cof_kinetic_r_r;
-      console.log('COF Kinetic R/R Data:', cofKineticRRData);
-
-      // Get data in correct order (keys 1-30)
-      const dataValues = [];
-      for (let i = 1; i <= 30; i++) {
-        const key = i.toString();
-        const value = cofKineticRRData[key];
-        if (value && value !== '' && value !== null && value !== undefined) {
-          dataValues.push(value);
-        } else {
-          dataValues.push(''); // Empty cell if no data
-        }
-      }
-
-      // Fill the Excel column E (rows 9-38)
-      for (let row = 9; row <= 38; row++) {
-        const dataIndex = row - 9; // Convert to 0-based index
-        worksheet.cell(`E${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
-      }
-    }
-
-    // COF-Kinetic(R-S) data to column F (F9-F38) - Template shows COF-Kinetic(R-S)
-    if (data.page1_cof_kinetic_r_s) {
-      const cofKineticRSData = data.page1_cof_kinetic_r_s;
-      console.log('COF Kinetic R/S Data:', cofKineticRSData);
-
-      // Get data in correct order (keys 1-30)
-      const dataValues = [];
-      for (let i = 1; i <= 30; i++) {
-        const key = i.toString();
-        const value = cofKineticRSData[key];
-        if (value && value !== '' && value !== null && value !== undefined) {
-          dataValues.push(value);
-        } else {
-          dataValues.push(''); // Empty cell if no data
-        }
-      }
-
-      // Fill the Excel column F (rows 9-38)
-      for (let row = 9; row <= 38; row++) {
-        const dataIndex = row - 9; // Convert to 0-based index
-        worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
-      }
-    }
 
     // Opacity data to column G (G9-G38) - Template shows Opacity %
     if (data.page1_opacity) {
@@ -4091,7 +4072,6 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
 
     console.log('=== WHITE-234(18) Export Completed ===');
     console.log('Filename:', filename);
-
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
@@ -4251,16 +4231,16 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
 
     // Map sample data to the correct columns - WHITE-214(18) has only Page 1 and Page 2
 
-    // Sample data should go in rows 8-37 (30 rows) - Updated to match template
-    // Top rows (8-26): Historical data, Bottom rows (27-37): Fresh data
-    // Lot & Roll data to Sample No. column (A8-A37)
+    // Sample data should go in rows 9-38 (30 rows) - Updated to match template
+    // Top rows (9-27): Historical data, Bottom rows (28-38): Fresh data
+    // Lot & Roll data to Sample No. column (A9-A38)
     if (data.lot_and_roll) {
       const lotAndRollData = data.lot_and_roll;
-      const dataValues = Object.values(lotAndRollData).filter(value => value && value !== '');
+      const dataValues = Object.values(lotAndRollData).filter(value => value !== null && value !== undefined && value !== '');
 
       // Fill all 30 rows to match HTML form structure
-      for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
+      for (let row = 9; row <= 38; row++) {
+        const dataIndex = row - 9; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
           worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
         } else {
@@ -4269,14 +4249,14 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
       }
     }
 
-    // Roll ID data to column B (B8-B37) - Updated to match template
+    // Roll ID data to column B (B9-B38) - Updated to match template
     if (data.roll_id) {
       const rollIdData = data.roll_id;
-      const dataValues = Object.values(rollIdData).filter(value => value && value !== '');
+      const dataValues = Object.values(rollIdData).filter(value => value !== null && value !== undefined && value !== '');
 
       // Fill all 30 rows to match HTML form structure
-      for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
+      for (let row = 9; row <= 38; row++) {
+        const dataIndex = row - 9; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
           worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
         } else {
@@ -4285,14 +4265,14 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
       }
     }
 
-    // Lot Time data to column C (C8-C37) - Updated to match template
+    // Lot Time data to column C (C9-C38) - Updated to match template
     if (data.lot_time) {
       const lotTimeData = data.lot_time;
-      const dataValues = Object.values(lotTimeData).filter(value => value && value !== '');
+      const dataValues = Object.values(lotTimeData).filter(value => value !== null && value !== undefined && value !== '');
 
       // Fill all 30 rows to match HTML form structure
-      for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
+      for (let row = 9; row <= 38; row++) {
+        const dataIndex = row - 9; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
           worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
         } else {
@@ -4319,60 +4299,13 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
         }
       }
 
-      // Fill the Excel column D (rows 8-37)
-      for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
+      // Fill the Excel column D (rows 9-38)
+      for (let row = 9; row <= 38; row++) {
+        const dataIndex = row - 9; // Convert to 0-based index
         worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
       }
     }
 
-    // COF Kinetic R/R data to column E (E9-E38) - Template shows COF-Kinetic(R-R)
-    if (data.page1_cof_kinetic_r_r) {
-      const cofKineticRRData = data.page1_cof_kinetic_r_r;
-      console.log('COF Kinetic R/R Data:', cofKineticRRData);
-
-      // Get data in correct order (keys 1-30)
-      const dataValues = [];
-      for (let i = 1; i <= 30; i++) {
-        const key = i.toString();
-        const value = cofKineticRRData[key];
-        if (value && value !== '' && value !== null && value !== undefined) {
-          dataValues.push(value);
-        } else {
-          dataValues.push(''); // Empty cell if no data
-        }
-      }
-
-      // Fill the Excel column E (rows 8-37)
-      for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
-        worksheet.cell(`E${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
-      }
-    }
-
-    // COF Kinetic R/S data to column F (F9-F38) - Template shows COF-Kinetic(R-S)
-    if (data.page1_cof_kinetic_r_s) {
-      const cofKineticRSData = data.page1_cof_kinetic_r_s;
-      console.log('COF Kinetic R/S Data:', cofKineticRSData);
-
-      // Get data in correct order (keys 1-30)
-      const dataValues = [];
-      for (let i = 1; i <= 30; i++) {
-        const key = i.toString();
-        const value = cofKineticRSData[key];
-        if (value && value !== '' && value !== null && value !== undefined) {
-          dataValues.push(value);
-        } else {
-          dataValues.push(''); // Empty cell if no data
-        }
-      }
-
-      // Fill the Excel column F (rows 8-37)
-      for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
-        worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
-      }
-    }
 
     // Opacity data to column G (G9-G38) - Template shows Opacity %
     if (data.page1_opacity) {
@@ -4391,9 +4324,9 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
         }
       }
 
-      // Fill the Excel column G (rows 8-37)
-      for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
+      // Fill the Excel column G (rows 9-38)
+      for (let row = 9; row <= 38; row++) {
+        const dataIndex = row - 9; // Convert to 0-based index
         worksheet.cell(`G${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
       }
     }
@@ -4416,9 +4349,9 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
         }
       }
 
-      // Fill the Excel column H (rows 8-37)
-      for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
+      // Fill the Excel column H (rows 9-38)
+      for (let row = 9; row <= 38; row++) {
+        const dataIndex = row - 9; // Convert to 0-based index
         worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
       }
       console.log('Modulus 1 data mapped to column H');
@@ -4441,9 +4374,9 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
         }
       }
 
-      // Fill the Excel column I (rows 8-37)
-      for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
+      // Fill the Excel column I (rows 9-38)
+      for (let row = 9; row <= 38; row++) {
+        const dataIndex = row - 9; // Convert to 0-based index
         worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
       }
       console.log('Modulus 2 data mapped to column I');
@@ -4466,9 +4399,9 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
         }
       }
 
-      // Fill the Excel column J (rows 8-37)
-      for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
+      // Fill the Excel column J (rows 9-38)
+      for (let row = 9; row <= 38; row++) {
+        const dataIndex = row - 9; // Convert to 0-based index
         worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
       }
       console.log('Modulus 3 data mapped to column J');
@@ -4491,9 +4424,9 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
         }
       }
 
-      // Fill the Excel column L (rows 8-37)
-      for (let row = 8; row <= 37; row++) {
-        const dataIndex = row - 8; // Convert to 0-based index
+      // Fill the Excel column L (rows 9-38)
+      for (let row = 9; row <= 38; row++) {
+        const dataIndex = row - 9; // Convert to 0-based index
         worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
       }
       console.log('Gloss data mapped to column L');
@@ -4921,7 +4854,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
     // Lot & Roll data to Sample No. column (A8-A37)
     if (data.lot_and_roll) {
       const lotAndRollData = data.lot_and_roll;
-      const dataValues = Object.values(lotAndRollData).filter(value => value && value !== '');
+      const dataValues = Object.values(lotAndRollData).filter(value => value !== null && value !== undefined && value !== '');
 
       // Fill all 30 rows to match HTML form structure
       for (let row = 8; row <= 37; row++) {
@@ -4937,7 +4870,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
     // Roll ID data to column B (B8-B37) - Updated to match template
     if (data.roll_id) {
       const rollIdData = data.roll_id;
-      const dataValues = Object.values(rollIdData).filter(value => value && value !== '');
+      const dataValues = Object.values(rollIdData).filter(value => value !== null && value !== undefined && value !== '');
 
       // Fill all 30 rows to match HTML form structure
       for (let row = 8; row <= 37; row++) {
@@ -4953,7 +4886,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
     // Lot Time data to column C (C8-C37) - Updated to match template
     if (data.lot_time) {
       const lotTimeData = data.lot_time;
-      const dataValues = Object.values(lotTimeData).filter(value => value && value !== '');
+      const dataValues = Object.values(lotTimeData).filter(value => value !== null && value !== undefined && value !== '');
 
       // Fill all 30 rows to match HTML form structure
       for (let row = 8; row <= 37; row++) {
@@ -5198,8 +5131,8 @@ app.get('/export-102-18c-white-form', async (req, res) => {
       }
 
       // Force Elongation 5% (N) MD 1: L9-L38
-      if (data.page2_force_5pct_md_1) {
-        const forceData = data.page2_force_5pct_md_1;
+      if (data.page2_force_5p_md_1) {
+        const forceData = data.page2_force_5p_md_1;
         const dataValues = [];
         for (let i = 1; i <= 30; i++) {
           const key = i.toString();
@@ -5218,8 +5151,8 @@ app.get('/export-102-18c-white-form', async (req, res) => {
       }
 
       // Force Elongation 5% (N) MD 2: M9-M38
-      if (data.page2_force_5pct_md_2) {
-        const forceData = data.page2_force_5pct_md_2;
+      if (data.page2_force_5p_md_2) {
+        const forceData = data.page2_force_5p_md_2;
         const dataValues = [];
         for (let i = 1; i <= 30; i++) {
           const key = i.toString();
@@ -5238,8 +5171,8 @@ app.get('/export-102-18c-white-form', async (req, res) => {
       }
 
       // Force Elongation 5% (N) MD 3: N9-N38
-      if (data.page2_force_5pct_md_3) {
-        const forceData = data.page2_force_5pct_md_3;
+      if (data.page2_force_5p_md_3) {
+        const forceData = data.page2_force_5p_md_3;
         const dataValues = [];
         for (let i = 1; i <= 30; i++) {
           const key = i.toString();
@@ -5293,7 +5226,46 @@ app.get('/export-102-18c-white-form', async (req, res) => {
         }
       }
 
-      // Continue with other Page 3 measurements...
+      // Elongation@ Break (%) CD 2 to column E (E9-E38)
+      if (data.page3_elongation_cd_2) {
+        const elongationData = data.page3_elongation_cd_2;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = elongationData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page3Worksheet.cell(`E${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Elongation@ Break (%) CD 3 to column F (F9-F38)
+      if (data.page3_elongation_cd_3) {
+        const elongationData = data.page3_elongation_cd_3;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = elongationData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page3Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
       // Force-Tensile Strength@Break (N) CD 1: H9-H38
       if (data.page3_force_cd_1) {
         const forceData = data.page3_force_cd_1;
@@ -5311,6 +5283,46 @@ app.get('/export-102-18c-white-form', async (req, res) => {
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
           page3Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Force-Tensile Strength@Break (N) CD 2: I9-I38
+      if (data.page3_force_cd_2) {
+        const forceData = data.page3_force_cd_2;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = forceData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page3Worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Force-Tensile Strength@Break (N) CD 3: J9-J38
+      if (data.page3_force_cd_3) {
+        const forceData = data.page3_force_cd_3;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = forceData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page3Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
@@ -5333,8 +5345,47 @@ app.get('/export-102-18c-white-form', async (req, res) => {
           page3Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
-    }
 
+      // Modulus Web MD Fresh@2% 2: M9-M38
+      if (data.page3_modulus_2) {
+        const modulusData = data.page3_modulus_2;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = modulusData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page3Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Modulus Web MD Fresh@2% 3: N9-N38
+      if (data.page3_modulus_3) {
+        const modulusData = data.page3_modulus_3;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = modulusData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page3Worksheet.cell(`N${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+    }
     // Map Page 4 data if Page4 worksheet exists
     if (page4Worksheet) {
       // Copy header info to Page 4
@@ -5431,7 +5482,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
         }
       }
 
-      // Gloss Level 1 to column L (L9-L38)
+      // Gloss 1 data to column L (L9-L38)
       if (data.page4_gloss_1) {
         const glossData = data.page4_gloss_1;
         const dataValues = [];
@@ -5448,6 +5499,46 @@ app.get('/export-102-18c-white-form', async (req, res) => {
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
           page4Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Gloss 2 data to column M (M9-M38)
+      if (data.page4_gloss_2) {
+        const glossData = data.page4_gloss_2;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = glossData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page4Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        }
+      }
+
+      // Gloss 3 data to column N (N9-N38)
+      if (data.page4_gloss_3) {
+        const glossData = data.page4_gloss_3;
+        const dataValues = [];
+        for (let i = 1; i <= 30; i++) {
+          const key = i.toString();
+          const value = glossData[key];
+          if (value && value !== '' && value !== null && value !== undefined) {
+            dataValues.push(value);
+          } else {
+            dataValues.push('');
+          }
+        }
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          page4Worksheet.cell(`N${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
@@ -6086,7 +6177,6 @@ function extractBreakdownCodes(breakdowncodes) {
     return 'N/A';
   }
 }
-
 // Helper function to calculate total breakdown time for export
 function calculateTotalBDTimeForExport(startTime, finishTime) {
   if (!startTime || !finishTime) {
@@ -6845,4 +6935,4 @@ async function processRollerHistoryData(data, res, method, filterSummary = null,
     console.error('Error stack:', error.stack);
     res.status(500).json({ error: `Error exporting roller history card: ${error.message}` });
   }
-} 
+}
