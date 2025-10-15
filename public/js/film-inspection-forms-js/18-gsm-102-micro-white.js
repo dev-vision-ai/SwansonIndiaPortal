@@ -5810,14 +5810,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 shouldHighlight = !isNaN(value) && (value < 90.6 || value > 98.6);
                 break;
             case 'colorA':
-                // Only check lower limit (L-(-5.1)), ignore upper limit (T-(-1.1))
-                // For negative values: red if value is ABOVE -5.1 (i.e., value > -5.1)
-                shouldHighlight = !isNaN(value) && value > -5.1;
+                // Color A: L-(-5.1) T-(-1.1) U-2.9
+                // Red if value < -5.1 OR value > 2.9
+                shouldHighlight = !isNaN(value) && (value < -5.1 || value > 2.9);
                 break;
             case 'colorB':
-                // Only check lower limit (L-(-3.6)), ignore upper limit (T-0.4)
-                // For negative values: red if value is ABOVE -3.6 (i.e., value > -3.6)
-                shouldHighlight = !isNaN(value) && value > -3.6;
+                // Color B: L-(-3.6) T-0.4 U-4.4
+                // Red if value < -3.6 OR value > 4.4
+                shouldHighlight = !isNaN(value) && (value < -3.6 || value > 4.4);
                 break;
             case 'colorDeltaE':
                 // Only check upper limit (U-5.00), ignore target (T-0.00)

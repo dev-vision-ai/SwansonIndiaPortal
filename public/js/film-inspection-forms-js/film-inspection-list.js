@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
-                                            <button onclick="${formData.product_code === 'APE-168(16)C' ? 'download16GSMWhiteExcel' : (formData.product_code === 'APE-176(18)CP(LCC+WW)BS' ? 'download18GSM176WWExcel' : ((formData.product_code === 'WHITE-214(18)' || formData.product_code === 'INUE1C18-250P(AB-QR)') ? 'download214WhiteExcel' : (formData.product_code === 'WHITE-234(18)' ? 'download234WhiteExcel' : (formData.product_code === 'APE-102(18)C' ? 'download102MicroWhiteExcel' : 'alert(\"Download not available for this product type\")')))) }('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
+                                            <button onclick="${formData.product_code === 'APE-168(16)CP(KRANTI)' ? 'download16GSMKrantiExcel' : (formData.product_code === 'APE-168(16)C' ? 'download16GSMWhiteExcel' : (formData.product_code === 'APE-176(18)CP(LCC+WW)BS' ? 'download18GSM176WWExcel' : ((formData.product_code === 'WHITE-214(18)' || formData.product_code === 'INUE1C18-250P(AB-QR)') ? 'download214WhiteExcel' : (formData.product_code === 'WHITE-234(18)' ? 'download234WhiteExcel' : (formData.product_code === 'APE-102(18)C' ? 'download102MicroWhiteExcel' : 'alert(\"Download not available for this product type\")')))))}('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
-                                            <button onclick="${formData.product_code === 'APE-168(16)C' ? 'download16GSMWhiteExcel' : (formData.product_code === 'APE-176(18)CP(LCC+WW)BS' ? 'download18GSM176WWExcel' : ((formData.product_code === 'WHITE-214(18)' || formData.product_code === 'INUE1C18-250P(AB-QR)') ? 'download214WhiteExcel' : (formData.product_code === 'WHITE-234(18)' ? 'download234WhiteExcel' : (formData.product_code === 'APE-102(18)C' ? 'download102MicroWhiteExcel' : 'alert(\"Download not available for this product type\")')))) }('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
+                                            <button onclick="${formData.product_code === 'APE-168(16)CP(KRANTI)' ? 'download16GSMKrantiExcel' : (formData.product_code === 'APE-168(16)C' ? 'download16GSMWhiteExcel' : (formData.product_code === 'APE-176(18)CP(LCC+WW)BS' ? 'download18GSM176WWExcel' : ((formData.product_code === 'WHITE-214(18)' || formData.product_code === 'INUE1C18-250P(AB-QR)') ? 'download214WhiteExcel' : (formData.product_code === 'WHITE-234(18)' ? 'download234WhiteExcel' : (formData.product_code === 'APE-102(18)C' ? 'download102MicroWhiteExcel' : 'alert(\"Download not available for this product type\")')))))}('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -1555,6 +1555,90 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Error downloading 102 Micro White Excel:', error);
+
+            // Show error state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            downloadBtn.title = 'Download failed';
+
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 3000);
+        }
+    };
+
+    // Function to download 16 GSM Kranti Excel file (APE-168(16)CP(KRANTI))
+    window.download16GSMKrantiExcel = async function(formId, buttonElement) {
+        // Store original button state immediately
+        const downloadBtn = buttonElement || event.target;
+        const originalContent = downloadBtn.innerHTML;
+        const originalTitle = downloadBtn.title;
+        const originalDisabled = downloadBtn.disabled;
+
+        try {
+            // Show loading state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+            downloadBtn.title = 'Downloading...';
+            downloadBtn.disabled = true;
+
+            // Make API call to download film inspection Excel
+            // Use localhost for IDE testing, Render URL for production
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+            const downloadUrl = `${backendUrl}/export-168-16cp-kranti-form?form_id=${encodeURIComponent(formId)}`;
+
+            // Get the current session for authentication
+            const session = await supabase.auth.getSession();
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            // Add authorization header if session exists
+            if (session.data.session?.access_token) {
+                headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
+            }
+
+            const response = await fetch(downloadUrl, {
+                method: 'GET',
+                headers: headers,
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Get the blob data
+            const blob = await response.blob();
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            // Use consistent filename pattern
+            const filename = `FIF-APE-168(16)CP(KRANTI)-${formId}.xlsx`;
+
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            // Show success state briefly
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            downloadBtn.title = 'Downloaded!';
+
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 2000);
+
+        } catch (error) {
+            console.error('Error downloading 16 GSM Kranti Excel:', error);
 
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
