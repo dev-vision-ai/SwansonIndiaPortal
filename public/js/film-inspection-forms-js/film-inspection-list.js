@@ -1,8 +1,41 @@
-import { supabase } from '../../supabase-config.js';
+﻿import { supabase } from '../../supabase-config.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const tableBody = document.querySelector('#filmInspectionListTableBody');
-    
+
+    // Pagination state
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    let totalItems = 0;
+    let allData = [];
+    let filteredData = [];
+
+    // Filter state
+    let activeFilters = {
+        fromDate: '',
+        toDate: '',
+        product: '',
+        machine: '',
+        status: '',
+        preparedBy: ''
+    };
+
+    // Pagination controls
+    const prevPageBtn = document.getElementById('prevPageBtn');
+    const nextPageBtn = document.getElementById('nextPageBtn');
+    const currentPageDisplay = document.getElementById('currentPageDisplay');
+    const totalPagesDisplay = document.getElementById('totalPagesDisplay');
+
+    // Filter controls
+    const filterFromDate = document.getElementById('filterFromDate');
+    const filterToDate = document.getElementById('filterToDate');
+    const filterProduct = document.getElementById('filterProduct');
+    const filterMachine = document.getElementById('filterMachine');
+    const filterStatus = document.getElementById('filterStatus');
+    const filterPreparedBy = document.getElementById('filterPreparedBy');
+    const clearFilterBtn = document.getElementById('clearFilter');
+    const filterStatusIndicator = document.getElementById('filterStatus');
+
     // IMMEDIATE PROTECTION: Prevent customer field from being converted to dropdown
     
     // Set up immediate protection
@@ -101,7 +134,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             // Combine data from all tables
-            const allData = [
+            allData = [
                 ...(krantiResult.data || []),
                 ...(whiteResult.data || []),
                 ...(wwResult.data || []),
@@ -113,22 +146,130 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ...(white168Result.data || [])
             ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Sort by creation date, newest first
 
-            const data = allData;
+            // Apply filters to get filtered data
+            applyFilters();
+        } catch (error) {
+            console.error('Error fetching film inspection forms:', error);
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="py-4 text-center text-red-500">
+                        Error loading forms. Please refresh the page.
+                    </td>
+                </tr>
+            `;
+        }
+    }
 
-            tableBody.innerHTML = ''; // Clear existing rows
+    // Pagination functions
+    function updatePaginationControls(totalPages) {
+        currentPageDisplay.textContent = currentPage;
+        totalPagesDisplay.textContent = totalPages;
 
-            if (data.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="9" class="py-4 text-center text-gray-500">
-                            No forms created yet. Click "Create Film Inspection Form" to get started.
-                        </td>
-                    </tr>
-                `;
-                return;
+        // Enable/disable buttons based on current page
+        prevPageBtn.disabled = currentPage === 1;
+        nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+    }
+
+    function nextPage() {
+        if (currentPage < Math.ceil(totalItems / itemsPerPage)) {
+            currentPage++;
+            displayCurrentPage();
+            updatePaginationControls(Math.ceil(totalItems / itemsPerPage));
+        }
+    }
+
+    function prevPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            displayCurrentPage();
+            updatePaginationControls(Math.ceil(totalItems / itemsPerPage));
+        }
+    }
+
+    // Filter functions
+    function applyFilters() {
+        filteredData = allData.filter(form => {
+            // Date range filter
+            if (activeFilters.fromDate && form.production_date) {
+                const formDate = new Date(form.production_date);
+                const fromDate = new Date(activeFilters.fromDate);
+                if (formDate < fromDate) return false;
             }
 
-        data.forEach((formData, index) => {
+            if (activeFilters.toDate && form.production_date) {
+                const formDate = new Date(form.production_date);
+                const toDate = new Date(activeFilters.toDate);
+                if (formDate > toDate) return false;
+            }
+
+            // Product filter
+            if (activeFilters.product && form.product_code !== activeFilters.product) {
+                return false;
+            }
+
+            // Machine filter
+            if (activeFilters.machine && form.machine_no !== activeFilters.machine) {
+                return false;
+            }
+
+            // Status filter - determine status based on verification
+            if (activeFilters.status) {
+                const formStatus = form.verified_by ? 'Submitted' : 'Draft';
+                if (formStatus !== activeFilters.status) {
+                    return false;
+                }
+            }
+
+            // Prepared by filter
+            if (activeFilters.preparedBy && form.prepared_by !== activeFilters.preparedBy) {
+                return false;
+            }
+
+            return true;
+        });
+
+        // Update filter status indicator (On/Off style like inline inspection)
+        const hasActiveFilters = Object.values(activeFilters).some(value => value !== '');
+        if (filterStatusIndicator) {
+            if (hasActiveFilters) {
+                filterStatusIndicator.textContent = 'On';
+                filterStatusIndicator.className = 'px-2 py-1 text-sm font-semibold rounded-full bg-green-200 text-green-700';
+            } else {
+                filterStatusIndicator.textContent = 'Off';
+                filterStatusIndicator.className = 'px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700';
+            }
+        }
+
+        // Reset to first page when filters change
+        currentPage = 1;
+        totalItems = filteredData.length;
+
+        // Update pagination and display
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        updatePaginationControls(totalPages);
+
+        displayCurrentPage();
+    }
+
+    function displayCurrentPage() {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+        const currentPageData = filteredData.slice(startIndex, endIndex);
+
+        tableBody.innerHTML = '';
+
+        if (currentPageData.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="py-4 text-center text-gray-500">
+                        No forms match the current filters.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        currentPageData.forEach((formData, index) => {
             const row = tableBody.insertRow();
             // Store all form data in data attributes for instant access
             row.setAttribute('data-customer', formData.customer || '');
@@ -136,9 +277,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.setAttribute('data-film-insp-form-ref-no', formData.film_insp_form_ref_no || '');
             row.setAttribute('data-lot-no', formData.lot_no || '');
             row.setAttribute('data-specification', formData.specification || '');
-            
-            // Serial number based on creation order: latest entry gets highest number
-            const serialNumber = data.length - index;
+
+            // Serial number based on overall position in filtered dataset: latest entry gets highest number
+            const serialNumber = totalItems - (startIndex + index);
+
+            const statusBadge = formData.verified_by ?
+                `<span class="text-gray-900">${formData.verified_by}</span>` :
+                `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Verification Pending</span>`;
+
             row.innerHTML = `
                 <td class="py-2 px-4 border-b border-r text-center">${serialNumber}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.production_date ? new Date(formData.production_date).toLocaleDateString('en-GB') : ''}</td>
@@ -149,10 +295,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     ${formData.prepared_by || ''}
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
-                    ${formData.verified_by ? 
-                        `<span class="text-gray-900">${formData.verified_by}</span>` : 
-                        `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Verification Pending</span>`
-                    }
+                    ${statusBadge}
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">-</td>
                 <td class="py-2 px-4 border-b border-r text-center">
@@ -191,7 +334,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
-                                            <button onclick="${formData.product_code === 'APE-168(16)CP(KRANTI)' ? 'download16GSMKrantiExcel' : (formData.product_code === 'APE-168(16)C' ? 'download16GSMWhiteExcel' : (formData.product_code === 'APE-176(18)CP(LCC+WW)BS' ? 'download18GSM176WWExcel' : ((formData.product_code === 'WHITE-214(18)' || formData.product_code === 'INUE1C18-250P(AB-QR)') ? 'download214WhiteExcel' : (formData.product_code === 'WHITE-234(18)' ? 'download234WhiteExcel' : (formData.product_code === 'APE-102(18)C' ? 'download102MicroWhiteExcel' : 'alert(\"Download not available for this product type\")')))))}('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
+                    <button onclick="handleDownloadClick('${formData.product_code}', '${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -204,15 +347,120 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </td>
             `;
         });
+    }
+
+    function clearAllFilters() {
+        // Reset filter inputs
+        if (filterFromDate) filterFromDate.value = '';
+        if (filterToDate) filterToDate.value = '';
+        if (filterProduct) filterProduct.value = '';
+        if (filterMachine) filterMachine.value = '';
+        if (filterStatus) filterStatus.value = '';
+        if (filterPreparedBy) filterPreparedBy.value = '';
+
+        // Reset filter state
+        activeFilters = {
+            fromDate: '',
+            toDate: '',
+            product: '',
+            machine: '',
+            status: '',
+            preparedBy: ''
+        };
+
+        // Apply filters (will show all data)
+        applyFilters();
+    }
+
+    // Add event listeners for pagination buttons
+    if (prevPageBtn) {
+        prevPageBtn.addEventListener('click', prevPage);
+    }
+    if (nextPageBtn) {
+        nextPageBtn.addEventListener('click', nextPage);
+    }
+
+    // Add event listeners for filters
+    if (filterFromDate) {
+        filterFromDate.addEventListener('change', () => {
+            activeFilters.fromDate = filterFromDate.value;
+            applyFilters();
+        });
+    }
+    if (filterToDate) {
+        filterToDate.addEventListener('change', () => {
+            activeFilters.toDate = filterToDate.value;
+            applyFilters();
+        });
+    }
+    if (filterProduct) {
+        filterProduct.addEventListener('change', () => {
+            activeFilters.product = filterProduct.value;
+            applyFilters();
+        });
+    }
+    if (filterMachine) {
+        filterMachine.addEventListener('change', () => {
+            activeFilters.machine = filterMachine.value;
+            applyFilters();
+        });
+    }
+    if (filterStatus) {
+        filterStatus.addEventListener('change', () => {
+            activeFilters.status = filterStatus.value;
+            applyFilters();
+        });
+    }
+    if (filterPreparedBy) {
+        filterPreparedBy.addEventListener('change', () => {
+            activeFilters.preparedBy = filterPreparedBy.value;
+            applyFilters();
+        });
+    }
+    if (clearFilterBtn) {
+        clearFilterBtn.addEventListener('click', clearAllFilters);
+    }
+
+    // Function to populate filter dropdowns
+    async function populateFilterDropdowns() {
+        try {
+            // Get unique products
+            const products = [...new Set(allData.map(form => form.product_code).filter(Boolean))];
+            if (filterProduct) {
+                filterProduct.innerHTML = '<option value="">All</option>';
+                products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product;
+                    option.textContent = product;
+                    filterProduct.appendChild(option);
+                });
+            }
+
+            // Get unique machines
+            const machines = [...new Set(allData.map(form => form.machine_no).filter(Boolean))];
+            if (filterMachine) {
+                filterMachine.innerHTML = '<option value="">All</option>';
+                machines.forEach(machine => {
+                    const option = document.createElement('option');
+                    option.value = machine;
+                    option.textContent = machine;
+                    filterMachine.appendChild(option);
+                });
+            }
+
+            // Get unique prepared by users
+            const preparedByUsers = [...new Set(allData.map(form => form.prepared_by).filter(Boolean))];
+            if (filterPreparedBy) {
+                filterPreparedBy.innerHTML = '<option value="">All</option>';
+                preparedByUsers.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user;
+                    option.textContent = user;
+                    filterPreparedBy.appendChild(option);
+                });
+            }
         } catch (error) {
-            console.error('Error fetching film inspection forms:', error);
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="9" class="py-4 text-center text-red-500">
-                        Error loading forms. Please refresh the page.
-                    </td>
-                </tr>
-            `;
+            console.error('Error populating filter dropdowns:', error);
         }
     }
 
@@ -220,11 +468,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.loadFilmInspectionForms = fetchFilmInspectionForms;
 
     // Load forms table on page load
-    fetchFilmInspectionForms();
+    await fetchFilmInspectionForms();
+    populateFilterDropdowns();
 
-    // Example for a search function
+    // Enhanced search function with pagination support
     async function searchFilmInspectionForms(searchTerm) {
-        // Search across all three tables
+        // Search across all tables
         const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
             supabase.from('168_16cp_kranti').select('*'),
             supabase.from('168_16c_white').select('*'),
@@ -236,7 +485,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             supabase.from('102_18c_micro_white').select('*'),
             supabase.from('168_18c_white').select('*')
         ]);
-    
+
         let allData = [];
         if (!krantiResult.error) allData = allData.concat(krantiResult.data);
         if (!whiteResult.error) allData = allData.concat(whiteResult.data);
@@ -247,16 +496,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!microWhite234Result.error) allData = allData.concat(microWhite234Result.data);
         if (!microWhite102Result.error) allData = allData.concat(microWhite102Result.data);
         if (!white168Result.error) allData = allData.concat(white168Result.data);
-    
+
         if (searchTerm) {
             // Filter results based on search term
-            allData = allData.filter(item => 
+            allData = allData.filter(item =>
                 item.production_order?.includes(searchTerm) ||
                 item.product_code?.includes(searchTerm)
             );
         }
-    
-        const data = allData;
+
+        // Sort by creation date, newest first
+        allData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        // Update pagination state
+        totalItems = allData.length;
+        currentPage = 1; // Reset to first page when searching
+
+        // Calculate pagination info
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+        const data = allData.slice(startIndex, endIndex);
+
+        // Update pagination controls
+        updatePaginationControls(totalPages);
 
         tableBody.innerHTML = ''; // Clear existing rows
 
@@ -268,8 +531,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.setAttribute('data-film-insp-form-ref-no', formData.film_insp_form_ref_no || '');
             row.setAttribute('data-lot-no', formData.lot_no || '');
             row.setAttribute('data-specification', formData.specification || '');
-            // Serial number based on creation order: latest entry gets highest number
-            const serialNumber = data.length - index;
+
+            // Serial number based on overall position in filtered dataset: latest entry gets highest number
+            const serialNumber = totalItems - (startIndex + index);
             row.innerHTML = `
                 <td class="py-2 px-4 border-b border-r text-center">${serialNumber}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.production_date ? new Date(formData.production_date).toLocaleDateString('en-GB') : ''}</td>
@@ -316,7 +580,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
-                                            <button onclick="${formData.product_code === 'APE-168(16)CP(KRANTI)' ? 'download16GSMKrantiExcel' : (formData.product_code === 'APE-168(16)C' ? 'download16GSMWhiteExcel' : (formData.product_code === 'APE-176(18)CP(LCC+WW)BS' ? 'download18GSM176WWExcel' : ((formData.product_code === 'WHITE-214(18)' || formData.product_code === 'INUE1C18-250P(AB-QR)') ? 'download214WhiteExcel' : (formData.product_code === 'WHITE-234(18)' ? 'download234WhiteExcel' : (formData.product_code === 'APE-102(18)C' ? 'download102MicroWhiteExcel' : 'alert(\"Download not available for this product type\")')))))}('${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
+                                            <button onclick="handleDownloadClick('${formData.product_code}', '${formData.form_id}', this)" class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Film Inspection Form">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -1569,7 +1833,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // Function to download 16 GSM Kranti Excel file (APE-168(16)CP(KRANTI))
+    // Function to download APE-168(16)CP(Kranti) Excel file
     window.download16GSMKrantiExcel = async function(formId, buttonElement) {
         // Store original button state immediately
         const downloadBtn = buttonElement || event.target;
@@ -1638,7 +1902,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }, 2000);
 
         } catch (error) {
-            console.error('Error downloading 16 GSM Kranti Excel:', error);
+            console.error('Error downloading APE-168(16)CP(Kranti) Excel:', error);
 
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -1734,6 +1998,124 @@ document.addEventListener('DOMContentLoaded', async () => {
                 downloadBtn.title = originalTitle;
                 downloadBtn.disabled = originalDisabled;
             }, 3000);
+        }
+    };
+
+    // Function to download 168 18C White Jeddah Excel file (APE-168(18)C (Jeddah))
+    window.download168WhiteJeddahExcel = async function(formId, buttonElement) {
+        // Store original button state immediately
+        const downloadBtn = buttonElement || event.target;
+        const originalContent = downloadBtn.innerHTML;
+        const originalTitle = downloadBtn.title;
+        const originalDisabled = downloadBtn.disabled;
+
+        try {
+            // Show loading state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+            downloadBtn.title = 'Downloading...';
+            downloadBtn.disabled = true;
+
+            // Make API call to download film inspection Excel
+            // Use localhost for IDE testing, Render URL for production
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+            const downloadUrl = `${backendUrl}/export-168-18c-white-jeddah-form?form_id=${encodeURIComponent(formId)}`;
+
+            // Get the current session for authentication
+            const session = await supabase.auth.getSession();
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            // Add authorization header if session exists
+            if (session.data.session?.access_token) {
+                headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
+            }
+
+            const response = await fetch(downloadUrl, {
+                method: 'GET',
+                headers: headers,
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Get the blob data
+            const blob = await response.blob();
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            // Use consistent filename pattern for Jeddah
+            const filename = `FIF-APE-168(18)C-Jeddah-${formId}.xlsx`;
+
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            // Show success state briefly
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            downloadBtn.title = 'Downloaded!';
+
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 2000);
+
+        } catch (error) {
+            console.error('Error downloading 168 White Jeddah Excel:', error);
+
+            // Show error state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            downloadBtn.title = 'Download failed';
+
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 3000);
+        }
+    };
+
+    // Function to handle download button clicks and route to appropriate download function
+    window.handleDownloadClick = async function(productCode, formId, buttonElement) {
+        const downloadFunctionName = getDownloadFunction(productCode);
+
+        if (downloadFunctionName) {
+            // Call the appropriate download function
+            window[downloadFunctionName](formId, buttonElement);
+        } else {
+            // Show alert for unsupported product types
+            alert('Download not available for this product type');
+        }
+    };
+
+    // Helper function to get the appropriate download function based on product code
+    window.getDownloadFunction = function(productCode) {
+        if (productCode === 'APE-168(16)CP(KRANTI)') {
+            return 'download16GSMKrantiExcel';
+        } else if (productCode === 'APE-168(16)C') {
+            return 'download16GSMWhiteExcel';
+        } else if (productCode === 'APE-168(18)C (Jeddah)') {
+            return 'download168WhiteJeddahExcel';
+        } else if (productCode === 'APE-176(18)CP(LCC+WW)BS') {
+            return 'download18GSM176WWExcel';
+        } else if (productCode === 'WHITE-214(18)' || productCode === 'INUE1C18-250P(AB-QR)') {
+            return 'download214WhiteExcel';
+        } else if (productCode === 'WHITE-234(18)') {
+            return 'download234WhiteExcel';
+        } else if (productCode === 'APE-102(18)C') {
+            return 'download102MicroWhiteExcel';
+        } else {
+            return null; // No download function available
         }
     };
 
@@ -1905,7 +2287,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // Function to download 16 GSM Kranti Excel file
+    // Function to download APE-168(16)CP(Kranti) Excel file
     window.download16GSMKrantiExcel = async function(formId, buttonElement) {
         // Store original button state immediately
         const downloadBtn = buttonElement || event.target;
@@ -1954,8 +2336,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.style.display = 'none';
             a.href = url;
             // Use consistent filename pattern
-            const filename = `FIF-16GSM-Kranti-${formId}.xlsx`;
-            console.log('16 GSM Kranti download filename:', filename);
+            const filename = `FIF-APE-168(16)CP(Kranti)-${formId}.xlsx`;
+            console.log('APE-168(16)CP(Kranti) download filename:', filename);
             a.download = filename;
             document.body.appendChild(a);
             a.click();
