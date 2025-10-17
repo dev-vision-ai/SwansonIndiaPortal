@@ -3368,7 +3368,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 } else if (tableBodyId === 'testingTableBody4') {
                     // Page 4: Specific formatting
-                    if (aveIndex === 6) {
+                    if (aveIndex === 10) {
                         // Gloss Ave: 1 digit + 1 decimal (0.0)
                         formattedValue = average.toFixed(1);
                     } else {
@@ -3506,8 +3506,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             avgFormatted = average.toFixed(1);
                             minFormatted = minimum.toFixed(1);
                             maxFormatted = maximum.toFixed(1);
+                        } else if (inputColIndex === 6) {
+                            // Color Delta E: 2 decimals (0.00)
+                            avgFormatted = average.toFixed(2);
+                            minFormatted = minimum.toFixed(2);
+                            maxFormatted = maximum.toFixed(2);
                         } else {
-                            // Color columns: 1 decimal (0.0)
+                            // Other Color columns (L, A, B): 1 decimal (0.0)
                             avgFormatted = average.toFixed(1);
                             minFormatted = minimum.toFixed(1);
                             maxFormatted = maximum.toFixed(1);
@@ -3558,7 +3563,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Format based on column type
                     let avgFormatted, minFormatted, maxFormatted;
-                    
+
                     if (inputColIndex === 10) {
                         // Gloss Ave: 1 decimal (0.0)
                         avgFormatted = average.toFixed(1);
@@ -3569,8 +3574,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         avgFormatted = average.toFixed(1);
                         minFormatted = minimum.toFixed(1);
                         maxFormatted = maximum.toFixed(1);
+                    } else if (inputColIndex === 6) {
+                        // Color Delta E: 2 decimals (0.00)
+                        avgFormatted = average.toFixed(2);
+                        minFormatted = minimum.toFixed(2);
+                        maxFormatted = maximum.toFixed(2);
                     } else {
-                        // Color columns: 1 decimal (0.0)
+                        // Other Color columns (L, A, B): 1 decimal (0.0)
                         avgFormatted = average.toFixed(1);
                         minFormatted = minimum.toFixed(1);
                         maxFormatted = maximum.toFixed(1);
@@ -4044,10 +4054,15 @@ document.addEventListener('DOMContentLoaded', function() {
                          } else if (tableBody.id === 'testingTableBody4') {
                              // Page 4: Apply specific formatting
                              if (avePos === 6) {
-                                 // Gloss Ave: 1 digit + 1 decimal (0.0)
-                                 defaultAvg = '0.0';
-                                 defaultMin = '0.0';
-                                 defaultMax = '0.0';
+                                 // Color Delta E: 2 decimal places (0.00)
+                                 defaultAvg = '0.00';
+                                 defaultMin = '0.00';
+                                 defaultMax = '0.00';
+                             } else if (avePos === 10) {
+                                 // Gloss Ave: 2 decimal places (0.00)
+                                 defaultAvg = '0.00';
+                                 defaultMin = '0.00';
+                                 defaultMax = '0.00';
                              } else {
                                  // Default formatting
                                  defaultAvg = '0.000';
@@ -5822,14 +5837,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 shouldHighlight = !isNaN(value) && (value < 90.6 || value > 98.6);
                 break;
             case 'colorA':
-                // Only check lower limit (L-(-5.1)), ignore upper limit (T-(-1.1))
-                // For negative values: red if value is ABOVE -5.1 (i.e., value > -5.1)
-                shouldHighlight = !isNaN(value) && value > -5.1;
+                // Check both lower limit (L-(-5.1)) and upper limit (U-2.9)
+                shouldHighlight = !isNaN(value) && (value < -5.1 || value > 2.9);
                 break;
             case 'colorB':
-                // Only check lower limit (L-(-3.6)), ignore upper limit (T-0.4)
-                // For negative values: red if value is ABOVE -3.6 (i.e., value > -3.6)
-                shouldHighlight = !isNaN(value) && value > -3.6;
+                // Check both lower limit (L-(-3.6)) and upper limit (U-4.4)
+                shouldHighlight = !isNaN(value) && (value < -3.6 || value > 4.4);
                 break;
             case 'colorDeltaE':
                 // Only check upper limit (U-5.00), ignore target (T-0.00)
