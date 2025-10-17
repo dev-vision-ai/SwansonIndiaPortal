@@ -1665,7 +1665,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // Function to download 18 GSM 176 WW Excel file (APE-176(18)CP(LCC+WW)BS)
-    window.download18GSM176WWExcel = async function(formId, buttonElement) {
+    window.download18GSM176WWExcel = async function(formId, buttonElement, productCode = null) {
         // Store original button state immediately
         const downloadBtn = buttonElement || event.target;
         const originalContent = downloadBtn.innerHTML;
@@ -1712,9 +1712,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            // Use consistent filename pattern
-            const filename = `FIF-APE-176(18)CP(LCC+WW)BS-${formId}.xlsx`;
-            
+            // Use product code for dynamic filename, fallback to default if not provided
+            const productName = productCode || 'APE-176(18)CP(LCC+WW)BS';
+            const filename = `FIF-${productName}-${formId}.xlsx`;
+
             a.download = filename;
             document.body.appendChild(a);
             a.click();
@@ -1749,7 +1750,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // Function to download 102 18 Micro White Excel file (APE-102(18)C)
-    window.download102MicroWhiteExcel = async function(formId, buttonElement) {
+    window.download102MicroWhiteExcel = async function(formId, buttonElement, productCode = null) {
         // Store original button state immediately
         const downloadBtn = buttonElement || event.target;
         const originalContent = downloadBtn.innerHTML;
@@ -1789,8 +1790,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            // Use consistent filename pattern
-            const filename = `FIF-APE-102(18)C-${formId}.xlsx`;
+            // Use product code for dynamic filename, fallback to default if not provided
+            const productName = productCode || 'APE-102(18)C';
+            const filename = `FIF-${productName}-${formId}.xlsx`;
             console.log('APE-102 download filename:', filename);
 
             // Create blob and download
@@ -1834,7 +1836,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // Function to download APE-168(16)CP(Kranti) Excel file
-    window.download16GSMKrantiExcel = async function(formId, buttonElement) {
+    window.download16GSMKrantiExcel = async function(formId, buttonElement, productCode = null) {
         // Store original button state immediately
         const downloadBtn = buttonElement || event.target;
         const originalContent = downloadBtn.innerHTML;
@@ -1881,8 +1883,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            // Use consistent filename pattern
-            const filename = `FIF-APE-168(16)CP(KRANTI)-${formId}.xlsx`;
+            // Use product code for dynamic filename, fallback to default if not provided
+            const productName = productCode || 'APE-168(16)CP(KRANTI)';
+            const filename = `FIF-${productName}-${formId}.xlsx`;
 
             a.download = filename;
             document.body.appendChild(a);
@@ -1918,7 +1921,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // Function to download 16 GSM White Excel file (APE-168(16)C)
-    window.download16GSMWhiteExcel = async function(formId, buttonElement) {
+    window.download16GSMWhiteExcel = async function(formId, buttonElement, productCode = null) {
         // Store original button state immediately
         const downloadBtn = buttonElement || event.target;
         const originalContent = downloadBtn.innerHTML;
@@ -1965,8 +1968,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            // Use consistent filename pattern
-            const filename = `FIF-APE-168(16)C-${formId}.xlsx`;
+            // Use product code for dynamic filename, fallback to default if not provided
+            const productName = productCode || 'APE-168(16)C';
+            const filename = `FIF-${productName}-${formId}.xlsx`;
             
             a.download = filename;
             document.body.appendChild(a);
@@ -2002,7 +2006,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // Function to download 168 18C White Jeddah Excel file (APE-168(18)C (Jeddah))
-    window.download168WhiteJeddahExcel = async function(formId, buttonElement) {
+    window.download168WhiteJeddahExcel = async function(formId, buttonElement, productCode = null) {
         // Store original button state immediately
         const downloadBtn = buttonElement || event.target;
         const originalContent = downloadBtn.innerHTML;
@@ -2049,8 +2053,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            // Use consistent filename pattern for Jeddah
-            const filename = `FIF-APE-168(18)C-Jeddah-${formId}.xlsx`;
+            // Use product code for dynamic filename, fallback to default if not provided
+            const productName = productCode || 'APE-168(18)C-Jeddah';
+            const filename = `FIF-${productName}-${formId}.xlsx`;
 
             a.download = filename;
             document.body.appendChild(a);
@@ -2090,8 +2095,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const downloadFunctionName = getDownloadFunction(productCode);
 
         if (downloadFunctionName) {
-            // Call the appropriate download function
-            window[downloadFunctionName](formId, buttonElement);
+            // Call the appropriate download function with product code
+            window[downloadFunctionName](formId, buttonElement, productCode);
         } else {
             // Show alert for unsupported product types
             alert('Download not available for this product type');
@@ -2108,8 +2113,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             return 'download168WhiteJeddahExcel';
         } else if (productCode === 'APE-176(18)CP(LCC+WW)BS') {
             return 'download18GSM176WWExcel';
-        } else if (productCode === 'WHITE-214(18)' || productCode === 'INUE1C18-250P(AB-QR)') {
+        } else if (productCode === 'WHITE-214(18)') {
             return 'download214WhiteExcel';
+        } else if (productCode === 'INUE1C18-250P(AB-QR)') {
+            return 'downloadUC250PABQRExcel';
         } else if (productCode === 'WHITE-234(18)') {
             return 'download234WhiteExcel';
         } else if (productCode === 'APE-102(18)C') {
@@ -2120,7 +2127,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // Function to download 214 18 White Excel file (WHITE-214(18))
-    window.download214WhiteExcel = async function(formId, buttonElement) {
+    window.download214WhiteExcel = async function(formId, buttonElement, productCode = null) {
         // Store original button state immediately
         const downloadBtn = buttonElement || event.target;
         const originalContent = downloadBtn.innerHTML;
@@ -2167,8 +2174,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            // Use consistent filename pattern
-            const filename = `FIF-WHITE-214(18)-${formId}.xlsx`;
+            // Use product code for dynamic filename, fallback to default if not provided
+            const productName = productCode || 'WHITE-214(18)';
+            const filename = `FIF-${productName}-${formId}.xlsx`;
             
             a.download = filename;
             document.body.appendChild(a);
@@ -2204,7 +2212,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // Function to download 234 18 White Excel file (WHITE-234(18))
-    window.download234WhiteExcel = async function(formId, buttonElement) {
+    window.download234WhiteExcel = async function(formId, buttonElement, productCode = null) {
         // Store original button state immediately
         const downloadBtn = buttonElement || event.target;
         const originalContent = downloadBtn.innerHTML;
@@ -2251,8 +2259,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            // Use consistent filename pattern
-            const filename = `FIF-WHITE-234(18)-${formId}.xlsx`;
+            // Use product code for dynamic filename, fallback to default if not provided
+            const productName = productCode || 'WHITE-234(18)';
+            const filename = `FIF-${productName}-${formId}.xlsx`;
             console.log('234 White download filename:', filename);
             a.download = filename;
             document.body.appendChild(a);
@@ -2288,7 +2297,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // Function to download APE-168(16)CP(Kranti) Excel file
-    window.download16GSMKrantiExcel = async function(formId, buttonElement) {
+    window.download16GSMKrantiExcel = async function(formId, buttonElement, productCode = null) {
         // Store original button state immediately
         const downloadBtn = buttonElement || event.target;
         const originalContent = downloadBtn.innerHTML;
@@ -3579,3 +3588,85 @@ window.deleteFilmForm = function(formId) {
             }
         });
     }
+
+    // Function to download UC-18gsm-250P-ABQR Excel file
+    window.downloadUC250PABQRExcel = async function(formId, buttonElement, productCode = null) {
+        // Store original button state immediately
+        const downloadBtn = buttonElement || event.target;
+        const originalContent = downloadBtn.innerHTML;
+        const originalTitle = downloadBtn.title;
+        const originalDisabled = downloadBtn.disabled;
+
+        try {
+            // Show loading state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+            downloadBtn.title = 'Downloading...';
+            downloadBtn.disabled = true;
+
+            // Make API call to download UC-18gsm-250P-ABQR Excel
+            // Use localhost for IDE testing, Render URL for production
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+            const downloadUrl = `${backendUrl}/export-uc-18gsm-250p-abqr-form?form_id=${encodeURIComponent(formId)}`;
+
+            // Get the current session for authentication
+            const session = await supabase.auth.getSession();
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            if (session.data.session?.access_token) {
+                headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
+            }
+
+            // Make the request
+            const response = await fetch(downloadUrl, {
+                method: 'GET',
+                headers: headers
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Create blob and download
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+
+            // Use product code for dynamic filename, fallback to default if not provided
+            const productName = productCode || 'UC-18gsm-250P-ABQR';
+            a.download = `FIF-${productName}-${formId}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            // Show success state briefly
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            downloadBtn.title = 'Downloaded!';
+
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 2000);
+
+        } catch (error) {
+            console.error('Error downloading UC-18gsm-250P-ABQR Excel:', error);
+
+            // Show error state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            downloadBtn.title = 'Download failed';
+
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 3000);
+        }
+    };

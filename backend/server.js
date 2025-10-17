@@ -1851,8 +1851,8 @@ app.get('/export-168-16c-white-form', async (req, res) => {
     // Verified Date (L42) - format as DD/MM/YYYY
     worksheet.cell('L42').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
 
-    // Film Inspection Form Ref No (N3)
-    worksheet.cell('N3').value(data.film_insp_form_ref_no || '');
+    // Film Inspection Form Ref No (O3)
+    worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
@@ -2664,8 +2664,8 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
     // Verified Date (L42) - format as DD/MM/YYYY
     worksheet.cell('L42').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
 
-    // Film Inspection Form Ref No (N3)
-    worksheet.cell('N3').value(data.film_insp_form_ref_no || '');
+    // Film Inspection Form Ref No (O3)
+    worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
@@ -2815,7 +2815,12 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
         console.log('Created Page2 sheet for 168 Jeddah form');
       }
 
-      // Elongation MD 1 data to column D (D8-D37)
+      // Equipment data for Page 2 (D6)
+      if (data.equipment_used && data.equipment_used.page2) {
+        page2Worksheet.cell('D6').value(data.equipment_used.page2.common || '');
+      }
+
+      // Elongation MD 1 data to column D (D9-D38)
       if (data.page2_elongation_md_1) {
         const elongationMD1Data = data.page2_elongation_md_1;
         console.log('Page 2 Elongation MD 1 Data:', elongationMD1Data);
@@ -2832,14 +2837,14 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
           }
         }
 
-        // Fill the Excel column D (rows 8-37) on Page2 sheet
-        for (let row = 8; row <= 37; row++) {
-          const dataIndex = row - 8; // Convert to 0-based index
+        // Fill the Excel column D (rows 9-38) on Page2 sheet
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9; // Convert to 0-based index
           page2Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Elongation MD 2 data to column E (E8-E37)
+      // Elongation MD 2 data to column E (E9-E38)
       if (data.page2_elongation_md_2) {
         const elongationMD2Data = data.page2_elongation_md_2;
 
@@ -2854,13 +2859,13 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
           }
         }
 
-        for (let row = 8; row <= 37; row++) {
-          const dataIndex = row - 8;
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
           page2Worksheet.cell(`E${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Elongation MD 3 data to column F (F8-F37)
+      // Elongation MD 3 data to column F (F9-F38)
       if (data.page2_elongation_md_3) {
         const elongationMD3Data = data.page2_elongation_md_3;
 
@@ -2875,13 +2880,13 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
           }
         }
 
-        for (let row = 8; row <= 37; row++) {
-          const dataIndex = row - 8;
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
           page2Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Force MD 1 data to column H (H8-H37)
+      // Force MD 1 data to column H (H9-H38)
       if (data.page2_force_md_1) {
         const forceMD1Data = data.page2_force_md_1;
 
@@ -2896,13 +2901,13 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
           }
         }
 
-        for (let row = 8; row <= 37; row++) {
-          const dataIndex = row - 8;
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
           page2Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Force MD 2 data to column I (I8-I37)
+      // Force MD 2 data to column I (I9-I38)
       if (data.page2_force_md_2) {
         const forceMD2Data = data.page2_force_md_2;
 
@@ -2917,13 +2922,13 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
           }
         }
 
-        for (let row = 8; row <= 37; row++) {
-          const dataIndex = row - 8;
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
           page2Worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Force MD 3 data to column J (J8-J37)
+      // Force MD 3 data to column J (J9-J38)
       if (data.page2_force_md_3) {
         const forceMD3Data = data.page2_force_md_3;
 
@@ -2938,13 +2943,13 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
           }
         }
 
-        for (let row = 8; row <= 37; row++) {
-          const dataIndex = row - 8;
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
           page2Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Force 5% MD 1 data to column L (L8-L37)
+      // Force 5% MD 1 data to column L (L9-L38)
       if (data.page2_force_5p_md_1) {
         const force5PMD1Data = data.page2_force_5p_md_1;
 
@@ -2959,13 +2964,13 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
           }
         }
 
-        for (let row = 8; row <= 37; row++) {
-          const dataIndex = row - 8;
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
           page2Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Force 5% MD 2 data to column M (M8-M37)
+      // Force 5% MD 2 data to column M (M9-M38)
       if (data.page2_force_5p_md_2) {
         const force5PMD2Data = data.page2_force_5p_md_2;
 
@@ -2980,13 +2985,13 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
           }
         }
 
-        for (let row = 8; row <= 37; row++) {
-          const dataIndex = row - 8;
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
           page2Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Force 5% MD 3 data to column N (N8-N37)
+      // Force 5% MD 3 data to column N (N9-N38)
       if (data.page2_force_5p_md_3) {
         const force5PMD3Data = data.page2_force_5p_md_3;
 
@@ -3031,7 +3036,12 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
         console.log('Created Page3 sheet for 168 Jeddah form');
       }
 
-      // Elongation CD 1 data to column D (D8-D37)
+      // Equipment data for Page 3 (D6)
+      if (data.equipment_used && data.equipment_used.page3) {
+        page3Worksheet.cell('D6').value(data.equipment_used.page3.common || '');
+      }
+
+      // Elongation CD 1 data to column D (D9-D38)
       if (data.page3_elongation_cd_1) {
         const elongationCD1Data = data.page3_elongation_cd_1;
 
@@ -3046,13 +3056,13 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
           }
         }
 
-        for (let row = 8; row <= 37; row++) {
-          const dataIndex = row - 8;
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
           page3Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Elongation CD 2 data to column E (E8-E37)
+      // Elongation CD 2 data to column E (E9-E38)
       if (data.page3_elongation_cd_2) {
         const elongationCD2Data = data.page3_elongation_cd_2;
 
@@ -3067,13 +3077,13 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
           }
         }
 
-        for (let row = 8; row <= 37; row++) {
-          const dataIndex = row - 8;
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
           page3Worksheet.cell(`E${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Elongation CD 3 data to column F (F8-F37)
+      // Elongation CD 3 data to column F (F9-F38)
       if (data.page3_elongation_cd_3) {
         const elongationCD3Data = data.page3_elongation_cd_3;
 
@@ -3088,13 +3098,13 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
           }
         }
 
-        for (let row = 8; row <= 37; row++) {
-          const dataIndex = row - 8;
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
           page3Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Force CD 1 data to column H (H8-H37)
+      // Force CD 1 data to column H (H9-H38)
       if (data.page3_force_cd_1) {
         const forceCD1Data = data.page3_force_cd_1;
 
@@ -3109,13 +3119,13 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
           }
         }
 
-        for (let row = 8; row <= 37; row++) {
-          const dataIndex = row - 8;
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
           page3Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Force CD 2 data to column I (I8-I37)
+      // Force CD 2 data to column I (I9-I38)
       if (data.page3_force_cd_2) {
         const forceCD2Data = data.page3_force_cd_2;
 
@@ -3130,13 +3140,13 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
           }
         }
 
-        for (let row = 8; row <= 37; row++) {
-          const dataIndex = row - 8;
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
           page3Worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Force CD 3 data to column J (J8-J37)
+      // Force CD 3 data to column J (J9-J38)
       if (data.page3_force_cd_3) {
         const forceCD3Data = data.page3_force_cd_3;
 
@@ -3151,13 +3161,13 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
           }
         }
 
-        for (let row = 8; row <= 37; row++) {
-          const dataIndex = row - 8;
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
           page3Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Modulus 1 data to column L (L8-L37)
+      // Modulus 1 data to column L (L9-L38)
       if (data.page3_modulus_1) {
         const modulus1Data = data.page3_modulus_1;
 
@@ -3172,13 +3182,13 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
           }
         }
 
-        for (let row = 8; row <= 37; row++) {
-          const dataIndex = row - 8;
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
           page3Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Modulus 2 data to column M (M8-M37)
+      // Modulus 2 data to column M (M9-M38)
       if (data.page3_modulus_2) {
         const modulus2Data = data.page3_modulus_2;
 
@@ -3193,8 +3203,8 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
           }
         }
 
-        for (let row = 8; row <= 37; row++) {
-          const dataIndex = row - 8;
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
           page3Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
@@ -3229,7 +3239,8 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
     }
 
     // PAGE 4 DATA MAPPING - APE-168(18)C (Jeddah) Page 4 data (Color & Gloss)
-    const hasPage4Data = data.page4_color_l || data.page4_gloss_1;
+    const hasPage4Data = data.page4_color_l || data.page4_color_a || data.page4_color_b ||
+                         data.page4_color_delta_e || data.page4_gloss_1 || data.page4_gloss_2 || data.page4_gloss_3;
 
     if (hasPage4Data) {
       console.log('Page 4 data detected, mapping Color and Gloss measurements');
@@ -3244,7 +3255,13 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
         console.log('Created Page4 sheet for 168 Jeddah form');
       }
 
-      // Color L data to column D (D8-D37)
+      // Equipment data for Page 4 (D6, L6)
+      if (data.equipment_used && data.equipment_used.page4) {
+        page4Worksheet.cell('D6').value(data.equipment_used.page4.color_common || '');
+        page4Worksheet.cell('L6').value(data.equipment_used.page4.gloss || '');
+      }
+
+      // Color L data to column D (D9-D38)
       if (data.page4_color_l) {
         const colorLData = data.page4_color_l;
 
@@ -3265,7 +3282,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
         }
       }
 
-      // Color A data to column E (E8-E37)
+      // Color A data to column F (F9-F38)
       if (data.page4_color_a) {
         const colorAData = data.page4_color_a;
 
@@ -3282,11 +3299,11 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`E${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Color B data to column F (F8-F37)
+      // Color B data to column H (H9-H38)
       if (data.page4_color_b) {
         const colorBData = data.page4_color_b;
 
@@ -3303,11 +3320,11 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Color Delta E data to column G (G8-G37)
+      // Color Delta E data to column J (J9-J38)
       if (data.page4_color_delta_e) {
         const colorDeltaEData = data.page4_color_delta_e;
 
@@ -3324,11 +3341,11 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`G${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Gloss 1 data to column I (I8-I37)
+      // Gloss 1 data to column L (L9-L38)
       if (data.page4_gloss_1) {
         const gloss1Data = data.page4_gloss_1;
 
@@ -3345,11 +3362,11 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Gloss 2 data to column J (J8-J37)
+      // Gloss 2 data to column M (M9-M38)
       if (data.page4_gloss_2) {
         const gloss2Data = data.page4_gloss_2;
 
@@ -3366,11 +3383,11 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
       }
 
-      // Gloss 3 data to column K (K8-K37)
+      // Gloss 3 data to column N (N9-N38)
       if (data.page4_gloss_3) {
         const gloss3Data = data.page4_gloss_3;
 
@@ -3387,7 +3404,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`K${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.cell(`N${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
         }
 
         // Add personnel information to Page 4
@@ -3413,7 +3430,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
         console.log('Created Page5 sheet for 168 Jeddah form');
       }
 
-      // PG Quality data to column D (D8-D37)
+      // PG Quality data to column D (D9-D38)
       const pgQualityData = data.page5_pg_quality;
 
       const dataValues = [];
@@ -6575,6 +6592,550 @@ app.get('/export-102-18c-white-form', async (req, res) => {
   }
 });
 
+// UC-18gsm-250P-ABQR Film Inspection Form Excel Export Endpoint
+app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
+  try {
+    // Get form_id parameter
+    const { form_id } = req.query;
+
+    if (!form_id) {
+      return res.status(400).send('form_id parameter is required');
+    }
+
+    // 1. Fetch data from Supabase for the specific form
+    const { data, error } = await supabase
+      .from('uc-18gsm-250p-abqr')
+      .select('*')
+      .eq('form_id', form_id)
+      .single();
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return res.status(500).send('Error fetching data from database');
+    }
+
+    if (!data) {
+      return res.status(404).send('Form not found');
+    }
+
+    console.log('=== UC-18gsm-250P-ABQR Export Starting ===');
+    console.log('Form ID:', form_id);
+    console.log('Product Code:', data.product_code);
+
+    // 2. Load the template
+    const templatePath = path.join(__dirname, 'templates', 'UC-18gsm-250P-ABQR.xlsx');
+
+    // Check if file exists
+    if (!fs.existsSync(templatePath)) {
+      console.error('Template file does not exist at:', templatePath);
+      return res.status(500).send('Template file not found');
+    }
+
+    let workbook;
+    let page1Worksheet;
+    let page2Worksheet;
+    let page3Worksheet;
+
+    // Load the template file
+    try {
+      workbook = await XlsxPopulate.fromFileAsync(templatePath);
+      page1Worksheet = workbook.sheet('Page1');
+
+      // Create or get Page2 sheet for Page 2 data
+      try {
+        page2Worksheet = workbook.sheet('Page2');
+      } catch (error) {
+        page2Worksheet = workbook.addSheet('Page2');
+      }
+
+      // Create or get Page3 sheet for Page 3 data
+      try {
+        page3Worksheet = workbook.sheet('Page3');
+      } catch (error) {
+        page3Worksheet = workbook.addSheet('Page3');
+      }
+    } catch (error) {
+      console.log('Error loading template:', error.message);
+      return res.status(500).send(`Error loading template: ${error.message}`);
+    }
+
+    // 3. Map data to Excel cells for Page 1
+
+    // Product Code (B4)
+    page1Worksheet.cell('B4').value(data.product_code || '');
+
+    // Specification (B5)
+    page1Worksheet.cell('B5').value(data.specification || '');
+
+    // Production Order (F4)
+    page1Worksheet.cell('F4').value(data.production_order || '');
+
+    // Purchase Order (F5)
+    page1Worksheet.cell('F5').value(data.purchase_order || '');
+
+    // Machine (J4)
+    page1Worksheet.cell('J4').value(data.machine_no || '');
+
+    // Quantity (J5) - Add "Rolls" text like prestore form
+    page1Worksheet.cell('J5').value(data.quantity ? `${data.quantity} Rolls` : '');
+
+    // Production Date (N4) - format as DD/MM/YYYY
+    page1Worksheet.cell('N4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+
+    // Inspection Date (N5) - format as DD/MM/YYYY
+    page1Worksheet.cell('N5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+
+    // Inspected By (B41)
+    page1Worksheet.cell('B41').value(data.prepared_by || 'Unknown User');
+
+    // Inspection Date (B42) - format as DD/MM/YYYY
+    page1Worksheet.cell('B42').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+
+    // Verified By (L41)
+    page1Worksheet.cell('L41').value(data.verified_by || 'Not Verified');
+
+    // Verified Date (L42) - format as DD/MM/YYYY
+    page1Worksheet.cell('L42').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+
+    // Film Inspection Form Ref No (O3)
+    page1Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+
+    // Map equipment data to Excel cells
+    if (data.equipment_used && data.equipment_used.page1) {
+      const equipment = data.equipment_used.page1;
+
+      // Basic Weight Equipment (D6)
+      page1Worksheet.cell('D6').value(equipment.basic_weight || '');
+
+      // Thickness Equipment (G6)
+      page1Worksheet.cell('G6').value(equipment.thickness || '');
+
+      // Wettability Equipment (J6)
+      page1Worksheet.cell('J6').value(equipment.wettability || '');
+
+      // COF Equipment (M6)
+      page1Worksheet.cell('M6').value(equipment.cof || '');
+    }
+
+    // Map sample data to the correct columns for Page 1
+    // Sample data should go in rows 8-37 (30 rows)
+
+    // Lot & Roll data to Sample No. column (A8-A37)
+    if (data.lot_and_roll) {
+      const lotAndRollData = data.lot_and_roll;
+      const dataValues = Object.values(lotAndRollData).filter(value => value !== null && value !== undefined && value !== '');
+
+      // Fill all 30 rows to match HTML form structure
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8; // Convert to 0-based index
+        if (dataIndex < dataValues.length) {
+          page1Worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`A${row}`).value(''); // Empty row
+        }
+      }
+    }
+
+    // Roll ID data to column B (B8-B37)
+    if (data.roll_id) {
+      const rollIdData = data.roll_id;
+      const dataValues = Object.values(rollIdData).filter(value => value !== null && value !== undefined && value !== '');
+
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8;
+        if (dataIndex < dataValues.length) {
+          page1Worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`B${row}`).value('');
+        }
+      }
+    }
+
+    // Lot Time data to column C (C8-C37)
+    if (data.lot_time) {
+      const lotTimeData = data.lot_time;
+      const dataValues = Object.values(lotTimeData).filter(value => value !== null && value !== undefined && value !== '');
+
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8;
+        if (dataIndex < dataValues.length) {
+          page1Worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`C${row}`).value('');
+        }
+      }
+    }
+
+    // Page 1 Physical Properties data
+    // Basis Weight data to column D (D8-D37)
+    if (data.page1_basis_weight) {
+      const basisWeightData = data.page1_basis_weight;
+      const dataValues = Object.values(basisWeightData).filter(value => value !== null && value !== undefined && value !== '');
+
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8;
+        if (dataIndex < dataValues.length) {
+          const numValue = parseFloat(dataValues[dataIndex]);
+          page1Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`D${row}`).value('');
+        }
+      }
+    }
+
+    // Thickness data to column E (E8-E37)
+    if (data.page1_thickness) {
+      const thicknessData = data.page1_thickness;
+      const dataValues = Object.values(thicknessData).filter(value => value !== null && value !== undefined && value !== '');
+
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8;
+        if (dataIndex < dataValues.length) {
+          const numValue = parseFloat(dataValues[dataIndex]);
+          page1Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`E${row}`).value('');
+        }
+      }
+    }
+
+    // Wettability data to column F (F8-F37)
+    if (data.page1_wettability) {
+      const wettabilityData = data.page1_wettability;
+      const dataValues = Object.values(wettabilityData).filter(value => value !== null && value !== undefined && value !== '');
+
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8;
+        if (dataIndex < dataValues.length) {
+          const numValue = parseFloat(dataValues[dataIndex]);
+          page1Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`F${row}`).value('');
+        }
+      }
+    }
+
+    // COF RR data to column G (G8-G37)
+    if (data.page1_cof_rr) {
+      const cofRRData = data.page1_cof_rr;
+      const dataValues = Object.values(cofRRData).filter(value => value !== null && value !== undefined && value !== '');
+
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8;
+        if (dataIndex < dataValues.length) {
+          const numValue = parseFloat(dataValues[dataIndex]);
+          page1Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`G${row}`).value('');
+        }
+      }
+    }
+
+    // COF CC data to column H (H8-H37)
+    if (data.page1_cof_cc) {
+      const cofCCData = data.page1_cof_cc;
+      const dataValues = Object.values(cofCCData).filter(value => value !== null && value !== undefined && value !== '');
+
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8;
+        if (dataIndex < dataValues.length) {
+          const numValue = parseFloat(dataValues[dataIndex]);
+          page1Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`H${row}`).value('');
+        }
+      }
+    }
+
+    // Tensile Break data to column I (I8-I37)
+    if (data.page1_tensile_break) {
+      const tensileBreakData = data.page1_tensile_break;
+      const dataValues = Object.values(tensileBreakData).filter(value => value !== null && value !== undefined && value !== '');
+
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8;
+        if (dataIndex < dataValues.length) {
+          const numValue = parseFloat(dataValues[dataIndex]);
+          page1Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`I${row}`).value('');
+        }
+      }
+    }
+
+    // Elongation data to column J (J8-J37)
+    if (data.page1_elongation) {
+      const elongationData = data.page1_elongation;
+      const dataValues = Object.values(elongationData).filter(value => value !== null && value !== undefined && value !== '');
+
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8;
+        if (dataIndex < dataValues.length) {
+          const numValue = parseFloat(dataValues[dataIndex]);
+          page1Worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`J${row}`).value('');
+        }
+      }
+    }
+
+    // Modulus data to column K (K8-K37)
+    if (data.page1_modulus) {
+      const modulusData = data.page1_modulus;
+      const dataValues = Object.values(modulusData).filter(value => value !== null && value !== undefined && value !== '');
+
+      for (let row = 8; row <= 37; row++) {
+        const dataIndex = row - 8;
+        if (dataIndex < dataValues.length) {
+          const numValue = parseFloat(dataValues[dataIndex]);
+          page1Worksheet.cell(`K${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`K${row}`).value('');
+        }
+      }
+    }
+
+    // PAGE 2 DATA MAPPING - UC-18gsm-250P-ABQR Page 2 data (Mechanical Properties)
+    if (page2Worksheet && (data.page2_tensile_break || data.page2_cd_elongation || data.page2_modulus ||
+                          data.page2_opacity || data.page2_roll_width || data.page2_diameter)) {
+      console.log('Page 2 data detected, mapping Mechanical Properties measurements');
+
+      // Equipment data for Page 2 (D6)
+      if (data.equipment_used && data.equipment_used.page2) {
+        page2Worksheet.cell('D6').value(data.equipment_used.page2.common || '');
+      }
+
+      // Tensile Break data to column D (D9-D38)
+      if (data.page2_tensile_break) {
+        const tensileBreakData = data.page2_tensile_break;
+        const dataValues = Object.values(tensileBreakData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            const numValue = parseFloat(dataValues[dataIndex]);
+            page2Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          } else {
+            page2Worksheet.cell(`D${row}`).value('');
+          }
+        }
+      }
+
+      // CD Elongation data to column E (E9-E38)
+      if (data.page2_cd_elongation) {
+        const cdElongationData = data.page2_cd_elongation;
+        const dataValues = Object.values(cdElongationData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            const numValue = parseFloat(dataValues[dataIndex]);
+            page2Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          } else {
+            page2Worksheet.cell(`E${row}`).value('');
+          }
+        }
+      }
+
+      // Modulus data to column F (F9-F38)
+      if (data.page2_modulus) {
+        const modulusData = data.page2_modulus;
+        const dataValues = Object.values(modulusData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            const numValue = parseFloat(dataValues[dataIndex]);
+            page2Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          } else {
+            page2Worksheet.cell(`F${row}`).value('');
+          }
+        }
+      }
+
+      // Opacity data to column G (G9-G38)
+      if (data.page2_opacity) {
+        const opacityData = data.page2_opacity;
+        const dataValues = Object.values(opacityData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            const numValue = parseFloat(dataValues[dataIndex]);
+            page2Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          } else {
+            page2Worksheet.cell(`G${row}`).value('');
+          }
+        }
+      }
+
+      // Roll Width data to column H (H9-H38)
+      if (data.page2_roll_width) {
+        const rollWidthData = data.page2_roll_width;
+        const dataValues = Object.values(rollWidthData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            const numValue = parseFloat(dataValues[dataIndex]);
+            page2Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          } else {
+            page2Worksheet.cell(`H${row}`).value('');
+          }
+        }
+      }
+
+      // Diameter data to column I (I9-I38)
+      if (data.page2_diameter) {
+        const diameterData = data.page2_diameter;
+        const dataValues = Object.values(diameterData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            const numValue = parseFloat(dataValues[dataIndex]);
+            page2Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          } else {
+            page2Worksheet.cell(`I${row}`).value('');
+          }
+        }
+      }
+
+      // Add personnel information to Page 2
+      page2Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
+      page2Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+      page2Worksheet.cell('L42').value(data.verified_by || 'Not Verified');
+      page2Worksheet.cell('L43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+      page2Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+    }
+
+    // PAGE 3 DATA MAPPING - UC-18gsm-250P-ABQR Page 3 data (Color Measurements)
+    if (page3Worksheet && (data.page3_colour_l || data.page3_colour_a || data.page3_colour_b ||
+                          data.page3_delta_e || data.page3_base_film_pink)) {
+      console.log('Page 3 data detected, mapping Color Measurements');
+
+      // Equipment data for Page 3 (D6, L6)
+      if (data.equipment_used && data.equipment_used.page3) {
+        page3Worksheet.cell('D6').value(data.equipment_used.page3.color_common || '');
+        page3Worksheet.cell('L6').value(data.equipment_used.page3.common || '');
+      }
+
+      // Color L data to column D (D9-D38)
+      if (data.page3_colour_l) {
+        const colorLData = data.page3_colour_l;
+        const dataValues = Object.values(colorLData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            const numValue = parseFloat(dataValues[dataIndex]);
+            page3Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          } else {
+            page3Worksheet.cell(`D${row}`).value('');
+          }
+        }
+      }
+
+      // Color A data to column F (F9-F38)
+      if (data.page3_colour_a) {
+        const colorAData = data.page3_colour_a;
+        const dataValues = Object.values(colorAData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            const numValue = parseFloat(dataValues[dataIndex]);
+            page3Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          } else {
+            page3Worksheet.cell(`F${row}`).value('');
+          }
+        }
+      }
+
+      // Color B data to column H (H9-H38)
+      if (data.page3_colour_b) {
+        const colorBData = data.page3_colour_b;
+        const dataValues = Object.values(colorBData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            const numValue = parseFloat(dataValues[dataIndex]);
+            page3Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          } else {
+            page3Worksheet.cell(`H${row}`).value('');
+          }
+        }
+      }
+
+      // Delta E data to column J (J9-J38)
+      if (data.page3_delta_e) {
+        const deltaEData = data.page3_delta_e;
+        const dataValues = Object.values(deltaEData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            const numValue = parseFloat(dataValues[dataIndex]);
+            page3Worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          } else {
+            page3Worksheet.cell(`J${row}`).value('');
+          }
+        }
+      }
+
+      // Base Film Pink data to column L (L9-L38)
+      if (data.page3_base_film_pink) {
+        const baseFilmPinkData = data.page3_base_film_pink;
+        const dataValues = Object.values(baseFilmPinkData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            const numValue = parseFloat(dataValues[dataIndex]);
+            page3Worksheet.cell(`L${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          } else {
+            page3Worksheet.cell(`L${row}`).value('');
+          }
+        }
+      }
+
+      // Add personnel information to Page 3
+      page3Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
+      page3Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+      page3Worksheet.cell('L42').value(data.verified_by || 'Not Verified');
+      page3Worksheet.cell('L43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+      page3Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+    }
+
+    // 4. Generate filename and set response headers
+    const productCode = data.product_code || 'UC-18gsm-250P-ABQR';
+    const batchNo = data.film_insp_form_ref_no || form_id;
+
+    const filename = `FIF-${productCode}-${batchNo}.xlsx`;
+
+    // 5. Set response headers for Excel download
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+
+    // 6. Write the workbook to response
+    try {
+      const buffer = await workbook.outputAsync();
+      res.send(buffer);
+    } catch (excelError) {
+      console.error('Error generating Excel file:', excelError);
+      console.error('Error stack:', excelError.stack);
+      res.status(500).send(`Error generating Excel file: ${excelError.message}`);
+    }
+
+  } catch (error) {
+    console.error('Error exporting UC-18gsm-250P-ABQR form:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).send(`Error exporting UC-18gsm-250P-ABQR form: ${error.message}`);
+  }
+});
+
 // Test endpoint to verify backend is working
 app.get('/api/test', (req, res) => {
   res.json({
@@ -7352,15 +7913,28 @@ app.get('/api/download-prestore-excel/:formId', async (req, res) => {
                       .eq('form_id', formId)
                       .single();
 
-                    if (!white168Error && white168Data) {
-                      data = white168Data;
+                  if (!white168Error && white168Data) {
+                    data = white168Data;
+                    error = null;
+                    tableName = '168_18c_white';
+                  } else {
+                    // Check uc-18gsm-250p-abqr table
+                    const { data: uc250pData, error: uc250pError } = await supabase
+                      .from('uc-18gsm-250p-abqr')
+                      .select('*')
+                      .eq('form_id', formId)
+                      .single();
+
+                    if (!uc250pError && uc250pData) {
+                      data = uc250pData;
                       error = null;
-                      tableName = '168_18c_white';
+                      tableName = 'uc-18gsm-250p-abqr';
                     } else {
                       data = null;
                       error = new Error('Form not found in any table');
                       tableName = null;
                     }
+                  }
                   }
                 }
               }
