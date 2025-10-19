@@ -147,8 +147,14 @@ function getCurrentFormId() {
     // Try to get from session storage
     const storedData = sessionStorage.getItem('filmInspectionData');
     if (storedData) {
-        const data = JSON.parse(storedData);
-        return data.form_id;
+        try {
+            const data = JSON.parse(storedData);
+            if (data && data.form_id) {
+                return data.form_id;
+            }
+        } catch (e) {
+            console.error('Error parsing stored data:', e);
+        }
     }
     
     // Try to get from sessionStorage currentFormId
@@ -181,15 +187,21 @@ async function checkVerificationStatus() {
             return;
         }
         
-        // Check if the form is already verified
+        // Check if the form is already verified - use .maybeSingle() to handle no results gracefully
         const { data, error } = await supabase
             .from('176_18cp_ww')
             .select('verified_by, verified_date')
             .eq('form_id', formId)
-            .single();
-        
+            .maybeSingle();
+
         if (error) {
             console.error('Error checking verification status:', error);
+            // If it's a PGRST116 error (no rows), that's expected for new forms
+            if (error.code === 'PGRST116') {
+                console.log('No verification record found - this is normal for new forms');
+                showVerificationForm();
+                return;
+            }
             showVerificationForm();
             return;
         }
@@ -275,9 +287,20 @@ function showCustomConfirmationPopup(formDetails, currentUser, verificationDate)
 }
 
 function initializeVerification() {
-    // Check verification status when page loads
-    checkVerificationStatus();
-    
+    // Wait for form_id to be available and form to be fully loaded, then check verification status
+    const checkVerificationWithRetry = () => {
+        const formId = getCurrentFormId();
+        if (formId) {
+            checkVerificationStatus();
+        } else {
+            // If form_id not available yet, wait a bit more and try again
+            setTimeout(checkVerificationWithRetry, 200);
+        }
+    };
+
+    // Initial delay, then check with retry logic
+    setTimeout(checkVerificationWithRetry, 500);
+
     // Add event listeners for verification form
     const verifyBtn = document.getElementById('verifyFormBtn');
     const cancelBtn = document.getElementById('cancelVerificationBtn');
@@ -996,8 +1019,8 @@ document.addEventListener('DOMContentLoaded', function() {
                        if (tableBody.id !== 'testingTableBody') {
                            calculateRowAverages(tr, tableBody);
                        }
-                       // Also calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
-                       if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
+                       // Also calculate summary statistics for vertical Ave columns (Page 2, 3 & 4)
+                       if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
                            calculateSummaryStatistics(tableBody);
                        }
                        // Calculate individual column stats for Page 1 (only the changed column)
@@ -2963,8 +2986,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (tableBody.id !== 'testingTableBody') {
                                 calculateRowAverages(tr, tableBody);
                             }
-                            // Also calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
-                            if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
+                            // Also calculate summary statistics for vertical Ave columns (Page 2, 3 & 4)
+                            if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
                                 calculateSummaryStatistics(tableBody);
                             }
                             // Calculate individual column stats for Page 1 (only the changed column)
@@ -3170,6 +3193,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                
                inputs[aveIndex].value = formattedValue;
+
+               // Trigger summary statistics update for the average column (for Page 4 gloss averages)
+               if (tableBodyId === 'testingTableBody4' && aveIndex === 6) {
+                   setTimeout(() => {
+                       if (typeof calculatePage1ColumnStats === 'function') {
+                           const tableBody = inputs[aveIndex].closest('tbody');
+                           if (tableBody && tableBody.id === 'testingTableBody4') {
+                               calculatePage1ColumnStats(tableBody, aveIndex);
+                           }
+                       }
+                   }, 10); // Small delay to ensure the value is set
+               }
            } else {
                inputs[aveIndex].value = '';
            }
@@ -4807,8 +4842,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     calculateRowAverages(tr, tableBody);
                 }
                 
-                // Calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
-                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
+                // Calculate summary statistics for vertical Ave columns (Page 2, 3 & 4)
+                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
                     calculateSummaryStatistics(tableBody);
                 }
                 
@@ -4851,8 +4886,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     calculateRowAverages(tr, tableBody);
                 }
                 
-                // Calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
-                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
+                // Calculate summary statistics for vertical Ave columns (Page 2, 3 & 4)
+                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
                     calculateSummaryStatistics(tableBody);
                 }
                 
@@ -4895,8 +4930,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     calculateRowAverages(tr, tableBody);
                 }
                 
-                // Calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
-                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
+                // Calculate summary statistics for vertical Ave columns (Page 2, 3 & 4)
+                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
                     calculateSummaryStatistics(tableBody);
                 }
                 

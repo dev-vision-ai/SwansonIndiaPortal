@@ -181,15 +181,21 @@ async function checkVerificationStatus() {
             return;
         }
         
-        // Check if the form is already verified
+        // Check if the form is already verified - use .maybeSingle() to handle no results gracefully
         const { data, error } = await supabase
             .from('168_18c_white')
             .select('verified_by, verified_date')
             .eq('form_id', formId)
-            .single();
-        
+            .maybeSingle();
+
         if (error) {
             console.error('Error checking verification status:', error);
+            // If it's a PGRST116 error (no rows), that's expected for new forms
+            if (error.code === 'PGRST116') {
+                console.log('No verification record found - this is normal for new forms');
+                showVerificationForm();
+                return;
+            }
             showVerificationForm();
             return;
         }
@@ -275,8 +281,10 @@ function showCustomConfirmationPopup(formDetails, currentUser, verificationDate)
 }
 
 function initializeVerification() {
-    // Check verification status when page loads
-    checkVerificationStatus();
+    // Wait a bit for form_id to be available, then check verification status
+    setTimeout(() => {
+        checkVerificationStatus();
+    }, 500);
     
     // Add event listeners for verification form
     const verifyBtn = document.getElementById('verifyFormBtn');

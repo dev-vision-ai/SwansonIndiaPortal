@@ -226,12 +226,12 @@ async function checkVerificationStatus() {
             return;
         }
         
-        // Check if the form is already verified
+        // Check if the form is already verified - use .maybeSingle() to handle no results gracefully
         const { data, error } = await supabase
             .from('214_18_micro_white')
             .select('verified_by, verified_date')
             .eq('form_id', formId)
-            .single();
+            .maybeSingle();
         
         if (error) {
             // Handle specific error cases
@@ -327,8 +327,10 @@ function showCustomConfirmationPopup(formDetails, currentUser, verificationDate)
 
 // Initialize verification system
 function initializeVerification() {
-    // Check verification status when page loads
-    checkVerificationStatus();
+    // Wait a bit for form_id to be available, then check verification status
+    setTimeout(() => {
+        checkVerificationStatus();
+    }, 500);
     
     // Add event listeners for verification form
     const verifyBtn = document.getElementById('verifyFormBtn');

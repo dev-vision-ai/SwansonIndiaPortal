@@ -147,8 +147,14 @@ function getCurrentFormId() {
     // Try to get from session storage
     const storedData = sessionStorage.getItem('filmInspectionData');
     if (storedData) {
-        const data = JSON.parse(storedData);
-        return data.form_id;
+        try {
+            const data = JSON.parse(storedData);
+            if (data && data.form_id) {
+                return data.form_id;
+            }
+        } catch (e) {
+            console.error('Error parsing stored data:', e);
+        }
     }
     
     // Try to get from sessionStorage currentFormId
@@ -181,15 +187,21 @@ async function checkVerificationStatus() {
             return;
         }
         
-        // Check if the form is already verified
+        // Check if the form is already verified - use .maybeSingle() to handle no results gracefully
         const { data, error } = await supabase
             .from('168_16c_white')
             .select('verified_by, verified_date')
             .eq('form_id', formId)
-            .single();
-        
+            .maybeSingle();
+
         if (error) {
             console.error('Error checking verification status:', error);
+            // If it's a PGRST116 error (no rows), that's expected for new forms
+            if (error.code === 'PGRST116') {
+                console.log('No verification record found - this is normal for new forms');
+                showVerificationForm();
+                return;
+            }
             showVerificationForm();
             return;
         }
@@ -275,8 +287,19 @@ function showCustomConfirmationPopup(formDetails, currentUser, verificationDate)
 }
 
 function initializeVerification() {
-    // Check verification status when page loads
-    checkVerificationStatus();
+    // Wait for form_id to be available and form to be fully loaded, then check verification status
+    const checkVerificationWithRetry = () => {
+        const formId = getCurrentFormId();
+        if (formId) {
+            checkVerificationStatus();
+        } else {
+            // If form_id not available yet, wait a bit more and try again
+            setTimeout(checkVerificationWithRetry, 200);
+        }
+    };
+
+    // Initial delay, then check with retry logic
+    setTimeout(checkVerificationWithRetry, 500);
     
     // Add event listeners for verification form
     const verifyBtn = document.getElementById('verifyFormBtn');

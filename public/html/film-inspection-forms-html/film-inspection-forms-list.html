@@ -477,11 +477,13 @@
                                 <option>APE-176(18)CP(LCC+WW)BS</option>
                                 <option>APE-168(18)CP(KRANTI)</option>
                                 <option>APE-168(18)C</option>
+                                <option>APE-168(18)C (Jeddah)</option>
                                 <option>WHITE-214(18)</option>
+                                <option>INUE1C18-250P(AB-QR)</option>
+                                <option>INUE1C18-290P(AB-QR)</option>
                                 <option>APE-168(16)CP(KRANTI)</option>
                                 <option>APE-168(16)C</option>
                                 <option>APE-102(18)C</option>
-                                <option>INUE1C18-250P(AB-QR)</option>
                             </select>
                         </div>
                         <div>
@@ -531,7 +533,7 @@
                         <div>
                             <label for="standard-packing-modal" class="block text-sm font-medium text-gray-700 mb-1">Standard Packing <span class="text-red-500">*</span></label>
                             <div class="flex rounded-md shadow-sm">
-                                <input id="standard-packing-modal" name="standard-packing" type="number" min="1" required class="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter number" style="appearance: textfield; -moz-appearance: textfield;" autocomplete="off">
+                                <input id="standard-packing-modal" name="standard-packing" type="text" required class="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter number" style="appearance: textfield; -moz-appearance: textfield;" autocomplete="off" oninput="validateStandardPackingInput(this)">
                                 <select id="standard-packing-unit-modal" name="standard-packing-unit" class="px-3 py-2 border border-l-0 border-gray-300 bg-gray-200 text-gray-700 text-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] rounded-r-md" autocomplete="off">
                                     <option value="Rolls / Pallet" selected>Rolls / Pallet</option>
                                     <option value="Rolls / Box">Rolls / Box</option>
@@ -800,5 +802,11 @@
 
     <script type="module" src="../../supabase-config.js"></script>
     <script type="module" src="../../js/film-inspection-forms-js/film-inspection-list.js"></script>
+    <script>
+        function validateStandardPackingInput(input) {
+            // Remove any characters that are not numbers, &, or spaces
+            input.value = input.value.replace(/[^0-9& ]/g, '');
+        }
+    </script>
 </body>
 </html>
