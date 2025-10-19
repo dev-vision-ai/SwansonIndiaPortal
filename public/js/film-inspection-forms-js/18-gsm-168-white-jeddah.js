@@ -186,28 +186,31 @@ async function checkVerificationStatus() {
             .from('168_18c_white_jeddah')
             .select('verified_by, verified_date')
             .eq('form_id', formId)
-            .single();
+            .maybeSingle(); // Use maybeSingle instead of single
         
         if (error) {
             console.error('Error checking verification status:', error);
+            // If it's a PGRST116 error (no rows), that's expected for new forms
+            if (error.code === 'PGRST116') {
+                console.log('No verification record found - this is normal for new forms');
+                showVerificationForm();
+                return;
+            }
             showVerificationForm();
             return;
         }
         
-        if (data && data.verified_by && data.verified_date) {
-            // Form is already verified
-            showVerificationStatus();
-            document.getElementById('verifiedByDisplay').textContent = 'Verified by: ' + data.verified_by;
-            // Format date to DD/MM/YYYY
-            const formattedDate = formatDateToDDMMYYYY(data.verified_date);
-            document.getElementById('verifiedDateDisplay').textContent = 'Date: ' + formattedDate;
-        } else {
-            // Form is not verified
+        // If no data found or verification is not complete
+        if (!data || !data.verified_by) {
             showVerificationForm();
+            return;
         }
         
-    } catch (error) {
-        console.error('Error checking verification status:', error);
+        // If verified, update UI accordingly
+        document.getElementById('verificationStatus').textContent = `Verified by ${data.verified_by} on ${data.verified_date}`;
+        hideVerificationForm();
+    } catch (catchError) {
+        console.error('Unexpected error in checkVerificationStatus:', catchError);
         showVerificationForm();
     }
 }
@@ -275,8 +278,10 @@ function showCustomConfirmationPopup(formDetails, currentUser, verificationDate)
 }
 
 function initializeVerification() {
-    // Check verification status when page loads
-    checkVerificationStatus();
+    // Wait a bit for form_id to be available, then check verification status
+    setTimeout(() => {
+        checkVerificationStatus();
+    }, 500);
     
     // Add event listeners for verification form
     const verifyBtn = document.getElementById('verifyFormBtn');

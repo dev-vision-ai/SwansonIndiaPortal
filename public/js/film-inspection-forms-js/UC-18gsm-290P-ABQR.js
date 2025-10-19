@@ -3,58 +3,7 @@
 // ===== DEBUG TEST =====
 //
 
-// Calculate modulus average for Page 1 (columns 7, 8, 9 → average in column 10)
-function calculateModulusAverage(input) {
-    // Get the row containing this input
-    const row = input.closest('tr');
-    if (!row) return;
-    
-    // Get all inputs in this row
-    const inputs = row.querySelectorAll('input');
-    
-    // Check if this is Page 1 (should have 12 columns)
-    if (inputs.length < 11) return;
-    
-    // Get modulus values from columns 7, 8, 9 (indices 7, 8, 9)
-    const modulus1 = parseFloat(inputs[7].value) || 0;
-    const modulus2 = parseFloat(inputs[8].value) || 0;
-    const modulus3 = parseFloat(inputs[9].value) || 0;
-    
-    // Count how many values are actually entered (non-empty)
-    let count = 0;
-    let sum = 0;
-    
-    if (inputs[7].value.trim() !== '') {
-        sum += modulus1;
-        count++;
-    }
-    if (inputs[8].value.trim() !== '') {
-        sum += modulus2;
-        count++;
-    }
-    if (inputs[9].value.trim() !== '') {
-        sum += modulus3;
-        count++;
-    }
-    
-    // Calculate and display average in column 10
-    if (count > 0) {
-        const average = sum / count;
-        inputs[10].value = average.toFixed(1); // Format to 1 decimal place
-
-        // Trigger summary statistics update for the modulus average column
-        setTimeout(() => {
-            if (typeof calculatePage1ColumnStats === 'function') {
-                const tableBody = row.closest('tbody');
-                if (tableBody && tableBody.id === 'testingTableBody') {
-                    calculatePage1ColumnStats(tableBody, 10); // Update summary for modulus average column
-                }
-            }
-        }, 10); // Small delay to ensure the value is set
-    } else {
-        inputs[10].value = ''; // Clear if no data
-    }
-}
+// Modulus average calculation no longer needed for new table structure
 import { supabase } from '../../supabase-config.js';
 
 // ===== VERIFICATION FUNCTIONALITY =====
@@ -165,7 +114,7 @@ async function updateVerificationInDatabase(verifierName, verificationDate) {
         
         // Update the database with verification data
         const { data, error } = await supabase
-            .from('234_18_micro_white')
+            .from('uc-18gsm-290p-abqr')
             .update({
                 verified_by: verifierName,
                 verified_date: verificationDate
@@ -238,7 +187,7 @@ async function checkVerificationStatus() {
         
         // Check if the form is already verified - use .maybeSingle() to handle no results gracefully
         const { data, error } = await supabase
-            .from('234_18_micro_white')
+            .from('uc-18gsm-290p-abqr')
             .select('verified_by, verified_date')
             .eq('form_id', formId)
             .maybeSingle();
@@ -337,10 +286,19 @@ function showCustomConfirmationPopup(formDetails, currentUser, verificationDate)
 
 // Initialize verification system
 function initializeVerification() {
-    // Wait a bit for form_id to be available, then check verification status
-    setTimeout(() => {
-        checkVerificationStatus();
-    }, 500);
+    // Wait for form_id to be available and form to be fully loaded, then check verification status
+    const checkVerificationWithRetry = () => {
+        const formId = getCurrentFormId();
+        if (formId) {
+            checkVerificationStatus();
+        } else {
+            // If form_id not available yet, wait a bit more and try again
+            setTimeout(checkVerificationWithRetry, 200);
+        }
+    };
+
+    // Initial delay, then check with retry logic
+    setTimeout(checkVerificationWithRetry, 500);
     
     // Add event listeners for verification form
     const verifyBtn = document.getElementById('verifyFormBtn');
@@ -424,6 +382,24 @@ let viewMode = false;
 // Global table body references
 let testingTableBody;
 let testingTableBody2;
+let testingTableBody3;
+
+// Function to set form title based on product code
+function setFormTitle() {
+    const formTitle = document.getElementById('formTitle');
+    if (formTitle) {
+        // Try to get product code from various sources
+        const productCodeInput = document.querySelector('input[placeholder="Enter Product Code"]') ||
+                                document.querySelector('input[name="product_code"]') ||
+                                document.querySelector('#product-code');
+
+        if (productCodeInput && productCodeInput.value) {
+            formTitle.textContent = productCodeInput.value;
+        } else {
+            formTitle.textContent = 'UC-18gsm-290P-ABQR';
+        }
+    }
+}
 
 // Function to detect and set view mode
 function detectViewMode() {
@@ -498,7 +474,7 @@ function synchronizeViewModeAcrossPages() {
     
 
     // Apply view mode to all table inputs
-    const allTableBodies = [testingTableBody, testingTableBody2];
+    const allTableBodies = [testingTableBody, testingTableBody2, testingTableBody3];
 
     allTableBodies.forEach(tableBody => {
         if (tableBody) {
@@ -516,8 +492,8 @@ function synchronizeViewModeAcrossPages() {
                     input.style.opacity = '1';
                     
 
-            // Special handling for Page 2 sample columns (first 3 columns)
-            if (tableBody.id === 'testingTableBody2' && index <= 2) {
+            // Special handling for Page 2 and 3 sample columns (first 3 columns)
+            if ((tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') && index <= 2) {
                 input.style.backgroundColor = '#f1f5f9'; // Light grey background
                 input.style.fontWeight = '600'; // Bold text
                 input.disabled = true;
@@ -539,9 +515,14 @@ function synchronizeViewModeAcrossPages() {
                             if (colIndex >= 0 && colIndex <= 2) {
                                 keepReadOnly = true;
                             }
+                        } else if (tableBody.id === 'testingTableBody3') {
+                            // Sample columns Lot & Roll, Roll ID, Lot Time correspond to indices 0,1,2
+                            if (colIndex >= 0 && colIndex <= 2) {
+                                keepReadOnly = true;
+                            }
                         } else if (tableBody.id === 'testingTableBody') {
-                            // Modulus average column (column 10) must always remain read-only
-                            if (colIndex === 10) {
+                            // Modulus average column (column 11) must always remain read-only
+                            if (colIndex === 11) {
                                 keepReadOnly = true;
                             }
                         }
@@ -621,17 +602,21 @@ function applyInputValidation(input, tableBodyId, columnIndex) {
             // Apply OOS validation based on column index
             let columnType = '';
             if (columnIndex === 3) {
-                columnType = 'basicWeight'; // Basic Weight column
+                columnType = 'filmWeight'; // Film Weight column
             } else if (columnIndex === 4) {
-                columnType = 'cofRR'; // COF-Kinetic(R-R) column
+                columnType = 'thickness'; // Thickness column
             } else if (columnIndex === 5) {
-                columnType = 'cofRS'; // COF-Kinetic(R-S) column
+                columnType = 'wettability'; // Wettability column
             } else if (columnIndex === 6) {
-                columnType = 'opacity'; // Opacity column
-            } else if (columnIndex >= 7 && columnIndex <= 9) {
-                columnType = 'modulus'; // Modulus data columns 7-9 (exclude avg column 10)
-            } else if (columnIndex === 11) {
-                columnType = 'gloss'; // Gloss column
+                columnType = 'cofRR'; // COF (R-R) column
+            } else if (columnIndex === 7) {
+                columnType = 'cofCC'; // COF (C-C) column
+            } else if (columnIndex === 8) {
+                columnType = 'tensileBreak'; // Tensile Break column
+            } else if (columnIndex === 9) {
+                columnType = 'elongation'; // MD Elongation Break column
+            } else if (columnIndex === 10) {
+                columnType = 'modulus10'; // 10% Modulus column
             }
             
             if (columnType) {
@@ -663,30 +648,38 @@ function applyInputValidation(input, tableBodyId, columnIndex) {
             // Apply OOS validation based on column index
             let columnType = '';
             if (columnIndex === 3) {
-                columnType = 'forceElongationMD'; // Force-elongation-MD@5%
+                columnType = 'tensileBreak'; // Tensile Break
             } else if (columnIndex === 4) {
-                columnType = 'forceTensileMD'; // Force-Tensile Strength-MD-peak
+                columnType = 'cdElongation'; // CD Elongation Break
             } else if (columnIndex === 5) {
-                columnType = 'forceElongationCD'; // Force-elongation-CD@5%
+                columnType = 'modulus10'; // 10% Modulus
             } else if (columnIndex === 6) {
-                columnType = 'forceTensileCD'; // Force-Tensile Strength-CD-peak
+                columnType = 'opacity'; // Opacity
             } else if (columnIndex === 7) {
-                columnType = 'colourL'; // Colour L
+                columnType = 'rollWidth'; // Roll Cut Width
             } else if (columnIndex === 8) {
-                columnType = 'colourA'; // Colour A
-            } else if (columnIndex === 9) {
-                columnType = 'colourB'; // Colour B
-            } else if (columnIndex === 10) {
-                columnType = 'deltaE'; // Delta E
+                columnType = 'diameter'; // Diameter
             }
-            
-            if (columnType) {
-                applyOOSValidation(input, columnType);
-                
-                // Add input event listener for real-time OOS validation
-                input.addEventListener('input', function() {
-                    applyOOSValidation(this, columnType);
-                });
+        } else if (tableBodyId === 'testingTableBody3') {
+            // Page 3 validation is handled in the main validation section (lines 652-686)
+            // Apply OOS validation for Page 3 columns
+            if (columnIndex > 2) {
+                let columnType = '';
+                if (columnIndex === 3) {
+                    columnType = 'colourL';
+                } else if (columnIndex === 4) {
+                    columnType = 'colourA';
+                } else if (columnIndex === 5) {
+                    columnType = 'colourB';
+                } else if (columnIndex === 6) {
+                    columnType = 'deltaE';
+                } else if (columnIndex === 7) {
+                    columnType = 'baseFilmPink';
+                }
+
+                if (columnType) {
+                    applyOOSValidation(input, columnType);
+                }
             }
         }
     }
@@ -1272,9 +1265,11 @@ function getCurrentProductCode() {
     // Function to show loading state
     function showEquipmentLoadingState() {
         const allDropdownIds = [
-        'basic-weight-equipment', 'cof-rr-equipment', 'cof-rs-equipment', 
-        'opacity-equipment', 'modulus-equipment', 'gloss-equipment',
-        'page2-force-equipment', 'page2-colour-equipment'
+        'film-weight-equipment', 'thickness-equipment',
+        'cof-rr-equipment', 'cof-cc-equipment', 'tensile-break-equipment',
+        'elongation-equipment', 'modulus-equipment',
+        'tensile-break-equipment', 'elongation-equipment', 'modulus-equipment',
+        'page3-colour-equipment'
         ];
         
         allDropdownIds.forEach(dropdownId => {
@@ -1300,13 +1295,16 @@ function getCurrentProductCode() {
         
 
     
-    // Equipment type to dropdown mapping (Page 1 & 2 only) - Fixed to match actual HTML IDs
+    // Equipment type to dropdown mapping (Page 1, 2 & 3) - Fixed to match actual HTML IDs
         const equipmentMappings = {
-            'Weigh Scale': ['basic-weight-equipment'],
-            'Dial Gauge': [], // Dial Gauge not used in this form
-            'Spectrophotometer': ['opacity-equipment', 'page2-colour-equipment'],
-            'Instron': ['cof-rr-equipment', 'cof-rs-equipment', 'page2-force-equipment', 'modulus-equipment'], // UTM for modulus testing
-            'Glossmeter': ['gloss-equipment']
+            'Weigh Scale': ['film-weight-equipment'],
+            'Dial Gauge': ['thickness-equipment'], // For thickness measurement
+            'X-RITE': ['page3-colour-equipment'], // page3-colour-equipment (Page 3) only
+            'Spectrophotometer': ['page2-opacity-equipment'], // page2-opacity-equipment (Page 2) for unprinted equipment
+            'Instron': ['cof-rr-equipment', 'cof-cc-equipment', 'tensile-break-equipment', 'elongation-equipment', 'modulus-equipment', 'page2-tensile-break-equipment', 'page2-elongation-equipment', 'page2-modulus-equipment'], // UTM for mechanical testing
+            'Tape Measure': [], // No longer used - measurements moved to Steel Ruler
+            'Steel Ruler': ['page2-roll-width-equipment', 'page2-diameter-equipment'], // For Roll Cut Width and Diameter measurements (Page 2 only)
+            'Glossmeter': [] // No longer used in new structure
         };
     
 
@@ -1358,9 +1356,11 @@ function getCurrentProductCode() {
     function showEquipmentLoadingError() {
         // Set default options for all dropdowns
         const allDropdownIds = [
-        'basic-weight-equipment', 'cof-rr-equipment', 'cof-rs-equipment', 
-        'opacity-equipment', 'modulus-equipment', 'gloss-equipment',
-        'page2-force-equipment', 'page2-colour-equipment'
+        'film-weight-equipment', 'thickness-equipment',
+        'cof-rr-equipment', 'cof-cc-equipment', 'tensile-break-equipment',
+        'elongation-equipment', 'modulus-equipment',
+        'tensile-break-equipment', 'elongation-equipment', 'modulus-equipment',
+        'page3-colour-equipment'
         ];
         
         allDropdownIds.forEach(dropdownId => {
@@ -1376,30 +1376,34 @@ function getCurrentProductCode() {
 function getAllTableBodies() {
     const testingTableBody = document.getElementById('testingTableBody');
            const testingTableBody2 = document.getElementById('testingTableBody2');
-    return [testingTableBody, testingTableBody2];
+           const testingTableBody3 = document.getElementById('testingTableBody3');
+    return [testingTableBody, testingTableBody2, testingTableBody3];
 }
 
-// Get table body by page number (1-2)
+// Get table body by page number (1-3)
 function getTableBodyByPage(pageNumber) {
            switch(pageNumber) {
         case 1: return document.getElementById('testingTableBody');
         case 2: return document.getElementById('testingTableBody2');
+        case 3: return document.getElementById('testingTableBody3');
                default: return null;
            }
 }
        
        // Get column count for a specific table
 function getTableColumnCount(tableBody) {
-           if (tableBody.id === 'testingTableBody') return 12;     // Page 1: 12 columns (3 Sample No + 9 parameters)
-           if (tableBody.id === 'testingTableBody2') return 11;    // Page 2: 11 columns (3 Sample No + 8 parameters)
+           if (tableBody.id === 'testingTableBody') return 11;     // Page 1: 11 columns (3 Sample No + 8 parameters)
+           if (tableBody.id === 'testingTableBody2') return 9;     // Page 2: 9 columns (3 Sample No + 6 parameters)
+           if (tableBody.id === 'testingTableBody3') return 8;     // Page 3: 8 columns (3 Sample No + 5 parameters)
            return 0;
 }
 
 // Get columns per row for each table
 function getColumnsPerRow(tableBody) {
-    if (tableBody.id === 'testingTableBody') return 12;      // Page 1: 12 columns (3 Sample No + 9 parameters)
-    if (tableBody.id === 'testingTableBody2') return 11;     // Page 2: 11 columns (3 Sample No + 8 parameters)
-    return 12; // Default fallback
+    if (tableBody.id === 'testingTableBody') return 11;      // Page 1: 11 columns (3 Sample No + 8 parameters)
+    if (tableBody.id === 'testingTableBody2') return 9;      // Page 2: 9 columns (3 Sample No + 6 parameters)
+    if (tableBody.id === 'testingTableBody3') return 8;      // Page 3: 8 columns (3 Sample No + 5 parameters)
+    return 11; // Default fallback
 }
 
 // ===== HISTORICAL DATA LOADING =====
@@ -1464,9 +1468,8 @@ function getHistoricalTotalRows(historicalData) {
     if (!historicalData) return 0;
     const candidateKeys = [
         'lot_and_roll', 'roll_id', 'lot_time',
-        'page1_basis_weight', 'page1_cof_kinetic_r_r', 'page1_cof_kinetic_r_s', 'page1_opacity', 'page1_modulus_1', 'page1_modulus_2', 'page1_modulus_3', 'page1_gloss',
-        'page2_force_elongation_md_5p', 'page2_force_tensile_md', 'page2_force_elongation_cd_5p', 'page2_force_tensile_cd',
-        'page2_color_l', 'page2_color_a', 'page2_color_b', 'page2_color_delta_e'
+        'page1_basis_weight', 'page1_thickness', 'page1_wettability', 'page1_cof_rr', 'page1_cof_cc', 'page1_tensile_break', 'page1_elongation', 'page1_modulus',
+        'page2_tensile_break', 'page2_cd_elongation', 'page2_modulus', 'page2_opacity', 'page2_roll_width', 'page2_diameter'
     ];
     let maxRows = 0;
     for (const key of candidateKeys) {
@@ -1569,16 +1572,16 @@ function loadHistoricalRowData(row, historicalData, historicalRow) {
         if (inputs[2] && lotTimeVal !== undefined && lotTimeVal !== null && lotTimeVal !== '') {
             inputs[2].value = lotTimeVal;
         }
-        // Load Page 1 data
+        // Load Page 1 data - CORRECTED to match actual HTML structure (8 columns, not 9)
         const page1Data = [
-            { key: 'page1_basis_weight', inputIndex: 3 },
-            { key: 'page1_cof_kinetic_r_r', inputIndex: 4 },
-            { key: 'page1_cof_kinetic_r_s', inputIndex: 5 },
-            { key: 'page1_opacity', inputIndex: 6 },
-            { key: 'page1_modulus_1', inputIndex: 7 },
-            { key: 'page1_modulus_2', inputIndex: 8 },
-            { key: 'page1_modulus_3', inputIndex: 9 },
-            { key: 'page1_gloss', inputIndex: 11 }
+            { key: 'page1_basis_weight', inputIndex: 3 }, // Film Weight
+            { key: 'page1_thickness', inputIndex: 4 }, // Thickness
+            { key: 'page1_wettability', inputIndex: 5 }, // Wettability
+            { key: 'page1_cof_rr', inputIndex: 6 }, // COF (R-R)
+            { key: 'page1_cof_cc', inputIndex: 7 }, // COF (C-C)
+            { key: 'page1_tensile_break', inputIndex: 8 }, // Tensile Break
+            { key: 'page1_elongation', inputIndex: 9 }, // MD Elongation Break
+            { key: 'page1_modulus', inputIndex: 10 } // 10% Modulus
         ];
         
         page1Data.forEach(({ key, inputIndex }) => {
@@ -1603,10 +1606,12 @@ function loadHistoricalRowData(row, historicalData, historicalRow) {
         }
         // Load Page 2 specific data
         const page2Data = [
-            { key: 'page2_force_elongation_md_5p', inputIndex: 3 },
-            { key: 'page2_force_tensile_md', inputIndex: 7 },
-            { key: 'page2_force_elongation_cd_5p', inputIndex: 11 },
-            { key: 'page2_force_tensile_cd', inputIndex: 15 }
+            { key: 'page2_tensile_break', inputIndex: 3 },
+            { key: 'page2_cd_elongation', inputIndex: 4 },
+            { key: 'page2_modulus', inputIndex: 5 },
+            { key: 'page2_opacity', inputIndex: 6 },
+            { key: 'page2_roll_width', inputIndex: 7 },
+            { key: 'page2_diameter', inputIndex: 8 }
         ];
         
         page2Data.forEach(({ key, inputIndex }) => {
@@ -1814,34 +1819,40 @@ function getTableDataFromAllTables() {
     
     allTables.forEach(tableBody => {
         if (!tableBody) return;
-
+        
         const tableId = tableBody.id;
-
+        const data = getTableData(tableBody);
+        
         if (tableId === 'testingTableBody') {
             // Page 1 data - Sample columns (Lot & Roll, Roll ID, Lot Time)
             tableData.lot_and_roll = convertColumnToJSONB(tableBody, 0);
             tableData.roll_id = convertColumnToJSONB(tableBody, 1);
             tableData.lot_time = convertColumnToJSONB(tableBody, 2);
             
-            // Page 1 data - Test columns
-            tableData.page1_basis_weight = convertColumnToJSONB(tableBody, 3);
-            tableData.page1_cof_kinetic_r_r = convertColumnToJSONB(tableBody, 4);
-            tableData.page1_cof_kinetic_r_s = convertColumnToJSONB(tableBody, 5);
-            tableData.page1_opacity = convertColumnToJSONB(tableBody, 6);
-            tableData.page1_modulus_1 = convertColumnToJSONB(tableBody, 7);
-            tableData.page1_modulus_2 = convertColumnToJSONB(tableBody, 8);
-            tableData.page1_modulus_3 = convertColumnToJSONB(tableBody, 9);
-            tableData.page1_gloss = convertColumnToJSONB(tableBody, 11);
+            // Page 1 data - CORRECTED to match actual HTML structure
+            tableData.page1_basis_weight = convertColumnToJSONB(tableBody, 3); // Film Weight
+            tableData.page1_thickness = convertColumnToJSONB(tableBody, 4); // Thickness
+            tableData.page1_wettability = convertColumnToJSONB(tableBody, 5); // Wettability
+            tableData.page1_cof_rr = convertColumnToJSONB(tableBody, 6); // COF (R-R)
+            tableData.page1_cof_cc = convertColumnToJSONB(tableBody, 7); // COF (C-C)
+            tableData.page1_tensile_break = convertColumnToJSONB(tableBody, 8); // Tensile Break
+            tableData.page1_elongation = convertColumnToJSONB(tableBody, 9); // MD Elongation Break
+            tableData.page1_modulus = convertColumnToJSONB(tableBody, 10); // 10% Modulus
         } else if (tableId === 'testingTableBody2') {
-            // Page 2 data - Correct column indices
-            tableData.page2_force_elongation_md_5p = convertColumnToJSONB(tableBody, 3);
-            tableData.page2_force_tensile_md = convertColumnToJSONB(tableBody, 4);
-            tableData.page2_force_elongation_cd_5p = convertColumnToJSONB(tableBody, 5);
-            tableData.page2_force_tensile_cd = convertColumnToJSONB(tableBody, 6);
-            tableData.page2_color_l = convertColumnToJSONB(tableBody, 7);
-            tableData.page2_color_a = convertColumnToJSONB(tableBody, 8);
-            tableData.page2_color_b = convertColumnToJSONB(tableBody, 9);
-            tableData.page2_color_delta_e = convertColumnToJSONB(tableBody, 10);
+            // Page 2 data - 6 columns (Mechanical Properties)
+            tableData.page2_tensile_break = convertColumnToJSONB(tableBody, 3);
+            tableData.page2_cd_elongation = convertColumnToJSONB(tableBody, 4);
+            tableData.page2_modulus = convertColumnToJSONB(tableBody, 5);
+            tableData.page2_opacity = convertColumnToJSONB(tableBody, 6);
+            tableData.page2_roll_width = convertColumnToJSONB(tableBody, 7);
+            tableData.page2_diameter = convertColumnToJSONB(tableBody, 8);
+        } else if (tableId === 'testingTableBody3') {
+            // Page 3 data - 5 columns (Color Measurements)
+            tableData.page3_colour_l = convertColumnToJSONB(tableBody, 3);
+            tableData.page3_colour_a = convertColumnToJSONB(tableBody, 4);
+            tableData.page3_colour_b = convertColumnToJSONB(tableBody, 5);
+            tableData.page3_delta_e = convertColumnToJSONB(tableBody, 6);
+            tableData.page3_base_film_pink = convertColumnToJSONB(tableBody, 7);
         }
     });
     
@@ -1849,6 +1860,24 @@ function getTableDataFromAllTables() {
     return tableData;
        }
        
+       // Get table data (excluding summary rows)
+       function getTableData(tableBody) {
+
+    
+           const rows = Array.from(tableBody.querySelectorAll('tr'));
+           const dataRows = rows.filter(row => {
+               const firstCell = row.querySelector('td');
+               return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
+           });
+           
+    const tableData = dataRows.map(row => {
+               const inputs = row.querySelectorAll('input');
+               return Array.from(inputs).map(input => input.value);
+           });
+    
+
+    return tableData;
+       }
        
               // Load table data
        function loadTableData(tableBody, data) {
@@ -1992,62 +2021,85 @@ function applyOOSValidation(input, columnType) {
     
     switch(columnType) {
         // Page 1 parameters
-        case 'basicWeight':
-            // Basic Weight: L-15.70 T-18.00 U-20.30 GSM
-            shouldHighlight = value < 15.70 || value > 20.30;
+        case 'filmWeight':
+            // Film Weight: L-17.00 T-18.0 U-20.00 g/m2
+            shouldHighlight = value < 17.00 || value > 20.00;
+            break;
+        case 'thickness':
+            // Thickness: L-18 T-23 U-28 μm
+            shouldHighlight = value < 18 || value > 28;
+            break;
+        case 'wettability':
+            // Wettability: L-360 T-380 U-400 h/cm
+            shouldHighlight = value < 360 || value > 400;
             break;
         case 'cofRR':
-            // COF-Kinetic(R-R): L-0.30 T-0.40 U-0.50
-            shouldHighlight = value < 0.30 || value > 0.50;
+            // COF (R-R): L-0.30 T-0.45 U-0.60
+            shouldHighlight = value < 0.30 || value > 0.60;
             break;
-        case 'cofRS':
-            // COF-Kinetic(R-S): L-0.10 T-0.20 U-0.35
-            shouldHighlight = value < 0.10 || value > 0.35;
+        case 'cofCC':
+            // COF (C-C): L-0.60 T-0.80 U-1.40
+            shouldHighlight = value < 0.60 || value > 1.40;
+            break;
+        case 'tensileBreak':
+            // Check if this is Page 1 or Page 2 tensileBreak
+            // We need to determine the page based on the input element's context
+            const tableBody = input.closest('tbody');
+            if (tableBody && tableBody.id === 'testingTableBody') {
+                // Page 1: Tensile Break L-900 U-1200 g/25mm
+                shouldHighlight = value < 900 || value > 1200;
+            } else if (tableBody && tableBody.id === 'testingTableBody2') {
+                // Page 2: Tensile Break L-700 U-1000 g/25mm (both limits)
+                shouldHighlight = value < 700 || value > 1000;
+            } else {
+                // Default to Page 1 logic
+                shouldHighlight = value < 900 || value > 1200;
+            }
+            break;
+        case 'elongation':
+            // MD Elongation Break: L-350 %
+            shouldHighlight = value < 350;
+            break;
+        case 'cdElongation':
+            // CD Elongation Break: L-400 % (only lower limit)
+            shouldHighlight = value < 400;
+            break;
+        case 'modulus10':
+            // 10% Modulus: L-300 g/25mm (only lower limit)
+            shouldHighlight = value < 300;
             break;
         case 'opacity':
-            // Opacity: L-57.0 T-60.0 U-63.0 %
-            shouldHighlight = value < 57.0 || value > 63.0;
+            // Opacity: L-50.0 T-55.0 U-60.0 (full range)
+            shouldHighlight = value < 50.0 || value > 60.0;
             break;
-        case 'modulus':
-            // Modulus-MD-web@ 2%: L-18.2 T-24.7 U-31.2 N/cm
-            shouldHighlight = value < 18.2 || value > 31.2;
+        case 'rollWidth':
+            // Roll Cut Width: L-290 T-290 U-293 mm (target and upper limit)
+            shouldHighlight = value < 290 || value > 293;
             break;
-        case 'gloss':
-            // Gloss Level: T-7.0 U-10.0 (Gloss Unit)
-            shouldHighlight = value < 7.0 || value > 10.0;
+        case 'diameter':
+            // Diameter: L-410 T-430 U-450 mm (full range)
+            shouldHighlight = value < 410 || value > 450;
             break;
-        // Page 2 parameters
-        case 'forceElongationMD':
-            // Force-elongation-MD@5%: L-1.77 T-2.77 N (only lower limit)
-            shouldHighlight = value < 1.77;
-            break;
-        case 'forceTensileMD':
-            // Force-Tensile Strength-MD-peak: L-9.07 T-12.57 N (only lower limit)
-            shouldHighlight = value < 9.07;
-            break;
-        case 'forceElongationCD':
-            // Force-elongation-CD@5%: L-1.49 T-2.49 N (only lower limit)
-            shouldHighlight = value < 1.49;
-            break;
-        case 'forceTensileCD':
-            // Force-Tensile Strength-CD-peak: L-6.13 T-9.63 N (only lower limit)
-            shouldHighlight = value < 6.13;
-            break;
+        // Page 3 parameters
         case 'colourL':
-            // Colour L: L-91.5 T-95.5 U-99.5 (Colour units-H)
-            shouldHighlight = value < 91.5 || value > 99.5;
+            // Colour L: L-52.00 T-58.00 U-64.00 (Colour units-H)
+            shouldHighlight = value < 52.00 || value > 64.00;
             break;
         case 'colourA':
-            // Colour A: L-(-4.4) T-(-0.4) U-(3.6) (Colour units-H)
-            shouldHighlight = value < -4.4 || value > 3.6;
+            // Colour A: L-49.00 T-54.00 U-59.00 (Colour units-H)
+            shouldHighlight = value < 49.00 || value > 59.00;
             break;
         case 'colourB':
-            // Colour B: L-(-4.5) T-(-0.5) U-(3.5) (Colour units-H)
-            shouldHighlight = value < -4.5 || value > 3.5;
+            // Colour B: L-(-12.50) T-(-8.50) U-(-4.50) (Colour units-H)
+            shouldHighlight = value < -12.50 || value > -4.50;
             break;
         case 'deltaE':
-            // Delta E: T-0.00 U-5.00 (Colour Units-Delta E) - only upper limit
-            shouldHighlight = value > 5.00;
+            // Delta E: T-0.00 U-4.00 (Colour Units-Delta E) - only upper limit
+            shouldHighlight = value > 4.00;
+            break;
+        case 'baseFilmPink':
+            // Base Film Pink: T-0.00 U-4.00 (Colour Units-Delta E) - only upper limit
+            shouldHighlight = value > 4.00;
             break;
     }
     
@@ -2057,39 +2109,43 @@ function applyOOSValidation(input, columnType) {
     }
 }
 
-// Apply OOS validation to all existing inputs in Page 1 and Page 2
+// Apply OOS validation to all existing inputs in Page 1, Page 2, and Page 3
 function applyOOSValidationToAllInputs() {
     // Page 1 validation
     const testingTableBody = document.getElementById('testingTableBody');
     if (testingTableBody) {
         const rows = testingTableBody.querySelectorAll('tr');
-        
+
         rows.forEach((row, rowIndex) => {
             const firstCell = row.querySelector('td');
             if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
                 const inputs = row.querySelectorAll('input');
-                
+
                 inputs.forEach((input, columnIndex) => {
                     if (columnIndex > 2) { // Data columns only
                         let columnType = '';
                         if (columnIndex === 3) {
-                            columnType = 'basicWeight';
+                            columnType = 'filmWeight';
                         } else if (columnIndex === 4) {
-                            columnType = 'cofRR';
+                            columnType = 'thickness';
                         } else if (columnIndex === 5) {
-                            columnType = 'cofRS';
+                            columnType = 'wettability';
                         } else if (columnIndex === 6) {
-                            columnType = 'opacity';
-                        } else if (columnIndex >= 7 && columnIndex <= 9) {
-                            columnType = 'modulus'; // Modulus data columns 7-9 (exclude avg column 10)
-                        } else if (columnIndex === 11) {
-                            columnType = 'gloss';
+                            columnType = 'cofRR';
+                        } else if (columnIndex === 7) {
+                            columnType = 'cofCC';
+                        } else if (columnIndex === 8) {
+                            columnType = 'tensileBreak';
+                        } else if (columnIndex === 9) {
+                            columnType = 'elongation';
+                        } else if (columnIndex === 10) {
+                            columnType = 'modulus10';
                         }
-                        
+
                         if (columnType) {
                             // Apply validation to current value
                             applyOOSValidation(input, columnType);
-                            
+
                             // Add real-time validation event listener (only if not already added)
                             if (!input.hasAttribute('data-oos-listener')) {
                                 input.addEventListener('input', function() {
@@ -2103,46 +2159,96 @@ function applyOOSValidationToAllInputs() {
             }
         });
     }
-    
+
     // Page 2 validation
     const testingTableBody2 = document.getElementById('testingTableBody2');
     if (testingTableBody2) {
         const rows = testingTableBody2.querySelectorAll('tr');
-        
+
         rows.forEach((row, rowIndex) => {
             const firstCell = row.querySelector('td');
             if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
                 const inputs = row.querySelectorAll('input');
-                
+
                 inputs.forEach((input, columnIndex) => {
                     if (columnIndex > 2) { // Data columns only
                         let columnType = '';
                         if (columnIndex === 3) {
-                            columnType = 'forceElongationMD';
+                            columnType = 'tensileBreak';
                         } else if (columnIndex === 4) {
-                            columnType = 'forceTensileMD';
+                            columnType = 'cdElongation';
                         } else if (columnIndex === 5) {
-                            columnType = 'forceElongationCD';
+                            columnType = 'modulus10';
                         } else if (columnIndex === 6) {
-                            columnType = 'forceTensileCD';
+                            columnType = 'opacity';
                         } else if (columnIndex === 7) {
-                            columnType = 'colourL';
+                            columnType = 'rollWidth';
                         } else if (columnIndex === 8) {
-                            columnType = 'colourA';
-                        } else if (columnIndex === 9) {
-                            columnType = 'colourB';
-                        } else if (columnIndex === 10) {
-                            columnType = 'deltaE';
+                            columnType = 'diameter';
                         }
-                        
                         if (columnType) {
                             // Apply validation to current value
                             applyOOSValidation(input, columnType);
-                            
+
                             // Add real-time validation event listener
                             input.addEventListener('input', function() {
                                 applyOOSValidation(this, columnType);
+
+                                // Trigger Page 2 calculation for real-time summary updates
+                                if (this.closest('#testingTableBody2')) {
+                                    const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+                                    calculatePage2ColumnStats(document.getElementById('testingTableBody2'), inputIndex);
+                                }
                             });
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    // Page 3 validation
+    const testingTableBody3 = document.getElementById('testingTableBody3');
+    if (testingTableBody3) {
+        const rows = testingTableBody3.querySelectorAll('tr');
+
+        rows.forEach((row, rowIndex) => {
+            const firstCell = row.querySelector('td');
+            if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
+                const inputs = row.querySelectorAll('input');
+
+                inputs.forEach((input, columnIndex) => {
+                    if (columnIndex > 2) { // Data columns only
+                        let columnType = '';
+                        if (columnIndex === 3) {
+                            columnType = 'colourL';
+                        } else if (columnIndex === 4) {
+                            columnType = 'colourA';
+                        } else if (columnIndex === 5) {
+                            columnType = 'colourB';
+                        } else if (columnIndex === 6) {
+                            columnType = 'deltaE';
+                        } else if (columnIndex === 7) {
+                            columnType = 'baseFilmPink';
+                        }
+
+                        if (columnType) {
+                            // Apply validation to current value
+                            applyOOSValidation(input, columnType);
+
+                            // Add real-time validation event listener (only if not already added)
+                            if (!input.hasAttribute('data-oos-listener')) {
+                                input.addEventListener('input', function() {
+                                    applyOOSValidation(this, columnType);
+
+                                    // Trigger Page 3 calculation for real-time summary updates
+                                    if (this.closest('#testingTableBody3')) {
+                                        const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+                                        calculatePage2ColumnStats(document.getElementById('testingTableBody3'), inputIndex);
+                                    }
+                                });
+                                input.setAttribute('data-oos-listener', 'true');
+                            }
                         }
                     }
                 });
@@ -2157,16 +2263,24 @@ function getEquipmentSelections() {
     
     const equipmentData = {
         page1: {
-            basic_weight: document.getElementById('basic-weight-equipment')?.value || '',
-            modulus: document.getElementById('modulus-equipment')?.value || '',
-            opacity: document.getElementById('opacity-equipment')?.value || '',
+            film_weight: document.getElementById('film-weight-equipment')?.value || '',
+            thickness: document.getElementById('thickness-equipment')?.value || '',
             cof_rr: document.getElementById('cof-rr-equipment')?.value || '',
-            cof_rs: document.getElementById('cof-rs-equipment')?.value || '',
-            gloss: document.getElementById('gloss-equipment')?.value || ''
+            cof_cc: document.getElementById('cof-cc-equipment')?.value || '',
+            tensile_break: document.getElementById('tensile-break-equipment')?.value || '',
+            elongation: document.getElementById('elongation-equipment')?.value || '',
+            modulus_10: document.getElementById('modulus-equipment')?.value || ''
         },
         page2: {
-            force: document.getElementById('page2-force-equipment')?.value || '',
-            colour: document.getElementById('page2-colour-equipment')?.value || ''
+            tensile_break: document.getElementById('tensile-break-equipment')?.value || '',
+            elongation: document.getElementById('elongation-equipment')?.value || '',
+            modulus_10: document.getElementById('modulus-equipment')?.value || '',
+            opacity: document.getElementById('page2-opacity-equipment')?.value || '',
+            roll_width: document.getElementById('page2-roll-width-equipment')?.value || '',
+            diameter: document.getElementById('page2-diameter-equipment')?.value || ''
+        },
+        page3: {
+            colour: document.getElementById('page3-colour-equipment')?.value || ''
         }
     };
     
@@ -2209,7 +2323,7 @@ async function createFormInDatabase(formData) {
     
     try {
         const { data, error } = await supabase
-            .from('234_18_micro_white')
+            .from('uc-18gsm-290p-abqr')
             .insert([formData])
             .select();
         
@@ -2243,7 +2357,7 @@ async function updateFormInDatabase(formData) {
         
         
         const { data, error } = await supabase
-            .from('234_18_micro_white')
+            .from('uc-18gsm-290p-abqr')
             .update(updateData)
             .eq('form_id', currentFormId)
             .select();
@@ -2278,94 +2392,169 @@ function validateThreeDigits(input) {
     input.value = value;
 }
 
-function validateTwoDigitOneDecimal(input) {
+function validateFourDigits(input) {
     let value = input.value;
-    
-    // Remove any non-numeric characters except decimal point
-    value = value.replace(/[^0-9.]/g, '');
-    
-    // Ensure only one decimal point
-    const parts = value.split('.');
-    if (parts.length > 2) {
-        value = parts[0] + '.' + parts.slice(1).join('');
+
+    // If empty, keep it empty
+    if (value === '') {
+        input.value = '';
+        return;
     }
-    
-    // Allow up to 2 digits before decimal for typing
-    if (parts.length === 2) {
-        // Before decimal: allow up to 2 digits
-        if (parts[0].length > 2) {
-            parts[0] = parts[0].substring(0, 2);
-        }
-        // After decimal: max 1 digit
-        if (parts[1].length > 1) {
-            parts[1] = parts[1].substring(0, 1);
-        }
-        value = parts[0] + '.' + parts[1];
-    } else if (parts.length === 1) {
-        // No decimal point yet, allow up to 2 digits for typing
-        if (parts[0].length > 2) {
-            parts[0] = parts[0].substring(0, 2);
-            value = parts[0];
-        }
+
+    // Remove any non-numeric characters (no decimal point allowed)
+    value = value.replace(/[^0-9]/g, '');
+
+    // If no numeric characters remain, keep empty
+    if (value === '') {
+        input.value = '';
+        return;
     }
-    
-    // Update input value with validated format
-    input.value = value;
+
+    // Limit to 4 digits maximum
+    if (value.length > 4) {
+        value = value.substring(0, 4);
+    }
+
+    // Special handling: if exactly 3 digits and all are zeros, pad to 4 digits
+    // Otherwise, keep as is (don't pad with leading zeros)
+    if (value.length === 3 && value === '000') {
+        input.value = '0000';
+    } else {
+        input.value = value;
+    }
 }
 
-function validateOneDigitOneDecimal(input) {
+function validateSimpleNumeric(input) {
     let value = input.value;
-    
-    // Remove any non-numeric characters except decimal point and minus sign
-    value = value.replace(/[^0-9.-]/g, '');
-    
+
+    // Remove any non-numeric characters (allow negative sign for some cases)
+    value = value.replace(/[^0-9-]/g, '');
+
     // Handle negative sign - only at the beginning
     if (value.indexOf('-') > 0) {
         value = value.replace(/-/g, ''); // Remove all minus signs
     } else if (value.startsWith('-')) {
         value = '-' + value.substring(1).replace(/-/g, ''); // Keep only the first minus sign
     }
-    
+
+    // Update input value with validated format
+    input.value = value;
+}
+
+function formatSimpleNumericOnEnter(input) {
+    let value = input.value.trim();
+
+    // If empty, keep it empty
+    if (value === '') {
+        input.value = '';
+        return;
+    }
+
+    // Parse as number
+    const numValue = parseFloat(value);
+
+    // If not a valid number, keep empty
+    if (isNaN(numValue)) {
+        input.value = '';
+        return;
+    }
+
+    // Format as simple number (no padding, no forced decimals)
+    input.value = numValue.toString();
+}
+
+function validateTwoDigitOneDecimal(input) {
+    let value = input.value;
+
+    // Remove any non-numeric characters except decimal point
+    value = value.replace(/[^0-9.]/g, '');
+
     // Ensure only one decimal point
     const parts = value.split('.');
     if (parts.length > 2) {
         value = parts[0] + '.' + parts.slice(1).join('');
     }
-    
-    // Allow up to 1 digit before decimal for typing (plus optional minus sign)
+
+    // Allow up to 2 digits before decimal for typing (Colour L range is 52-64)
+    if (parts.length === 2) {
+        // Before decimal: allow up to 2 digits for typing
+        if (parts[0].length > 2) {
+            parts[0] = parts[0].substring(0, 2);
+        }
+        // After decimal: allow up to 2 digits (don't force exactly 1)
+        if (parts[1].length > 2) {
+            parts[1] = parts[1].substring(0, 2);
+        }
+        value = parts[0] + '.' + parts[1];
+    } else if (parts.length === 1) {
+        // No decimal point yet, allow up to 2 digits for typing (Colour L range is 52-64)
+        if (parts[0].length > 2) {
+            parts[0] = parts[0].substring(0, 2);
+            value = parts[0];
+        }
+    }
+
+    // Update input value with validated format
+    input.value = value;
+}
+
+function validateOneDigitOneDecimal(input) {
+    let value = input.value;
+
+    // Remove any non-numeric characters except decimal point and minus sign
+    value = value.replace(/[^0-9.-]/g, '');
+
+    // Handle negative sign - only at the beginning
+    if (value.indexOf('-') > 0) {
+        value = value.replace(/-/g, ''); // Remove all minus signs
+    } else if (value.startsWith('-')) {
+        value = '-' + value.substring(1).replace(/-/g, ''); // Keep only the first minus sign
+    }
+
+    // Ensure only one decimal point
+    const parts = value.split('.');
+    if (parts.length > 2) {
+        value = parts[0] + '.' + parts.slice(1).join('');
+    }
+
+    // Allow up to 3 digits before decimal for typing (Colour B range is -12.50 to -4.50)
     if (parts.length === 2) {
         let beforeDecimal = parts[0];
         let afterDecimal = parts[1];
-        
+
         // Handle negative numbers
         if (beforeDecimal.startsWith('-')) {
-            if (beforeDecimal.length > 2) { // -X format, so max 2 chars (-X)
-                beforeDecimal = beforeDecimal.substring(0, 2);
+            if (beforeDecimal.length > 3) { // -XX format, so max 3 chars (-12)
+                beforeDecimal = beforeDecimal.substring(0, 3);
             }
         } else {
-            if (beforeDecimal.length > 1) { // X format, so max 1 char
-                beforeDecimal = beforeDecimal.substring(0, 1);
+            if (beforeDecimal.length > 2) { // XX format, so max 2 chars (49, 59)
+                beforeDecimal = beforeDecimal.substring(0, 2);
             }
         }
-        
-        // After decimal: max 1 digit
-        if (afterDecimal.length > 1) {
-            afterDecimal = afterDecimal.substring(0, 1);
+
+        // After decimal: allow up to 2 digits (don't force exactly 1)
+        if (afterDecimal.length > 2) {
+            afterDecimal = afterDecimal.substring(0, 2);
+        }
+        // Ensure at least 1 digit after decimal if there are digits before
+        if (afterDecimal.length === 0 && beforeDecimal !== '' && beforeDecimal !== '-') {
+            afterDecimal = '0';
         }
         value = beforeDecimal + '.' + afterDecimal;
     } else if (parts.length === 1) {
         // No decimal point yet
         if (value.startsWith('-')) {
-            if (value.length > 2) { // -X format
-                value = value.substring(0, 2);
+            if (value.length > 3) { // -XX format
+                value = value.substring(0, 3);
             }
         } else {
-            if (value.length > 1) { // X format
-                value = value.substring(0, 1);
+            if (value.length > 2) { // XX format
+                value = value.substring(0, 2);
             }
         }
     }
-    
+
     // Update input value with validated format
     input.value = value;
 }
@@ -2407,39 +2596,39 @@ function validateTwoDigitTwoDecimal(input) {
 
 function validateOneDigitTwoDecimal(input) {
     let value = input.value;
-    
+
     // Remove any non-numeric characters except decimal point and minus sign
     value = value.replace(/[^0-9.-]/g, '');
-    
+
     // Ensure only one decimal point
     const parts = value.split('.');
     if (parts.length > 2) {
         value = parts[0] + '.' + parts.slice(1).join('');
     }
-    
+
     // Handle negative sign - only at the beginning
     if (value.indexOf('-') > 0) {
         value = value.replace(/-/g, ''); // Remove all minus signs
     } else if (value.startsWith('-')) {
         value = '-' + value.substring(1).replace(/-/g, ''); // Keep only the first minus sign
     }
-    
-    // Allow up to 1 digit before decimal for typing (plus optional minus sign)
+
+    // Allow up to 1 digit before decimal for typing (Delta E and Base Film Pink range is 0.00-4.00)
     if (parts.length === 2) {
         let beforeDecimal = parts[0];
         let afterDecimal = parts[1];
-        
+
         // Handle negative numbers
         if (beforeDecimal.startsWith('-')) {
-            if (beforeDecimal.length > 2) { // -X format, so max 2 chars (-X)
+            if (beforeDecimal.length > 2) { // -X format, so max 2 chars (-4)
                 beforeDecimal = beforeDecimal.substring(0, 2);
             }
         } else {
-            if (beforeDecimal.length > 1) { // X format, so max 1 char
+            if (beforeDecimal.length > 1) { // X format, so max 1 char (4)
                 beforeDecimal = beforeDecimal.substring(0, 1);
             }
         }
-        
+
         // After decimal: max 2 digits
         if (afterDecimal.length > 2) {
             afterDecimal = afterDecimal.substring(0, 2);
@@ -2457,46 +2646,108 @@ function validateOneDigitTwoDecimal(input) {
             }
         }
     }
-    
+
     // Update input value with validated format
     input.value = value;
 }
 
-function validateFlexibleTwoDecimal(input) {
+function validateFlexibleTwoDecimal(input, options = {}) {
+    const maxBeforeDecimal = options.maxBeforeDecimal || 2;
+    const maxAfterDecimal = options.maxAfterDecimal || 2;
+
     let value = input.value;
-    
+
     // Remove any non-numeric characters except decimal point
     value = value.replace(/[^0-9.]/g, '');
-    
+
     // Ensure only one decimal point
     const parts = value.split('.');
     if (parts.length > 2) {
         value = parts[0] + '.' + parts.slice(1).join('');
     }
-    
-    // Allow up to 2 digits before decimal for typing (flexible: 9 or 12)
+
+    // Allow up to specified digits before decimal
     if (parts.length === 2) {
         let beforeDecimal = parts[0];
         let afterDecimal = parts[1];
-        
-        // Before decimal: allow up to 2 digits (no leading zero forcing)
-        if (beforeDecimal.length > 2) {
-            beforeDecimal = beforeDecimal.substring(0, 2);
+
+        // Before decimal: allow up to specified digits
+        if (beforeDecimal.length > maxBeforeDecimal) {
+            beforeDecimal = beforeDecimal.substring(0, maxBeforeDecimal);
         }
-        
+
+        // After decimal: max specified digits
+        if (afterDecimal.length > maxAfterDecimal) {
+            afterDecimal = afterDecimal.substring(0, maxAfterDecimal);
+        }
+        value = beforeDecimal + '.' + afterDecimal;
+    } else if (parts.length === 1) {
+        // No decimal point yet, allow up to specified digits for typing
+        if (parts[0].length > maxBeforeDecimal) {
+            parts[0] = parts[0].substring(0, maxBeforeDecimal);
+            value = parts[0];
+        }
+    }
+
+    // Update input value with validated format
+    input.value = value;
+}
+
+function validateFlexibleTwoDecimalWithNegative(input) {
+    let value = input.value;
+
+    // Remove any non-numeric characters except decimal point and minus sign
+    value = value.replace(/[^0-9.-]/g, '');
+
+    // Handle negative sign - only at the beginning
+    if (value.indexOf('-') > 0) {
+        value = value.replace(/-/g, ''); // Remove all minus signs
+    } else if (value.startsWith('-')) {
+        value = '-' + value.substring(1).replace(/-/g, ''); // Keep only the first minus sign
+    }
+
+    // Ensure only one decimal point
+    const parts = value.split('.');
+    if (parts.length > 2) {
+        const beforeDecimal = parts[0];
+        const afterDecimal = parts.slice(1).join('');
+        value = beforeDecimal + '.' + afterDecimal;
+    }
+
+    // Allow up to 2 digits before decimal for typing (flexible: -12 or 12)
+    if (parts.length === 2) {
+        let beforeDecimal = parts[0];
+        let afterDecimal = parts[1];
+
+        // Handle negative numbers
+        if (beforeDecimal.startsWith('-')) {
+            if (beforeDecimal.length > 3) { // -XX format, so max 3 chars (-12)
+                beforeDecimal = beforeDecimal.substring(0, 3);
+            }
+        } else {
+            if (beforeDecimal.length > 2) { // XX format, so max 2 chars (12)
+                beforeDecimal = beforeDecimal.substring(0, 2);
+            }
+        }
+
         // After decimal: max 2 digits
         if (afterDecimal.length > 2) {
             afterDecimal = afterDecimal.substring(0, 2);
         }
         value = beforeDecimal + '.' + afterDecimal;
     } else if (parts.length === 1) {
-        // No decimal point yet, allow up to 2 digits for typing
-        if (parts[0].length > 2) {
-            parts[0] = parts[0].substring(0, 2);
-            value = parts[0];
+        // No decimal point yet
+        if (value.startsWith('-')) {
+            if (value.length > 3) { // -XX format
+                value = value.substring(0, 3);
+            }
+        } else {
+            if (value.length > 2) { // XX format
+                value = value.substring(0, 2);
+            }
         }
     }
-    
+
     // Update input value with validated format
     input.value = value;
 }
@@ -2600,96 +2851,63 @@ function formatTwoDigitTwoDecimalOnEnter(input) {
         return;
     }
     
-    // Format to 2 decimal places (don't force leading zeros)
-    input.value = numValue.toFixed(2);
+    // Format to 2 decimal places and ensure 2 digits before decimal
+    const formatted = numValue.toFixed(2);
+    const parts = formatted.split('.');
+    
+    // Ensure 2 digits before decimal
+    if (parts[0].length === 1) {
+        parts[0] = '0' + parts[0];
+    }
+    
+    input.value = parts[0] + '.' + parts[1];
 }
 
-function formatTwoDigitOneDecimalOnEnter(input) {
+
+function formatFlexibleTwoDecimalOnEnter(input, options = {}) {
+    const decimalPlaces = options.maxAfterDecimal || options.decimalPlaces || 2;
+
     let value = input.value.trim();
-    
+
     // If empty, keep it empty
     if (value === '') {
         input.value = '';
         return;
     }
-    
+
     // Parse as number
     const numValue = parseFloat(value);
-    
+
     // If not a valid number, keep empty
     if (isNaN(numValue)) {
         input.value = '';
         return;
     }
-    
-    // Format to 1 decimal place (don't force leading zeros)
-    input.value = numValue.toFixed(1);
+
+    // Format to specified decimal places WITHOUT forcing leading zeros
+    input.value = numValue.toFixed(decimalPlaces);
 }
 
-function formatOneDigitOneDecimalOnEnter(input) {
+function formatFlexibleTwoDecimalWithNegativeOnEnter(input) {
     let value = input.value.trim();
-    
+
     // If empty, keep it empty
     if (value === '') {
         input.value = '';
         return;
     }
-    
-    // Parse as number
-    const numValue = parseFloat(value);
-    
-    // If not a valid number, keep empty
-    if (isNaN(numValue)) {
-        input.value = '';
-        return;
-    }
-    
-    // Format to 1 decimal place
-    input.value = numValue.toFixed(1);
-}
 
-function formatOneDigitTwoDecimalOnEnter(input) {
-    let value = input.value.trim();
-    
-    // If empty, keep it empty
-    if (value === '') {
-        input.value = '';
-        return;
-    }
-    
     // Parse as number
     const numValue = parseFloat(value);
-    
-    // If not a valid number, keep empty
-    if (isNaN(numValue)) {
-        input.value = '';
-        return;
-    }
-    
-    // Format to 2 decimal places
-    input.value = numValue.toFixed(2);
-}
 
-function formatFlexibleTwoDecimalOnEnter(input) {
-    let value = input.value.trim();
-    
-    // If empty, keep it empty
-    if (value === '') {
-        input.value = '';
-        return;
-    }
-    
-    // Parse as number
-    const numValue = parseFloat(value);
-    
     // If not a valid number, keep empty
     if (isNaN(numValue)) {
         input.value = '';
         return;
     }
-    
+
     // Format to 2 decimal places WITHOUT forcing leading zeros
-    // 9 becomes 9.00, 12 becomes 12.00
+    // -12.50 stays -12.50, 12.56 becomes 12.56
     input.value = numValue.toFixed(2);
 }
 
@@ -2770,14 +2988,67 @@ function formatThreeDigitsOnEnter(input) {
     input.value = numValue.toString().padStart(3, '0');
 }
 
+function formatFourDigitsOnEnter(input) {
+    let value = input.value.trim();
+
+    // If empty, keep it empty
+    if (value === '') {
+        input.value = '';
+        return;
+    }
+
+    // Remove any non-numeric characters
+    value = value.replace(/[^0-9]/g, '');
+
+    // If no numeric characters remain, keep empty
+    if (value === '') {
+        input.value = '';
+        return;
+    }
+
+    // Parse as number
+    const numValue = parseInt(value, 10);
+
+    // If not a valid number, keep empty
+    if (isNaN(numValue)) {
+        input.value = '';
+        return;
+    }
+
+    // Special handling: if exactly 3 digits and all are zeros, pad to 4 digits
+    // Otherwise, keep as is (don't pad with leading zeros)
+    if (value.length === 3 && value === '000') {
+        input.value = '0000';
+    } else {
+        input.value = value;
+    }
+}
+
 // Apply validation functions to inputs
 function applyThreeDigitValidation(input) {
+    // Ensure input is not read-only
+    input.readOnly = false;
+    input.style.backgroundColor = 'transparent';
+    input.style.color = 'black';
+
     input.addEventListener('input', function() {
         validateThreeDigits(this);
         // Auto-save to database after each change (debounced)
         debouncedSave();
+
+        // Trigger Page 2 calculation if this is a Page 2 input
+        if (this.closest('#testingTableBody2')) {
+            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody2'), inputIndex);
+        }
+
+        // Trigger Page 3 calculation if this is a Page 3 input
+        if (this.closest('#testingTableBody3')) {
+            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody3'), inputIndex);
+        }
     });
-    
+
     // Add Enter key formatting
     input.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
@@ -2786,7 +3057,7 @@ function applyThreeDigitValidation(input) {
             debouncedSave();
         }
     });
-    
+
     // Add blur formatting (when user clicks away)
     input.addEventListener('blur', function() {
         formatThreeDigitsOnEnter(this);
@@ -2795,134 +3066,114 @@ function applyThreeDigitValidation(input) {
     });
 }
 
+function applySimpleNumericValidation(input) {
+    // Ensure input is not read-only
+    input.readOnly = false;
+    input.style.backgroundColor = 'transparent';
+    input.style.color = 'black';
+
+    input.addEventListener('input', function() {
+        validateSimpleNumeric(this);
+        // Auto-save to database after each change (debounced)
+        debouncedSave();
+
+        // Trigger Page 2 calculation if this is a Page 2 input
+        if (this.closest('#testingTableBody2')) {
+            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody2'), inputIndex);
+        }
+
+        // Trigger Page 3 calculation if this is a Page 3 input
+        if (this.closest('#testingTableBody3')) {
+            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody3'), inputIndex);
+        }
+    });
+
+    // Add Enter key formatting
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            formatSimpleNumericOnEnter(this);
+            // Auto-save to database after formatting
+            debouncedSave();
+        }
+    });
+
+    // Add blur formatting (when user clicks away)
+    input.addEventListener('blur', function() {
+        formatSimpleNumericOnEnter(this);
+        // Auto-save to database after formatting
+        debouncedSave();
+    });
+}
+
+function applyFourDigitValidation(input) {
+    // Ensure input is not read-only
+    input.readOnly = false;
+    input.style.backgroundColor = 'transparent';
+    input.style.color = 'black';
+
+    input.addEventListener('input', function() {
+        validateFourDigits(this);
+        // Auto-save to database after each change (debounced)
+        debouncedSave();
+
+        // Trigger Page 2 calculation if this is a Page 2 input
+        if (this.closest('#testingTableBody2')) {
+            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody2'), inputIndex);
+        }
+
+        // Trigger Page 3 calculation if this is a Page 3 input
+        if (this.closest('#testingTableBody3')) {
+            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody3'), inputIndex);
+        }
+    });
+
+    // Add Enter key formatting
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            formatFourDigitsOnEnter(this);
+            // Auto-save to database after formatting
+            debouncedSave();
+        }
+    });
+
+    // Add blur formatting (when user clicks away)
+    input.addEventListener('blur', function() {
+        formatFourDigitsOnEnter(this);
+        // Auto-save to database after formatting
+        debouncedSave();
+    });
+}
+
+function applyNoDecimalValidation(input) {
+    // Determine if this is 3-digit or 4-digit based on context
+    // For now, use 3-digit validation as most cases are 3 digits
+    // Tensile Break (4 digits) should use applyFourDigitValidation
+    applyThreeDigitValidation(input);
+}
+
 function applyTwoDigitOneDecimalValidation(input) {
-    input.addEventListener('input', function() {
-        validateTwoDigitOneDecimal(this);
-        // Auto-save to database after each change (debounced)
-        debouncedSave();
-        
-        // Trigger Page 2 calculation if this is a Page 2 input
-        const testingTableBody2 = document.getElementById('testingTableBody2');
-        if (testingTableBody2 && this.closest('#testingTableBody2')) {
-            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
-            calculatePage2ColumnStats(testingTableBody2, inputIndex);
-        }
-    });
-    
-    // Add Enter key formatting
-    input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            formatTwoDigitOneDecimalOnEnter(this);
-            // Auto-save to database after formatting
-            debouncedSave();
-        }
-    });
-    
-    // Add blur formatting (when user clicks away)
-    input.addEventListener('blur', function() {
-        formatTwoDigitOneDecimalOnEnter(this);
-        // Auto-save to database after formatting
-        debouncedSave();
-        
-        // Trigger Page 2 calculation if this is a Page 2 input
-        const testingTableBody2 = document.getElementById('testingTableBody2');
-        if (testingTableBody2 && this.closest('#testingTableBody2')) {
-            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
-            calculatePage2ColumnStats(testingTableBody2, inputIndex);
-        }
-    });
-}
-
-function applyOneDigitOneDecimalValidation(input) {
-    input.addEventListener('input', function() {
-        validateOneDigitOneDecimal(this);
-        // Auto-save to database after each change (debounced)
-        debouncedSave();
-        
-        // Trigger Page 2 calculation if this is a Page 2 input
-        const testingTableBody2 = document.getElementById('testingTableBody2');
-        if (testingTableBody2 && this.closest('#testingTableBody2')) {
-            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
-            calculatePage2ColumnStats(testingTableBody2, inputIndex);
-        }
-    });
-    
-    // Add Enter key formatting
-    input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            formatOneDigitOneDecimalOnEnter(this);
-            // Auto-save to database after formatting
-            debouncedSave();
-        }
-    });
-    
-    // Add blur formatting (when user clicks away)
-    input.addEventListener('blur', function() {
-        formatOneDigitOneDecimalOnEnter(this);
-        // Auto-save to database after formatting
-        debouncedSave();
-        
-        // Trigger Page 2 calculation if this is a Page 2 input
-        const testingTableBody2 = document.getElementById('testingTableBody2');
-        if (testingTableBody2 && this.closest('#testingTableBody2')) {
-            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
-            calculatePage2ColumnStats(testingTableBody2, inputIndex);
-        }
-    });
-}
-
-function applyOneDigitTwoDecimalValidation(input) {
-    input.addEventListener('input', function() {
-        validateOneDigitTwoDecimal(this);
-        // Auto-save to database after each change (debounced)
-        debouncedSave();
-        
-        // Trigger Page 2 calculation if this is a Page 2 input
-        const testingTableBody2 = document.getElementById('testingTableBody2');
-        if (testingTableBody2 && this.closest('#testingTableBody2')) {
-            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
-            calculatePage2ColumnStats(testingTableBody2, inputIndex);
-        }
-    });
-    
-    // Add Enter key formatting
-    input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            formatOneDigitTwoDecimalOnEnter(this);
-            // Auto-save to database after formatting
-            debouncedSave();
-        }
-    });
-    
-    // Add blur formatting (when user clicks away)
-    input.addEventListener('blur', function() {
-        formatOneDigitTwoDecimalOnEnter(this);
-        // Auto-save to database after formatting
-        debouncedSave();
-        
-        // Trigger Page 2 calculation if this is a Page 2 input
-        const testingTableBody2 = document.getElementById('testingTableBody2');
-        if (testingTableBody2 && this.closest('#testingTableBody2')) {
-            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
-            calculatePage2ColumnStats(testingTableBody2, inputIndex);
-        }
-    });
-}
-
-function applyFlexibleTwoDecimalValidation(input) {
     input.addEventListener('input', function() {
         validateFlexibleTwoDecimal(this);
         // Auto-save to database after each change (debounced)
         debouncedSave();
-        
+
         // Trigger Page 2 calculation if this is a Page 2 input
-        const testingTableBody2 = document.getElementById('testingTableBody2');
-        if (testingTableBody2 && this.closest('#testingTableBody2')) {
+        if (this.closest('#testingTableBody2')) {
             const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
-            calculatePage2ColumnStats(testingTableBody2, inputIndex);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody2'), inputIndex);
+        }
+
+        // Trigger Page 3 calculation if this is a Page 3 input
+        if (this.closest('#testingTableBody3')) {
+            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody3'), inputIndex);
         }
     });
-    
+
     // Add Enter key formatting
     input.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
@@ -2931,18 +3182,120 @@ function applyFlexibleTwoDecimalValidation(input) {
             debouncedSave();
         }
     });
-    
+
     // Add blur formatting (when user clicks away)
     input.addEventListener('blur', function() {
         formatFlexibleTwoDecimalOnEnter(this);
         // Auto-save to database after formatting
         debouncedSave();
-        
+
         // Trigger Page 2 calculation if this is a Page 2 input
-        const testingTableBody2 = document.getElementById('testingTableBody2');
-        if (testingTableBody2 && this.closest('#testingTableBody2')) {
+        if (this.closest('#testingTableBody2')) {
             const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
-            calculatePage2ColumnStats(testingTableBody2, inputIndex);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody2'), inputIndex);
+        }
+
+        // Trigger Page 3 calculation if this is a Page 3 input
+        if (this.closest('#testingTableBody3')) {
+            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody3'), inputIndex);
+        }
+    });
+}
+
+
+function applyFlexibleTwoDecimalValidation(input, options = {}) {
+    input.addEventListener('input', function() {
+        validateFlexibleTwoDecimal(this, options);
+        // Auto-save to database after each change (debounced)
+        debouncedSave();
+
+        // Trigger Page 2 calculation if this is a Page 2 input
+        if (this.closest('#testingTableBody2')) {
+            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody2'), inputIndex);
+        }
+
+        // Trigger Page 3 calculation if this is a Page 3 input
+        if (this.closest('#testingTableBody3')) {
+            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody3'), inputIndex);
+        }
+    });
+
+    // Add Enter key formatting
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            formatFlexibleTwoDecimalOnEnter(this, options);
+            // Auto-save to database after formatting
+            debouncedSave();
+
+            // Trigger Page 3 calculation if this is a Page 3 input
+            if (this.closest('#testingTableBody3')) {
+                const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+                calculatePage2ColumnStats(document.getElementById('testingTableBody3'), inputIndex);
+            }
+        }
+    });
+
+    // Add blur formatting (when user clicks away)
+    input.addEventListener('blur', function() {
+        formatFlexibleTwoDecimalOnEnter(this, options);
+        // Auto-save to database after formatting
+        debouncedSave();
+
+        // Trigger Page 2 calculation if this is a Page 2 input
+        if (this.closest('#testingTableBody2')) {
+            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody2'), inputIndex);
+        }
+
+        // Trigger Page 3 calculation if this is a Page 3 input
+        if (this.closest('#testingTableBody3')) {
+            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody3'), inputIndex);
+        }
+    });
+}
+
+function applyFlexibleTwoDecimalWithNegativeValidation(input) {
+    input.addEventListener('input', function() {
+        validateFlexibleTwoDecimalWithNegative(this);
+        // Auto-save to database after each change (debounced)
+        debouncedSave();
+
+        // Trigger Page 3 calculation if this is a Page 3 input
+        if (this.closest('#testingTableBody3')) {
+            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody3'), inputIndex);
+        }
+    });
+
+    // Add Enter key formatting
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            formatFlexibleTwoDecimalWithNegativeOnEnter(this);
+            // Auto-save to database after formatting
+            debouncedSave();
+
+            // Trigger Page 3 calculation if this is a Page 3 input
+            if (this.closest('#testingTableBody3')) {
+                const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+                calculatePage2ColumnStats(document.getElementById('testingTableBody3'), inputIndex);
+            }
+        }
+    });
+
+    // Add blur formatting (when user clicks away)
+    input.addEventListener('blur', function() {
+        formatFlexibleTwoDecimalWithNegativeOnEnter(this);
+        // Auto-save to database after formatting
+        debouncedSave();
+
+        // Trigger Page 3 calculation if this is a Page 3 input
+        if (this.closest('#testingTableBody3')) {
+            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody3'), inputIndex);
         }
     });
 }
@@ -2957,20 +3310,6 @@ function applyFlexibleOneDecimalValidation(input) {
     input.addEventListener('input', function() {
         validateFlexibleOneDecimal(this);
         debouncedSave();
-
-        // Trigger summary statistics update for gloss column on Page 1
-        const tr = this.closest('tr');
-        const tableBody = tr?.closest('tbody');
-        if (tableBody && tableBody.id === 'testingTableBody') {
-            const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(this);
-            if (inputIndex === 11) { // Gloss column
-                setTimeout(() => {
-                    if (typeof calculatePage1ColumnStats === 'function') {
-                        calculatePage1ColumnStats(tableBody, inputIndex);
-                    }
-                }, 10);
-            }
-        }
     });
     
     input.addEventListener('keydown', function(e) {
@@ -2983,20 +3322,6 @@ function applyFlexibleOneDecimalValidation(input) {
     input.addEventListener('blur', function() {
         formatFlexibleOneDecimalOnEnter(this);
         debouncedSave();
-
-        // Trigger summary statistics update for gloss column on Page 1
-        const tr = this.closest('tr');
-        const tableBody = tr?.closest('tbody');
-        if (tableBody && tableBody.id === 'testingTableBody') {
-            const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(this);
-            if (inputIndex === 11) { // Gloss column
-                setTimeout(() => {
-                    if (typeof calculatePage1ColumnStats === 'function') {
-                        calculatePage1ColumnStats(tableBody, inputIndex);
-                    }
-                }, 10);
-            }
-        }
     });
 }
 
@@ -3007,10 +3332,15 @@ function applyTwoDigitTwoDecimalValidation(input) {
         debouncedSave();
         
         // Trigger Page 2 calculation if this is a Page 2 input
-        const testingTableBody2 = document.getElementById('testingTableBody2');
-        if (testingTableBody2 && this.closest('#testingTableBody2')) {
+        if (this.closest('#testingTableBody2')) {
             const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
-            calculatePage2ColumnStats(testingTableBody2, inputIndex);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody2'), inputIndex);
+        }
+
+        // Trigger Page 3 calculation if this is a Page 3 input
+        if (this.closest('#testingTableBody3')) {
+            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody3'), inputIndex);
         }
     });
     
@@ -3030,10 +3360,15 @@ function applyTwoDigitTwoDecimalValidation(input) {
         debouncedSave();
         
         // Trigger Page 2 calculation if this is a Page 2 input
-        const testingTableBody2 = document.getElementById('testingTableBody2');
-        if (testingTableBody2 && this.closest('#testingTableBody2')) {
+        if (this.closest('#testingTableBody2')) {
             const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
-            calculatePage2ColumnStats(testingTableBody2, inputIndex);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody2'), inputIndex);
+        }
+
+        // Trigger Page 3 calculation if this is a Page 3 input
+        if (this.closest('#testingTableBody3')) {
+            const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
+            calculatePage2ColumnStats(document.getElementById('testingTableBody3'), inputIndex);
         }
     });
 }
@@ -3045,10 +3380,10 @@ function applyCOFValidation(input) {
         const row = this.closest('tr');
         const inputs = row.querySelectorAll('input');
         const columnIndex = Array.from(inputs).indexOf(this);
-        if (columnIndex === 4) {
+        if (columnIndex === 6) {
             applyOOSValidation(this, 'cofRR');
-        } else if (columnIndex === 5) {
-            applyOOSValidation(this, 'cofRS');
+        } else if (columnIndex === 7) {
+            applyOOSValidation(this, 'cofCC');
         }
         // Auto-save to database after each change (debounced)
         debouncedSave();
@@ -3079,10 +3414,10 @@ function applyCOFValidation(input) {
         const row = this.closest('tr');
         const inputs = row.querySelectorAll('input');
         const columnIndex = Array.from(inputs).indexOf(this);
-        if (columnIndex === 4) {
+        if (columnIndex === 6) {
             applyOOSValidation(this, 'cofRR');
-        } else if (columnIndex === 5) {
-            applyOOSValidation(this, 'cofRS');
+        } else if (columnIndex === 7) {
+            applyOOSValidation(this, 'cofCC');
         }
         // Auto-save to database after formatting
         debouncedSave();
@@ -3099,85 +3434,27 @@ function applyValidationToExistingInputs() {
             const firstCell = row.querySelector('td');
             if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
                 const inputs = row.querySelectorAll('input');
-                
-                // Basic Weight column (index 3) - 00.00 format
-                if (inputs[3]) applyTwoDigitTwoDecimalValidation(inputs[3]);
-                // COF-RR column (index 4) - COF format (30 → 0.30)
-                if (inputs[4]) applyCOFValidation(inputs[4]);
-                // COF-RS column (index 5) - COF format (30 → 0.30)
-                if (inputs[5]) applyCOFValidation(inputs[5]);
-                // Opacity column (index 6) - 00.0 format
-                if (inputs[6]) applyTwoDigitOneDecimalValidation(inputs[6]);
-                // Modulus data columns (index 7-9) - 00.0 format
-                for (let i = 7; i <= 9; i++) {
-                    if (inputs[i]) {
-                        applyTwoDigitOneDecimalValidation(inputs[i]);
-                        // Add listener to calculate modulus average when data changes
-                        inputs[i].addEventListener('input', function() {
-                            calculateModulusAverage(this);
-                        });
-                        inputs[i].addEventListener('blur', function() {
-                            calculateModulusAverage(this);
-                        });
-                    }
-                }
-                // Modulus average column (index 10) - read-only, auto-calculated
-                if (inputs[10]) {
-                    inputs[10].readOnly = true;
-                    inputs[10].style.backgroundColor = 'transparent';
-                    inputs[10].style.color = 'black';
-                }
-                // Gloss column (index 11) - flexible 0.0 format (9.0 or 10.0, no leading zeros)
-                if (inputs[11]) {
-                    applyFlexibleOneDecimalValidation(inputs[11]);
-                    // Add OOS validation for gloss column
-                    inputs[11].addEventListener('input', function() {
-                        applyOOSValidation(this, 'gloss');
 
-                        // Trigger summary statistics update for gloss column on Page 1
-                        const tr = this.closest('tr');
-                        const tableBody = tr?.closest('tbody');
-                        if (tableBody && tableBody.id === 'testingTableBody') {
-                            const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(this);
-                            if (inputIndex === 11) { // Gloss column
-                                setTimeout(() => {
-                                    if (typeof calculatePage1ColumnStats === 'function') {
-                                        calculatePage1ColumnStats(tableBody, inputIndex);
-                                    }
-                                }, 10);
-                            }
-                        }
-                    });
-                    inputs[11].addEventListener('blur', function() {
-                        applyOOSValidation(this, 'gloss');
-
-                        // Trigger summary statistics update for gloss column on Page 1
-                        const tr = this.closest('tr');
-                        const tableBody = tr?.closest('tbody');
-                        if (tableBody && tableBody.id === 'testingTableBody') {
-                            const inputIndex = Array.from(tr.querySelectorAll('input')).indexOf(this);
-                            if (inputIndex === 11) { // Gloss column
-                                setTimeout(() => {
-                                    if (typeof calculatePage1ColumnStats === 'function') {
-                                        calculatePage1ColumnStats(tableBody, inputIndex);
-                                    }
-                                }, 10);
-                            }
-                        }
-                    });
-                }
-                
-                // Calculate modulus average for existing data on page load
-                if (inputs[7] || inputs[8] || inputs[9]) {
-                    calculateModulusAverage(inputs[7] || inputs[8] || inputs[9]);
-                }
-                
-                // Calculate summary statistics for existing data on page load
-                calculatePage1ColumnStats(testingTableBody);
+                // Film Weight column (index 3) - 00.00 format (2 decimals)
+                if (inputs[3]) applyFlexibleTwoDecimalValidation(inputs[3], { maxBeforeDecimal: 2, maxAfterDecimal: 2 });
+                // Thickness column (index 4) - simple numeric format (no forced padding)
+                if (inputs[4]) applySimpleNumericValidation(inputs[4]);
+                // Wettability column (index 5) - 000 format (3 digits, no decimal)
+                if (inputs[5]) applyThreeDigitValidation(inputs[5]);
+                // COF-RR column (index 6) - COF format (30 → 0.30)
+                if (inputs[6]) applyCOFValidation(inputs[6]);
+                // COF-CC column (index 7) - COF format (30 → 0.30)
+                if (inputs[7]) applyCOFValidation(inputs[7]);
+                // Tensile Break column (index 8) - 0000 format (4 digits, no decimal)
+                if (inputs[8]) applyFourDigitValidation(inputs[8]);
+                // MD Elongation Break column (index 9) - 000 format (3 digits, no decimal)
+                if (inputs[9]) applyThreeDigitValidation(inputs[9]);
+                // 10% Modulus column (index 10) - 000 format (3 digits, no decimal)
+                if (inputs[10]) applyThreeDigitValidation(inputs[10]);
             }
         });
     }
-    
+
     // Page 2 validation
     const testingTableBody2 = document.getElementById('testingTableBody2');
     if (testingTableBody2) {
@@ -3187,27 +3464,25 @@ function applyValidationToExistingInputs() {
             if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
                 const inputs = row.querySelectorAll('input');
                 
-                // Force-elongation-MD column (index 3) - 0.00 format
-                if (inputs[3]) applyOneDigitTwoDecimalValidation(inputs[3]);
-                // Force-Tensile-MD column (index 4) - flexible format (9.00 or 12.00, no leading zeros)
-                if (inputs[4]) applyFlexibleTwoDecimalValidation(inputs[4]);
-                // Force-elongation-CD column (index 5) - 0.00 format
-                if (inputs[5]) applyOneDigitTwoDecimalValidation(inputs[5]);
-                // Force-Tensile-CD column (index 6) - 00.00 format
-                if (inputs[6]) applyTwoDigitTwoDecimalValidation(inputs[6]);
-                // Colour L column (index 7) - 00.0 format
-                if (inputs[7]) applyTwoDigitOneDecimalValidation(inputs[7]);
-                // Colour A column (index 8) - 0.0 format (negative values)
-                if (inputs[8]) applyOneDigitOneDecimalValidation(inputs[8]);
-                // Colour B column (index 9) - 0.0 format (negative values)
-                if (inputs[9]) applyOneDigitOneDecimalValidation(inputs[9]);
-                // Delta E column (index 10) - 00.00 format
-                if (inputs[10]) applyTwoDigitTwoDecimalValidation(inputs[10]);
-                
+                // Tensile Break column (index 3) - 0000 format (4 digits, no decimal)
+                if (inputs[3]) applyFourDigitValidation(inputs[3]);
+                // CD Elongation Break column (index 4) - 000 format (3 digits, no decimal)
+                if (inputs[4]) applyThreeDigitValidation(inputs[4]);
+                // 10% Modulus column (index 5) - 000 format (3 digits, no decimal)
+                if (inputs[5]) applyThreeDigitValidation(inputs[5]);
+                // Opacity column (index 6) - 00.0 format (1 decimal)
+                if (inputs[6]) applyFlexibleTwoDecimalValidation(inputs[6], { maxBeforeDecimal: 2, maxAfterDecimal: 1 });
+                // Roll Cut Width column (index 7) - 000 format (3 digits, no decimal)
+                if (inputs[7]) applyThreeDigitValidation(inputs[7]);
+                // Diameter column (index 8) - 000 format (3 digits, no decimal)
+                if (inputs[8]) applyThreeDigitValidation(inputs[8]);
+
                 // Calculate summary statistics for existing data on page load
                 calculatePage2ColumnStats(testingTableBody2);
             }
         });
+
+        // Page 3 validation - handled in first section (lines 652-686) to avoid conflicts
     }
 }
 
@@ -3336,9 +3611,10 @@ function applyValidationToExistingInputs() {
            
            // Define columns per row for each table type
            const getColumnsPerRow = (tableBody) => {
-               if (tableBody.id === 'testingTableBody') return 12;      // Page 1: 12 columns (3 Sample No + 9 parameters)
-               if (tableBody.id === 'testingTableBody2') return 11;     // Page 2: 11 columns (3 Sample No + 8 parameters)
-               return 12; // Default fallback
+               if (tableBody.id === 'testingTableBody') return 11;      // Page 1: 11 columns (3 Sample No + 8 parameters)
+               if (tableBody.id === 'testingTableBody2') return 9;      // Page 2: 9 columns (3 Sample No + 6 parameters)
+               if (tableBody.id === 'testingTableBody3') return 8;      // Page 3: 8 columns (3 Sample No + 5 parameters)
+               return 11; // Default fallback
            };
            
            // Get the current table and its column count
@@ -3600,182 +3876,7 @@ function applyOpacityValidation(input) {
     });
 }
 
-// Apply conditional formatting to ALL columns across ALL pages
-function applyConditionalFormattingToAllColumns() {
-
-    
-    // Page 1
-    const page1Columns = [
-        { tableBody: testingTableBody, columnIndex: 3, columnType: 'basicWeight' },
-        { tableBody: testingTableBody, columnIndex: 4, columnType: 'thickness' },
-        { tableBody: testingTableBody, columnIndex: 5, columnType: 'opacity' },
-        { tableBody: testingTableBody, columnIndex: 6, columnType: 'cof' },
-        { tableBody: testingTableBody, columnIndex: 7, columnType: 'cutWidth' },
-        { tableBody: testingTableBody, columnIndex: 8, columnType: 'colorDelta' },
-        { tableBody: testingTableBody, columnIndex: 9, columnType: 'colorDelta' }
-    ];
-    
-    // Page 2
-    const page2Columns = [
-        { tableBody: testingTableBody2, columnIndex: 3, columnType: 'elongationMD' },
-        { tableBody: testingTableBody2, columnIndex: 4, columnType: 'elongationMD' },
-        { tableBody: testingTableBody2, columnIndex: 5, columnType: 'elongationMD' },
-        { tableBody: testingTableBody2, columnIndex: 7, columnType: 'forceMD' },
-        { tableBody: testingTableBody2, columnIndex: 8, columnType: 'forceMD' },
-        { tableBody: testingTableBody2, columnIndex: 9, columnType: 'forceMD' },
-        { tableBody: testingTableBody2, columnIndex: 11, columnType: 'force5pMD' },
-        { tableBody: testingTableBody2, columnIndex: 12, columnType: 'force5pMD' },
-        { tableBody: testingTableBody2, columnIndex: 13, columnType: 'force5pMD' }
-    ];
-    
-    // Apply formatting to all columns
-    [...page1Columns, ...page2Columns].forEach(column => {
-
-        applyConditionalFormattingToColumn(column.tableBody, column.columnIndex, column.columnType);
-    });
-    
-
-}
-
-// Unified conditional formatting system
-function applyConditionalFormatting(input, columnType) {
-
-    
-    // Add event listeners
-    input.addEventListener('input', function() {
-
-        applyColorFormatting(this, columnType);
-    });
-    
-    input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-
-            applyColorFormatting(this, columnType);
-        }
-    });
-    
-    // Apply formatting immediately
-    applyColorFormatting(input, columnType);
-}
-
-function applyColorFormatting(input, columnType) {
-
-    
-    const value = parseFloat(input.value);
-    
-    // Remove existing color classes and inline styles
-    input.classList.remove('text-red-600', 'bg-red-50', 'border-red-300');
-    input.style.color = '';
-    input.style.backgroundColor = '';
-    input.style.borderColor = '';
-    input.style.borderWidth = '';
-    input.style.borderStyle = '';
-    
-    // Apply formatting based on column type and value
-    if (isNaN(value) || value === '') {
-
-        return;
-    }
-    
-    let isOutOfSpec = false;
-    
-    switch (columnType) {
-        case 'thickness':
-            // Thickness: 0.000 format, spec: 0.000-0.000
-            if (value < 0.000 || value > 0.000) {
-                isOutOfSpec = true;
-
-            }
-            break;
-            
-        case 'opacity':
-            // Opacity: 00.0 format, spec: 00.0-00.0
-            if (value < 0.0 || value > 100.0) {
-                isOutOfSpec = true;
-
-            }
-            break;
-            
-        case 'cof':
-            // COF: 0.00 format, spec: 0.00-0.00
-            if (value < 0.00 || value > 1.00) {
-                isOutOfSpec = true;
-
-            }
-            break;
-            
-        case 'elongationMD':
-            // Elongation MD: spec: 0.0-100.0
-            if (value < 0.0 || value > 100.0) {
-                isOutOfSpec = true;
-
-            }
-            break;
-            
-        case 'forceMD':
-            // Force MD: spec: 0.0-1000.0
-            if (value < 0.0 || value > 1000.0) {
-                isOutOfSpec = true;
-
-            }
-            break;
-            
-        case 'force5pMD':
-            // Force 5% MD: spec: 0.0-1000.0
-            if (value < 0.0 || value > 1000.0) {
-                isOutOfSpec = true;
-
-            }
-            break;
-    }
-    
-    if (isOutOfSpec) {
-
-        input.classList.add('text-red-600', 'bg-red-50', 'border-red-300');
-        input.style.color = '#dc2626';
-        input.style.backgroundColor = '#fef2f2';
-        input.style.borderColor = '#fca5a5';
-        input.style.borderWidth = '2px';
-        input.style.borderStyle = 'solid';
-    } else {
-
-    }
-}
-
-// Apply conditional formatting to ALL inputs in a column
-function applyConditionalFormattingToColumn(tableBody, columnIndex, columnType) {
-
-    
-    const inputs = tableBody.querySelectorAll(`tr td:nth-child(${columnIndex + 1}) input`);
-
-    
-    inputs.forEach(input => {
-        applyConditionalFormatting(input, columnType);
-    });
-    
-
-}
-
-// Clear all conditional formatting (for view mode)
-function clearAllConditionalFormatting() {
-
-    
-    const allInputs = document.querySelectorAll('input');
-    allInputs.forEach(input => {
-        // Remove all conditional formatting classes and styles
-        input.classList.remove('oos-highlight', 'bg-red-50', 'border-red-300');
-        // Preserve red text if already applied by validation
-        if (!input.classList.contains('text-red-600')) {
-            input.style.color = '';
-        }
-        input.style.backgroundColor = '';
-        input.style.borderColor = '';
-        input.style.borderWidth = '';
-        input.style.borderStyle = '';
-    });
-    
-
-}
+// Note: Conditional formatting functions removed - using applyOOSValidation system only
 
 // Function to calculate averages for each row
 function calculateRowAverages(row, tableBody) {
@@ -3820,9 +3921,9 @@ function calculateSummaryStatistics(tableBody) {
         return;
     }
     
-    // Page 1 columns: Basic Weight (3), COF-RR (4), COF-RS (5), Opacity (6), Modulus Avg (10), Gloss (11)
-    const summaryColumnIndices = [1, 2, 3, 4, 6, 7]; // Summary row column positions (skip position 5 for merged modulus)
-    const inputColumnIndices = [3, 4, 5, 6, 10, 11]; // Input columns in data rows (after Sample No colspan=3)
+    // Page 1 columns: Film Weight (3), Thickness (4), Wettability (5), COF-RR (6), COF-CC (7), Tensile Break (8), Elongation (9), 10% Modulus (10)
+    const summaryColumnIndices = [1, 2, 3, 4, 5, 6, 7, 8]; // Summary row column positions
+    const inputColumnIndices = [3, 4, 5, 6, 7, 8, 9, 10]; // Input columns in data rows (after Sample No colspan=3)
     
     // Calculate statistics for each column
     inputColumnIndices.forEach((inputColIndex, index) => {
@@ -3846,35 +3947,47 @@ function calculateSummaryStatistics(tableBody) {
             const min = Math.min(...values);
             const max = Math.max(...values);
             
-            // Format based on column type
+            // Format based on column specifications for Page 1
             let avgFormatted, minFormatted, maxFormatted;
-            
-            if (summaryColIndex === 1) { // Basic Weight
+
+            if (summaryColIndex === 1) { // Film Weight - 2 decimals
                 avgFormatted = avg.toFixed(2);
                 minFormatted = min.toFixed(2);
                 maxFormatted = max.toFixed(2);
-            } else if (summaryColIndex === 2) { // COF-RR
+            } else if (summaryColIndex === 2) { // Thickness - 0 decimals
+                avgFormatted = avg.toFixed(0);
+                minFormatted = min.toFixed(0);
+                maxFormatted = max.toFixed(0);
+            } else if (summaryColIndex === 3) { // Wettability - 0 decimals
+                avgFormatted = avg.toFixed(0);
+                minFormatted = min.toFixed(0);
+                maxFormatted = max.toFixed(0);
+            } else if (summaryColIndex === 4) { // COF-RR - 2 decimals
                 avgFormatted = avg.toFixed(2);
                 minFormatted = min.toFixed(2);
                 maxFormatted = max.toFixed(2);
-            } else if (summaryColIndex === 3) { // COF-RS
+            } else if (summaryColIndex === 5) { // COF-CC - 2 decimals
                 avgFormatted = avg.toFixed(2);
                 minFormatted = min.toFixed(2);
                 maxFormatted = max.toFixed(2);
-            } else if (summaryColIndex === 4) { // Opacity
-                avgFormatted = avg.toFixed(1);
-                minFormatted = min.toFixed(1);
-                maxFormatted = max.toFixed(1);
-            } else if (summaryColIndex === 5) { // Modulus Avg
-                avgFormatted = avg.toFixed(1);
-                minFormatted = min.toFixed(1);
-                maxFormatted = max.toFixed(1);
-            } else { // Gloss
-                avgFormatted = avg.toFixed(1);
-                minFormatted = min.toFixed(1);
-                maxFormatted = max.toFixed(1);
+            } else if (summaryColIndex === 6) { // Tensile Break - 0 decimals
+                avgFormatted = avg.toFixed(0);
+                minFormatted = min.toFixed(0);
+                maxFormatted = max.toFixed(0);
+            } else if (summaryColIndex === 7) { // MD Elongation Break - 0 decimals
+                avgFormatted = avg.toFixed(0);
+                minFormatted = min.toFixed(0);
+                maxFormatted = max.toFixed(0);
+            } else if (summaryColIndex === 8) { // 10% Modulus - 0 decimals
+                avgFormatted = avg.toFixed(0);
+                minFormatted = min.toFixed(0);
+                maxFormatted = max.toFixed(0);
+            } else { // Default fallback
+                avgFormatted = avg.toFixed(2);
+                minFormatted = min.toFixed(2);
+                maxFormatted = max.toFixed(2);
             }
-            
+
             // Update summary rows
             updatePage1SummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
             updatePage1SummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
@@ -3882,10 +3995,18 @@ function calculateSummaryStatistics(tableBody) {
         } else {
             // No data, set to 0 with appropriate formatting
             let zeroFormatted;
-            if (summaryColIndex === 1 || summaryColIndex === 2 || summaryColIndex === 3) { // Basic Weight, COF columns
+                if (summaryColIndex === 1) { // Film Weight - 2 decimals
+                    zeroFormatted = '0.00';
+            } else if (summaryColIndex === 2) { // Thickness - 0 decimals
+                zeroFormatted = '0';
+            } else if (summaryColIndex === 3) { // Wettability - 0 decimals
+                zeroFormatted = '0';
+            } else if (summaryColIndex === 4 || summaryColIndex === 5) { // COF-RR, COF-CC - 2 decimals
                 zeroFormatted = '0.00';
-            } else { // Opacity, Modulus Avg, Gloss
-                zeroFormatted = '0.0';
+            } else if (summaryColIndex >= 6) { // Tensile Break, MD Elongation Break, 10% Modulus - 0 decimals
+                zeroFormatted = '0';
+            } else { // Default fallback
+                zeroFormatted = '0.00';
             }
             
             updatePage1SummaryRow(tableBody, 'Average', summaryColIndex, zeroFormatted);
@@ -3916,114 +4037,16 @@ function calculatePage1ColumnStats(tableBody, changedColumnIndex = null) {
     if (tableBody.id !== 'testingTableBody') {
         return;
     }
-    
-    const rows = tableBody.querySelectorAll('tr');
-    const dataRows = Array.from(rows).filter(row => {
-        const firstCell = row.querySelector('td');
-        return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
-    });
-    
-    if (dataRows.length === 0) return;
-    
-    // Page 1 columns: Basic Weight (3), COF-RR (4), COF-RS (5), Opacity (6), Modulus Avg (10), Gloss (11)
-    const summaryColumnIndices = [1, 2, 3, 4, 6, 7]; // Summary row column positions (skip position 5 for merged modulus)
-    const inputColumnIndices = [3, 4, 5, 6, 10, 11]; // Input columns in data rows (after Sample No colspan=3)
-    
-    // If a specific column changed, only update that column
-    if (changedColumnIndex !== null) {
-        const columnIndex = inputColumnIndices.indexOf(changedColumnIndex);
-        if (columnIndex !== -1) {
-            const inputColIndex = inputColumnIndices[columnIndex];
-            const summaryColIndex = summaryColumnIndices[columnIndex];
-            const values = [];
-            
-            // Collect values from this input column
-            dataRows.forEach(row => {
-                const inputs = row.querySelectorAll('input');
-                if (inputs[inputColIndex] && inputs[inputColIndex].value.trim() !== '') {
-                    const value = parseFloat(inputs[inputColIndex].value);
-                    if (!isNaN(value)) {
-                        values.push(value);
-                    }
-                }
-            });
-            
-            // Calculate statistics
-            if (values.length > 0) {
-                const avg = values.reduce((sum, val) => sum + val, 0) / values.length;
-                const min = Math.min(...values);
-                const max = Math.max(...values);
-                
-                // Format based on column type
-                let avgFormatted, minFormatted, maxFormatted;
-                
-                if (summaryColIndex === 1) { // Basic Weight
-                    avgFormatted = avg.toFixed(2);
-                    minFormatted = min.toFixed(2);
-                    maxFormatted = max.toFixed(2);
-                } else if (summaryColIndex === 2) { // COF-RR
-                    avgFormatted = avg.toFixed(2);
-                    minFormatted = min.toFixed(2);
-                    maxFormatted = max.toFixed(2);
-                } else if (summaryColIndex === 3) { // COF-RS
-                    avgFormatted = avg.toFixed(2);
-                    minFormatted = min.toFixed(2);
-                    maxFormatted = max.toFixed(2);
-                } else if (summaryColIndex === 4) { // Opacity
-                    avgFormatted = avg.toFixed(1);
-                    minFormatted = min.toFixed(1);
-                    maxFormatted = max.toFixed(1);
-                } else if (summaryColIndex === 5) { // Modulus Avg
-                    avgFormatted = avg.toFixed(1);
-                    minFormatted = min.toFixed(1);
-                    maxFormatted = max.toFixed(1);
-                } else { // Gloss
-                    avgFormatted = avg.toFixed(1);
-                    minFormatted = min.toFixed(1);
-                    maxFormatted = max.toFixed(1);
-                }
-                
-                // Update summary rows
-                updatePage1SummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
-                updatePage1SummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
-                updatePage1SummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
-            } else {
-                // No data, set to 0 with appropriate formatting
-                let zeroFormatted;
-                if (summaryColIndex === 1 || summaryColIndex === 2 || summaryColIndex === 3) { // Basic Weight, COF columns
-                    zeroFormatted = '0.00';
-                } else { // Opacity, Modulus Avg, Gloss
-                    zeroFormatted = '0.0';
-                }
-                
-                updatePage1SummaryRow(tableBody, 'Average', summaryColIndex, zeroFormatted);
-                updatePage1SummaryRow(tableBody, 'Minimum', summaryColIndex, zeroFormatted);
-                updatePage1SummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
-            }
-        }
-        return;
-    } else {
-        // Calculate all columns initially
-        calculateSummaryStatistics(tableBody);
-    }
-}
 
-// Function to calculate individual column statistics for Page 2
-function calculatePage2ColumnStats(tableBody, changedColumnIndex = null) {
-    if (tableBody.id !== 'testingTableBody2') {
-        return;
-    }
-    
     const rows = tableBody.querySelectorAll('tr');
     const dataRows = Array.from(rows).filter(row => {
         const firstCell = row.querySelector('td');
         return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
     });
-    
+
     if (dataRows.length === 0) return;
-    
-    // Page 2 columns: Force-elongation-MD@5% (3), Force-Tensile Strength-MD-peak (4), Force-elongation-CD@5% (5), 
-    // Force-Tensile Strength-CD-peak (6), Colour L (7), Colour A (8), Colour B (9), Delta E (10)
+
+    // Page 1 columns: Film Weight (3), Thickness (4), Wettability (5), COF-RR (6), COF-CC (7), Tensile Break (8), MD Elongation Break (9), 10% Modulus (10)
     const summaryColumnIndices = [1, 2, 3, 4, 5, 6, 7, 8]; // Summary row column positions
     const inputColumnIndices = [3, 4, 5, 6, 7, 8, 9, 10]; // Input columns in data rows (after Sample No colspan=3)
     
@@ -4052,33 +4075,208 @@ function calculatePage2ColumnStats(tableBody, changedColumnIndex = null) {
                 const min = Math.min(...values);
                 const max = Math.max(...values);
                 
-                // Format based on column type
+                // Format based on column specifications for Page 1
                 let avgFormatted, minFormatted, maxFormatted;
+
+                if (summaryColIndex === 1) { // Film Weight - 2 decimals
+                    avgFormatted = avg.toFixed(2);
+                    minFormatted = min.toFixed(2);
+                    maxFormatted = max.toFixed(2);
+                } else if (summaryColIndex === 2) { // Thickness - 0 decimals
+                    avgFormatted = avg.toFixed(0);
+                    minFormatted = min.toFixed(0);
+                    maxFormatted = max.toFixed(0);
+                } else if (summaryColIndex === 3) { // Wettability - 0 decimals
+                    avgFormatted = avg.toFixed(0);
+                    minFormatted = min.toFixed(0);
+                    maxFormatted = max.toFixed(0);
+                } else if (summaryColIndex === 4) { // COF-RR - 2 decimals
+                    avgFormatted = avg.toFixed(2);
+                    minFormatted = min.toFixed(2);
+                    maxFormatted = max.toFixed(2);
+                } else if (summaryColIndex === 5) { // COF-CC - 2 decimals
+                    avgFormatted = avg.toFixed(2);
+                    minFormatted = min.toFixed(2);
+                    maxFormatted = max.toFixed(2);
+                } else if (summaryColIndex === 6) { // Tensile Break - 0 decimals
+                    avgFormatted = avg.toFixed(0);
+                    minFormatted = min.toFixed(0);
+                    maxFormatted = max.toFixed(0);
+                } else if (summaryColIndex === 7) { // MD Elongation Break - 0 decimals
+                    avgFormatted = avg.toFixed(0);
+                    minFormatted = min.toFixed(0);
+                    maxFormatted = max.toFixed(0);
+                } else if (summaryColIndex === 8) { // 10% Modulus - 0 decimals
+                    avgFormatted = avg.toFixed(0);
+                    minFormatted = min.toFixed(0);
+                    maxFormatted = max.toFixed(0);
+                } else { // Default fallback
+                    avgFormatted = avg.toFixed(2);
+                    minFormatted = min.toFixed(2);
+                    maxFormatted = max.toFixed(2);
+                }
+
+                // Update summary rows
+                updatePage1SummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
+                updatePage1SummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
+                updatePage1SummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
+            } else {
+                // No data, set to 0 with appropriate formatting
+                let zeroFormatted;
+                if (summaryColIndex === 1) { // Film Weight - 2 decimals
+                    zeroFormatted = '0.00';
+                } else if (summaryColIndex === 2) { // Thickness - 0 decimals
+                    zeroFormatted = '0';
+                } else if (summaryColIndex === 3) { // Wettability - 0 decimals
+                    zeroFormatted = '0';
+                } else if (summaryColIndex === 4 || summaryColIndex === 5) { // COF-RR, COF-CC - 2 decimals
+                    zeroFormatted = '0.00';
+                } else if (summaryColIndex >= 6) { // Tensile Break, MD Elongation Break, 10% Modulus - 0 decimals
+                    zeroFormatted = '0';
+                } else { // Default fallback
+                    zeroFormatted = '0.00';
+                }
                 
-                if (summaryColIndex <= 4) { // Force columns (3-6)
-                    avgFormatted = avg.toFixed(2);
-                    minFormatted = min.toFixed(2);
-                    maxFormatted = max.toFixed(2);
-                } else if (summaryColIndex === 8) { // Delta E column
-                    avgFormatted = avg.toFixed(2);
-                    minFormatted = min.toFixed(2);
-                    maxFormatted = max.toFixed(2);
-                } else { // Colour columns (7)
-                    avgFormatted = avg.toFixed(1);
-                    minFormatted = min.toFixed(1);
-                    maxFormatted = max.toFixed(1);
+                updatePage1SummaryRow(tableBody, 'Average', summaryColIndex, zeroFormatted);
+                updatePage1SummaryRow(tableBody, 'Minimum', summaryColIndex, zeroFormatted);
+                updatePage1SummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
+            }
+        }
+        return;
+    } else {
+        // Calculate all columns initially
+        calculateSummaryStatistics(tableBody);
+    }
+}
+
+// Function to calculate individual column statistics for Page 2 and 3
+function calculatePage2ColumnStats(tableBody, changedColumnIndex = null) {
+    if (tableBody.id !== 'testingTableBody2' && tableBody.id !== 'testingTableBody3') {
+        return;
+    }
+
+    const isPage3 = tableBody.id === 'testingTableBody3';
+
+    const rows = tableBody.querySelectorAll('tr');
+    const dataRows = Array.from(rows).filter(row => {
+        const firstCell = row.querySelector('td');
+        return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
+    });
+
+    if (dataRows.length === 0) return;
+
+    // Column configuration based on page
+    let summaryColumnIndices, inputColumnIndices, columnDescriptions;
+    if (isPage3) {
+        // Page 3 columns: Colour L (3), Colour A (4), Colour B (5), Delta E (6), Base Film Pink (7)
+        summaryColumnIndices = [1, 2, 3, 4, 5]; // Summary row column positions (5 data columns)
+        inputColumnIndices = [3, 4, 5, 6, 7]; // Input columns in data rows (after Sample No colspan=3)
+        columnDescriptions = ['Colour L', 'Colour A', 'Colour B', 'Delta E', 'Base Film Pink'];
+    } else {
+        // Page 2 columns: Tensile Break (3), CD Elongation Break (4), 10% Modulus (5), Opacity (6), Roll Cut Width (7), Diameter (8)
+        summaryColumnIndices = [1, 2, 3, 4, 5, 6]; // Summary row column positions (6 data columns)
+        inputColumnIndices = [3, 4, 5, 6, 7, 8]; // Input columns in data rows (after Sample No colspan=3) - 6 columns total
+        columnDescriptions = ['Tensile Break', 'CD Elongation Break', '10% Modulus', 'Opacity', 'Roll Cut Width', 'Diameter'];
+    }
+    
+    // If a specific column changed, only update that column
+    if (changedColumnIndex !== null) {
+        const columnIndex = inputColumnIndices.indexOf(changedColumnIndex);
+        if (columnIndex !== -1) {
+            const inputColIndex = inputColumnIndices[columnIndex];
+            const summaryColIndex = summaryColumnIndices[columnIndex];
+            const values = [];
+            
+            // Collect values from this input column
+            dataRows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                if (inputs[inputColIndex] && inputs[inputColIndex].value.trim() !== '') {
+                    const value = parseFloat(inputs[inputColIndex].value);
+                    if (!isNaN(value)) {
+                        values.push(value);
+                    }
+                }
+            });
+            
+            // Calculate statistics
+            if (values.length > 0) {
+                const avg = values.reduce((sum, val) => sum + val, 0) / values.length;
+                const min = Math.min(...values);
+                const max = Math.max(...values);
+                
+                // Format based on column specifications
+                let avgFormatted, minFormatted, maxFormatted;
+
+                if (isPage3) {
+                    // Page 3 column formatting
+                    if (summaryColIndex === 1) { // Colour L - 2 decimals
+                        avgFormatted = avg.toFixed(2);
+                        minFormatted = min.toFixed(2);
+                        maxFormatted = max.toFixed(2);
+                    } else if (summaryColIndex === 2) { // Colour A - 1 decimal
+                        avgFormatted = avg.toFixed(1);
+                        minFormatted = min.toFixed(1);
+                        maxFormatted = max.toFixed(1);
+                    } else if (summaryColIndex === 3) { // Colour B - 1 decimal
+                        avgFormatted = avg.toFixed(1);
+                        minFormatted = min.toFixed(1);
+                        maxFormatted = max.toFixed(1);
+                    } else if (summaryColIndex === 4) { // Delta E - 2 decimals
+                        avgFormatted = avg.toFixed(2);
+                        minFormatted = min.toFixed(2);
+                        maxFormatted = max.toFixed(2);
+                    } else if (summaryColIndex === 5) { // Base Film Pink - 2 decimals
+                        avgFormatted = avg.toFixed(2);
+                        minFormatted = min.toFixed(2);
+                        maxFormatted = max.toFixed(2);
+                    } else { // Default fallback
+                        avgFormatted = avg.toFixed(2);
+                        minFormatted = min.toFixed(2);
+                        maxFormatted = max.toFixed(2);
+                    }
+                } else {
+                    // Page 2 column formatting
+                    if (summaryColIndex === 1) { // Tensile Break - 0 decimals
+                        avgFormatted = avg.toFixed(0);
+                        minFormatted = min.toFixed(0);
+                        maxFormatted = max.toFixed(0);
+                    } else if (summaryColIndex === 2) { // CD Elongation Break - 0 decimals
+                        avgFormatted = avg.toFixed(0);
+                        minFormatted = min.toFixed(0);
+                        maxFormatted = max.toFixed(0);
+                    } else if (summaryColIndex === 3) { // 10% Modulus - 0 decimals
+                        avgFormatted = avg.toFixed(0);
+                        minFormatted = min.toFixed(0);
+                        maxFormatted = max.toFixed(0);
+                    } else if (summaryColIndex === 4) { // Opacity - 1 decimal
+                        avgFormatted = avg.toFixed(1);
+                        minFormatted = min.toFixed(1);
+                        maxFormatted = max.toFixed(1);
+                    } else if (summaryColIndex === 5) { // Roll Cut Width - 0 decimals
+                        avgFormatted = avg.toFixed(0);
+                        minFormatted = min.toFixed(0);
+                        maxFormatted = max.toFixed(0);
+                    } else if (summaryColIndex === 6) { // Diameter - 0 decimals
+                        avgFormatted = avg.toFixed(0);
+                        minFormatted = min.toFixed(0);
+                        maxFormatted = max.toFixed(0);
+                    } else { // Default fallback
+                        avgFormatted = avg.toFixed(2);
+                        minFormatted = min.toFixed(2);
+                        maxFormatted = max.toFixed(2);
+                    }
                 }
                 
                 // Update summary rows
-                updatePage2SummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
-                updatePage2SummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
-                updatePage2SummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
+                updatePageSummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
+                updatePageSummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
+                updatePageSummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
             } else {
                 // No data - show zeros
                 const zeroFormatted = summaryColIndex <= 4 || summaryColIndex === 8 ? '0.00' : '0.0';
-                updatePage2SummaryRow(tableBody, 'Average', summaryColIndex, zeroFormatted);
-                updatePage2SummaryRow(tableBody, 'Minimum', summaryColIndex, zeroFormatted);
-                updatePage2SummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
+                updatePageSummaryRow(tableBody, 'Average', summaryColIndex, zeroFormatted);
+                updatePageSummaryRow(tableBody, 'Minimum', summaryColIndex, zeroFormatted);
+                updatePageSummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
             }
         }
         return;
@@ -4102,10 +4300,9 @@ function calculatePage2SummaryStatistics(tableBody) {
     
     if (dataRows.length === 0) return;
     
-    // Page 2 columns: Force-elongation-MD@5% (3), Force-Tensile Strength-MD-peak (4), Force-elongation-CD@5% (5), 
-    // Force-Tensile Strength-CD-peak (6), Colour L (7), Colour A (8), Colour B (9), Delta E (10)
-    const summaryColumnIndices = [1, 2, 3, 4, 5, 6, 7, 8]; // Summary row column positions
-    const inputColumnIndices = [3, 4, 5, 6, 7, 8, 9, 10]; // Input columns in data rows (after Sample No colspan=3)
+    // Page 2 columns: Tensile Break (3), CD Elongation Break (4), 10% Modulus (5), Opacity (6), Roll Cut Width (7), Diameter (8)
+    const summaryColumnIndices = [1, 2, 3, 4, 5, 6]; // Summary row column positions (6 data columns)
+    const inputColumnIndices = [3, 4, 5, 6, 7, 8]; // Input columns in data rows (after Sample No colspan=3)
     
     // Calculate statistics for each column
     inputColumnIndices.forEach((inputColIndex, index) => {
@@ -4131,43 +4328,157 @@ function calculatePage2SummaryStatistics(tableBody) {
             
             // Format based on column type
             let avgFormatted, minFormatted, maxFormatted;
-            
-            if (summaryColIndex <= 4) { // Force columns (3-6)
-                avgFormatted = avg.toFixed(2);
-                minFormatted = min.toFixed(2);
-                maxFormatted = max.toFixed(2);
-            } else if (summaryColIndex === 8) { // Delta E column
-                avgFormatted = avg.toFixed(2);
-                minFormatted = min.toFixed(2);
-                maxFormatted = max.toFixed(2);
-            } else { // Colour columns (7)
-                avgFormatted = avg.toFixed(1);
-                minFormatted = min.toFixed(1);
-                maxFormatted = max.toFixed(1);
+
+            if (isPage3) {
+                // Page 3 formatting
+                if (summaryColIndex === 1) { // Colour L (1 decimal)
+                    avgFormatted = avg.toFixed(1);
+                    minFormatted = min.toFixed(1);
+                    maxFormatted = max.toFixed(1);
+                } else if (summaryColIndex === 2) { // Colour A (1 decimal)
+                    avgFormatted = avg.toFixed(1);
+                    minFormatted = min.toFixed(1);
+                    maxFormatted = max.toFixed(1);
+                } else if (summaryColIndex === 3) { // Colour B (1 decimal)
+                    avgFormatted = avg.toFixed(1);
+                    minFormatted = min.toFixed(1);
+                    maxFormatted = max.toFixed(1);
+                } else { // Delta E and Base Film Pink (2 decimals)
+                    avgFormatted = avg.toFixed(2);
+                    minFormatted = min.toFixed(2);
+                    maxFormatted = max.toFixed(2);
+                }
+            } else {
+                // Page 2 formatting
+                if (summaryColIndex <= 3) { // Tensile Break, CD Elongation Break, 10% Modulus (no decimal)
+                    avgFormatted = Math.round(avg).toString();
+                    minFormatted = Math.round(min).toString();
+                    maxFormatted = Math.round(max).toString();
+                } else if (summaryColIndex === 4) { // Opacity (1 decimal)
+                    avgFormatted = avg.toFixed(1);
+                    minFormatted = min.toFixed(1);
+                    maxFormatted = max.toFixed(1);
+                } else { // Roll Cut Width, Diameter (no decimal)
+                    avgFormatted = Math.round(avg).toString();
+                    minFormatted = Math.round(min).toString();
+                    maxFormatted = Math.round(max).toString();
+                }
             }
             
             // Update summary rows
-            updatePage2SummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
-            updatePage2SummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
-            updatePage2SummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
+            updatePageSummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
+            updatePageSummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
+            updatePageSummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
         } else {
             // No data - show zeros
-            const zeroFormatted = summaryColIndex <= 4 || summaryColIndex === 8 ? '0.00' : '0.0';
-            updatePage2SummaryRow(tableBody, 'Average', summaryColIndex, zeroFormatted);
-            updatePage2SummaryRow(tableBody, 'Minimum', summaryColIndex, zeroFormatted);
-            updatePage2SummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
+            let zeroFormatted;
+            if (tableBody.id === 'testingTableBody3') {
+                // Page 3 formatting
+                if (summaryColIndex <= 3) { // Colour L, A, B (1 decimal)
+                    zeroFormatted = '0.0';
+                } else { // Delta E, Base Film Pink (2 decimals)
+                    zeroFormatted = '0.00';
+                }
+            } else {
+                // Page 2 formatting
+                if (summaryColIndex <= 3) { // Tensile Break, CD Elongation Break, 10% Modulus (no decimal)
+                    zeroFormatted = '0';
+                } else if (summaryColIndex === 4) { // Opacity (1 decimal)
+                    zeroFormatted = '0.0';
+                } else { // Roll Cut Width, Diameter (no decimal)
+                    zeroFormatted = '0';
+                }
+            }
+            updatePageSummaryRow(tableBody, 'Average', summaryColIndex, zeroFormatted);
+            updatePageSummaryRow(tableBody, 'Minimum', summaryColIndex, zeroFormatted);
+            updatePageSummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
         }
     });
 }
 
-// Helper function to update Page 2 summary row
-function updatePage2SummaryRow(tableBody, rowType, columnIndex, value) {
+// Function to calculate Page 3 summary statistics
+function calculatePage3SummaryStatistics(tableBody) {
+    if (tableBody.id !== 'testingTableBody3') {
+        return;
+    }
+
+    const rows = tableBody.querySelectorAll('tr');
+    const dataRows = Array.from(rows).filter(row => {
+        const firstCell = row.querySelector('td');
+        return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
+    });
+
+    if (dataRows.length === 0) return;
+
+    // Page 3 columns: Colour L (3), Colour A (4), Colour B (5), Delta E (6), Base Film Pink (7)
+    const summaryColumnIndices = [1, 2, 3, 4, 5]; // Summary row column positions (5 data columns)
+    const inputColumnIndices = [3, 4, 5, 6, 7]; // Input columns in data rows (after Sample No colspan=3)
+
+    // Calculate statistics for each column
+    inputColumnIndices.forEach((inputColIndex, index) => {
+        const summaryColIndex = summaryColumnIndices[index];
+        const values = [];
+
+        // Collect values from this input column
+        dataRows.forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            if (inputs[inputColIndex] && inputs[inputColIndex].value.trim() !== '') {
+                const value = parseFloat(inputs[inputColIndex].value);
+                if (!isNaN(value)) {
+                    values.push(value);
+                }
+            }
+        });
+
+        // Calculate statistics
+        if (values.length > 0) {
+            const avg = values.reduce((sum, val) => sum + val, 0) / values.length;
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+
+            // Format based on column type
+            let avgFormatted, minFormatted, maxFormatted;
+
+            // Page 3 formatting
+            if (summaryColIndex <= 3) { // Colour L, A, B (1 decimal)
+                avgFormatted = avg.toFixed(1);
+                minFormatted = min.toFixed(1);
+                maxFormatted = max.toFixed(1);
+            } else { // Delta E, Base Film Pink (2 decimals)
+                avgFormatted = avg.toFixed(2);
+                minFormatted = min.toFixed(2);
+                maxFormatted = max.toFixed(2);
+            }
+
+            // Update summary rows
+            updatePageSummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
+            updatePageSummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
+            updatePageSummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
+        } else {
+            // No data - show zeros
+            let zeroFormatted;
+            // Page 3 formatting
+            if (summaryColIndex <= 3) { // Colour L, A, B (1 decimal)
+                zeroFormatted = '0.0';
+            } else { // Delta E, Base Film Pink (2 decimals)
+                zeroFormatted = '0.00';
+            }
+            updatePageSummaryRow(tableBody, 'Average', summaryColIndex, zeroFormatted);
+            updatePageSummaryRow(tableBody, 'Minimum', summaryColIndex, zeroFormatted);
+            updatePageSummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
+        }
+    });
+
+}
+
+// Helper function to update Page 2 and 3 summary row
+function updatePageSummaryRow(tableBody, rowType, columnIndex, value) {
     const rows = tableBody.querySelectorAll('tr');
     const summaryRow = Array.from(rows).find(row => {
         const firstCell = row.querySelector('td');
         return firstCell && firstCell.textContent.trim() === rowType;
     });
-    
+
     if (summaryRow) {
         const cells = summaryRow.querySelectorAll('td');
         if (cells[columnIndex]) {
@@ -4248,7 +4559,7 @@ function triggerSummaryRecalculation() {
 // Force recalculation of all summary statistics
          function forceRecalculateAllSummaryStatistics() {
 
-    
+
     const allTables = getAllTableBodies();
     allTables.forEach(tableBody => {
         // Page 2 has NO Ave columns - all columns are individual data collectors
@@ -4257,8 +4568,13 @@ function triggerSummaryRecalculation() {
             // Skip Page 2 - no summary statistics needed
             return;
         }
+
+        // Calculate summary statistics for Page 3
+        if (tableBody.id === 'testingTableBody3') {
+            calculatePage3SummaryStatistics(tableBody);
+        }
     });
-    
+
 
 }
 
@@ -4289,10 +4605,13 @@ function updateTabOrderForAllRows(tableBody) {
     // Determine column count based on table
     let columnCount;
     if (tableBody.id === 'testingTableBody') {
-        columnCount = 12; // Page 1: 3 Sample No + 1 Basic Weight + 1 COF-RR + 1 COF-RS + 1 Opacity + 4 Modulus + 1 Gloss = 12 columns
+        columnCount = 11; // Page 1: 3 Sample No + 8 data columns (Film Weight, Thickness, Wettability, COF-RR, COF-CC, Tensile Break, Elongation, 10% Modulus) = 11 columns
 
     } else if (tableBody.id === 'testingTableBody2') {
-        columnCount = 11; // Page 2: 3 Sample No + 8 data columns (Force-elongation-MD, Force-Tensile-MD, Force-elongation-CD, Force-Tensile-CD, Colour L, Colour A, Colour B, Delta E)
+        columnCount = 9; // Page 2: 3 Sample No + 6 data columns (Tensile Break, CD Elongation Break, 10% Modulus, Opacity, Roll Cut Width, Diameter) = 9 columns
+
+    } else if (tableBody.id === 'testingTableBody3') {
+        columnCount = 8; // Page 3: 3 Sample No + 5 data columns (Colour L, Colour A, Colour B, Delta E, Base Film Pink) = 8 columns
 
     } else {
         columnCount = 7; // Default fallback
@@ -4338,12 +4657,17 @@ function updateTabOrderForAllRows(tableBody) {
            // Pre-calculate table properties for performance
            const isPage1 = tableBody.id === 'testingTableBody';
            const isPage2 = tableBody.id === 'testingTableBody2';
+           const isPage3 = tableBody.id === 'testingTableBody3';
            
            let columnCount;
-    if (isPage2) {
-               columnCount = 11; // Page 2: 3 Sample No + 8 data columns (Force-elongation-MD, Force-Tensile-MD, Force-elongation-CD, Force-Tensile-CD, Colour L, Colour A, Colour B, Delta E)
+    if (isPage1) {
+               columnCount = 11; // Page 1: 3 Sample No + 8 data columns (Film Weight, Thickness, Wettability, COF-RR, COF-CC, Tensile Break, Elongation, 10% Modulus) = 11 columns
+           } else if (isPage2) {
+               columnCount = 9; // Page 2: 3 Sample No + 6 data columns (Tensile Break, CD Elongation Break, 10% Modulus, Opacity, Roll Cut Width, Diameter) = 9 columns
+           } else if (isPage3) {
+               columnCount = 8; // Page 3: 3 Sample No + 5 data columns (Colour L, Colour A, Colour B, Delta E, Base Film Pink) = 8 columns
            } else {
-        columnCount = 12; // Page 1: 3 Sample No + 1 Basic Weight + 1 COF-RR + 1 COF-RS + 1 Opacity + 4 Modulus + 1 Gloss = 12 columns
+        columnCount = 11; // Default fallback
            }
 
            // Use DocumentFragment for better performance
@@ -4370,43 +4694,67 @@ function updateTabOrderForAllRows(tableBody) {
                 // First column: Lot & Roll - make it an input field instead of auto-generated
                 input.value = '';
                 input.placeholder = '';
-                
+
                 // Apply Lot & Roll validation (00-00 format) only on Page 1
                 if (tableBody.id === 'testingTableBody') {
                     applyLotRollValidation(input);
-                } else {
+                } else if (tableBody.id === 'testingTableBody2') {
                     // Make read-only on Page 2 (like 16 GSM Kranti)
                     input.readOnly = true;
                     input.style.backgroundColor = 'transparent';
                     input.style.color = '#000000';
+                } else if (tableBody.id === 'testingTableBody3') {
+                    // Page 3: First column should be auto-populated with sample number
+                    const rowNumber = startRowIndex + i + 1;
+                    input.value = rowNumber.toString();
+                    input.readOnly = true;
+                    input.style.backgroundColor = 'transparent';
+                    input.style.color = '#000000';
+                    input.style.textAlign = 'center';
                 }
             } else if (j === 1) {
                 // Second column: Roll ID - make it an input field instead of auto-generated
                 input.value = '';
                 input.placeholder = '';
-                
+
                 // Apply Roll ID validation (00000000 format) only on Page 1
                 if (tableBody.id === 'testingTableBody') {
                     applyRollIDValidation(input);
-                } else {
+                } else if (tableBody.id === 'testingTableBody2') {
                     // Make read-only on Page 2 (like 16 GSM Kranti)
                     input.readOnly = true;
                     input.style.backgroundColor = 'transparent';
                     input.style.color = '#000000';
+                } else if (tableBody.id === 'testingTableBody3') {
+                    // Page 3: Second column should be auto-populated with sample number
+                    const rowNumber = startRowIndex + i + 1;
+                    input.value = rowNumber.toString();
+                    input.readOnly = true;
+                    input.style.backgroundColor = 'transparent';
+                    input.style.color = '#000000';
+                    input.style.textAlign = 'center';
                 }
             } else if (j === 2) {
                 // Third column: Lot Time - make it an input field
                 input.value = '';
                 input.placeholder = '';
-                
+
                 // Apply Lot Time validation (00:00 format) only on Page 1
                 if (tableBody.id === 'testingTableBody') {
                     applyLotTimeValidation(input);
-                } else {
+                } else if (tableBody.id === 'testingTableBody2') {
                     // Make read-only on Page 2 (like 16 GSM Kranti)
                     input.readOnly = true;
                     input.style.backgroundColor = 'transparent';
                     input.style.color = '#000000';
+                } else if (tableBody.id === 'testingTableBody3') {
+                    // Page 3: Third column should be auto-populated with sample number
+                    const rowNumber = startRowIndex + i + 1;
+                    input.value = rowNumber.toString();
+                    input.readOnly = true;
+                    input.style.backgroundColor = 'transparent';
+                    input.style.color = '#000000';
+                    input.style.textAlign = 'center';
                 }
             } else {
                 // All other columns - empty by default
@@ -4416,53 +4764,115 @@ function updateTabOrderForAllRows(tableBody) {
                 if (isPage1) {
                     // Page 1 validation
                     if (j === 3) {
-                        // Basic Weight column - 2 digit 2 decimal (00.00 format)
-                        applyTwoDigitTwoDecimalValidation(input);
-                    } else if (j === 4 || j === 5) {
-                        // COF-RR and COF-RS columns - COF format (30 → 0.30)
-                        applyCOFValidation(input);
-                    } else if (j === 6) {
-                        // Opacity column - 2 digit 1 decimal (00.0 format)
-                        applyTwoDigitOneDecimalValidation(input);
-                    } else if (j >= 7 && j <= 9) {
-                        // Modulus data columns (7-9) - 2 digit 1 decimal (00.0 format)
-                        applyTwoDigitOneDecimalValidation(input);
-                        // Add listener to calculate modulus average when data changes
+                        // Film Weight column - 2 digit 2 decimal (00.00 format)
+                        applyFlexibleTwoDecimalValidation(input, { maxBeforeDecimal: 2, maxAfterDecimal: 2 });
+                        // Apply OOS validation
+                        applyOOSValidation(input, 'filmWeight');
+                        // Add real-time OOS validation
                         input.addEventListener('input', function() {
-                            calculateModulusAverage(this);
+                            applyOOSValidation(this, 'filmWeight');
                         });
-                        input.addEventListener('blur', function() {
-                            calculateModulusAverage(this);
+                    } else if (j === 4) {
+                        // Thickness column - simple numeric format (no forced padding)
+                        applySimpleNumericValidation(input);
+                        // Apply OOS validation
+                        applyOOSValidation(input, 'thickness');
+                        // Add real-time OOS validation
+                        input.addEventListener('input', function() {
+                            applyOOSValidation(this, 'thickness');
+                        });
+                    } else if (j === 5) {
+                        // Wettability column - flexible format for manual entry
+                        // Apply OOS validation
+                        applyOOSValidation(input, 'wettability');
+                        // Add real-time OOS validation
+                        input.addEventListener('input', function() {
+                            applyOOSValidation(this, 'wettability');
+                        });
+                    } else if (j === 6) {
+                        // COF-RR column - COF format (30 → 0.30)
+                        applyCOFValidation(input);
+                        // Apply OOS validation
+                        applyOOSValidation(input, 'cofRR');
+                        // Add real-time OOS validation
+                        input.addEventListener('input', function() {
+                            applyOOSValidation(this, 'cofRR');
+                        });
+                    } else if (j === 7) {
+                        // COF-CC column - COF format (30 → 0.30)
+                        applyCOFValidation(input);
+                        // Apply OOS validation
+                        applyOOSValidation(input, 'cofCC');
+                        // Add real-time OOS validation
+                        input.addEventListener('input', function() {
+                            applyOOSValidation(this, 'cofCC');
+                        });
+                    } else if (j === 8) {
+                        // Tensile Break column - 4 digit format (0000)
+                        applyFourDigitValidation(input);
+                        // Apply OOS validation
+                        applyOOSValidation(input, 'tensileBreak');
+                        // Add real-time OOS validation
+                        input.addEventListener('input', function() {
+                            applyOOSValidation(this, 'tensileBreak');
+                        });
+                    } else if (j === 9) {
+                        // Elongation column - 3 digit format (000)
+                        applyThreeDigitValidation(input);
+                        // Apply OOS validation
+                        applyOOSValidation(input, 'elongation');
+                        // Add real-time OOS validation
+                        input.addEventListener('input', function() {
+                            applyOOSValidation(this, 'elongation');
                         });
                     } else if (j === 10) {
-                        // Modulus average column - read-only, auto-calculated
-                        input.readOnly = true;
-                        input.style.backgroundColor = 'transparent';
-                        input.style.color = 'black';
-                    } else if (j === 11) {
-                        // Gloss column - flexible 1 decimal (9.0 or 10.0, no leading zeros)
-                        applyFlexibleOneDecimalValidation(input);
+                        // 10% Modulus column - 3 digit format (000)
+                        applyThreeDigitValidation(input);
+                        // Apply OOS validation
+                        applyOOSValidation(input, 'modulus10');
+                        // Add real-time OOS validation
+                        input.addEventListener('input', function() {
+                            applyOOSValidation(this, 'modulus10');
+                        });
                     }
                 } else if (isPage2) {
                     // Page 2 validation
-                    if (j === 3 || j === 5) {
-                        // Force-elongation-MD and Force-elongation-CD columns - 0.00 format
-                        applyOneDigitTwoDecimalValidation(input);
+                    if (j === 3) {
+                        // Tensile Break column - 0000 format (4 digits, no decimal)
+                        applyFourDigitValidation(input);
                     } else if (j === 4) {
-                        // Force-Tensile-MD column - flexible format (9.00 or 12.00, no leading zeros)
-                        applyFlexibleTwoDecimalValidation(input);
+                        // CD Elongation Break column - 000 format (3 digits, no decimal)
+                        applyThreeDigitValidation(input);
+                    } else if (j === 5) {
+                        // 10% Modulus column - 000 format (3 digits, no decimal)
+                        applyThreeDigitValidation(input);
                     } else if (j === 6) {
-                        // Force-Tensile-CD column - 00.00 format
-                        applyTwoDigitTwoDecimalValidation(input);
+                        // Opacity column - 00.0 format (1 decimal place)
+                        applyFlexibleTwoDecimalValidation(input, { maxBeforeDecimal: 2, maxAfterDecimal: 1 });
                     } else if (j === 7) {
-                        // Colour L column - 00.0 format
-                        applyTwoDigitOneDecimalValidation(input);
-                    } else if (j === 8 || j === 9) {
-                        // Colour A and Colour B columns - 0.0 format (negative values)
-                        applyOneDigitOneDecimalValidation(input);
-                    } else if (j === 10) {
-                        // Delta E column - 00.00 format
-                        applyTwoDigitTwoDecimalValidation(input);
+                        // Roll Cut Width column - 000 format (3 digits, no decimal)
+                        applyThreeDigitValidation(input);
+                    } else if (j === 8) {
+                        // Diameter column - 000 format (3 digits, no decimal)
+                        applyThreeDigitValidation(input);
+                    }
+                } else if (isPage3) {
+                    // Page 3 validation
+                    if (j === 3) {
+                        // Colour L column - flexible decimal format
+                        applyFlexibleTwoDecimalValidation(input);
+                    } else if (j === 4) {
+                        // Colour A column - flexible decimal format (negative values)
+                        applyFlexibleTwoDecimalValidation(input);
+                    } else if (j === 5) {
+                        // Colour B column - flexible decimal format (negative values)
+                        applyFlexibleTwoDecimalWithNegativeValidation(input);
+                    } else if (j === 6) {
+                        // Delta E column - 1 digit before decimal (range 0.00-4.00)
+                        applyFlexibleTwoDecimalValidation(input, { maxBeforeDecimal: 1, maxAfterDecimal: 2 });
+                    } else if (j === 7) {
+                        // Base Film Pink column - 1 digit before decimal (range 0.00-4.00)
+                        applyFlexibleTwoDecimalValidation(input, { maxBeforeDecimal: 1, maxAfterDecimal: 2 });
                     }
                 }
             }
@@ -4552,7 +4962,7 @@ async function reloadDataForTable(tableBody) {
     try {
         // Get the current form data from database
         const { data, error } = await supabase
-            .from('234_18_micro_white')
+            .from('uc-18gsm-290p-abqr')
             .select('*')
             .eq('form_id', currentFormId)
             .single();
@@ -4583,26 +4993,26 @@ async function reloadDataForTable(tableBody) {
             if (data.page1_basis_weight) {
                 loadColumnDataToTable(tableBody, 3, data.page1_basis_weight);
             }
-            if (data.page1_cof_kinetic_r_r) {
-                loadColumnDataToTable(tableBody, 4, data.page1_cof_kinetic_r_r);
+            if (data.page1_thickness) {
+                loadColumnDataToTable(tableBody, 4, data.page1_thickness);
             }
-            if (data.page1_cof_kinetic_r_s) {
-                loadColumnDataToTable(tableBody, 5, data.page1_cof_kinetic_r_s);
+            if (data.page1_wettability) {
+                loadColumnDataToTable(tableBody, 5, data.page1_wettability);
             }
-            if (data.page1_opacity) {
-                loadColumnDataToTable(tableBody, 6, data.page1_opacity);
+            if (data.page1_cof_rr) {
+                loadColumnDataToTable(tableBody, 6, data.page1_cof_rr);
             }
-            if (data.page1_modulus_1) {
-                loadColumnDataToTable(tableBody, 7, data.page1_modulus_1);
+            if (data.page1_cof_cc) {
+                loadColumnDataToTable(tableBody, 7, data.page1_cof_cc);
             }
-            if (data.page1_modulus_2) {
-                loadColumnDataToTable(tableBody, 8, data.page1_modulus_2);
+            if (data.page1_tensile_break) {
+                loadColumnDataToTable(tableBody, 8, data.page1_tensile_break);
             }
-            if (data.page1_modulus_3) {
-                loadColumnDataToTable(tableBody, 9, data.page1_modulus_3);
+            if (data.page1_elongation) {
+                loadColumnDataToTable(tableBody, 9, data.page1_elongation);
             }
-            if (data.page1_gloss) {
-                loadColumnDataToTable(tableBody, 11, data.page1_gloss);
+            if (data.page1_modulus) {
+                loadColumnDataToTable(tableBody, 10, data.page1_modulus);
             }
             
             // Calculate summary statistics after all data is loaded
@@ -4620,29 +5030,23 @@ async function reloadDataForTable(tableBody) {
             if (data.lot_time) {
                 loadColumnDataToTable(tableBody, 2, data.lot_time);
             }
-            if (data.page2_force_elongation_md_5p) {
-                loadColumnDataToTable(tableBody, 3, data.page2_force_elongation_md_5p);
+            if (data.page2_tensile_break) {
+                loadColumnDataToTable(tableBody, 3, data.page2_tensile_break);
             }
-            if (data.page2_force_tensile_md) {
-                loadColumnDataToTable(tableBody, 4, data.page2_force_tensile_md);
+            if (data.page2_cd_elongation) {
+                loadColumnDataToTable(tableBody, 4, data.page2_cd_elongation);
             }
-            if (data.page2_force_elongation_cd_5p) {
-                loadColumnDataToTable(tableBody, 5, data.page2_force_elongation_cd_5p);
+            if (data.page2_modulus) {
+                loadColumnDataToTable(tableBody, 5, data.page2_modulus);
             }
-            if (data.page2_force_tensile_cd) {
-                loadColumnDataToTable(tableBody, 6, data.page2_force_tensile_cd);
+            if (data.page2_opacity) {
+                loadColumnDataToTable(tableBody, 6, data.page2_opacity);
             }
-            if (data.page2_color_l) {
-                loadColumnDataToTable(tableBody, 7, data.page2_color_l);
+            if (data.page2_roll_width) {
+                loadColumnDataToTable(tableBody, 7, data.page2_roll_width);
             }
-            if (data.page2_color_a) {
-                loadColumnDataToTable(tableBody, 8, data.page2_color_a);
-            }
-            if (data.page2_color_b) {
-                loadColumnDataToTable(tableBody, 9, data.page2_color_b);
-            }
-            if (data.page2_color_delta_e) {
-                loadColumnDataToTable(tableBody, 10, data.page2_color_delta_e);
+            if (data.page2_diameter) {
+                loadColumnDataToTable(tableBody, 8, data.page2_diameter);
             }
         }
         
@@ -4707,7 +5111,7 @@ async function loadDataFromDatabase() {
             
             // Load form data directly - no timeout needed
             const { data, error } = await supabase
-                .from('234_18_micro_white')
+                .from('uc-18gsm-290p-abqr')
                 .select('*')
                 .eq('form_id', currentFormId)
                 .single();
@@ -4783,8 +5187,10 @@ function loadFormHeaderData(data) {
     const viewProductCode = document.getElementById('view-product-code');
     if (viewProductCode && data.product_code) {
         viewProductCode.textContent = data.product_code;
-
     }
+
+    // Update form title when data is loaded
+    setFormTitle();
     
     if (productionOrderInput && data.production_order) {
         productionOrderInput.value = data.production_order;
@@ -4885,7 +5291,11 @@ function loadFormHeaderData(data) {
 // Load table data from database
 function loadTableDataFromDatabase(data) {
 
-    
+    // Get table body references
+    const testingTableBody = document.getElementById('testingTableBody');
+    const testingTableBody2 = document.getElementById('testingTableBody2');
+    const testingTableBody3 = document.getElementById('testingTableBody3');
+
     // Get input elements
     const productCodeInput = document.querySelector('input[placeholder="Enter Product Code"]');
     const productionOrderInput = document.querySelector('input[placeholder="Enter Prod. Order"]');
@@ -4996,140 +5406,213 @@ function loadTableDataFromDatabase(data) {
         loadColumnDataToTable(testingTableBody, 0, data.lot_and_roll);
 
     }
-    
+
     if (data.roll_id) {
         loadColumnDataToTable(testingTableBody, 1, data.roll_id);
 
     }
-    
+
     if (data.lot_time) {
         loadColumnDataToTable(testingTableBody, 2, data.lot_time);
 
     }
-    
+
     // Load Page 1 data
     if (data.page1_basis_weight) {
         loadColumnDataToTable(testingTableBody, 3, data.page1_basis_weight);
+    }
 
+    if (data.page1_thickness) {
+        loadColumnDataToTable(testingTableBody, 4, data.page1_thickness);
+    }
+
+    if (data.page1_wettability) {
+        loadColumnDataToTable(testingTableBody, 5, data.page1_wettability);
+    }
+
+    if (data.page1_cof_rr) {
+        loadColumnDataToTable(testingTableBody, 6, data.page1_cof_rr);
+    }
+
+    if (data.page1_cof_cc) {
+        loadColumnDataToTable(testingTableBody, 7, data.page1_cof_cc);
     }
     
-    if (data.page1_cof_kinetic_r_r) {
-        loadColumnDataToTable(testingTableBody, 4, data.page1_cof_kinetic_r_r);
-
+    if (data.page1_tensile_break) {
+        loadColumnDataToTable(testingTableBody, 8, data.page1_tensile_break);
     }
-    
-    if (data.page1_cof_kinetic_r_s) {
-        loadColumnDataToTable(testingTableBody, 5, data.page1_cof_kinetic_r_s);
 
+    if (data.page1_elongation) {
+        loadColumnDataToTable(testingTableBody, 9, data.page1_elongation);
     }
-    
-    if (data.page1_opacity) {
-        loadColumnDataToTable(testingTableBody, 6, data.page1_opacity);
 
-    }
-    
-    if (data.page1_modulus_1) {
-        loadColumnDataToTable(testingTableBody, 7, data.page1_modulus_1);
-
-    }
-    
-    if (data.page1_modulus_2) {
-        loadColumnDataToTable(testingTableBody, 8, data.page1_modulus_2);
-
-    }
-    
-    if (data.page1_modulus_3) {
-        loadColumnDataToTable(testingTableBody, 9, data.page1_modulus_3);
-
-    }
-    
-    if (data.page1_gloss) {
-        loadColumnDataToTable(testingTableBody, 11, data.page1_gloss);
-
+    if (data.page1_modulus) {
+        loadColumnDataToTable(testingTableBody, 10, data.page1_modulus);
     }
     
     // Load Page 2 data
-    if (data.page2_force_elongation_md_5p) {
-        loadColumnDataToTable(testingTableBody2, 3, data.page2_force_elongation_md_5p);
-
+    if (data.page2_tensile_break) {
+        loadColumnDataToTable(testingTableBody2, 3, data.page2_tensile_break);
     }
     
-    if (data.page2_force_tensile_md) {
-        loadColumnDataToTable(testingTableBody2, 4, data.page2_force_tensile_md);
-
+    if (data.page2_cd_elongation) {
+        loadColumnDataToTable(testingTableBody2, 4, data.page2_cd_elongation);
     }
     
-    if (data.page2_force_elongation_cd_5p) {
-        loadColumnDataToTable(testingTableBody2, 5, data.page2_force_elongation_cd_5p);
-
+    if (data.page2_modulus) {
+        loadColumnDataToTable(testingTableBody2, 5, data.page2_modulus);
     }
     
-    if (data.page2_force_tensile_cd) {
-        loadColumnDataToTable(testingTableBody2, 6, data.page2_force_tensile_cd);
-
+    if (data.page2_opacity) {
+        loadColumnDataToTable(testingTableBody2, 6, data.page2_opacity);
     }
     
-    if (data.page2_color_l) {
-        loadColumnDataToTable(testingTableBody2, 7, data.page2_color_l);
-
+    if (data.page2_roll_width) {
+        loadColumnDataToTable(testingTableBody2, 7, data.page2_roll_width);
     }
-    
-    if (data.page2_color_a) {
-        loadColumnDataToTable(testingTableBody2, 8, data.page2_color_a);
 
+    if (data.page2_diameter) {
+        loadColumnDataToTable(testingTableBody2, 8, data.page2_diameter);
     }
-    
-    if (data.page2_color_b) {
-        loadColumnDataToTable(testingTableBody2, 9, data.page2_color_b);
 
-    }
-    
-    if (data.page2_color_delta_e) {
-        loadColumnDataToTable(testingTableBody2, 10, data.page2_color_delta_e);
+    // Load Page 3 data with delay to ensure DOM is ready
+    setTimeout(() => {
+        // Load Page 3 sample data from Page 1
+        if (data.lot_and_roll) {
+            loadColumnDataToTable(testingTableBody3, 0, data.lot_and_roll);
+        }
 
-    }
-    
+        if (data.roll_id) {
+            loadColumnDataToTable(testingTableBody3, 1, data.roll_id);
+        }
+
+        if (data.lot_time) {
+            loadColumnDataToTable(testingTableBody3, 2, data.lot_time);
+        }
+
+        // Load Page 3 color measurement data
+        if (data.page3_colour_l) {
+            loadColumnDataToTable(testingTableBody3, 3, data.page3_colour_l);
+        }
+
+        if (data.page3_colour_a) {
+            loadColumnDataToTable(testingTableBody3, 4, data.page3_colour_a);
+        }
+
+        if (data.page3_colour_b) {
+            loadColumnDataToTable(testingTableBody3, 5, data.page3_colour_b);
+        }
+
+        if (data.page3_delta_e) {
+            loadColumnDataToTable(testingTableBody3, 6, data.page3_delta_e);
+        }
+
+        if (data.page3_base_film_pink) {
+            loadColumnDataToTable(testingTableBody3, 7, data.page3_base_film_pink);
+        }
+    }, 100);
+
 
 }
 
 // Load row count from database and add rows if needed
 function loadRowCountFromDatabase(data) {
 
-    
+    // Get table references
+    const testingTableBody = document.getElementById('testingTableBody');
+    const testingTableBody2 = document.getElementById('testingTableBody2');
+    const testingTableBody3 = document.getElementById('testingTableBody3');
+
     // Calculate how many rows we need based on the data
     let page1RowsNeeded = 0;
     let page2RowsNeeded = 0;
+    let page3RowsNeeded = 0;
     
-    // Check Page 1 data to determine row count
+    // Check Page 1 data to determine row count - CORRECTED field names
     if (data.page1_basis_weight) {
         const basisWeightData = data.page1_basis_weight;
         const maxRow = Math.max(...Object.keys(basisWeightData).map(key => parseInt(key)).filter(num => !isNaN(num)));
         page1RowsNeeded = Math.max(page1RowsNeeded, maxRow);
     }
+
+    if (data.page1_thickness) {
+        const thicknessData = data.page1_thickness;
+        const maxRow = Math.max(...Object.keys(thicknessData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+        page1RowsNeeded = Math.max(page1RowsNeeded, maxRow);
+    }
     
-    if (data.page1_cof_kinetic_r_r) {
-        const cofData = data.page1_cof_kinetic_r_r;
+    if (data.page1_cof_rr) {
+        const cofData = data.page1_cof_rr;
         const maxRow = Math.max(...Object.keys(cofData).map(key => parseInt(key)).filter(num => !isNaN(num)));
         page1RowsNeeded = Math.max(page1RowsNeeded, maxRow);
     }
     
-    if (data.page1_opacity) {
-        const opacityData = data.page1_opacity;
-        const maxRow = Math.max(...Object.keys(opacityData).map(key => parseInt(key)).filter(num => !isNaN(num)));
-        page1RowsNeeded = Math.max(page1RowsNeeded, maxRow);
-    }
-    
     // Check Page 2 data to determine row count
-    if (data.page2_force_elongation_md_5p) {
-        const forceData = data.page2_force_elongation_md_5p;
-        const maxRow = Math.max(...Object.keys(forceData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+    if (data.page2_tensile_break) {
+        const tensileData = data.page2_tensile_break;
+        const maxRow = Math.max(...Object.keys(tensileData).map(key => parseInt(key)).filter(num => !isNaN(num)));
         page2RowsNeeded = Math.max(page2RowsNeeded, maxRow);
     }
-    
-    if (data.page2_color_l) {
-        const colorData = data.page2_color_l;
-        const maxRow = Math.max(...Object.keys(colorData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+
+    if (data.page2_cd_elongation) {
+        const cdElongationData = data.page2_cd_elongation;
+        const maxRow = Math.max(...Object.keys(cdElongationData).map(key => parseInt(key)).filter(num => !isNaN(num)));
         page2RowsNeeded = Math.max(page2RowsNeeded, maxRow);
+    }
+
+    if (data.page2_modulus) {
+        const modulusData = data.page2_modulus;
+        const maxRow = Math.max(...Object.keys(modulusData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+        page2RowsNeeded = Math.max(page2RowsNeeded, maxRow);
+    }
+
+    if (data.page2_opacity) {
+        const opacityData = data.page2_opacity;
+        const maxRow = Math.max(...Object.keys(opacityData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+        page2RowsNeeded = Math.max(page2RowsNeeded, maxRow);
+    }
+
+    if (data.page2_roll_width) {
+        const rollWidthData = data.page2_roll_width;
+        const maxRow = Math.max(...Object.keys(rollWidthData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+        page2RowsNeeded = Math.max(page2RowsNeeded, maxRow);
+    }
+
+    if (data.page2_diameter) {
+        const diameterData = data.page2_diameter;
+        const maxRow = Math.max(...Object.keys(diameterData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+        page2RowsNeeded = Math.max(page2RowsNeeded, maxRow);
+    }
+
+    // Check Page 3 data to determine row count
+    if (data.page3_colour_l) {
+        const colourLData = data.page3_colour_l;
+        const maxRow = Math.max(...Object.keys(colourLData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+        page3RowsNeeded = Math.max(page3RowsNeeded, maxRow);
+    }
+
+    if (data.page3_colour_a) {
+        const colourAData = data.page3_colour_a;
+        const maxRow = Math.max(...Object.keys(colourAData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+        page3RowsNeeded = Math.max(page3RowsNeeded, maxRow);
+    }
+
+    if (data.page3_colour_b) {
+        const colourBData = data.page3_colour_b;
+        const maxRow = Math.max(...Object.keys(colourBData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+        page3RowsNeeded = Math.max(page3RowsNeeded, maxRow);
+    }
+
+    if (data.page3_delta_e) {
+        const deltaEData = data.page3_delta_e;
+        const maxRow = Math.max(...Object.keys(deltaEData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+        page3RowsNeeded = Math.max(page3RowsNeeded, maxRow);
+    }
+
+    if (data.page3_base_film_pink) {
+        const baseFilmData = data.page3_base_film_pink;
+        const maxRow = Math.max(...Object.keys(baseFilmData).map(key => parseInt(key)).filter(num => !isNaN(num)));
+        page3RowsNeeded = Math.max(page3RowsNeeded, maxRow);
     }
     
 
@@ -5149,10 +5632,20 @@ function loadRowCountFromDatabase(data) {
     if (page2RowsNeeded > 0) {
         const currentPage2Rows = getCurrentDataRowCount(testingTableBody2);
         const rowsToAddPage2 = Math.max(0, page2RowsNeeded - currentPage2Rows);
-        
+
         if (rowsToAddPage2 > 0) {
 
             addRowsToTable(testingTableBody2, rowsToAddPage2);
+        }
+    }
+
+    // Add rows to Page 3 if needed
+    if (page3RowsNeeded > 0) {
+        const currentPage3Rows = getCurrentDataRowCount(testingTableBody3);
+        const rowsToAddPage3 = Math.max(0, page3RowsNeeded - currentPage3Rows);
+
+        if (rowsToAddPage3 > 0) {
+            addRowsToTable(testingTableBody3, rowsToAddPage3);
         }
     }
     
@@ -5162,10 +5655,10 @@ function loadRowCountFromDatabase(data) {
 
 }
 
-// Function to sync sample data changes from Page 1 to Page 2 in real-time (like 16 GSM Kranti)
+// Function to sync sample data changes from Page 1 to Page 2 and Page 3 in real-time (like 16 GSM Kranti)
 function syncSampleDataToOtherPages(rowIndex, columnIndex, newValue) {
-    // Get Page 2 table body (extendable if more pages need syncing)
-    const otherTableBodies = [testingTableBody2];
+    // Get Page 2 and Page 3 table bodies for syncing
+    const otherTableBodies = [testingTableBody2, testingTableBody3];
 
     otherTableBodies.forEach(tableBody => {
         // Get current data rows (excluding summary rows)
@@ -5191,15 +5684,25 @@ function syncSampleDataToOtherPages(rowIndex, columnIndex, newValue) {
         if (dataRows[rowIndex]) {
             const inputs = dataRows[rowIndex].querySelectorAll('input');
 
-            // Page 2 has the same sample column structure as Page 1 (0-Lot&Roll, 1-RollID, 2-LotTime)
-            let targetColumnIndex = columnIndex;
+            if (tableBody.id === 'testingTableBody2') {
+                // Page 2 has the same sample column structure as Page 1 (0-Lot&Roll, 1-RollID, 2-LotTime)
+                let targetColumnIndex = columnIndex;
 
-            if (columnIndex <= 2) {
-                targetColumnIndex = columnIndex; // Direct mapping: 0→0, 1→1, 2→2
-            }
+                if (columnIndex <= 2) {
+                    targetColumnIndex = columnIndex; // Direct mapping: 0→0, 1→1, 2→2
+                }
 
-            if (inputs[targetColumnIndex]) {
-                inputs[targetColumnIndex].value = newValue;
+                if (inputs[targetColumnIndex]) {
+                    inputs[targetColumnIndex].value = newValue;
+                }
+            } else if (tableBody.id === 'testingTableBody3') {
+                // Page 3: Sample columns should map directly from Page 1
+                if (columnIndex <= 2) {
+                    // Direct mapping: Page 1 column 0→Page 3 column 0, 1→1, 2→2
+                    if (inputs[columnIndex]) {
+                        inputs[columnIndex].value = newValue;
+                    }
+                }
             }
         }
     });
@@ -5208,97 +5711,82 @@ function syncSampleDataToOtherPages(rowIndex, columnIndex, newValue) {
 // Load column data from JSONB into table inputs
 function loadColumnDataToTable(tableBody, inputIndex, jsonbData) {
 
-    
     if (!jsonbData || typeof jsonbData !== 'object') {
+        return;
+    }
 
-                return;
-            }
-            
     // Get all data rows (excluding summary rows)
     const dataRows = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
         const firstCell = row.querySelector('td');
         return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
     });
-    
 
-    
     // Load data into each row
     Object.keys(jsonbData).forEach(key => {
         const rowIndex = parseInt(key) - 1; // Convert to 0-based index
         if (rowIndex >= 0 && rowIndex < dataRows.length) {
             const row = dataRows[rowIndex];
-                   const inputs = row.querySelectorAll('input');
+            const inputs = row.querySelectorAll('input');
             const input = inputs[inputIndex];
-            
+
             if (input) {
                 input.value = jsonbData[key] || '';
-                
+
                 // Apply OOS validation to the loaded value if it's a data column
                 if (inputIndex > 2) {
                     let columnType = '';
-                    
+
                     // Determine column type based on table and input index
                     if (tableBody.id === 'testingTableBody') {
                         // Page 1 columns
-                        if (inputIndex === 3) {
-                            columnType = 'basicWeight';
-                        } else if (inputIndex === 4) {
-                            columnType = 'cofRR';
-                        } else if (inputIndex === 5) {
-                            columnType = 'cofRS';
-                        } else if (inputIndex === 6) {
-                            columnType = 'opacity';
-                        } else if (inputIndex >= 7 && inputIndex <= 9) {
-                            columnType = 'modulus';
-                        } else if (inputIndex === 11) {
-                            columnType = 'gloss';
-                        }
+                        if (inputIndex === 3) columnType = 'filmWeight';
+                        else if (inputIndex === 4) columnType = 'thickness';
+                        else if (inputIndex === 5) columnType = 'wettability';
+                        else if (inputIndex === 6) columnType = 'cofRR';
+                        else if (inputIndex === 7) columnType = 'cofCC';
+                        else if (inputIndex === 8) columnType = 'tensileBreak';
+                        else if (inputIndex === 9) columnType = 'elongation';
+                        else if (inputIndex === 10) columnType = 'modulus10';
                     } else if (tableBody.id === 'testingTableBody2') {
                         // Page 2 columns
-                        if (inputIndex === 3) {
-                            columnType = 'forceElongationMD';
-                        } else if (inputIndex === 4) {
-                            columnType = 'forceTensileMD';
-                        } else if (inputIndex === 5) {
-                            columnType = 'forceElongationCD';
-                        } else if (inputIndex === 6) {
-                            columnType = 'forceTensileCD';
-                        } else if (inputIndex === 7) {
-                            columnType = 'colourL';
-                        } else if (inputIndex === 8) {
-                            columnType = 'colourA';
-                        } else if (inputIndex === 9) {
-                            columnType = 'colourB';
-                        } else if (inputIndex === 10) {
-                            columnType = 'deltaE';
-                        }
+                        if (inputIndex === 3) columnType = 'tensileBreak';
+                        else if (inputIndex === 4) columnType = 'cdElongation';
+                        else if (inputIndex === 5) columnType = 'modulus10';
+                        else if (inputIndex === 6) columnType = 'opacity';
+                        else if (inputIndex === 7) columnType = 'rollWidth';
+                        else if (inputIndex === 8) columnType = 'diameter';
+                    } else if (tableBody.id === 'testingTableBody3') {
+                        // Page 3 columns
+                        if (inputIndex === 3) columnType = 'colourL';
+                        else if (inputIndex === 4) columnType = 'colourA';
+                        else if (inputIndex === 5) columnType = 'colourB';
+                        else if (inputIndex === 6) columnType = 'deltaE';
+                        else if (inputIndex === 7) columnType = 'baseFilmPink';
                     }
-                    
+
                     // Apply OOS validation if we have a valid column type
                     if (columnType) {
                         applyOOSValidation(input, columnType);
                     }
                 }
-                
-                // Calculate modulus average if this is a modulus column (7, 8, or 9)
-                if (tableBody.id === 'testingTableBody' && (inputIndex >= 7 && inputIndex <= 9)) {
-                    calculateModulusAverage(input);
-                }
-                
+
                 // Calculate summary statistics for Page 1 when data is loaded
                 if (tableBody.id === 'testingTableBody') {
                     calculatePage1ColumnStats(tableBody, inputIndex);
                 }
-                
+
                 // Calculate summary statistics for Page 2 when data is loaded
                 if (tableBody.id === 'testingTableBody2') {
                     calculatePage2ColumnStats(tableBody, inputIndex);
                 }
-                    }
-                }
-            });
-    
 
+                // Calculate summary statistics for Page 3 when data is loaded
+                if (tableBody.id === 'testingTableBody3') {
+                    calculatePage2ColumnStats(tableBody, inputIndex);
+                }
+            }
+        }
+    });
 }
 
 // Load equipment selections from database
@@ -5311,68 +5799,108 @@ function loadEquipmentSelections(data) {
         
         // Load Page 1 equipment
         if (equipment.page1) {
-            if (equipment.page1.basic_weight) {
-                const dropdown = document.getElementById('basic-weight-equipment');
+            if (equipment.page1.film_weight) {
+                const dropdown = document.getElementById('film-weight-equipment');
                 if (dropdown) {
-                    dropdown.value = equipment.page1.basic_weight;
+                    dropdown.value = equipment.page1.film_weight;
                 }
             }
-            
-            if (equipment.page1.modulus) {
-                const dropdown = document.getElementById('modulus-equipment');
-                if (dropdown) {
-                    dropdown.value = equipment.page1.modulus;
 
-                }
-            }
-            
-            if (equipment.page1.opacity) {
-                const dropdown = document.getElementById('opacity-equipment');
+            if (equipment.page1.thickness) {
+                const dropdown = document.getElementById('thickness-equipment');
                 if (dropdown) {
-                    dropdown.value = equipment.page1.opacity;
-
+                    dropdown.value = equipment.page1.thickness;
                 }
             }
-            
+
+
             if (equipment.page1.cof_rr) {
                 const dropdown = document.getElementById('cof-rr-equipment');
                 if (dropdown) {
                     dropdown.value = equipment.page1.cof_rr;
-
                 }
             }
-            
-            if (equipment.page1.cof_rs) {
-                const dropdown = document.getElementById('cof-rs-equipment');
-                if (dropdown) {
-                    dropdown.value = equipment.page1.cof_rs;
 
+            if (equipment.page1.cof_cc) {
+                const dropdown = document.getElementById('cof-cc-equipment');
+                if (dropdown) {
+                    dropdown.value = equipment.page1.cof_cc;
                 }
             }
-            
-            if (equipment.page1.gloss) {
-                const dropdown = document.getElementById('gloss-equipment');
+
+            if (equipment.page1.tensile_break) {
+                const dropdown = document.getElementById('tensile-break-equipment');
                 if (dropdown) {
-                    dropdown.value = equipment.page1.gloss;
+                    dropdown.value = equipment.page1.tensile_break;
+                }
+            }
+
+            if (equipment.page1.elongation) {
+                const dropdown = document.getElementById('elongation-equipment');
+                if (dropdown) {
+                    dropdown.value = equipment.page1.elongation;
+                }
+            }
+
+            if (equipment.page1.modulus_10) {
+                const dropdown = document.getElementById('modulus-equipment');
+                if (dropdown) {
+                    dropdown.value = equipment.page1.modulus_10;
                 }
             }
         }
         
         // Load Page 2 equipment
         if (equipment.page2) {
-            if (equipment.page2.force) {
-                const dropdown = document.getElementById('page2-force-equipment');
+            if (equipment.page2.tensile_break) {
+                const dropdown = document.getElementById('page2-tensile-break-equipment');
                 if (dropdown) {
-                    dropdown.value = equipment.page2.force;
-
+                    dropdown.value = equipment.page2.tensile_break;
                 }
             }
-            
-            if (equipment.page2.colour) {
-                const dropdown = document.getElementById('page2-colour-equipment');
+
+            if (equipment.page2.elongation) {
+                const dropdown = document.getElementById('page2-elongation-equipment');
                 if (dropdown) {
-                    dropdown.value = equipment.page2.colour;
-            
+                    dropdown.value = equipment.page2.elongation;
+                }
+            }
+
+            if (equipment.page2.modulus_10) {
+                const dropdown = document.getElementById('page2-modulus-equipment');
+                if (dropdown) {
+                    dropdown.value = equipment.page2.modulus_10;
+                }
+            }
+
+            if (equipment.page2.opacity) {
+                const dropdown = document.getElementById('page2-opacity-equipment');
+                if (dropdown) {
+                    dropdown.value = equipment.page2.opacity;
+                }
+            }
+
+            if (equipment.page2.roll_width) {
+                const dropdown = document.getElementById('page2-roll-width-equipment');
+                if (dropdown) {
+                    dropdown.value = equipment.page2.roll_width;
+                }
+            }
+
+            if (equipment.page2.diameter) {
+                const dropdown = document.getElementById('page2-diameter-equipment');
+                if (dropdown) {
+                    dropdown.value = equipment.page2.diameter;
+                }
+            }
+        }
+
+        // Load Page 3 equipment
+        if (equipment.page3) {
+            if (equipment.page3.colour) {
+                const dropdown = document.getElementById('page3-colour-equipment');
+                if (dropdown) {
+                    dropdown.value = equipment.page3.colour;
                 }
             }
         }
@@ -5534,7 +6062,7 @@ async function loadHistoricalDataForNewForm() {
         // First try to find data from previous day with matching criteria
         
         const { data: historicalData, error } = await supabase
-            .from('234_18_micro_white')
+            .from('uc-18gsm-290p-abqr')
             .select('*')
             .eq('product_code', productCode)
             .eq('machine_no', machineNo)
@@ -5550,7 +6078,7 @@ async function loadHistoricalDataForNewForm() {
 
             // If no data for previous date, find most recent form with same product + machine
             const { data: recentData, error: recentError } = await supabase
-                .from('234_18_micro_white')
+                .from('uc-18gsm-290p-abqr')
                 .select('*')
                 .eq('product_code', productCode)
                 .eq('machine_no', machineNo)
@@ -5605,6 +6133,7 @@ async function loadHistoricalDataIntoForm(historicalData) {
         console.log('Calculating statistics for historical data...');
         calculatePage1ColumnStats(testingTableBody);
         calculatePage2ColumnStats(testingTableBody2);
+        calculatePage2ColumnStats(testingTableBody3);
         recalculateAllRowAverages();
         forceRecalculateAllSummaryStatistics();
 
@@ -5719,7 +6248,7 @@ function updateRowCountByPage(pageNumber) {
 
 // Update row count for all pages
 function updateAllRowCounts() {
-    for (let i = 1; i <= 2; i++) {
+    for (let i = 1; i <= 3; i++) {
         updateRowCountByPage(i);
     }
 }
@@ -5763,6 +6292,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Initialize global table body references FIRST
     testingTableBody = document.getElementById('testingTableBody');
     testingTableBody2 = document.getElementById('testingTableBody2');
+    testingTableBody3 = document.getElementById('testingTableBody3');
     
     
     // Initialize session variables
@@ -5770,6 +6300,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Setup view mode
     setupViewMode();
+
+    // Set form title
+    setFormTitle();
 
     // Setup historical data loading triggers
     console.log('🔍 [HISTORICAL] Setting up historical data triggers in DOMContentLoaded...');
@@ -5883,13 +6416,15 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (rowsToAdd > 0) {
 
                 
-                // Add rows to all tables to reach 30 total (Pages 1 & 2 only for 18 GSM)
+                // Add rows to all tables to reach 30 total (Pages 1, 2 & 3 for UC-18gsm-290P-ABQR)
                 addRowsToTable(testingTableBody, rowsToAdd);
                 addRowsToTable(testingTableBody2, rowsToAdd);
-                
-                // Update row counts
+                addRowsToTable(testingTableBody3, rowsToAdd);
+
+                // Update row counts for all pages
                 updateRowCount();
                 updateRowCountByPage(2);
+                updateRowCountByPage(3);
             }
             
             // Load historical data if available
@@ -5913,43 +6448,52 @@ document.addEventListener('DOMContentLoaded', async function() {
                 return;
             }
             
-            // Get both table bodies
+            // Get all table bodies
             const testingTableBody = document.getElementById('testingTableBody');
             const testingTableBody2 = document.getElementById('testingTableBody2');
+            const testingTableBody3 = document.getElementById('testingTableBody3');
             
             // Get number of rows to delete
             const rowsToDelete = parseInt(numRowsInput?.value, 10) || 1;
             
-            // Simultaneously delete rows from both tables
-            if (testingTableBody && testingTableBody2) {
-                // Get data rows for both tables
+            // Simultaneously delete rows from all tables
+            if (testingTableBody && testingTableBody2 && testingTableBody3) {
+                // Get data rows for all tables
                 const page1Rows = Array.from(testingTableBody.querySelectorAll('tr')).filter(row => {
                     const firstCell = row.querySelector('td');
                     return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
                 });
-                
+
                 const page2Rows = Array.from(testingTableBody2.querySelectorAll('tr')).filter(row => {
                     const firstCell = row.querySelector('td');
                     return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
                 });
-                
-                // Delete rows from both tables simultaneously
-                const rowsToDeleteCount = Math.min(rowsToDelete, page1Rows.length, page2Rows.length);
+
+                const page3Rows = Array.from(testingTableBody3.querySelectorAll('tr')).filter(row => {
+                    const firstCell = row.querySelector('td');
+                    return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
+                });
+
+                // Delete rows from all tables simultaneously
+                const rowsToDeleteCount = Math.min(rowsToDelete, page1Rows.length, page2Rows.length, page3Rows.length);
                 
                 for (let i = 0; i < rowsToDeleteCount; i++) {
                     // Remove last row from each table
                     page1Rows[page1Rows.length - 1 - i].remove();
                     page2Rows[page2Rows.length - 1 - i].remove();
+                    page3Rows[page3Rows.length - 1 - i].remove();
                 }
                 
                 // Save changes and update UI
                 debouncedSave();
                 clearTableCache(testingTableBody);
                 clearTableCache(testingTableBody2);
-                
+                clearTableCache(testingTableBody3);
+
                 // Update row counts
                 updateRowCount();
                 updateRowCountByPage(2);
+                updateRowCountByPage(3);
                 
                 // Recalculate summary statistics
                 forceRecalculateAllSummaryStatistics();
@@ -5992,6 +6536,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Calculate initial summary statistics immediately
     calculatePage1ColumnStats(document.getElementById('testingTableBody'));
     calculatePage2ColumnStats(document.getElementById('testingTableBody2'));
+    calculatePage2ColumnStats(document.getElementById('testingTableBody3'));
     
     // Add click outside functionality to remove highlighting
     document.addEventListener('click', function(e) {

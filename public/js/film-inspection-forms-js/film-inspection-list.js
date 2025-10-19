@@ -1,4 +1,4 @@
-﻿import { supabase } from '../../supabase-config.js';
+import { supabase } from '../../supabase-config.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const tableBody = document.querySelector('#filmInspectionListTableBody');
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function fetchFilmInspectionForms() {
         try {
             // Fetch data from all tables - INCLUDING CUSTOMER AND OTHER FIELDS
-            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc290pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
                     .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
@@ -88,6 +88,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-250p-abqr')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .order('created_at', { ascending: false }),
+                supabase
+                    .from('uc-18gsm-290p-abqr')
                     .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
                     .order('created_at', { ascending: false }),
                 supabase
@@ -123,6 +127,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (uc250pResult.error) {
                 console.error('Error fetching from uc-18gsm-250p-abqr:', uc250pResult.error.message);
             }
+            if (uc290pResult.error) {
+                console.error('Error fetching from uc-18gsm-290p-abqr:', uc290pResult.error.message);
+            }
             if (microWhite234Result.error) {
                 console.error('Error fetching from 234_18_micro_white:', microWhite234Result.error.message);
             }
@@ -141,6 +148,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ...(jeddahResult.data || []),
                 ...(microWhite214Result.data || []),
                 ...(uc250pResult.data || []),
+                ...(uc290pResult.data || []),
                 ...(microWhite234Result.data || []),
                 ...(microWhite102Result.data || []),
                 ...(white168Result.data || [])
@@ -474,13 +482,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Enhanced search function with pagination support
     async function searchFilmInspectionForms(searchTerm) {
         // Search across all tables
-        const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
+        const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc290pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
             supabase.from('168_16cp_kranti').select('*'),
             supabase.from('168_16c_white').select('*'),
             supabase.from('176_18cp_ww').select('*'),
             supabase.from('168_18c_white_jeddah').select('*'),
             supabase.from('214_18_micro_white').select('*'),
             supabase.from('uc-18gsm-250p-abqr').select('*'),
+            supabase.from('uc-18gsm-290p-abqr').select('*'),
             supabase.from('234_18_micro_white').select('*'),
             supabase.from('102_18c_micro_white').select('*'),
             supabase.from('168_18c_white').select('*')
@@ -493,6 +502,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!jeddahResult.error) allData = allData.concat(jeddahResult.data);
         if (!microWhite214Result.error) allData = allData.concat(microWhite214Result.data);
         if (!uc250pResult.error) allData = allData.concat(uc250pResult.data);
+        if (!uc290pResult.error) allData = allData.concat(uc290pResult.data);
         if (!microWhite234Result.error) allData = allData.concat(microWhite234Result.data);
         if (!microWhite102Result.error) allData = allData.concat(microWhite102Result.data);
         if (!white168Result.error) allData = allData.concat(white168Result.data);
@@ -625,20 +635,70 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (input && data[key] && data[key] !== 'N/A' && data[key] !== 'n/a' && data[key] !== 'na' && data[key] !== 'N/a' && data[key] !== 'null') {
                 // Special handling for standard_packing field
                 if (key === 'standard_packing' && modalId === 'standard-packing-modal') {
-                    // Extract number and unit from "54 Rolls / Pallet" format
-                    const match = data[key].match(/(\d+)\s+(.+)/);
-                    if (match) {
-                        const number = match[1];
-                        const unit = match[2];
-                        input.value = number;
-                        
-                        // Set the unit dropdown
-                        const unitSelect = document.getElementById('standard-packing-unit-modal');
-                        if (unitSelect) {
-                            unitSelect.value = unit;
+                    console.log('Standard packing data:', data[key]); // Debug log
+
+                    // Handle different possible formats
+                    let number = '';
+                    let unit = 'Rolls / Pallet'; // default
+
+                    if (data[key] && typeof data[key] === 'string') {
+                        console.log('Processing standard packing data:', data[key]);
+
+                        // For standard packing, extract numbers for input field and unit for dropdown
+
+                        // Extract all numbers and separators (like "30 & 40")
+                        const numberPart = data[key].match(/[\d&\+\s]+/) ? data[key].match(/[\d&\+\s]+/)[0].trim() : '';
+
+                        // Extract unit part (like "Rolls / Pallet")
+                        const unitPart = data[key].replace(/[\d&\+\s]+/, '').trim();
+
+                        // Populate input field with just the number part
+                        input.value = numberPart;
+
+                        // Determine unit for dropdown
+                        let extractedUnit = 'Rolls / Pallet'; // default
+
+                        if (unitPart) {
+                            // Clean up the unit part
+                            const cleanUnit = unitPart.replace(/[\/]/g, ' / ').trim();
+
+                            // Check if it matches known units
+                            if (cleanUnit.toLowerCase().includes('pallet')) {
+                                extractedUnit = 'Rolls / Pallet';
+                            } else if (cleanUnit.toLowerCase().includes('box')) {
+                                extractedUnit = 'Rolls / Box';
+                            } else {
+                                extractedUnit = 'Rolls / Pallet'; // default
+                            }
                         }
-                        
+
+                        unit = extractedUnit;
+                        console.log('Number part:', numberPart, 'Unit part:', unitPart, 'Dropdown unit:', unit);
                     }
+
+                    // Set the unit dropdown - handle different unit formats
+                    const unitSelect = document.getElementById('standard-packing-unit-modal');
+                    if (unitSelect) {
+                        // Try exact match first
+                        if (unitSelect.querySelector(`option[value="${unit}"]`)) {
+                            unitSelect.value = unit;
+                        } else {
+                            // Try partial matches for common variations
+                            const options = unitSelect.querySelectorAll('option');
+                            let matched = false;
+                            options.forEach(option => {
+                                if (option.value.toLowerCase().includes(unit.toLowerCase()) ||
+                                    unit.toLowerCase().includes(option.value.toLowerCase().replace('Rolls / ', ''))) {
+                                    unitSelect.value = option.value;
+                                    matched = true;
+                                }
+                            });
+                            if (!matched) {
+                                console.warn('No matching unit found for:', unit);
+                            }
+                        }
+                    }
+
                 } else {
                     input.value = data[key];
                 }
@@ -800,7 +860,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function fetchPrestoreRefNo(formId) {
         try {
             // Try to fetch from all five tables using .maybeSingle() to avoid errors when no data found
-            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc290pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
                     .select('prestore_ref_no')
@@ -828,6 +888,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     .maybeSingle(),
                 supabase
                     .from('uc-18gsm-250p-abqr')
+                    .select('prestore_ref_no')
+                    .eq('form_id', formId)
+                    .maybeSingle(),
+                supabase
+                    .from('uc-18gsm-290p-abqr')
                     .select('prestore_ref_no')
                     .eq('form_id', formId)
                     .maybeSingle(),
@@ -862,6 +927,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 formData = microWhite214Result.data;
             } else if (!uc250pResult.error && uc250pResult.data) {
                 formData = uc250pResult.data;
+            } else if (!uc290pResult.error && uc290pResult.data) {
+                formData = uc290pResult.data;
             } else if (!microWhite234Result.error && microWhite234Result.data) {
                 formData = microWhite234Result.data;
             } else if (!microWhite102Result.error && microWhite102Result.data) {
@@ -898,7 +965,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (formId) {
                 try {
                     // Try to fetch from all five tables using .maybeSingle() to avoid errors when no data found
-                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
+                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc290pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
                         supabase
                             .from('168_16cp_kranti')
                             .select('*')
@@ -926,6 +993,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                             .maybeSingle(),
                         supabase
                             .from('uc-18gsm-250p-abqr')
+                            .select('*')
+                            .eq('form_id', formId)
+                            .maybeSingle(),
+                        supabase
+                            .from('uc-18gsm-290p-abqr')
                             .select('*')
                             .eq('form_id', formId)
                             .maybeSingle(),
@@ -960,6 +1032,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         data = microWhite214Result.data;
                     } else if (!uc250pResult.error && uc250pResult.data) {
                         data = uc250pResult.data;
+                    } else if (!uc290pResult.error && uc290pResult.data) {
+                        data = uc290pResult.data;
                     } else if (!microWhite234Result.error && microWhite234Result.data) {
                         data = microWhite234Result.data;
                     } else if (!microWhite102Result.error && microWhite102Result.data) {
@@ -1089,11 +1163,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                     'APE-168(18)C (Jeddah)': '168_18c_white_jeddah', // New Jeddah product
                     'WHITE-214(18)': '214_18_micro_white', // Existing 214 Micro White product
                     'INUE1C18-250P(AB-QR)': 'uc-18gsm-250p-abqr', // UC-18gsm-250P-ABQR form
+                    'INUE1C18-290P(AB-QR)': 'uc-18gsm-290p-abqr', // UC-18gsm-290P-ABQR form
                     'WHITE-234(18)': '234_18_micro_white', // New 234 Micro White product
                     'APE-102(18)C': '102_18c_micro_white', // New 102 Micro White product
                     'APE-168(18)C': '168_18c_white' // New 168 White product
                 };
-                tableName = productTableMap[preStoreFormData.product_code] || 'uc-18gsm-250p-abqr';
+                tableName = productTableMap[preStoreFormData.product_code] || (preStoreFormData.product_code === 'INUE1C18-290P(AB-QR)' ? 'uc-18gsm-290p-abqr' : 'uc-18gsm-250p-abqr');
             }
 
             // Update existing record if form_id exists, otherwise insert new
@@ -1288,6 +1363,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     targetForm = 'UC-18gsm-250P-ABQR.html';
                     console.log('Routing to UC-18gsm-250P-ABQR form');
                     break;
+                case 'INUE1C18-290P(AB-QR)':
+                    targetForm = 'UC-18gsm-290P-ABQR.html';
+                    console.log('Routing to UC-18gsm-290P-ABQR form');
+                    break;
                 default:
                     // Default fallback
                     targetForm = '16-gsm-kranti.html';
@@ -1358,7 +1437,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function deleteFormDirectly(formId) {
         try {
             // Try to delete from all five tables
-            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc290pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
                     .delete()
@@ -1384,6 +1463,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     .delete()
                     .eq('form_id', formId),
                 supabase
+                    .from('uc-18gsm-290p-abqr')
+                    .delete()
+                    .eq('form_id', formId),
+                supabase
                     .from('234_18_micro_white')
                     .delete()
                     .eq('form_id', formId),
@@ -1404,15 +1487,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             const jeddahSuccess = !jeddahResult.error;
             const microWhite214Success = !microWhite214Result.error;
             const uc250pSuccess = !uc250pResult.error;
+            const uc290pSuccess = !uc290pResult.error;
             const microWhite234Success = !microWhite234Result.error;
             const microWhite102Success = !microWhite102Result.error;
             const white168Success = !white168Result.error;
 
-            if (krantiSuccess || whiteSuccess || wwSuccess || jeddahSuccess || microWhite214Success || uc250pSuccess || microWhite234Success || microWhite102Success || white168Success) {
+            if (krantiSuccess || whiteSuccess || wwSuccess || jeddahSuccess || microWhite214Success || uc250pSuccess || uc290pSuccess || microWhite234Success || microWhite102Success || white168Success) {
                 alert('Form deleted successfully!');
                 fetchFilmInspectionForms(); // Refresh the list
             } else {
-                console.error('Error deleting form from all tables:', krantiResult.error, whiteResult.error, wwResult.error, jeddahResult.error, microWhite214Result.error, uc250pResult.error, microWhite234Result.error, microWhite102Result.error, white168Result.error);
+                console.error('Error deleting form from all tables:', krantiResult.error, whiteResult.error, wwResult.error, jeddahResult.error, microWhite214Result.error, uc250pResult.error, uc290pResult.error, microWhite234Result.error, microWhite102Result.error, white168Result.error);
                 alert('Error deleting form: Form not found in any table');
             }
         } catch (error) {
@@ -2117,6 +2201,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             return 'download214WhiteExcel';
         } else if (productCode === 'INUE1C18-250P(AB-QR)') {
             return 'downloadUC250PABQRExcel';
+        } else if (productCode === 'INUE1C18-290P(AB-QR)') {
+            return 'downloadUC290PABQRExcel';
         } else if (productCode === 'WHITE-234(18)') {
             return 'download234WhiteExcel';
         } else if (productCode === 'APE-102(18)C') {
@@ -2732,6 +2818,10 @@ window.viewFilmForm = function(formId, productCode) {
             targetForm = 'UC-18gsm-250P-ABQR.html';
             console.log('View routing to UC-18gsm-250P-ABQR form');
             break;
+        case 'INUE1C18-290P(AB-QR)':
+            targetForm = 'UC-18gsm-290P-ABQR.html';
+            console.log('View routing to UC-18gsm-290P-ABQR form');
+            break;
         default:
             // Default fallback
             targetForm = '16-gsm-kranti.html';
@@ -2773,6 +2863,20 @@ window.enterData = function(formId) {
             break;
         case 'WHITE-214(18)':
             targetForm = '18-gsm-214-micro-white.html';
+            break;
+        case 'INUE1C18-250P(AB-QR)':
+            targetForm = 'UC-18gsm-250P-ABQR.html';
+            console.log('Enter data routing to UC-18gsm-250P-ABQR form');
+            break;
+        case 'INUE1C18-290P(AB-QR)':
+            targetForm = 'UC-18gsm-290P-ABQR.html';
+            console.log('Enter data routing to UC-18gsm-290P-ABQR form');
+            break;
+        case 'WHITE-234(18)':
+            targetForm = '18-gsm-234-micro-white.html';
+            break;
+        case 'APE-102(18)C':
+            targetForm = '18-gsm-102-micro-white.html';
             break;
         default:
             targetForm = '16-gsm-kranti.html';
@@ -3127,7 +3231,7 @@ window.deleteFilmForm = function(formId) {
 
             // Determine the table name based on the selected product
             let tableName = '168_16cp_kranti'; // default table for 16 GSM Kranti products
-            
+
             if (data.product_code) {
                 // Map product codes to their specific tables
                 const productTableMap = {
@@ -3137,6 +3241,7 @@ window.deleteFilmForm = function(formId) {
                     'APE-168(18)C (Jeddah)': '168_18c_white_jeddah', // New Jeddah product
                     'WHITE-214(18)': '214_18_micro_white', // Existing 214 Micro White product
                     'INUE1C18-250P(AB-QR)': 'uc-18gsm-250p-abqr', // UC-18gsm-250P-ABQR form
+                    'INUE1C18-290P(AB-QR)': 'uc-18gsm-290p-abqr', // UC-18gsm-290P-ABQR form
                     'WHITE-234(18)': '234_18_micro_white', // New 234 Micro White product
                     'APE-102(18)C': '102_18c_micro_white', // New 102 Micro White product
                     'APE-168(18)C': '168_18c_white' // New 168 White product
@@ -3352,7 +3457,7 @@ window.deleteFilmForm = function(formId) {
         // Fetch existing data for the form
         async function fetchFormData() {
             // Try to fetch from all five tables
-            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, microWhite234Result, microWhite102Result] = await Promise.all([
+            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc290pResult, microWhite234Result, microWhite102Result] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
                     .select('*')
@@ -3384,6 +3489,11 @@ window.deleteFilmForm = function(formId) {
                     .eq('form_id', preStoreFormId)
                     .maybeSingle(),
                 supabase
+                    .from('uc-18gsm-290p-abqr')
+                    .select('*')
+                    .eq('form_id', preStoreFormId)
+                    .maybeSingle(),
+                supabase
                     .from('234_18_micro_white')
                     .select('*')
                     .eq('form_id', preStoreFormId)
@@ -3409,6 +3519,8 @@ window.deleteFilmForm = function(formId) {
                 data = microWhite214Result.data;
             } else if (!uc250pResult.error && uc250pResult.data) {
                 data = uc250pResult.data;
+            } else if (!uc290pResult.error && uc290pResult.data) {
+                data = uc290pResult.data;
             } else if (!microWhite234Result.error && microWhite234Result.data) {
                 data = microWhite234Result.data;
             } else if (!microWhite102Result.error && microWhite102Result.data) {
@@ -3533,12 +3645,13 @@ window.deleteFilmForm = function(formId) {
                     'APE-168(18)C (Jeddah)': '168_18c_white_jeddah', // New Jeddah product
                     'WHITE-214(18)': '214_18_micro_white', // Existing 214 Micro White product
                     'INUE1C18-250P(AB-QR)': 'uc-18gsm-250p-abqr', // UC-18gsm-250P-ABQR form
+                    'INUE1C18-290P(AB-QR)': 'uc-18gsm-290p-abqr', // UC-18gsm-290P-ABQR form
                     'WHITE-234(18)': '234_18_micro_white', // New 234 Micro White product
                     'APE-102(18)C': '102_18c_micro_white', // New 102 Micro White product
                     'APE-168(18)C': '168_18c_white' // New 168 White product
                     // Add more product-specific tables as they are created
                 };
-                tableName = productTableMap[finalData.product_code] || 'uc-18gsm-250p-abqr';
+                tableName = productTableMap[finalData.product_code] || (finalData.product_code === 'INUE1C18-290P(AB-QR)' ? 'uc-18gsm-290p-abqr' : 'uc-18gsm-250p-abqr');
             }
 
             let upsertError = null;
@@ -3657,6 +3770,88 @@ window.deleteFilmForm = function(formId) {
 
         } catch (error) {
             console.error('Error downloading UC-18gsm-250P-ABQR Excel:', error);
+
+            // Show error state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            downloadBtn.title = 'Download failed';
+
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 3000);
+        }
+    };
+
+    // Function to download UC-18gsm-290P-ABQR Excel file
+    window.downloadUC290PABQRExcel = async function(formId, buttonElement, productCode = null) {
+        // Store original button state immediately
+        const downloadBtn = buttonElement || event.target;
+        const originalContent = downloadBtn.innerHTML;
+        const originalTitle = downloadBtn.title;
+        const originalDisabled = downloadBtn.disabled;
+
+        try {
+            // Show loading state
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+            downloadBtn.title = 'Downloading...';
+            downloadBtn.disabled = true;
+
+            // Make API call to download UC-18gsm-290P-ABQR Excel
+            // Use localhost for IDE testing, Render URL for production
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+            const downloadUrl = `${backendUrl}/export-uc-18gsm-290p-abqr-form?form_id=${encodeURIComponent(formId)}`;
+
+            // Get the current session for authentication
+            const session = await supabase.auth.getSession();
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            if (session.data.session?.access_token) {
+                headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
+            }
+
+            // Make the request
+            const response = await fetch(downloadUrl, {
+                method: 'GET',
+                headers: headers
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Create blob and download
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+
+            // Use product code for dynamic filename, fallback to default if not provided
+            const productName = productCode || 'UC-18gsm-290P-ABQR';
+            a.download = `FIF-${productName}-${formId}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            // Show success state briefly
+            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            downloadBtn.title = 'Downloaded!';
+
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalContent;
+                downloadBtn.title = originalTitle;
+                downloadBtn.disabled = originalDisabled;
+            }, 2000);
+
+        } catch (error) {
+            console.error('Error downloading UC-18gsm-290P-ABQR Excel:', error);
 
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';

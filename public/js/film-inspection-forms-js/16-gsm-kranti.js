@@ -181,15 +181,21 @@ async function checkVerificationStatus() {
             return;
         }
         
-        // Check if the form is already verified
+        // Check if the form is already verified - use .maybeSingle() to handle no results gracefully
         const { data, error } = await supabase
             .from('168_16cp_kranti')
             .select('verified_by, verified_date')
             .eq('form_id', formId)
-            .single();
-        
+            .maybeSingle();
+
         if (error) {
             console.error('Error checking verification status:', error);
+            // If it's a PGRST116 error (no rows), that's expected for new forms
+            if (error.code === 'PGRST116') {
+                console.log('No verification record found - this is normal for new forms');
+                showVerificationForm();
+                return;
+            }
             showVerificationForm();
             return;
         }
@@ -296,8 +302,10 @@ function initializeVerification() {
     const passwordInput = document.getElementById('verificationPassword');
     const togglePasswordBtn = document.getElementById('toggleVerificationPassword');
     
-    // Check if form is already verified
-    checkVerificationStatus();
+    // Wait a bit for form_id to be available, then check verification status
+    setTimeout(() => {
+        checkVerificationStatus();
+    }, 500);
     
     // Enable verification inputs even in view mode
     if (passwordInput) {
@@ -1017,8 +1025,8 @@ document.addEventListener('DOMContentLoaded', function() {
                        if (tableBody.id !== 'testingTableBody') {
                            calculateRowAverages(tr, tableBody);
                        }
-                       // Also calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
-                       if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
+                       // Also calculate summary statistics for vertical Ave columns (Page 2, 3 & 4)
+                       if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
                            calculateSummaryStatistics(tableBody);
                        }
                        // Calculate individual column stats for Page 1 (only the changed column)
@@ -4854,8 +4862,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     calculateRowAverages(tr, tableBody);
                 }
                 
-                // Calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
-                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
+                // Calculate summary statistics for vertical Ave columns (Page 2, 3 & 4)
+                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
                     calculateSummaryStatistics(tableBody);
                 }
                 
@@ -4898,8 +4906,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     calculateRowAverages(tr, tableBody);
                 }
                 
-                // Calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
-                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
+                // Calculate summary statistics for vertical Ave columns (Page 2, 3 & 4)
+                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
                     calculateSummaryStatistics(tableBody);
                 }
                 
@@ -4942,8 +4950,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     calculateRowAverages(tr, tableBody);
                 }
                 
-                // Calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
-                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
+                // Calculate summary statistics for vertical Ave columns (Page 2, 3 & 4)
+                if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
                     calculateSummaryStatistics(tableBody);
                 }
                 
