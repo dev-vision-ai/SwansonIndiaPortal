@@ -469,23 +469,10 @@
                             <label for="production-order-modal" class="block text-sm font-medium text-gray-700 mb-1">Production Instruction (PI) No. <span class="text-red-500">*</span></label>
                             <input id="production-order-modal" name="production_order" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
                         </div>
-                        <div>
+                        <div class="relative">
                             <label for="product-code-modal" class="block text-sm font-medium text-gray-700 mb-1">Product Name <span class="text-red-500">*</span></label>
-                            <select id="product-code-modal" name="product-code" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" autocomplete="off">
-                                <option value="">Select Product Name</option>
-                                <option>WHITE-234(18)</option>
-                                <option>APE-176(18)CP(LCC+WW)BS</option>
-                                <option>APE-168(18)CP(KRANTI)</option>
-                                <option>APE-168(18)C</option>
-                                <option>APE-168(18)C (Jeddah)</option>
-                                <option>WHITE-214(18)</option>
-                                <option>INUE1C18-250P(AB-QR)</option>
-                                <option>INUE1C18-290P(AB-QR)</option>
-                                <option>INUE1C18-250W(BF-QR)</option>
-                                <option>APE-168(16)CP(KRANTI)</option>
-                                <option>APE-168(16)C</option>
-                                <option>APE-102(18)C</option>
-                            </select>
+                            <input type="text" id="product-code-modal" name="product-code" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter or select product code" autocomplete="off">
+                            <div id="prestoreProductSuggestions" class="absolute z-50 w-full border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto hidden text-sm" style="background: #eaf4fb;"></div>
                         </div>
                         <div>
                             <label for="specification-modal" class="block text-sm font-medium text-gray-700 mb-1">Specification <span class="text-red-500">*</span></label>
