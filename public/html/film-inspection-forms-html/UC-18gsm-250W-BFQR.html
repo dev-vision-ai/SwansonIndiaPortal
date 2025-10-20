@@ -1,0 +1,1055 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>UC-18gsm-250W-BFQR Inspection Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="../../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../../css/common-header.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+        }
+        
+        /* Ensure word wrap for all text content across the entire form */
+        * {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
+        table, th, td {
+            font-size: 13px;
+            border-radius: 0 !important;
+        }
+        .bg-white, .rounded-xl, .rounded-lg, .rounded-none, .rounded {
+            border-radius: 0 !important;
+        }
+        /* ===== CLEAN INLINE INSPECTION FORM STYLING ===== */
+        /* Clean, minimal styling like inline inspection form */
+        .testing-table {
+            border-collapse: collapse;
+            width: 100%;
+            background: white;
+        }
+        
+        .testing-table th {
+            background: rgba(59, 130, 246, 0.1) !important; /* Light blue with low opacity */
+            border: 1px solid #6b7280 !important; /* Light black border */
+            padding: 8px 6px !important;
+            text-align: center !important;
+            font-weight: 600 !important;
+            color: #374151 !important; /* Dark gray text for better readability */
+            /* Removed text shadow for cleaner look */
+        }
+        
+        .testing-table td {
+            background: white !important; /* White background */
+            border: 1px solid #6b7280 !important; /* Light black border */
+            padding: 6px 8px !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+            transition: all 0.2s ease !important; /* Smooth transitions */
+        }
+        
+        /* All rows have same background color */
+        .testing-table tr:nth-child(even) td {
+            background: white !important; /* White background */
+        }
+        
+        .testing-table tr:nth-child(odd) td {
+            background: white !important; /* White background */
+        }
+        
+        .testing-table:not(.modern-header-table) tbody tr:hover td {
+            background: rgba(135, 206, 235, 0.3) !important; /* Light sky blue hover */
+            /* Removed transform - no pop up effect */
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important; /* Very subtle shadow */
+        }
+        
+        /* Prevent hover effect on summary rows */
+        .testing-table:not(.modern-header-table) tbody tr.average-row:hover td,
+        .testing-table:not(.modern-header-table) tbody tr:nth-last-child(2):hover td,
+        .testing-table:not(.modern-header-table) tbody tr:nth-last-child(1):hover td {
+            background: #fed7aa !important; /* Keep light orange background on hover */
+            box-shadow: none !important; /* Remove shadow on hover */
+        }
+        
+        /* Modern borders */
+        .testing-table tr,
+        .testing-table td,
+        .testing-table th {
+            border: 1px solid #6b7280 !important; /* Light black border */
+        }
+        
+        /* Ensure highlighted cells completely override original borders - INSTANT */
+        .testing-table td.highlighted,
+        .testing-table th.highlighted {
+            border: none !important; /* Remove original border */
+            outline: 2px solid #000000 !important; /* Black outline - doesn't affect dimensions */
+            outline-offset: -2px !important; /* Overlap with original border space */
+            border-radius: 6px !important; /* Curved/rounded edges */
+            transition: none !important; /* No transition - instant outline change */
+            margin: 0 !important; /* No extra margins */
+            padding: 6px 8px !important; /* Keep same padding as normal cells */
+        }
+        
+        /* Styling for dynamically created table cells */
+        .testing-table-cell {
+            background: white !important; /* White background */
+            border: 1px solid #6b7280 !important; /* Light black border */
+            padding: 6px 8px !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+            transition: all 0.2s ease !important; /* Smooth transitions */
+        }
+        
+        /* ===== CELL HIGHLIGHTING STYLES ===== */
+        /* Single black outline highlighting with curved edges - NO DIMENSION CHANGES */
+        .testing-table-cell.highlighted,
+        .testing-table td.highlighted,
+        .testing-table th.highlighted {
+            border: none !important;
+            outline: 2px solid #000000 !important;
+            outline-offset: -2px !important;
+            border-radius: 6px !important;
+            transition: none !important;
+        }
+        /* Remove number input spinners */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            appearance: textfield;
+            -moz-appearance: textfield;
+        }
+        
+        /* Remove select dropdown arrows and spinners */
+        select::-webkit-outer-spin-button,
+        select::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        
+        /* ===== INLINE INSPECTION FORM STYLING ===== */
+        /* Seamless input field styling to match inline inspection form */
+        .testing-table input[type="text"],
+        .testing-table input[type="number"] {
+            background: transparent !important;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            text-align: center !important;
+            font-size: 13px !important;
+            font-family: inherit !important;
+            line-height: 1 !important;
+            vertical-align: middle !important;
+        }
+        
+        /* Focus styling for input fields */
+        .testing-table input[type="text"]:focus,
+        .testing-table input[type="number"]:focus {
+            background: transparent !important;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+        
+        /* Ensure cells maintain consistent height */
+        .testing-table td {
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            padding: 6px 8px !important;
+            vertical-align: middle !important;
+        }
+        
+        /* Remove any hover effects that might affect height - but not for header table */
+        .testing-table:not(.modern-header-table) td:hover {
+            height: auto !important;
+        }
+
+        /* Enhanced text wrapping for General Product & Production Information table */
+        .testing-table.modern-header-table td {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+        }
+
+        /* Ensure input fields in General Product & Production Information show complete text */
+        .testing-table.modern-header-table input[type="text"],
+        .testing-table.modern-header-table input[type="number"] {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+
+        /* Allow General Product & Production Information table cells to expand if needed */
+        .testing-table.modern-header-table {
+            table-layout: auto !important;
+        }
+
+        /* Ensure no text is cut off in populated fields of General Product & Production Information */
+        .testing-table.modern-header-table td:nth-child(2),
+        .testing-table.modern-header-table td:nth-child(4),
+        .testing-table.modern-header-table td:nth-child(6),
+        .testing-table.modern-header-table td:nth-child(8) {
+            overflow: visible !important;
+            text-overflow: clip !important;
+            white-space: normal !important;
+        }
+        
+        /* Professional header table styling */
+        .modern-header-table td {
+            background: linear-gradient(135deg, #f8fafc 0%, #e5e7eb 100%) !important; /* Professional gray gradient */
+            border: 1px solid #d1d5db !important; /* Professional border */
+            transition: none !important; /* No transitions for read-only fields */
+        }
+
+        /* Specific styling for testing-input class */
+        .testing-input {
+            background: transparent !important;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            text-align: center !important;
+            font-size: 13px !important;
+            font-family: inherit !important;
+            line-height: 1 !important;
+            vertical-align: middle !important;
+        }
+
+        /* Sample No. columns (1st and 3rd columns) - for Page 1 */
+        .testing-table td:nth-child(1), .testing-table th:nth-child(1),
+        .testing-table td:nth-child(3), .testing-table th:nth-child(3) {
+            width: 5.5%;
+            min-width: 50px;
+            max-width: 50px;
+        }
+        
+        /* Roll ID column (2nd column) - wider for 8-digit numbers */
+        .testing-table td:nth-child(2), .testing-table th:nth-child(2) {
+            width: 7%;
+            min-width: 70px;
+            max-width: 70px;
+        }
+        
+        /* Parameter columns (remaining 9 columns) - for Page 1 */
+        .testing-table td:nth-child(4), .testing-table th:nth-child(4),
+        .testing-table td:nth-child(5), .testing-table th:nth-child(5),
+        .testing-table td:nth-child(6), .testing-table th:nth-child(6),
+        .testing-table td:nth-child(7), .testing-table th:nth-child(7),
+        .testing-table td:nth-child(8), .testing-table th:nth-child(8),
+        .testing-table td:nth-child(9), .testing-table th:nth-child(9),
+        .testing-table td:nth-child(10), .testing-table th:nth-child(10),
+        .testing-table td:nth-child(11), .testing-table th:nth-child(11),
+        .testing-table td:nth-child(12), .testing-table th:nth-child(12) {
+            width: 9.11%; /* (100% - 18%) / 9 = 9.11% each */
+            min-width: 80px;
+        }
+        /* Page 2 - Sample No. columns (1st and 3rd columns) */
+        .page2-table td:nth-child(1), .page2-table th:nth-child(1),
+        .page2-table td:nth-child(3), .page2-table th:nth-child(3) {
+            width: 5.5% !important;
+            min-width: 50px !important;
+            max-width: 50px !important;
+        }
+        
+        /* Page 2 - Roll ID column (2nd column) - wider for 8-digit numbers */
+        .page2-table td:nth-child(2), .page2-table th:nth-child(2) {
+            width: 7% !important;
+            min-width: 70px !important;
+            max-width: 70px !important;
+        }
+        
+        /* Page 2 - Parameter columns (remaining 6 columns) - equal width */
+        .page2-table td:nth-child(4), .page2-table th:nth-child(4),
+        .page2-table td:nth-child(5), .page2-table th:nth-child(5),
+        .page2-table td:nth-child(6), .page2-table th:nth-child(6),
+        .page2-table td:nth-child(7), .page2-table th:nth-child(7),
+        .page2-table td:nth-child(8), .page2-table th:nth-child(8),
+        .page2-table td:nth-child(9), .page2-table th:nth-child(9) {
+            width: 13.67% !important; /* (100% - 18%) / 6 = 13.67% each */
+            min-width: 80px !important;
+        }
+
+        /* Page 3 - Parameter columns (5 columns) - equal width */
+        .page3-table td:nth-child(4), .page3-table th:nth-child(4),
+        .page3-table td:nth-child(5), .page3-table th:nth-child(5),
+        .page3-table td:nth-child(6), .page3-table th:nth-child(6),
+        .page3-table td:nth-child(7), .page3-table th:nth-child(7),
+        .page3-table td:nth-child(8), .page3-table th:nth-child(8) {
+            width: 16.4% !important; /* (100% - 18%) / 5 = 16.4% each */
+            min-width: 80px !important;
+        }
+        
+        /* Override for merged Sample No. header in Page 2 */
+        .page2-table th[colspan="3"][rowspan="2"] {
+            width: 18% !important; /* 5.5% + 7% + 5.5% = 18% */
+            min-width: 170px !important;
+        }
+        
+        /* Light orange background for summary rows - ONLY in testing parameter tables */
+        .testing-table:not(.modern-header-table) tr.average-row td,
+        .testing-table:not(.modern-header-table) tr.average-row th {
+            background: #fed7aa !important; /* Light orange background */
+            font-weight: 600 !important; /* Make text bold for better visibility */
+        }
+        
+        /* Light orange background for minimum and maximum rows - ONLY in testing parameter tables */
+        .testing-table:not(.modern-header-table) tbody tr:nth-last-child(2) td,
+        .testing-table:not(.modern-header-table) tbody tr:nth-last-child(1) td {
+            background: #fed7aa !important; /* Light orange background */
+            font-weight: 600 !important; /* Make text bold for better visibility */
+        }
+        
+        /* Background color for label cells in General Product & Production Information table - OVERRIDE all other rules */
+        .testing-table.modern-header-table td:first-child,
+        .testing-table.modern-header-table td:nth-child(3),
+        .testing-table.modern-header-table td:nth-child(5),
+        .testing-table.modern-header-table td:nth-child(7) {
+            background: #f1f5f9 !important; /* Light greyish background for labels */
+            font-weight: 600 !important; /* Bold text for labels */
+        }
+        
+            /* Keep input data cells with white background - OVERRIDE all other rules */
+            .testing-table.modern-header-table td:nth-child(2),
+            .testing-table.modern-header-table td:nth-child(4),
+            .testing-table.modern-header-table td:nth-child(6),
+            .testing-table.modern-header-table td:nth-child(8) {
+                background: white !important; /* White background for input cells */
+            }
+        
+        /* Also ensure font size for all data cells in the modern-header-table */
+        .testing-table.modern-header-table td {
+            font-size: 15px !important; /* Match the header font size exactly */
+        }
+        
+        /* Reasonable font size for populated data cells - prevents overflow */
+        .testing-table.modern-header-table td:nth-child(2),
+        .testing-table.modern-header-table td:nth-child(4),
+        .testing-table.modern-header-table td:nth-child(6),
+        .testing-table.modern-header-table td:nth-child(8) {
+            font-size: 14px !important; /* Reasonable font size for populated data - prevents overflow */
+        }
+        
+        /* Light greyish background for headers in testing parameter tables (Pages 1, 2, 3, 4) */
+        .testing-table:not(.modern-header-table) thead th,
+        .testing-table:not(.modern-header-table) thead td {
+            background: #f1f5f9 !important; /* Light greyish background for headers */
+            font-weight: 600 !important; /* Bold text for headers */
+        }
+        
+        /* Remove background color from "Testing Equipment Identification Number" row - make it white */
+        .testing-table:not(.modern-header-table) thead tr:first-child td,
+        .testing-table:not(.modern-header-table) thead tr:first-child th {
+            background: white !important; /* White background for equipment identification row */
+        }
+        
+        
+        /* Simple square button styles for row management */
+        .modern-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 28px;
+            border: none;
+            border-radius: 0;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: none;
+            box-shadow: none;
+            vertical-align: middle;
+        }
+        
+        .modern-btn:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .modern-btn:active {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .add-btn {
+            background: #10b981;
+            color: white;
+        }
+        
+        .add-btn:hover {
+            background: #059669;
+        }
+        
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+        
+        /* Equipment dropdown cell background when equipment is selected */
+        .testing-table select.equipment-selected {
+            background-color: #dcfce7 !important; /* Light green background when equipment is selected */
+        }
+        
+        /* Equipment dropdown cell background when no equipment is selected (default state) */
+        .testing-table select {
+            background-color: transparent !important; /* Transparent background by default */
+        }
+
+        /* Consistent font size for view-only form elements */
+        .view-form-element {
+            font-size: 13px !important;
+        }
+
+        /* Consistent styling for span elements in view-only sections */
+        .view-span-element {
+            font-size: 13px !important;
+            color: #111827 !important;
+            padding: 2px 4px !important;
+            font-weight: 500 !important;
+        }
+        
+        /* Equipment dropdown cell background when equipment is selected */
+        .testing-table select.equipment-selected {
+            background-color: #dcfce7 !important; /* Light green background when equipment is selected */
+        }
+        
+        /* Equipment dropdown cell background when no equipment is selected (default state) */
+        .testing-table select {
+            background-color: transparent !important; /* Transparent background by default */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
+    <div class="header-container">
+        <button type="button" class="header-back-button" onclick="window.location.href='film-inspection-forms-list.html'">Back</button>
+        <div class="header-title">Film Inspection Form</div>
+        <div class="company-logo">
+            <img src="../../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+
+    <main class="flex flex-col w-full min-h-screen pt-8 gap-8 p-0">
+        <div class="bg-white rounded-none shadow-2xl w-full h-full min-h-[calc(100vh-96px)] p-8">
+            <h2 id="formTitle" class="text-2xl font-bold text-gray-800 mb-6 text-center"></h2>
+            
+    <!-- Pre-Store Inspection Information Section (View Mode Only) -->
+    <section id="prestore-section" class="mb-8 border border-black rounded-lg p-3" style="display: none; background-color: #f0f9ff;">
+                <h3 class="font-semibold text-gray-800 mb-1 text-center" style="font-size: 16px;">Pre-Store Inspection Details</h3>
+                <div class="flex justify-center mb-4">
+                    <hr class="border-gray-400 w-48">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-x-1 gap-y-3">
+                    <!-- Row 1: Production Instruction, Product Name, Specification, Pallet Size, Customer -->
+                    <div class="col-span-full grid grid-cols-5 gap-3 mb-1">
+                        <div>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Production Instruction (PI) No.:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-production-order">-</div>
+                        </div>
+                        <div>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Product Name:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-product-code">-</div>
+                        </div>
+                        <div>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Specification:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-specification">-</div>
+                        </div>
+                        <div>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Pallet Size:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-pallet-size">-</div>
+                        </div>
+                        <div>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Customer:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-customer">-</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Row 2: Location, Machine No, Quantity, Production Date, Inspection Date -->
+                    <div class="col-span-full grid grid-cols-5 gap-3 mb-1">
+                        <div>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Location:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-location">-</div>
+                        </div>
+                        <div>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Machine No.:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-machine-no">-</div>
+                        </div>
+                        <div>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Quantity (Rolls):</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-quantity">-</div>
+                        </div>
+                        <div>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Production Date:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-production-date">-</div>
+                        </div>
+                        <div>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Inspection Date:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-inspection-date">-</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Row 3: Standard Packing, Batch, Reference No, Pre-store Done By -->
+                    <div class="col-span-full grid grid-cols-5 gap-3 mb-1">
+                        <div>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Standard Packing:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-standard-packing">-</div>
+                        </div>
+                        <div>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Batch:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-batch">-</div>
+                        </div>
+                        <div>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Reference No:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-ref-no">-</div>
+                        </div>
+                        <div>
+                            <label class="block font-medium text-black mb-1" style="font-size: 13px;">Pre-store Done By:</label>
+                            <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50" style="font-size: 13px;" id="view-prestore-done-by">-</div>
+                        </div>
+                        <div>
+                            <!-- Empty field for consistent grid layout -->
+                        </div>
+                    </div>
+                    
+                    <!-- Row 4: Empty row for spacing -->
+                    <div class="col-span-full grid grid-cols-5 gap-1">
+                        <div>
+                            <!-- Empty field for consistent grid layout -->
+                        </div>
+                        <div>
+                            <!-- Empty field for consistent grid layout -->
+                        </div>
+                        <div>
+                            <!-- Empty field for consistent grid layout -->
+                        </div>
+                        <div>
+                            <!-- Empty field for consistent grid layout -->
+                        </div>
+                        <div>
+                            <!-- Empty field for consistent grid layout -->
+                        </div>
+                    </div>
+                    
+                    <!-- Palletized Finished Goods Status Section -->
+                    <div class="col-span-full mt-1 p-3 border border-black bg-white">
+                        <h3 class="font-medium leading-6 text-black mb-1" style="font-size: 13px;">Palletized Finished Goods Status</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div class="p-2 bg-gray-50 border border-gray-300">
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Pallet List:</label>
+                                <hr class="border-gray-400 mb-1">
+                                <div class="flex space-x-3">
+                                    <div class="flex items-center">
+                                        <span class="view-span-element" id="view-pallet-list">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-2 bg-gray-50 border border-gray-300">
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Product Identification Label:</label>
+                                <hr class="border-gray-400 mb-1">
+                                <div class="flex space-x-3">
+                                    <div class="flex items-center">
+                                        <span class="view-span-element" id="view-product-label">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-2 bg-gray-50 border border-gray-300">
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Wrapping Done Properly:</label>
+                                <hr class="border-gray-400 mb-1">
+                                <div class="flex space-x-3">
+                                    <div class="flex items-center">
+                                        <span class="view-span-element" id="view-wrapping">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-2 bg-gray-50 border border-gray-300">
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Layer Pad:</label>
+                                <hr class="border-gray-400 mb-1">
+                                <div class="flex space-x-3">
+                                    <div class="flex items-center">
+                                        <span class="view-span-element" id="view-layer-pad">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-2 bg-gray-50 border border-gray-300">
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">No Contamination:</label>
+                                <hr class="border-gray-400 mb-1">
+                                <div class="flex space-x-3">
+                                    <div class="flex items-center">
+                                        <span class="view-span-element" id="view-contamination">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-2 bg-gray-50 border border-gray-300">
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Kraft Paper:</label>
+                                <hr class="border-gray-400 mb-1">
+                                <div class="flex space-x-3">
+                                    <div class="flex items-center">
+                                        <span class="view-span-element" id="view-kraft-paper">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-2 bg-gray-50 border border-gray-300">
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">No Damage:</label>
+                                <hr class="border-gray-400 mb-1">
+                                <div class="flex space-x-3">
+                                    <div class="flex items-center">
+                                        <span class="view-span-element" id="view-no-damage">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-2 bg-gray-50 border border-gray-300">
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Pallet:</label>
+                                <hr class="border-gray-400 mb-1">
+                                <div class="flex space-x-3">
+                                    <div class="flex items-center">
+                                        <span class="view-span-element" id="view-pallet">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Remarks Section -->
+                    <div class="col-span-full mt-1">
+                                <label class="block font-medium text-black mb-1" style="font-size: 13px;">Remarks:</label>
+                        <div class="block w-full px-2 py-1.5 border border-gray-300 bg-gray-50 min-h-[40px]" style="font-size: 13px;" id="view-remarks">-</div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- General Product & Production Information Section -->
+            <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">General Product & Production Information</h3>
+                <table class="w-full border-2 border-gray-800 bg-white testing-table modern-header-table" style="font-size: 15px; table-layout: auto; word-wrap: break-word;">
+                    <tr>
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 20%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">Product Code:</td>
+                        <td class="border border-gray-800 testing-table-cell" style="width: 20%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+                            <input type="text" id="productCodeInput" class="w-full testing-input" placeholder="Enter Product Code" style="white-space: normal;">
+                        </td>
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 15%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">Prod. Order:</td>
+                        <td class="border border-gray-800 testing-table-cell" style="width: 15%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+                            <input type="text" class="w-full testing-input" placeholder="Enter Prod. Order" style="white-space: normal;">
+                        </td>
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 5%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">Machine:</td>
+                        <td class="border border-gray-800 testing-table-cell" style="width: 5%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+                            <input type="text" class="w-full testing-input" placeholder="Enter Machine" style="white-space: normal;">
+                        </td>
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 10%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">Production Date:</td>
+                        <td class="border border-gray-800 testing-table-cell" style="width: 10%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+                            <input type="date" class="w-full testing-input" style="white-space: normal;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 20%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">Specification:</td>
+                        <td class="border border-gray-800 testing-table-cell" style="width: 20%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+                            <input type="text" class="w-full testing-input" placeholder="Enter Specification" style="white-space: normal;">
+                        </td>
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 5%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">PO:</td>
+                        <td class="border border-gray-800 testing-table-cell" style="width: 5%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+                            <input type="text" class="w-full testing-input" placeholder="Enter PO" value="N/A" style="white-space: normal;">
+                        </td>
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 12%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">Quantity (Rolls):</td>
+                        <td class="border border-gray-800 testing-table-cell" style="width: 12%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+                            <input type="text" class="w-full testing-input" placeholder="Enter Quantity" style="white-space: normal;">
+                        </td>
+                        <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 13%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">Inspection Date:</td>
+                        <td class="border border-gray-800 testing-table-cell" style="width: 13%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
+                            <input type="date" class="w-full testing-input" style="white-space: normal;">
+                        </td>
+                    </tr>
+
+                </table>
+            </section>
+
+            <!-- Bottom Section - Testing Parameters Table -->
+            <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 1 of 2</h3>
+                
+                            <!-- Add/Delete Rows Controls -->
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-3">
+                    <span id="rowCountDisplay" class="text-sm font-bold text-gray-700">Rows: 0</span>
+                    <input id="numRowsInput" type="number" min="1" value="1" class="px-1 py-1 border rounded text-sm" style="width:28px; height:28px;" title="Number of rows to add/delete" />
+                    <button id="addNewRowsBtn" class="modern-btn add-btn" title="Add New Rows">+</button>
+                    <button id="deleteRowsBtn" class="modern-btn delete-btn" title="Delete Rows">−</button>
+                </div>
+            </div>
+                
+                <!-- Testing Parameters Table with merged header -->
+                <div class="overflow-x-auto">
+                    <table class="w-full border-2 border-gray-800 bg-white testing-table" class="view-form-element">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <td class="border-b-2 border-gray-800 px-3 py-2 text-left font-semibold" colspan="3" class="view-form-element">Testing Equipment Identification Number:</td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="film-weight-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="thickness-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"></td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="cof-rr-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="cof-cc-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="tensile-break-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="elongation-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="modulus-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                            </tr>
+                            <tr class="bg-gray-100">
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" rowspan="2" class="view-form-element">Sample No.</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" rowspan="2" class="view-form-element">Film Weight<br>(L-17.00 T-18.0 U-20.00)<br>g/m2</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" rowspan="2" class="view-form-element">Thickness<br>(L-18 T-23 U-28)<br>μm</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" rowspan="2" class="view-form-element">Wettability<br>(L-360 T-380 U-400)<br>h/cm</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" rowspan="2" class="view-form-element">COF<br>(R-R)<br>(L-0.30 T-0.45 U-0.60)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" rowspan="2" class="view-form-element">COF<br>(C-C)<br>(L-0.60 T-0.80 U-1.40)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" rowspan="2" class="view-form-element">Tensile Break<br>(L-900 U-1200)<br>g/25mm</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" rowspan="2" class="view-form-element">MD Elongation Break<br>(L-350)<br>%</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" rowspan="2" class="view-form-element">10% Modulus<br>(L-300)<br>g/25mm</th>
+                            </tr>
+                        </thead>
+                        <tbody id="testingTableBody">
+                            <!-- Summary Statistics Rows -->
+                            <tr class="average-row">
+                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Average</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Minimum</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Maximum</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Page 2 Section - Testing Parameters Table -->
+            <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 2 of 2</h3>
+                
+                <!-- Row Count Display -->
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-4">
+                        <span id="rowCountDisplay2" class="text-sm font-bold text-gray-700">Rows: 0</span>
+                    </div>
+                </div>
+                
+                <!-- Testing Parameters Table with merged header -->
+                <div class="overflow-x-auto">
+                    <table class="w-full border-2 border-gray-800 bg-white testing-table page2-table" class="view-form-element">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <td class="border-b-2 border-gray-800 px-3 py-2 text-left font-semibold" colspan="3" class="view-form-element">Testing Equipment Identification Number:</td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="page2-tensile-break-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="page2-elongation-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="page2-modulus-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="page2-opacity-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="page2-roll-width-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" class="view-form-element"><select id="page2-diameter-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                            </tr>
+                            <tr class="bg-gray-100">
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Sample No.</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Tensile Break<br>(L-700 U-1000)<br>g/25mm</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">CD Elongation Break<br>(L-400)<br>%</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">10% Modulus<br>(L-300)<br>g/25mm</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Opacity<br>(L-45.0 T-50.0 U-55.0)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Roll Cut Width<br>(T-250 U-253)<br>mm</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Diameter<br>(L-410 T-430 U-450)<br>mm</th>
+                            </tr>
+                        </thead>
+                        <tbody id="testingTableBody2">
+                            <!-- Summary Statistics Rows -->
+                            <tr class="average-row">
+                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Average</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Minimum</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Maximum</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Page 3 Section - Color Measurement Table -->
+            <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 3 of 3</h3>
+
+                <!-- Row Count Display -->
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-4">
+                        <span id="rowCountDisplay3" class="text-sm font-bold text-gray-700">Rows: 0</span>
+                    </div>
+                </div>
+
+                <!-- Color Measurement Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full border-2 border-gray-800 bg-white testing-table page3-table" class="view-form-element">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <td class="border-b-2 border-gray-800 px-3 py-2 text-left font-semibold" colspan="3" class="view-form-element">Testing Equipment Identification Number:</td>
+                                <td class="border-b-2 border-gray-800 p-0" colspan="4" class="view-form-element"><select id="page3-colour-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                                <td class="border-b-2 border-gray-800 p-0" colspan="1" class="view-form-element"><select id="page3-base-film-equipment" style="font-size: 11px; cursor: pointer; padding: 8px 20px 8px 12px; box-shadow: none; -webkit-appearance: none; -moz-appearance: none; appearance: none; width: 100%; height: 100%; text-align: center; border: 0; background: transparent; outline: none;"><option value="">Select Equipment ▼</option></select></td>
+                            </tr>
+                            <tr class="bg-gray-100">
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Sample No.</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Colour L<br>(L-55.00 T-60.00 U-65.00)<br>(Colour units-H)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Colour A<br>(L-45.00 T-50.00 U-55.00)<br>(Colour units-H)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Colour B<br>(L-(-16.00) T-(-11.00) U-(-6.00))<br>(Colour units-H)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">Delta E<br>(T-0.00 U-4.00)<br>(Colour Units-Delta E)</th>
+                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" class="view-form-element">(Base Film White)<br>(T-0.00 U-5.00)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="testingTableBody3">
+                            <!-- Summary Statistics Rows -->
+                            <tr class="average-row">
+                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Average</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Minimum</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" class="view-form-element">Maximum</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.0</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                                <td class="border border-gray-800 px-3 py-2 text-center" class="view-form-element">0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Verification and Approval Sections Side by Side -->
+            <div class="flex justify-center mt-4 gap-4">
+                <!-- Verified By Section -->
+                <section id="verificationSection" class="w-80 p-4 bg-gray-50 border border-gray-300 rounded">
+                    <h3 class="font-bold text-gray-800 mb-2 text-center" class="view-form-element">Verified By</h3>
+                    <div class="bg-[#002E7D] h-0.5 w-12 mx-auto rounded mb-2"></div>
+                    
+                    <!-- Verification Status Display -->
+                    <div id="verificationStatus" class="rounded bg-green-50 flex items-center justify-center" style="display: none; min-height: 100px; padding: 20px;">
+                        <div class="text-center">
+                            <div class="flex items-center justify-center mb-2">
+                                <i class="fas fa-check-circle text-green-500 text-sm mr-1"></i>
+                                <span class="text-green-700 font-semibold text-sm">Verified</span>
+                            </div>
+                            <div class="text-sm text-gray-600">
+                                <div id="verifiedByDisplay"></div>
+                                <div id="verifiedDateDisplay"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Custom Confirmation Popup -->
+                    <div id="verificationConfirmPopup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+                        <div class="bg-white rounded-lg p-4 max-w-sm w-full mx-4 shadow-xl border border-gray-200">
+                            <h3 class="text-base font-bold text-gray-800 mb-3 text-center border-b border-gray-200 pb-2">Confirm Verification</h3>
+                            
+                            <div class="space-y-1.5 mb-4 text-sm">
+                                <div class="flex justify-between items-center py-1 border-b border-gray-100">
+                                    <span class="font-medium text-gray-600">Product Name:</span>
+                                    <span id="confirmProductName" class="text-gray-900 font-semibold"></span>
+                                </div>
+                                <div class="flex justify-between items-center py-1 border-b border-gray-100">
+                                    <span class="font-medium text-gray-600">Production Date:</span>
+                                    <span id="confirmProductionDate" class="text-gray-900 font-semibold"></span>
+                                </div>
+                                <div class="flex justify-between items-center py-1 border-b border-gray-100">
+                                    <span class="font-medium text-gray-600">Inspection Date:</span>
+                                    <span id="confirmInspectionDate" class="text-gray-900 font-semibold"></span>
+                                </div>
+                                <div class="flex justify-between items-center py-1 border-b border-gray-100">
+                                    <span class="font-medium text-gray-600">Verifier Name:</span>
+                                    <span id="confirmVerifierName" class="text-gray-900 font-semibold"></span>
+                                </div>
+                                <div class="flex justify-between items-center py-1">
+                                    <span class="font-medium text-gray-600">Verification Date:</span>
+                                    <span id="confirmVerificationDate" class="text-gray-900 font-semibold"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-center space-x-2">
+                                <button id="confirmVerificationBtn" class="px-3 py-1.5 bg-[#002E7D] text-white text-sm rounded hover:bg-[#002E7D]/90 focus:outline-none focus:ring-1 focus:ring-[#002E7D] transition-colors">
+                                    <i class="fas fa-check mr-1"></i>Confirm
+                                </button>
+                                <button id="cancelVerificationBtn" class="px-3 py-1.5 bg-gray-500 text-white text-sm rounded hover:bg-gray-600 focus:outline-none focus:ring-1 focus:ring-gray-500 transition-colors">
+                                    <i class="fas fa-times mr-1"></i>Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Verification Form (Hidden when already verified) -->
+                    <div id="verificationForm" class="space-y-2">
+                        <div class="text-center mb-2">
+                            <p class="text-sm text-gray-600">Enter password</p>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <div>
+                                <label for="verificationPassword" class="block font-medium text-gray-700 mb-1" class="view-form-element">Password</label>
+                                <div class="relative">
+                                    <input type="password" id="verificationPassword" class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]" placeholder="Enter password">
+                                    <button type="button" id="toggleVerificationPassword" class="absolute inset-y-0 right-0 pr-2 flex items-center">
+                                        <i class="fas fa-eye text-gray-400 hover:text-gray-600 text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="verificationDate" class="block font-medium text-gray-700 mb-1" class="view-form-element">Date <span class="text-red-500">*</span></label>
+                                <input type="date" id="verificationDate" class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]" required>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-center space-x-2 mt-3">
+                            <button type="button" id="verifyFormBtn" class="px-3 py-1 bg-[#002E7D] text-white text-sm rounded hover:bg-[#002E7D]/90 focus:outline-none focus:ring-1 focus:ring-[#002E7D] transition-colors">
+                                <i class="fas fa-check mr-1"></i>Verify
+                            </button>
+                            <button type="button" id="cancelVerificationBtn" class="px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600 focus:outline-none focus:ring-1 focus:ring-gray-500 transition-colors">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Approved By Section (Disabled for Future Use) -->
+                <section id="approvalSection" class="w-80 p-4 bg-gray-50 border border-gray-300 rounded opacity-50">
+                    <h3 class="font-bold text-gray-800 mb-2 text-center" class="view-form-element">Approved By</h3>
+                    <div class="bg-[#002E7D] h-0.5 w-12 mx-auto rounded mb-2"></div>
+                    
+                    <!-- Approval Status Display -->
+                    <div id="approvalStatus" class="mb-2 p-2 rounded bg-green-50" style="display: none;">
+                        <div class="flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-500 text-sm mr-1"></i>
+                            <span class="text-green-700 font-semibold text-sm">Approved</span>
+                        </div>
+                        <div class="text-sm text-gray-600 text-center mt-1">
+                            <div id="approvedByDisplay"></div>
+                            <div id="approvedDateDisplay"></div>
+                        </div>
+                    </div>
+
+                    <!-- Approval Form (Disabled for Future Use) -->
+                    <div id="approvalForm" class="space-y-2">
+                        <div class="text-center mb-2">
+                            <p class="text-sm text-gray-600">Enter Password</p>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <div>
+                                <label for="approvalPassword" class="block font-medium text-gray-700 mb-1" class="view-form-element">Password</label>
+                                <input type="password" id="approvalPassword" class="w-full px-2 py-1 text-sm border border-gray-300 rounded bg-gray-100" placeholder="Enter password" disabled>
+                            </div>
+                            
+                            <div>
+                                <label for="approvalDate" class="block font-medium text-gray-700 mb-1" class="view-form-element">Date <span class="text-red-500">*</span></label>
+                                <input type="date" id="approvalDate" class="w-full px-2 py-1 text-sm border border-gray-300 rounded bg-gray-100" disabled>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-center space-x-2 mt-3">
+                            <button type="button" id="approveFormBtn" class="px-3 py-1 bg-gray-400 text-white text-sm rounded cursor-not-allowed" disabled>
+                                <i class="fas fa-check mr-1"></i>Approve
+                            </button>
+                            <button type="button" id="cancelApprovalBtn" class="px-3 py-1 bg-gray-400 text-white text-sm rounded cursor-not-allowed" disabled>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module" src="../../supabase-config.js"></script>
+    <script type="module" src="../../js/film-inspection-forms-js/UC-18gsm-250W-BFQR.js"></script>
+    
+</body>
+</html>
+
+
