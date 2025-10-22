@@ -1326,8 +1326,29 @@ document.addEventListener('DOMContentLoaded', function() {
            
            // Page 4 formatting
            } else if (tableBodyId === 'testingTableBody4') {
+               // Color L column (column 3) - format to 00.00
+               if (columnIndex === 3) {
+                   const numValue = parseFloat(value);
+                   if (!isNaN(numValue)) {
+                       return numValue.toFixed(2);
+                   }
+               }
+               // Color A column (column 4) - format to 00.00
+               else if (columnIndex === 4) {
+                   const numValue = parseFloat(value);
+                   if (!isNaN(numValue)) {
+                       return numValue.toFixed(2);
+                   }
+               }
+               // Color B column (column 5) - format to 00.00
+               else if (columnIndex === 5) {
+                   const numValue = parseFloat(value);
+                   if (!isNaN(numValue)) {
+                       return numValue.toFixed(2);
+                   }
+               }
                // Color Delta E column (column 6) - format to 0.00
-               if (columnIndex === 6) {
+               else if (columnIndex === 6) {
                    const numValue = parseFloat(value);
                    if (!isNaN(numValue)) {
                        return numValue.toFixed(2);
@@ -3516,8 +3537,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             avgFormatted = average.toFixed(2);
                             minFormatted = minimum.toFixed(2);
                             maxFormatted = maximum.toFixed(2);
+                        } else if (inputColIndex >= 3 && inputColIndex <= 5) {
+                            // Color L, A, B: 2 decimals (0.00)
+                            avgFormatted = average.toFixed(2);
+                            minFormatted = minimum.toFixed(2);
+                            maxFormatted = maximum.toFixed(2);
                         } else {
-                            // Other Color columns (L, A, B): 1 decimal (0.0)
+                            // Other columns: 1 decimal (0.0)
                             avgFormatted = average.toFixed(1);
                             minFormatted = minimum.toFixed(1);
                             maxFormatted = maximum.toFixed(1);
@@ -3527,9 +3553,18 @@ document.addEventListener('DOMContentLoaded', function() {
                         updateSummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
                         updateSummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
                     } else {
-                        updateSummaryRow(tableBody, 'Average', summaryColIndex, '0.0');
-                        updateSummaryRow(tableBody, 'Minimum', summaryColIndex, '0.0');
-                        updateSummaryRow(tableBody, 'Maximum', summaryColIndex, '0.0');
+                        // Default values based on column type
+                        let defaultValue;
+                        if (inputColIndex >= 3 && inputColIndex <= 5) {
+                            // Color L, A, B: 2 decimals (0.00)
+                            defaultValue = '0.00';
+                        } else {
+                            // Color Delta E, Gloss: 1 decimal (0.0)
+                            defaultValue = '0.0';
+                        }
+                        updateSummaryRow(tableBody, 'Average', summaryColIndex, defaultValue);
+                        updateSummaryRow(tableBody, 'Minimum', summaryColIndex, defaultValue);
+                        updateSummaryRow(tableBody, 'Maximum', summaryColIndex, defaultValue);
                     }
                 }
             } else {
@@ -3584,8 +3619,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         avgFormatted = average.toFixed(2);
                         minFormatted = minimum.toFixed(2);
                         maxFormatted = maximum.toFixed(2);
+                    } else if (inputColIndex >= 3 && inputColIndex <= 5) {
+                        // Color L, A, B: 2 decimals (0.00)
+                        avgFormatted = average.toFixed(2);
+                        minFormatted = minimum.toFixed(2);
+                        maxFormatted = maximum.toFixed(2);
                     } else {
-                        // Other Color columns (L, A, B): 1 decimal (0.0)
+                        // Other columns: 1 decimal (0.0)
                         avgFormatted = average.toFixed(1);
                         minFormatted = minimum.toFixed(1);
                         maxFormatted = maximum.toFixed(1);
@@ -3595,10 +3635,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     updateSummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
                     updateSummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
                 } else {
-                    // Clear summary rows if no data
-                    updateSummaryRow(tableBody, 'Average', summaryColIndex, '0.0');
-                    updateSummaryRow(tableBody, 'Minimum', summaryColIndex, '0.0');
-                    updateSummaryRow(tableBody, 'Maximum', summaryColIndex, '0.0');
+                    // Clear summary rows if no data - use appropriate decimal places
+                    let defaultValue;
+                    if (inputColIndex >= 3 && inputColIndex <= 5) {
+                        // Color L, A, B: 2 decimals (0.00)
+                        defaultValue = '0.00';
+                    } else {
+                        // Color Delta E, Gloss: 1 decimal (0.0)
+                        defaultValue = '0.0';
+                    }
+                    updateSummaryRow(tableBody, 'Average', summaryColIndex, defaultValue);
+                    updateSummaryRow(tableBody, 'Minimum', summaryColIndex, defaultValue);
+                    updateSummaryRow(tableBody, 'Maximum', summaryColIndex, defaultValue);
                 }
             });
         }
@@ -5468,18 +5516,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 value = parts[0] + '.' + parts.slice(1).join('');
             }
             
-            // Allow up to 3 digits before decimal and 1 after
+            // Allow up to 2 digits before decimal and 2 after
             if (parts.length === 2) {
-                if (parts[0].length > 3) {
-                    parts[0] = parts[0].substring(0, 3);
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
                 }
-                if (parts[1].length > 1) {
-                    parts[1] = parts[1].substring(0, 1);
+                if (parts[1].length > 2) {
+                    parts[1] = parts[1].substring(0, 2);
                 }
                 value = parts[0] + '.' + parts[1];
             } else if (parts.length === 1) {
-                if (parts[0].length > 3) {
-                    parts[0] = parts[0].substring(0, 3);
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
                     value = parts[0];
                 }
             }
@@ -5490,23 +5538,23 @@ document.addEventListener('DOMContentLoaded', function() {
         // Color A validation - allow decimal values
         function validateColorA(input) {
             let value = input.value;
-            
+
             // Remove any non-numeric characters except decimal point and minus sign
             value = value.replace(/[^0-9.-]/g, '');
-            
+
             // Ensure only one decimal point
             const parts = value.split('.');
             if (parts.length > 2) {
                 value = parts[0] + '.' + parts.slice(1).join('');
             }
-            
-            // Allow up to 2 digits before decimal and 1 after
+
+            // Allow up to 2 digits before decimal and 2 after
             if (parts.length === 2) {
                 if (parts[0].length > 2) {
                     parts[0] = parts[0].substring(0, 2);
                 }
-                if (parts[1].length > 1) {
-                    parts[1] = parts[1].substring(0, 1);
+                if (parts[1].length > 2) {
+                    parts[1] = parts[1].substring(0, 2);
                 }
                 value = parts[0] + '.' + parts[1];
             } else if (parts.length === 1) {
@@ -5515,30 +5563,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     value = parts[0];
                 }
             }
-            
+
             input.value = value;
         }
         
         // Color B validation - allow decimal values
         function validateColorB(input) {
             let value = input.value;
-            
+
             // Remove any non-numeric characters except decimal point and minus sign
             value = value.replace(/[^0-9.-]/g, '');
-            
+
             // Ensure only one decimal point
             const parts = value.split('.');
             if (parts.length > 2) {
                 value = parts[0] + '.' + parts.slice(1).join('');
             }
-            
-            // Allow up to 2 digits before decimal and 1 after
+
+            // Allow up to 2 digits before decimal and 2 after
             if (parts.length === 2) {
                 if (parts[0].length > 2) {
                     parts[0] = parts[0].substring(0, 2);
                 }
-                if (parts[1].length > 1) {
-                    parts[1] = parts[1].substring(0, 1);
+                if (parts[1].length > 2) {
+                    parts[1] = parts[1].substring(0, 2);
                 }
                 value = parts[0] + '.' + parts[1];
             } else if (parts.length === 1) {
@@ -5547,7 +5595,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     value = parts[0];
                 }
             }
-            
+
             input.value = value;
         }
         
@@ -5754,7 +5802,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Format PG Quality on Enter (Pass=0, Fail=1)
         function formatPGQualityOnEnter(input) {
             let value = input.value.trim();
-            
+
             if (value === '0') {
                 input.value = '0'; // Pass
             } else if (value === '1') {
@@ -5767,6 +5815,31 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Format Color L, A, B, Delta E on Enter (2 decimal places)
+        function formatDecimalOnEnter(input) {
+            let value = input.value.trim();
+
+            // If empty, leave it empty (don't set default values)
+            if (value === '') {
+                return;
+            }
+
+            // Parse as number
+            const numValue = parseFloat(value);
+
+            // If not a valid number, set to 0.00
+            if (isNaN(numValue)) {
+                input.value = '0.00';
+                return;
+            }
+
+            // Format to exactly 2 decimal places (00.00 format)
+            const formattedValue = numValue.toFixed(2);
+
+            // Update input value with formatted result
+            input.value = formattedValue;
+        }
+
         // Unified conditional formatting system
         function applyConditionalFormatting(input, columnType) {
             // Add event listeners
@@ -5776,7 +5849,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             input.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
+                    // Apply color formatting for red text highlighting
                     applyColorFormatting(this, columnType);
+
+                    // Apply decimal formatting for Color columns on Enter
+                    if (columnType === 'colorL' || columnType === 'colorA' || columnType === 'colorB' || columnType === 'colorDeltaE') {
+                        formatDecimalOnEnter(this);
+                    }
                 }
             });
             

@@ -1,8 +1,5 @@
 // Supabase integration for auto-saving to database
 
-// ===== DEBUG TEST =====
-//
-
 // Modulus average calculation no longer needed for new table structure
 import { supabase } from '../../supabase-config.js';
 
@@ -1263,8 +1260,7 @@ function getCurrentProductCode() {
         const allDropdownIds = [
         'film-weight-equipment', 'thickness-equipment',
         'cof-rr-equipment', 'tensile-break-equipment',
-        'elongation-equipment', 'modulus-equipment',
-        'page3-colour-equipment'
+        'page2-utm-equipment', 'page3-colour-equipment'
         ];
         
         allDropdownIds.forEach(dropdownId => {
@@ -1294,9 +1290,9 @@ function getCurrentProductCode() {
         const equipmentMappings = {
             'Weigh Scale': ['film-weight-equipment'],
             'Dial Gauge': ['thickness-equipment'], // For thickness measurement
-            'X-RITE': ['page3-colour-equipment'], // page3-colour-equipment (Page 3) only
-            'Spectrophotometer': ['page2-opacity-equipment'], // page2-opacity-equipment (Page 2) only
-            'Instron': ['cof-rr-equipment', 'tensile-break-equipment', 'elongation-equipment', 'modulus-equipment', 'page2-tensile-break-equipment', 'page2-elongation-equipment', 'page2-modulus-equipment'], // UTM for mechanical testing
+            'Spectrophotometer': ['page2-opacity-equipment', 'page3-colour-equipment'], // Both opacity (Page 2) and colour (Page 3)
+            'Instron': ['cof-rr-equipment', 'tensile-break-equipment'], // UTM for mechanical testing - Page 1 tensile/elongation/modulus share same equipment
+            'Instron-Page2': ['page2-utm-equipment'], // UTM for mechanical testing - Page 2 equipment (combined tensile break, elongation, modulus)
             'Tape Measure': [], // No longer used - measurements moved to Steel Ruler
             'Steel Ruler': ['page2-roll-width-equipment', 'page2-diameter-equipment'], // For Roll Cut Width and Diameter measurements (Page 2 only)
             'Glossmeter': [] // No longer used in new structure
@@ -1307,7 +1303,8 @@ function getCurrentProductCode() {
         // Populate dropdowns
         Object.keys(equipmentMappings).forEach(equipmentType => {
             const dropdownIds = equipmentMappings[equipmentType];
-            const equipmentIds = equipmentByType[equipmentType] || [];
+            // For Instron-Page2, use the same equipment as Instron
+            const equipmentIds = equipmentByType[equipmentType] || (equipmentType === 'Instron-Page2' ? equipmentByType['Instron'] || [] : []);
         
 
             
@@ -1353,9 +1350,7 @@ function getCurrentProductCode() {
         const allDropdownIds = [
         'film-weight-equipment', 'thickness-equipment',
         'cof-rr-equipment', 'tensile-break-equipment',
-        'elongation-equipment', 'modulus-equipment',
-        'tensile-break-equipment', 'elongation-equipment', 'modulus-equipment',
-        'page3-colour-equipment', 'page3-base-film-equipment'
+        'page2-utm-equipment', 'page3-colour-equipment'
         ];
         
         allDropdownIds.forEach(dropdownId => {
@@ -2239,13 +2234,13 @@ function getEquipmentSelections() {
             thickness: document.getElementById('thickness-equipment')?.value || '',
             cof_rr: document.getElementById('cof-rr-equipment')?.value || '',
             tensile_break: document.getElementById('tensile-break-equipment')?.value || '',
-            elongation: document.getElementById('elongation-equipment')?.value || '',
-            modulus_10: document.getElementById('modulus-equipment')?.value || ''
+            elongation: document.getElementById('tensile-break-equipment')?.value || '', // Use same as tensile break
+            modulus_10: document.getElementById('tensile-break-equipment')?.value || '' // Use same as tensile break
         },
         page2: {
-            tensile_break: document.getElementById('tensile-break-equipment')?.value || '',
-            elongation: document.getElementById('elongation-equipment')?.value || '',
-            modulus_10: document.getElementById('modulus-equipment')?.value || '',
+            tensile_break: document.getElementById('page2-utm-equipment')?.value || '',
+            elongation: document.getElementById('page2-utm-equipment')?.value || '',
+            modulus_10: document.getElementById('page2-utm-equipment')?.value || '',
             opacity: document.getElementById('page2-opacity-equipment')?.value || '',
             roll_width: document.getElementById('page2-roll-width-equipment')?.value || '',
             diameter: document.getElementById('page2-diameter-equipment')?.value || ''
@@ -3584,14 +3579,6 @@ function applyValidationToExistingInputs() {
            const currentIndex = allCells.indexOf(currentCell);
            let nextCell = null;
            
-           // Define columns per row for each table type
-           const getColumnsPerRow = (tableBody) => {
-               if (tableBody.id === 'testingTableBody') return 9;      // Page 1: 9 columns (3 Sample No + 6 parameters)
-               if (tableBody.id === 'testingTableBody2') return 9;      // Page 2: 9 columns (3 Sample No + 6 parameters)
-               if (tableBody.id === 'testingTableBody3') return 7;      // Page 3: 7 columns (3 Sample No + 4 parameters)
-               return 9; // Default fallback
-           };
-           
            // Get the current table and its column count
            const currentTable = currentCell.closest('tbody');
            const columnsPerRow = getColumnsPerRow(currentTable);
@@ -3633,10 +3620,10 @@ function applyValidationToExistingInputs() {
                        const firstCellInRow = row.querySelector('td');
                        return !firstCellInRow || !['Average', 'Minimum', 'Maximum'].includes(firstCellInRow.textContent.trim());
                    });
-                   
+
                    const upTableIndex = upTableCells.indexOf(currentCell);
                    const upColumnsPerRow = getColumnsPerRow(upTable);
-                   
+
                    // Move to row above within the same table
                    const upRowIndex = upTableIndex - upColumnsPerRow;
                    if (upRowIndex >= 0) {
@@ -3659,10 +3646,10 @@ function applyValidationToExistingInputs() {
                        const firstCellInRow = row.querySelector('td');
                        return !firstCellInRow || !['Average', 'Minimum', 'Maximum'].includes(firstCellInRow.textContent.trim());
                    });
-                   
+
                    const downTableIndex = downTableCells.indexOf(currentCell);
                    const downColumnsPerRow = getColumnsPerRow(downTable);
-                   
+
                    // Move to row below within the same table
                    const downRowIndex = downTableIndex + downColumnsPerRow;
                    if (downRowIndex < downTableCells.length) {
@@ -3733,10 +3720,10 @@ function applyValidationToExistingInputs() {
                        const firstCellInRow = row.querySelector('td');
                        return !firstCellInRow || !['Average', 'Minimum', 'Maximum'].includes(firstCellInRow.textContent.trim());
                    });
-                   
+
                    const enterTableIndex = enterTableCells.indexOf(currentCell);
                    const enterColumnsPerRow = getColumnsPerRow(enterTable);
-                   
+
                    // Move to next row within the same table
                    const nextRowIndex = enterTableIndex + enterColumnsPerRow;
                    if (nextRowIndex < enterTableCells.length) {
@@ -5720,47 +5707,21 @@ function loadEquipmentSelections(data) {
 
 
             if (equipment.page1.tensile_break) {
-                const dropdown = document.getElementById('tensile-break-equipment');
-                if (dropdown) {
-                    dropdown.value = equipment.page1.tensile_break;
+                const tensileDropdown = document.getElementById('tensile-break-equipment');
+                if (tensileDropdown) {
+                    tensileDropdown.value = equipment.page1.tensile_break;
                 }
-            }
-
-            if (equipment.page1.elongation) {
-                const dropdown = document.getElementById('elongation-equipment');
-                if (dropdown) {
-                    dropdown.value = equipment.page1.elongation;
-                }
-            }
-
-            if (equipment.page1.modulus_10) {
-                const dropdown = document.getElementById('modulus-equipment');
-                if (dropdown) {
-                    dropdown.value = equipment.page1.modulus_10;
-                }
+                // Note: elongation and modulus now use the same dropdown as tensile break
+                // (consolidated into single shared equipment dropdown in HTML)
             }
         }
         
-        // Load Page 2 equipment
+        // Load Page 2 equipment - independent from Page 1
         if (equipment.page2) {
             if (equipment.page2.tensile_break) {
-                const dropdown = document.getElementById('page2-tensile-break-equipment');
+                const dropdown = document.getElementById('page2-utm-equipment');
                 if (dropdown) {
                     dropdown.value = equipment.page2.tensile_break;
-                }
-            }
-
-            if (equipment.page2.elongation) {
-                const dropdown = document.getElementById('page2-elongation-equipment');
-                if (dropdown) {
-                    dropdown.value = equipment.page2.elongation;
-                }
-            }
-
-            if (equipment.page2.modulus_10) {
-                const dropdown = document.getElementById('page2-modulus-equipment');
-                if (dropdown) {
-                    dropdown.value = equipment.page2.modulus_10;
                 }
             }
 
@@ -6183,9 +6144,6 @@ function clearBottomRowsForFreshData(requestedRows) {
 // ===== INITIALIZATION =====
 // Initialize everything when page loads
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🎯 [DEBUG] DOMContentLoaded event fired!');
-
-    
     // Initialize global table body references FIRST
     testingTableBody = document.getElementById('testingTableBody');
     testingTableBody2 = document.getElementById('testingTableBody2');
