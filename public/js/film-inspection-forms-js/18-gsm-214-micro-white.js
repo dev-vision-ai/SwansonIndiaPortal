@@ -2024,19 +2024,19 @@ function applyOOSValidation(input, columnType) {
             shouldHighlight = value < 6.13;
             break;
         case 'colourL':
-            // Colour L: L-91.5 T-95.5 U-99.5 (Colour units-H)
+            // Colour L: L-91.5 T-95.5 U-99.5 (Colour units-H) - 2 decimal format
             shouldHighlight = value < 91.5 || value > 99.5;
             break;
         case 'colourA':
-            // Colour A: L-(-4.4) T-(-0.4) U-(3.6) (Colour units-H)
+            // Colour A: L-(-4.4) T-(-0.4) U-(3.6) (Colour units-H) - 2 decimal format
             shouldHighlight = value < -4.4 || value > 3.6;
             break;
         case 'colourB':
-            // Colour B: L-(-4.5) T-(-0.5) U-(3.5) (Colour units-H)
+            // Colour B: L-(-4.5) T-(-0.5) U-(3.5) (Colour units-H) - 2 decimal format
             shouldHighlight = value < -4.5 || value > 3.5;
             break;
         case 'deltaE':
-            // Delta E: T-0.00 U-5.00 (Colour Units-Delta E) - only upper limit
+            // Delta E: T-0.00 U-5.00 (Colour Units-Delta E) - only upper limit, 2 decimal format
             shouldHighlight = value > 5.00;
             break;
     }
@@ -2360,37 +2360,60 @@ function validateOneDigitOneDecimal(input) {
     input.value = value;
 }
 
+
 function validateTwoDigitTwoDecimal(input) {
     let value = input.value;
-    
-    // Remove any non-numeric characters except decimal point
-    value = value.replace(/[^0-9.]/g, '');
-    
+
+    // Remove any non-numeric characters except decimal point and minus sign
+    value = value.replace(/[^0-9.-]/g, '');
+
+    // Handle negative sign - only at the beginning
+    if (value.indexOf('-') > 0) {
+        value = value.replace(/-/g, ''); // Remove all minus signs
+    } else if (value.startsWith('-')) {
+        value = '-' + value.substring(1).replace(/-/g, ''); // Keep only the first minus sign
+    }
+
     // Ensure only one decimal point
     const parts = value.split('.');
     if (parts.length > 2) {
         value = parts[0] + '.' + parts.slice(1).join('');
     }
-    
-    // Allow up to 2 digits before decimal for typing
+
+    // Allow up to 2 digits before decimal for typing (plus optional minus sign)
     if (parts.length === 2) {
-        // Before decimal: allow up to 2 digits
-        if (parts[0].length > 2) {
-            parts[0] = parts[0].substring(0, 2);
+        let beforeDecimal = parts[0];
+        let afterDecimal = parts[1];
+
+        // Handle negative numbers
+        if (beforeDecimal.startsWith('-')) {
+            if (beforeDecimal.length > 3) { // -XX format, so max 3 chars (-XX)
+                beforeDecimal = beforeDecimal.substring(0, 3);
+            }
+        } else {
+            if (beforeDecimal.length > 2) { // XX format, so max 2 chars
+                beforeDecimal = beforeDecimal.substring(0, 2);
+            }
         }
+
         // After decimal: max 2 digits
-        if (parts[1].length > 2) {
-            parts[1] = parts[1].substring(0, 2);
+        if (afterDecimal.length > 2) {
+            afterDecimal = afterDecimal.substring(0, 2);
         }
-        value = parts[0] + '.' + parts[1];
+        value = beforeDecimal + '.' + afterDecimal;
     } else if (parts.length === 1) {
-        // No decimal point yet, allow up to 2 digits for typing
-        if (parts[0].length > 2) {
-            parts[0] = parts[0].substring(0, 2);
-            value = parts[0];
+        // No decimal point yet
+        if (value.startsWith('-')) {
+            if (value.length > 3) { // -XX format
+                value = value.substring(0, 3);
+            }
+        } else {
+            if (value.length > 2) { // XX format
+                value = value.substring(0, 2);
+            }
         }
     }
-    
+
     // Update input value with validated format
     input.value = value;
 }
@@ -2574,31 +2597,30 @@ function validateCOF(input) {
 // Auto-formatting functions for different decimal formats
 function formatTwoDigitTwoDecimalOnEnter(input) {
     let value = input.value.trim();
-    
+
     // If empty, keep it empty
     if (value === '') {
         input.value = '';
         return;
     }
-    
+
     // Parse as number
     const numValue = parseFloat(value);
-    
+
     // If not a valid number, keep empty
     if (isNaN(numValue)) {
         input.value = '';
         return;
     }
-    
+
     // Format to 2 decimal places and ensure 2 digits before decimal
     const formatted = numValue.toFixed(2);
     const parts = formatted.split('.');
-    
-    // Ensure 2 digits before decimal
-    if (parts[0].length === 1) {
-        parts[0] = '0' + parts[0];
-    }
-    
+
+    // Don't pad single digits with leading zero for Delta E
+    // We want 5 → 5.00, not 05.00
+    // Only pad if the original input had a leading zero or was a decimal
+
     input.value = parts[0] + '.' + parts[1];
 }
 
@@ -3145,14 +3167,14 @@ function applyValidationToExistingInputs() {
                 if (inputs[5]) applyOneDigitTwoDecimalValidation(inputs[5]);
                 // Force-Tensile-CD column (index 6) - flexible format (9.00 or 12.00, no leading zeros)
                 if (inputs[6]) applyFlexibleTwoDecimalValidation(inputs[6]);
-                // Colour L column (index 7) - 00.0 format
-                if (inputs[7]) applyTwoDigitOneDecimalValidation(inputs[7]);
-                // Colour A column (index 8) - 0.0 format (negative values)
-                if (inputs[8]) applyOneDigitOneDecimalValidation(inputs[8]);
-                // Colour B column (index 9) - 0.0 format (negative values)
-                if (inputs[9]) applyOneDigitOneDecimalValidation(inputs[9]);
-                // Delta E column (index 10) - flexible format (9.00 or 12.00, no leading zeros)
-                if (inputs[10]) applyFlexibleTwoDecimalValidation(inputs[10]);
+                // Colour L column (input index 7, summary index 5) - 00.00 format (2 decimal places)
+                if (inputs[7]) applyTwoDigitTwoDecimalValidation(inputs[7]);
+                // Colour A column (input index 8, summary index 6) - 00.00 format (2 decimal places)
+                if (inputs[8]) applyTwoDigitTwoDecimalValidation(inputs[8]);
+                // Colour B column (input index 9, summary index 7) - 00.00 format (2 decimal places)
+                if (inputs[9]) applyTwoDigitTwoDecimalValidation(inputs[9]);
+                // Delta E column (input index 10, summary index 8) - 00.00 format (2 decimal places)
+                if (inputs[10]) applyTwoDigitTwoDecimalValidation(inputs[10]);
                 
                 // Calculate summary statistics for existing data on page load
                 calculatePage2ColumnStats(testingTableBody2);
@@ -3972,8 +3994,8 @@ function calculatePage2ColumnStats(tableBody, changedColumnIndex = null) {
     
     if (dataRows.length === 0) return;
     
-    // Page 2 columns: Force-elongation-MD@5% (3), Force-Tensile Strength-MD-peak (4), Force-elongation-CD@5% (5), 
-    // Force-Tensile Strength-CD-peak (6), Colour L (7), Colour A (8), Colour B (9), Delta E (10)
+    // Page 2 columns: Force-elongation-MD@5% (1), Force-Tensile Strength-MD-peak (2), Force-elongation-CD@5% (3),
+    // Force-Tensile Strength-CD-peak (4), Colour L (5), Colour A (6), Colour B (7), Delta E (8) - Summary column indices
     const summaryColumnIndices = [1, 2, 3, 4, 5, 6, 7, 8]; // Summary row column positions
     const inputColumnIndices = [3, 4, 5, 6, 7, 8, 9, 10]; // Input columns in data rows (after Sample No colspan=3)
     
@@ -4005,15 +4027,15 @@ function calculatePage2ColumnStats(tableBody, changedColumnIndex = null) {
                 // Format based on column type
                 let avgFormatted, minFormatted, maxFormatted;
                 
-                if (summaryColIndex <= 4) { // Force columns (3-6)
+                if (summaryColIndex <= 4) { // Force columns (1-4)
                     avgFormatted = avg.toFixed(2);
                     minFormatted = min.toFixed(2);
                     maxFormatted = max.toFixed(2);
-                } else if (summaryColIndex === 8) { // Delta E column
+                } else if (summaryColIndex >= 5 && summaryColIndex <= 8) { // Color columns (5-8): Color L, A, B, Delta E
                     avgFormatted = avg.toFixed(2);
                     minFormatted = min.toFixed(2);
                     maxFormatted = max.toFixed(2);
-                } else { // Colour columns (7)
+                } else { // Other columns
                     avgFormatted = avg.toFixed(1);
                     minFormatted = min.toFixed(1);
                     maxFormatted = max.toFixed(1);
@@ -4025,7 +4047,7 @@ function calculatePage2ColumnStats(tableBody, changedColumnIndex = null) {
                 updatePage2SummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
             } else {
                 // No data - show zeros
-                const zeroFormatted = summaryColIndex <= 4 || summaryColIndex === 8 ? '0.00' : '0.0';
+                const zeroFormatted = (summaryColIndex <= 4 || (summaryColIndex >= 5 && summaryColIndex <= 8)) ? '0.00' : '0.0';
                 updatePage2SummaryRow(tableBody, 'Average', summaryColIndex, zeroFormatted);
                 updatePage2SummaryRow(tableBody, 'Minimum', summaryColIndex, zeroFormatted);
                 updatePage2SummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
@@ -4052,8 +4074,8 @@ function calculatePage2SummaryStatistics(tableBody) {
     
     if (dataRows.length === 0) return;
     
-    // Page 2 columns: Force-elongation-MD@5% (3), Force-Tensile Strength-MD-peak (4), Force-elongation-CD@5% (5), 
-    // Force-Tensile Strength-CD-peak (6), Colour L (7), Colour A (8), Colour B (9), Delta E (10)
+    // Page 2 columns: Force-elongation-MD@5% (1), Force-Tensile Strength-MD-peak (2), Force-elongation-CD@5% (3),
+    // Force-Tensile Strength-CD-peak (4), Colour L (5), Colour A (6), Colour B (7), Delta E (8) - Summary column indices
     const summaryColumnIndices = [1, 2, 3, 4, 5, 6, 7, 8]; // Summary row column positions
     const inputColumnIndices = [3, 4, 5, 6, 7, 8, 9, 10]; // Input columns in data rows (after Sample No colspan=3)
     
@@ -4082,15 +4104,15 @@ function calculatePage2SummaryStatistics(tableBody) {
             // Format based on column type
             let avgFormatted, minFormatted, maxFormatted;
             
-            if (summaryColIndex <= 4) { // Force columns (3-6)
+            if (summaryColIndex <= 4) { // Force columns (1-4)
                 avgFormatted = avg.toFixed(2);
                 minFormatted = min.toFixed(2);
                 maxFormatted = max.toFixed(2);
-            } else if (summaryColIndex === 8) { // Delta E column
+            } else if (summaryColIndex >= 5 && summaryColIndex <= 8) { // Color columns (5-8): Color L, A, B, Delta E
                 avgFormatted = avg.toFixed(2);
                 minFormatted = min.toFixed(2);
                 maxFormatted = max.toFixed(2);
-            } else { // Colour columns (7)
+            } else { // Other columns
                 avgFormatted = avg.toFixed(1);
                 minFormatted = min.toFixed(1);
                 maxFormatted = max.toFixed(1);
@@ -4102,7 +4124,7 @@ function calculatePage2SummaryStatistics(tableBody) {
             updatePage2SummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
         } else {
             // No data - show zeros
-            const zeroFormatted = summaryColIndex <= 4 || summaryColIndex === 8 ? '0.00' : '0.0';
+            const zeroFormatted = (summaryColIndex <= 4 || (summaryColIndex >= 5 && summaryColIndex <= 8)) ? '0.00' : '0.0';
             updatePage2SummaryRow(tableBody, 'Average', summaryColIndex, zeroFormatted);
             updatePage2SummaryRow(tableBody, 'Minimum', summaryColIndex, zeroFormatted);
             updatePage2SummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
@@ -4405,14 +4427,14 @@ function updateTabOrderForAllRows(tableBody) {
                         // Force-Tensile-CD column - flexible format (9.00 or 12.00, no leading zeros)
                         applyFlexibleTwoDecimalValidation(input);
                     } else if (j === 7) {
-                        // Colour L column - 00.0 format
-                        applyTwoDigitOneDecimalValidation(input);
+                        // Colour L column - 00.00 format (2 decimal places)
+                        applyTwoDigitTwoDecimalValidation(input);
                     } else if (j === 8 || j === 9) {
-                        // Colour A and Colour B columns - 0.0 format (negative values)
-                        applyOneDigitOneDecimalValidation(input);
+                        // Colour A and Colour B columns - 00.00 format (2 decimal places)
+                        applyTwoDigitTwoDecimalValidation(input);
                     } else if (j === 10) {
-                        // Delta E column - flexible format (9.00 or 12.00, no leading zeros)
-                        applyFlexibleTwoDecimalValidation(input);
+                        // Delta E column - 00.00 format (2 decimal places)
+                        applyTwoDigitTwoDecimalValidation(input);
                     }
                 }
             }
