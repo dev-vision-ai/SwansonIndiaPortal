@@ -87,7 +87,7 @@ function loadFilterState() {
             const filterState = JSON.parse(savedState);
             console.log('🔄 Loading saved filter state:', filterState);
             
-            // Apply saved filters to form inputs
+            // Apply saved filters to form inputs and update currentFilters
             if (filterState.fromDate) {
                 document.getElementById('filterFromDate').value = filterState.fromDate;
                 currentFilters.fromDate = filterState.fromDate;
@@ -95,6 +95,15 @@ function loadFilterState() {
             if (filterState.toDate) {
                 document.getElementById('filterToDate').value = filterState.toDate;
                 currentFilters.toDate = filterState.toDate;
+            }
+            if (filterState.machine) {
+                currentFilters.machine = filterState.machine;
+            }
+            if (filterState.product) {
+                currentFilters.product = filterState.product;
+            }
+            if (filterState.shift !== undefined) {
+                currentFilters.shift = filterState.shift;
             }
             
             // Populate dropdowns and apply filters with improved timing
@@ -140,8 +149,13 @@ function loadFilterState() {
                     }
                 }, 200);
             }
-            
-            updateFilterStatus(true);
+
+            // Only set filter status to "On" if filters actually have meaningful values
+            const hasActiveFilters = filterState.fromDate &&
+                                   filterState.toDate &&
+                                   filterState.machine &&
+                                   filterState.machine !== 'all';
+            updateFilterStatus(hasActiveFilters);
             
         } catch (error) {
             console.error('❌ Error loading filter state:', error);
@@ -174,6 +188,14 @@ function applySavedFilter(filterState) {
             }
         }
     }
+}
+
+// Check if filters are actually active (have meaningful values)
+function areFiltersActive() {
+    return currentFilters.fromDate &&
+           currentFilters.toDate &&
+           currentFilters.machine &&
+           currentFilters.machine !== 'all';
 }
 
 // Update filter status display
@@ -321,7 +343,7 @@ function onShiftChange() {
         
         // Save filter state and update status
         saveFilterState();
-        updateFilterStatus(true);
+        updateFilterStatus(areFiltersActive());
     } else {
         // Missing required filters
     }
@@ -359,7 +381,7 @@ function clearAllFilters() {
     clearSummaryTables();
     
     // Update filter status
-    updateFilterStatus(false);
+    updateFilterStatus(areFiltersActive());
     
     // All filters cleared
 }

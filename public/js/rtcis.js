@@ -604,24 +604,50 @@ document.addEventListener('DOMContentLoaded', () => {
         pdfDoc.download(filename);
     });
 
-    // Clear Data Button Functionality
+    // Clear Data Button Functionality - Complete Form Reset
     const clearDataBtn = document.getElementById('clearRTCISData');
     if (clearDataBtn) {
         clearDataBtn.addEventListener('click', () => {
-            // Clear all form inputs
-            const formInputs = form.querySelectorAll('input, select, textarea');
-            formInputs.forEach(input => {
-                if (input.type === 'checkbox' || input.type === 'radio') {
-                    input.checked = false;
-                } else {
-                    input.value = '';
-                }
+            // Complete form reset using native form.reset() method
+            form.reset();
+
+            // Explicitly clear checkboxes and radio buttons (extra safety)
+            const checkboxesAndRadios = form.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+            checkboxesAndRadios.forEach(input => {
+                input.checked = false;
             });
 
-            // Clear any generated labels/barcodes
+            console.log(`Cleared ${checkboxesAndRadios.length} checkboxes/radio buttons`);
+
+            // Reset dropdown to default state
+            const irmsGcasSelect = document.getElementById('irms_gcas');
+            if (irmsGcasSelect) {
+                irmsGcasSelect.innerHTML = '<option value="">Select IRMS/GCAS</option>';
+                // Re-populate the dropdown
+                populateGCASDropdown();
+            }
+
+            // Reset production date max attribute
+            const prodDateInput = document.getElementById('production_date');
+            if (prodDateInput) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                const maxDate = `${yyyy}-${mm}-${dd}`;
+                prodDateInput.setAttribute('max', maxDate);
+            }
+
+            // Clear any generated labels/barcodes completely
             const labelArea = document.getElementById('label-print-area');
             if (labelArea) {
-                labelArea.innerHTML = '';
+                labelArea.remove(); // Completely remove the entire label area
+            }
+
+            // Clear static label print container
+            const staticContainer = document.getElementById('staticLabelPrintContainer');
+            if (staticContainer) {
+                staticContainer.innerHTML = '';
             }
 
             // Clear barcode SVGs
@@ -642,7 +668,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            console.log('RTCIS form data cleared');
+            // Clear any error messages or validation states
+            const errorElements = form.querySelectorAll('.error-message, .is-invalid, .text-red-500');
+            errorElements.forEach(el => {
+                el.remove();
+            });
+
+            // Reset any custom validation states
+            const inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                input.classList.remove('border-red-500', 'border-red-300');
+                input.classList.add('border-gray-300');
+            });
+
+            // Clear any stored data in memory (if any)
+            if (window.rtcisFormData) {
+                window.rtcisFormData = null;
+            }
+
+            // Reset focus to first field for better UX
+            const firstInput = form.querySelector('select, input, textarea');
+            if (firstInput) {
+                setTimeout(() => firstInput.focus(), 100);
+            }
+
+            console.log('RTCIS form completely reset and refreshed');
+            console.log(`- Cleared all text inputs, selects, and textareas`);
+            console.log(`- Cleared ${checkboxesAndRadios.length} checkboxes/radio buttons`);
+            console.log(`- Reset dropdowns and date constraints`);
+            console.log(`- Removed generated labels and barcodes`);
+            console.log(`- Cleared error states and validation styling`);
+
+            // Show basic confirmation feedback
+            clearDataBtn.classList.add('bg-red-100', 'text-red-800', 'border-red-500');
+            clearDataBtn.innerHTML = '<i class="fas fa-trash-alt mr-2"></i>Cleared!';
+
+            setTimeout(() => {
+                clearDataBtn.classList.remove('bg-red-100', 'text-red-800', 'border-red-500');
+                clearDataBtn.innerHTML = '<i class="fas fa-trash-alt mr-2"></i>Clear Data';
+            }, 800);
         });
     }
 });
