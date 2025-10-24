@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Goods Received Notes (GRN)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../css/common-header.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+        }
+
+        /* Optimized font size for all modal content */
+        #grnFormOverlay label {
+            font-size: 11px !important;
+            font-weight: 500 !important;
+        }
+        #grnFormOverlay input, #grnFormOverlay select {
+            font-size: 11px !important;
+            padding: 0.25rem 0.5rem !important;
+            height: 2rem !important;
+        }
+        #grnFormOverlay .space-y-4 > * + * {
+            margin-top: 0.75rem !important;
+        }
+        #grnFormOverlay .gap-4 {
+            gap: 0.75rem !important;
+        }
+        #grnFormOverlay .mb-4 {
+            margin-bottom: 0.75rem !important;
+        }
+        #grnFormOverlay .gap-6 {
+            gap: 0.75rem !important;
+        }
+        #grnFormOverlay .mb-6 {
+            margin-bottom: 0.75rem !important;
+        }
+        html, body {
+            overflow-y: auto;
+        }
+
+        /* Ensure word wrap for all text content across the entire form */
+        * {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
+
+        /* Specific word wrap for table cells */
+        table, th, td {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
+
+        /* Word wrap for input fields */
+        input, textarea, select {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
+
+        /* Word wrap for labels and text content */
+        label, span, div, p, h1, h2, h3, h4, h5, h6 {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            white-space: normal !important;
+        }
+
+        /* Cursor pointer for radio buttons and their labels */
+        input[type="radio"] {
+            cursor: pointer !important;
+        }
+
+        input[type="radio"] + label {
+            cursor: pointer !important;
+        }
+
+        /* Also apply cursor pointer to the container divs for better UX */
+        .flex.items-center {
+            cursor: pointer !important;
+        }
+
+        /* Pagination Controls Styling */
+        #prevPageBtn, #nextPageBtn {
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        #prevPageBtn:hover:not(:disabled), #nextPageBtn:hover:not(:disabled) {
+            transform: translateY(-0.5px);
+            box-shadow: 0 1px 3px rgba(0,46,125,0.2);
+        }
+
+        #prevPageBtn:active:not(:disabled), #nextPageBtn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        /* Responsive pagination for mobile */
+        @media (max-width: 640px) {
+            .flex.items-center.space-x-3 {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            #prevPageBtn, #nextPageBtn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .flex.items-center.space-x-1 {
+                margin-top: 0.25rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
+    <div class="header-container">
+        <button type="button" class="header-back-button" onclick="window.location.href='../html/employee-dashboard.html'">Back</button>
+        <div class="header-title">All Goods Received Notes (GRN)</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Overlay -->
+    <div id="deleteConfirmationOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <h3 id="deleteConfirmationTitle" class="text-lg font-medium text-gray-900 mb-2">Confirm Deletion</h3>
+                <p id="deleteConfirmationMessage" class="text-sm text-gray-500 mb-6">Are you sure you want to delete this GRN?</p>
+                <div class="flex justify-center space-x-3">
+                    <button id="cancelDeleteBtn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancel
+                    </button>
+                    <button id="confirmDeleteBtn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Final Delete Warning Overlay -->
+    <div id="finalDeleteWarningOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">⚠️ FINAL WARNING</h3>
+                <p class="text-sm text-gray-500 mb-6">This action cannot be undone. Are you absolutely sure you want to delete this GRN?</p>
+                <div class="flex justify-center space-x-3">
+                    <button id="cancelFinalDeleteBtn" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancel
+                    </button>
+                    <button id="confirmFinalDeleteBtn" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Delete Permanently
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Confirmation Modal for Delete -->
+    <div id="passwordConfirmModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Confirm Deletion</h3>
+                <p class="text-sm text-gray-500 mb-4">Please enter your password to confirm deletion of this GRN.</p>
+
+                <div class="mb-4">
+                    <div class="relative">
+                        <input type="password" id="deletePasswordInput" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500" placeholder="Enter your password">
+                        <button type="button" id="togglePasswordVisibility" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <i class="fas fa-eye text-gray-400 hover:text-gray-600"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex justify-center space-x-3">
+                    <button id="cancelDeleteButton" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancel
+                    </button>
+                    <button id="confirmDeleteButton" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create New GRN Button -->
+    <div class="flex justify-center w-full mt-16 mb-1">
+      <button id="showGrnFormOverlay" type="button" class="bg-[#002E7D] hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow text-base transition-all duration-200">
+        + Create New GRN
+      </button>
+    </div>
+
+    <!-- Filter Section -->
+    <div id="filterSection" class="w-full flex justify-center mt-4 mb-2">
+      <div id="filterContainer" class="bg-white rounded-lg shadow-md p-2">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex-1"></div>
+          <h3 class="text-xs font-semibold text-gray-800 text-center flex-1">Find / Filter GRNs</h3>
+          <div class="flex items-center space-x-2 flex-1 justify-end">
+            <span class="text-sm text-gray-600">Filter Status:</span>
+            <span id="filterStatus" class="px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700">
+              Off
+            </span>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end justify-center gap-2">
+          <!-- Date Range -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-semibold text-gray-700 mb-0.5">From Date:</label>
+            <input type="date" id="filterFromDate" class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+          </div>
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-semibold text-gray-700 mb-0.5">To Date:</label>
+            <input type="date" id="filterToDate" class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+          </div>
+          <!-- Supplier Filter -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Supplier:</label>
+            <select id="filterSupplier" class="w-32 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+              <option value="">All</option>
+            </select>
+          </div>
+          <!-- Status Filter -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Status:</label>
+            <select id="filterStatus" class="w-28 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+              <option value="">All</option>
+              <option value="Draft">Draft</option>
+              <option value="Submitted">Submitted</option>
+            </select>
+          </div>
+          <!-- Filter Buttons -->
+          <div class="flex flex-col items-center">
+            <div class="h-4"></div> <!-- Spacer to align with inputs -->
+            <div class="flex space-x-2">
+              <button id="clearFilter" class="w-12 h-6 bg-gray-500 text-white text-xs font-semibold rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                Clear
+                </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="w-full flex justify-center mt-3 mb-1">
+      <div class="flex items-center space-x-3 bg-white rounded-md shadow-sm px-3 py-1.5 border border-gray-200">
+        <button id="prevPageBtn" class="px-3 py-1 bg-[#002E7D] text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+          <span>Prev</span>
+        </button>
+
+        <div class="flex items-center space-x-1">
+          <span class="text-xs text-gray-600">Page</span>
+          <span id="currentPageDisplay" class="font-semibold text-xs">1</span>
+          <span class="text-xs text-gray-600">of</span>
+          <span id="totalPagesDisplay" class="font-semibold text-xs">1</span>
+        </div>
+
+        <button id="nextPageBtn" class="px-3 py-1 bg-[#002E7D] text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1">
+          <span>Next</span>
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Overlay for GRN Form -->
+    <div id="grnFormOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden" style="padding-top: 50px;">
+      <main class="w-full max-w-4xl bg-white shadow-2xl flex flex-col items-center max-h-[95vh] overflow-y-auto relative mx-4" style="border-radius: 0;">
+        <button id="closeGrnFormOverlay" class="absolute top-1 right-3 text-lg text-red-500 hover:text-red-700 font-bold bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg transition z-20 border border-gray-200">&times;</button>
+        <section class="grn-section-modal w-full">
+            <div class="header-container-modal">
+                <div class="header-title-modal">Create New Goods Received Notes (GRN)</div>
+            </div>
+            <div class="container-modal">
+                <form id="grnFormModal">
+                    <!-- Row 1: Header Information -->
+                    <div class="form-row">
+                        <div class="form-section">
+                            <h3 class="section-title">GRN Information</h3>
+                            <div class="form-group">
+                                <label for="grnNumberModal">GRN Number:</label>
+                                <input type="text" id="grnNumberModal" placeholder="Auto-generated" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="grnDateModal">GRN Date:</label>
+                                <input type="date" id="grnDateModal" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="receivedByModal">Received By:</label>
+                                <input type="text" id="receivedByModal" placeholder="Enter receiver name" required>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="section-title">Purchase Order Details</h3>
+                            <div class="form-group">
+                                <label for="poNumberModal">PO Number:</label>
+                                <input type="text" id="poNumberModal" placeholder="Enter PO number" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="poDateModal">PO Date:</label>
+                                <input type="date" id="poDateModal" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="receiptDateModal">Receipt Date & Time:</label>
+                                <input type="datetime-local" id="receiptDateModal" required>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="section-title">Supplier Information</h3>
+                            <div class="form-group">
+                                <label for="supplierNameModal">Supplier Name:</label>
+                                <input type="text" id="supplierNameModal" placeholder="Enter supplier name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="supplierCodeModal">Supplier Code:</label>
+                                <input type="text" id="supplierCodeModal" placeholder="Enter supplier code">
+                            </div>
+                            <div class="form-group">
+                                <label for="vehicleNumberModal">Vehicle Number:</label>
+                                <input type="text" id="vehicleNumberModal" placeholder="Enter vehicle number">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Invoice and Delivery Information -->
+                    <div class="form-row">
+                        <div class="form-section">
+                            <h3 class="section-title">Invoice Details</h3>
+                            <div class="form-group">
+                                <label for="supplierInvoiceModal">Invoice Number:</label>
+                                <input type="text" id="supplierInvoiceModal" placeholder="Enter invoice number" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="invoiceDateModal">Invoice Date:</label>
+                                <input type="date" id="invoiceDateModal" required>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="section-title">Delivery Information</h3>
+                            <div class="form-group">
+                                <label for="deliveryChallanModal">Delivery Challan:</label>
+                                <input type="text" id="deliveryChallanModal" placeholder="Enter DC number" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="qualityStatusModal">Material Condition:</label>
+                                <select id="qualityStatusModal" required>
+                                    <option value="">Select Condition</option>
+                                    <option value="Good">Good - Ready for Storage</option>
+                                    <option value="Damaged">Damaged - Needs Attention</option>
+                                    <option value="Partial">Partial Delivery</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Item Details Section (Full Width) -->
+                    <div class="form-row full-width">
+                        <div class="form-section items-section">
+                            <h3 class="section-title">Item Details</h3>
+                            <div class="items-header">
+                                <button type="button" class="add-item-btn" onclick="addItemRowModal()">
+                                    <i class="fas fa-plus"></i> Add New Item
+                                </button>
+                            </div>
+                            <div id="itemsContainerModal">
+                                <div class="item-row">
+                                    <div class="item-grid">
+                                        <div class="form-group">
+                                            <label for="itemCodeModal_1">Item Code:</label>
+                                            <input type="text" id="itemCodeModal_1" placeholder="Enter item code" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="itemDescriptionModal_1">Item Description:</label>
+                                            <input type="text" id="itemDescriptionModal_1" placeholder="Enter item description" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="quantityOrderedModal_1">Qty Ordered:</label>
+                                            <input type="number" id="quantityOrderedModal_1" placeholder="0" min="0" step="0.01" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="quantityReceivedModal_1">Qty Received:</label>
+                                            <input type="number" id="quantityReceivedModal_1" placeholder="0" min="0" step="0.01" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="uomModal_1">Unit of Measure:</label>
+                                            <select id="uomModal_1" required>
+                                                <option value="">Select UOM</option>
+                                                <option value="KG">Kilogram (KG)</option>
+                                                <option value="PC">Piece (PC)</option>
+                                                <option value="BOX">Box (BOX)</option>
+                                                <option value="MTR">Meter (MTR)</option>
+                                                <option value="LTR">Liter (LTR)</option>
+                                                <option value="NOS">Numbers (NOS)</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="batchNumberModal_1">Batch Number:</label>
+                                            <input type="text" id="batchNumberModal_1" placeholder="Enter batch number">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="expiryDateModal_1">Expiry Date:</label>
+                                            <input type="date" id="expiryDateModal_1">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="mfgDateModal_1">Mfg Date:</label>
+                                            <input type="date" id="mfgDateModal_1">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="storageLocationModal_1">Storage Location:</label>
+                                            <input type="text" id="storageLocationModal_1" placeholder="Enter storage location">
+                                        </div>
+                                    </div>
+                                    <div class="item-actions">
+                                        <button type="button" class="remove-item-btn" onclick="removeItemRowModal(1)" style="display: none;">
+                                            <i class="fas fa-trash"></i> Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Documents and Actions -->
+                    <div class="form-row">
+                        <div class="form-section">
+                            <h3 class="section-title">Document Attachments</h3>
+                            <div class="form-group">
+                                <label for="documentUploadModal">
+                                    <button type="button" id="chooseDocumentBtnModal" class="upload-btn">
+                                        <i class="fas fa-paperclip"></i> Attach Documents
+                                    </button>
+                                </label>
+                                <input type="file" id="documentUploadModal" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple style="display: none;">
+                                <div id="documentPreviewsModal" class="document-previews"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="section-title">Actions</h3>
+                            <div class="form-group">
+                                <div class="button-container">
+                                    <button type="submit" class="submit-btn">Submit New GRN</button>
+                                    <button type="button" id="saveAsDraftModal" class="draft-btn">Save as Draft</button>
+                                    <button type="button" id="printGRNModal" class="print-btn">Print GRN</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+                <div class="submission-message-overlay-modal"></div>
+                <div class="submission-message-modal"></div>
+            </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- GRN Table -->
+    <div class="w-full flex justify-center mt-2">
+      <div class="w-full overflow-x-auto">
+        <table class="w-full bg-white shadow-md rounded table-fixed text-xs">
+                    <thead>
+          <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center text-xs">
+            <th class="py-1 px-2 border-r border-gray-300 w-12 whitespace-normal break-words">Sr No</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-24 whitespace-normal break-words">GRN Date</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-28 whitespace-normal break-words">GRN Number</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-28 whitespace-normal break-words">PO Number</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-40 whitespace-normal break-words">Supplier Name</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-32 whitespace-normal break-words">Received By</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Status</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-32 whitespace-normal break-words">Action</th>
+            <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Download</th>
+                        </tr>
+                    </thead>
+                    <tbody id="grnTableBody">
+          <!-- Data rows will go here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <style>
+      /* Striped rows and hover for tbody - matching inline inspection */
+      table tbody tr {
+        background-color: #ffffff;
+        transition: background-color 0.2s ease;
+      }
+      table tbody tr:hover {
+        background-color: #f8fafc;
+        cursor: pointer;
+      }
+      table tbody tr {
+        border-bottom: 1px solid #d1d5db;
+      }
+      /* Enhanced separator lines */
+      table th {
+        border-right: 1px solid #d1d5db;
+        border-bottom: 1px solid #d1d5db;
+      }
+      table td {
+        border-right: 1px solid #d1d5db;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        text-align: center;
+      }
+
+      /* GRN Modal Form Styles */
+      .grn-section-modal {
+        width: 100%;
+        max-width: 1000px;
+        background: #fff;
+        padding: 1rem 0.75rem;
+        padding-top: calc(45px + 1rem);
+        padding-bottom: 1rem;
+        margin-top: 0;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        position: relative;
+        font-size: 0.75rem;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .header-container-modal {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #002E7D;
+        padding: 0 1rem;
+        padding-right: 4rem;
+        width: 100%;
+        box-sizing: border-box;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 10;
+        height: 45px;
+      }
+
+      .header-title-modal {
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        margin: 0;
+      }
+
+      .container-modal {
+        margin-top: 0.75rem;
+        margin-bottom: 1.25rem;
+        font-size: 0.75rem;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .form-row.full-width {
+        grid-template-columns: 1fr;
+      }
+
+      .form-section {
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 0.5rem;
+      }
+
+      .section-title {
+        color: #002E7D;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        border-bottom: 2px solid #002E7D;
+        padding-bottom: 0.5rem;
+      }
+
+      .form-group {
+        text-align: left;
+        margin-bottom: 0.5rem;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #2D3436;
+        margin-bottom: 0.25rem;
+      }
+
+      input[type="text"],
+      input[type="date"],
+      input[type="datetime-local"],
+      input[type="number"],
+      select {
+        width: 100%;
+        padding: 0.4rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        box-sizing: border-box;
+        min-height: 36px;
+        height: 36px;
+        line-height: 1.3;
+      }
+
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+      }
+
+      .item-row {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 0.4rem;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        position: relative;
+      }
+
+      .item-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .item-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #e0e0e0;
+      }
+
+      .add-item-btn,
+      .remove-item-btn {
+        padding: 0.4rem 0.8rem;
+        border-radius: 0.3rem;
+        cursor: pointer;
+        font-size: 0.8rem;
+        text-align: center;
+        border: none;
+        transition: all 0.3s ease;
+      }
+
+      .add-item-btn {
+        background: linear-gradient(45deg, #002E7D, #0046C7);
+        color: white;
+      }
+
+      .add-item-btn:hover {
+        box-shadow: 0 3px 8px rgba(0, 46, 125, 0.2);
+      }
+
+      .remove-item-btn {
+        background: #dc3545;
+        color: white;
+      }
+
+      .remove-item-btn:hover {
+        background: #c82333;
+        box-shadow: 0 3px 8px rgba(220, 53, 69, 0.2);
+      }
+
+      .upload-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 8px 16px;
+        background: linear-gradient(45deg, #002E7D, #0046C7);
+        color: white;
+        border: none;
+        border-radius: 0.3rem;
+        cursor: pointer;
+        font-size: 0.85rem;
+      }
+
+      .upload-btn:hover {
+        box-shadow: 0 3px 8px rgba(0, 46, 125, 0.2);
+      }
+
+      .document-previews {
+        margin-top: 0.75rem;
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+
+      .document-preview {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.4rem 0.8rem;
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 0.3rem;
+        font-size: 0.75rem;
+      }
+
+      .document-preview .remove-doc {
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        font-size: 0.65rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .button-container {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .submit-btn,
+      .draft-btn,
+      .print-btn {
+        padding: 8px 16px;
+        border-radius: 0.3rem;
+        cursor: pointer;
+        font-size: 0.8rem;
+        text-align: center;
+        white-space: nowrap;
+        border: none;
+        transition: all 0.3s ease;
+      }
+
+      .submit-btn {
+        background: linear-gradient(45deg, #002E7D, #0046C7);
+        color: white;
+      }
+
+      .draft-btn {
+        background: #6c757d;
+        color: white;
+      }
+
+      .print-btn {
+        background: #28a745;
+        color: white;
+      }
+
+      .submit-btn:hover,
+      .draft-btn:hover,
+      .print-btn:hover {
+        box-shadow: 0 3px 8px rgba(0, 46, 125, 0.2);
+        transform: translateY(-1px);
+      }
+
+      .submit-btn:active,
+      .draft-btn:active,
+      .print-btn:active {
+        transform: translateY(0);
+      }
+
+      .submission-message-overlay-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(3px);
+        z-index: 9998;
+        display: none;
+      }
+
+      .submission-message-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        min-width: 300px;
+        max-width: 90vw;
+        padding: 24px 32px;
+        border-radius: 8px;
+        background-color: #d4edda;
+        color: #155724;
+        font-weight: bold;
+        font-size: 1.1rem;
+        text-align: center;
+        z-index: 9999;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
+        display: none;
+        opacity: 0;
+      }
+
+      .submission-message-modal.show {
+        display: block;
+        opacity: 1;
+      }
+
+      .submission-message-modal.error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+
+      /* Close button base styles */
+      #closeGrnFormOverlay {
+        position: absolute !important;
+        top: 4px !important;
+        right: 12px !important;
+        background: white !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 50% !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+        font-weight: bold !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        z-index: 20 !important;
+        width: 32px !important;
+        height: 32px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 1.1rem !important;
+      }
+
+      #closeGrnFormOverlay:hover {
+        background: #f8f9fa !important;
+        transform: scale(1.05) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+      }
+
+      /* Responsive styles for smaller screens */
+      @media (max-width: 1366px) {
+        #grnFormOverlay {
+          padding-top: 50px;
+        }
+
+        .grn-section-modal {
+          max-width: 900px !important;
+          padding: 0.75rem 0.5rem !important;
+          padding-top: calc(40px + 0.75rem) !important;
+          font-size: 0.7rem !important;
+          max-height: 90vh !important;
+        }
+
+        .header-container-modal {
+          height: 40px !important;
+          padding-right: 3.5rem !important;
+        }
+
+        .header-title-modal {
+          font-size: 0.9rem !important;
+        }
+
+        .form-row {
+          gap: 0.75rem !important;
+          margin-bottom: 0.75rem !important;
+        }
+
+        .form-section {
+          padding: 0.75rem !important;
+          margin-bottom: 0.75rem !important;
+        }
+
+        .section-title {
+          font-size: 0.9rem !important;
+          margin-bottom: 0.5rem !important;
+        }
+
+        .container-modal {
+          margin-bottom: 1.25rem !important;
+        }
+
+        .form-group {
+          margin-bottom: 0.4rem !important;
+        }
+
+        .form-group label {
+          font-size: 0.75rem !important;
+          margin-bottom: 0.2rem !important;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="datetime-local"],
+        input[type="number"],
+        select {
+          padding: 0.3rem !important;
+          font-size: 0.75rem !important;
+          min-height: 32px !important;
+          height: 32px !important;
+        }
+
+        .item-grid {
+          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+          gap: 0.5rem !important;
+        }
+
+        .item-row {
+          padding: 0.75rem !important;
+          margin-bottom: 0.5rem !important;
+          border-radius: 0.3rem !important;
+        }
+
+        .button-container {
+          gap: 0.5rem !important;
+          margin-top: 0.75rem !important;
+        }
+
+        .submit-btn,
+        .draft-btn,
+        .print-btn {
+          padding: 6px 12px !important;
+          font-size: 0.75rem !important;
+        }
+
+        #closeGrnFormOverlay {
+          top: 0.25rem !important;
+          right: 0.75rem !important;
+          width: 30px !important;
+          height: 30px !important;
+        }
+      }
+
+      @media (max-width: 768px) {
+        #grnFormOverlay {
+          padding-top: 50px;
+          padding-left: 10px;
+          padding-right: 10px;
+        }
+
+        .grn-section-modal {
+          max-width: 100% !important;
+          padding: 0.5rem 0.4rem !important;
+          padding-top: calc(35px + 0.5rem) !important;
+          max-height: 95vh !important;
+        }
+
+        .header-container-modal {
+          height: 35px !important;
+          padding-right: 3rem !important;
+        }
+
+        .header-title-modal {
+          font-size: 0.8rem !important;
+        }
+
+        .form-row {
+          grid-template-columns: 1fr !important;
+          gap: 0.5rem !important;
+          margin-bottom: 0.5rem !important;
+        }
+
+        .form-section {
+          padding: 0.5rem !important;
+          margin-bottom: 0.5rem !important;
+        }
+
+        .section-title {
+          font-size: 0.85rem !important;
+        }
+
+        .container-modal {
+          margin-bottom: 1rem !important;
+        }
+
+        .item-grid {
+          grid-template-columns: 1fr !important;
+          gap: 0.4rem !important;
+        }
+
+        .button-container {
+          flex-direction: column !important;
+          align-items: center !important;
+        }
+
+        .submit-btn,
+        .draft-btn,
+        .print-btn {
+          width: 100% !important;
+          max-width: 200px !important;
+        }
+
+        #closeGrnFormOverlay {
+          top: 0.2rem !important;
+          right: 0.75rem !important;
+          width: 28px !important;
+          height: 28px !important;
+          font-size: 0.9rem !important;
+        }
+      }
+    </style>
+
+    <script type="module" src="../supabase-config.js"></script>
+    <script type="module" src="../js/goods-received-notes-table.js"></script>
+</body>
+</html>
