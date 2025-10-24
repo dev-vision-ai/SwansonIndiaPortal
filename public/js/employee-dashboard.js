@@ -382,7 +382,7 @@ async function loadUserProfile() {
         console.time('fetchProfile'); // Start profile fetch timer
         const { data: profile, error: profileError } = await supabase
             .from('users')
-            .select('full_name, employee_code')
+            .select('full_name, employee_code, department')
             .eq('id', user.id)
             .single();
         console.timeEnd('fetchProfile'); // End profile fetch timer
@@ -401,13 +401,16 @@ async function loadUserProfile() {
             if (employeeCodeElement) employeeCodeElement.textContent = (profile.employee_code || '').toUpperCase();
 
             // Call the filtering function after user profile is loaded
-            filterQuickActionsByDepartment(user);
+            filterQuickActionsByDepartment(user, profile.department);
 
         } else if (profileError) {
             console.error("Error fetching profile:", profileError);
             if (userNameElement) userNameElement.textContent = user.email ? 'Hi, ' + user.email : 'Hi there';
             if (employeeNameElement) employeeNameElement.textContent = user.email || 'Employee';
             if (employeeCodeElement) employeeCodeElement.textContent = user.id.substring(0, 8).toUpperCase();
+
+            // Call the filtering function even if profile fetch failed (no department filtering)
+            filterQuickActionsByDepartment(user, null);
         }
     } else {
         console.error("User not logged in.");
@@ -416,7 +419,7 @@ async function loadUserProfile() {
     console.timeEnd('loadUserProfile total');
 }
 
-async function filterQuickActionsByDepartment(user) {
+async function filterQuickActionsByDepartment(user, userDepartment) {
     // filterQuickActionsByDepartment called
     // User object
 
@@ -426,21 +429,9 @@ async function filterQuickActionsByDepartment(user) {
     }
 
     try {
-        const { data: userProfile, error } = await supabase
-            .from('users')
-            .select('department')
-            .eq('id', user.id)
-            .single();
-
-        if (error) {
-            console.error('Error fetching user profile for department:', error);
-            return;
-        }
+        // User department is passed as parameter
 
         // User profile data
-
-        const userDepartment = userProfile?.department;
-        // User Department
 
         const quickActionGrid = document.querySelector('.quick-action-grid');
         if (quickActionGrid) {

@@ -93,19 +93,22 @@ const inlineExportModule = require('./excel-export-inline-inspection-form');
 const pgExportModule = require('./excel-export-film-inspection-form-P&G');
 const ucExportModule = require('./excel-export-film-inspection-form-UC');
 const mjrExportModule = require('./excel-export-MJR-form');
+const qualityAlertExportModule = require('./excel-export-quality-alert-form');
 
 // Initialize export modules
 inlineExportModule(app);
 pgExportModule(app);
 ucExportModule(app);
 mjrExportModule(app);
+qualityAlertExportModule(app);
 
 console.log(`🚀 Server starting on port ${PORT}`);
 console.log(`📊 Excel export: http://localhost:${PORT}/export`);
+console.log(`📋 Quality Alert export: http://localhost:${PORT}/export-quality-alert`);
 
 app.listen(PORT, () => {
   console.log(`✅ Swanson India Portal Backend running on port ${PORT}`);
   console.log(`🌐 Frontend URLs configured for CORS`);
   console.log(`🗄️  Database: Supabase connected`);
-  console.log(`📋 Total endpoints: 27 (3 system + 24 export)`);
+  console.log(`📋 Total endpoints: 28 (3 system + 25 export)`);
 });
