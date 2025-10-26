@@ -51,6 +51,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Setup equipment name auto-suggestions
     await setupEquipmentNameSuggestions();
 
+    // Setup area/machine dropdown
+    await setupAreaMachineDropdown();
+
     setupFormEventListeners(userId);
 });
 
@@ -69,17 +72,6 @@ function formatDateToDDMMYYYY(dateString) {
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
-}
-
-// Helper function to convert dd/mm/yyyy back to yyyy-mm-dd for HTML date inputs
-function formatDateForHTMLInput(dateString) {
-    if (!dateString) return '';
-    // If already in yyyy-mm-dd format, return as is
-    if (dateString.includes('-') && dateString.length === 10) return dateString;
-
-    // Convert dd/mm/yyyy to yyyy-mm-dd
-    const [day, month, year] = dateString.split('/');
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 }
 
 // Helper function to convert dd/mm/yyyy to yyyy-mm-dd for database storage
@@ -175,14 +167,6 @@ function setupFormEventListeners(userId) {
         rejectedCheckbox.addEventListener('change', handleInspectionCheckboxes);
     }
 
-
-    // Simple test - add a basic click handler first
-    const submitBtn = document.querySelector('button[type="submit"]');
-    if (submitBtn) {
-        submitBtn.addEventListener('click', function(e) {
-        });
-    }
-
     form.addEventListener('submit', async function(event) {
         event.preventDefault();
 
@@ -226,15 +210,6 @@ function setupFormEventListeners(userId) {
             checkboxes.forEach(cb => breakdownCodes.push(cb.value));
             insertData.breakdowncodes = breakdownCodes;
 
-            const powerOptions = [];
-            const powerCheckboxes = document.querySelectorAll('input[name="powerOption"]:checked');
-            powerCheckboxes.forEach(cb => powerOptions.push(cb.id));
-            insertData.poweroptions = powerOptions;
-
-            const machineOptions = [];
-            const machineCheckboxes = document.querySelectorAll('input[name="machineOption"]:checked');
-            machineCheckboxes.forEach(cb => machineOptions.push(cb.id));
-            insertData.machineoptions = machineOptions;
 
             // Collect material tracking data into JSONB format (only if fields exist)
             const materialsUsed = [];
@@ -331,9 +306,12 @@ function validateForm() {
     // Get equipment installation date (optional field)
     const equipmentInstallDate = document.getElementById('equipmentInstallDate')?.value?.trim() || '';
 
+    // Get area/machine selection
+    const areaMachine = document.getElementById('machineNo').value;
+
     // Basic required fields check (reqDept is auto-populated from user profile)
-    if (!requestorName || !equipmentName || !equipmentNo || !occurDate || !occurTime || !requireCompletionDate || !completionTime || !existingCondition) {
-        showMessage('Please fill in all required fields (Requestor Name, Equipment Name, No., Date, Time, Completion Date, Completion Time, Condition).', true);
+    if (!requestorName || !equipmentName || !equipmentNo || !areaMachine || !occurDate || !occurTime || !requireCompletionDate || !completionTime || !existingCondition) {
+        showMessage('Please fill in all required fields (Requestor Name, Equipment Name, No., Area/Machine, Date, Time, Completion Date, Completion Time, Condition).', true);
         return false;
     }
 
@@ -601,12 +579,7 @@ async function setupEquipmentNameSuggestions() {
                 }
 
                 if (equipmentInstallDateInput && equipment.equipment_installation_date) {
-                    // Format date from yyyy-mm-dd to dd/mm/yyyy for display
-                    const date = new Date(equipment.equipment_installation_date);
-                    const day = date.getDate().toString().padStart(2, '0');
-                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                    const year = date.getFullYear();
-                    equipmentInstallDateInput.value = `${day}/${month}/${year}`;
+                    equipmentInstallDateInput.value = formatDateToDDMMYYYY(equipment.equipment_installation_date);
                 }
 
                 container.style.display = 'none';
@@ -665,4 +638,300 @@ async function setupEquipmentNameSuggestions() {
     });
 
     console.log('✅ Equipment name auto-suggestions setup complete');
+}
+
+// Setup Area/Machine Dropdown Functionality
+async function setupAreaMachineDropdown() {
+    const areaMachineSelect = document.getElementById('machineNo');
+    if (!areaMachineSelect) {
+        console.warn('Area/Machine select field not found');
+        return;
+    }
+
+    try {
+        // Fetch unique installation areas from master data table
+        const { data, error } = await supabase
+            .from('mt_machines_and_equipments_masterdata')
+            .select('installation_area')
+            .not('installation_area', 'is', null)
+            .order('installation_area');
+
+        if (error) {
+            console.error('Error fetching installation areas:', error);
+            return;
+        }
+
+        // Get unique areas and sort them
+        const uniqueAreas = [...new Set(data.map(item => item.installation_area))].filter(area => area && area.trim() !== '');
+        
+        console.log('✅ Loaded', uniqueAreas.length, 'unique installation areas');
+
+        // Clear existing options except the first one
+        areaMachineSelect.innerHTML = '<option value="">Select Area / Machine</option>';
+
+        // Add options for each unique area
+        uniqueAreas.forEach(area => {
+            const option = document.createElement('option');
+            option.value = area;
+            option.textContent = area;
+            areaMachineSelect.appendChild(option);
+        });
+
+        // Add event listener for area selection
+        areaMachineSelect.addEventListener('change', async function() {
+            const selectedArea = this.value;
+            
+            // Clear equipment-related fields when area changes
+            clearEquipmentFields();
+            
+            if (selectedArea) {
+                await populateEquipmentDropdown(selectedArea);
+            } else {
+                resetEquipmentField();
+            }
+        });
+
+        console.log('✅ Area/Machine dropdown populated successfully');
+
+    } catch (error) {
+        console.error('Error setting up area/machine dropdown:', error);
+    }
+}
+
+// Populate Equipment Name dropdown based on selected area
+async function populateEquipmentDropdown(selectedArea) {
+    const equipmentNameField = document.getElementById('equipmentName');
+    if (!equipmentNameField) {
+        console.warn('Equipment name field not found');
+        return;
+    }
+
+    try {
+        // Fetch equipment names for the selected area
+        const { data, error } = await supabase
+            .from('mt_machines_and_equipments_masterdata')
+            .select('equipment_name, equipment_identification_no, equipment_installation_date')
+            .eq('installation_area', selectedArea)
+            .order('equipment_name');
+
+        if (error) {
+            console.error('Error fetching equipment data for area:', error);
+            return;
+        }
+
+        // Create custom dropdown container
+        const dropdownContainer = document.createElement('div');
+        dropdownContainer.className = 'custom-equipment-dropdown';
+        dropdownContainer.style.cssText = `
+            position: relative;
+            width: 100%;
+        `;
+
+        // Create the display input (readonly)
+        const displayInput = document.createElement('input');
+        displayInput.type = 'text';
+        displayInput.id = 'equipmentName';
+        displayInput.name = 'equipmentName';
+        displayInput.placeholder = 'Select Equipment';
+        displayInput.readOnly = true;
+        displayInput.required = true;
+        displayInput.style.cssText = equipmentNameField.style.cssText; // Copy existing styles
+        displayInput.style.cursor = 'pointer';
+        displayInput.style.backgroundImage = 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23666\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6,9 12,15 18,9\'%3e%3c/polyline%3e%3c/svg%3e")';
+        displayInput.style.backgroundRepeat = 'no-repeat';
+        displayInput.style.backgroundPosition = 'right 8px center';
+        displayInput.style.backgroundSize = '16px';
+        displayInput.style.paddingRight = '30px';
+        
+        // Add CSS to make placeholder text non-faded (darker) - only if not already added
+        if (!document.getElementById('equipment-placeholder-style')) {
+            const style = document.createElement('style');
+            style.id = 'equipment-placeholder-style';
+            style.textContent = `
+                #equipmentName::placeholder {
+                    color: #333 !important;
+                    opacity: 1 !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Create dropdown list
+        const dropdownList = document.createElement('div');
+        dropdownList.className = 'equipment-dropdown-list';
+        dropdownList.style.cssText = `
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        `;
+
+        // Add default option
+        const defaultOption = document.createElement('div');
+        defaultOption.className = 'dropdown-option';
+        defaultOption.style.cssText = `
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        `;
+        defaultOption.textContent = 'Select Equipment';
+        defaultOption.addEventListener('click', () => {
+            displayInput.value = '';
+            dropdownList.style.display = 'none';
+        });
+        dropdownList.appendChild(defaultOption);
+
+        // Add equipment options
+        data.forEach(equipment => {
+            const option = document.createElement('div');
+            option.className = 'dropdown-option';
+            option.style.cssText = `
+                padding: 8px 12px;
+                cursor: pointer;
+                border-bottom: 1px solid #eee;
+                font-size: 14px;
+            `;
+            
+            // Create equipment name and ID display
+            const nameDiv = document.createElement('div');
+            nameDiv.textContent = equipment.equipment_name;
+            nameDiv.style.fontWeight = '500';
+            nameDiv.style.color = '#333';
+            
+            const idDiv = document.createElement('div');
+            idDiv.textContent = equipment.equipment_identification_no || '';
+            idDiv.style.fontSize = '12px';
+            idDiv.style.color = '#666';
+            idDiv.style.marginTop = '2px';
+            
+            option.appendChild(nameDiv);
+            option.appendChild(idDiv);
+            
+            // Store data
+            option.dataset.equipmentName = equipment.equipment_name;
+            option.dataset.equipmentNo = equipment.equipment_identification_no || '';
+            option.dataset.installDate = equipment.equipment_installation_date || '';
+
+            // Hover effects
+            option.addEventListener('mouseenter', () => {
+                option.style.backgroundColor = '#f8f9fa';
+            });
+            option.addEventListener('mouseleave', () => {
+                option.style.backgroundColor = 'white';
+            });
+
+            // Click handler
+            option.addEventListener('click', () => {
+                displayInput.value = equipment.equipment_name;
+                dropdownList.style.display = 'none';
+
+                // Auto-populate equipment number
+                const equipmentNoField = document.getElementById('equipmentNo');
+                if (equipmentNoField && equipment.equipment_identification_no) {
+                    equipmentNoField.value = equipment.equipment_identification_no;
+                }
+
+                // Auto-populate installation date
+                const installDateField = document.getElementById('equipmentInstallDate');
+                if (installDateField && equipment.equipment_installation_date) {
+                    installDateField.value = formatDateToDDMMYYYY(equipment.equipment_installation_date);
+                }
+            });
+
+            dropdownList.appendChild(option);
+        });
+
+        // Assemble the dropdown
+        dropdownContainer.appendChild(displayInput);
+        dropdownContainer.appendChild(dropdownList);
+
+        // Replace the input field with custom dropdown
+        equipmentNameField.parentNode.replaceChild(dropdownContainer, equipmentNameField);
+
+        // Toggle dropdown on click
+        displayInput.addEventListener('click', () => {
+            dropdownList.style.display = dropdownList.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!dropdownContainer.contains(e.target)) {
+                dropdownList.style.display = 'none';
+            }
+        });
+
+        console.log('✅ Equipment dropdown populated for area:', selectedArea);
+
+    } catch (error) {
+        console.error('Error populating equipment dropdown:', error);
+    }
+}
+
+// Clear equipment-related fields
+function clearEquipmentFields() {
+    // Clear equipment name field
+    const equipmentNameField = document.getElementById('equipmentName');
+    if (equipmentNameField) {
+        if (equipmentNameField.tagName === 'INPUT') {
+            equipmentNameField.value = '';
+        } else {
+            // If it's a custom dropdown, clear the display input
+            const displayInput = equipmentNameField.querySelector('input');
+            if (displayInput) {
+                displayInput.value = '';
+            }
+        }
+    }
+
+    // Clear equipment number field
+    const equipmentNoField = document.getElementById('equipmentNo');
+    if (equipmentNoField) {
+        equipmentNoField.value = '';
+    }
+
+    // Clear equipment installation date field
+    const installDateField = document.getElementById('equipmentInstallDate');
+    if (installDateField) {
+        installDateField.value = '';
+    }
+}
+
+// Reset equipment field to input when no area is selected
+function resetEquipmentField() {
+    const equipmentNameField = document.getElementById('equipmentName');
+    if (!equipmentNameField) return;
+
+    // If it's already an input, do nothing
+    if (equipmentNameField.tagName === 'INPUT') return;
+
+    // Convert back to input field
+    const inputElement = document.createElement('input');
+    inputElement.type = 'text';
+    inputElement.id = 'equipmentName';
+    inputElement.name = 'equipmentName';
+    inputElement.placeholder = 'Enter equipment name';
+    inputElement.required = true;
+    inputElement.style.cssText = equipmentNameField.style.cssText; // Copy existing styles
+
+    // Replace the select with input
+    equipmentNameField.parentNode.replaceChild(inputElement, equipmentNameField);
+
+    // Clear related fields
+    const equipmentNoField = document.getElementById('equipmentNo');
+    const installDateField = document.getElementById('equipmentInstallDate');
+    
+    if (equipmentNoField) equipmentNoField.value = '';
+    if (installDateField) installDateField.value = '';
+
+    // Re-setup equipment name suggestions for the input field
+    setupEquipmentNameSuggestions();
 }
