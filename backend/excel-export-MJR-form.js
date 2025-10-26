@@ -388,7 +388,7 @@ app.get('/api/export-machine-history-card', async (req, res) => {
         breakdowncodes,
         inspectionresult
       `)
-      .order('occurdate', { ascending: false });
+      .order('occurdate', { ascending: true });
 
     // Apply filters if provided
     if (equipmentName) {
@@ -440,6 +440,9 @@ app.post('/api/export-machine-history-card', async (req, res) => {
       console.error('❌ No filtered data provided for export');
       return res.status(400).json({ error: 'No filtered data provided for export' });
     }
+
+    // Sort the data by occurdate from oldest to latest
+    data.sort((a, b) => new Date(a.occurdate) - new Date(b.occurdate));
 
     console.log('✅ Received', data.length, 'filtered records for export');
     if (filterSummary) {
