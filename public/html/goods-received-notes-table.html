@@ -295,7 +295,7 @@
 
     <!-- Overlay for GRN Form -->
     <div id="grnFormOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden" style="padding-top: 50px;">
-      <main class="w-full max-w-4xl bg-white shadow-2xl flex flex-col items-center max-h-[95vh] overflow-y-auto relative mx-4" style="border-radius: 0;">
+      <main class="w-full max-w-5xl bg-white shadow-2xl flex flex-col items-center max-h-[95vh] overflow-y-auto relative mx-4" style="border-radius: 0;">
         <button id="closeGrnFormOverlay" class="absolute top-1 right-3 text-lg text-red-500 hover:text-red-700 font-bold bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg transition z-20 border border-gray-200">&times;</button>
         <section class="grn-section-modal w-full">
             <div class="header-container-modal">
@@ -303,186 +303,156 @@
             </div>
             <div class="container-modal">
                 <form id="grnFormModal">
-                    <!-- Row 1: Header Information -->
-                    <div class="form-row">
-                        <div class="form-section">
-                            <h3 class="section-title">GRN Information</h3>
-                            <div class="form-group">
-                                <label for="grnNumberModal">GRN Number:</label>
-                                <input type="text" id="grnNumberModal" placeholder="Auto-generated" readonly>
+                    <!-- GRN Header Section -->
+                    <div class="grn-header-section">
+                        <div class="grn-header-grid">
+                            <!-- Row 1: From | To (Company Address) -->
+                            <div class="header-row">
+                                <div class="form-group-header">
+                                    <label for="fromSupplier">From :</label>
+                                    <div class="from-input-enhanced" contenteditable="true" id="fromSupplier" data-placeholder="Enter supplier name" required></div>
+                                </div>
+                                <div class="form-group-header">
+                                    <label>To :</label>
+                                    <div class="company-address-inline">
+                                        <strong>SWANSON PLASTICS INDIA PVT. LTD.</strong>
+                                        Phase No. II, Plot No. 02, GIDC,<br>
+                                        Bhuipal, Honda, Sattari - Goa (India)<br>
+                                        <strong>403 530</strong>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="grnDateModal">GRN Date:</label>
-                                <input type="date" id="grnDateModal" required>
+
+                            <!-- Row 2: GRN No | GRN Date -->
+                            <div class="header-row">
+                                <div class="grn-title-row">
+                                    <span class="grn-title-label">GRN No.</span>
+                                    <span class="grn-number" id="grnNumberDisplay">000</span>
+                                </div>
+                                <div class="form-group-header">
+                                    <label for="grnDate">GRN Date :</label>
+                                    <input type="date" id="grnDate" required>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="receivedByModal">Received By:</label>
-                                <input type="text" id="receivedByModal" placeholder="Enter receiver name" required>
+
+                            <!-- Row 3: Requested By | Received By -->
+                            <div class="header-row">
+                                <div class="form-group-header">
+                                    <label for="requestedBy">Requested By :</label>
+                                    <input type="text" id="requestedBy" placeholder="Enter requester name" required>
+                                </div>
+                                <div class="form-group-header">
+                                    <label for="receivedBy">Received By :</label>
+                                    <input type="text" id="receivedBy" placeholder="Enter receiver name" required>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="form-section">
-                            <h3 class="section-title">Purchase Order Details</h3>
-                            <div class="form-group">
-                                <label for="poNumberModal">PO Number:</label>
-                                <input type="text" id="poNumberModal" placeholder="Enter PO number" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="poDateModal">PO Date:</label>
-                                <input type="date" id="poDateModal" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="receiptDateModal">Receipt Date & Time:</label>
-                                <input type="datetime-local" id="receiptDateModal" required>
-                            </div>
-                        </div>
 
-                        <div class="form-section">
-                            <h3 class="section-title">Supplier Information</h3>
-                            <div class="form-group">
-                                <label for="supplierNameModal">Supplier Name:</label>
-                                <input type="text" id="supplierNameModal" placeholder="Enter supplier name" required>
+                        <!-- Document Details Grid -->
+                        <div class="document-details-grid">
+                            <div class="form-group-header">
+                                <label for="purchaseOrderNo">Purchase Order No.</label>
+                                <input type="text" id="purchaseOrderNo" placeholder="Enter PO number" required>
                             </div>
-                            <div class="form-group">
-                                <label for="supplierCodeModal">Supplier Code:</label>
-                                <input type="text" id="supplierCodeModal" placeholder="Enter supplier code">
-                            </div>
-                            <div class="form-group">
-                                <label for="vehicleNumberModal">Vehicle Number:</label>
-                                <input type="text" id="vehicleNumberModal" placeholder="Enter vehicle number">
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Row 2: Invoice and Delivery Information -->
-                    <div class="form-row">
-                        <div class="form-section">
-                            <h3 class="section-title">Invoice Details</h3>
-                            <div class="form-group">
-                                <label for="supplierInvoiceModal">Invoice Number:</label>
-                                <input type="text" id="supplierInvoiceModal" placeholder="Enter invoice number" required>
+                            <div class="form-group-header">
+                                <label for="deliveryChallanNo">Delivery Challan No.:</label>
+                                <input type="text" id="deliveryChallanNo" placeholder="Enter DC number" required>
                             </div>
-                            <div class="form-group">
-                                <label for="invoiceDateModal">Invoice Date:</label>
-                                <input type="date" id="invoiceDateModal" required>
-                            </div>
-                        </div>
 
-                        <div class="form-section">
-                            <h3 class="section-title">Delivery Information</h3>
-                            <div class="form-group">
-                                <label for="deliveryChallanModal">Delivery Challan:</label>
-                                <input type="text" id="deliveryChallanModal" placeholder="Enter DC number" required>
+                            <div class="form-group-header">
+                                <label for="taxInvoiceNo">Tax Invoice No.</label>
+                                <input type="text" id="taxInvoiceNo" placeholder="Enter invoice number" required>
                             </div>
-                            <div class="form-group">
-                                <label for="qualityStatusModal">Material Condition:</label>
-                                <select id="qualityStatusModal" required>
-                                    <option value="">Select Condition</option>
-                                    <option value="Good">Good - Ready for Storage</option>
-                                    <option value="Damaged">Damaged - Needs Attention</option>
-                                    <option value="Partial">Partial Delivery</option>
-                                </select>
+
+                            <div class="form-group-header">
+                                <label for="invoiceDate">Inv. Date :</label>
+                                <input type="date" id="invoiceDate" required>
+                            </div>
+
+                            <div class="form-group-header">
+                                <label for="purchaseRequisitionNo">Purchase Requisition No.:</label>
+                                <input type="text" id="purchaseRequisitionNo" placeholder="Enter PR number">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Row 2: Item Details Section (Full Width) -->
-                    <div class="form-row full-width">
-                        <div class="form-section items-section">
-                            <h3 class="section-title">Item Details</h3>
-                            <div class="items-header">
-                                <button type="button" class="add-item-btn" onclick="addItemRowModal()">
-                                    <i class="fas fa-plus"></i> Add New Item
+                    <!-- Items Table Section -->
+                    <div class="items-section">
+                        <h3 class="section-title">Item Details</h3>
+                        <div class="items-table-container">
+                            <table class="items-table">
+                                <thead>
+                                    <tr>
+                                        <th class="sr-no-col">Sr.<br>No.</th>
+                                        <th class="particulars-col">Particulars</th>
+                                        <th class="unit-col">Unit</th>
+                                        <th class="ordered-col">Ordered<br>Qty.</th>
+                                        <th class="received-col">Received<br>Qty.</th>
+                                        <th class="accepted-col">Accepted<br>Qty.</th>
+                                        <th class="rejected-col">Rejected<br>Qty.</th>
+                                        <th class="balance-col">Balance<br>Qty.</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="itemsTableBody">
+                                    <tr class="item-row">
+                                        <td class="sr-no-cell">1</td>
+                                        <td class="particulars-cell">
+                                            <input type="text" class="item-input" placeholder="Enter item description" required>
+                                        </td>
+                                        <td class="unit-cell">
+                                            <select class="unit-select" required>
+                                                <option value="">Select</option>
+                                                <option value="KG">KG</option>
+                                                <option value="PC">PC</option>
+                                                <option value="BOX">BOX</option>
+                                                <option value="MTR">MTR</option>
+                                                <option value="LTR">LTR</option>
+                                                <option value="NOS">NOS</option>
+                                            </select>
+                                        </td>
+                                        <td class="qty-cell">
+                                            <input type="number" class="qty-input ordered-qty" placeholder="0" min="0" step="0.01" required>
+                                        </td>
+                                        <td class="qty-cell">
+                                            <input type="number" class="qty-input received-qty" placeholder="0" min="0" step="0.01" required>
+                                        </td>
+                                        <td class="qty-cell">
+                                            <input type="number" class="qty-input accepted-qty" placeholder="0" min="0" step="0.01" required>
+                                        </td>
+                                        <td class="qty-cell">
+                                            <input type="number" class="qty-input rejected-qty" placeholder="0" min="0" step="0.01">
+                                        </td>
+                                        <td class="qty-cell">
+                                            <input type="number" class="qty-input balance-qty" placeholder="0" min="0" step="0.01" readonly>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div class="table-actions">
+                                <button type="button" class="add-item-btn" onclick="addItemRow()">
+                                    <i class="fas fa-plus"></i> Add Item
+                                </button>
+                                <button type="button" class="delete-item-btn" onclick="deleteLastItemRow()" id="deleteItemBtn" style="display: none;" title="Delete Item">
+                                    <i class="fas fa-trash"></i> Delete Item
                                 </button>
                             </div>
-                            <div id="itemsContainerModal">
-                                <div class="item-row">
-                                    <div class="item-grid">
-                                        <div class="form-group">
-                                            <label for="itemCodeModal_1">Item Code:</label>
-                                            <input type="text" id="itemCodeModal_1" placeholder="Enter item code" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="itemDescriptionModal_1">Item Description:</label>
-                                            <input type="text" id="itemDescriptionModal_1" placeholder="Enter item description" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="quantityOrderedModal_1">Qty Ordered:</label>
-                                            <input type="number" id="quantityOrderedModal_1" placeholder="0" min="0" step="0.01" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="quantityReceivedModal_1">Qty Received:</label>
-                                            <input type="number" id="quantityReceivedModal_1" placeholder="0" min="0" step="0.01" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="uomModal_1">Unit of Measure:</label>
-                                            <select id="uomModal_1" required>
-                                                <option value="">Select UOM</option>
-                                                <option value="KG">Kilogram (KG)</option>
-                                                <option value="PC">Piece (PC)</option>
-                                                <option value="BOX">Box (BOX)</option>
-                                                <option value="MTR">Meter (MTR)</option>
-                                                <option value="LTR">Liter (LTR)</option>
-                                                <option value="NOS">Numbers (NOS)</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="batchNumberModal_1">Batch Number:</label>
-                                            <input type="text" id="batchNumberModal_1" placeholder="Enter batch number">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="expiryDateModal_1">Expiry Date:</label>
-                                            <input type="date" id="expiryDateModal_1">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="mfgDateModal_1">Mfg Date:</label>
-                                            <input type="date" id="mfgDateModal_1">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="storageLocationModal_1">Storage Location:</label>
-                                            <input type="text" id="storageLocationModal_1" placeholder="Enter storage location">
-                                        </div>
-                                    </div>
-                                    <div class="item-actions">
-                                        <button type="button" class="remove-item-btn" onclick="removeItemRowModal(1)" style="display: none;">
-                                            <i class="fas fa-trash"></i> Remove
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
-                    <!-- Row 3: Documents and Actions -->
-                    <div class="form-row">
-                        <div class="form-section">
-                            <h3 class="section-title">Document Attachments</h3>
-                            <div class="form-group">
-                                <label for="documentUploadModal">
-                                    <button type="button" id="chooseDocumentBtnModal" class="upload-btn">
-                                        <i class="fas fa-paperclip"></i> Attach Documents
-                                    </button>
-                                </label>
-                                <input type="file" id="documentUploadModal" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" multiple style="display: none;">
-                                <div id="documentPreviewsModal" class="document-previews"></div>
-                            </div>
-                        </div>
-
-                        <div class="form-section">
-                            <h3 class="section-title">Actions</h3>
-                            <div class="form-group">
-                                <div class="button-container">
-                                    <button type="submit" class="submit-btn">Submit New GRN</button>
-                                    <button type="button" id="saveAsDraftModal" class="draft-btn">Save as Draft</button>
-                                    <button type="button" id="printGRNModal" class="print-btn">Print GRN</button>
-                                </div>
-                            </div>
-                        </div>
+                    <!-- Action Buttons -->
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">Submit GRN</button>
+                        <button type="button" class="draft-btn" onclick="saveAsDraft()">Save as Draft</button>
+                        <button type="button" class="print-btn" onclick="printGRN()">Print GRN</button>
+                        <button type="button" class="cancel-btn" onclick="closeGRNModal()">Cancel</button>
                     </div>
 
                 </form>
-                <div class="submission-message-overlay-modal"></div>
-                <div class="submission-message-modal"></div>
+                <div class="submission-message-overlay"></div>
+                <div class="submission-message"></div>
             </div>
         </section>
       </main>
@@ -536,12 +506,12 @@
         text-align: center;
       }
 
-      /* GRN Modal Form Styles */
+      /* New GRN Modal Form Styles */
       .grn-section-modal {
         width: 100%;
-        max-width: 1000px;
+        max-width: 1200px;
         background: #fff;
-        padding: 1rem 0.75rem;
+        padding: 1rem 1rem;
         padding-top: calc(45px + 1rem);
         padding-bottom: 1rem;
         margin-top: 0;
@@ -583,52 +553,154 @@
         font-size: 0.75rem;
       }
 
-      .form-row {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
+      /* GRN Header Section */
+      .grn-header-section {
+        margin-bottom: 1.5rem;
+        border: 2px solid #002E7D;
+        border-radius: 8px;
+        padding: 1rem;
+        background: #f8f9fa;
+      }
+
+      .grn-header-grid {
+        display: flex;
+        flex-direction: column;
         gap: 1rem;
         margin-bottom: 1rem;
       }
 
-      .form-row.full-width {
-        grid-template-columns: 1fr;
+      .header-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        align-items: end;
       }
 
-      .form-section {
-        margin-bottom: 1rem;
-        padding: 1rem;
-        background: #f8f9fa;
-        border: 1px solid #e0e0e0;
-        border-radius: 0.5rem;
+      .header-column {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
       }
 
-      .section-title {
-        color: #002E7D;
-        font-size: 1rem;
+      .grn-title-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: white;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        min-height: 50px;
+        height: 50px;
+        box-sizing: border-box;
+      }
+
+      .grn-title-label {
         font-weight: 600;
-        margin-bottom: 0.75rem;
-        border-bottom: 2px solid #002E7D;
-        padding-bottom: 0.5rem;
+        color: #333;
+        font-size: 0.9rem;
+        min-width: 80px;
       }
 
-      .form-group {
+      .grn-number {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #dc3545;
+        background: #fff;
+        border: 2px solid #dc3545;
+        padding: 0.15rem 0.5rem;
+        border-radius: 4px;
+        min-width: 70px;
+        text-align: center;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .company-address-inline {
+        background: white;
+        border: 1px solid #ddd;
+        padding: 0.75rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        line-height: 1.4;
         text-align: left;
-        margin-bottom: 0.5rem;
+        min-height: 90px;
+        height: 90px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-sizing: border-box;
       }
 
-      .form-group label {
+      .company-address-inline strong {
+        font-weight: 600;
+        color: #2D3436;
+      }
+
+      .from-input-enhanced {
+        background: white;
+        border: 1px solid #ddd;
+        padding: 0.75rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        line-height: 1.4;
+        text-align: left;
+        min-height: 90px;
+        height: 90px;
+        box-sizing: border-box;
+        width: 100%;
+        outline: none;
+        cursor: text;
+        overflow-y: auto;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+        font-family: inherit;
+        font-weight: normal;
+        color: inherit;
+      }
+
+      .from-input-enhanced:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+      }
+
+      .from-input-enhanced.placeholder {
+        color: #999 !important;
+        font-style: italic !important;
+        font-weight: normal !important;
+      }
+
+      .from-input-enhanced.placeholder * {
+        color: #999 !important;
+        font-weight: normal !important;
+      }
+
+      .document-details-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+      }
+
+      .form-group-header {
+        text-align: left;
+        margin-bottom: 0.75rem;
+      }
+
+      .form-group-header.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .form-group-header label {
         display: block;
         font-size: 0.8rem;
-        font-weight: 500;
+        font-weight: 600;
         color: #2D3436;
         margin-bottom: 0.25rem;
       }
 
-      input[type="text"],
-      input[type="date"],
-      input[type="datetime-local"],
-      input[type="number"],
-      select {
+      .form-group-header input {
         width: 100%;
         padding: 0.4rem;
         border: 1px solid #ced4da;
@@ -640,129 +712,171 @@
         line-height: 1.3;
       }
 
-      input:focus,
-      select:focus {
-        outline: none;
+
+      .company-address-inline:focus-within {
         border-color: #007bff;
         box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
       }
 
-      .item-row {
-        background: #fff;
+      /* Items Table Section */
+      .items-section {
+        margin-bottom: 1.5rem;
+      }
+
+      .section-title {
+        color: #002E7D;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid #002E7D;
+        padding-bottom: 0.5rem;
+      }
+
+      .items-table-container {
         border: 1px solid #ddd;
-        border-radius: 0.4rem;
-        padding: 1rem;
-        margin-bottom: 0.75rem;
-        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        background: white;
       }
 
-      .item-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 0.75rem;
-        margin-bottom: 0.75rem;
+      .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.75rem;
       }
 
-      .item-actions {
-        display: flex;
-        gap: 0.5rem;
-        justify-content: flex-end;
-        margin-top: 0.75rem;
-        padding-top: 0.75rem;
-        border-top: 1px solid #e0e0e0;
-      }
-
-      .add-item-btn,
-      .remove-item-btn {
-        padding: 0.4rem 0.8rem;
-        border-radius: 0.3rem;
-        cursor: pointer;
-        font-size: 0.8rem;
+      .items-table th {
+        background: #002E7D;
+        color: white;
+        padding: 0.5rem;
         text-align: center;
-        border: none;
-        transition: all 0.3s ease;
+        font-weight: 600;
+        border: 1px solid #4a5568;
+        font-size: 0.7rem;
+      }
+
+      .items-table td {
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        background: white;
+      }
+
+      .sr-no-col { width: 5%; }
+      .particulars-col { width: 25%; }
+      .unit-col { width: 8%; }
+      .ordered-col { width: 12%; }
+      .received-col { width: 12%; }
+      .accepted-col { width: 12%; }
+      .rejected-col { width: 12%; }
+      .balance-col { width: 12%; }
+
+      .sr-no-cell {
+        text-align: center;
+        font-weight: 600;
+        background: #f8f9fa;
+      }
+
+      .particulars-cell {
+        text-align: left;
+      }
+
+      .unit-cell,
+      .qty-cell {
+        text-align: center;
+      }
+
+      .item-input,
+      .unit-select,
+      .qty-input {
+        width: 100%;
+        padding: 0.3rem;
+        border: 1px solid #ced4da;
+        border-radius: 3px;
+        font-size: 0.75rem;
+        box-sizing: border-box;
+        min-height: 32px;
+      }
+
+      .item-input:focus,
+      .unit-select:focus,
+      .qty-input:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.1rem rgba(0, 123, 255, 0.25);
+      }
+
+      .table-actions {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-top: 1px solid #ddd;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
       }
 
       .add-item-btn {
         background: linear-gradient(45deg, #002E7D, #0046C7);
         color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.3rem;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
       }
 
       .add-item-btn:hover {
         box-shadow: 0 3px 8px rgba(0, 46, 125, 0.2);
+        transform: translateY(-1px);
       }
 
-      .remove-item-btn {
+      .delete-item-btn {
         background: #dc3545;
         color: white;
-      }
-
-      .remove-item-btn:hover {
-        background: #c82333;
-        box-shadow: 0 3px 8px rgba(220, 53, 69, 0.2);
-      }
-
-      .upload-btn {
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.3rem;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 600;
         display: inline-flex;
         align-items: center;
-        gap: 0.4rem;
-        padding: 8px 16px;
-        background: linear-gradient(45deg, #002E7D, #0046C7);
-        color: white;
-        border: none;
-        border-radius: 0.3rem;
-        cursor: pointer;
-        font-size: 0.85rem;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        margin-left: 0.5rem;
       }
 
-      .upload-btn:hover {
-        box-shadow: 0 3px 8px rgba(0, 46, 125, 0.2);
+      .delete-item-btn:hover {
+        background: #c82333;
+        box-shadow: 0 3px 8px rgba(220, 53, 69, 0.2);
+        transform: translateY(-1px);
       }
 
-      .document-previews {
-        margin-top: 0.75rem;
+      .delete-item-btn:active {
+        transform: translateY(0);
+      }
+
+      /* Form Actions */
+      .form-actions {
         display: flex;
-        gap: 0.4rem;
-        flex-wrap: wrap;
-      }
-
-      .document-preview {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        padding: 0.4rem 0.8rem;
-        background: #f8f9fa;
-        border: 1px solid #ddd;
-        border-radius: 0.3rem;
-        font-size: 0.75rem;
-      }
-
-      .document-preview .remove-doc {
-        background: #dc3545;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-        font-size: 0.65rem;
-        display: flex;
-        align-items: center;
         justify-content: center;
-      }
-
-      .button-container {
-        display: flex;
-        gap: 0.75rem;
-        justify-content: center;
-        margin-top: 1rem;
+        gap: 1rem;
+        margin-top: 1.5rem;
         flex-wrap: wrap;
       }
 
       .submit-btn,
       .draft-btn,
-      .print-btn {
-        padding: 8px 16px;
+      .print-btn,
+      .cancel-btn {
+        padding: 0.6rem 1.5rem;
         border-radius: 0.3rem;
         cursor: pointer;
         font-size: 0.8rem;
@@ -770,6 +884,7 @@
         white-space: nowrap;
         border: none;
         transition: all 0.3s ease;
+        font-weight: 600;
       }
 
       .submit-btn {
@@ -787,20 +902,28 @@
         color: white;
       }
 
+      .cancel-btn {
+        background: #dc3545;
+        color: white;
+      }
+
       .submit-btn:hover,
       .draft-btn:hover,
-      .print-btn:hover {
+      .print-btn:hover,
+      .cancel-btn:hover {
         box-shadow: 0 3px 8px rgba(0, 46, 125, 0.2);
         transform: translateY(-1px);
       }
 
       .submit-btn:active,
       .draft-btn:active,
-      .print-btn:active {
+      .print-btn:active,
+      .cancel-btn:active {
         transform: translateY(0);
       }
 
-      .submission-message-overlay-modal {
+      /* Submission Messages */
+      .submission-message-overlay {
         position: fixed;
         top: 0;
         left: 0;
@@ -814,7 +937,7 @@
         display: none;
       }
 
-      .submission-message-modal {
+      .submission-message {
         position: fixed;
         top: 50%;
         left: 50%;
@@ -834,12 +957,12 @@
         opacity: 0;
       }
 
-      .submission-message-modal.show {
+      .submission-message.show {
         display: block;
         opacity: 1;
       }
 
-      .submission-message-modal.error {
+      .submission-message.error {
         background-color: #f8d7da;
         color: #721c24;
       }
@@ -871,18 +994,12 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
       }
 
-      /* Responsive styles for smaller screens */
-      @media (max-width: 1366px) {
-        #grnFormOverlay {
-          padding-top: 50px;
-        }
-
+      /* Responsive styles */
+      @media (max-width: 1200px) {
         .grn-section-modal {
-          max-width: 900px !important;
-          padding: 0.75rem 0.5rem !important;
+          max-width: 95vw !important;
+          padding: 0.75rem 0.75rem !important;
           padding-top: calc(40px + 0.75rem) !important;
-          font-size: 0.7rem !important;
-          max-height: 90vh !important;
         }
 
         .header-container-modal {
@@ -894,141 +1011,135 @@
           font-size: 0.9rem !important;
         }
 
-        .form-row {
+        .document-details-grid {
+          grid-template-columns: repeat(2, 1fr) !important;
           gap: 0.75rem !important;
-          margin-bottom: 0.75rem !important;
         }
 
-        .form-section {
-          padding: 0.75rem !important;
-          margin-bottom: 0.75rem !important;
-        }
-
-        .section-title {
-          font-size: 0.9rem !important;
-          margin-bottom: 0.5rem !important;
-        }
-
-        .container-modal {
-          margin-bottom: 1.25rem !important;
-        }
-
-        .form-group {
-          margin-bottom: 0.4rem !important;
-        }
-
-        .form-group label {
-          font-size: 0.75rem !important;
-          margin-bottom: 0.2rem !important;
-        }
-
-        input[type="text"],
-        input[type="date"],
-        input[type="datetime-local"],
-        input[type="number"],
-        select {
+        .items-table th,
+        .items-table td {
           padding: 0.3rem !important;
+          font-size: 0.65rem !important;
+        }
+
+        .company-address-inline {
           font-size: 0.75rem !important;
-          min-height: 32px !important;
+          min-height: 85px !important;
+          height: 85px !important;
+        }
+
+        .from-input-enhanced {
+          font-size: 0.75rem !important;
+          min-height: 85px !important;
+          height: 85px !important;
+          padding: 0.6rem !important;
+          width: 100% !important;
+        }
+
+        .from-input-enhanced.placeholder {
+          color: #999 !important;
+          font-style: italic !important;
+          font-weight: normal !important;
+        }
+
+        .grn-title-row {
+          min-height: 45px !important;
+          height: 45px !important;
+        }
+
+        .grn-number {
+          font-size: 1.1rem !important;
           height: 32px !important;
         }
 
-        .item-grid {
-          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+        .table-actions {
+          flex-wrap: wrap !important;
           gap: 0.5rem !important;
         }
 
-        .item-row {
-          padding: 0.75rem !important;
-          margin-bottom: 0.5rem !important;
-          border-radius: 0.3rem !important;
-        }
-
-        .button-container {
-          gap: 0.5rem !important;
-          margin-top: 0.75rem !important;
-        }
-
-        .submit-btn,
-        .draft-btn,
-        .print-btn {
-          padding: 6px 12px !important;
+        .delete-item-btn {
           font-size: 0.75rem !important;
-        }
-
-        #closeGrnFormOverlay {
-          top: 0.25rem !important;
-          right: 0.75rem !important;
-          width: 30px !important;
-          height: 30px !important;
+          padding: 0.4rem 0.8rem !important;
         }
       }
 
       @media (max-width: 768px) {
-        #grnFormOverlay {
-          padding-top: 50px;
-          padding-left: 10px;
-          padding-right: 10px;
+        .header-row {
+          grid-template-columns: 1fr !important;
+          gap: 0.75rem !important;
         }
 
-        .grn-section-modal {
-          max-width: 100% !important;
-          padding: 0.5rem 0.4rem !important;
-          padding-top: calc(35px + 0.5rem) !important;
-          max-height: 95vh !important;
+        .company-address-inline {
+          font-size: 0.7rem !important;
+          min-height: 90px !important;
+          height: 90px !important;
+          padding: 0.5rem !important;
         }
 
-        .header-container-modal {
-          height: 35px !important;
-          padding-right: 3rem !important;
+        .table-actions {
+          flex-direction: column !important;
+          gap: 0.5rem !important;
         }
 
-        .header-title-modal {
-          font-size: 0.8rem !important;
+        .delete-item-btn {
+          font-size: 0.75rem !important;
+          padding: 0.4rem 0.8rem !important;
         }
 
-        .form-row {
+        .from-input-enhanced {
+          font-size: 0.7rem !important;
+          min-height: 90px !important;
+          height: 90px !important;
+          padding: 0.5rem !important;
+          width: 100% !important;
+        }
+
+        .from-input-enhanced.placeholder {
+          color: #999 !important;
+          font-style: italic !important;
+          font-weight: normal !important;
+        }
+
+        .grn-title-row {
+          min-height: 45px !important;
+          height: 45px !important;
+        }
+
+        .grn-number {
+          font-size: 1rem !important;
+          height: 30px !important;
+          min-width: 60px !important;
+        }
+
+        .document-details-grid {
           grid-template-columns: 1fr !important;
           gap: 0.5rem !important;
-          margin-bottom: 0.5rem !important;
         }
 
-        .form-section {
-          padding: 0.5rem !important;
-          margin-bottom: 0.5rem !important;
-        }
-
-        .section-title {
-          font-size: 0.85rem !important;
-        }
-
-        .container-modal {
-          margin-bottom: 1rem !important;
-        }
-
-        .item-grid {
-          grid-template-columns: 1fr !important;
-          gap: 0.4rem !important;
-        }
-
-        .button-container {
+        .form-actions {
           flex-direction: column !important;
           align-items: center !important;
         }
 
         .submit-btn,
         .draft-btn,
-        .print-btn {
+        .print-btn,
+        .cancel-btn {
           width: 100% !important;
           max-width: 200px !important;
         }
 
-        #closeGrnFormOverlay {
-          top: 0.2rem !important;
-          right: 0.75rem !important;
-          width: 28px !important;
-          height: 28px !important;
-          font-size: 0.9rem !important;
+        .grn-number {
+          font-size: 1.2rem !important;
+        }
+
+        .items-table {
+          font-size: 0.6rem !important;
+        }
+
+        .items-table th,
+        .items-table td {
+          padding: 0.25rem !important;
         }
       }
     </style>

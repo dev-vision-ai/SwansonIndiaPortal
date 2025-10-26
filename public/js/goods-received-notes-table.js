@@ -606,6 +606,10 @@ function hideGrnFormModal() {
     }
 }
 
+function closeGRNModal() {
+    hideGrnFormModal();
+}
+
 // Initialize modal form functionality
 function initializeModalForm() {
     // Generate GRN number
@@ -617,8 +621,8 @@ function initializeModalForm() {
     // Setup item calculations
     setupModalItemCalculations();
 
-    // Setup document upload
-    setupModalDocumentUpload();
+    // Setup contenteditable placeholder
+    setupContenteditablePlaceholder();
 }
 
 // Reset modal form
@@ -628,20 +632,39 @@ function resetModalForm() {
         form.reset();
     }
 
-    // Clear items container (keep first row)
-    const itemsContainer = document.getElementById('itemsContainerModal');
-    if (itemsContainer) {
-        const itemRows = itemsContainer.querySelectorAll('.item-row');
-        for (let i = 1; i < itemRows.length; i++) {
-            itemRows[i].remove();
-        }
-        modalItemRowCounter = 1;
+    // Clear contenteditable From field
+    const fromSupplier = document.getElementById('fromSupplier');
+    if (fromSupplier) {
+        setTimeout(() => {
+            fromSupplier.textContent = 'Enter supplier name';
+            fromSupplier.classList.add('placeholder');
+            // Trigger input event to ensure placeholder styling is applied
+            fromSupplier.dispatchEvent(new Event('input'));
+            // Update delete button visibility after reset
+            updateDeleteButtonVisibility();
+        }, 0);
     }
 
-    // Clear document previews
-    const documentPreviews = document.getElementById('documentPreviewsModal');
-    if (documentPreviews) {
-        documentPreviews.innerHTML = '';
+    // Clear items table (keep first row)
+    const itemsTableBody = document.getElementById('itemsTableBody');
+    if (itemsTableBody) {
+        // Keep only the first row
+        const firstRow = itemsTableBody.querySelector('.item-row');
+        if (firstRow) {
+            // Reset the first row
+            const inputs = firstRow.querySelectorAll('input');
+            inputs.forEach(input => {
+                if (!input.classList.contains('balance-qty')) {
+                    input.value = '';
+                }
+            });
+            const selects = firstRow.querySelectorAll('select');
+            selects.forEach(select => select.selectedIndex = 0);
+
+            // Reset serial numbers
+            const srNoCells = itemsTableBody.querySelectorAll('.sr-no-cell');
+            srNoCells.forEach((cell, index) => cell.textContent = index + 1);
+        }
     }
 
     modalUploadedDocuments = [];
@@ -684,9 +707,9 @@ async function generateModalGRNNumber() {
         }
 
         const grnNumber = `${prefix}-${String(nextNumber).padStart(3, '0')}`;
-        const grnNumberInput = document.getElementById('grnNumberModal');
-        if (grnNumberInput) {
-            grnNumberInput.value = grnNumber;
+        const grnNumberDisplay = document.getElementById('grnNumberDisplay');
+        if (grnNumberDisplay) {
+            grnNumberDisplay.textContent = grnNumber;
         }
         modalCurrentGRNId = grnNumber;
     } catch (error) {
@@ -697,8 +720,6 @@ async function generateModalGRNNumber() {
 // Setup modal form event listeners
 function setupModalFormEventListeners() {
     const form = document.getElementById('grnFormModal');
-    const saveAsDraftButton = document.getElementById('saveAsDraftModal');
-    const printButton = document.getElementById('printGRNModal');
 
     // Form submission
     if (form) {
@@ -708,163 +729,199 @@ function setupModalFormEventListeners() {
         });
     }
 
-    // Save as draft
-    if (saveAsDraftButton) {
-        saveAsDraftButton.addEventListener('click', async function(event) {
-            event.preventDefault();
-            await saveModalAsDraft(currentUser);
+    // Setup quantity calculations
+    setupQuantityCalculations();
+}
+
+// Setup quantity calculations for the new table structure
+function setupQuantityCalculations() {
+    const itemsTableBody = document.getElementById('itemsTableBody');
+    if (itemsTableBody) {
+        itemsTableBody.addEventListener('input', function(event) {
+            const target = event.target;
+            if (target.classList.contains('received-qty') || target.classList.contains('accepted-qty') || target.classList.contains('rejected-qty')) {
+                calculateBalance(target);
+            }
         });
     }
+}
 
-    // Print (placeholder)
-    if (printButton) {
-        printButton.addEventListener('click', function(event) {
-            event.preventDefault();
-            showMessage('Print functionality will be implemented soon.', false);
-        });
+function calculateBalance(inputElement) {
+    const row = inputElement.closest('.item-row');
+    if (!row) return;
+
+    const receivedQty = parseFloat(row.querySelector('.received-qty')?.value) || 0;
+    const acceptedQty = parseFloat(row.querySelector('.accepted-qty')?.value) || 0;
+    const rejectedQty = parseFloat(row.querySelector('.rejected-qty')?.value) || 0;
+
+    const balanceQty = receivedQty - acceptedQty - rejectedQty;
+    const balanceInput = row.querySelector('.balance-qty');
+    if (balanceInput) {
+        balanceInput.value = balanceQty.toFixed(2);
     }
 }
 
 // Setup modal item calculations
 function setupModalItemCalculations() {
-    // Add event listeners for item calculations
-    setupModalCalculations();
+    // Item calculations are now handled in setupModalFormEventListeners
 }
 
-// Setup modal document upload
-function setupModalDocumentUpload() {
-    const documentUpload = document.getElementById('documentUploadModal');
-    const chooseDocumentBtn = document.getElementById('chooseDocumentBtnModal');
+// Setup contenteditable placeholder functionality
+function setupContenteditablePlaceholder() {
+    const fromSupplier = document.getElementById('fromSupplier');
+    if (fromSupplier) {
+        const placeholderText = 'Enter supplier name';
 
-    if (chooseDocumentBtn && documentUpload) {
-        chooseDocumentBtn.addEventListener('click', () => {
-            documentUpload.click();
-        });
-
-        documentUpload.addEventListener('change', handleModalDocumentUpload);
-    }
-}
-
-// Handle modal document upload
-async function handleModalDocumentUpload(event) {
-    const files = Array.from(event.target.files);
-    const maxFileSize = 10 * 1024 * 1024; // 10MB
-    const documentPreviews = document.getElementById('documentPreviewsModal');
-
-    for (const file of files) {
-        if (file.size > maxFileSize) {
-            showMessage(`File ${file.name} is too large. Maximum size is 10MB.`, true);
-            continue;
-        }
-
-        // Compress image if needed
-        let processedFile = file;
-        if (file.type.startsWith('image/')) {
-            try {
-                processedFile = await compressImage(file);
-            } catch (error) {
-                console.error('Error compressing image:', error);
+        // Handle placeholder
+        fromSupplier.addEventListener('focus', function() {
+            if (this.classList.contains('placeholder') || this.textContent.trim() === placeholderText) {
+                this.textContent = '';
+                this.classList.remove('placeholder');
             }
-        }
-
-        // Upload to Supabase Storage
-        const fileName = `grn-${Date.now()}-${file.name}`;
-        const { data, error } = await supabase.storage
-            .from('grn-documents')
-            .upload(fileName, processedFile);
-
-        if (error) {
-            console.error('Error uploading document:', error);
-            showMessage(`Failed to upload ${file.name}`, true);
-            continue;
-        }
-
-        // Add to uploaded documents
-        modalUploadedDocuments.push({
-            name: file.name,
-            url: data.path,
-            size: processedFile.size
         });
 
-        // Add preview
-        addModalDocumentPreview(file.name, data.path);
+        fromSupplier.addEventListener('blur', function() {
+            if (this.textContent.trim() === '') {
+                this.textContent = placeholderText;
+                this.classList.add('placeholder');
+            }
+        });
+
+        fromSupplier.addEventListener('input', function() {
+            if (this.textContent.trim() === '') {
+                this.classList.add('placeholder');
+            } else {
+                this.classList.remove('placeholder');
+            }
+        });
+
+        // Initialize placeholder on next tick to ensure DOM is ready
+        setTimeout(() => {
+            if (!fromSupplier.textContent || fromSupplier.textContent.trim() === '' || fromSupplier.classList.contains('placeholder')) {
+                fromSupplier.textContent = placeholderText;
+                fromSupplier.classList.add('placeholder');
+            }
+            // Initialize delete button visibility
+            updateDeleteButtonVisibility();
+        }, 0);
     }
 }
 
-// Add document preview in modal
-function addModalDocumentPreview(fileName, filePath) {
-    const documentPreviews = document.getElementById('documentPreviewsModal');
-    if (!documentPreviews) return;
+// Add item row function for new table structure
+function addItemRow() {
+    const itemsTableBody = document.getElementById('itemsTableBody');
+    if (!itemsTableBody) return;
 
-    const previewDiv = document.createElement('div');
-    previewDiv.className = 'document-preview';
-    previewDiv.innerHTML = `
-        <span>${fileName}</span>
-        <button type="button" class="remove-doc" onclick="removeModalDocument('${filePath}', this)">&times;</button>
+    const currentRows = itemsTableBody.querySelectorAll('.item-row');
+    const newRowNumber = currentRows.length + 1;
+
+    const newRow = document.createElement('tr');
+    newRow.className = 'item-row';
+    newRow.innerHTML = `
+        <td class="sr-no-cell">${newRowNumber}</td>
+        <td class="particulars-cell">
+            <input type="text" class="item-input" placeholder="Enter item description" required>
+        </td>
+        <td class="unit-cell">
+            <select class="unit-select" required>
+                <option value="">Select</option>
+                <option value="KG">KG</option>
+                <option value="PC">PC</option>
+                <option value="BOX">BOX</option>
+                <option value="MTR">MTR</option>
+                <option value="LTR">LTR</option>
+                <option value="NOS">NOS</option>
+            </select>
+        </td>
+        <td class="qty-cell">
+            <input type="number" class="qty-input ordered-qty" placeholder="0" min="0" step="0.01" required>
+        </td>
+        <td class="qty-cell">
+            <input type="number" class="qty-input received-qty" placeholder="0" min="0" step="0.01" required>
+        </td>
+        <td class="qty-cell">
+            <input type="number" class="qty-input accepted-qty" placeholder="0" min="0" step="0.01" required>
+        </td>
+        <td class="qty-cell">
+            <input type="number" class="qty-input rejected-qty" placeholder="0" min="0" step="0.01">
+        </td>
+        <td class="qty-cell">
+            <input type="number" class="qty-input balance-qty" placeholder="0" min="0" step="0.01" readonly>
+        </td>
     `;
 
-    documentPreviews.appendChild(previewDiv);
+    itemsTableBody.appendChild(newRow);
+
+    // Add event listeners for the new row
+    const newRowInputs = newRow.querySelectorAll('.received-qty, .accepted-qty, .rejected-qty');
+    newRowInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            calculateBalance(this);
+        });
+    });
+
+    // Update delete button visibility
+    updateDeleteButtonVisibility();
 }
 
-// Remove document from modal
-function removeModalDocument(filePath, buttonElement) {
-    // Remove from uploaded documents
-    modalUploadedDocuments = modalUploadedDocuments.filter(doc => doc.url !== filePath);
+// Delete last item row function
+function deleteLastItemRow() {
+    const itemsTableBody = document.getElementById('itemsTableBody');
+    if (!itemsTableBody) return;
 
-    // Remove preview
-    const previewDiv = buttonElement.parentElement;
-    previewDiv.remove();
+    const rows = itemsTableBody.querySelectorAll('.item-row');
+    if (rows.length <= 1) return; // Don't delete if only one item remains
+
+    // Remove the last row (latest added)
+    const lastRow = rows[rows.length - 1];
+    lastRow.remove();
+
+    // Update serial numbers
+    updateSerialNumbers();
+
+    // Update delete button visibility
+    updateDeleteButtonVisibility();
 }
 
-// Compress image
-async function compressImage(file) {
-    return new Promise((resolve) => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const img = new Image();
+// Update serial numbers after deletion
+function updateSerialNumbers() {
+    const itemsTableBody = document.getElementById('itemsTableBody');
+    if (!itemsTableBody) return;
 
-        img.onload = () => {
-            // Calculate new dimensions (max 1920px width/height)
-            let { width, height } = img;
-            const maxDimension = 1920;
-
-            if (width > height) {
-                if (width > maxDimension) {
-                    height = (height * maxDimension) / width;
-                    width = maxDimension;
-                }
-            } else {
-                if (height > maxDimension) {
-                    width = (width * maxDimension) / height;
-                    height = maxDimension;
-                }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-
-            ctx.drawImage(img, 0, 0, width, height);
-
-            canvas.toBlob(resolve, 'image/jpeg', 0.8);
-        };
-
-        img.src = URL.createObjectURL(file);
+    const rows = itemsTableBody.querySelectorAll('.item-row');
+    rows.forEach((row, index) => {
+        const serialCell = row.querySelector('.sr-no-cell');
+        if (serialCell) {
+            serialCell.textContent = index + 1;
+        }
     });
 }
 
-// Setup modal calculations
-function setupModalCalculations() {
-    // Add listeners for quantity and price changes to calculate totals
-    const itemsContainer = document.getElementById('itemsContainerModal');
+// Update delete button visibility based on number of items
+function updateDeleteButtonVisibility() {
+    const itemsTableBody = document.getElementById('itemsTableBody');
+    const deleteBtn = document.getElementById('deleteItemBtn');
 
-    if (itemsContainer) {
-        itemsContainer.addEventListener('input', function(event) {
-            const target = event.target;
-            if (target.matches('[id*="quantityOrderedModal"], [id*="quantityReceivedModal"]')) {
-                // Could add calculations here if needed
-            }
-        });
+    if (!itemsTableBody || !deleteBtn) return;
+
+    const rows = itemsTableBody.querySelectorAll('.item-row');
+
+    // Show delete button if more than 1 item, hide if 1 or fewer
+    if (rows.length > 1) {
+        deleteBtn.style.display = 'inline-flex';
+    } else {
+        deleteBtn.style.display = 'none';
     }
+}
+
+// Save as draft function
+function saveAsDraft() {
+    showMessage('Save as Draft functionality will be implemented soon.', false);
+}
+
+// Print GRN function
+function printGRN() {
+    showMessage('Print GRN functionality will be implemented soon.', false);
 }
 
 // Submit modal GRN
@@ -912,6 +969,8 @@ async function submitModalGRN(userId) {
             item_description: item.itemDescription,
             quantity_ordered: parseFloat(item.quantityOrdered) || 0,
             quantity_received: parseFloat(item.quantityReceived) || 0,
+            quantity_accepted: parseFloat(item.quantityAccepted) || 0,
+            quantity_rejected: parseFloat(item.quantityRejected) || 0,
             uom: item.uom,
             unit_price: parseFloat(item.unitPrice) || 0,
             batch_number: item.batchNumber,
@@ -986,42 +1045,53 @@ async function saveModalAsDraft(userId) {
 // Get modal form data
 function getModalFormData() {
     return {
-        grnNumber: document.getElementById('grnNumberModal')?.value || '',
-        grnDate: document.getElementById('grnDateModal')?.value || '',
-        receiptDate: document.getElementById('receiptDateModal')?.value || '',
-        receivedBy: document.getElementById('receivedByModal')?.value || '',
-        poNumber: document.getElementById('poNumberModal')?.value || '',
-        poDate: document.getElementById('poDateModal')?.value || '',
-        supplierName: document.getElementById('supplierNameModal')?.value || '',
-        supplierCode: document.getElementById('supplierCodeModal')?.value || '',
-        supplierInvoice: document.getElementById('supplierInvoiceModal')?.value || '',
-        invoiceDate: document.getElementById('invoiceDateModal')?.value || '',
-        deliveryChallan: document.getElementById('deliveryChallanModal')?.value || '',
-        vehicleNumber: document.getElementById('vehicleNumberModal')?.value || '',
-        qualityStatus: document.getElementById('qualityStatusModal')?.value || '',
+        grnNumber: document.getElementById('grnNumberDisplay')?.textContent || '',
+        grnDate: document.getElementById('grnDate')?.value || '',
+        receiptDate: document.getElementById('grnDate')?.value || '', // Using GRN date as receipt date for now
+        receivedBy: document.getElementById('receivedBy')?.value || '',
+        poNumber: document.getElementById('purchaseOrderNo')?.value || '',
+        poDate: '', // Not in current form - will need to add
+        supplierName: document.getElementById('fromSupplier')?.textContent?.trim() || '',
+        supplierCode: '', // Not in current form - will need to add
+        supplierInvoice: document.getElementById('taxInvoiceNo')?.value || '',
+        invoiceDate: document.getElementById('invoiceDate')?.value || '',
+        deliveryChallan: document.getElementById('deliveryChallanNo')?.value || '',
+        vehicleNumber: '', // Not in current form - will need to add
+        qualityStatus: '', // Not in current form - will need to add
         items: getModalItemsData()
     };
 }
 
-// Get modal items data
+// Get modal items data from the new table structure
 function getModalItemsData() {
     const items = [];
-    const itemRows = document.querySelectorAll('#itemsContainerModal .item-row');
+    const itemRows = document.querySelectorAll('#itemsTableBody .item-row');
 
     itemRows.forEach((row, index) => {
-        const itemNumber = index + 1;
+        const particularsInput = row.querySelector('.item-input');
+        const unitSelect = row.querySelector('.unit-select');
+        const orderedQtyInput = row.querySelector('.ordered-qty');
+        const receivedQtyInput = row.querySelector('.received-qty');
+        const acceptedQtyInput = row.querySelector('.accepted-qty');
+        const rejectedQtyInput = row.querySelector('.rejected-qty');
+        const balanceQtyInput = row.querySelector('.balance-qty');
+
+        if (particularsInput && particularsInput.value.trim() !== '') {
         items.push({
-            itemCode: document.getElementById(`itemCodeModal_${itemNumber}`)?.value || '',
-            itemDescription: document.getElementById(`itemDescriptionModal_${itemNumber}`)?.value || '',
-            quantityOrdered: document.getElementById(`quantityOrderedModal_${itemNumber}`)?.value || '0',
-            quantityReceived: document.getElementById(`quantityReceivedModal_${itemNumber}`)?.value || '0',
-            uom: document.getElementById(`uomModal_${itemNumber}`)?.value || '',
-            unitPrice: '0', // Not implemented in modal yet
-            batchNumber: document.getElementById(`batchNumberModal_${itemNumber}`)?.value || '',
-            expiryDate: document.getElementById(`expiryDateModal_${itemNumber}`)?.value || '',
-            mfgDate: document.getElementById(`mfgDateModal_${itemNumber}`)?.value || '',
-            storageLocation: document.getElementById(`storageLocationModal_${itemNumber}`)?.value || ''
-        });
+                itemCode: `${index + 1}`, // Simple item code based on row number
+                itemDescription: particularsInput.value.trim(),
+                quantityOrdered: orderedQtyInput?.value || '0',
+                quantityReceived: receivedQtyInput?.value || '0',
+                quantityAccepted: acceptedQtyInput?.value || '0',
+                quantityRejected: rejectedQtyInput?.value || '0',
+                uom: unitSelect?.value || '',
+                unitPrice: '0', // Not implemented yet
+                batchNumber: '', // Not in current form
+                expiryDate: '', // Not in current form
+                mfgDate: '', // Not in current form
+                storageLocation: '' // Not in current form
+            });
+        }
     });
 
     return items;
@@ -1038,19 +1108,17 @@ function validateModalForm(formData) {
         return false;
     }
     if (!formData.poNumber) {
-        showModalMessage('Please enter PO Number.', true);
+        showModalMessage('Please enter Purchase Order Number.', true);
         return false;
     }
-    if (!formData.poDate) {
-        showModalMessage('Please select PO Date.', true);
-        return false;
-    }
-    if (!formData.supplierName) {
+    const fromSupplierElement = document.getElementById('fromSupplier');
+    const hasPlaceholder = fromSupplierElement?.classList.contains('placeholder');
+    if (!formData.supplierName || formData.supplierName === 'Enter supplier name' || formData.supplierName.trim() === '' || hasPlaceholder) {
         showModalMessage('Please enter Supplier Name.', true);
         return false;
     }
     if (!formData.supplierInvoice) {
-        showModalMessage('Please enter Invoice Number.', true);
+        showModalMessage('Please enter Tax Invoice Number.', true);
         return false;
     }
     if (!formData.invoiceDate) {
@@ -1058,11 +1126,7 @@ function validateModalForm(formData) {
         return false;
     }
     if (!formData.deliveryChallan) {
-        showModalMessage('Please enter Delivery Challan.', true);
-        return false;
-    }
-    if (!formData.qualityStatus) {
-        showModalMessage('Please select Material Condition.', true);
+        showModalMessage('Please enter Delivery Challan Number.', true);
         return false;
     }
 
@@ -1073,8 +1137,8 @@ function validateModalForm(formData) {
     }
 
     for (const item of formData.items) {
-        if (!item.itemCode || !item.itemDescription || !item.quantityReceived || !item.uom) {
-            showModalMessage('Please fill all required fields for items.', true);
+        if (!item.itemDescription || !item.quantityReceived || !item.quantityAccepted || !item.uom) {
+            showModalMessage('Please fill all required fields for items (Description, Quantities, Unit).', true);
             return false;
         }
     }
@@ -1084,119 +1148,30 @@ function validateModalForm(formData) {
 
 // Show modal message
 function showModalMessage(message, isError = false) {
-    const messageDiv = document.querySelector('.submission-message-modal');
-    const overlay = document.querySelector('.submission-message-overlay-modal');
+    const messageDiv = document.querySelector('.submission-message');
+    const overlay = document.querySelector('.submission-message-overlay');
 
     if (messageDiv && overlay) {
         messageDiv.textContent = message;
-        messageDiv.className = `submission-message-modal ${isError ? 'error' : ''}`;
+        messageDiv.className = `submission-message ${isError ? 'error' : ''}`;
 
-        overlay.classList.add('show');
-        messageDiv.classList.add('show');
+        overlay.style.display = 'block';
+        messageDiv.style.display = 'block';
 
         // Auto hide after 3 seconds
         setTimeout(() => {
-            overlay.classList.remove('show');
-            messageDiv.classList.remove('show');
+            overlay.style.display = 'none';
+            messageDiv.style.display = 'none';
         }, 3000);
-    }
-}
-
-// Add item row functions for modal
-function addItemRowModal() {
-    modalItemRowCounter++;
-    const itemsContainer = document.getElementById('itemsContainerModal');
-
-    if (itemsContainer) {
-        const newRow = document.createElement('div');
-        newRow.className = 'item-row';
-        newRow.innerHTML = `
-            <div class="item-grid">
-                <div class="form-group">
-                    <label for="itemCodeModal_${modalItemRowCounter}">Item Code:</label>
-                    <input type="text" id="itemCodeModal_${modalItemRowCounter}" placeholder="Enter item code" required>
-                </div>
-                <div class="form-group">
-                    <label for="itemDescriptionModal_${modalItemRowCounter}">Item Description:</label>
-                    <input type="text" id="itemDescriptionModal_${modalItemRowCounter}" placeholder="Enter item description" required>
-                </div>
-                <div class="form-group">
-                    <label for="quantityOrderedModal_${modalItemRowCounter}">Qty Ordered:</label>
-                    <input type="number" id="quantityOrderedModal_${modalItemRowCounter}" placeholder="0" min="0" step="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label for="quantityReceivedModal_${modalItemRowCounter}">Qty Received:</label>
-                    <input type="number" id="quantityReceivedModal_${modalItemRowCounter}" placeholder="0" min="0" step="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label for="uomModal_${modalItemRowCounter}">Unit of Measure:</label>
-                    <select id="uomModal_${modalItemRowCounter}" required>
-                        <option value="">Select UOM</option>
-                        <option value="KG">Kilogram (KG)</option>
-                        <option value="PC">Piece (PC)</option>
-                        <option value="BOX">Box (BOX)</option>
-                        <option value="MTR">Meter (MTR)</option>
-                        <option value="LTR">Liter (LTR)</option>
-                        <option value="NOS">Numbers (NOS)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="batchNumberModal_${modalItemRowCounter}">Batch Number:</label>
-                    <input type="text" id="batchNumberModal_${modalItemRowCounter}" placeholder="Enter batch number">
-                </div>
-                <div class="form-group">
-                    <label for="expiryDateModal_${modalItemRowCounter}">Expiry Date:</label>
-                    <input type="date" id="expiryDateModal_${modalItemRowCounter}">
-                </div>
-                <div class="form-group">
-                    <label for="mfgDateModal_${modalItemRowCounter}">Mfg Date:</label>
-                    <input type="date" id="mfgDateModal_${modalItemRowCounter}">
-                </div>
-                <div class="form-group">
-                    <label for="storageLocationModal_${modalItemRowCounter}">Storage Location:</label>
-                    <input type="text" id="storageLocationModal_${modalItemRowCounter}" placeholder="Enter storage location">
-                </div>
-            </div>
-            <div class="item-actions">
-                <button type="button" class="remove-item-btn" onclick="removeItemRowModal(${modalItemRowCounter})">
-                    <i class="fas fa-trash"></i> Remove
-                </button>
-            </div>
-        `;
-
-        itemsContainer.appendChild(newRow);
-
-        // Show remove button on first row if more than one row
-        const itemRows = itemsContainer.querySelectorAll('.item-row');
-        if (itemRows.length > 1) {
-            const firstRowRemoveBtn = itemRows[0].querySelector('.remove-item-btn');
-            if (firstRowRemoveBtn) {
-                firstRowRemoveBtn.style.display = 'block';
-            }
-        }
-    }
-}
-
-function removeItemRowModal(rowNumber) {
-    const itemsContainer = document.getElementById('itemsContainerModal');
-    const rowToRemove = document.getElementById(`itemCodeModal_${rowNumber}`)?.closest('.item-row');
-
-    if (rowToRemove && itemsContainer) {
-        rowToRemove.remove();
-        modalItemRowCounter--;
-
-        // Hide remove button on first row if only one row remains
-        const itemRows = itemsContainer.querySelectorAll('.item-row');
-        if (itemRows.length === 1) {
-            const firstRowRemoveBtn = itemRows[0].querySelector('.remove-item-btn');
-            if (firstRowRemoveBtn) {
-                firstRowRemoveBtn.style.display = 'none';
-            }
-        }
+    } else {
+        // Fallback to regular message if modal message elements not found
+        showMessage(message, isError);
     }
 }
 
 // Make functions globally available for onclick handlers
-window.addItemRowModal = addItemRowModal;
-window.removeItemRowModal = removeItemRowModal;
-window.removeModalDocument = removeModalDocument;
+window.addItemRow = addItemRow;
+window.deleteLastItemRow = deleteLastItemRow;
+window.saveAsDraft = saveAsDraft;
+window.printGRN = printGRN;
+window.closeGRNModal = closeGRNModal;

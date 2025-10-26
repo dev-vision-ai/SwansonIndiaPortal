@@ -42,15 +42,17 @@
 
                         <!-- Right Side -->
                         <div class="equipment-right">
-                            <!-- Row 2: Requisition No & Machine No (right) -->
+                            <!-- Row 2: Machine No & Requisition No (right) -->
                             <div class="form-row">
+                                <div class="form-group">
+                                    <label for="machineNo">Area / Machine:</label>
+                                    <select id="machineNo" required>
+                                        <option value="">Select Area / Machine</option>
+                                    </select>
+                                </div>
                                 <div class="form-group">
                                     <label for="requisitionNo">Requisition No.:</label>
                                     <input type="text" id="requisitionNo" placeholder="Enter requisition number">
-                                </div>
-                                <div class="form-group">
-                                    <label for="machineNo">Machine No.:</label>
-                                    <input type="text" id="machineNo" placeholder="Enter machine number">
                                 </div>
                             </div>
 
@@ -204,50 +206,6 @@
                 </div>
 
 
-                <!-- Power Options -->
-                <div class="form-section power-section">
-                    <div class="power-container">
-                        <div class="breakdown-header power-header">
-                            <span class="breakdown-title power-title">Power</span>
-                            <div class="tick-instruction power-instruction">✓ Tick the required option</div>
-                        </div>
-                        <div class="power-options-grid">
-                        <!-- Power Options -->
-                        <div class="power-row">
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="switchOffPower" name="powerOption">
-                                <span>Switch off power</span>
-                            </label>
-                            <span class="power-label">OP</span>
-                        </div>
-
-                        <div class="power-row">
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="noSwitchPower" name="powerOption">
-                                <span>No switch off power</span>
-                            </label>
-                            <span class="power-label">NOP</span>
-                        </div>
-
-                        <!-- Machine Options -->
-                        <div class="power-row">
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="stopMachine" name="machineOption">
-                                <span>Stop machine</span>
-                            </label>
-                            <span class="power-label">SM</span>
-                        </div>
-
-                        <div class="power-row">
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="noStopMachine" name="machineOption">
-                                <span>No stop machine</span>
-                            </label>
-                            <span class="power-label">NSM</span>
-                        </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Image Upload -->
                 <div id="imageUploadContainer">
