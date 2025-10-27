@@ -13,21 +13,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return str.toString().padStart(len, '0');
     }
 
-    // Helper: Modulo 10 check digit (Luhn algorithm)
-    function calculateModulo10(number) {
-        let sum = 0;
-        let alt = true;
-        for (let i = number.length - 1; i >= 0; i--) {
-            let n = parseInt(number[i], 10);
-            if (alt) {
-                n *= 2;
-                if (n > 9) n -= 9;
-            }
-            sum += n;
-            alt = !alt;
-        }
-        return (10 - (sum % 10)) % 10;
+   // Helper: GS1 Modulo 10 check digit calculation (correct for SSCC)
+function calculateModulo10(number) {
+    let sum = 0;
+    
+    // GS1 algorithm: multiply by 3 and 1 alternately from RIGHT to LEFT
+    for (let i = 0; i < number.length; i++) {
+        let digit = parseInt(number[i], 10);
+        let multiplier = (i % 2 === 0) ? 3 : 1; // Even positions (from right) get ×3, odd get ×1
+        
+        sum += digit * multiplier;
     }
+    
+    return (10 - (sum % 10)) % 10;
+}
 
     // Helper: Generate SSCC (20 digits)
     function generateSSCC(companyPrefix, serialRef) {
