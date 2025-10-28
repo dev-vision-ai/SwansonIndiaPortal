@@ -38,33 +38,35 @@ function calculateModulo10(number) {
         return base + checkDigit;
     }
 
-// SIMPLE FIX - Use competitor's approach
+// FORCE SIMPLE CODE 128 - No GS1 prefixes
 function generateBarcodes(data) {
-    // GCAS/Net wt. - Exactly like competitor
+    // Remove any GS1 prefixes and use plain data
+    
+    // GCAS/Net wt.
     JsBarcode('#barcode-gcas', `91${data.irms_gcas}37${data.net_weight}`, {
         format: 'CODE128', 
-        width: 2, 
-        height: 50, 
+        width: 3, 
+        height: 80,  // Increased height
         displayValue: false
     });
     
-    // Lot No. - Exactly like competitor (NO FNC1 in barcode!)
+    // Lot No. - SIMPLE CODE 128 ONLY
     JsBarcode('#barcode-lot', `10${data.lot_number}90${data.pallet_type}`, {
         format: 'CODE128', 
-        width: 2, 
-        height: 50, 
+        width: 3,
+        height: 80,
         displayValue: false
     });
     
-    // SSCC - Exactly like competitor
+    // SSCC - SIMPLE CODE 128 ONLY  
     JsBarcode('#barcode-sscc', `00${data.sscc}`, {
         format: 'CODE128', 
-        width: 2, 
-        height: 50, 
+        width: 3,
+        height: 80,
         displayValue: false
     });
     
-    // Keep human-readable EXACTLY as before
+    // Keep human-readable unchanged
     document.getElementById('barcode-gcas-text').textContent = `(91) ${data.irms_gcas}(37)${data.net_weight}`;
     document.getElementById('barcode-lot-text').textContent = `(10) ${data.lot_number}~(90)${data.pallet_type}`;
     
