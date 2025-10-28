@@ -46,7 +46,7 @@ function generateBarcodes(data) {
     JsBarcode('#barcode-gcas', `91${data.irms_gcas}37${data.net_weight}`, {
         format: 'CODE128', 
         width: 3, 
-        height: 80,  // Increased height
+        height: 50,  // Increased height
         displayValue: false
     });
     
@@ -54,7 +54,7 @@ function generateBarcodes(data) {
     JsBarcode('#barcode-lot', `10${data.lot_number}90${data.pallet_type}`, {
         format: 'CODE128', 
         width: 3,
-        height: 80,
+        height: 50,
         displayValue: false
     });
     
@@ -62,7 +62,7 @@ function generateBarcodes(data) {
     JsBarcode('#barcode-sscc', `00${data.sscc}`, {
         format: 'CODE128', 
         width: 3,
-        height: 80,
+        height: 50,
         displayValue: false
     });
     
