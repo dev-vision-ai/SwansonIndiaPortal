@@ -38,40 +38,36 @@ function calculateModulo10(number) {
         return base + checkDigit;
     }
 
-    // Helper: Generate barcodes using JsBarcode with GS1-128 format
+// SIMPLE FIX - Use competitor's approach
 function generateBarcodes(data) {
-    // GCAS/Net wt. SVG - GS1-128 compliant encoding
-    JsBarcode('#barcode-gcas', `]C191${data.irms_gcas}${String.fromCharCode(29)}37${data.net_weight}`, {format: 'CODE128', width:2, height:50, displayValue: false});
-    // Move barcode up
-    const barcodeGcasSvg = document.getElementById('barcode-gcas');
-    if (barcodeGcasSvg) {
-        barcodeGcasSvg.style.marginBottom = '0px';
-        barcodeGcasSvg.style.marginTop = '-5px';
-        barcodeGcasSvg.style.background = '#fff';
-    }
-    document.getElementById('barcode-gcas-text').textContent = `(91) ${data.irms_gcas}(37)${data.net_weight}`;
+    // GCAS/Net wt. - Exactly like competitor
+    JsBarcode('#barcode-gcas', `91${data.irms_gcas}37${data.net_weight}`, {
+        format: 'CODE128', 
+        width: 2, 
+        height: 50, 
+        displayValue: false
+    });
     
-    // Lot No. SVG - GS1-128 compliant encoding
-    JsBarcode('#barcode-lot', `]C110${data.lot_number}${String.fromCharCode(29)}90${data.pallet_type}`, {format: 'CODE128', width:2, height:50, displayValue: false});
-    // Move barcode up
-    const barcodeLotSvg = document.getElementById('barcode-lot');
-    if (barcodeLotSvg) {
-        barcodeLotSvg.style.marginBottom = '0px';
-        barcodeLotSvg.style.marginTop = '-5px';
-        barcodeLotSvg.style.background = '#fff';
-    }
+    // Lot No. - Exactly like competitor (NO FNC1 in barcode!)
+    JsBarcode('#barcode-lot', `10${data.lot_number}90${data.pallet_type}`, {
+        format: 'CODE128', 
+        width: 2, 
+        height: 50, 
+        displayValue: false
+    });
+    
+    // SSCC - Exactly like competitor
+    JsBarcode('#barcode-sscc', `00${data.sscc}`, {
+        format: 'CODE128', 
+        width: 2, 
+        height: 50, 
+        displayValue: false
+    });
+    
+    // Keep human-readable EXACTLY as before
+    document.getElementById('barcode-gcas-text').textContent = `(91) ${data.irms_gcas}(37)${data.net_weight}`;
     document.getElementById('barcode-lot-text').textContent = `(10) ${data.lot_number}~(90)${data.pallet_type}`;
     
-    // Unit Load ID (SSCC) SVG - GS1-128 compliant encoding
-    JsBarcode('#barcode-sscc', `]C100${data.sscc}`, {format: 'CODE128', width:2, height:50, displayValue: false});
-    // Move barcode up
-    const barcodeSsccSvg = document.getElementById('barcode-sscc');
-    if (barcodeSsccSvg) {
-        barcodeSsccSvg.style.marginBottom = '0px';
-        barcodeSsccSvg.style.marginTop = '-5px';
-        barcodeSsccSvg.style.background = '#fff';
-    }
-    // Group and space SSCC for human-readable as per SOP: (00) 1 1534145 000000123 4
     const sscc = data.sscc;
     const hrSSCC = `(00) ${sscc[0]} ${sscc.slice(1,8)} ${sscc.slice(8,17)} ${sscc.slice(17)}`;
     document.getElementById('barcode-sscc-text').textContent = hrSSCC;
