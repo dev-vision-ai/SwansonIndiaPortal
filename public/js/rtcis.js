@@ -15,20 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Helper: Modulo 10 check digit (Luhn algorithm)
     function calculateModulo10(number) {
-        let sum = 0;
-        let alt = true;
-        for (let i = number.length - 1; i >= 0; i--) {
-            let n = parseInt(number[i], 10);
-            if (alt) {
-                n *= 2;
-                if (n > 9) n -= 9;
-            }
-            sum += n;
-            alt = !alt;
-        }
-        return (10 - (sum % 10)) % 10;
+      let sum = 0;
+      for (let i = number.length - 1; i >= 0; i--) {
+        const digit = parseInt(number[i], 10);
+        const weight = ((number.length - 1 - i) % 2 === 0) ? 3 : 1;
+        sum += digit * weight;
+      }
+      return (10 - (sum % 10)) % 10;
     }
-
+    
     // Helper: Generate SSCC (20 digits)
     function generateSSCC(companyPrefix, serialRef) {
         const extensionDigit = '1'; // Can be 0-9, use 1 for now
@@ -39,41 +34,94 @@ document.addEventListener('DOMContentLoaded', () => {
         return base + checkDigit;
     }
 
-    // Helper: Generate barcodes using JsBarcode
-    function generateBarcodes(data) {
-        // GCAS/Net wt. SVG (encoded: 919189984037454.72)
-        JsBarcode('#barcode-gcas', `91${data.irms_gcas}37${data.net_weight}`, {format: 'CODE128', width:2, height:50, displayValue: false});
-        // Move barcode up
+// ✅ Fully GS1-128 compliant barcode generator using bwip-js
+async function generateBarcodes(data) {
+    try {
+        // Ensure net weight is digits only for GS1-128 AI 37
+        const netWeightClean = String(data.net_weight).replace(/[^0-9]/g, '');
+
+        // GCAS / Net Wt. → JsBarcode (simple CODE128, decimal preserved)
+try {
+  const gcasText = `91${data.irms_gcas}37${data.net_weight}`;
+  JsBarcode('#barcode-gcas', gcasText, {
+    format: 'CODE128',
+    width: 5,
+    height: 40,
+    displayValue: false,
+  });
+  // Move barcode up
         const barcodeGcasSvg = document.getElementById('barcode-gcas');
         if (barcodeGcasSvg) {
-            barcodeGcasSvg.style.marginBottom = '0px';
-            barcodeGcasSvg.style.marginTop = '-5px';
+            barcodeGcasSvg.style.marginBottom = '5px';
+            barcodeGcasSvg.style.marginTop = '-10px';
             barcodeGcasSvg.style.background = '#fff';
         }
-        document.getElementById('barcode-gcas-text').textContent = `(91) ${data.irms_gcas}(37)${data.net_weight}`;
-        // Lot No. SVG (encoded: 10SWIN2504042390NONE)
-        JsBarcode('#barcode-lot', `10${data.lot_number}90${data.pallet_type}`, {format: 'CODE128', width:2, height:50, displayValue: false});
-        // Move barcode up
-        const barcodeLotSvg = document.getElementById('barcode-lot');
-        if (barcodeLotSvg) {
-            barcodeLotSvg.style.marginBottom = '0px';
-            barcodeLotSvg.style.marginTop = '-5px';
-            barcodeLotSvg.style.background = '#fff';
-        }
-        document.getElementById('barcode-lot-text').textContent = `(10) ${data.lot_number}~(90)${data.pallet_type}`;
-        // Unit Load ID (SSCC) SVG (encoded: 0011534145XXXXXXXXX[check])
-        JsBarcode('#barcode-sscc', `00${data.sscc}`, {format: 'CODE128', width:2, height:50, displayValue: false});
-        // Move barcode up
-        const barcodeSsccSvg = document.getElementById('barcode-sscc');
-        if (barcodeSsccSvg) {
-            barcodeSsccSvg.style.marginBottom = '0px';
-            barcodeSsccSvg.style.marginTop = '-5px';
-            barcodeSsccSvg.style.background = '#fff';
-        }
-        // Group and space SSCC for human-readable as per SOP: (00) 1 1534145 000000123 4
+        document.getElementById('barcode-gcas-text').textContent = `(91) ${data.irms_gcas}(37)${netWeightClean}`;
+  // Human-readable text below
+  document.getElementById('barcode-gcas-text').textContent =
+    `(91) ${data.irms_gcas}(37)${data.net_weight}`;
+} catch (err) {
+  console.error('GCAS barcode generation failed:', err);
+}
+
+        // Lot Number (AI 10 + 90)
+        bwipjs.toCanvas('barcode-lot', {
+            bcid: 'gs1-128',
+            text: `(10)${data.lot_number}(90)${data.pallet_type}`,
+            scale: 5,
+            height: 15,
+            includetext: false,
+            backgroundcolor: 'FFFFFF',
+            paddingheight: 10
+        });
+        
+        document.getElementById('barcode-lot-text').textContent = `(10) ${data.lot_number}(90)${data.pallet_type}`;
+
+        // SSCC / Unit Load ID (AI 00)
+        bwipjs.toCanvas('barcode-sscc', {
+            bcid: 'gs1-128',
+            text: `(00)${data.sscc}`,
+            scale: 5,
+            height: 15,
+            includetext: false,
+            backgroundcolor: 'FFFFFF',
+            paddingheight: 10
+        });
         const sscc = data.sscc;
         const hrSSCC = `(00) ${sscc[0]} ${sscc.slice(1,8)} ${sscc.slice(8,17)} ${sscc.slice(17)}`;
         document.getElementById('barcode-sscc-text').textContent = hrSSCC;
+        // --- If PNGs are needed for PDF export or similar: ---
+        // Return PNG data URLs for each barcode
+        const barcodeGcasPng = document.getElementById('barcode-gcas').toDataURL('image/png');
+        const barcodeLotPng = document.getElementById('barcode-lot').toDataURL('image/png');
+        const barcodeSsccPng = document.getElementById('barcode-sscc').toDataURL('image/png');
+        return { barcodeGcasPng, barcodeLotPng, barcodeSsccPng };
+    } catch (err) {
+        console.error('Barcode generation failed:', err);
+        alert('Barcode generation failed — check console.');
+        return false;
+    }
+}
+
+// --- GS1 Mod-10 check-digit calculation ---
+function calculateGS1Mod10(number) {
+  let sum = 0;
+  for (let i = number.length - 1; i >= 0; i--) {
+      const n = parseInt(number[i], 10);
+      const weight = ((number.length - 1 - i) % 2 === 0) ? 3 : 1;
+      sum += n * weight;
+  }
+  return (10 - (sum % 10)) % 10;
+}
+
+// --- Canvas spacing helper ---
+function setBarcodeCanvasStyle(id) {
+  const c = document.getElementById(id);
+  if (c) {
+      c.style.marginTop = '-5px';
+      c.style.marginBottom = '0px';
+      c.style.background = '#fff';
+  }
 
         // Also render to canvas for PDF export and return base64
         function svgToCanvasBase64(svgSelector) {
@@ -173,10 +221,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 border-left: none !important;
               }
               /* Barcode SVG and human text: center-center */
-              .barcode,
+              .barcode {
+                text-align: center !important;
+                vertical-align: middle !important;
+                margin-bottom: 15px !important;
+              }
               .rtcis-barcode-human {
                 text-align: center !important;
                 vertical-align: middle !important;
+                margin-top: 10px !important;
+                padding-top: 5px !important;
+                font-weight: bold !important;
               }
               /* Barcode label (e.g., 'GCAS/ Net wt.'): left-aligned */
               .rtcis-barcode-label {
@@ -335,21 +390,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tr>
                   <td colspan="4" class="rtcis-barcode-section">
                     <span class="rtcis-barcode-label">GCAS/ Net wt.</span>
-                    <div class="barcode" style="text-align:center;height:54pt;line-height:54pt;"><svg id="barcode-gcas"></svg></div>
+                    <div class="barcode" style="text-align:center;height:27pt;line-height:27pt;"><canvas id="barcode-gcas"></canvas></div>
                     <div class="rtcis-barcode-human" id="barcode-gcas-text"></div>
                   </td>
                 </tr>
                 <tr>
                   <td colspan="4" class="rtcis-barcode-section">
                     <span class="rtcis-barcode-label">Lot No.</span>
-                    <div class="barcode" style="text-align:center;height:54pt;line-height:54pt;"><svg id="barcode-lot"></svg></div>
+                    <div class="barcode" style="text-align:center;height:54pt;line-height:54pt;"><canvas id="barcode-lot"></canvas></div>
                     <div class="rtcis-barcode-human" id="barcode-lot-text"></div>
                   </td>
                 </tr>
                 <tr>
                   <td colspan="4" class="rtcis-barcode-section">
                     <span class="rtcis-barcode-label">Unit Load ID</span>
-                    <div class="barcode" style="text-align:center;height:54pt;line-height:54pt;"><svg id="barcode-sscc"></svg></div>
+                    <div class="barcode" style="text-align:center;height:54pt;line-height:54pt;"><canvas id="barcode-sscc"></canvas></div>
                     <div class="rtcis-barcode-human" id="barcode-sscc-text"></div>
                   </td>
                 </tr>
@@ -446,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fill label
         ensureLabelDiv();
         fillLabel(labelData);
-        const [barcodeGcas, barcodeLot, barcodeSscc] = await generateBarcodes(labelData);
+        const success = await generateBarcodes(labelData);
         
         // --- FIXED PAGE SIZE (6.18 x 7.75 inch) WITH FIXED MARGINS ---
         const labelDiv = document.getElementById('label-print-area');
@@ -541,7 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 { text: 'GCAS/ Net wt.', colSpan: 4, style: 'barcodeLabel', alignment: 'left', verticalAlignment: 'middle', border: [true, true, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
                             ],
                             [
-                                { image: barcodeGcas, width: 227, height: 79, colSpan: 4, alignment: 'center', border: [true, false, true, false], margin: [4, -18, 4, -18] }, {}, {}, {}
+                                { image: success.barcodeGcasPng, width: 227, height: 79, colSpan: 4, alignment: 'center', border: [true, false, true, false], margin: [4, -18, 4, -18] }, {}, {}, {}
                             ],
                             [
                                 { text: document.getElementById('barcode-gcas-text').innerText, colSpan: 4, style: 'barcodeHuman', alignment: 'center', border: [true, false, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
@@ -550,7 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 { text: 'Lot No.', colSpan: 4, style: 'barcodeLabel', alignment: 'left', verticalAlignment: 'middle', border: [true, true, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
                             ],
                             [
-                                { image: barcodeLot, width: 227, height: 79, colSpan: 4, alignment: 'center', border: [true, false, true, false], margin: [4, -18, 4, -18] }, {}, {}, {}
+                                { image: success.barcodeLotPng, width: 227, height: 79, colSpan: 4, alignment: 'center', border: [true, false, true, false], margin: [4, -18, 4, -18] }, {}, {}, {}
                             ],
                             [
                                 { text: document.getElementById('barcode-lot-text').innerText, colSpan: 4, style: 'barcodeHuman', alignment: 'center', border: [true, false, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
@@ -559,7 +614,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 { text: 'Unit Load ID', colSpan: 4, style: 'barcodeLabel', alignment: 'left', verticalAlignment: 'middle', border: [true, true, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
                             ],
                             [
-                                { image: barcodeSscc, width: 227, height: 79, colSpan: 4, alignment: 'center', border: [true, false, true, false], margin: [4, -18, 4, -18] }, {}, {}, {}
+                                { image: success.barcodeSsccPng, width: 227, height: 79, colSpan: 4, alignment: 'center', border: [true, false, true, false], margin: [4, -18, 4, -18] }, {}, {}, {}
                             ],
                             [
                                 { text: document.getElementById('barcode-sscc-text').innerText, colSpan: 4, style: 'barcodeHuman', alignment: 'center', border: [true, false, true, true], margin: [4, 0, 4, 5] }, {}, {}, {}
