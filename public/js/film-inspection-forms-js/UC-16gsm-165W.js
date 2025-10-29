@@ -2024,13 +2024,13 @@ function applyOOSValidation(input, columnType) {
             const tableBody = input.closest('tbody');
             if (tableBody && tableBody.id === 'testingTableBody') {
                 // Page 1: Tensile Break L-5.00 T-11.00 g/25mm
-                shouldHighlight = value < 5.00 || value > 11.00;
+                shouldHighlight = value < 5.00;
             } else if (tableBody && tableBody.id === 'testingTableBody2') {
                 // Page 2: Tensile Break L-3.00 T-9.00 g/25mm (both limits)
                 shouldHighlight = value < 3.00 || value > 9.00;
             } else {
                 // Default to Page 1 logic
-                shouldHighlight = value < 5.00 || value > 11.00;
+                shouldHighlight = value < 5.00;
             }
             break;
         case 'elongation':
@@ -3415,8 +3415,8 @@ function applyValidationToExistingInputs() {
                 if (inputs[4]) applySimpleNumericValidation(inputs[4]);
                 // COF-RR column (index 5) - COF format (30 → 0.30)
                 if (inputs[5]) applyCOFValidation(inputs[5]);
-                // Tensile Break column (index 6) - 0000 format (4 digits, no decimal)
-                if (inputs[6]) applyFourDigitValidation(inputs[6]);
+                // Tensile Break column (index 6) - allow up to 2 decimals
+                if (inputs[6]) applyFlexibleTwoDecimalValidation(inputs[6], { maxBeforeDecimal: 2, maxAfterDecimal: 2 });
                 // MD Elongation Break column (index 7) - 000 format (3 digits, no decimal)
                 if (inputs[7]) applyThreeDigitValidation(inputs[7]);
                 // 10% Modulus column (index 8) - 000 format (3 digits, no decimal)
@@ -3434,8 +3434,8 @@ function applyValidationToExistingInputs() {
             if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
                 const inputs = row.querySelectorAll('input');
                 
-                // Tensile Break column (index 3) - 0000 format (4 digits, no decimal)
-                if (inputs[3]) applyFourDigitValidation(inputs[3]);
+                // Tensile Break column (index 3) - allow up to 2 decimals
+                if (inputs[3]) applyFlexibleTwoDecimalValidation(inputs[3], { maxBeforeDecimal: 2, maxAfterDecimal: 2 });
                 // CD Elongation Break column (index 4) - 000 format (3 digits, no decimal)
                 if (inputs[4]) applyThreeDigitValidation(inputs[4]);
                 // 10% Modulus column (index 5) - 000 format (3 digits, no decimal)
@@ -3924,7 +3924,11 @@ function calculateSummaryStatistics(tableBody) {
                 avgFormatted = avg.toFixed(2);
                 minFormatted = min.toFixed(2);
                 maxFormatted = max.toFixed(2);
-            } else if (summaryColIndex >= 4) { // Tensile Break, MD Elongation Break, 10% Modulus - 0 decimals
+            } else if (summaryColIndex === 4) { // Tensile Break - 2 decimals
+                avgFormatted = avg.toFixed(2);
+                minFormatted = min.toFixed(2);
+                maxFormatted = max.toFixed(2);
+            } else if (summaryColIndex > 4) { // MD Elongation Break, 10% Modulus - 0 decimals
                 avgFormatted = avg.toFixed(0);
                 minFormatted = min.toFixed(0);
                 maxFormatted = max.toFixed(0);
@@ -3947,7 +3951,9 @@ function calculateSummaryStatistics(tableBody) {
                 zeroFormatted = '0';
             } else if (summaryColIndex === 3) { // COF-RR - 2 decimals
                 zeroFormatted = '0.00';
-            } else if (summaryColIndex >= 4) { // Tensile Break, MD Elongation Break, 10% Modulus - 0 decimals
+            } else if (summaryColIndex === 4) { // Tensile Break - 2 decimals
+                zeroFormatted = '0.00';
+            } else if (summaryColIndex > 4) { // MD Elongation Break, 10% Modulus - 0 decimals
                 zeroFormatted = '0';
             } else { // Default fallback
                 zeroFormatted = '0.00';
@@ -4034,7 +4040,11 @@ function calculatePage1ColumnStats(tableBody, changedColumnIndex = null) {
                     avgFormatted = avg.toFixed(2);
                     minFormatted = min.toFixed(2);
                     maxFormatted = max.toFixed(2);
-                } else if (summaryColIndex >= 4) { // Tensile Break, MD Elongation Break, 10% Modulus - 0 decimals
+                } else if (summaryColIndex === 4) { // Tensile Break - 2 decimals
+                    avgFormatted = avg.toFixed(2);
+                    minFormatted = min.toFixed(2);
+                    maxFormatted = max.toFixed(2);
+                } else if (summaryColIndex > 4) { // MD Elongation Break, 10% Modulus - 0 decimals
                     avgFormatted = avg.toFixed(0);
                     minFormatted = min.toFixed(0);
                     maxFormatted = max.toFixed(0);
@@ -4057,7 +4067,9 @@ function calculatePage1ColumnStats(tableBody, changedColumnIndex = null) {
                     zeroFormatted = '0';
                 } else if (summaryColIndex === 3) { // COF-RR - 2 decimals
                     zeroFormatted = '0.00';
-                } else if (summaryColIndex >= 4) { // Tensile Break, MD Elongation Break, 10% Modulus - 0 decimals
+                } else if (summaryColIndex === 4) { // Tensile Break - 2 decimals
+                    zeroFormatted = '0.00';
+                } else if (summaryColIndex > 4) { // MD Elongation Break, 10% Modulus - 0 decimals
                     zeroFormatted = '0';
                 } else { // Default fallback
                     zeroFormatted = '0.00';
@@ -4162,10 +4174,10 @@ function calculatePage2ColumnStats(tableBody, changedColumnIndex = null) {
                     }
                 } else {
                     // Page 2 column formatting
-                    if (summaryColIndex === 1) { // Tensile Break - 0 decimals
-                        avgFormatted = avg.toFixed(0);
-                        minFormatted = min.toFixed(0);
-                        maxFormatted = max.toFixed(0);
+                    if (summaryColIndex === 1) { // Tensile Break - 2 decimals
+                        avgFormatted = avg.toFixed(2);
+                        minFormatted = min.toFixed(2);
+                        maxFormatted = max.toFixed(2);
                     } else if (summaryColIndex === 2) { // CD Elongation Break - 0 decimals
                         avgFormatted = avg.toFixed(0);
                         minFormatted = min.toFixed(0);
@@ -4199,7 +4211,10 @@ function calculatePage2ColumnStats(tableBody, changedColumnIndex = null) {
                 updatePageSummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
             } else {
                 // No data - show zeros
-                const zeroFormatted = summaryColIndex <= 4 || summaryColIndex === 8 ? '0.00' : '0.0';
+                let zeroFormatted = summaryColIndex <= 4 || summaryColIndex === 8 ? '0.00' : '0.0';
+                if (!isPage3 && summaryColIndex === 1) {
+                    zeroFormatted = '0.00';
+                }
                 updatePageSummaryRow(tableBody, 'Average', summaryColIndex, zeroFormatted);
                 updatePageSummaryRow(tableBody, 'Minimum', summaryColIndex, zeroFormatted);
                 updatePageSummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
@@ -4276,7 +4291,11 @@ function calculatePage2SummaryStatistics(tableBody) {
                 }
             } else {
                 // Page 2 formatting
-                if (summaryColIndex <= 3) { // Tensile Break, CD Elongation Break, 10% Modulus (no decimal)
+                if (summaryColIndex === 1) { // Tensile Break (2 decimals)
+                    avgFormatted = avg.toFixed(2);
+                    minFormatted = min.toFixed(2);
+                    maxFormatted = max.toFixed(2);
+                } else if (summaryColIndex <= 3) { // CD Elongation Break, 10% Modulus (no decimal)
                     avgFormatted = Math.round(avg).toString();
                     minFormatted = Math.round(min).toString();
                     maxFormatted = Math.round(max).toString();
@@ -4307,7 +4326,9 @@ function calculatePage2SummaryStatistics(tableBody) {
                 }
             } else {
                 // Page 2 formatting
-                if (summaryColIndex <= 3) { // Tensile Break, CD Elongation Break, 10% Modulus (no decimal)
+                if (summaryColIndex === 1) { // Tensile Break (2 decimals)
+                    zeroFormatted = '0.00';
+                } else if (summaryColIndex <= 3) { // CD Elongation Break, 10% Modulus (no decimal)
                     zeroFormatted = '0';
                 } else if (summaryColIndex === 4) { // Opacity (1 decimal)
                     zeroFormatted = '0.0';
@@ -4717,8 +4738,8 @@ function updateTabOrderForAllRows(tableBody) {
                             applyOOSValidation(this, 'cofRR');
                         });
                     } else if (j === 6) {
-                        // Tensile Break column - 4 digit format (0000)
-                        applyFourDigitValidation(input);
+                        // Tensile Break column - allow up to 2 decimals
+                        applyFlexibleTwoDecimalValidation(input, { maxBeforeDecimal: 2, maxAfterDecimal: 2 });
                         // Apply OOS validation
                         applyOOSValidation(input, 'tensileBreak');
                         // Add real-time OOS validation
@@ -4747,8 +4768,8 @@ function updateTabOrderForAllRows(tableBody) {
                 } else if (isPage2) {
                     // Page 2 validation
                     if (j === 3) {
-                        // Tensile Break column - 0000 format (4 digits, no decimal)
-                        applyFourDigitValidation(input);
+                        // Tensile Break column - allow up to 2 decimals
+                        applyFlexibleTwoDecimalValidation(input, { maxBeforeDecimal: 2, maxAfterDecimal: 2 });
                     } else if (j === 4) {
                         // CD Elongation Break column - 000 format (3 digits, no decimal)
                         applyThreeDigitValidation(input);

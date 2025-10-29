@@ -123,7 +123,7 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
     page1Worksheet.cell('F4').value(data.production_order || '');
 
     // Purchase Order (F5)
-    page1Worksheet.cell('F5').value(data.purchase_order || '');
+  page1Worksheet.cell('F5').value(data.purchase_order ? data.purchase_order : 'NA');
 
     // Machine (H4)
     page1Worksheet.cell('H4').value(data.machine_no || '');
@@ -707,7 +707,7 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
     page1Worksheet.cell('F4').value(data.production_order || '');
 
     // Purchase Order (F5)
-    page1Worksheet.cell('F5').value(data.purchase_order || '');
+  page1Worksheet.cell('F5').value(data.purchase_order ? data.purchase_order : 'NA');
 
     // Machine (H4)
     page1Worksheet.cell('H4').value(data.machine_no || '');
@@ -1291,7 +1291,7 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
     page1Worksheet.cell('F4').value(data.production_order || '');
 
     // Purchase Order (F5)
-    page1Worksheet.cell('F5').value(data.purchase_order || '');
+  page1Worksheet.cell('F5').value(data.purchase_order ? data.purchase_order : 'NA');
 
     // Machine (H4)
     page1Worksheet.cell('H4').value(data.machine_no || '');
@@ -1875,7 +1875,7 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
     page1Worksheet.cell('F4').value(data.production_order || '');
 
     // Purchase Order (F5)
-    page1Worksheet.cell('F5').value(data.purchase_order || '');
+  page1Worksheet.cell('F5').value(data.purchase_order ? data.purchase_order : 'NA');
 
     // Machine (H4)
     page1Worksheet.cell('H4').value(data.machine_no || '');
@@ -2459,7 +2459,7 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
     page1Worksheet.cell('F4').value(data.production_order || '');
 
     // Purchase Order (F5)
-    page1Worksheet.cell('F5').value(data.purchase_order || '');
+  page1Worksheet.cell('F5').value(data.purchase_order ? data.purchase_order : 'NA');
 
     // Machine (H4)
     page1Worksheet.cell('H4').value(data.machine_no || '');
@@ -2477,6 +2477,47 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
     page1Worksheet.cell('B43').value(data.prepared_by || 'Unknown User');
 
     // PAGE 1 DATA MAPPING - UC-18gsm-210W-BFQR Page 1 data (Mechanical Properties)
+    // Lot & Roll data to Sample No. column (A9-A38)
+    if (data.lot_and_roll) {
+      const lotAndRollData = data.lot_and_roll;
+      const dataValues = Object.values(lotAndRollData).filter(value => value !== null && value !== undefined && value !== '');
+      for (let row = 9; row <= 38; row++) {
+        const dataIndex = row - 9;
+        if (dataIndex < dataValues.length) {
+          page1Worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`A${row}`).value('');
+        }
+      }
+    }
+
+    // Roll ID data to column B (B9-B38)
+    if (data.roll_id) {
+      const rollIdData = data.roll_id;
+      const dataValues = Object.values(rollIdData).filter(value => value !== null && value !== undefined && value !== '');
+      for (let row = 9; row <= 38; row++) {
+        const dataIndex = row - 9;
+        if (dataIndex < dataValues.length) {
+          page1Worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`B${row}`).value('');
+        }
+      }
+    }
+
+    // Lot Time data to column C (C9-C38)
+    if (data.lot_time) {
+      const lotTimeData = data.lot_time;
+      const dataValues = Object.values(lotTimeData).filter(value => value !== null && value !== undefined && value !== '');
+      for (let row = 9; row <= 38; row++) {
+        const dataIndex = row - 9;
+        if (dataIndex < dataValues.length) {
+          page1Worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+        } else {
+          page1Worksheet.cell(`C${row}`).value('');
+        }
+      }
+    }
     if (page1Worksheet && (data.page1_basis_weight || data.page1_thickness || data.page1_wettability ||
                           data.page1_cof_rr || data.page1_cof_cc || data.page1_tensile_break ||
                           data.page1_elongation || data.page1_modulus)) {
@@ -2996,7 +3037,7 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
     page1Worksheet.cell('F4').value(data.production_order || '');
 
     // Purchase Order (F5)
-    page1Worksheet.cell('F5').value(data.purchase_order || '');
+  page1Worksheet.cell('F5').value(data.purchase_order ? data.purchase_order : 'NA');
 
     // Machine (H4)
     page1Worksheet.cell('H4').value(data.machine_no || '');
@@ -3025,7 +3066,7 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
     page1Worksheet.cell('E4').value(data.production_order || '');
 
     // Purchase Order (E5)
-    page1Worksheet.cell('E5').value(data.purchase_order || '');
+  page1Worksheet.cell('E5').value(data.purchase_order ? data.purchase_order : 'NA');
 
     // Machine (G4)
     page1Worksheet.cell('G4').value(data.machine_no || '');

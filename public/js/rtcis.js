@@ -4,6 +4,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('rtcisForm');
     if (!form) return;
 
+    // Disable autocomplete to prevent history pop-ups
+    form.setAttribute('autocomplete', 'off');
+    const inputs = form.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.setAttribute('autocomplete', 'off');
+    });
+
     // --- Configurable SSCC values ---
     const COMPANY_PREFIX = '0037000'; // Update as needed
     let serialReference = '000000001'; // Update logic as needed
@@ -450,20 +457,7 @@ function setBarcodeCanvasStyle(id) {
             alert('No data found for the given IRMS/GCAS number.');
             return;
         }
-        // Get logged-in user's UUID
-        let userName = '';
-        const { data: authData } = await supabase.auth.getUser();
-        const uuid = authData?.user?.id || authData?.user?.uuid;
-        if (uuid) {
-            const { data: userData, error: userError } = await supabase
-                .from('users')
-                .select('name')
-                .eq('uuid', uuid)
-                .single();
-            if (userData && userData.name) {
-                userName = userData.name;
-            }
-        }
+    // ...existing code...
         // Gather all data for the label
         const labelData = {
             irms_gcas: data.irms_gcas || '',
@@ -599,7 +593,7 @@ function setBarcodeCanvasStyle(id) {
                                 { image: success.barcodeGcasPng, width: 227, height: 79, colSpan: 4, alignment: 'center', border: [true, false, true, false], margin: [4, -18, 4, -18] }, {}, {}, {}
                             ],
                             [
-                                { text: document.getElementById('barcode-gcas-text').innerText, colSpan: 4, style: 'barcodeHuman', alignment: 'center', border: [true, false, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
+                                { text: document.getElementById('barcode-gcas-text').innerText, colSpan: 4, style: 'barcodeHuman', alignment: 'center', border: [true, false, true, false], margin: [4, mmToPt(1), 4, 0] }, {}, {}, {}
                             ],
                             [
                                 { text: 'Lot No.', colSpan: 4, style: 'barcodeLabel', alignment: 'left', verticalAlignment: 'middle', border: [true, true, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
@@ -608,7 +602,7 @@ function setBarcodeCanvasStyle(id) {
                                 { image: success.barcodeLotPng, width: 227, height: 79, colSpan: 4, alignment: 'center', border: [true, false, true, false], margin: [4, -18, 4, -18] }, {}, {}, {}
                             ],
                             [
-                                { text: document.getElementById('barcode-lot-text').innerText, colSpan: 4, style: 'barcodeHuman', alignment: 'center', border: [true, false, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
+                                { text: document.getElementById('barcode-lot-text').innerText, colSpan: 4, style: 'barcodeHuman', alignment: 'center', border: [true, false, true, false], margin: [4, mmToPt(1), 4, 0] }, {}, {}, {}
                             ],
                             [
                                 { text: 'Unit Load ID', colSpan: 4, style: 'barcodeLabel', alignment: 'left', verticalAlignment: 'middle', border: [true, true, true, false], margin: [4, 0, 4, 0] }, {}, {}, {}
@@ -617,7 +611,7 @@ function setBarcodeCanvasStyle(id) {
                                 { image: success.barcodeSsccPng, width: 227, height: 79, colSpan: 4, alignment: 'center', border: [true, false, true, false], margin: [4, -18, 4, -18] }, {}, {}, {}
                             ],
                             [
-                                { text: document.getElementById('barcode-sscc-text').innerText, colSpan: 4, style: 'barcodeHuman', alignment: 'center', border: [true, false, true, true], margin: [4, 0, 4, 5] }, {}, {}, {}
+                                { text: document.getElementById('barcode-sscc-text').innerText, colSpan: 4, style: 'barcodeHuman', alignment: 'center', border: [true, false, true, true], margin: [4, mmToPt(1), 4, 5] }, {}, {}, {}
                             ]
                         ]
                     },
@@ -649,13 +643,12 @@ function setBarcodeCanvasStyle(id) {
             },
             info: {
                 title: 'RTCIS Label',
-                author: userName || 'Swanson Plastics (India) Private Limited',
+                author: 'Swanson Plastics (India) Private Limited',
             }
         };
         // Auto-generate filename: [LOT NO]-[PALLET NO]-[SEQUENCE NO].pdf
         const filename = `${labelData.lot_number}-${labelData.pallet_number}-${labelData.sequence_number}.pdf`;
         const pdfDoc = pdfMake.createPdf(docDefinition);
-        pdfDoc.open();
         pdfDoc.download(filename);
     });
 
@@ -671,8 +664,6 @@ function setBarcodeCanvasStyle(id) {
             checkboxesAndRadios.forEach(input => {
                 input.checked = false;
             });
-
-            console.log(`Cleared ${checkboxesAndRadios.length} checkboxes/radio buttons`);
 
             // Reset dropdown to default state
             const irmsGcasSelect = document.getElementById('irms_gcas');
@@ -746,13 +737,6 @@ function setBarcodeCanvasStyle(id) {
             if (firstInput) {
                 setTimeout(() => firstInput.focus(), 100);
             }
-
-            console.log('RTCIS form completely reset and refreshed');
-            console.log(`- Cleared all text inputs, selects, and textareas`);
-            console.log(`- Cleared ${checkboxesAndRadios.length} checkboxes/radio buttons`);
-            console.log(`- Reset dropdowns and date constraints`);
-            console.log(`- Removed generated labels and barcodes`);
-            console.log(`- Cleared error states and validation styling`);
 
             // Show basic confirmation feedback
             clearDataBtn.classList.add('bg-red-100', 'text-red-800', 'border-red-500');
