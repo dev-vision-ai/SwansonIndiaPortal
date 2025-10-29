@@ -94,6 +94,7 @@ const pgExportModule = require('./excel-export-film-inspection-form-P&G');
 const ucExportModule = require('./excel-export-film-inspection-form-UC');
 const mjrExportModule = require('./excel-export-MJR-form');
 const qualityAlertExportModule = require('./excel-export-quality-alert-form');
+const prestoreExportModule = require('./excel-export-prestore-form');
 
 // Initialize export modules
 inlineExportModule(app);
@@ -101,10 +102,12 @@ pgExportModule(app);
 ucExportModule(app);
 mjrExportModule(app);
 qualityAlertExportModule(app);
+prestoreExportModule(app)
+
 
 console.log(`🚀 Server starting on port ${PORT}`);
 console.log(`📊 Excel export: http://localhost:${PORT}/export`);
-console.log(`📋 Quality Alert export: http://localhost:${PORT}/export-quality-alert`);
+console.log(`📥 Prestore Excel export: http://localhost:${PORT}/api/download-prestore-excel/:formId`);
 
 app.listen(PORT, () => {
   console.log(`✅ Swanson India Portal Backend running on port ${PORT}`);

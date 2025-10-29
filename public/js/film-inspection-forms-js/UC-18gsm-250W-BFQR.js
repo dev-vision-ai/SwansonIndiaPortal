@@ -4214,14 +4214,14 @@ function calculatePage2ColumnStats(tableBody, changedColumnIndex = null) {
                         avgFormatted = avg.toFixed(2);
                         minFormatted = min.toFixed(2);
                         maxFormatted = max.toFixed(2);
-                    } else if (summaryColIndex === 2) { // Colour A - 1 decimal
-                        avgFormatted = avg.toFixed(1);
-                        minFormatted = min.toFixed(1);
-                        maxFormatted = max.toFixed(1);
-                    } else if (summaryColIndex === 3) { // Colour B - 1 decimal
-                        avgFormatted = avg.toFixed(1);
-                        minFormatted = min.toFixed(1);
-                        maxFormatted = max.toFixed(1);
+                    } else if (summaryColIndex === 2) { // Colour A - 2 decimals
+                        avgFormatted = avg.toFixed(2);
+                        minFormatted = min.toFixed(2);
+                        maxFormatted = max.toFixed(2);
+                    } else if (summaryColIndex === 3) { // Colour B - 2 decimals
+                        avgFormatted = avg.toFixed(2);
+                        minFormatted = min.toFixed(2);
+                        maxFormatted = max.toFixed(2);
                     } else if (summaryColIndex === 4) { // Delta E - 2 decimals
                         avgFormatted = avg.toFixed(2);
                         minFormatted = min.toFixed(2);
@@ -4332,18 +4332,10 @@ function calculatePage2SummaryStatistics(tableBody) {
 
             if (isPage3) {
                 // Page 3 formatting
-                if (summaryColIndex === 1) { // Colour L (1 decimal)
-                    avgFormatted = avg.toFixed(1);
-                    minFormatted = min.toFixed(1);
-                    maxFormatted = max.toFixed(1);
-                } else if (summaryColIndex === 2) { // Colour A (1 decimal)
-                    avgFormatted = avg.toFixed(1);
-                    minFormatted = min.toFixed(1);
-                    maxFormatted = max.toFixed(1);
-                } else if (summaryColIndex === 3) { // Colour B (1 decimal)
-                    avgFormatted = avg.toFixed(1);
-                    minFormatted = min.toFixed(1);
-                    maxFormatted = max.toFixed(1);
+                if (summaryColIndex <= 3) { // Colour L, A, B (2 decimals)
+                    avgFormatted = avg.toFixed(2);
+                    minFormatted = min.toFixed(2);
+                    maxFormatted = max.toFixed(2);
                 } else { // Delta E and Base Film Pink (2 decimals)
                     avgFormatted = avg.toFixed(2);
                     minFormatted = min.toFixed(2);
@@ -4375,8 +4367,8 @@ function calculatePage2SummaryStatistics(tableBody) {
             let zeroFormatted;
             if (tableBody.id === 'testingTableBody3') {
                 // Page 3 formatting
-                if (summaryColIndex <= 3) { // Colour L, A, B (1 decimal)
-                    zeroFormatted = '0.0';
+                if (summaryColIndex <= 3) { // Colour L, A, B (2 decimals)
+                    zeroFormatted = '0.00';
                 } else { // Delta E, Base Film Pink (2 decimals)
                     zeroFormatted = '0.00';
                 }
@@ -4441,10 +4433,10 @@ function calculatePage3SummaryStatistics(tableBody) {
             let avgFormatted, minFormatted, maxFormatted;
 
             // Page 3 formatting
-            if (summaryColIndex <= 3) { // Colour L, A, B (1 decimal)
-                avgFormatted = avg.toFixed(1);
-                minFormatted = min.toFixed(1);
-                maxFormatted = max.toFixed(1);
+            if (summaryColIndex <= 3) { // Colour L, A, B (2 decimals)
+                avgFormatted = avg.toFixed(2);
+                minFormatted = min.toFixed(2);
+                maxFormatted = max.toFixed(2);
             } else { // Delta E, Base Film Pink (2 decimals)
                 avgFormatted = avg.toFixed(2);
                 minFormatted = min.toFixed(2);
@@ -4459,8 +4451,8 @@ function calculatePage3SummaryStatistics(tableBody) {
             // No data - show zeros
             let zeroFormatted;
             // Page 3 formatting
-            if (summaryColIndex <= 3) { // Colour L, A, B (1 decimal)
-                zeroFormatted = '0.0';
+            if (summaryColIndex <= 3) { // Colour L, A, B (2 decimals)
+                zeroFormatted = '0.00';
             } else { // Delta E, Base Film Pink (2 decimals)
                 zeroFormatted = '0.00';
             }
