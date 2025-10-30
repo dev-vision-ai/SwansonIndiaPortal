@@ -138,6 +138,46 @@ async function updateVerificationInDatabase(verifierName, verificationDate) {
     }
 }
 
+// Save approval to database (approved_by, approved_date)
+async function updateApprovalInDatabase(approverName, approvalDate) {
+    try {
+        const formId = getCurrentFormId();
+        if (!formId) {
+            console.error('No form ID found for approval');
+            alert('Error: Could not identify the form. Please refresh and try again.');
+            return;
+        }
+
+        const { data, error } = await supabase
+            .from('uc-16gsm-165w')
+            .update({
+                approved_by: approverName,
+                approved_date: approvalDate
+            })
+            .eq('form_id', formId)
+            .select();
+
+        if (error) {
+            console.error('Error updating approval:', error);
+            alert('Error saving approval data. Please try again.');
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            console.error('No data returned from approval update');
+            alert('Error: Approval not saved. Please try again.');
+            return;
+        }
+
+        // success
+        return data;
+
+    } catch (error) {
+        console.error('Error updating approval in database:', error);
+        alert('Error saving approval data. Please try again.');
+    }
+}
+
 function getCurrentFormId() {
     // First try global variable
     if (currentFormId) {
@@ -208,6 +248,8 @@ async function checkVerificationStatus() {
             // Format date to DD/MM/YYYY
             const formattedDate = formatDateToDDMMYYYY(data.verified_date);
             document.getElementById('verifiedDateDisplay').textContent = 'Date: ' + formattedDate;
+            // Enable approval UI (backend-gated behavior)
+            enableApprovalSection();
         } else {
             // Form is not verified
             showVerificationForm();
@@ -216,6 +258,62 @@ async function checkVerificationStatus() {
     } catch (error) {
         console.error('Error checking verification status:', error);
         showVerificationForm();
+    }
+}
+
+                        // Backend shows verification — enable approval UI
+                        enableApprovalSection();
+// Enable the approval section so approver can interact (call when verification exists)
+function enableApprovalSection() {
+    const approvalSection = document.getElementById('approvalSection');
+                        // Ensure approval UI remains disabled until verification
+                        disableApprovalSection();
+    if (approvalSection) {
+        approvalSection.style.opacity = '1';
+    }
+    const approvalForm = document.getElementById('approvalForm');
+    if (approvalForm) {
+        // enable inputs inside approval form
+        const inputs = approvalForm.querySelectorAll('input, button');
+        inputs.forEach(el => {
+            el.disabled = false;
+            el.classList.remove('cursor-not-allowed', 'bg-gray-400');
+            // If it's the approve button, set proper styling
+            if (el.id === 'approveFormBtn') {
+                el.classList.remove('bg-gray-400');
+                el.classList.add('bg-[#002E7D]');
+                el.style.cursor = 'pointer';
+            }
+            if (el.tagName === 'INPUT') {
+                el.readOnly = false;
+                el.style.backgroundColor = '';
+            }
+        });
+    }
+}
+
+// Disable approval section (no verification yet)
+function disableApprovalSection() {
+    const approvalSection = document.getElementById('approvalSection');
+    if (approvalSection) {
+        approvalSection.style.opacity = '0.5';
+    }
+    const approvalForm = document.getElementById('approvalForm');
+    if (approvalForm) {
+        const inputs = approvalForm.querySelectorAll('input, button');
+        inputs.forEach(el => {
+            el.disabled = true;
+            // reset styling
+            if (el.id === 'approveFormBtn') {
+                el.classList.remove('bg-[#002E7D]');
+                el.classList.add('bg-gray-400');
+                el.style.cursor = 'not-allowed';
+            }
+            if (el.tagName === 'INPUT') {
+                el.readOnly = true;
+                el.style.backgroundColor = '#f3f4f6';
+            }
+        });
     }
 }
 
@@ -252,7 +350,14 @@ function showCustomConfirmationPopup(formDetails, currentUser, verificationDate)
     document.getElementById('verificationConfirmPopup').style.display = 'flex';
     
     // Handle confirm button click
-    document.getElementById('confirmVerificationBtn').onclick = async () => {
+    const confirmBtn = document.getElementById('confirmVerificationBtn');
+    if (!confirmBtn) {
+        console.error('Confirm button not found: confirmVerificationBtn');
+        return;
+    }
+    console.log('Showing verification confirmation popup. Attaching handler to confirm button.');
+    confirmBtn.disabled = false;
+    confirmBtn.onclick = async () => {
         try {
             // Hide popup
             document.getElementById('verificationConfirmPopup').style.display = 'none';
@@ -276,13 +381,18 @@ function showCustomConfirmationPopup(formDetails, currentUser, verificationDate)
     };
     
     // Handle cancel button click
-    document.getElementById('cancelVerificationBtn').onclick = () => {
-        document.getElementById('verificationConfirmPopup').style.display = 'none';
-    };
+    const popupCancelBtn = document.getElementById('cancelVerificationBtn');
+    if (popupCancelBtn) {
+        popupCancelBtn.onclick = () => {
+            document.getElementById('verificationConfirmPopup').style.display = 'none';
+        };
+    }
 }
 
 // Initialize verification system
 function initializeVerification() {
+    // Default: disable approval until backend confirms verification
+    try { disableApprovalSection(); } catch (e) { /* ignore if elements not present yet */ }
     // Wait for form_id to be available and form to be fully loaded, then check verification status
     const checkVerificationWithRetry = () => {
         const formId = getCurrentFormId();
@@ -299,7 +409,10 @@ function initializeVerification() {
     
     // Add event listeners for verification form
     const verifyBtn = document.getElementById('verifyFormBtn');
-    const cancelBtn = document.getElementById('cancelVerificationBtn');
+    // There are two cancel buttons: one in the confirmation popup and one in the inline form.
+    // Popup cancel retains id 'cancelVerificationBtn'; inline form cancel was renamed to 'cancelVerificationFormBtn'.
+    const cancelPopupBtn = document.getElementById('cancelVerificationBtn');
+    const cancelFormBtn = document.getElementById('cancelVerificationFormBtn');
     const passwordInput = document.getElementById('verificationPassword');
     const togglePasswordBtn = document.getElementById('toggleVerificationPassword');
     
@@ -314,17 +427,33 @@ function initializeVerification() {
             }
             
             if (password === VERIFICATION_PASSWORD) {
-                verifyForm(verificationDate);
+                try {
+                    console.log('🔐 Verify button clicked - calling verifyForm with date:', verificationDate);
+                    verifyForm(verificationDate);
+                } catch (err) {
+                    console.error('Error calling verifyForm:', err);
+                    alert('Unexpected error when opening confirm dialog. Check console for details.');
+                }
             } else {
                 alert('Incorrect password. Please try again.');
             }
         });
     }
     
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', function() {
-            document.getElementById('verificationPassword').value = '';
-            document.getElementById('verificationDate').value = '';
+    // Popup cancel: hide the confirmation popup if visible
+    if (cancelPopupBtn) {
+        cancelPopupBtn.addEventListener('click', function() {
+            const popup = document.getElementById('verificationConfirmPopup');
+            if (popup) popup.style.display = 'none';
+        });
+    }
+    // Inline form cancel: clear the password and date inputs
+    if (cancelFormBtn) {
+        cancelFormBtn.addEventListener('click', function() {
+            const pwd = document.getElementById('verificationPassword');
+            const date = document.getElementById('verificationDate');
+            if (pwd) pwd.value = '';
+            if (date) date.value = '';
         });
     }
     
@@ -362,8 +491,11 @@ function initializeVerification() {
         verifyBtn.disabled = false;
     }
     
-    if (cancelBtn) {
-        cancelBtn.disabled = false;
+    if (cancelPopupBtn) {
+        cancelPopupBtn.disabled = false;
+    }
+    if (cancelFormBtn) {
+        cancelFormBtn.disabled = false;
     }
     
     if (togglePasswordBtn) {
@@ -371,6 +503,59 @@ function initializeVerification() {
     }
     
 }
+
+    // Wire up approval actions (approve / cancel) inside verification initializer
+    try {
+        const approveBtn = document.getElementById('approveFormBtn');
+        const cancelApprovalBtn = document.getElementById('cancelApprovalBtn');
+        const approvalDateInput = document.getElementById('approvalDate');
+
+        if (approveBtn) {
+            approveBtn.addEventListener('click', async function() {
+                try {
+                    const approvalDate = approvalDateInput ? approvalDateInput.value : null;
+                    if (!approvalDate) {
+                        alert('Please select an approval date.');
+                        return;
+                    }
+
+                    // Get current user to record as approver
+                    const approver = await getCurrentUser();
+
+                    // Optionally ask for confirmation
+                    const ok = confirm(`Approve this form on ${approvalDate} as ${approver}?`);
+                    if (!ok) return;
+
+                    // Persist approval to database
+                    await updateApprovalInDatabase(approver, approvalDate);
+
+                    // Update UI to show approved state
+                    const approvalStatus = document.getElementById('approvalStatus');
+                    if (approvalStatus) approvalStatus.style.display = 'block';
+                    const approvedByDisplay = document.getElementById('approvedByDisplay');
+                    const approvedDateDisplay = document.getElementById('approvedDateDisplay');
+                    if (approvedByDisplay) approvedByDisplay.textContent = 'Approved by: ' + approver;
+                    if (approvedDateDisplay) approvedDateDisplay.textContent = 'Date: ' + formatDateToDDMMYYYY(approvalDate);
+
+                    // After approval, disable approval section to prevent further changes
+                    disableApprovalSection();
+                    alert('Form approved successfully!');
+
+                } catch (err) {
+                    console.error('Error during approval:', err);
+                    alert('Error during approval. Check console for details.');
+                }
+            });
+        }
+
+        if (cancelApprovalBtn) {
+            cancelApprovalBtn.addEventListener('click', function() {
+                if (approvalDateInput) approvalDateInput.value = '';
+            });
+        }
+    } catch (e) {
+        console.error('Error wiring approval handlers:', e);
+    }
 
     // ===== VIEW MODE DETECTION =====
 // Global variable to track view mode
@@ -489,15 +674,20 @@ function synchronizeViewModeAcrossPages() {
                     input.style.opacity = '1';
                     
 
-            // Special handling for Page 2 and 3 sample columns (first 3 columns)
-            if ((tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') && index <= 2) {
-                input.style.backgroundColor = '#f1f5f9'; // Light grey background
-                input.style.fontWeight = '600'; // Bold text
-                input.disabled = true;
-                input.readOnly = true;
-                input.style.cursor = 'default';
-
-            }
+                // Special handling for Page 2 and 3 sample columns (first 3 columns)
+                if ((tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') && index <= 2) {
+                    const row = input.closest('tr');
+                    const rowIndex = row ? Array.from(row.parentElement.children).indexOf(row) : -1;
+                    input.style.backgroundColor = '#f1f5f9'; // Light grey background
+                    if (rowIndex === 0) {
+                        input.style.fontWeight = '';
+                    } else {
+                        input.style.fontWeight = '600'; // Bold text for all except first row
+                    }
+                    input.disabled = true;
+                    input.readOnly = true;
+                    input.style.cursor = 'default';
+                }
                 } else {
                     // For edit mode, allow inputs to be editable except certain columns that must remain read-only
                     let keepReadOnly = false;
@@ -1099,9 +1289,11 @@ function isViewMode() {
 // Function to toggle between view and edit mode
 function toggleViewMode() {
     viewMode = !viewMode;
+    // Persist viewMode to sessionStorage
+    sessionStorage.setItem('viewMode', viewMode ? 'true' : 'false');
     setupViewMode();
     return viewMode;
-    }
+}
     
     // ===== SESSION INITIALIZATION =====
 // Global variables to store session data
@@ -1290,6 +1482,7 @@ function getCurrentProductCode() {
         const equipmentMappings = {
             'Weigh Scale': ['film-weight-equipment'],
             'Dial Gauge': ['thickness-equipment'], // For thickness measurement
+            'X-RITE': ['page3-colour-equipment'], // page3-colour-equipment (Page 3) only
             'Spectrophotometer': ['page2-opacity-equipment', 'page3-colour-equipment'], // Both opacity (Page 2) and colour (Page 3)
             'Instron': ['cof-rr-equipment', 'tensile-break-equipment'], // UTM for mechanical testing - Page 1 tensile/elongation/modulus share same equipment
             'Instron-Page2': ['page2-utm-equipment'], // UTM for mechanical testing - Page 2 equipment (combined tensile break, elongation, modulus)
@@ -1312,29 +1505,48 @@ function getCurrentProductCode() {
                 const dropdown = document.getElementById(dropdownId);
                 if (dropdown) {
 
-                
-                    // Clear existing options except the first one
-                    dropdown.innerHTML = '<option value="">Select Equipment ▼</option>';
+                    // Remove 'Loading equipment...' option if present
+                    Array.from(dropdown.options).forEach(opt => {
+                        if (opt.textContent === 'Loading equipment...') {
+                            dropdown.removeChild(opt);
+                        }
+                    });
+
+                    // Always ensure 'Select Equipment ▼' is present as the first option
+                    const selectOptionExists = Array.from(dropdown.options).some(opt => opt.textContent === 'Select Equipment ▼');
+                    if (!selectOptionExists) {
+                        const selectOption = document.createElement('option');
+                        selectOption.value = '';
+                        selectOption.textContent = 'Select Equipment ▼';
+                        dropdown.insertBefore(selectOption, dropdown.firstChild);
+                    }
                     
                     // Add equipment options
                     equipmentIds.forEach(equipmentId => {
-                        const option = document.createElement('option');
-                        option.value = equipmentId;
-                        option.textContent = equipmentId;
-                        dropdown.appendChild(option);
-                    });
-                    
-                
-                
-                // Add change event listener for auto-save
-                    dropdown.addEventListener('change', function() {
-                    if (!isViewMode()) {
-                        debouncedSave(); // Auto-save equipment selection to database
+                        // Check if this option already exists
+                        const optionExists = Array.from(dropdown.options).some(opt => opt.value === equipmentId);
+                        if (!optionExists) {
+                            const option = document.createElement('option');
+                            option.value = equipmentId;
+                            option.textContent = equipmentId;
+                            dropdown.appendChild(option);
                         }
-                    
-                    // Apply equipment highlighting
-                    updateEquipmentHighlighting();
                     });
+                    
+                
+                
+                // Add change event listener for auto-save (only once)
+                    if (!dropdown.hasAttribute('data-listener-added')) {
+                        dropdown.addEventListener('change', function() {
+                        if (!isViewMode()) {
+                            debouncedSave(); // Auto-save equipment selection to database
+                            }
+                        
+                        // Apply equipment highlighting
+                        updateEquipmentHighlighting();
+                        });
+                        dropdown.setAttribute('data-listener-added', 'true');
+                    }
             } else {
                 console.warn(`🔧 [EQUIPMENT] Dropdown not found: ${dropdownId}`);
                 }

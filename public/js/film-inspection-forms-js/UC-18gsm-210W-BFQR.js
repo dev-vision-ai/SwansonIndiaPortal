@@ -493,14 +493,19 @@ function synchronizeViewModeAcrossPages() {
                     
 
             // Special handling for Page 2 and 3 sample columns (first 3 columns)
-            if ((tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') && index <= 2) {
-                input.style.backgroundColor = '#f1f5f9'; // Light grey background
-                input.style.fontWeight = '600'; // Bold text
-                input.disabled = true;
-                input.readOnly = true;
-                input.style.cursor = 'default';
-
-            }
+                if ((tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') && index <= 2) {
+                    const row = input.closest('tr');
+                    const rowIndex = row ? Array.from(row.parentElement.children).indexOf(row) : -1;
+                    input.style.backgroundColor = '#f1f5f9'; // Light grey background
+                    if (rowIndex === 0) {
+                        input.style.fontWeight = '';
+                    } else {
+                        input.style.fontWeight = '600'; // Bold text for all except first row
+                    }
+                    input.disabled = true;
+                    input.readOnly = true;
+                    input.style.cursor = 'default';
+                }
                 } else {
                     // For edit mode, allow inputs to be editable except certain columns that must remain read-only
                     let keepReadOnly = false;
@@ -1299,7 +1304,7 @@ function getCurrentProductCode() {
         const equipmentMappings = {
             'Weigh Scale': ['film-weight-equipment'],
             'Dial Gauge': ['thickness-equipment'], // For thickness measurement
-            'X-RITE': ['page3-colour-equipment'], // page3-colour-equipment (Page 3) only
+            'X-RITE': ['page3-colour-equipment', 'page3-base-film-equipment'], // page3-colour-equipment (Page 3) and page3-base-film-equipment (Page 3 Base Film White)
             'Spectrophotometer': ['page2-opacity-equipment', 'page3-base-film-equipment'], // page2-opacity-equipment (Page 2) and page3-base-film-equipment (Page 3 Base Film White)
             'Instron': ['cof-rr-equipment', 'cof-cc-equipment', 'tensile-break-equipment', 'elongation-equipment', 'modulus-equipment', 'page2-tensile-break-equipment', 'page2-elongation-equipment', 'page2-modulus-equipment'], // UTM for mechanical testing
             'Tape Measure': [], // No longer used - measurements moved to Steel Ruler
@@ -1319,32 +1324,49 @@ function getCurrentProductCode() {
             dropdownIds.forEach(dropdownId => {
                 const dropdown = document.getElementById(dropdownId);
                 if (dropdown) {
+                    // Remove 'Loading equipment...' option if present
 
-                
-                    // Clear existing options except the first one
-                    dropdown.innerHTML = '<option value="">Select Equipment ▼</option>';
-                    
+                    // Remove 'Loading equipment...' option if present
+                    Array.from(dropdown.options).forEach(opt => {
+                        if (opt.textContent === 'Loading equipment...') {
+                            dropdown.removeChild(opt);
+                        }
+                    });
+
+                    // Always ensure 'Select Equipment ▼' is present as the first option
+                    const selectOptionExists = Array.from(dropdown.options).some(opt => opt.textContent === 'Select Equipment ▼');
+                    if (!selectOptionExists) {
+                        const selectOption = document.createElement('option');
+                        selectOption.value = '';
+                        selectOption.textContent = 'Select Equipment ▼';
+                        dropdown.insertBefore(selectOption, dropdown.firstChild);
+                    }
+
                     // Add equipment options
                     equipmentIds.forEach(equipmentId => {
-                        const option = document.createElement('option');
-                        option.value = equipmentId;
-                        option.textContent = equipmentId;
-                        dropdown.appendChild(option);
-                    });
-                    
-                
-                
-                // Add change event listener for auto-save
-                    dropdown.addEventListener('change', function() {
-                    if (!isViewMode()) {
-                        debouncedSave(); // Auto-save equipment selection to database
+                        // Check if this option already exists
+                        const optionExists = Array.from(dropdown.options).some(opt => opt.value === equipmentId);
+                        if (!optionExists) {
+                            const option = document.createElement('option');
+                            option.value = equipmentId;
+                            option.textContent = equipmentId;
+                            dropdown.appendChild(option);
                         }
-                    
-                    // Apply equipment highlighting
-                    updateEquipmentHighlighting();
                     });
-            } else {
-                console.warn(`🔧 [EQUIPMENT] Dropdown not found: ${dropdownId}`);
+
+                    // Add change event listener for auto-save (only once)
+                    if (!dropdown.hasAttribute('data-listener-added')) {
+                        dropdown.addEventListener('change', function() {
+                            if (!isViewMode()) {
+                                debouncedSave(); // Auto-save equipment selection to database
+                            }
+                            // Apply equipment highlighting
+                            updateEquipmentHighlighting();
+                        });
+                        dropdown.setAttribute('data-listener-added', 'true');
+                    }
+                } else {
+                    console.warn(`🔧 [EQUIPMENT] Dropdown not found: ${dropdownId}`);
                 }
             });
         });

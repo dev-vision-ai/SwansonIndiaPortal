@@ -473,6 +473,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const equipmentMappings = {
             'Weigh Scale': ['basic-weight-equipment'],
             'Dial Gauge': ['thickness-equipment'],
+            'X-RITE': ['color-common-equipment'],
             'Spectrophotometer': ['opacity-equipment', 'color-common-equipment'],
             'Instron': ['cof-equipment', 'page2-common-equipment', 'page3-common-equipment'],
             'Glossmeter': ['gloss-equipment']
@@ -486,23 +487,42 @@ document.addEventListener('DOMContentLoaded', function() {
             dropdownIds.forEach(dropdownId => {
                 const dropdown = document.getElementById(dropdownId);
                 if (dropdown) {
-                    // Clear existing options except the first one
-                    dropdown.innerHTML = '<option value="">Select Equipment ▼</option>';
-                    
-                    // Add equipment options
-                    equipmentIds.forEach(equipmentId => {
-                        const option = document.createElement('option');
-                        option.value = equipmentId;
-                        option.textContent = equipmentId;
-                        dropdown.appendChild(option);
-                    });
-                    
-                    // Add change event listener for auto-save
-                    dropdown.addEventListener('change', function() {
-                        if (!viewMode) {
-                            autoSaveToDatabase();
+                    // Remove 'Loading equipment...' option if present
+                    Array.from(dropdown.options).forEach(opt => {
+                        if (opt.textContent === 'Loading equipment...') {
+                            dropdown.removeChild(opt);
                         }
                     });
+
+                    // Ensure 'Select Equipment ▼' exists as the first option
+                    const selectExists = Array.from(dropdown.options).some(opt => opt.textContent === 'Select Equipment ▼');
+                    if (!selectExists) {
+                        const sel = document.createElement('option');
+                        sel.value = '';
+                        sel.textContent = 'Select Equipment ▼';
+                        dropdown.insertBefore(sel, dropdown.firstChild);
+                    }
+
+                    // Append equipment options (avoid duplicates)
+                    equipmentIds.forEach(equipmentId => {
+                        const exists = Array.from(dropdown.options).some(opt => opt.value === equipmentId);
+                        if (!exists) {
+                            const option = document.createElement('option');
+                            option.value = equipmentId;
+                            option.textContent = equipmentId;
+                            dropdown.appendChild(option);
+                        }
+                    });
+
+                    // Add change listener once
+                    if (!dropdown.hasAttribute('data-listener-added')) {
+                        dropdown.addEventListener('change', function() {
+                            if (!viewMode) {
+                                autoSaveToDatabase();
+                            }
+                        });
+                        dropdown.setAttribute('data-listener-added', 'true');
+                    }
                 }
             });
         });

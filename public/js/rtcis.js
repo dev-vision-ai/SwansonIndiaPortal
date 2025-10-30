@@ -71,18 +71,22 @@ try {
   console.error('GCAS barcode generation failed:', err);
 }
 
-        // Lot Number (AI 10 + 90)
-        bwipjs.toCanvas('barcode-lot', {
-            bcid: 'gs1-128',
-            text: `(10)${data.lot_number}(90)${data.pallet_type}`,
-            scale: 5,
-            height: 15,
-            includetext: false,
-            backgroundcolor: 'FFFFFF',
-            paddingheight: 10
-        });
-        
-        document.getElementById('barcode-lot-text').textContent = `(10) ${data.lot_number}(90)${data.pallet_type}`;
+    // Lot Number: encode ONLY AI (10) in the barcode so (90) is NOT part of the scanned data.
+    // Keep (90) visible in the human-readable text (with a '~' shown to indicate the group separator).
+    bwipjs.toCanvas('barcode-lot', {
+      bcid: 'gs1-128',
+      // Only include the variable-length Lot (AI 10) in the machine data.
+      text: `(10)${data.lot_number}`,
+      scale: 5,
+      height: 15,
+      includetext: false,
+      backgroundcolor: 'FFFFFF',
+      paddingheight: 10
+    });
+
+    // Human-readable: show the tilde (~) as a visual marker for the GS1 group separator
+    // and include the (90) value for users, but note (90) will NOT be encoded/scannable.
+    document.getElementById('barcode-lot-text').textContent = `(10) ${data.lot_number}~(90)${data.pallet_type}`;
 
         // SSCC / Unit Load ID (AI 00)
         bwipjs.toCanvas('barcode-sscc', {
