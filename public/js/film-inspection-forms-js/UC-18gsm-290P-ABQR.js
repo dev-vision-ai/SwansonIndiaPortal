@@ -493,14 +493,19 @@ function synchronizeViewModeAcrossPages() {
                     
 
             // Special handling for Page 2 and 3 sample columns (first 3 columns)
-            if ((tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') && index <= 2) {
-                input.style.backgroundColor = '#f1f5f9'; // Light grey background
-                input.style.fontWeight = '600'; // Bold text
-                input.disabled = true;
-                input.readOnly = true;
-                input.style.cursor = 'default';
-
-            }
+                if ((tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') && index <= 2) {
+                    const row = input.closest('tr');
+                    const rowIndex = row ? Array.from(row.parentElement.children).indexOf(row) : -1;
+                    input.style.backgroundColor = '#f1f5f9'; // Light grey background
+                    if (rowIndex === 0) {
+                        input.style.fontWeight = '';
+                    } else {
+                        input.style.fontWeight = '600'; // Bold text for all except first row
+                    }
+                    input.disabled = true;
+                    input.readOnly = true;
+                    input.style.cursor = 'default';
+                }
                 } else {
                     // For edit mode, allow inputs to be editable except certain columns that must remain read-only
                     let keepReadOnly = false;

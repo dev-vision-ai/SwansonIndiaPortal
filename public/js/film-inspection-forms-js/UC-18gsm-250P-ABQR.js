@@ -1321,28 +1321,40 @@ function getCurrentProductCode() {
                 if (dropdown) {
 
                 
-                    // Clear existing options except the first one
-                    dropdown.innerHTML = '<option value="">Select Equipment ▼</option>';
+                    // For dropdowns with multiple equipment types (like page3-base-film-equipment), append instead of clear
+                    const hasMultipleTypes = Object.values(equipmentMappings).filter(ids => ids.includes(dropdownId)).length > 1;
+                    
+                    if (!hasMultipleTypes) {
+                        // Clear existing options only if this dropdown is not shared
+                        dropdown.innerHTML = '<option value="">Select Equipment ▼</option>';
+                    }
                     
                     // Add equipment options
                     equipmentIds.forEach(equipmentId => {
-                        const option = document.createElement('option');
-                        option.value = equipmentId;
-                        option.textContent = equipmentId;
-                        dropdown.appendChild(option);
-                    });
-                    
-                
-                
-                // Add change event listener for auto-save
-                    dropdown.addEventListener('change', function() {
-                    if (!isViewMode()) {
-                        debouncedSave(); // Auto-save equipment selection to database
+                        // Check if this option already exists
+                        const optionExists = Array.from(dropdown.options).some(opt => opt.value === equipmentId);
+                        if (!optionExists) {
+                            const option = document.createElement('option');
+                            option.value = equipmentId;
+                            option.textContent = equipmentId;
+                            dropdown.appendChild(option);
                         }
-                    
-                    // Apply equipment highlighting
-                    updateEquipmentHighlighting();
                     });
+                    
+                
+                
+                // Add change event listener for auto-save (only once)
+                    if (!dropdown.hasAttribute('data-listener-added')) {
+                        dropdown.addEventListener('change', function() {
+                        if (!isViewMode()) {
+                            debouncedSave(); // Auto-save equipment selection to database
+                            }
+                        
+                        // Apply equipment highlighting
+                        updateEquipmentHighlighting();
+                        });
+                        dropdown.setAttribute('data-listener-added', 'true');
+                    }
             } else {
                 console.warn(`🔧 [EQUIPMENT] Dropdown not found: ${dropdownId}`);
                 }
@@ -4208,32 +4220,10 @@ function calculatePage2ColumnStats(tableBody, changedColumnIndex = null) {
                 let avgFormatted, minFormatted, maxFormatted;
 
                 if (isPage3) {
-                    // Page 3 column formatting
-                    if (summaryColIndex === 1) { // Colour L - 2 decimals
-                        avgFormatted = avg.toFixed(2);
-                        minFormatted = min.toFixed(2);
-                        maxFormatted = max.toFixed(2);
-                    } else if (summaryColIndex === 2) { // Colour A - 2 decimals
-                        avgFormatted = avg.toFixed(2);
-                        minFormatted = min.toFixed(2);
-                        maxFormatted = max.toFixed(2);
-                    } else if (summaryColIndex === 3) { // Colour B - 2 decimals
-                        avgFormatted = avg.toFixed(2);
-                        minFormatted = min.toFixed(2);
-                        maxFormatted = max.toFixed(2);
-                    } else if (summaryColIndex === 4) { // Delta E - 2 decimals
-                        avgFormatted = avg.toFixed(2);
-                        minFormatted = min.toFixed(2);
-                        maxFormatted = max.toFixed(2);
-                    } else if (summaryColIndex === 5) { // Base Film Pink - 2 decimals
-                        avgFormatted = avg.toFixed(2);
-                        minFormatted = min.toFixed(2);
-                        maxFormatted = max.toFixed(2);
-                    } else { // Default fallback
-                        avgFormatted = avg.toFixed(2);
-                        minFormatted = min.toFixed(2);
-                        maxFormatted = max.toFixed(2);
-                    }
+                    // Page 3 column formatting - all use 2 decimals with proper rounding
+                    avgFormatted = (Math.round(avg * 100) / 100).toFixed(2);
+                    minFormatted = (Math.round(min * 100) / 100).toFixed(2);
+                    maxFormatted = (Math.round(max * 100) / 100).toFixed(2);
                 } else {
                     // Page 2 column formatting
                     if (summaryColIndex === 1) { // Tensile Break - 0 decimals
@@ -4330,16 +4320,10 @@ function calculatePage2SummaryStatistics(tableBody) {
             let avgFormatted, minFormatted, maxFormatted;
 
             if (isPage3) {
-                // Page 3 formatting
-                if (summaryColIndex <= 3) { // Colour L, A, B (2 decimals)
-                    avgFormatted = avg.toFixed(2);
-                    minFormatted = min.toFixed(2);
-                    maxFormatted = max.toFixed(2);
-                } else { // Delta E and Base Film Pink (2 decimals)
-                    avgFormatted = avg.toFixed(2);
-                    minFormatted = min.toFixed(2);
-                    maxFormatted = max.toFixed(2);
-                }
+                // Page 3 formatting - all columns use proper rounding to 2 decimals
+                avgFormatted = (Math.round(avg * 100) / 100).toFixed(2);
+                minFormatted = (Math.round(min * 100) / 100).toFixed(2);
+                maxFormatted = (Math.round(max * 100) / 100).toFixed(2);
             } else {
                 // Page 2 formatting
                 if (summaryColIndex <= 3) { // Tensile Break, CD Elongation Break, 10% Modulus (no decimal)
@@ -4428,19 +4412,13 @@ function calculatePage3SummaryStatistics(tableBody) {
             const min = Math.min(...values);
             const max = Math.max(...values);
 
-            // Format based on column type
+            // Format based on column type - use proper rounding
             let avgFormatted, minFormatted, maxFormatted;
 
-            // Page 3 formatting
-            if (summaryColIndex <= 3) { // Colour L, A, B (2 decimals)
-                avgFormatted = avg.toFixed(2);
-                minFormatted = min.toFixed(2);
-                maxFormatted = max.toFixed(2);
-            } else { // Delta E, Base Film Pink (2 decimals)
-                avgFormatted = avg.toFixed(2);
-                minFormatted = min.toFixed(2);
-                maxFormatted = max.toFixed(2);
-            }
+            // Page 3 formatting (all columns use 2 decimals with proper rounding)
+            avgFormatted = (Math.round(avg * 100) / 100).toFixed(2);
+            minFormatted = (Math.round(min * 100) / 100).toFixed(2);
+            maxFormatted = (Math.round(max * 100) / 100).toFixed(2);
 
             // Update summary rows
             updatePageSummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);

@@ -1304,6 +1304,7 @@ function getCurrentProductCode() {
         const equipmentMappings = {
             'Weigh Scale': ['basic-weight-equipment'],
             'Dial Gauge': [], // Dial Gauge not used in this form
+            'X-RITE': ['page2-colour-equipment'], // X-RITE for Page 2 colour
             'Spectrophotometer': ['opacity-equipment', 'page2-colour-equipment'],
             'Instron': ['cof-rr-equipment', 'cof-rs-equipment', 'page2-force-equipment', 'modulus-equipment'], // UTM for modulus testing
             'Glossmeter': ['gloss-equipment']
@@ -1322,31 +1323,46 @@ function getCurrentProductCode() {
                 const dropdown = document.getElementById(dropdownId);
                 if (dropdown) {
 
-                
-                    // Clear existing options except the first one
-                    dropdown.innerHTML = '<option value="">Select Equipment ▼</option>';
-                    
-                    // Add equipment options
-                    equipmentIds.forEach(equipmentId => {
-                        const option = document.createElement('option');
-                        option.value = equipmentId;
-                        option.textContent = equipmentId;
-                        dropdown.appendChild(option);
-                    });
-                    
-                
-                
-                // Add change event listener for auto-save
-                    dropdown.addEventListener('change', function() {
-                    if (!isViewMode()) {
-                        debouncedSave(); // Auto-save equipment selection to database
+                    // Remove 'Loading equipment...' option if present
+                    Array.from(dropdown.options).forEach(opt => {
+                        if (opt.textContent === 'Loading equipment...') {
+                            dropdown.removeChild(opt);
                         }
-                    
-                    // Apply equipment highlighting
-                    updateEquipmentHighlighting();
                     });
-            } else {
-                console.warn(`🔧 [EQUIPMENT] Dropdown not found: ${dropdownId}`);
+
+                    // Always ensure 'Select Equipment ▼' is present as the first option
+                    const selectOptionExists = Array.from(dropdown.options).some(opt => opt.textContent === 'Select Equipment ▼');
+                    if (!selectOptionExists) {
+                        const selectOption = document.createElement('option');
+                        selectOption.value = '';
+                        selectOption.textContent = 'Select Equipment ▼';
+                        dropdown.insertBefore(selectOption, dropdown.firstChild);
+                    }
+
+                    // Add equipment options (append only, avoid duplicates)
+                    equipmentIds.forEach(equipmentId => {
+                        const optionExists = Array.from(dropdown.options).some(opt => opt.value === equipmentId);
+                        if (!optionExists) {
+                            const option = document.createElement('option');
+                            option.value = equipmentId;
+                            option.textContent = equipmentId;
+                            dropdown.appendChild(option);
+                        }
+                    });
+
+                    // Add change event listener for auto-save (only once)
+                    if (!dropdown.hasAttribute('data-listener-added')) {
+                        dropdown.addEventListener('change', function() {
+                            if (!isViewMode()) {
+                                debouncedSave(); // Auto-save equipment selection to database
+                            }
+                            // Apply equipment highlighting
+                            updateEquipmentHighlighting();
+                        });
+                        dropdown.setAttribute('data-listener-added', 'true');
+                    }
+                } else {
+                    console.warn(`🔧 [EQUIPMENT] Dropdown not found: ${dropdownId}`);
                 }
             });
         });

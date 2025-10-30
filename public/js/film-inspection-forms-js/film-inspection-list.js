@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filterStatus = document.getElementById('filterStatus');
     const filterPreparedBy = document.getElementById('filterPreparedBy');
     const clearFilterBtn = document.getElementById('clearFilter');
-    const filterStatusIndicator = document.getElementById('filterStatus');
+    const filterStatusIndicator = document.getElementById('filterStatusIndicator');
 
     // IMMEDIATE PROTECTION: Prevent customer field from being converted to dropdown
     
@@ -68,59 +68,59 @@ document.addEventListener('DOMContentLoaded', async () => {
             const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc290pResult, uc290npResult, uc250wResult, uc210wResult, microWhite234Result, microWhite102Result, white168Result, uc165wResult] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('168_16c_white')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('176_18cp_ww')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('168_18c_white_jeddah')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('214_18_micro_white')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-250p-abqr')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-290p-abqr')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-290np-abqr')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-250w-bfqr')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-210w-bfqr')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('234_18_micro_white')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('102_18c_micro_white')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('168_18c_white')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-16gsm-165w')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order')
+                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false })
             ]);
 
@@ -252,9 +252,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return false;
             }
 
-            // Status filter - determine status based on verification
+            // Status filter - determine status based on approval
             if (activeFilters.status) {
-                const formStatus = form.verified_by ? 'Submitted' : 'Draft';
+                const formStatus = form.approved_by ? 'Complete' : 'Pending';
                 if (formStatus !== activeFilters.status) {
                     return false;
                 }
@@ -321,9 +321,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Serial number based on overall position in filtered dataset: latest entry gets highest number
             const serialNumber = totalItems - (startIndex + index);
 
-            const statusBadge = formData.verified_by ?
-                `<span class="text-gray-900">${formData.verified_by}</span>` :
-                `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Verification Pending</span>`;
+            const statusBadge = formData.approved_by ?
+                `<span class="text-gray-900">${formData.approved_by}</span>` :
+                `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Pending</span>`;
 
             row.innerHTML = `
                 <td class="py-2 px-4 border-b border-r text-center">${serialNumber}</td>
@@ -335,9 +335,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     ${formData.prepared_by || ''}
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
+                    ${formData.verified_by ? 
+                        `<span class="text-gray-900">${formData.verified_by}</span>` :
+                        `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Verification Pending</span>`
+                    }
+                </td>
+                <td class="py-2 px-4 border-b border-r text-center">
                     ${statusBadge}
                 </td>
-                <td class="py-2 px-4 border-b border-r text-center">-</td>
                 <td class="py-2 px-4 border-b border-r text-center">
                     <div class="flex justify-center space-x-1 flex-nowrap max-w-full overflow-hidden">
                         <!-- Sky blue Enter Data button -->
@@ -390,13 +395,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function clearAllFilters() {
-        // Reset filter inputs
-        if (filterFromDate) filterFromDate.value = '';
-        if (filterToDate) filterToDate.value = '';
-        if (filterProduct) filterProduct.value = '';
-        if (filterMachine) filterMachine.value = '';
-        if (filterStatus) filterStatus.value = '';
-        if (filterPreparedBy) filterPreparedBy.value = '';
+        // Reset filter inputs and trigger change events for UI update
+        if (filterFromDate) {
+            filterFromDate.value = '';
+            filterFromDate.dispatchEvent(new Event('change'));
+        }
+        if (filterToDate) {
+            filterToDate.value = '';
+            filterToDate.dispatchEvent(new Event('change'));
+        }
+        if (filterProduct) {
+            filterProduct.value = '';
+            filterProduct.dispatchEvent(new Event('change'));
+        }
+        if (filterMachine) {
+            filterMachine.value = '';
+            filterMachine.dispatchEvent(new Event('change'));
+        }
+        if (filterStatus) {
+            filterStatus.value = '';
+            filterStatus.dispatchEvent(new Event('change'));
+        }
+        if (filterPreparedBy) {
+            filterPreparedBy.value = '';
+            filterPreparedBy.dispatchEvent(new Event('change'));
+        }
 
         // Reset filter state
         activeFilters = {
@@ -593,11 +616,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
                     ${formData.verified_by ? 
-                        `<span class="text-gray-900">${formData.verified_by}</span>` : 
+                        `<span class="text-gray-900">${formData.verified_by}</span>` :
                         `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Verification Pending</span>`
                     }
                 </td>
-                <td class="py-2 px-4 border-b border-r text-center">-</td>
+                <td class="py-2 px-4 border-b border-r text-center">
+                    ${formData.approved_by ?
+                        `<span class="text-gray-900">${formData.approved_by}</span>` : 
+                        `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Pending</span>`
+                    }
+                </td>
                 <td class="py-2 px-4 border-b border-r text-center">
                     <div class="flex justify-center space-x-1 flex-nowrap max-w-full overflow-hidden">
                         <!-- Sky blue Enter Data button -->
@@ -3161,6 +3189,10 @@ window.viewFilmForm = function(formId, productCode) {
             targetForm = 'UC-18gsm-210W-BFQR.html';
             console.log('View routing to UC-18gsm-210W-BFQR form');
             break;
+        case 'INUE16-165W':
+            targetForm = 'UC-16gsm-165W.html';
+            console.log('View routing to UC-16gsm-165W form');
+            break;
         default:
             // Default fallback
             targetForm = '16-gsm-kranti.html';
@@ -3224,6 +3256,9 @@ window.enterData = function(formId) {
             break;
         case 'APE-102(18)C':
             targetForm = '18-gsm-102-micro-white.html';
+            break;
+        case 'INUE16-165W':
+            targetForm = 'UC-16gsm-165W.html';
             break;
         default:
             targetForm = '16-gsm-kranti.html';
