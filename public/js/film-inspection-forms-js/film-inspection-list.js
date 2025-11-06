@@ -68,59 +68,59 @@ document.addEventListener('DOMContentLoaded', async () => {
             const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc290pResult, uc290npResult, uc250wResult, uc210wResult, microWhite234Result, microWhite102Result, white168Result, uc165wResult] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('168_16c_white')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('176_18cp_ww')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('168_18c_white_jeddah')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('214_18_micro_white')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-250p-abqr')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-290p-abqr')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-290np-abqr')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-250w-bfqr')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-210w-bfqr')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('234_18_micro_white')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('102_18c_micro_white')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('168_18c_white')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-16gsm-165w')
-                    .select('form_id, production_order, product_code, specification, inspection_date, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false })
             ]);
 
@@ -186,6 +186,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ...(uc165wResult.data || [])
             ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); // Sort by creation date, newest first
 
+            // Lookup MRMP / GCAS / MATERIAL CODE from fif_products_master table
+            await lookupGcasMrmpForForms();
+
             // Apply filters to get filtered data
             applyFilters();
         } catch (error) {
@@ -197,6 +200,118 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </td>
                 </tr>
             `;
+        }
+    }
+
+    // Function to lookup MRMP / GCAS / MATERIAL CODE from fif_products_master table
+    async function lookupGcasMrmpForForms() {
+        try {
+            // Get all unique product_codes from the forms
+            const uniqueProductCodes = [...new Set(
+                allData
+                    .filter(form => form.product_code)
+                    .map(form => form.product_code)
+            )];
+
+            if (uniqueProductCodes.length === 0) {
+                console.log('No product codes found to lookup MRMP / GCAS / MATERIAL CODE');
+                return;
+            }
+
+            // Fetch GCAS/MRMP data from fif_products_master
+            const { data: masterData, error } = await supabase
+                .from('fif_products_master')
+                .select('prod_code, mrmp, gcas, material_code');
+
+            if (error) {
+                console.error('Error fetching from fif_products_master:', error.message);
+                return;
+            }
+
+            // Create a lookup map using only product_code
+            const gcasMrmpMap = new Map();
+            (masterData || []).forEach(master => {
+                // Combine MRMP, GCAS, and MATERIAL CODE as requested (MRMP / GCAS / MATERIAL CODE format)
+                const gcasMrmpValue = master.gcas && master.mrmp && master.material_code ? `${master.mrmp} / ${master.gcas} / ${master.material_code}` :
+                                    master.gcas && master.mrmp ? `${master.mrmp} / ${master.gcas}` :
+                                    master.gcas && master.material_code ? `${master.gcas} / ${master.material_code}` :
+                                    master.mrmp && master.material_code ? `${master.mrmp} / ${master.material_code}` :
+                                    master.gcas ? master.gcas :
+                                    master.mrmp ? master.mrmp :
+                                    master.material_code ? master.material_code : '';
+                gcasMrmpMap.set(master.prod_code, gcasMrmpValue);
+            });
+
+            // Add MRMP / GCAS / MATERIAL CODE to each form data using product_code only
+            allData.forEach(form => {
+                if (form.product_code) {
+                    form.gcas_irms = gcasMrmpMap.get(form.product_code) || '';
+                } else {
+                    form.gcas_irms = '';
+                }
+            });
+
+            console.log('MRMP / GCAS / MATERIAL CODE lookup completed for', allData.length, 'forms');
+
+        } catch (error) {
+            console.error('Error in lookupGcasIrmsForForms:', error);
+        }
+    }
+
+    // Function to lookup MRMP / GCAS / MATERIAL CODE for search results
+    async function lookupGcasMrmpForSearchResults(searchData) {
+        try {
+            // Get all unique product_code + specification combinations from the search results
+            const uniqueProductSpecs = [...new Set(
+                searchData
+                    .filter(form => form.product_code && form.specification)
+                    .map(form => `${form.product_code}|${form.specification}`)
+            )];
+
+            if (uniqueProductSpecs.length === 0) {
+                console.log('No product specifications found in search results to lookup MRMP / GCAS / MATERIAL CODE');
+                return;
+            }
+
+            // Fetch MRMP / GCAS / MATERIAL CODE data from fif_products_master
+            const { data: masterData, error } = await supabase
+                .from('fif_products_master')
+                .select('prod_code, spec, mrmp, gcas, material_code');
+
+            if (error) {
+                console.error('Error fetching from fif_products_master for search:', error.message);
+                return;
+            }
+
+            // Create a lookup map
+            const gcasMrmpMap = new Map();
+            (masterData || []).forEach(master => {
+                const key = master.prod_code;
+                // Combine MRMP, GCAS, and MATERIAL CODE as requested (MRMP / GCAS / MATERIAL CODE format)
+                const gcasMrmpValue = master.gcas && master.mrmp && master.material_code ? `${master.mrmp} / ${master.gcas} / ${master.material_code}` :
+                                    master.gcas && master.mrmp ? `${master.mrmp} / ${master.gcas}` :
+                                    master.gcas && master.material_code ? `${master.gcas} / ${master.material_code}` :
+                                    master.mrmp && master.material_code ? `${master.mrmp} / ${master.material_code}` :
+                                    master.gcas ? master.gcas :
+                                    master.mrmp ? master.mrmp :
+                                    master.material_code ? master.material_code : '';
+                gcasMrmpMap.set(key, gcasMrmpValue);
+            });
+
+            // Add MRMP / GCAS / MATERIAL CODE to each search result
+            searchData.forEach(form => {
+                if (form.product_code) {
+                    const key = form.product_code;
+                    form.gcas_irms = gcasMrmpMap.get(key) || '';
+                } else {
+                    form.gcas_irms = '';
+                }
+            });
+
+            console.log('MRMP / GCAS / MATERIAL CODE lookup completed for search results');
+
+        } catch (error) {
+            console.error('Error in lookupGcasIrmsForSearchResults:', error);
         }
     }
 
@@ -322,13 +437,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const serialNumber = totalItems - (startIndex + index);
 
             const statusBadge = formData.approved_by ?
-                `<span class="text-gray-900">${formData.approved_by}</span>` :
+                `<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Complete</span>` :
                 `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Pending</span>`;
 
             row.innerHTML = `
                 <td class="py-2 px-4 border-b border-r text-center">${serialNumber}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.production_date ? new Date(formData.production_date).toLocaleDateString('en-GB') : ''}</td>
-                <td class="py-2 px-4 border-b border-r text-center">${formData.inspection_date ? new Date(formData.inspection_date).toLocaleDateString('en-GB') : ''}</td>
+                <td class="py-2 px-4 border-b border-r text-center">${formData.gcas_irms || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.machine_no || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.product_code || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">
@@ -579,6 +694,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Sort by creation date, newest first
         allData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
+        // Lookup MRMP / GCAS / MATERIAL CODE from fif_products_master table
+        await lookupGcasMrmpForSearchResults(allData);
+
         // Update pagination state
         totalItems = allData.length;
         currentPage = 1; // Reset to first page when searching
@@ -608,7 +726,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.innerHTML = `
                 <td class="py-2 px-4 border-b border-r text-center">${serialNumber}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.production_date ? new Date(formData.production_date).toLocaleDateString('en-GB') : ''}</td>
-                <td class="py-2 px-4 border-b border-r text-center">${formData.inspection_date ? new Date(formData.inspection_date).toLocaleDateString('en-GB') : ''}</td>
+                <td class="py-2 px-4 border-b border-r text-center">${formData.gcas_irms || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.machine_no || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.product_code || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">
@@ -622,7 +740,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
                     ${formData.approved_by ?
-                        `<span class="text-gray-900">${formData.approved_by}</span>` : 
+                        `<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Complete</span>` : 
                         `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Pending</span>`
                     }
                 </td>
