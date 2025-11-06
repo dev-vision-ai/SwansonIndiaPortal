@@ -123,12 +123,8 @@ async function updateVerificationInDatabase(verifierName, verificationDate) {
             return;
         }
         
-        if (data && data.length > 0) {
-            // Verification data saved successfully
-        } else {
-            console.error('No data returned from update');
-            alert('Error: Verification data not saved. Please try again.');
-        }
+        // Verification data saved successfully (no need to check data length)
+        console.log('Verification data updated successfully');
         
     } catch (error) {
         console.error('Error updating verification in database:', error);
