@@ -966,7 +966,7 @@ async function applyFilters() {
   await updateFormsTable(filteredForms, hasDateFilters);
   
   // Check if filters are applied
-  const hasFilters = fromDate || toDate || product || machine || shift || operator || supervisor || lineLeader || qcInspector;
+  const hasFilters = fromDate || toDate || product || machine || shift || operator || supervisor || qcInspector;
   if (hasFilters) {
     // Filter applied successfully
   }
@@ -1999,20 +1999,10 @@ async function editForm(traceability_code, lot_letter) {
   overlay.style.display = 'flex';
   overlay.classList.remove('hidden');
   
-  // Check cache first
-  const cacheKey = `${traceability_code}_${lot_letter}`;
-  let formData = formDataCache.get(cacheKey);
-  
-  if (formData) {
-            // console.log('Using cached form data');
-    populateFormWithData(formData, form, submitButton);
-    return;
-  }
-  
-  // Show loading state only if we need to fetch data
+  // Always fetch fresh data from database (no cache check)
   submitButton.textContent = 'Loading...';
   submitButton.disabled = true;
-  
+
   try {
     // Find the record with actual form data for this traceability_code
     const { data: allData, error: listError } = await supabase
@@ -2025,36 +2015,30 @@ async function editForm(traceability_code, lot_letter) {
         total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
         created_at, updated_at
       `)
-      .eq('traceability_code', traceability_code);
-    
-  if (listError) {
-    console.error('Error listing forms:', listError);
-    alert('Error loading form for editing.');
-    return;
-  }
-  
-          // All forms for traceability_code
-  
-  // Find the form with actual data (customer, production_no, etc.)
-  const formData = allData.find(form => form.customer || form.production_no || form.prod_code || form.spec);
-  
-  if (!formData) {
-    console.error('No form with data found for traceability_code:', traceability_code);
-    alert('No form data found for editing.');
-    // Reset button state
-    submitButton.textContent = 'Update Inline Inspection Form';
-    submitButton.disabled = false;
-    return;
-  }
-  
-          // console.log('Found form with data for editing');
-  
-  // Cache the form data for future use
-  formDataCache.set(cacheKey, formData);
-  
-  // Populate the form with the fetched data
-  populateFormWithData(formData, form, submitButton);
-  
+      .eq('traceability_code', traceability_code)
+      .eq('lot_letter', lot_letter);
+
+    if (listError) {
+      console.error('Error listing forms:', listError);
+      alert('Error loading form for editing.');
+      return;
+    }
+
+    // Prefer exact match by lot_letter (query already filters by it). Fallback to any record
+    const selectedFormData = (allData || []).find(f => (f.customer || f.production_no || f.prod_code || f.spec)) || (allData && allData[0]);
+
+    if (!selectedFormData) {
+      console.error('No form with data found for traceability_code and lot_letter:', traceability_code, lot_letter);
+      alert('No form data found for editing.');
+      // Reset button state
+      submitButton.textContent = 'Update Inline Inspection Form';
+      submitButton.disabled = false;
+      return;
+    }
+
+    // Populate the form with the fetched data (no caching)
+    populateFormWithData(selectedFormData, form, submitButton);
+
   } catch (error) {
     console.error('Error in editForm function:', error);
     alert('Error loading form for editing. Please try again.');
