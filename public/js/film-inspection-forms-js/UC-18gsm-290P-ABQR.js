@@ -2381,16 +2381,16 @@ function applyOOSValidation(input, columnType) {
             break;
         // Page 3 parameters
         case 'colourL':
-            // Colour L: L-52.00 T-58.00 U-64.00 (Colour units-H)
-            shouldHighlight = value < 52.00 || value > 64.00;
+            // Colour L: L-54.00 T-59.00 U-63.00 (Colour units-H)
+            shouldHighlight = value < 54.00 || value > 63.00;
             break;
         case 'colourA':
             // Colour A: L-49.00 T-54.00 U-59.00 (Colour units-H)
             shouldHighlight = value < 49.00 || value > 59.00;
             break;
         case 'colourB':
-            // Colour B: L-(-12.50) T-(-8.50) U-(-4.50) (Colour units-H)
-            shouldHighlight = value < -12.50 || value > -4.50;
+            // Colour B: L-(-11.50) T-(-8.50) U-(-5.50) (Colour units-H)
+            shouldHighlight = value < -11.50 || value > -5.50;
             break;
         case 'deltaE':
             // Delta E: T-0.00 U-4.00 (Colour Units-Delta E) - only upper limit

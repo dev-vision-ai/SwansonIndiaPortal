@@ -599,7 +599,7 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
     const productCode = data.product_code || 'UC-18gsm-250P-ABQR';
     const batchNo = data.film_insp_form_ref_no || form_id;
 
-    const filename = `FIF-${productCode}-${batchNo}.xlsx`;
+    const filename = `FIF-${productCode}-.xlsx`;
 
     // 5. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -1183,7 +1183,7 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
     const productCode = data.product_code || 'UC-18gsm-290P-ABQR';
     const batchNo = data.film_insp_form_ref_no || form_id;
 
-    const filename = `FIF-${productCode}-${batchNo}.xlsx`;
+    const filename = `FIF-${productCode}-.xlsx`;
 
     // 5. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -1767,7 +1767,7 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
     const productCode = data.product_code || 'UC-18gsm-290NP-ABQR';
     const batchNo = data.film_insp_form_ref_no || form_id;
 
-    const filename = `FIF-${productCode}-${batchNo}.xlsx`;
+    const filename = `FIF-${productCode}-.xlsx`;
 
     // 5. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -2351,7 +2351,7 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
     const productCode = data.product_code || 'UC-18gsm-250W-BFQR';
     const batchNo = data.film_insp_form_ref_no || form_id;
 
-    const filename = `FIF-${productCode}-${batchNo}.xlsx`;
+    const filename = `FIF-${productCode}-.xlsx`;
 
     // 5. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -2930,7 +2930,7 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
     const productCode = data.product_code || 'UC-18gsm-210W-BFQR';
     const batchNo = data.film_insp_form_ref_no || form_id;
 
-    const filename = `FIF-${productCode}-${batchNo}.xlsx`;
+    const filename = `FIF-${productCode}-.xlsx`;
 
     // 5. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -3463,7 +3463,7 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
     const productCode = data.product_code || 'UC-16gsm-165W';
     const batchNo = data.film_insp_form_ref_no || form_id;
 
-    const filename = `FIF-${productCode}-${batchNo}.xlsx`;
+    const filename = `FIF-${productCode}-.xlsx`;
 
     // 5. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

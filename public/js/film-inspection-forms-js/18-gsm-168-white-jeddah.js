@@ -3,6 +3,7 @@ import { supabase } from '../../supabase-config.js';
 
 // ===== VERIFICATION FUNCTIONALITY =====
 const VERIFICATION_PASSWORD = "QC-2256"; // Verification password for form verification
+const APPROVAL_PASSWORD = "QA-2256"; // Approval password for form approval
 
 // Date formatting function
 function formatDateToDDMMYYYY(dateString) {
@@ -132,6 +133,41 @@ async function updateVerificationInDatabase(verifierName, verificationDate) {
     }
 }
 
+async function updateApprovalInDatabase(approverName, approvalDate) {
+    try {
+        // Get the current form ID
+        const formId = getCurrentFormId();
+        if (!formId) {
+            console.error('No form ID found');
+            alert('Error: Could not identify the form. Please refresh and try again.');
+            return;
+        }
+        
+        // Update the database with approval data
+        const { data, error } = await supabase
+            .from('168_18c_white_jeddah')
+            .update({
+                approved_by: approverName,
+                approved_date: approvalDate
+            })
+            .eq('form_id', formId)
+            .select();
+        
+        if (error) {
+            console.error('Error updating approval:', error);
+            alert('Error saving approval data. Please try again.');
+            return;
+        }
+        
+        // Approval data saved successfully
+        console.log('Approval data updated successfully');
+        
+    } catch (error) {
+        console.error('Error updating approval in database:', error);
+        alert('Error saving approval data. Please try again.');
+    }
+}
+
 function getCurrentFormId() {
     // Try to get form ID from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
@@ -203,8 +239,9 @@ async function checkVerificationStatus() {
         }
         
         // If verified, update UI accordingly
-        document.getElementById('verificationStatus').textContent = `Verified by ${data.verified_by} on ${data.verified_date}`;
-        hideVerificationForm();
+        document.getElementById('verifiedByDisplay').textContent = 'Verified by: ' + data.verified_by;
+        document.getElementById('verifiedDateDisplay').textContent = 'Date: ' + formatDateToDDMMYYYY(data.verified_date);
+        showVerificationStatus();
     } catch (catchError) {
         console.error('Unexpected error in checkVerificationStatus:', catchError);
         showVerificationForm();
@@ -214,6 +251,10 @@ async function checkVerificationStatus() {
 function showVerificationForm() {
     document.getElementById('verificationForm').style.display = 'block';
     document.getElementById('verificationStatus').style.display = 'none';
+}
+
+function hideVerificationForm() {
+    document.getElementById('verificationForm').style.display = 'none';
 }
 
 function showVerificationStatus() {
@@ -243,6 +284,10 @@ function showCustomConfirmationPopup(formDetails, currentUser, verificationDate)
     // Show the popup
     document.getElementById('verificationConfirmPopup').style.display = 'flex';
     
+    // Enable buttons BEFORE attaching onclick handlers
+    document.getElementById('confirmVerificationBtn').disabled = false;
+    document.getElementById('cancelVerificationBtn').disabled = false;
+    
     // Handle confirm button click
     document.getElementById('confirmVerificationBtn').onclick = async () => {
         try {
@@ -260,6 +305,9 @@ function showCustomConfirmationPopup(formDetails, currentUser, verificationDate)
             document.getElementById('verifiedByDisplay').textContent = 'Verified by: ' + currentUser;
             const formattedDate = formatDateToDDMMYYYY(verificationDate);
             document.getElementById('verifiedDateDisplay').textContent = 'Date: ' + formattedDate;
+            
+            // Check and show approval section immediately
+            await checkApprovalStatus();
             
         } catch (error) {
             console.error('Error during verification:', error);
@@ -346,6 +394,235 @@ function initializeVerification() {
     if (togglePasswordBtn) {
         togglePasswordBtn.disabled = false;
     }
+}
+
+// ===== APPROVAL FUNCTIONALITY =====
+async function checkApprovalStatus() {
+    try {
+        const formId = getCurrentFormId();
+        if (!formId) {
+            console.log('No form ID available yet for approval check');
+            hideApprovalSection();
+            return;
+        }
+        
+        const { data, error } = await supabase
+            .from('168_18c_white_jeddah')
+            .select('verified_by, approved_by, approved_date')
+            .eq('form_id', formId)
+            .maybeSingle();
+        
+        if (error) {
+            console.error('Error checking approval status:', error);
+            hideApprovalSection();
+            return;
+        }
+        
+        // Only enable approval if form is verified
+        if (data && data.verified_by) {
+            // Form is verified, so show approval section
+            showApprovalSection();
+            
+            if (data.approved_by && data.approved_date) {
+                // Form is already approved
+                showApprovalStatus();
+                document.getElementById('approvedByDisplay').textContent = 'Approved by: ' + data.approved_by;
+                document.getElementById('approvedDateDisplay').textContent = 'Date: ' + formatDateToDDMMYYYY(data.approved_date);
+            } else {
+                // Form is verified but not approved yet
+                setApprovalFormState(true);
+                showApprovalForm();
+            }
+        } else {
+            // Form is not verified yet, HIDE approval section completely
+            hideApprovalSection();
+        }
+    } catch (error) {
+        console.error('Error in checkApprovalStatus:', error);
+        hideApprovalSection();
+    }
+}
+
+function showApprovalSection() {
+    document.getElementById('approvalSection').style.display = 'block';
+    document.getElementById('approvalSection').style.opacity = '1';
+    document.getElementById('approvalSection').style.pointerEvents = 'auto';
+}
+
+function hideApprovalSection() {
+    document.getElementById('approvalSection').style.display = 'none';
+}
+
+function showApprovalForm() {
+    const approvalForm = document.getElementById('approvalForm');
+    const approvalStatus = document.getElementById('approvalStatus');
+    if (approvalForm) approvalForm.style.display = 'block';
+    if (approvalStatus) approvalStatus.style.display = 'none';
+}
+
+function showApprovalStatus() {
+    const approvalForm = document.getElementById('approvalForm');
+    const approvalStatus = document.getElementById('approvalStatus');
+    
+    if (approvalForm) approvalForm.style.display = 'none';
+    if (approvalStatus) approvalStatus.style.display = 'flex';
+    
+    // Populate approval status display
+    const formId = getCurrentFormId();
+    if (!formId) return;
+    
+    supabase
+        .from('168_18c_white_jeddah')
+        .select('approved_by, approved_date')
+        .eq('form_id', formId)
+        .maybeSingle()
+        .then(({ data, error }) => {
+            if (error || !data) return;
+            document.getElementById('approvedByDisplay').textContent = 'Approved by: ' + data.approved_by;
+            document.getElementById('approvedDateDisplay').textContent = 'Date: ' + formatDateToDDMMYYYY(data.approved_date);
+        });
+}
+
+function setApprovalFormState(isEnabled) {
+    const approvalPassword = document.getElementById('approvalPassword');
+    const approvalDate = document.getElementById('approvalDate');
+    const approveFormBtn = document.getElementById('approveFormBtn');
+    const cancelApprovalBtn = document.getElementById('cancelApprovalBtn');
+    
+    if (approvalPassword) {
+        approvalPassword.disabled = !isEnabled;
+        approvalPassword.readOnly = !isEnabled;
+    }
+    if (approvalDate) {
+        approvalDate.disabled = !isEnabled;
+        approvalDate.readOnly = !isEnabled;
+    }
+    if (approveFormBtn) approveFormBtn.disabled = !isEnabled;
+    if (cancelApprovalBtn) cancelApprovalBtn.disabled = !isEnabled;
+}
+
+async function approveForm(approvalDate) {
+    try {
+        const currentUser = await getCurrentUser();
+        const formDetails = getFormDetailsForConfirmation();
+        showApprovalConfirmationPopup(formDetails, currentUser, approvalDate);
+    } catch (error) {
+        console.error('Error during approval:', error);
+        alert('Error during approval. Please try again.');
+    }
+}
+
+function showApprovalConfirmationPopup(formDetails, currentUser, approvalDate) {
+    // Populate popup with data
+    document.getElementById('confirmApprovalProductName').textContent = formDetails.productName;
+    document.getElementById('confirmApprovalProductionDate').textContent = formDetails.productionDate;
+    document.getElementById('confirmApprovalInspectionDate').textContent = formDetails.inspectionDate;
+    document.getElementById('confirmApproverName').textContent = currentUser;
+    document.getElementById('confirmApprovalDate').textContent = formatDateToDDMMYYYY(approvalDate);
+    
+    // Show popup
+    document.getElementById('approvalConfirmPopup').style.display = 'flex';
+    
+    // Enable buttons BEFORE attaching handlers
+    document.getElementById('confirmApprovalBtn').disabled = false;
+    document.getElementById('cancelApprovalPopupBtn').disabled = false;
+    
+    // Set up event listeners
+    document.getElementById('confirmApprovalBtn').onclick = async () => {
+        try {
+            document.getElementById('approvalConfirmPopup').style.display = 'none';
+            await updateApprovalInDatabase(currentUser, approvalDate);
+            alert('Form approved successfully!');
+            showApprovalStatus();
+            
+            // Update display
+            document.getElementById('approvedByDisplay').textContent = 'Approved by: ' + currentUser;
+            document.getElementById('approvedDateDisplay').textContent = 'Date: ' + formatDateToDDMMYYYY(approvalDate);
+        } catch (error) {
+            console.error('Error during approval:', error);
+            alert('Error during approval. Please try again.');
+        }
+    };
+    
+    document.getElementById('cancelApprovalPopupBtn').onclick = () => {
+        document.getElementById('approvalConfirmPopup').style.display = 'none';
+    };
+}
+
+function initializeApproval() {
+    const approvalForm = document.getElementById('approvalForm');
+    const approvalStatus = document.getElementById('approvalStatus');
+    const approvalPasswordInput = document.getElementById('approvalPassword');
+    const approvalDateInput = document.getElementById('approvalDate');
+    const approveBtn = document.getElementById('approveFormBtn');
+    const cancelBtn = document.getElementById('cancelApprovalBtn');
+    const togglePasswordBtn = document.getElementById('toggleApprovalPassword');
+    
+    // Hide approval section initially - will be shown by checkApprovalStatus() if verification exists
+    hideApprovalSection();
+    
+    // Wait a bit for form_id to be available, then check approval status
+    setTimeout(() => {
+        checkApprovalStatus();
+    }, 500);
+    
+    // Enable approval inputs
+    if (approvalPasswordInput) {
+        approvalPasswordInput.disabled = false;
+        approvalPasswordInput.readOnly = false;
+    }
+    if (approvalDateInput) {
+        approvalDateInput.disabled = false;
+        approvalDateInput.readOnly = false;
+    }
+    if (approveBtn) approveBtn.disabled = false;
+    if (cancelBtn) cancelBtn.disabled = false;
+    if (togglePasswordBtn) togglePasswordBtn.disabled = false;
+    
+    // Toggle password visibility
+    if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', function() {
+            const type = approvalPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            approvalPasswordInput.setAttribute('type', type);
+            const icon = togglePasswordBtn.querySelector('i');
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        });
+    }
+    
+    // Approve button
+    if (approveBtn) {
+        approveBtn.addEventListener('click', function() {
+            const enteredPassword = approvalPasswordInput.value.trim();
+            const approvalDate = approvalDateInput.value;
+            
+            if (!approvalDate) {
+                alert('Please select an approval date.');
+                approvalDateInput.focus();
+                return;
+            }
+            
+            if (enteredPassword === APPROVAL_PASSWORD) {
+                approveForm(approvalDate);
+            } else {
+                alert('Invalid approval password. Please contact QA.');
+                approvalPasswordInput.value = '';
+                approvalPasswordInput.focus();
+            }
+        });
+    }
+    
+    // Cancel button
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            approvalPasswordInput.value = '';
+            approvalDateInput.value = '';
+        });
+    }
+}
+
+function setupApprovalListeners() {
+    // This function can be used to set up additional approval-related listeners if needed
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -650,8 +927,13 @@ document.addEventListener('DOMContentLoaded', function() {
                        input.id === 'verificationDate' || 
                        input.id === 'toggleVerificationPassword' ||
                        input.id === 'verifyFormBtn' ||
-                       input.id === 'cancelVerificationBtn') {
-                       return; // Skip disabling verification inputs
+                       input.id === 'cancelVerificationBtn' ||
+                       input.id === 'approvalPassword' ||
+                       input.id === 'approvalDate' ||
+                       input.id === 'approveFormBtn' ||
+                       input.id === 'cancelApprovalBtn' ||
+                       input.id === 'toggleApprovalPassword') {
+                       return; // Skip disabling verification and approval inputs
                    }
                    input.readOnly = true;
                    input.disabled = true;
@@ -6028,4 +6310,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize verification functionality
     initializeVerification();
+    
+    // Initialize approval functionality
+    initializeApproval();
 });

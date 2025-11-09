@@ -88,7 +88,7 @@
         .testing-table:not(.modern-header-table) tbody tr.average-row:hover td,
         .testing-table:not(.modern-header-table) tbody tr:nth-last-child(2):hover td,
         .testing-table:not(.modern-header-table) tbody tr:nth-last-child(1):hover td {
-            background: #fed7aa !important; /* Keep light orange background on hover */
+            background: #fef08a !important; /* Keep yellow background on hover */
             box-shadow: none !important; /* Remove shadow on hover */
         }
         
@@ -411,17 +411,17 @@
             background: #f3f4f6 !important; /* Same gray as bg-gray-100 */
         }
         
-        /* Light orange background for summary rows - ONLY in testing parameter tables */
+        /* Yellow background for summary rows - ONLY in testing parameter tables */
         .testing-table:not(.modern-header-table) tr.average-row td,
         .testing-table:not(.modern-header-table) tr.average-row th {
-            background: #fed7aa !important; /* Light orange background */
+            background: #fef08a !important; /* Yellow background */
             font-weight: 600 !important; /* Make text bold for better visibility */
         }
         
-        /* Light orange background for minimum and maximum rows - ONLY in testing parameter tables */
+        /* Yellow background for minimum and maximum rows - ONLY in testing parameter tables */
         .testing-table:not(.modern-header-table) tbody tr:nth-last-child(2) td,
         .testing-table:not(.modern-header-table) tbody tr:nth-last-child(1) td {
-            background: #fed7aa !important; /* Light orange background */
+            background: #fef08a !important; /* Yellow background */
             font-weight: 600 !important; /* Make text bold for better visibility */
         }
         
@@ -443,16 +443,12 @@
             }
         
         /* Also ensure font size for all data cells in the modern-header-table */
-        .testing-table.modern-header-table td {
-            font-size: 15px !important; /* Match the header font size exactly */
-        }
-        
-        /* Reasonable font size for populated data cells - prevents overflow */
+        .testing-table.modern-header-table td,
         .testing-table.modern-header-table td:nth-child(2),
         .testing-table.modern-header-table td:nth-child(4),
         .testing-table.modern-header-table td:nth-child(6),
         .testing-table.modern-header-table td:nth-child(8) {
-            font-size: 14px !important; /* Reasonable font size for populated data - prevents overflow */
+            font-size: 13px !important; /* Unified font size for labels and data */
         }
         
         /* Light greyish background for headers in testing parameter tables (Pages 1, 2, 3, 4) */
@@ -468,18 +464,18 @@
             background: white !important; /* White background for equipment identification row */
         }
         
-        /* Orange background for Ave columns in dynamic rows - Page 2 */
+        /* Ave column background for Page 2: changed to light azure gray (was light orange) */
         .page2-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(7),
         .page2-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(11),
         .page2-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(15) {
-            background: #fed7aa !important; /* Light orange background for Ave columns in Page 2 dynamic rows */
+            background: #DEEAF6 !important; /* Ave column background (light azure gray) */
         }
         
-        /* Orange background for Ave columns in dynamic rows - Page 3 */
+        /* Ave column background for Page 3: changed to light azure gray (was light orange) */
         .page3-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(7),
         .page3-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(11),
         .page3-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(15) {
-            background: #fed7aa !important; /* Light orange background for Ave columns in Page 3 dynamic rows */
+            background: #DEEAF6 !important; /* Ave column background (light azure gray) */
         }
         
         
@@ -498,9 +494,9 @@
             color: #dc2626 !important;
         }
         
-        /* Orange background for Ave column in dynamic rows - Page 4 */
+        /* Ave column background for Page 4: changed to light azure gray (was light orange) */
         .page4-table tbody tr:not(.average-row):not(:nth-last-child(2)):not(:nth-last-child(1)) td:nth-child(11) {
-            background: #fed7aa !important; /* Light orange background for Gloss Ave column in Page 4 dynamic rows */
+            background: #DEEAF6 !important; /* Ave column background (light azure gray) */
         }
         
         /* Page 5 doesn't need orange background for Ave columns since it's just Pass/Fail */
@@ -776,7 +772,7 @@
             <!-- General Product & Production Information Section -->
             <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">General Product & Production Information</h3>
-                <table class="w-full border-2 border-gray-800 bg-white testing-table modern-header-table" style="font-size: 15px; table-layout: auto; word-wrap: break-word;">
+                <table class="w-full border-2 border-gray-800 bg-white testing-table modern-header-table" style="font-size: 13px; table-layout: auto; word-wrap: break-word;">
                     <tr>
                         <td class="border border-gray-800 font-semibold testing-table-cell" style="width: 20%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">Product Code:</td>
                         <td class="border border-gray-800 testing-table-cell" style="width: 20%; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">
