@@ -2082,7 +2082,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.href = url;
             // Use product code for dynamic filename, fallback to default if not provided
             const productName = productCode || 'APE-176(18)CP(LCC+WW)BS';
-            const filename = `FIF-${productName}-${formId}.xlsx`;
+            const filename = `FIF-${productName}-.xlsx`;
 
             a.download = filename;
             document.body.appendChild(a);
@@ -2160,7 +2160,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Use product code for dynamic filename, fallback to default if not provided
             const productName = productCode || 'APE-102(18)C';
-            const filename = `FIF-${productName}-${formId}.xlsx`;
+            const filename = `FIF-${productName}-.xlsx`;
             console.log('APE-102 download filename:', filename);
 
             // Create blob and download
@@ -2253,7 +2253,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.href = url;
             // Use product code for dynamic filename, fallback to default if not provided
             const productName = productCode || 'APE-168(16)CP(KRANTI)';
-            const filename = `FIF-${productName}-${formId}.xlsx`;
+            const filename = `FIF-${productName}-.xlsx`;
 
             a.download = filename;
             document.body.appendChild(a);
@@ -2338,7 +2338,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.href = url;
             // Use product code for dynamic filename, fallback to default if not provided
             const productName = productCode || 'APE-168(16)C';
-            const filename = `FIF-${productName}-${formId}.xlsx`;
+            const filename = `FIF-${productName}-.xlsx`;
             
             a.download = filename;
             document.body.appendChild(a);
@@ -2423,7 +2423,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.href = url;
             // Use product code for dynamic filename, fallback to default if not provided
             const productName = productCode || 'APE-168(18)C-White';
-            const filename = `FIF-${productName}-${formId}.xlsx`;
+            const filename = `FIF-${productName}-.xlsx`;
 
             a.download = filename;
             document.body.appendChild(a);
@@ -2502,7 +2502,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.href = url;
             // Use product code for dynamic filename, fallback to default if not provided
             const productName = productCode || 'APE-168(18)C-Jeddah';
-            const filename = `FIF-${productName}-${formId}.xlsx`;
+            const filename = `FIF-${productName}-.xlsx`;
 
             a.download = filename;
             document.body.appendChild(a);
@@ -2635,7 +2635,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.href = url;
             // Use product code for dynamic filename, fallback to default if not provided
             const productName = productCode || 'WHITE-214(18)';
-            const filename = `FIF-${productName}-${formId}.xlsx`;
+            const filename = `FIF-${productName}-.xlsx`;
             
             a.download = filename;
             document.body.appendChild(a);
@@ -2720,7 +2720,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.href = url;
             // Use product code for dynamic filename, fallback to default if not provided
             const productName = productCode || 'WHITE-234(18)';
-            const filename = `FIF-${productName}-${formId}.xlsx`;
+            const filename = `FIF-${productName}-.xlsx`;
             console.log('234 White download filename:', filename);
             a.download = filename;
             document.body.appendChild(a);
@@ -2804,7 +2804,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.style.display = 'none';
             a.href = url;
             // Use consistent filename pattern
-            const filename = `FIF-APE-168(16)CP(Kranti)-${formId}.xlsx`;
+            const filename = `FIF-APE-168(16)CP(Kranti)-.xlsx`;
             console.log('APE-168(16)CP(Kranti) download filename:', filename);
             a.download = filename;
             document.body.appendChild(a);
@@ -2889,7 +2889,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.href = url;
             // Use product code for dynamic filename, fallback to default if not provided
             const productName = productCode || 'INUE16-165W';
-            const filename = `FIF-${productName}-${formId}.xlsx`;
+            const filename = `FIF-${productName}-.xlsx`;
             console.log('INUE16-165W download filename:', filename);
             a.download = filename;
             document.body.appendChild(a);
@@ -4420,7 +4420,7 @@ window.deleteFilmForm = async function(formId) {
 
             // Use product code for dynamic filename, fallback to default if not provided
             const productName = productCode || 'UC-18gsm-250P-ABQR';
-            a.download = `FIF-${productName}-${formId}.xlsx`;
+            a.download = `FIF-${productName}-.xlsx`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -4502,7 +4502,7 @@ window.deleteFilmForm = async function(formId) {
 
             // Use product code for dynamic filename, fallback to default if not provided
             const productName = productCode || 'UC-18gsm-250W-BFQR';
-            a.download = `FIF-${productName}-${formId}.xlsx`;
+            a.download = `FIF-${productName}-.xlsx`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -4584,7 +4584,7 @@ window.deleteFilmForm = async function(formId) {
 
             // Use product code for dynamic filename, fallback to default if not provided
             const productName = productCode || 'UC-18gsm-290P-ABQR';
-            a.download = `FIF-${productName}-${formId}.xlsx`;
+            a.download = `FIF-${productName}-.xlsx`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -4666,7 +4666,7 @@ window.deleteFilmForm = async function(formId) {
 
             // Use product code for dynamic filename, fallback to default if not provided
             const productName = productCode || 'UC-18gsm-290NP-ABQR';
-            const filename = `FIF-${productName}-${formId}.xlsx`;
+            const filename = `FIF-${productName}-.xlsx`;
             a.download = filename;
 
             document.body.appendChild(a);
@@ -4754,7 +4754,7 @@ window.deleteFilmForm = async function(formId) {
 
             // Use product code for dynamic filename, fallback to default if not provided
             const productName = productCode || 'UC-18gsm-210W-BFQR';
-            a.download = `FIF-${productName}-${formId}.xlsx`;
+            a.download = `FIF-${productName}-.xlsx`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);

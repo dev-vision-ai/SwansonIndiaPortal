@@ -740,10 +740,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     // 5. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     
-    // Generate filename with standardized format: FIF-{product_code}-{batch_no}
+    // Generate filename with standardized format: FIF-{product_code}-
     const productCode = data.product_code || 'UNKNOWN';
-    const batchNo = data.batch || form_id;
-    const filename = `FIF-${productCode}-${batchNo}.xlsx`;
+    const filename = `FIF-${productCode}-.xlsx`;
     
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
@@ -1518,10 +1517,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
       }
     }
 
-    // 4. Generate filename with standardized format: FIF-{product_code}-{batch_no}
+    // 4. Generate filename with standardized format: FIF-{product_code}-
     const productCode = data.product_code || 'UNKNOWN';
-    const batchNo = data.batch || form_id;
-    const filename = `FIF-${productCode}-${batchNo}.xlsx`;
+    const filename = `FIF-${productCode}-.xlsx`;
 
     // 5. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -2440,7 +2438,6 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
     // 4. Generate filename and set response headers
     const productCode = data.product_code || 'APE-168(18)C-Jeddah';
-    const batchNo = data.film_insp_form_ref_no || form_id;
 
     // Clean product code for filename (remove "(Jeddah)" part)
     let cleanedProdCode = productCode;
@@ -2448,7 +2445,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
       cleanedProdCode = cleanedProdCode.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
     }
 
-    const filename = `FIF-${cleanedProdCode}-${batchNo}.xlsx`;
+    const filename = `FIF-${cleanedProdCode}-.xlsx`;
 
     // 5. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -3305,9 +3302,8 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
     // 4. Generate filename and set response headers
     const productCode = data.product_code || 'APE-168(18)C-White';
-    const batchNo = data.film_insp_form_ref_no || form_id;
 
-    const filename = `FIF-${productCode}-${batchNo}.xlsx`;
+    const filename = `FIF-${productCode}-.xlsx`;
 
     // 5. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -4039,10 +4035,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
       }
     }
 
-    // 4. Generate filename with standardized format: FIF-{product_code}-{batch_no}
+    // 4. Generate filename with standardized format: FIF-{product_code}-
     const productCode = data.product_code || 'UNKNOWN';
-    const batchNo = data.batch || form_id;
-    const filename = `FIF-${productCode}-${batchNo}.xlsx`;
+    const filename = `FIF-${productCode}-.xlsx`;
 
     // 5. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -4869,10 +4864,9 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
     }
 
     // 5. Set filename and headers
-    // Create filename with format: FIF-ProductCode-BatchNo.xlsx
+    // Create filename with format: FIF-ProductCode-.xlsx
     const productCode = data.product_code || '234-18-MICRO-WHITE';
-    const batchNo = data.batch || data.production_order || form_id;
-    const filename = `FIF-${productCode}-${batchNo}.xlsx`;
+    const filename = `FIF-${productCode}-.xlsx`;
 
     console.log('Filename:', filename);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -5453,8 +5447,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
     // 5. Set filename and headers
     // Create filename with format: FIF-ProductCode-BatchNo.xlsx
     const productCode = data.product_code || '214-18-MICRO-WHITE';
-    const batchNo = data.batch || data.production_order || form_id;
-    const filename = `FIF-${productCode}-${batchNo}.xlsx`;
+    const filename = `FIF-${productCode}-.xlsx`;
 
     console.log('Filename:', filename);
 
@@ -6362,7 +6355,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
     // 4. Generate and send the Excel file
     const buffer = await workbook.outputAsync();
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename="FIF-APE-102(18)C-${form_id}.xlsx"`);
+    res.setHeader('Content-Disposition', `attachment; filename="FIF-${data.product_code || 'UNKNOWN'}-.xlsx"`);
     res.send(buffer);
 
   } catch (error) {

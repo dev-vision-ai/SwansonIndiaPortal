@@ -1,4 +1,4 @@
-const XlsxPopulate = require('xlsx-populate');
+const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
 const { createClient } = require('@supabase/supabase-js');
@@ -76,15 +76,20 @@ module.exports = function(app) {
         return res.status(500).send(`${templateFileName} template file not found`);
       }
 
-      // 3. Load the workbook
-      const workbook = await XlsxPopulate.fromFileAsync(templatePath);
+      // 3. Load the workbook using ExcelJS
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.readFile(templatePath);
+
+      // Ensure Excel will recalc formulas on open
+      workbook.calcProperties = workbook.calcProperties || {};
+      workbook.calcProperties.fullCalcOnLoad = true;
 
       // Try to get the first worksheet safely
-      let worksheet = workbook.sheet(0);
+      let worksheet = workbook.worksheets && workbook.worksheets.length > 0 ? workbook.worksheets[0] : null;
       if (!worksheet) {
-        const worksheetNames = workbook.sheets().map(ws => ws.name());
+        const worksheetNames = workbook.worksheets.map(ws => ws.name);
         if (worksheetNames.length > 0) {
-          worksheet = workbook.sheet(worksheetNames[0]);
+          worksheet = workbook.getWorksheet(worksheetNames[0]);
         }
       }
       if (!worksheet) {
@@ -95,7 +100,7 @@ module.exports = function(app) {
       // 4. Map pre-store data to Excel cells
       // Product and Production Information Section
       if (data.production_order) {
-        worksheet.cell('B4').value(data.production_order);
+        worksheet.getCell('B4').value = data.production_order;
       }
 
       // Handle customer field - may not exist in all tables
@@ -104,48 +109,48 @@ module.exports = function(app) {
         if (data.location) {
           customerValue = `${data.customer} (${data.location})`;
         }
-        worksheet.cell('B5').value(customerValue);
+  worksheet.getCell('B5').value = customerValue;
       } else if (data.product_code) {
-        worksheet.cell('B5').value(data.product_code);
+        worksheet.getCell('B5').value = data.product_code;
       }
 
       // Handle standard_packing field - may not exist in all tables
       if (data.standard_packing) {
-        worksheet.cell('B6').value(data.standard_packing);
+        worksheet.getCell('B6').value = data.standard_packing;
       }
 
       if (data.product_code) {
-        worksheet.cell('G4').value(data.product_code);
+        worksheet.getCell('G4').value = data.product_code;
       }
 
       if (data.specification) {
-        worksheet.cell('G5').value(data.specification);
+        worksheet.getCell('G5').value = data.specification;
       }
 
       if (data.quantity) {
-        worksheet.cell('O4').value(`${data.quantity} Rolls`);
+        worksheet.getCell('O4').value = `${data.quantity} Rolls`;
       }
 
       // Handle batch field - may not exist in all tables
       if (data.batch) {
-        worksheet.cell('O5').value(data.batch);
+        worksheet.getCell('O5').value = data.batch;
       }
 
       if (data.production_date) {
         const prodDate = new Date(data.production_date);
         const formattedProdDate = `${String(prodDate.getDate()).padStart(2, '0')}/${String(prodDate.getMonth() + 1).padStart(2, '0')}/${prodDate.getFullYear()}`;
-        worksheet.cell('T4').value(formattedProdDate);
+        worksheet.getCell('T4').value = formattedProdDate;
       }
 
       if (data.inspection_date) {
         const inspDate = new Date(data.inspection_date);
         const formattedInspDate = `${String(inspDate.getDate()).padStart(2, '0')}/${String(inspDate.getMonth() + 1).padStart(2, '0')}/${inspDate.getFullYear()}`;
-        worksheet.cell('T5').value(formattedInspDate);
+        worksheet.getCell('T5').value = formattedInspDate;
       }
 
       // Handle pallet_size field - may not exist in all tables
       if (data.pallet_size !== undefined) {
-        worksheet.cell('P6').value(data.pallet_size || 'N/A');
+        worksheet.getCell('P6').value = data.pallet_size || 'N/A';
       }
 
       // Palletized Finished Goods Status Section
@@ -162,40 +167,40 @@ module.exports = function(app) {
 
       // Handle pre-store status fields - may not exist in all tables
       if (data.pallet_list !== undefined) {
-        worksheet.cell('C9').value(getStatusSymbol(data.pallet_list));
+        worksheet.getCell('C9').value = getStatusSymbol(data.pallet_list);
       }
 
       if (data.product_label !== undefined) {
-        worksheet.cell('P9').value(getStatusSymbol(data.product_label));
+        worksheet.getCell('P9').value = getStatusSymbol(data.product_label);
       }
 
       if (data.wrapping !== undefined) {
-        worksheet.cell('C10').value(getStatusSymbol(data.wrapping));
+        worksheet.getCell('C10').value = getStatusSymbol(data.wrapping);
       }
 
       if (data.layer_pad !== undefined) {
-        worksheet.cell('P10').value(getStatusSymbol(data.layer_pad));
+        worksheet.getCell('P10').value = getStatusSymbol(data.layer_pad);
       }
 
       if (data.contamination !== undefined) {
-        worksheet.cell('C11').value(getStatusSymbol(data.contamination));
+        worksheet.getCell('C11').value = getStatusSymbol(data.contamination);
       }
 
       if (data.kraft_paper !== undefined) {
-        worksheet.cell('P11').value(getStatusSymbol(data.kraft_paper));
+        worksheet.getCell('P11').value = getStatusSymbol(data.kraft_paper);
       }
 
       if (data.no_damage !== undefined) {
-        worksheet.cell('C12').value(getStatusSymbol(data.no_damage));
+        worksheet.getCell('C12').value = getStatusSymbol(data.no_damage);
       }
 
       if (data.pallet !== undefined) {
-        worksheet.cell('P12').value(getStatusSymbol(data.pallet));
+        worksheet.getCell('P12').value = getStatusSymbol(data.pallet);
       }
 
       // Handle prestore fields - may not exist in all tables
       if (data.prestore_done_by !== undefined) {
-        worksheet.cell('A29').value(data.prestore_done_by || 'N/A');
+        worksheet.getCell('A29').value = data.prestore_done_by || 'N/A';
       }
 
       if (data.remarks !== undefined) {
@@ -226,27 +231,53 @@ module.exports = function(app) {
 
         for (let i = 0; i < Math.min(rowTexts.length, maxRows); i++) {
           const rowNum = 14 + i;
-          worksheet.cell(`A${rowNum}`).value(rowTexts[i].trim());
+          worksheet.getCell(`A${rowNum}`).value = rowTexts[i].trim();
         }
       }
 
       if (data.prestore_ref_no !== undefined) {
-        worksheet.cell('V3').value(data.prestore_ref_no || 'N/A');
+        worksheet.getCell('V3').value = data.prestore_ref_no || 'N/A';
       }
 
       // 5. Set response headers for file download
       const productCode = data.product_code || 'UNKNOWN';
-      const batchNo = data.batch || data.production_order || data.lot_no || formId;
-      const filename = `Pre-Store-${productCode}-${batchNo}.xlsx`;
+      const filename = `Pre-Store-${productCode}-.xlsx`;
 
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
 
-      // 6. Write the workbook to response
-      const buffer = await workbook.outputAsync();
-      res.send(buffer);
-      res.end();
+  // Protect each worksheet with password
+  try {
+    for (const ws of workbook.worksheets) {
+      try {
+        await ws.protect('2256', {
+          selectLockedCells: true,
+          selectUnlockedCells: true,
+          formatCells: false,
+          formatColumns: false,
+          formatRows: false,
+          insertColumns: false,
+          insertRows: false,
+          insertHyperlinks: false,
+          deleteColumns: false,
+          deleteRows: false,
+          sort: false,
+          autoFilter: false,
+          pivotTables: false
+        });
+      } catch (protectErr) {
+        console.warn(`Could not protect sheet ${ws.name}:`, protectErr && protectErr.message ? protectErr.message : protectErr);
+      }
+    }
+  } catch (err) {
+    console.warn('Error while protecting worksheets:', err && err.message ? err.message : err);
+  }
+
+  // 6. Write the workbook to response
+  const buffer = await workbook.xlsx.writeBuffer();
+  res.send(buffer);
+  res.end();
 
     } catch (error) {
       console.error('Error generating Pre-Store Excel file:', error);
