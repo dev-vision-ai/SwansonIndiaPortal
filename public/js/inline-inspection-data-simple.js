@@ -16,6 +16,215 @@ function getISTTimestamp() {
     return istTime.toISOString();
 }
 
+// ===== PRODUCT SPECIFICATIONS (OOS VALIDATION) =====
+let currentProductSpecs = null;
+
+async function fetchProductSpecs(prodCode) {
+    try {
+        if (!prodCode) return null;
+        
+        const { data: product, error } = await supabase
+            .from('inline_products_master')
+            .select('lsl_width, tgt_width, usl_width, lsl_weight, tgt_weight, usl_weight, lsl_gsm, tgt_gsm, usl_gsm, lsl_roll_dia, tgt_roll_dia, usl_roll_dia, lsl_thickness, tgt_thickness, usl_thickness, lsl_ct, tgt_ct, usl_ct, lsl_paper_core_id, tgt_paper_core_id, usl_paper_core_id, lsl_paper_core_od, tgt_paper_core_od, usl_paper_core_od')
+            .eq('prod_code', prodCode)
+            .single();
+        
+        if (error || !product) {
+            console.warn('Product specs not found for:', prodCode);
+            return null;
+        }
+        
+        currentProductSpecs = {
+            width: { lsl: product.lsl_width, tgt: product.tgt_width, usl: product.usl_width },
+            weight: { lsl: product.lsl_weight, tgt: product.tgt_weight, usl: product.usl_weight },
+            gsm: { lsl: product.lsl_gsm, tgt: product.tgt_gsm, usl: product.usl_gsm },
+            rollDia: { lsl: product.lsl_roll_dia, tgt: product.tgt_roll_dia, usl: product.usl_roll_dia },
+            thickness: { lsl: product.lsl_thickness, tgt: product.tgt_thickness, usl: product.usl_thickness },
+            ct: { lsl: product.lsl_ct, tgt: product.tgt_ct, usl: product.usl_ct },
+            paperCoreId: { lsl: product.lsl_paper_core_id, tgt: product.tgt_paper_core_id, usl: product.usl_paper_core_id },
+            paperCoreOd: { lsl: product.lsl_paper_core_od, tgt: product.tgt_paper_core_od, usl: product.usl_paper_core_od }
+        };
+        
+        return currentProductSpecs;
+    } catch (error) {
+        console.error('Error fetching product specs:', error);
+        return null;
+    }
+}
+
+// Check if value is within spec - returns null if no specs, true if in spec, false if OOS
+function isWithinSpec(value, paramType) {
+    if (!currentProductSpecs || !value) return null;
+    
+    const spec = currentProductSpecs[paramType];
+    if (!spec || spec.lsl === null) return null;
+    
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) return null;
+    
+    return numValue >= spec.lsl && numValue <= spec.usl;
+}
+
+// Apply OOS styling to cell - ONLY RED for OOS, NO color otherwise
+function applyOOSStyle(cell, paramType) {
+    const value = cell.textContent.trim();
+    const isInSpec = isWithinSpec(value, paramType);
+    
+    // Reset styling - remove ALL colors
+    cell.style.color = '';
+    cell.style.backgroundColor = '';
+    cell.style.fontWeight = '';
+    
+    // ONLY apply red if value is OUT OF SPEC
+    if (isInSpec === false) {
+        cell.style.color = '#dc2626'; // Red text
+        cell.style.backgroundColor = '#fee2e2'; // Light red background
+        cell.style.fontWeight = 'bold';
+    }
+    // If in spec or no specs available - NO styling at all
+}
+
+// ===== CONSOLIDATED FIELD VALIDATION & FORMATTING =====
+// Centralized validation for all field types
+const fieldValidationRules = {
+    'roll_weight': { allowDecimal: true, maxBeforeDecimal: 2, maxAfterDecimal: 2, maxTotal: 2 },
+    'roll_width_mm': { allowDecimal: false, maxTotal: 3 },
+    'film_weight_gsm': { allowDecimal: true, maxBeforeDecimal: 2, maxAfterDecimal: 1, maxTotal: 2 },
+    'thickness': { allowDecimal: false, maxTotal: 2 },
+    'roll_dia': { allowDecimal: false, maxTotal: 3 },
+    'paper_core_dia_id': { allowDecimal: true, maxBeforeDecimal: 3, maxAfterDecimal: 1, maxTotal: 3 },
+    'paper_core_dia_od': { allowDecimal: false, maxTotal: 3 },
+    'hour': { allowDecimal: false, maxTotal: 2, maxValue: 23 },
+    'minute': { allowDecimal: false, maxTotal: 2, maxValue: 59 },
+    'lot_no': { allowDecimal: false, maxTotal: 2 },
+    'roll_position': { allowDecimal: false, maxTotal: 2 },
+    'arm': { type: 'letters', maxTotal: 1 },
+    'glossy': { allowDecimal: true, maxBeforeDecimal: 2, maxAfterDecimal: 1, maxTotal: 2 },
+    'lines_strips': { type: 'xo', maxTotal: 1 },
+    'film_color': { type: 'xo', maxTotal: 1 },
+    'pin_hole': { type: 'xo', maxTotal: 1 },
+    'patch_mark': { type: 'xo', maxTotal: 1 },
+    'odour': { type: 'xo', maxTotal: 1 },
+    'ct_appearance': { type: 'ct', maxTotal: 3 },  // 2 letters (NA, OK) OR 2-3 digits (12, 100)
+    'print_color': { type: 'xo', maxTotal: 1 },
+    'mis_print': { type: 'xo', maxTotal: 1 },
+    'dirty_print': { type: 'xo', maxTotal: 1 },
+    'tape_test': { type: 'xo', maxTotal: 1 },
+    'centralization': { type: 'xo', maxTotal: 1 },
+    'wrinkles': { type: 'xo', maxTotal: 1 },
+    'prs': { type: 'xo', maxTotal: 1 },
+    'roll_curve': { type: 'xo', maxTotal: 1 },
+    'core_misalignment': { type: 'xo', maxTotal: 1 },
+    'others': { type: 'xo', maxTotal: 1 }
+};
+
+// Validate and format field input
+function validateFieldInput(text, field) {
+    const rules = fieldValidationRules[field];
+    if (!rules) return text; // No rules = allow as-is
+    
+    // Handle X/O fields
+    if (rules.type === 'xo') {
+        text = text.replace(/[^OXox]/g, '').toUpperCase();
+        return text.substring(0, rules.maxTotal);
+    }
+    
+    // Handle CT field (2 letters like "NA", "OK" OR 2-3 digits like "12", "100")
+    if (rules.type === 'ct') {
+        const isLetters = /^[A-Za-z]+$/.test(text);
+        const isNumbers = /^[0-9]+$/.test(text);
+        
+        if (isLetters) {
+            // Only letters - max 2
+            text = text.replace(/[^A-Za-z]/g, '').toUpperCase();
+            text = text.substring(0, 2);
+        } else if (isNumbers) {
+            // Only numbers - min 2, max 3
+            text = text.replace(/[^0-9]/g, '');
+            text = text.substring(0, 3);
+        } else if (text === '') {
+            // Empty is fine
+            return '';
+        } else {
+            // Mixed letters and numbers - reject, clear
+            return '';
+        }
+        
+        return text;
+    }
+    
+    // Handle alphanumeric fields (text + numbers)
+    if (rules.type === 'alphanumeric') {
+        text = text.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+        return text.substring(0, rules.maxTotal);
+    }
+    
+    // Handle letter fields (e.g., Arm - only A or B)
+    if (rules.type === 'letters') {
+        if (field === 'arm') {
+            // Arm field: only allow A or B
+            text = text.replace(/[^ABab]/g, '').toUpperCase();
+        } else {
+            // Other letter fields: allow A-Z
+            text = text.replace(/[^A-Za-z]/g, '').toUpperCase();
+        }
+        return text.substring(0, rules.maxTotal);
+    }
+    
+    // Handle numeric/decimal fields
+    if (rules.allowDecimal) {
+        text = text.replace(/[^0-9.]/g, '');
+        
+        // Ensure only one decimal point
+        const parts = text.split('.');
+        if (parts.length > 2) {
+            text = parts[0] + '.' + parts.slice(1).join('');
+        }
+        
+        // Format with decimal limits (APPLY LIMITS FIRST)
+        if (parts.length === 2) {
+            const beforeDecimal = parts[0].substring(0, rules.maxBeforeDecimal);
+            const afterDecimal = parts[1].substring(0, rules.maxAfterDecimal);
+            text = beforeDecimal + '.' + afterDecimal;
+        } else {
+            text = parts[0].substring(0, rules.maxBeforeDecimal);
+        }
+        
+        // THEN remove leading zeros (except for decimal like 0.25)
+        if (text.startsWith('0') && text.length > 1 && !text.startsWith('0.')) {
+            text = text.substring(1);
+        }
+    } else {
+        // Numeric only (no decimal)
+        text = text.replace(/[^0-9]/g, '');
+        
+        // APPLY LIMITS FIRST
+        text = text.substring(0, rules.maxTotal);
+        
+        // Apply max value constraint if exists (for hour, minute)
+        if (rules.maxValue && text.length > 0) {
+            const value = parseInt(text);
+            if (value > rules.maxValue) {
+                text = rules.maxValue.toString();
+            }
+        }
+        
+        // THEN remove leading zeros (BUT NOT FOR TIME FIELDS - hour, minute, lot_no, roll_position)
+        const timeFields = ['hour', 'minute', 'lot_no', 'roll_position'];
+        if (!timeFields.includes(field) && text.startsWith('0') && text.length > 1) {
+            text = text.substring(1);
+        }
+    }
+    
+    return text;
+}
+
+// Check if field allows decimal point as first character
+function allowsDecimalFirst(field) {
+    const rules = fieldValidationRules[field];
+    return rules && rules.allowDecimal ? false : false; // Never allow decimal as first char
+}
+
 // ===== CLOCK FUNCTIONALITY =====
 let clockInterval = null;
 
@@ -449,6 +658,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Populate team members data
                 populateTeamMembers(formData);
                 
+                // ===== FETCH PRODUCT SPECIFICATIONS FOR OOS VALIDATION =====
+                const prodCode = formData.prod_code;
+                if (prodCode && prodCode !== '[Prod. Code]') {
+                    await fetchProductSpecs(prodCode);
+                }
+                
                 // Data loading is now handled by loadAllLots() function
             }
         } catch (error) {
@@ -722,6 +937,16 @@ document.addEventListener('DOMContentLoaded', async function() {
                             cell.contentEditable = true;
                         }
                     });
+                    
+                    // Clear defect name when changed to default (empty)
+                    const defectNameCell = row ? row.querySelector('td[data-field="defect_name"]') : null;
+                    if (defectNameCell) {
+                        defectNameCell.textContent = '';
+                        defectNameCell.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                    
+                    // Update summary table immediately
+                    updateSummaryTable();
                 }
                 
                 // Auto-clear defect name when changing to Accept (remarks are preserved)
@@ -752,6 +977,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Save the Accept/Reject selection to database immediately
                 setTimeout(() => {
                     saveLotTableToSupabase(table);
+                    // Also update summary table after save
+                    updateSummaryTable();
                 }, 100);
                 
                 applyColorCodingToTable();
@@ -766,7 +993,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Apply character limits and formatting based on field type
             td.addEventListener('input', function(e) {
                 if (viewMode) {
-                    // console.log('Input blocked - in view mode');
                     e.preventDefault();
                     return;
                 }
@@ -775,150 +1001,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const formId = table?.dataset?.formId;
                 const allTables = Array.from(document.querySelectorAll('#tablesContainer table'));
                 const tableIndex = allTables.indexOf(table);
-                // Cell input event in table
                 
                 const field = td.dataset.field;
                 let text = td.textContent;
                 
-                // Apply character limits and formatting based on field type
-                if (field === 'roll_weight') {
-                    // Roll Weight - format: XX.XX (2 digits before decimal, 2 after)
-                    text = text.replace(/[^0-9.]/g, ''); // Only allow numbers and decimal
-                    
-                    // Ensure only one decimal point
-                    const parts = text.split('.');
-                    if (parts.length > 2) {
-                        text = parts[0] + '.' + parts.slice(1).join('');
-                    }
-                    
-                    // Limit to 2 digits before decimal and 2 after
-                    if (parts.length === 2) {
-                        const beforeDecimal = parts[0].substring(0, 2); // Max 2 digits before decimal
-                        const afterDecimal = parts[1].substring(0, 2); // Max 2 digits after decimal
-                        text = beforeDecimal + '.' + afterDecimal;
-                    } else if (parts.length === 1) {
-                        // No decimal point yet, limit to 2 digits
-                        text = parts[0].substring(0, 2);
-                    }
-                    
-                    // Remove leading zeros (except for decimal numbers like 0.25)
-                    if (text.startsWith('0') && !text.startsWith('0.')) {
-                        text = text.substring(1);
-                    }
-                } else if (field === 'roll_width_mm') {
-                    // Roll Width (mm) - format: XXX (3 digits, no decimal)
-                    text = text.replace(/[^0-9]/g, ''); // Only allow numbers
-                    text = text.substring(0, 3); // Max 3 digits
-                    // Remove leading zeros
-                    if (text.startsWith('0') && text.length > 1) {
-                        text = text.substring(1);
-                    }
-                } else if (field === 'film_weight_gsm') {
-                    // Film Weight (GSM) - format: XX.X (2 digits before, 1 after decimal)
-                    text = text.replace(/[^0-9.]/g, ''); // Only allow numbers and decimal
-                    
-                    // Ensure only one decimal point
-                    const parts = text.split('.');
-                    if (parts.length > 2) {
-                        text = parts[0] + '.' + parts.slice(1).join('');
-                    }
-                    
-                    // Limit to 2 digits before decimal and 1 after
-                    if (parts.length === 2) {
-                        const beforeDecimal = parts[0].substring(0, 2); // Max 2 digits before decimal
-                        const afterDecimal = parts[1].substring(0, 1); // Max 1 digit after decimal
-                        text = beforeDecimal + '.' + afterDecimal;
-                    } else if (parts.length === 1) {
-                        // No decimal point yet, limit to 2 digits
-                        text = parts[0].substring(0, 2);
-                    }
-                    
-                    // Remove leading zeros (except for decimal numbers like 0.5)
-                    if (text.startsWith('0') && !text.startsWith('0.')) {
-                        text = text.substring(1);
-                    }
-                } else if (field === 'thickness') {
-                    // Thickness - format: XX (2 digits, no decimal)
-                    text = text.replace(/[^0-9]/g, ''); // Only allow numbers
-                    text = text.substring(0, 2); // Max 2 digits
-                    // Remove leading zeros
-                    if (text.startsWith('0') && text.length > 1) {
-                        text = text.substring(1);
-                    }
-                } else if (field === 'roll_dia') {
-                    // Roll θ - format: XXX (3 digits, no decimal)
-                    text = text.replace(/[^0-9]/g, ''); // Only allow numbers
-                    text = text.substring(0, 3); // Max 3 digits
-                    // Remove leading zeros
-                    if (text.startsWith('0') && text.length > 1) {
-                        text = text.substring(1);
-                    }
-                } else if (field === 'paper_core_dia_id') {
-                    // Paper Core θ (ID) - format: XXX.X (3 digits before, 1 after decimal)
-                    text = text.replace(/[^0-9.]/g, ''); // Only allow numbers and decimal
-                    
-                    // Ensure only one decimal point
-                    const parts = text.split('.');
-                    if (parts.length > 2) {
-                        text = parts[0] + '.' + parts.slice(1).join('');
-                    }
-                    
-                    // Limit to 3 digits before decimal and 1 after
-                    if (parts.length === 2) {
-                        const beforeDecimal = parts[0].substring(0, 3); // Max 3 digits before decimal
-                        const afterDecimal = parts[1].substring(0, 1); // Max 1 digit after decimal
-                        text = beforeDecimal + '.' + afterDecimal;
-                    } else if (parts.length === 1) {
-                        // No decimal point yet, limit to 3 digits
-                        text = parts[0].substring(0, 3);
-                    }
-                    
-                    // Remove leading zeros (except for decimal numbers like 0.5)
-                    if (text.startsWith('0') && !text.startsWith('0.')) {
-                        text = text.substring(1);
-                    }
-                } else if (field === 'paper_core_dia_od') {
-                    // Paper Core θ (OD) - format: XXX (3 digits, no decimal)
-                    text = text.replace(/[^0-9]/g, ''); // Only allow numbers
-                    text = text.substring(0, 3); // Max 3 digits
-                    // Remove leading zeros
-                    if (text.startsWith('0') && text.length > 1) {
-                        text = text.substring(1);
-                    }
-                } else if (field === 'hour') {
-                    // Hour - 2 characters (00-23)
-                    text = text.replace(/[^0-9]/g, ''); // Only allow numbers
-                    if (text.length > 2) text = text.substring(0, 2);
-                    if (parseInt(text) > 23) text = '23';
-                } else if (field === 'minute') {
-                    // Minute - 2 characters (00-59)
-                    text = text.replace(/[^0-9]/g, ''); // Only allow numbers
-                    if (text.length > 2) text = text.substring(0, 2);
-                    if (parseInt(text) > 59) text = '59';
-                } else if (field === 'lot_no' || field === 'roll_position') {
-                    // Lot No. and Roll Position - 2 characters (01-99)
-                    text = text.replace(/[^0-9]/g, ''); // Only allow numbers
-                    if (text.length > 2) text = text.substring(0, 2);
-                } else if (field === 'arm') {
-                    // Arm - 1 character (A-Z)
-                    text = text.replace(/[^A-Za-z]/g, '').toUpperCase(); // Only allow letters
-                    if (text.length > 1) text = text.substring(0, 1);
-                } else if (field === 'lines_strips' || field === 'film_color' || field === 'pin_hole' || 
-                          field === 'patch_mark' || field === 'odour' || field === 'ct' || 
-                          field === 'print_color' || field === 'mis_print' || field === 'dirty_print' || 
-                          field === 'tape_test' || field === 'centralization' || field === 'wrinkles' || 
-                          field === 'prs' || field === 'roll_curve' || field === 'core_misalignment' || 
-                          field === 'other') {
-                    // These fields only allow O or X (uppercase)
-                    text = text.replace(/[^OXox]/g, '').toUpperCase(); // Only allow O and X
-                    if (text.length > 1) text = text.substring(0, 1);
-                } else {
-                    // For other fields, apply normal capitalization
-                    const capitalizedText = capitalizeText(text);
-                if (text !== capitalizedText) {
-                        text = capitalizedText;
-                    }
-                }
+                // ===== USE CONSOLIDATED VALIDATION =====
+                text = validateFieldInput(text, field);
                 
                 // Update cell content if changed
                 if (td.textContent !== text) {
@@ -949,7 +1037,50 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Apply color coding for X/O values
                 applyXOColorCoding(td);
                 applyColorCodingToTable();
+                
+                // ===== APPLY REAL-TIME OOS VALIDATION (INSTANTLY WHILE TYPING) =====
+                const oosMappings = {
+                    'roll_weight': 'weight',
+                    'roll_width_mm': 'width',
+                    'film_weight_gsm': 'gsm',
+                    'roll_dia': 'rollDia',
+                    'thickness': 'thickness',
+                    'ct_appearance': 'ct',
+                    'paper_core_dia_id': 'paperCoreId',
+                    'paper_core_dia_od': 'paperCoreOd'
+                };
+                
+                if (field in oosMappings && text.trim() !== '') {
+                    applyOOSStyle(td, oosMappings[field]);  // Real-time validation while typing
+                } else if (field in oosMappings && text.trim() === '') {
+                    // Clear OOS styling if value is cleared
+                    td.style.color = '';
+                    td.style.backgroundColor = '';
+                    td.style.fontWeight = '';
+                }
+                
                 updateSummaryTable();
+            });
+            
+            // ===== PREVENT INVALID CHARACTERS ON KEYPRESS =====
+            td.addEventListener('keypress', function(e) {
+                if (viewMode) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                const field = td.dataset.field;
+                const rules = fieldValidationRules[field];
+                if (!rules || !rules.allowDecimal) return;
+                
+                // Block decimal point if field is empty or already has decimal
+                if (e.key === '.') {
+                    const currentText = td.textContent.trim();
+                    
+                    if (currentText === '' || currentText.includes('.')) {
+                        e.preventDefault();
+                    }
+                }
             });
             
             // Also capitalize when user finishes typing (blur event)
@@ -964,20 +1095,59 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const allTables = Array.from(document.querySelectorAll('#tablesContainer table'));
                 const tableIndex = allTables.indexOf(table);
                 // Cell blur event in table
-                const text = td.textContent;
+                let text = td.textContent;
                 const capitalizedText = capitalizeText(text);
                 
                 if (text !== capitalizedText) {
                     td.textContent = capitalizedText;
+                    text = capitalizedText;
+                }
+                
+                // ===== VALIDATE & REJECT INVALID VALUES =====
+                const field = td.dataset.field;
+                const numericFields = ['roll_weight', 'roll_width_mm', 'film_weight_gsm', 'thickness', 'roll_dia', 'paper_core_dia_id', 'paper_core_dia_od', 'hour', 'minute', 'lot_no', 'roll_position'];
+                
+                if (numericFields.includes(field)) {
+                    // For numeric fields, reject if:
+                    // - Only contains decimal point(s)
+                    // - Only contains whitespace
+                    // - Empty
+                    const cleanedValue = text.replace(/[^0-9]/g, ''); // Remove all non-numeric chars
+                    
+                    if (!cleanedValue || cleanedValue.length === 0) {
+                        // Clear the cell if only decimal or invalid
+                        td.textContent = '';
+                        text = '';
+                    }
                 }
                 
                 // Apply color coding for X/O values
                 applyXOColorCoding(td);
+                
+                // ===== RE-APPLY OOS VALIDATION AFTER BLUR TO PRESERVE STYLING =====
+                const oosMappings = {
+                    'roll_weight': 'weight',
+                    'roll_width_mm': 'width',
+                    'film_weight_gsm': 'gsm',
+                    'roll_dia': 'rollDia',
+                    'thickness': 'thickness',
+                    'ct_appearance': 'ct',
+                    'paper_core_dia_id': 'paperCoreId',
+                    'paper_core_dia_od': 'paperCoreOd'
+                };
+                
+                if (field in oosMappings && text.trim() !== '') {
+                    applyOOSStyle(td, oosMappings[field]);  // Preserve OOS styling after blur
+                } else if (field in oosMappings && text.trim() === '') {
+                    // Clear OOS styling if value is cleared
+                    td.style.color = '';
+                    td.style.backgroundColor = '';
+                    td.style.fontWeight = '';
+                }
+                
                 applyColorCodingToTable();
                 updateSummaryTable();
-            });
-            
-            // Enter key navigation to next cell
+            });            // Enter key navigation to next cell
             td.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -1688,6 +1858,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             const fieldCell = row.querySelector(`td[data-field="${field}"]`);
             if (fieldCell && fieldCell.textContent.trim().toUpperCase() === 'X') {
                 fieldCell.textContent = '';
+                // Clear OOS styling when cell is cleared
+                fieldCell.style.color = '';
+                fieldCell.style.backgroundColor = '';
+                fieldCell.style.fontWeight = '';
             }
         });
         
@@ -1716,6 +1890,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const value = fieldCell.textContent.trim().toUpperCase();
                 if (value === 'X' || value === 'O') {
                     fieldCell.textContent = '';
+                    // Clear OOS styling when cell is cleared
+                    fieldCell.style.color = '';
+                    fieldCell.style.backgroundColor = '';
+                    fieldCell.style.fontWeight = '';
                 }
             }
         });
@@ -1962,8 +2140,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             totalWeight: totalWeight.toFixed(2)
         });
         
-        // Update Production No Summary table live
+        // Update ALL summary tables
+        renderDefectsSummaryTable();
         renderProductionNoSummaryTable();
+        renderIPQCDefectsTable();
     }
 
     // Hook summary update to all relevant events
@@ -4123,6 +4303,39 @@ document.addEventListener('DOMContentLoaded', async function() {
         updateSummaryTable();
         updateFastEntryTabOrder(); // <-- Ensure tab order is set after reload
         addLockCheckboxListeners(); // <-- Ensure checkbox listeners are set after reload
+        
+        // ===== RE-APPLY OOS VALIDATION AFTER DATA LOAD =====
+        setTimeout(() => {
+            const tables = tablesContainer.querySelectorAll('table');
+            tables.forEach(table => {
+                const tbody = table.querySelector('tbody');
+                if (!tbody) return;
+                
+                const rows = tbody.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td[data-field]');
+                    cells.forEach(cell => {
+                        const field = cell.dataset.field;
+                        
+                        // Map field names to OOS parameter types
+                        const oosMappings = {
+                            'roll_weight': 'weight',
+                            'roll_width_mm': 'width',
+                            'film_weight_gsm': 'gsm',
+                            'roll_dia': 'rollDia',
+                            'thickness': 'thickness',
+                            'ct_appearance': 'ct',
+                            'paper_core_dia_id': 'paperCoreId',
+                            'paper_core_dia_od': 'paperCoreOd'
+                        };
+                        
+                        if (field in oosMappings) {
+                            applyOOSStyle(cell, oosMappings[field]);
+                        }
+                    });
+                });
+            });
+        }, 100);
         
         // Update delete button visibility - only show on latest table
         updateDeleteButtonVisibility();

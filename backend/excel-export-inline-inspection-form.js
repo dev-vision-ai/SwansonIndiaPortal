@@ -207,9 +207,9 @@ module.exports = function(app) {
         worksheet.getCell('L6').value = printed ? '✔' : '';
         worksheet.getCell('L7').value = non_printed ? '✔' : '';
         worksheet.getCell('L8').value = ct ? '✔' : '';
-        worksheet.getCell('F10').value = emboss_type === 'Random' ? '✔' : '';
-        worksheet.getCell('I10').value = emboss_type === 'Matte' ? '✔' : '';
-        worksheet.getCell('L10').value = emboss_type === 'Micro' ? '✔' : '';
+        worksheet.getCell('F11').value = emboss_type === 'Random' ? '✔' : '';
+        worksheet.getCell('I11').value = emboss_type === 'Matte' ? '✔' : '';
+        worksheet.getCell('L11').value = emboss_type === 'Micro' ? '✔' : '';
 
         // Set default values if still empty
         if (!customer) customer = 'CUSTOMER';
@@ -242,8 +242,8 @@ module.exports = function(app) {
         // Combine production_no and production_no_2 with comma separator
         const combinedProductionNo = [production_no, production_no_2].filter(Boolean).join(', ');
         worksheet.getCell('D6').value = combinedProductionNo;
-        worksheet.getCell('D7').value = prod_code;
-        worksheet.getCell('D8').value = spec;
+        worksheet.getCell('D8').value = prod_code;
+        worksheet.getCell('D9').value = spec;
         worksheet.getCell('N7').value = year;
         worksheet.getCell('P7').value = month;
         worksheet.getCell('R7').value = date;
@@ -255,9 +255,9 @@ module.exports = function(app) {
         worksheet.getCell('L6').value = printed ? '✔' : '';
         worksheet.getCell('L7').value = non_printed ? '✔' : '';
         worksheet.getCell('L8').value = ct ? '✔' : '';
-        worksheet.getCell('F10').value = emboss_type === 'Random' ? '✔' : '';
-        worksheet.getCell('I10').value = emboss_type === 'Matte' ? '✔' : '';
-        worksheet.getCell('L10').value = emboss_type === 'Micro' ? '✔' : '';
+        worksheet.getCell('F11').value = emboss_type === 'Random' ? '✔' : '';
+        worksheet.getCell('I11').value = emboss_type === 'Matte' ? '✔' : '';
+        worksheet.getCell('L11').value = emboss_type === 'Micro' ? '✔' : '';
       };
 
       // Apply header mapping to the first worksheet
@@ -275,8 +275,8 @@ module.exports = function(app) {
 
       // 6. Calculate page capacity and split lots
       const PAGE_CAPACITY = 70; // Total rows per page including empty separation rows
-      const DATA_START_ROW = 13; // First row for data
-      const DATA_END_ROW = 82; // Last row for data
+      const DATA_START_ROW = 14; // First row for data
+      const DATA_END_ROW = 83; // Last row for data
       const AVAILABLE_ROWS = DATA_END_ROW - DATA_START_ROW + 1; // 70 rows available
 
       // Calculate how many lots can fit on each page
@@ -468,16 +468,16 @@ module.exports = function(app) {
       });
 
       // 8. Add Page1 summary - convert to numbers
-      worksheet.getCell('L84').value = parseFloat(page1Summary.accepted_rolls) || 0;
-      worksheet.getCell('N84').value = parseFloat(page1Summary.accepted_weight) || 0;
-      worksheet.getCell('L85').value = parseFloat(page1Summary.rejected_rolls) || 0;
-      worksheet.getCell('N85').value = parseFloat(page1Summary.rejected_weight) || 0;
-      worksheet.getCell('L86').value = parseFloat(page1Summary.rework_rolls) || 0;
-      worksheet.getCell('N86').value = parseFloat(page1Summary.rework_weight) || 0;
-      worksheet.getCell('L87').value = parseFloat(page1Summary.kiv_rolls) || 0;
-      worksheet.getCell('N87').value = parseFloat(page1Summary.kiv_weight) || 0;
-      worksheet.getCell('L88').value = parseFloat(page1Summary.accepted_rolls + page1Summary.rejected_rolls + page1Summary.rework_rolls + page1Summary.kiv_rolls) || 0;
-      worksheet.getCell('N88').value = parseFloat(page1Summary.accepted_weight + page1Summary.rejected_weight + page1Summary.rework_weight + page1Summary.kiv_weight) || 0;
+      worksheet.getCell('L85').value = parseFloat(page1Summary.accepted_rolls) || 0;
+      worksheet.getCell('N85').value = parseFloat(page1Summary.accepted_weight) || 0;
+      worksheet.getCell('L86').value = parseFloat(page1Summary.rejected_rolls) || 0;
+      worksheet.getCell('N86').value = parseFloat(page1Summary.rejected_weight) || 0;
+      worksheet.getCell('L87').value = parseFloat(page1Summary.rework_rolls) || 0;
+      worksheet.getCell('N87').value = parseFloat(page1Summary.rework_weight) || 0;
+      worksheet.getCell('L88').value = parseFloat(page1Summary.kiv_rolls) || 0;
+      worksheet.getCell('N88').value = parseFloat(page1Summary.kiv_weight) || 0;
+      worksheet.getCell('L89').value = parseFloat(page1Summary.accepted_rolls + page1Summary.rejected_rolls + page1Summary.rework_rolls + page1Summary.kiv_rolls) || 0;
+      worksheet.getCell('N89').value = parseFloat(page1Summary.accepted_weight + page1Summary.rejected_weight + page1Summary.rework_weight + page1Summary.kiv_weight) || 0;
 
       // 9. Calculate total pages and add page indicator to Page1
       const totalPages = 1 + (page2Lots.length > 0 ? 1 : 0) + (page3Lots.length > 0 ? 1 : 0);
@@ -648,16 +648,16 @@ module.exports = function(app) {
           });
 
           // Add Page2 summary - convert to numbers
-          page2Worksheet.getCell('L84').value = parseFloat(page2Summary.accepted_rolls) || 0;
-          page2Worksheet.getCell('N84').value = parseFloat(page2Summary.accepted_weight) || 0;
-          page2Worksheet.getCell('L85').value = parseFloat(page2Summary.rejected_rolls) || 0;
-          page2Worksheet.getCell('N85').value = parseFloat(page2Summary.rejected_weight) || 0;
-          page2Worksheet.getCell('L86').value = parseFloat(page2Summary.rework_rolls) || 0;
-          page2Worksheet.getCell('N86').value = parseFloat(page2Summary.rework_weight) || 0;
-          page2Worksheet.getCell('L87').value = parseFloat(page2Summary.kiv_rolls) || 0;
-          page2Worksheet.getCell('N87').value = parseFloat(page2Summary.kiv_weight) || 0;
-          page2Worksheet.getCell('L88').value = parseFloat(page2Summary.accepted_rolls + page2Summary.rejected_rolls + page2Summary.rework_rolls + page2Summary.kiv_rolls) || 0;
-          page2Worksheet.getCell('N88').value = parseFloat(page2Summary.accepted_weight + page2Summary.rejected_weight + page2Summary.rework_weight + page2Summary.kiv_weight) || 0;
+          page2Worksheet.getCell('L85').value = parseFloat(page2Summary.accepted_rolls) || 0;
+          page2Worksheet.getCell('N85').value = parseFloat(page2Summary.accepted_weight) || 0;
+          page2Worksheet.getCell('L86').value = parseFloat(page2Summary.rejected_rolls) || 0;
+          page2Worksheet.getCell('N86').value = parseFloat(page2Summary.rejected_weight) || 0;
+          page2Worksheet.getCell('L87').value = parseFloat(page2Summary.rework_rolls) || 0;
+          page2Worksheet.getCell('N87').value = parseFloat(page2Summary.rework_weight) || 0;
+          page2Worksheet.getCell('L88').value = parseFloat(page2Summary.kiv_rolls) || 0;
+          page2Worksheet.getCell('N88').value = parseFloat(page2Summary.kiv_weight) || 0;
+          page2Worksheet.getCell('L89').value = parseFloat(page2Summary.accepted_rolls + page2Summary.rejected_rolls + page2Summary.rework_rolls + page2Summary.kiv_rolls) || 0;
+          page2Worksheet.getCell('N89').value = parseFloat(page2Summary.accepted_weight + page2Summary.rejected_weight + page2Summary.rework_weight + page2Summary.kiv_weight) || 0;
 
           // Add page indicator to Page2
           page2Worksheet.getCell('A1').value = `Page 2 of ${totalPages}`;
@@ -830,16 +830,16 @@ module.exports = function(app) {
           });
 
           // Add Page3 summary - convert to numbers
-          page3Worksheet.getCell('L84').value = parseFloat(page3Summary.accepted_rolls) || 0;
-          page3Worksheet.getCell('N84').value = parseFloat(page3Summary.accepted_weight) || 0;
-          page3Worksheet.getCell('L85').value = parseFloat(page3Summary.rejected_rolls) || 0;
-          page3Worksheet.getCell('N85').value = parseFloat(page3Summary.rejected_weight) || 0;
-          page3Worksheet.getCell('L86').value = parseFloat(page3Summary.rework_rolls) || 0;
-          page3Worksheet.getCell('N86').value = parseFloat(page3Summary.rework_weight) || 0;
-          page3Worksheet.getCell('L87').value = parseFloat(page3Summary.kiv_rolls) || 0;
-          page3Worksheet.getCell('N87').value = parseFloat(page3Summary.kiv_weight) || 0;
-          page3Worksheet.getCell('L88').value = parseFloat(page3Summary.accepted_rolls + page3Summary.rejected_rolls + page3Summary.rework_rolls + page3Summary.kiv_rolls) || 0;
-          page3Worksheet.getCell('N88').value = parseFloat(page3Summary.accepted_weight + page3Summary.rejected_weight + page3Summary.rework_weight + page3Summary.kiv_weight) || 0;
+          page3Worksheet.getCell('L85').value = parseFloat(page3Summary.accepted_rolls) || 0;
+          page3Worksheet.getCell('N85').value = parseFloat(page3Summary.accepted_weight) || 0;
+          page3Worksheet.getCell('L86').value = parseFloat(page3Summary.rejected_rolls) || 0;
+          page3Worksheet.getCell('N86').value = parseFloat(page3Summary.rejected_weight) || 0;
+          page3Worksheet.getCell('L87').value = parseFloat(page3Summary.rework_rolls) || 0;
+          page3Worksheet.getCell('N87').value = parseFloat(page3Summary.rework_weight) || 0;
+          page3Worksheet.getCell('L88').value = parseFloat(page3Summary.kiv_rolls) || 0;
+          page3Worksheet.getCell('N88').value = parseFloat(page3Summary.kiv_weight) || 0;
+          page3Worksheet.getCell('L89').value = parseFloat(page3Summary.accepted_rolls + page3Summary.rejected_rolls + page3Summary.rework_rolls + page3Summary.kiv_rolls) || 0;
+          page3Worksheet.getCell('N89').value = parseFloat(page3Summary.accepted_weight + page3Summary.rejected_weight + page3Summary.rework_weight + page3Summary.kiv_weight) || 0;
 
           // Add page indicator to Page3
           page3Worksheet.getCell('A1').value = `Page 3 of ${totalPages}`;
