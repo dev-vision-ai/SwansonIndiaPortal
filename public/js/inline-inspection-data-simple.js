@@ -173,6 +173,17 @@ function validateFieldInput(text, field) {
     
     // Handle numeric/decimal fields
     if (rules.allowDecimal) {
+        // Allow Glossy to be either numeric or single X/O
+        if (field === 'glossy') {
+            const cleanedXO = text.replace(/[^XOxo]/g, '').toUpperCase();
+            const hasDigits = /[0-9]/.test(text);
+            
+            // If only X/O detected, return that (preserve existing X/O from DB)
+            if (cleanedXO.length > 0 && !hasDigits) {
+                return cleanedXO.substring(0, 1);
+            }
+            // Otherwise, process as normal decimal
+        }
         text = text.replace(/[^0-9.]/g, '');
         
         // Ensure only one decimal point
@@ -228,31 +239,104 @@ function allowsDecimalFirst(field) {
 // ===== CLOCK FUNCTIONALITY =====
 let clockInterval = null;
 
-// ===== TEAM MEMBERS FUNCTIONALITY =====
+// ===== PRODUCT SPECIFICATIONS FUNCTIONALITY =====
+async function loadProductSpecs(prodCode) {
+    try {
+        if (!prodCode || prodCode === '[Prod. Code]' || prodCode.startsWith('[')) {
+            clearProductSpecs();
+            return;
+        }
+        
+        // Clean product code (remove brackets if any)
+        const cleanProdCode = prodCode.replace(/[\[\]]/g, '').trim();
+        
+        if (!cleanProdCode) {
+            clearProductSpecs();
+            return;
+        }
+        
+        console.log('📦 Loading product specs for:', cleanProdCode);
+        
+        const { data: product, error } = await supabase
+            .from('inline_products_master')
+            .select('lsl_weight, tgt_weight, usl_weight, lsl_gsm, tgt_gsm, usl_gsm, lsl_roll_dia, tgt_roll_dia, usl_roll_dia, lsl_width, tgt_width, usl_width, lsl_thickness, tgt_thickness, usl_thickness')
+            .eq('prod_code', cleanProdCode)
+            .single();
+        
+        if (error) {
+            console.warn('⚠️ Product not found:', cleanProdCode, error);
+            clearProductSpecs();
+            return;
+        }
+        
+        if (!product) {
+            console.warn('⚠️ No product data returned for:', cleanProdCode);
+            clearProductSpecs();
+            return;
+        }
+        
+        // Populate product specs table with correct column names
+        // Format roll weight to two decimal places when numeric (e.g., 13.50)
+        document.getElementById('weight_lsl').textContent = (product.lsl_weight !== null && product.lsl_weight !== undefined && product.lsl_weight !== '') ? (isFinite(Number(product.lsl_weight)) ? parseFloat(product.lsl_weight).toFixed(2) : product.lsl_weight) : '-';
+        document.getElementById('weight_tgt').textContent = (product.tgt_weight !== null && product.tgt_weight !== undefined && product.tgt_weight !== '') ? (isFinite(Number(product.tgt_weight)) ? parseFloat(product.tgt_weight).toFixed(2) : product.tgt_weight) : '-';
+        document.getElementById('weight_usl').textContent = (product.usl_weight !== null && product.usl_weight !== undefined && product.usl_weight !== '') ? (isFinite(Number(product.usl_weight)) ? parseFloat(product.usl_weight).toFixed(2) : product.usl_weight) : '-';
+        
+        // GSM with 1 decimal place
+        document.getElementById('gsm_lsl').textContent = product.lsl_gsm ? parseFloat(product.lsl_gsm).toFixed(1) : '-';
+        document.getElementById('gsm_tgt').textContent = product.tgt_gsm ? parseFloat(product.tgt_gsm).toFixed(1) : '-';
+        document.getElementById('gsm_usl').textContent = product.usl_gsm ? parseFloat(product.usl_gsm).toFixed(1) : '-';
+        
+        document.getElementById('rolldia_lsl').textContent = product.lsl_roll_dia || '-';
+        document.getElementById('rolldia_tgt').textContent = product.tgt_roll_dia || '-';
+        document.getElementById('rolldia_usl').textContent = product.usl_roll_dia || '-';
+        
+        document.getElementById('width_lsl').textContent = product.lsl_width || '-';
+        document.getElementById('width_tgt').textContent = product.tgt_width || '-';
+        document.getElementById('width_usl').textContent = product.usl_width || '-';
+        
+        document.getElementById('thickness_lsl').textContent = product.lsl_thickness || '-';
+        document.getElementById('thickness_tgt').textContent = product.tgt_thickness || '-';
+        document.getElementById('thickness_usl').textContent = product.usl_thickness || '-';
+        
+        console.log('✅ Product specs loaded successfully');
+    } catch (error) {
+        console.error('❌ Error loading product specs:', error);
+        clearProductSpecs();
+    }
+}
+
+function clearProductSpecs() {
+    const specs = ['weight', 'gsm', 'rolldia', 'width', 'thickness'];
+    specs.forEach(spec => {
+        document.getElementById(`${spec}_lsl`).textContent = '-';
+        document.getElementById(`${spec}_tgt`).textContent = '-';
+        document.getElementById(`${spec}_usl`).textContent = '-';
+    });
+}
+
+// ===== TEAM MEMBERS FUNCTIONALITY (Replaced with Product Specs) =====
 function populateTeamMembers(formData) {
     try {
-        // Helper function to combine multiple names with commas
-        function combineNames(name1, name2) {
-            if (name1 && name2) {
-                return `${name1}, ${name2}`;
-            } else if (name1) {
-                return name1;
-            } else if (name2) {
-                return name2;
-            } else {
-                return 'N/A';
+        // Load product specifications based on prod_code from form data
+        let prodCode = formData.prod_code;
+        
+        // If prod_code is a placeholder or empty, try to get it from the page
+        if (!prodCode || prodCode === '[Prod. Code]' || prodCode.startsWith('[')) {
+            const prodCodeElement = document.getElementById('prod_code');
+            if (prodCodeElement) {
+                prodCode = prodCodeElement.textContent.trim();
             }
         }
         
-        // Populate team members table with combined names
-        document.getElementById('supervisor_name').textContent = combineNames(formData.supervisor, formData.supervisor2);
-        document.getElementById('line_leader_name').textContent = formData.line_leader || 'N/A';
-        document.getElementById('operator_name').textContent = combineNames(formData.operator, formData.operator2);
-        document.getElementById('qc_inspector_name').textContent = combineNames(formData.qc_inspector, formData.qc_inspector2);
-        
-        // Team members data populated successfully
+        // Load the product specs if we have a valid product code
+        if (prodCode && prodCode !== '[Prod. Code]') {
+            loadProductSpecs(prodCode);
+        } else {
+            clearProductSpecs();
+        }
     } catch (error) {
-        console.error('❌ Error populating team members:', error);
+        console.error('❌ Error in populateTeamMembers:', error);
+        clearProductSpecs();
     }
 }
 
@@ -1919,8 +2003,26 @@ document.addEventListener('DOMContentLoaded', async function() {
             'dirty_print': 'Dirty Print', 
             'pin_hole': 'Pin Hole',
             'core_misalignment': 'Core Misalignment',
-            'prs': 'PRS'
+            'prs': 'PRS',
+            'glossy': 'Glossy',
+            'patch_mark': 'Patch Mark',
+            'odour': 'Odd Smell',
+            'tape_test': 'Tape Test Failure',
+            'centralization': 'Print Position OOS',
+            'print_color': 'Print Colour OOS'
         };
+
+        if (xFieldName === 'film_color') {
+            // Show opacity-related defect suggestions when Film Color has X
+            showDefectAutocomplete(defectNameCell, 'opacity');
+            return;
+        }
+
+        if (xFieldName === 'roll_curve') {
+            // Offer specific roll curve defect options
+            showRollCurveDefectOptions(defectNameCell);
+            return;
+        }
         
         // Check if this X field has a direct mapping
         if (fieldToDefectMappings[xFieldName]) {
@@ -1963,6 +2065,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         const searchTerm = fieldToSearchTerms[fieldName] || fieldName;
         showDefectAutocomplete(defectNameCell, searchTerm);
+    }
+
+    function showRollCurveDefectOptions(defectNameCell) {
+        const options = ['Edge Curve', 'Concave / Convex'];
+        showDefectDropdown(defectNameCell, options);
     }
 
     // ===== LOCK CHECKBOX FUNCTIONALITY =====
@@ -3752,7 +3859,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Add Clear O button
             const clearOButton = document.createElement('button');
             clearOButton.textContent = 'Clear O';
-            clearOButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-0.5 px-1.5 rounded mb-1 text-xs';
+            clearOButton.className = 'bg-green-500 hover:bg-green-700 text-white font-bold py-0.5 px-1.5 rounded mb-1 text-xs';
             clearOButton.onclick = async function() {
                 // Disable button during operation
                 clearOButton.disabled = true;

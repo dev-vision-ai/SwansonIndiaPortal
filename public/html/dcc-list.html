@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>DCC - Document Control Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../css/common-header.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+        }
+        html, body {
+            overflow-y: auto;
+        }
+
+        /* DCC specific styling */
+        .dcc-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .dcc-button {
+            background: #2563eb;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .dcc-button:hover {
+            background: #1d4ed8;
+        }
+
+        .dcc-button-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .dcc-button-secondary:hover {
+            background: #4b5563;
+        }
+
+        .status-active {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .status-draft {
+            color: #d97706;
+            font-weight: 600;
+        }
+
+        .status-obsolete {
+            color: #dc2626;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
+    <div class="header-container">
+        <button type="button" class="header-back-button" onclick="window.location.href='employee-dashboard.html'">Back</button>
+        <div class="header-title">Document Control Center</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+
+    <div class="w-full flex justify-center mt-16">
+        <div class="w-full overflow-x-auto">
+            <table class="w-full bg-white shadow-md rounded table-fixed text-xs">
+                    <thead>
+                        <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center text-xs">
+                            <th class="py-1 px-2 border-r border-gray-300 w-8 whitespace-normal break-words">Sr No</th>
+                            <th class="py-1 px-2 border-r border-gray-300 w-16 whitespace-normal break-words">DCN No</th>
+                            <th class="py-1 px-2 border-r border-gray-300 w-24 whitespace-normal break-words">Requestor Name</th>
+                            <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Requestor Dept</th>
+                            <th class="py-1 px-2 border-r border-gray-300 w-36 whitespace-normal break-words">Document Name</th>
+                            <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Document Type</th>
+                            <th class="py-1 px-2 border-r border-gray-300 w-16 whitespace-normal break-words">Current Revision</th>
+                            <th class="py-1 px-2 border-r border-gray-300 w-16 whitespace-normal break-words">Status</th>
+                            <th class="py-1 px-2 border-r border-gray-300 w-32 whitespace-normal break-words">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dccListTableBody">
+                        <!-- Data rows will go here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <style>
+            /* Striped rows and hover for tbody */
+            table tbody tr {
+                background-color: #ffffff;
+                transition: background-color 0.2s ease;
+            }
+            table tbody tr:hover {
+                background-color: #f8fafc;
+                cursor: pointer;
+            }
+            table tbody tr {
+                border-bottom: 1px solid #d1d5db;
+            }
+            /* Enhanced separator lines */
+            table th {
+                border-right: 1px solid #d1d5db;
+                border-bottom: 1px solid #d1d5db;
+            }
+            table td {
+                border-right: 1px solid #d1d5db;
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+                text-align: center;
+            }
+        </style>
+
+    <!-- Modals will be added here -->
+
+    <!-- Scripts -->
+    <script src="../supabase-config.js"></script>
+    <script>
+        // DCC functionality placeholders
+        function openNewDocumentModal() {
+            alert('New Document modal - to be implemented');
+        }
+
+        function openSearchModal() {
+            alert('Advanced Search modal - to be implemented');
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            // Trigger search/filter logic
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DCC page loaded');
+            // Load documents data here
+        });
+    </script>
+</body>
+</html>
