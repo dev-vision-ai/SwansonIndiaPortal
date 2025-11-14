@@ -12,6 +12,7 @@
     "dotenv": "^17.2.3",
     "exceljs": "^4.4.0",
     "express": "^5.1.0",
+    "libreoffice-convert": "^1.7.0",
     "xlsx": "^0.18.5",
     "xlsx-populate": "^1.21.0"
   },

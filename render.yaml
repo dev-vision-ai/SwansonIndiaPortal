@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: swanson-india-backend
+    env: node
+    plan: free
+    buildCommand: npm install && cd backend && npm install
+    startCommand: cd backend && node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+    buildFilter:
+      paths:
+        - backend/**
+        - package.json
+    autoDeploy: true
+    # Install LibreOffice for DOCX to PDF conversion
+    nixPkgs:
+      - libreoffice
+      - python3
+      - python3Packages.python-docx
+      - python3Packages.reportlab

@@ -8,187 +8,6 @@
     <link rel="stylesheet" href="../css/employee-dashboard.css">
     <link rel="stylesheet" href="../css/common-header.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js"></script>
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <script>
-        window.scriptLoadStatus = {};
-        window.addEventListener('load', () => {
-            window.scriptLoadStatus.mammoth = typeof window.mammoth !== 'undefined';
-            window.scriptLoadStatus.Quill = typeof window.Quill !== 'undefined';
-            console.log('Page fully loaded. Script status:', window.scriptLoadStatus);
-        });
-    </script>
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            font-weight: 500;
-        }
-        html, body {
-            overflow-y: auto;
-        }
-
-        /* DCN specific styling */
-        .dcn-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .dcn-button {
-            background: #2563eb;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-
-        .dcn-button:hover {
-            background: #1d4ed8;
-        }
-
-        .dcn-button-secondary {
-            background: #6b7280;
-            color: white;
-        }
-
-        .dcn-button-secondary:hover {
-            background: #4b5563;
-        }
-
-        .status-pending {
-            color: #d97706;
-            font-weight: 600;
-        }
-
-        .status-approved {
-            color: #059669;
-            font-weight: 600;
-        }
-
-        .status-rejected {
-            color: #dc2626;
-            font-weight: 600;
-        }
-
-        .status-draft {
-            color: #6b7280;
-            font-weight: 600;
-        }
-
-        /* Quill Editor Styling */
-        #editor {
-            background: white;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-            min-height: 400px;
-        }
-        .ql-toolbar {
-            border-top-left-radius: 0.375rem;
-            border-top-right-radius: 0.375rem;
-            background: #f3f4f6;
-        }
-        .ql-container {
-            border-bottom-left-radius: 0.375rem;
-            border-bottom-right-radius: 0.375rem;
-            font-size: 1rem;
-        }
-
-        /* Document preview styling */
-        #documentContent {
-            font-family: 'Calibri', 'Arial', sans-serif;
-            line-height: 1.5;
-            color: #333;
-            background: white;
-            padding: 2rem;
-            min-height: 600px;
-        }
-
-        #documentContent p {
-            margin: 0.5rem 0;
-            text-align: justify;
-        }
-
-        #documentContent h1, #documentContent h2, #documentContent h3, #documentContent h4, #documentContent h5, #documentContent h6 {
-            margin: 1rem 0 0.5rem 0;
-            font-weight: bold;
-            color: #222;
-        }
-
-        #documentContent h1 {
-            font-size: 1.75rem;
-        }
-
-        #documentContent h2 {
-            font-size: 1.5rem;
-        }
-
-        #documentContent h3 {
-            font-size: 1.25rem;
-        }
-
-        #documentContent table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-            border: 1px solid #ddd;
-        }
-
-        #documentContent table th,
-        #documentContent table td {
-            border: 1px solid #ddd;
-            padding: 0.75rem;
-            text-align: left;
-        }
-
-        #documentContent table th {
-            background-color: #f5f5f5;
-            font-weight: bold;
-        }
-
-        #documentContent ul, #documentContent ol {
-            margin: 1rem 0;
-            padding-left: 2rem;
-        }
-
-        #documentContent li {
-            margin: 0.5rem 0;
-        }
-
-        #documentContent strong, #documentContent b {
-            font-weight: bold;
-        }
-
-        #documentContent em, #documentContent i {
-            font-style: italic;
-        }
-
-        #documentContent u {
-            text-decoration: underline;
-        }
-
-        #documentContent blockquote {
-            border-left: 4px solid #ccc;
-            margin: 1rem 0;
-            padding-left: 1rem;
-            color: #666;
-        }
-
-        #documentContent pre {
-            background-color: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 1rem;
-            overflow-x: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-        }
-    </style>
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -261,68 +80,39 @@
         </div>
     </div>
 
-    <!-- DCN Request content will be added here -->
+    <!-- DCN Request content -->
+    <main class="max-w-6xl mx-auto p-4">
+        <div class="dcn-card">
+            <h2 class="text-lg font-semibold mb-2">Preview Document (Microsoft Viewer)</h2>
+            <p class="text-sm text-gray-600 mb-4">Enter the object path in the `dcn-documents` bucket or pick from the list.</p>
 
-    <!-- Document Preview & Edit Overlay -->
-    <div id="documentOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
-        <div class="bg-white rounded-lg shadow-2xl w-11/12 h-5/6 flex flex-col">
-            <!-- Header -->
-            <div class="flex justify-between items-center border-b border-gray-300 px-6 py-4">
-                <h2 id="documentTitle" class="text-lg font-bold text-gray-800">Document Preview</h2>
-                <button id="closeDocumentOverlay" class="text-2xl text-red-500 hover:text-red-700 font-bold">&times;</button>
+            <div class="flex gap-2 mb-3">
+                <input id="dcn-file-path" type="text" placeholder="e.g. public/my-document.docx"
+                    class="flex-1 border rounded px-3 py-2" />
+                <button id="dcn-view-btn" class="dcn-button">View</button>
+                <button id="dcn-list-btn" class="dcn-button dcn-button-secondary">List Files</button>
             </div>
 
-            <!-- Tabs: View / Edit -->
-            <div class="flex border-b border-gray-300 px-6">
-                <button id="viewTab" class="px-4 py-2 font-semibold text-blue-600 border-b-2 border-blue-600">View</button>
-                <button id="editTab" class="px-4 py-2 font-semibold text-gray-600 border-b-2 border-transparent hover:text-blue-600">Edit</button>
+            <div class="flex gap-2 mb-3 items-center">
+                <input id="dcn-file-input" type="file" class="border rounded px-2 py-1" />
+                <button id="dcn-upload-btn" class="dcn-button dcn-button-secondary">Upload</button>
+                <div id="dcn-upload-status" class="text-sm text-gray-600 ml-2">No upload yet</div>
             </div>
 
-            <!-- Content Area -->
-            <div class="flex-1 overflow-y-auto px-6 py-4">
-                <!-- View Mode -->
-                <div id="viewContent" class="hidden">
-                    <div id="documentContent" class="prose max-w-full border border-gray-200 p-4 rounded bg-gray-50"></div>
-                </div>
-
-                <!-- Edit Mode -->
-                <div id="editContent" class="hidden flex flex-col h-full">
-                    <div id="editor" class="flex-1 mb-4"></div>
-                </div>
+            <div id="dcn-list-container" class="mb-3 hidden">
+                <div class="mb-2 text-sm text-gray-700">Files in bucket:</div>
+                <ul id="dcn-file-list" class="border rounded bg-white max-h-44 overflow-auto p-2"></ul>
             </div>
 
-            <!-- Footer: Action Buttons -->
-            <div class="border-t border-gray-300 px-6 py-4 flex justify-end space-x-3">
-                <button id="downloadDocBtn" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Download</button>
-                <button id="deleteDocBtn" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
-                <button id="saveDocBtn" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 hidden">Save Changes</button>
-                <button id="cancelEditBtn" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 hidden">Cancel</button>
+            <div style="height:640px;" class="border rounded overflow-hidden">
+                <iframe id="ms-viewer" width="100%" height="100%" frameborder="0"></iframe>
             </div>
         </div>
-    </div>
-
-    <!-- File Upload Area -->
-    <div id="uploadArea" class="w-full px-4 py-6 mt-16">
-        <div class="bg-white rounded-lg shadow-md p-6 text-center border-2 border-dashed border-gray-300 hover:border-blue-500 cursor-pointer transition">
-            <input type="file" id="fileInput" accept=".docx,.pdf,.txt" class="hidden">
-            <svg class="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-            </svg>
-            <p class="text-lg font-semibold text-gray-700">Click or drag files here</p>
-            <p class="text-sm text-gray-500">Supported formats: .docx, .pdf, .txt</p>
-        </div>
-    </div>
-
-    <!-- Documents List -->
-    <div id="documentsList" class="w-full px-4 py-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="documentsGrid">
-            <!-- Document cards will be rendered here -->
-        </div>
-    </div>
+    </main>
 
     <!-- Modals will be added here -->
 
     <!-- Scripts -->
-    <script src="../js/dcn-request.js"></script>
+    <script type="module" src="../js/dcn-request.js"></script>
 </body>
 </html>
