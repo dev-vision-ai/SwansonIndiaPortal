@@ -250,30 +250,47 @@
                     </div>
                 </div>
                 
-                <!-- Team Members Table - Right Side -->
-                <div class="w-full lg:w-auto lg:flex-1 max-w-full lg:max-w-[400px] mt-4 lg:mt-0">
+                <!-- Product Specifications Table - Right Side -->
+                <div class="w-full lg:w-auto lg:flex-1 max-w-full lg:max-w-[500px] mt-4 lg:mt-0">
                     <table class="w-full border border-gray-400" style="font-size: 12px;">
                         <thead>
                             <tr class="bg-gray-100">
-                                <th class="border border-gray-400 px-2 py-1 text-center font-semibold" colspan="2" style="font-size: 12px;">Shift Members</th>
+                                <th class="border border-gray-400 px-2 py-1 text-center font-semibold" style="font-size: 12px;">Parameter</th>
+                                <th class="border border-gray-400 px-2 py-1 text-center font-semibold" style="font-size: 12px;">LSL</th>
+                                <th class="border border-gray-400 px-2 py-1 text-center font-semibold" style="font-size: 12px;">TGT</th>
+                                <th class="border border-gray-400 px-2 py-1 text-center font-semibold" style="font-size: 12px;">USL</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="productSpecsBody">
                             <tr style="background-color: white;">
-                                <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px; background-color: white;">Supervisor</td>
-                                <td class="border border-gray-400 px-2 py-1 text-left" id="supervisor_name" style="font-size: 12px; background-color: white;">[Supervisor Name]</td>
+                                <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px;">Roll Weight (kg)</td>
+                                <td class="border border-gray-400 px-2 py-1 text-center" id="weight_lsl" style="font-size: 12px;">-</td>
+                                <td class="border border-gray-400 px-2 py-1 text-center" id="weight_tgt" style="font-size: 12px;">-</td>
+                                <td class="border border-gray-400 px-2 py-1 text-center" id="weight_usl" style="font-size: 12px;">-</td>
                             </tr>
                             <tr style="background-color: white;">
-                                <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px; background-color: white;">Line Leader</td>
-                                <td class="border border-gray-400 px-2 py-1 text-left" id="line_leader_name" style="font-size: 12px; background-color: white;">[Line Leader Name]</td>
+                                <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px;">Film Weight (GSM)</td>
+                                <td class="border border-gray-400 px-2 py-1 text-center" id="gsm_lsl" style="font-size: 12px;">-</td>
+                                <td class="border border-gray-400 px-2 py-1 text-center" id="gsm_tgt" style="font-size: 12px;">-</td>
+                                <td class="border border-gray-400 px-2 py-1 text-center" id="gsm_usl" style="font-size: 12px;">-</td>
                             </tr>
                             <tr style="background-color: white;">
-                                <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px; background-color: white;">Operator</td>
-                                <td class="border border-gray-400 px-2 py-1 text-left" id="operator_name" style="font-size: 12px; background-color: white;">[Operator Name]</td>
+                                <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px;">Roll Dia (mm)</td>
+                                <td class="border border-gray-400 px-2 py-1 text-center" id="rolldia_lsl" style="font-size: 12px;">-</td>
+                                <td class="border border-gray-400 px-2 py-1 text-center" id="rolldia_tgt" style="font-size: 12px;">-</td>
+                                <td class="border border-gray-400 px-2 py-1 text-center" id="rolldia_usl" style="font-size: 12px;">-</td>
                             </tr>
                             <tr style="background-color: white;">
-                                <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px; background-color: white;">QC Inspector</td>
-                                <td class="border border-gray-400 px-2 py-1 text-left" id="qc_inspector_name" style="font-size: 12px; background-color: white;">[QC Inspector Name]</td>
+                                <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px;">Roll Width (mm)</td>
+                                <td class="border border-gray-400 px-2 py-1 text-center" id="width_lsl" style="font-size: 12px;">-</td>
+                                <td class="border border-gray-400 px-2 py-1 text-center" id="width_tgt" style="font-size: 12px;">-</td>
+                                <td class="border border-gray-400 px-2 py-1 text-center" id="width_usl" style="font-size: 12px;">-</td>
+                            </tr>
+                            <tr style="background-color: white;">
+                                <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px;">Thickness (Microns)</td>
+                                <td class="border border-gray-400 px-2 py-1 text-center" id="thickness_lsl" style="font-size: 12px;">-</td>
+                                <td class="border border-gray-400 px-2 py-1 text-center" id="thickness_tgt" style="font-size: 12px;">-</td>
+                                <td class="border border-gray-400 px-2 py-1 text-center" id="thickness_usl" style="font-size: 12px;">-</td>
                             </tr>
                         </tbody>
                     </table>
@@ -281,9 +298,9 @@
             </div>
         </section>
         
-        <!-- Roll Entry Grid Placeholder -->
+        <!-- Roll Inspection Details Placeholder -->
         <section>
-            <h2 class="text-lg font-semibold mb-3">Roll Entry Grid</h2>
+            <h2 class="text-lg font-semibold mb-3">Roll Inspection Details</h2>
                 <div class="flex justify-between items-center mb-2">
                     <div>
                         <span id="rowCountDisplay" class="text-xs font-bold text-gray-700">Rows: 0</span>
