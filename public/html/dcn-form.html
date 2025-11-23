@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>DCN Request - Document Change Notice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../css/common-header.css">
+    <!-- MT-job-requisition-form.css removed: replicated locally below to avoid external dependency -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Inline styles removed. Use Tailwind utilities or external css files (e.g., employee-dashboard.css) for styling. -->
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
+    <div class="header-container">
+        <button type="button" class="header-back-button" onclick="(window.history.length > 1 ? window.history.back() : window.location.href='dcn-list.html')">Back</button>
+        <div class="header-title">Document Change Notification</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+
+    <!-- DCN Form styles: MJR-like UI inline (no header) -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        /*
+         * Part of MT-job-requisition-form.css copied inline here to avoid external file reference.
+         * NOTE: header selectors (.header-container, .header-title) are intentionally excluded
+         * so we do not override the global header for the site.
+         */
+        :root{
+            --primary-color: #002E7D;
+            --primary-gradient: linear-gradient(45deg, #002E7D, #0046C7);
+            --background: #eaf1fa;
+            --form-bg: #fff;
+            --border-color: #ced4da;
+            --shadow: 0 4px 10px rgba(0,0,0,0.12);
+        }
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #eaf1fa;
+    background-image: url('data:image/svg+xml;utf8,<svg width="60" height="30" viewBox="0 0 60 30" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><circle cx="45" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><line x1="25" y1="15" x2="35" y2="15" stroke="%2399aabb" stroke-width="1" opacity="0.10"/></svg>');
+    background-size: 60px 30px;
+    background-repeat: repeat;
+    background-position: center center;
+    background-attachment: fixed;
+    color: #333;
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+        /* Container like MJR form */
+        .dcn-container { max-width: 800px; margin: 4.5rem auto 1.25rem auto; }
+        .dcn-card { background: var(--form-bg); padding: 1.25rem; border-radius: 8px; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.08); }
+        .maintenance-form-section { width: 100%; max-width: 800px; background: var(--form-bg); border-radius: 0.5rem; padding: 1.25rem; padding-top: 1.25rem; margin: 0 auto; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.08); position: relative; }
+
+        /* Form section and header style */
+        .dcn-section { margin-bottom: 1rem; }
+        .dcn-title { font-size: 1.2rem; font-weight: 600; color: var(--primary-color); margin-bottom: 0.75rem; display:block; }
+        .section-header { font-size: 0.95rem; font-weight: 600; color: var(--primary-color); margin-bottom:0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid #dee2e6; }
+
+        /* Base font sizing: keep content consistent; headers are +2px */
+        :root {
+            --base-font-size: 13px;
+            --header-font-size: calc(var(--base-font-size) + 2px);
+        }
+
+        .dcn-card,
+        .dcn-details-container,
+        .dcn-section,
+        label,
+        input,
+        select,
+        textarea,
+        .dcn-input,
+        table td,
+        table th,
+        .button-container button {
+            font-size: var(--base-font-size) !important;
+            line-height: 1.4 !important;
+        }
+
+        /* Headers kept slightly larger (+2px from base) */
+        .section-header,
+        .dcn-title,
+        .dcn-details-container table thead th {
+            font-size: var(--header-font-size) !important;
+            font-weight: 600 !important;
+        }
+
+        /* Grid layout */
+        .dcn-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:1rem; }
+        .span-2 { grid-column: 1 / -1; }
+        .dcn-grid-3 { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:1rem; }
+        .dcn-details-container { border: 2px solid #ddd; border-radius: 8px; padding: 1.25rem; background: #fafafa; margin-bottom: 1rem; }
+
+        /* Disabled / restricted look for sections */
+        .dcn-details-container.dcn-disabled {
+            background: #f3f4f6 !important;
+            border-color: #e7e7ea !important;
+            position: relative;
+        }
+        .dcn-details-container.dcn-disabled .section-header { color: #94a3b8; }
+        /* In view/read-only mode we keep controls visually normal but non-interactive.
+         * This prevents checkboxes/radios and inputs from appearing greyed-out while
+         * still preventing interaction (pointer-events: none).
+         */
+        .dcn-details-container.dcn-disabled input,
+        .dcn-details-container.dcn-disabled textarea,
+        .dcn-details-container.dcn-disabled select,
+        .dcn-details-container.dcn-disabled button,
+        .dcn-details-container.dcn-disabled .checkbox-item,
+        .dcn-details-container.dcn-disabled .radio-item {
+            opacity: 1 !important;
+            color: inherit !important;
+            cursor: default !important;
+            pointer-events: none !important;
+            filter: none !important;
+        }
+        /* Ensure checkboxes and radios themselves remain visible (not translucent) */
+        .dcn-details-container.dcn-disabled input[type="checkbox"],
+        .dcn-details-container.dcn-disabled input[type="radio"] {
+            opacity: 1 !important;
+        }
+        /* Keep tile-like checkbox/radio labels looking normal */
+        .dcn-details-container.dcn-disabled .checkbox-item,
+        .dcn-details-container.dcn-disabled .radio-item {
+            background: white !important;
+            border-color: #dee2e6 !important;
+        }
+        /* When the form is opened in view-only mode we often set fields to disabled/readonly.
+         * Override disabled styling inside the DCN container so controls remain visually normal
+         * while still being non-interactive.
+         */
+        .dcn-container input:disabled,
+        .dcn-container textarea:disabled,
+        .dcn-container select:disabled,
+        .dcn-container button:disabled {
+            opacity: 1 !important;
+            filter: none !important;
+            color: inherit !important;
+            background: #fff !important;
+            cursor: default !important;
+        }
+        .dcn-container input[type="checkbox"]:disabled,
+        .dcn-container input[type="radio"]:disabled {
+            opacity: 1 !important;
+            filter: none !important;
+        }
+        /* contenteditable fields may have inline opacity applied by JS; override it */
+        .dcn-container [contenteditable="false"] {
+            opacity: 1 !important;
+        }
+
+        /* View-only container: prevent interaction but keep appearance normal */
+        .dcn-container.view-only input,
+        .dcn-container.view-only textarea,
+        .dcn-container.view-only select,
+        .dcn-container.view-only button {
+            pointer-events: none !important;
+            opacity: 1 !important;
+            filter: none !important;
+            color: inherit !important;
+            background: #fff !important;
+        }
+        .dcn-container.view-only input[type="checkbox"],
+        .dcn-container.view-only input[type="radio"] {
+            pointer-events: none !important;
+            opacity: 1 !important;
+        }
+        /* Hide action buttons completely in view-only mode */
+        .dcn-container.view-only #submit-dcn,
+        .dcn-container.view-only #save-draft,
+        .dcn-container.view-only #upload-document {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            width: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: 0 !important;
+            pointer-events: none !important;
+        }
+        /* Keep the permission note readable */
+        .dcn-details-container .dcn-small { color: #6b7280; }
+
+        /* Inputs & labels like MJR */
+        label { display:block; font-weight:500; margin-bottom:0.25rem; color:#222; }
+        input[type="text"], input[type="date"], select, textarea, .dcn-input { width:100%; padding:0.56rem; border:1px solid var(--border-color); border-radius:6px; background: white; box-sizing:border-box; }
+        input:focus, textarea:focus, select:focus{ outline:none; border-color: #007bff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.12); }
+        textarea, .dcn-textarea { min-height: 36px; resize:vertical; box-sizing:border-box; }
+        /* Ensure inputs in DCN are white (override other form styles) */
+        .dcn-details-container input, .dcn-details-container select, .dcn-details-container textarea, .dcn-input,
+        .maintenance-form-section input, .maintenance-form-section select, .maintenance-form-section textarea {
+            background: #fff !important;
+            color: #111 !important;
+        }
+        .dcn-textarea.dcn-large { min-height: 80px; }
+
+        /* Autosize textareas (applied via JS) */
+        /* set height auto as important to override the generic textarea height rules; use JS to set explicit heights */
+        .autosize { overflow:hidden; resize:none; min-height:40px; height:auto !important; box-sizing:border-box; }
+
+        /* Normalize heights for side-by-side form inputs inside grids */
+        /* Make all normal inputs / short textareas match checkbox tiles at 44px */
+        .dcn-details-container input[type="text"],
+        .dcn-details-container input[type="date"],
+        .dcn-details-container select,
+        .dcn-details-container .dcn-input,
+        .dcn-details-container textarea:not(.dcn-large),
+        .dcn-card input[type="text"],
+        .dcn-card input[type="date"],
+        .dcn-card select,
+        .dcn-card .dcn-input,
+        .dcn-card textarea:not(.dcn-large) {
+            min-height: 40px !important;
+            height: 40px !important;
+            padding: 0.45rem 0.56rem !important;
+            line-height: 1.1 !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Make evens in same row consistent on small screens too */
+        @media (max-width: 600px) {
+            .dcn-details-container input[type="text"],
+            .dcn-details-container select,
+            .dcn-details-container .dcn-input,
+            .dcn-details-container textarea:not(.dcn-large) {
+                height: 40px !important;
+                min-height: 40px !important;
+            }
+        }
+
+        /* checkbox grid like MJR breakdown codes */
+        .dcn-checkbox-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap:0.75rem; }
+        /* Ensure MJR checkbox styles are applied inside DCN (sometimes overridden) */
+        .dcn-details-container .checkbox-item, .dcn-details-container .code-item {
+            background: white !important;
+            border: 1px solid #dee2e6 !important;
+            padding: 0.6rem !important;
+            border-radius: 6px !important;
+            display:flex !important;
+            align-items:center !important;
+            justify-content:center !important;
+            min-height:40px !important; /* same height for all boxes */
+            text-align:center !important;
+            cursor: pointer !important; /* show pointer for clickable tiles */
+        }
+        .dcn-details-container .checkbox-item input[type="checkbox"],
+        .dcn-details-container .code-item input[type="checkbox"] {
+            width: auto !important;
+            margin-right: 0.5rem !important;
+        }
+
+        /* tables & actions */
+        .dcn-table { width:100%; border-collapse: collapse; border: 1px solid #e5e7eb; }
+        .dcn-table th, .dcn-table td { padding: 0.5rem; border: 1px solid #e5e7eb; font-size: 0.9rem; }
+        /* Narrow document number & wide title for affected documents table */
+        #affectedDocsTable { border: 1px solid #cbd5e1; }
+        #affectedDocsTable th, #affectedDocsTable td { border: 1px solid #cbd5e1; padding: 8px; }
+        #affectedDocsTable thead { background: #f8fafc; }
+        #affectedDocsTable tbody td { min-height: 36px; }
+        #affectedDocsTable tbody td[contenteditable] { background: white; }
+        #affectedDocsTable th:nth-child(1), #affectedDocsTable td:nth-child(1) { width: 20%; text-align:center; }
+        #affectedDocsTable th:nth-child(2), #affectedDocsTable td:nth-child(2) { width: 80%; }
+        /* Per-input sizing - doc no narrow, doc title spans the rest */
+        .dcn-input.doc-no { width: 140px; max-width: 140px; }
+        .dcn-input.doc-title { width: 100%; }
+
+        .dcn-actions { display:flex; gap:0.5rem; justify-content:flex-end; margin-top:1rem; }
+        .button-container { display:flex; gap:1rem; justify-content:center; margin-top:18px; padding-top: 16px; border-top: 1px solid #dee2e6; }
+        .submit-btn { padding:8px 16px; border-radius: 6px; background: var(--primary-gradient); color:white; border:none; cursor:pointer; }
+        .dcn-btn { padding:0.45rem 0.75rem; border-radius:0.45rem; border:1px solid transparent; cursor:pointer; font-weight:600; font-size:0.9rem; display:inline-flex; align-items:center; gap:0.5rem; }
+        .dcn-btn-primary { background: var(--primary-gradient); color:white; box-shadow: 0 6px 14px rgba(2,30,90,0.12); border-color: transparent; }
+        .dcn-btn-primary:hover { filter:brightness(1.03); }
+        .dcn-btn-primary:active { transform: translateY(1px); }
+        .dcn-btn-secondary { background:#6b7280; color:white; border-color: rgba(0,0,0,0.06); }
+        .dcn-btn-secondary:hover { filter:brightness(0.98); }
+        /* Upload Document button - make it green to distinguish from other secondary actions */
+        #upload-document {
+            background: #16a34a !important; /* green-600 */
+            color: #ffffff !important;
+            border-color: transparent !important;
+            box-shadow: 0 4px 10px rgba(16,185,129,0.12) !important;
+        }
+        #upload-document:hover {
+            background: #15803d !important; /* green-700 */
+            filter: none !important;
+        }
+        /* Action icon styles for DCN table - MJR-like compact icon buttons */
+        .dcn-delete-btn { width:36px; height:36px; padding:0; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; background:#fff; border:1px solid #e6e9ee; color:#ef4444; }
+        .dcn-delete-btn:hover { background:#fff6f6; box-shadow: 0 4px 10px rgba(239,68,68,0.06); }
+        .dcn-delete-btn i { font-size:0.95rem; }
+        .dcn-plus-btn { width:36px; height:36px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; background:#fff; border:1px solid rgba(11,132,255,0.12); color:#0b84ff; font-size:1rem; padding:0; cursor:pointer; }
+        .dcn-plus-btn:hover { background:#f0f8ff; box-shadow: 0 6px 12px rgba(11,132,255,0.06); }
+        .dcn-plus-btn i { font-size:1rem; }
+        /* Acknowledgement clear button styled like a compact secondary action */
+        .ack-clear-btn { width:80px; height:36px; padding:0.4rem 0.6rem; border-radius:6px; background:#f3f4f6; color:#374151; border:1px solid #e5e7eb; cursor:pointer; }
+        .ack-clear-btn:hover { background:#eef2f6; }
+        /* Normalize button typography and alignment so all action buttons match */
+        .submit-btn, .dcn-btn, .dcn-btn-primary, .dcn-btn-secondary, .ack-clear-btn, .dcn-plus-btn, .dcn-delete-btn {
+            font-family: inherit !important;
+            font-size: 0.9rem !important;
+            font-weight: 600 !important;
+            line-height: 1 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.5rem !important;
+            text-transform: none !important;
+        }
+        /* Make primary/text action buttons smaller */
+        .submit-btn,
+        .dcn-btn:not(.dcn-delete-btn):not(.dcn-plus-btn):not(.ack-clear-btn) {
+            padding: 6px 12px !important;
+            min-height: 32px !important;
+            height: auto !important;
+            font-size: 0.85rem !important;
+            border-radius: 4px !important;
+        }
+
+        /* small text & responsive adjustments */
+        .dcn-small{ color:#555; font-size:0.9rem; }
+        
+        /* Summary of Change table styles */
+        #summaryTable { border: 1px solid #cbd5e1; }
+        #summaryTable th, #summaryTable td { border: 1px solid #cbd5e1; padding: 8px; }
+        #summaryTable thead { background: #f8fafc; }
+        #summaryTable tbody td { min-height: 36px; }
+        #summaryTable tbody td[contenteditable] { background: white; }
+        
+        /* Floating text formatting toolbar */
+        #floatingToolbar {
+            position: fixed;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            z-index: 1000;
+            gap: 4px;
+            flex-direction: row;
+        }
+        #floatingToolbar.visible {
+            display: flex;
+        }
+        .format-btn {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .format-btn:hover {
+            background: #f0f0f0;
+            border-color: #999;
+        }
+        .format-btn.active {
+            background: #002E7D;
+            color: white;
+            border-color: #002E7D;
+        }
+        
+        /* Autocomplete dropdown styles */
+        .autocomplete-dropdown {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1001;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .autocomplete-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .autocomplete-item:hover {
+            background: #f0f8ff;
+        }
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        
+        @media(max-width:768px){ .dcn-grid{ grid-template-columns:1fr; } .dcn-grid-3{ grid-template-columns:1fr; } }
+
+        /*-------- Begin copied MJR styles (scoped to the form) --------*/
+        :root {
+            --primary-color: #002E7D;
+            --primary-gradient: linear-gradient(45deg, #002E7D, #0046C7);
+            --primary-hover: #0046C7;
+            --text-dark: #2D3436;
+            --text-light: #666666;
+            --border-color: #ced4da;
+            --background-light: #f8f9fa;
+            --form-bg: #fff;
+            --shadow: 0 4px 10px rgba(0,0,0,0.15);
+            --form-element-spacing-desktop: 1.25rem;
+            --form-element-spacing-mobile: 1rem;
+        }
+
+        /* Maintenance form section style from MJR */
+        .maintenance-form-section {
+            width: 100%;
+            max-width: 800px;
+            background: var(--form-bg);
+            border-radius: 0.5rem;
+            padding: 1.5rem 1.5rem;
+            padding-top: 1.5rem;
+            margin: 0 auto;
+            margin-top: 0.7rem;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        /* Form layout and rows */
+        .form-row.grid-layout { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:1rem; }
+        .form-row { display:flex; gap: 1rem; margin-bottom: 0.75rem; width:100%; }
+        .form-row .form-group { flex:1; min-width:0; }
+
+        /* MJR input fields */
+        input[type="text"], input[type="date"], select, textarea { width:100%; padding:0.5rem; border:1px solid var(--border-color); border-radius:5px; height:35px; }
+        input:focus, select:focus, textarea:focus { outline:none; border-color: #007bff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25); }
+
+        /* Breakdowns and code items */
+        /* Force 6 columns on wide screens; provide responsive fallbacks */
+        /* 6 equal columns using flex fractions - this avoids overflow while still keeping 6-per-row */
+        .breakdown-codes { display:grid; grid-template-columns: repeat(6, 1fr); gap:0.5rem; margin-top:0.5rem; width:100%; box-sizing:border-box; }
+        /* Desktop → 6 per row, below 1200px → 4 per row, below 900px → 3 per row */
+        @media (max-width: 1200px) {
+            .breakdown-codes { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 900px) {
+            .breakdown-codes { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .breakdown-codes { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 420px) {
+            .breakdown-codes { grid-template-columns: repeat(1, 1fr); }
+        }
+        .breakdown-codes .code-item { min-height:40px; justify-content:center; }
+        .code-item { display:flex; align-items:center; gap:0.5rem; padding:0.75rem; background:#fff; border:1px solid #dee2e6; border-radius:4px; cursor:pointer; box-sizing:border-box; justify-content:center; }
+        .code-item .code-letter { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .code-item:hover { background:#e9ecef; }
+        .code-item input[type="checkbox"]{ width:auto; }
+        .code-letter { font-weight:600; color:var(--primary-color); font-size:14px; }
+        /* Make the text inside all tile-like elements use primary blue for emphasis */
+        .checkbox-item span, .code-item span, .radio-item span { color: var(--primary-color) !important; }
+
+        /* Checkbox item (MJR-like) */
+        .checkbox-item { display:flex; align-items:center; gap:0.5rem; padding:0.5rem; cursor:pointer; border-radius:4px; }
+        .checkbox-item:hover { background: var(--background-light); }
+        /* Radio tiles: mimic checkbox tiles */
+        /* Small, compact radio tiles (fit to content) */
+        .radio-item { display:inline-flex; align-items:center; gap:0.5rem; padding:0 0.6rem; background:white; border:1px solid #dee2e6; border-radius:6px; cursor:pointer; text-align:center; box-sizing:border-box; min-height:40px; height:40px; flex: 0 0 auto; width: auto; justify-content:center; }
+        .radio-item input[type="radio"] { width:auto; margin-right:0.5rem; vertical-align:middle; }
+        .radio-item span { display:inline-block; line-height:40px; }
+        .radio-item.active { background: #e9f1ff; border-color: var(--primary-color); }
+        /* Remove browser focus ring on the native radio itself, use label focus style for accessibility */
+        .radio-item input[type="radio"]:focus { outline: none; box-shadow: none; }
+        .radio-item:focus-within { outline: none; box-shadow: 0 0 0 3px rgba(0,46,125,0.12); }
+        .radio-item:focus-within.active { box-shadow: 0 0 0 3px rgba(0,46,125,0.18); }
+
+        /* Make radio label look clickable (pointer) */
+        .dcn-row { cursor: pointer; }
+
+        /* Button container (MJR) */
+        .button-container { display:flex; gap: var(--form-element-spacing-desktop); justify-content:center; margin-top: calc(var(--form-element-spacing-desktop) * 1.25); }
+
+        /* Submit button style from MJR */
+        .submit-btn { padding:8px 16px; border-radius:0.4rem; background:var(--primary-gradient); color:white; border:none; cursor:pointer; }
+
+        /* small responsive tweaks used by MJR */
+        @media (max-width:768px) {
+            .form-row.grid-layout { grid-template-columns:1fr; }
+            .maintenance-form-section { padding: 1rem; }
+        }
+        /* Spinning animation for loading buttons */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+
+    </style>
+        <section class="dcn-card maintenance-form-section">
+            <div class="dcn-section">
+                <div class="section-header">Document Change Notification (DCN)</div>
+                <form id="dcnForm">
+                <div class="dcn-grid form-row grid-layout">
+                    <div class="dcn-details-container span-2">
+                        <div class="section-header">General Information</div>
+                        <div class="dcn-grid">
+                            <div class="form-group">
+                                <label for="requestor_name">Requestor Name</label>
+                                <input class="dcn-input" id="requestor_name" placeholder="Requestor name" />
+                            </div>
+                            <div class="form-group">
+                                <label for="requestor_dept">Requestor Department</label>
+                                <input class="dcn-input" id="requestor_dept" placeholder="Requestor department" />
+                            </div>
+                            <div class="form-group">
+                                <label for="dcn_no">DCN No</label>
+                                <input class="dcn-input" id="dcn_no" placeholder="Auto generated or enter DCN no" />
+                            </div>
+                            <div class="form-group">
+                                <label for="issued_date">Issued Date</label>
+                                <input class="dcn-input" id="issued_date" type="date" />
+                            </div>
+                            <div class="form-group span-2">
+                                <label for="document_title">Document Title</label>
+                                <textarea class="dcn-textarea" id="document_title" placeholder="Document title" rows="1"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="document_no">Document No.</label>
+                                <input class="dcn-input" id="document_no" placeholder="Document number" />
+                            </div>
+                            <div class="form-group">
+                                <label for="custodian">Custodian</label>
+                                <input class="dcn-input" id="custodian" placeholder="Custodian name" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dcn-details-container">
+                <div class="section-header">Purpose of issued DCN</div>
+                <div class="form-group">
+                    <div class="dcn-small">Please tick against the suitable option</div>
+                    <div class="dcn-checkbox-grid" style="margin-top:0.5rem;">
+                        <label class="checkbox-item"><input type="checkbox" id="purpose_new" /> <span>New Establishment</span></label>
+                        <label class="checkbox-item"><input type="checkbox" id="purpose_revision" /> <span>Revision</span></label>
+                        <label class="checkbox-item"><input type="checkbox" id="purpose_obsolete" /> <span>Obsolescence</span></label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dcn-details-container">
+                <div class="section-header">Type of Document to be changed / New Established / Obsolescence of Document</div>
+                <div class="form-group">
+                    <div class="dcn-small">Tick as applicable</div>
+                    <div class="breakdown-codes" style="margin-top:0.5rem;">
+                        <label class="code-item"><input type="checkbox" name="doc_type" value="QM"/><span class="code-letter">QM</span><span class="code-desc"></span></label>
+                        <label class="code-item"><input type="checkbox" name="doc_type" value="QP"/><span class="code-letter">QP</span><span class="code-desc"></span></label>
+                        <label class="code-item"><input type="checkbox" name="doc_type" value="WI"/><span class="code-letter">WI</span><span class="code-desc"></span></label>
+                        <label class="code-item"><input type="checkbox" name="doc_type" value="FQP"/><span class="code-letter">FQP</span><span class="code-desc"></span></label>
+                        <label class="code-item"><input type="checkbox" name="doc_type" value="FWI"/><span class="code-letter">FWI</span><span class="code-desc"></span></label>
+                        <label class="code-item"><input type="checkbox" name="doc_type" value="EX"/><span class="code-letter">EX</span><span class="code-desc"></span></label>
+                        <label class="code-item"><input type="checkbox" name="doc_type" value="CP"/><span class="code-letter">CP</span><span class="code-desc"></span></label>
+                        <label class="code-item"><input type="checkbox" name="doc_type" value="SC"/><span class="code-letter">SC</span><span class="code-desc"></span></label>
+                        <label class="code-item"><input type="checkbox" name="doc_type" value="JD"/><span class="code-letter">JD</span><span class="code-desc"></span></label>
+                        <label class="code-item"><input type="checkbox" name="doc_type" value="FSC"/><span class="code-letter">FSC</span><span class="code-desc"></span></label>
+                        <label class="code-item"><input type="checkbox" name="doc_type" value="OPL"/><span class="code-letter">OPL</span><span class="code-desc"></span></label>
+                        <label class="code-item"><input type="checkbox" name="doc_type" value="PPT"/><span class="code-letter">PPT</span><span class="code-desc"></span></label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Type section already wrapped above; plain version removed -->
+
+            <div class="dcn-details-container">
+                <div class="section-header">Affected Documents</div>
+                <div class="form-group">
+                    <div class="dcn-grid">
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <label class="dcn-small">Any documents affected due to the change / New Established / Obsolescence?</label>
+                        </div>
+                        <div class="radio-group affected-group" style="display:flex; gap:1rem; align-items:center;">
+                            <label class="radio-item"><input type="radio" name="affected" value="yes"/> <span>Yes</span></label>
+                            <label class="radio-item"><input type="radio" name="affected" value="no" checked/> <span>No</span></label>
+                        </div>
+                    </div>
+                    <div style="margin-top:0.5rem;">
+                        <label class="dcn-small">If Yes, please list down the affected documents</label>
+                        <div style="overflow:auto; margin-top:0.75rem;">
+                            <table class="dcn-table" id="affectedDocsTable" aria-label="Affected Documents">
+                                <thead>
+                                    <tr>
+                                        <th style="width:20%; text-align:center;">Document No</th>
+                                        <th style="width:80%;">Document Title</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Rows populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="margin-top:0.75rem; margin-bottom:2rem; padding-bottom:1rem; display:flex; gap:0.5rem;">
+                            <button type="button" class="dcn-btn dcn-btn-primary" id="addAffectedRowBtn" style="padding:2px 4px !important; width:28px !important; height:28px !important; min-height:28px !important;">+</button>
+                            <button type="button" class="dcn-btn dcn-btn-secondary" id="deleteAffectedRowBtn" style="padding:2px 4px !important; width:28px !important; height:28px !important; min-height:28px !important;">-</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dcn-details-container">
+                <div class="section-header">Reason for</div>
+                <div class="dcn-checkbox-grid" style="margin-top:0.5rem;">
+                    <label class="checkbox-item"><input type="checkbox" name="reason" value="new"/> <span>New Establishment</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="reason" value="revision"/> <span>Revision</span></label>
+                    <label class="checkbox-item"><input type="checkbox" name="reason" value="obso"/> <span>Obsolescence of Document</span></label>
+                </div>
+                <div style="margin-top:0.5rem;" class="form-group">
+                    <textarea class="dcn-textarea dcn-large" id="reason_details" placeholder="Provide detailed reason"></textarea>
+                </div>
+            </div>
+
+            <!-- Training required -->
+            <div class="dcn-details-container">
+                <div class="section-header">Training required?</div>
+                    <div class="radio-group training-group" style="display:flex; gap:1rem; margin-top:0.5rem; align-items:center;">
+                    <label class="radio-item"><input type="radio" name="training_required" value="yes"/> <span>Yes</span></label>
+                    <label class="radio-item"><input type="radio" name="training_required" value="no" checked/> <span>No</span></label>
+                </div>
+
+                <div id="training-yes" style="display:none; margin-top:0.75rem;" class="form-group">
+                    <!-- Single input 'Trainees' shown only when Training Required is Yes -->
+                    <div>
+                        <label class="dcn-small" for="trainees">Trainees</label>
+                        <!-- Use textarea to allow vertical expansion as user types. class autosize will be attached by JS -->
+                        <textarea class="dcn-textarea autosize" id="trainees" name="trainees" placeholder="Enter trainees (comma-separated)" rows="1"></textarea>
+                    </div>
+                </div>
+
+                <div id="training-no" style="display:block; margin-top:0.75rem;" class="form-group">
+                    <div class="dcn-small">If training is not required, please provide justification:</div>
+                    <textarea class="dcn-textarea dcn-large" id="training_justification" placeholder="Provide justification if training is considered not required"></textarea>
+                </div>
+
+                <div id="training-instructions" style="margin-top:0.5rem;" class="dcn-small form-group">
+                    <ol style="margin-left:1rem;">
+                        <li>Provide justification if training is considered as not required.</li>
+                        <li>Submit training records to the training owner if training considered as 'Yes'.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Acknowledgement table for training owner -->
+            <div class="dcn-details-container">
+                <div class="section-header">Acknowledgement by Training Owner</div>
+                <div style="margin-top:0.5rem;">
+                    <table class="dcn-table" id="ackTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Acknowledged On</th>
+                                <th>Signature</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input class="dcn-input" name="ack_name[]" placeholder="Name"></td>
+                                <td><input class="dcn-input" name="ack_date[]" type="date"></td>
+                                <td><input class="dcn-input" name="ack_remarks[]" placeholder="Signature"></td>
+                                <td style="text-align:center"><button type="button" class="dcn-btn dcn-btn-secondary ack-clear-btn">Clear</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+
+            <div class="dcn-section">
+                </form>
+            </div>
+        </section>
+
+        <section class="dcn-card maintenance-form-section" style="margin-top: 1.5rem;">
+            <div class="dcn-section">
+                <!-- Three-column row: Effective Date, Revision No, Review Date -->
+                <div class="dcn-grid-3" style="margin-bottom: 1.5rem;">
+                    <div class="form-group">
+                        <label for="effective_date_dcn">Effective Date:</label>
+                        <input class="dcn-input" id="effective_date_dcn" type="date" />
+                    </div>
+                    <div class="form-group">
+                        <label for="revision_no_dcn">Revision No:</label>
+                        <input class="dcn-input" id="revision_no_dcn" placeholder="Revision number" />
+                    </div>
+                    <div class="form-group">
+                        <label for="review_date_dcn">Review Date:</label>
+                        <input class="dcn-input" id="review_date_dcn" type="date" />
+                    </div>
+                </div>
+
+                <!-- Purpose of Review Section -->
+                <div class="dcn-details-container" style="margin-bottom: 1.5rem;">
+                    <div class="section-header">Purpose of Review (Please ✓ the required option)</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400;">
+                                <input type="checkbox" id="purpose_dcn_new_doc" />
+                                New Establishment of a Document
+                            </label>
+                        </div>
+                        <div>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400;">
+                                <input type="checkbox" id="purpose_dcn_amendment_form" />
+                                Amendment on the Form (OPL, PPT)
+                            </label>
+                        </div>
+                        <div>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400;">
+                                <input type="checkbox" id="purpose_dcn_amendment_content" />
+                                Amendment on the Content
+                            </label>
+                        </div>
+                        <div>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400;">
+                                <input type="checkbox" id="purpose_dcn_obsolescence" />
+                                Obsolescence of a Document
+                            </label>
+                        </div>
+                        <div>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400;">
+                                <input type="checkbox" id="purpose_dcn_review_annual" />
+                                Review (Annual/ Validation/ SOP Review)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-header">Document Review Participants</div>
+                <div class="form-group">
+                    <div style="overflow:auto; margin-top:0.75rem;">
+                        <table class="dcn-table" id="reviewParticipantsTable" aria-label="Document Review Participants" style="border: 1px solid #cbd5e1;">
+                            <thead style="background: #f8fafc;">
+                                <tr>
+                                    <th style="width:40%; text-align:center; border: 1px solid #cbd5e1; padding: 8px;">Department</th>
+                                    <th style="width:60%; text-align:center; border: 1px solid #cbd5e1; padding: 8px;">Name</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="text-align:center; font-weight:500; border: 1px solid #cbd5e1; padding: 8px;">QMR</td>
+                                    <td contenteditable="true" style="border: 1px solid #cbd5e1; padding: 8px; background: white;">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:center; font-weight:500; border: 1px solid #cbd5e1; padding: 8px;">PU</td>
+                                    <td contenteditable="true" style="border: 1px solid #cbd5e1; padding: 8px; background: white;">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:center; font-weight:500; border: 1px solid #cbd5e1; padding: 8px;">AD/GA</td>
+                                    <td contenteditable="true" style="border: 1px solid #cbd5e1; padding: 8px; background: white;">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:center; font-weight:500; border: 1px solid #cbd5e1; padding: 8px;">HR</td>
+                                    <td contenteditable="true" style="border: 1px solid #cbd5e1; padding: 8px; background: white;">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:center; font-weight:500; border: 1px solid #cbd5e1; padding: 8px;">PD/PC</td>
+                                    <td contenteditable="true" style="border: 1px solid #cbd5e1; padding: 8px; background: white;">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:center; font-weight:500; border: 1px solid #cbd5e1; padding: 8px;">WH</td>
+                                    <td contenteditable="true" style="border: 1px solid #cbd5e1; padding: 8px; background: white;">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:center; font-weight:500; border: 1px solid #cbd5e1; padding: 8px;">SA</td>
+                                    <td contenteditable="true" style="border: 1px solid #cbd5e1; padding: 8px; background: white;">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:center; font-weight:500; border: 1px solid #cbd5e1; padding: 8px;">MT/IT</td>
+                                    <td contenteditable="true" style="border: 1px solid #cbd5e1; padding: 8px; background: white;">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:center; font-weight:500; border: 1px solid #cbd5e1; padding: 8px;">QC</td>
+                                    <td contenteditable="true" style="border: 1px solid #cbd5e1; padding: 8px; background: white;">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:center; font-weight:500; border: 1px solid #cbd5e1; padding: 8px;">FN</td>
+                                    <td contenteditable="true" style="border: 1px solid #cbd5e1; padding: 8px; background: white;">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:center; font-weight:500; border: 1px solid #cbd5e1; padding: 8px;">QA</td>
+                                    <td contenteditable="true" style="border: 1px solid #cbd5e1; padding: 8px; background: white;">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:center; font-weight:500; border: 1px solid #cbd5e1; padding: 8px;">DCC</td>
+                                    <td contenteditable="true" style="border: 1px solid #cbd5e1; padding: 8px; background: white;">&nbsp;</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="dcn-card maintenance-form-section" style="margin-top: 1.5rem;">
+            <div class="dcn-section">
+                <div class="section-header">Summary of Change</div>
+                <div class="form-group">
+                    <div class="dcn-small">Use this table to list clauses changed and amended text</div>
+                    <div style="overflow:auto; margin-top:0.75rem;">
+                        <table class="dcn-table" id="summaryTable" aria-label="Summary of Change">
+                            <thead>
+                                <tr>
+                                    <th colspan="3" style="text-align:center; font-weight:700;">Summary of Change</th>
+                                </tr>
+                                <tr>
+                                    <th style="width:12%; text-align:center;">Clause</th>
+                                    <th style="width:12%; text-align:center;">Addition (A) or Deletion (D)</th>
+                                    <th style="width:76%;">Amended Text</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Rows populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top:0.75rem; margin-bottom:2rem; padding-bottom:1rem; display:flex; gap:0.5rem;">
+                        <button type="button" class="dcn-btn dcn-btn-primary" id="addSummaryRowBtn" style="padding:2px 4px !important; width:28px !important; height:28px !important; min-height:28px !important;">+</button>
+                        <button type="button" class="dcn-btn dcn-btn-secondary" id="deleteSummaryRowBtn" style="padding:2px 4px !important; width:28px !important; height:28px !important; min-height:28px !important;">-</button>
+                    </div>
+                    <div class="button-container">
+                        <button class="submit-btn" id="submit-dcn">Submit</button>
+                        <button type="button" class="dcn-btn dcn-btn-secondary" id="save-draft">Save as Draft</button>
+                        <button type="button" class="dcn-btn dcn-btn-secondary" id="upload-document" style="display: none;">Upload Document</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Floating text formatting toolbar -->
+    <div id="floatingToolbar">
+        <button class="format-btn" id="underlineBtn" title="Underline"><u>U</u></button>
+        <button class="format-btn" id="strikethroughBtn" title="Strikethrough"><s>S</s></button>
+    </div>
+
+    <!-- Upload Document Modal -->
+    <div id="uploadDocModal" style="display:none; position:fixed; inset:0; background: rgba(0,0,0,0.4); z-index:2000; align-items:center; justify-content:center;">
+        <div style="width:90%; max-width:380px; margin:2rem auto; background:#fff; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden;">
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1.25rem; border-bottom:1px solid #eee; background:#f8fafc;">
+                <div style="font-weight:700; font-size:1.1rem; color:#1f2937;">Upload Amended Document</div>
+                <button id="uploadDocModalClose" style="color:#6b7280; font-size:1.25rem; padding:0.25rem; border-radius:0.375rem;">&times;</button>
+            </div>
+            <div style="padding:1rem;">
+                <div id="uploadStatusMessage" style="display:none; margin-bottom:0.75rem; padding:0.5rem; border-radius:0.375rem; font-size:0.8rem; font-weight:500;"></div>
+                <div style="text-align:center; margin-bottom:1rem;">
+                    <div style="width:60px; height:60px; margin:0 auto 0.75rem; background:#f3f4f6; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+                        <svg style="width:28px; height:28px; color:#6b7280;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                    </div>
+                    <p style="color:#6b7280; font-size:0.8rem;">Click to select or drag and drop your document</p>
+                </div>
+                <div id="uploadDropZone" style="border:2px dashed #d1d5db; border-radius:8px; padding:1rem; text-align:center; cursor:pointer; transition:all 0.2s; background:#fafafa;">
+                    <input type="file" id="uploadFileInput" style="display:none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif">
+                    <div id="uploadFileInfo" style="color:#6b7280;">
+                        <svg style="width:32px; height:32px; margin:0 auto 0.5rem; color:#9ca3af;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p style="font-weight:500; margin-bottom:0.25rem; font-size:0.85rem;">Choose a file or drag it here</p>
+                        <p style="font-size:0.7rem;">Maximum file size: 10MB</p>
+                    </div>
+                </div>
+                <div style="margin-top:0.75rem; display:flex; justify-content:flex-end; gap:0.5rem;">
+                    <button id="uploadDocCancel" style="padding:0.3rem 0.6rem; font-size:0.75rem; font-weight:500; color:#374151; background:#f3f4f6; border:1px solid #d1d5db; border-radius:0.375rem;">Cancel</button>
+                    <button id="uploadDocConfirm" style="padding:0.3rem 0.6rem; font-size:0.75rem; font-weight:500; color:#ffffff; background:#2563eb; border:1px solid transparent; border-radius:0.375rem;" disabled>Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- inline script moved to ../js/dcn-form.js to keep HTML clean -->
+    <script>
+        // Force the page content offset so nothing is hidden under the fixed header.
+        // User requested a fixed 62px offset for this page.
+        (function forceHeaderPadding(){
+            function applyFixedPadding(){
+                try{
+                    // Reduced gap to tighten form against the header
+                    var fixed = 48; // px
+                    document.documentElement.style.scrollPaddingTop = fixed + 'px';
+                    document.body.style.paddingTop = fixed + 'px';
+                    document.documentElement.style.setProperty('--site-header-height', fixed + 'px');
+                }catch(e){ console.error('forceHeaderPadding error', e); }
+            }
+            if(document.readyState === 'loading'){
+                document.addEventListener('DOMContentLoaded', applyFixedPadding);
+            } else {
+                applyFixedPadding();
+            }
+            // Re-apply on resize in case other scripts modify layout
+            window.addEventListener('resize', function(){ setTimeout(applyFixedPadding, 120); });
+        })();
+    </script>
+    <script type="module" src="../js/dcn-form.js"></script>
+
+    <!-- Confirmation Modal for DCN Form Messages (compact) -->
+    <div id="dcnConfirmationModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: none; align-items: center; justify-content: center; z-index: 10000;">
+        <div style="width: 300px; margin: 2rem auto; background: #fff; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden;">
+            <div style="padding: 1.5rem; text-align: center;">
+                <div id="dcnConfirmationMessage" style="font-size: 0.95rem; color: #374151; margin-bottom: 1.5rem; line-height: 1.4;"></div>
+                <div style="display: flex; gap: 0.75rem; justify-content: center;">
+                    <button id="dcnConfirmNo" style="padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; color: #374151; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer;">Cancel</button>
+                    <button id="dcnConfirmYes" style="padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; color: #ffffff; background: #f97316; border: 1px solid transparent; border-radius: 6px; cursor: pointer;">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

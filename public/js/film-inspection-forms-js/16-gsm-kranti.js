@@ -3275,7 +3275,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Add event listener for automatic average calculation
                     // Skip validated columns as they have their own comprehensive event listeners
-                    const isPage1Validated = tableBody.id === 'testingTableBody' && (j === 0 || j === 1 || j === 2 || j === 4 || j === 5 || j === 6 || j === 7 || j === 8 || j === 9);
+                    const isPage1Validated = tableBody.id === 'testingTableBody' && (j === 0 || j === 1 || j === 2 || j === 4 || j === 5 || j === 6 || j === 8 || j === 9);
                     const isPage2Validated = tableBody.id === 'testingTableBody2' && (j === 3 || j === 4 || j === 5 || j === 7 || j === 8 || j === 9 || j === 11 || j === 12 || j === 13);
                     const isPage3Validated = tableBody.id === 'testingTableBody3' && (j === 3 || j === 4 || j === 5 || j === 7 || j === 8 || j === 9 || j === 11 || j === 12 || j === 13);
                     const isPage4Validated = tableBody.id === 'testingTableBody4' && (j === 3 || j === 4 || j === 5);
@@ -3289,8 +3289,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (tableBody.id !== 'testingTableBody') {
                                 calculateRowAverages(tr, tableBody);
                             }
-                            // Also calculate summary statistics for vertical Ave columns (Page 2 & 3 only)
-                            if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
+                            // Also calculate summary statistics for vertical Ave columns (Page 2, 3 & 4)
+                            if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
                                 calculateSummaryStatistics(tableBody);
                             }
                             // Calculate individual column stats for Page 1 (only the changed column)
@@ -3560,11 +3560,53 @@ document.addEventListener('DOMContentLoaded', function() {
                // Page 4: Sample No (3 cols), Gloss (4 cols: 1,2,3,Ave), PG Quality (1 col)
                // Only one Ave column at position 6
                calculateVerticalAveStats(dataRows, [6], tableBody);
+               // Also calculate PG Quality summary stats
+               calculatePage4PGQualityStats(dataRows, tableBody);
            } else {
                // Page 2 & 3: 3 Ave columns (positions 6, 10, 14)
                // Page 2: Sample No (3 cols), Elongation MD (4 cols: 1,2,3,Ave), Force MD (4 cols: 1,2,3,Ave), Force 5% MD (4 cols: 1,2,3,Ave)
                // Page 3: Sample No (3 cols), Elongation CD (4 cols: 1,2,3,Ave), Force CD (4 cols: 1,2,3,Ave), Modulus (4 cols: 1,2,3,Ave)
            calculateVerticalAveStats(dataRows, [6, 10, 14], tableBody);
+           }
+       }
+
+       // Function to calculate summary statistics for Page 4 PG Quality column
+       function calculatePage4PGQualityStats(dataRows, tableBody) {
+           // Page 4: PG Quality data column is at input index 7
+           // Page 4 summary row structure: td[0]=label, td[1]=Gloss(colspan=3), td[2]=GlossAve, td[3]=PGQuality
+           const values = [];
+           
+           // Collect all values from PG Quality column
+           dataRows.forEach(row => {
+               const inputs = row.querySelectorAll('input');
+               if (inputs[7] && inputs[7].value) {
+                   const value = parseFloat(inputs[7].value);
+                   if (!isNaN(value)) {
+                       values.push(value);
+                   }
+               }
+           });
+           
+           if (values.length > 0) {
+               // Calculate Average, Min, Max
+               const average = values.reduce((sum, val) => sum + val, 0) / values.length;
+               const minimum = Math.min(...values);
+               const maximum = Math.max(...values);
+               
+               // Format: For PG Quality (0 or 1), round to nearest integer (0 or 1)
+               const avgFormatted = (average >= 0.5 ? 1 : 0).toString();
+               const minFormatted = minimum.toString();
+               const maxFormatted = maximum.toString();
+               
+               // Update summary rows (column index 3 for PG Quality in summary row)
+               updateSummaryRow(tableBody, 'Average', 3, avgFormatted);
+               updateSummaryRow(tableBody, 'Minimum', 3, minFormatted);
+               updateSummaryRow(tableBody, 'Maximum', 3, maxFormatted);
+           } else {
+               // Clear summary rows if no data
+               updateSummaryRow(tableBody, 'Average', 3, '0');
+               updateSummaryRow(tableBody, 'Minimum', 3, '0');
+               updateSummaryRow(tableBody, 'Maximum', 3, '0');
            }
        }
 
@@ -5501,6 +5543,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     // Clear any invalid input
                     this.value = '';
+                }
+                
+                // Auto-save to database after each change (debounced)
+                debouncedSave();
+                
+                // Calculate summary statistics when PG Quality changes
+                const tableBody = this.closest('tbody');
+                if (tableBody && tableBody.id === 'testingTableBody4') {
+                    calculateSummaryStatistics(tableBody);
                 }
                 
                 // Trigger conditional formatting

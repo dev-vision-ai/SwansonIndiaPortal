@@ -96,9 +96,6 @@ const mjrExportModule = require('./excel-export-MJR-form');
 const qualityAlertExportModule = require('./excel-export-quality-alert-form');
 const prestoreExportModule = require('./excel-export-prestore-form');
 
-// Import document converter module
-const { registerDocumentConverterRoutes } = require('./doc-converter');
-
 // Initialize export modules
 inlineExportModule(app);
 pgExportModule(app);
@@ -106,9 +103,6 @@ ucExportModule(app);
 mjrExportModule(app);
 qualityAlertExportModule(app);
 prestoreExportModule(app);
-
-// Initialize document converter routes
-registerDocumentConverterRoutes(app);
 
 
 console.log(`🚀 Server starting on port ${PORT}`);

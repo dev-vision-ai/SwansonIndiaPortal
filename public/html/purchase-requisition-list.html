@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Purchase Requisitions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../css/common-header.css">
+    <link rel="stylesheet" href="../css/purchase-requisition-list.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+        }
+        html, body {
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
+    <div class="header-container">
+        <button type="button" class="header-back-button" onclick="window.location.href='employee-dashboard.html'">Back</button>
+        <div class="header-title">Purchase Requisitions</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+
+    <!-- Add Requisition Button -->
+    <div class="flex justify-center w-full mt-16 mb-1">
+        <button id="createRequisitionBtn" type="button" class="bg-[#002E7D] hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow text-base transition-all duration-200">
+            + Add Requisition
+        </button>
+    </div>
+
+    <!-- Filter Section -->
+    <div id="filterSection" class="w-full flex justify-center mt-4 mb-2">
+        <div id="filterContainer" class="bg-white rounded-lg shadow-md p-2">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex-1"></div>
+                <h3 class="text-xs font-semibold text-gray-800 text-center flex-1">Find / Filter Forms</h3>
+                <div class="flex items-center space-x-2 flex-1 justify-end">
+                    <span class="text-sm text-gray-600">Filter Status:</span>
+                    <span id="filterStatusIndicator" class="px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700">
+                        Off
+                    </span>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-end justify-center gap-2">
+                <!-- Date Range -->
+                <div class="flex flex-col items-center">
+                    <label class="block text-xs font-semibold text-gray-700 mb-0.5">From Date:</label>
+                    <input type="date" id="filterFromDate" class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                </div>
+                <div class="flex flex-col items-center">
+                    <label class="block text-xs font-semibold text-gray-700 mb-0.5">To Date:</label>
+                    <input type="date" id="filterToDate" class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                </div>
+                <!-- Department Filter -->
+                <div class="flex flex-col items-center">
+                    <label class="block text-xs font-semibold text-gray-700 mb-0.5">Department:</label>
+                    <select id="filterDept" class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                        <option value="">All</option>
+                    </select>
+                </div>
+                <!-- Category Filter -->
+                <div class="flex flex-col items-center">
+                    <label class="block text-xs font-semibold text-gray-700 mb-0.5">Category:</label>
+                    <select id="filterCategory" class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                        <option value="">All</option>
+                    </select>
+                </div>
+                <!-- Status Filter -->
+                <div class="flex flex-col items-center">
+                    <label class="block text-xs font-semibold text-gray-700 mb-0.5">Status:</label>
+                    <select id="filterStatus" class="w-28 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                        <option value="">All</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+                <!-- Prepared By Filter -->
+                <div class="flex flex-col items-center">
+                    <label class="block text-xs font-semibold text-gray-700 mb-0.5">Prepared By:</label>
+                    <select id="filterPreparedBy" class="w-28 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                        <option value="">All</option>
+                    </select>
+                </div>
+                <!-- Filter Buttons -->
+                <div class="flex flex-col items-center">
+                    <div class="h-4"></div> <!-- Spacer to align with inputs -->
+                    <div class="flex space-x-2">
+                        <button id="clearFilter" class="w-12 h-6 bg-gray-500 text-white text-xs font-semibold rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="w-full flex justify-center mt-3 mb-1">
+        <div class="flex items-center space-x-3 bg-white rounded-md shadow-sm px-3 py-1.5 border border-gray-200">
+            <button id="prevPageBtn" class="px-3 py-1 bg-[#002E7D] text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                <span>Prev</span>
+            </button>
+
+            <div class="flex items-center space-x-1">
+                <span class="text-xs text-gray-600">Page</span>
+                <span id="currentPageDisplay" class="font-semibold text-xs">1</span>
+                <span class="text-xs text-gray-600">of</span>
+                <span id="totalPagesDisplay" class="font-semibold text-xs">1</span>
+            </div>
+
+            <button id="nextPageBtn" class="px-3 py-1 bg-[#002E7D] text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1">
+                <span>Next</span>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Purchase Requisitions Table -->
+    <div class="w-full flex justify-center mt-2">
+        <div class="w-full overflow-x-auto">
+            <table id="requisitionsTable" class="w-full bg-white shadow-md rounded table-fixed text-xs">
+                <thead>
+                    <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center text-xs">
+                        <th class="py-1 px-2 border-r border-gray-300 w-10 whitespace-normal break-words">Sr No</th>
+                        <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Requisition Date</th>
+                        <th class="py-1 px-2 border-r border-gray-300 w-24 whitespace-normal break-words">Requisition No</th>
+                        <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Created By</th>
+                        <th class="py-1 px-2 border-r border-gray-300 w-24 whitespace-normal break-words">Category</th>
+                        <th class="py-1 px-2 border-r border-gray-300 w-16 whitespace-normal break-words">Total Items</th>
+                        <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Status</th>
+                        <th class="py-1 px-2 border-r border-gray-300 w-40 whitespace-normal break-words">Action</th>
+                        <th class="py-1 px-2 border-r border-gray-300 w-24 whitespace-normal break-words">Download</th>
+                    </tr>
+                </thead>
+                <tbody id="requisitionsTableBody">
+                    <!-- Data rows will go here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Purchase Requisition Modal -->
+    <div id="purchaseRequisitionModal" class="modal" aria-hidden="true">
+        <div class="modal-content">
+            <button type="button" class="close-button" id="closePrModal">×</button>
+            <div class="p-4 border-b flex justify-center items-center">
+                <h2 class="text-lg font-semibold w-full text-center">Purchase Requisition</h2>
+            </div>
+            <div class="p-4">
+                <div class="grid grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-semibold">Department <span class="text-red-600">*</span></label>
+                        <select id="prDepartment" class="w-full border rounded px-2 py-2 text-sm bg-white">
+                            <option value="">Select Department</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold">PR No.</label>
+                        <input id="prNo" type="text" placeholder="Enter PR No. (optional)" class="w-full border rounded px-2 py-2 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold">When Required</label>
+                        <input id="prWhenRequired" type="date" class="w-full border rounded px-2 py-2 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold">Currency</label>
+                        <select id="prCurrency" class="w-full border rounded px-2 py-2 text-sm bg-white">
+                            <option value="">Select Currency</option>
+                        </select>
+                    </div>
+                    <div class="col-span-4">
+                        <label class="block text-sm font-semibold">Purpose</label>
+                        <input id="prPurpose" type="text" placeholder="Enter Purpose" class="w-full border rounded px-2 py-2 text-sm" />
+                    </div>
+                </div>
+
+                <!-- Tabs: Item / History (minimal tabs impl) -->
+                <div class="border-t pt-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 text-sm text-gray-700 font-semibold bg-transparent border-b-2 border-[#002E7D]">Item</button>
+                        </div>
+                                <div class="flex space-x-2">
+                                    <button id="addNewProductBtn" class="border rounded add-action-btn text-sm">+Add new product</button>
+                                    <button id="addItemRowBtn" class="border rounded add-action-btn text-sm">+Add new rows</button>
+                                </div>
+                    </div>
+
+                    <!-- Item List Table (DCN-like contenteditable cells) -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm pr-item-table" id="prItemTable">
+                            <thead>
+                                <tr>
+                                    <th class="p-2 pr-sr text-center">SR. NO</th>
+                                    <th class="p-2 text-center pr-item">Item</th>
+                                    <th class="p-2 text-center pr-description">Description</th>
+                                    <th class="p-2 text-center pr-uom">UOM</th>
+                                    <th class="p-2 text-center pr-qty">QTY</th>
+                                    <th class="p-2 text-center pr-stock">In Stock</th>
+                                    <th class="p-2 text-center pr-date">Last Purchased On</th>
+                                    <th class="p-2 pr-actions text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="prItemListBody">
+                                <!-- Dynamic rows with contenteditable cells -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t flex justify-end gap-3">
+                <button id="prSaveSubmitBtn" class="px-4 py-2 rounded border text-sm bg-[#EAF3FF] text-[#002E7D]">Save & Submit</button>
+                <button id="prSaveBtn" class="px-4 py-2 rounded border text-sm bg-white text-[#002E7D]">Save</button>
+            </div>
+        </div>
+    </div>
+
+            <!-- Add New Product Modal -->
+            <div id="addProductModal" class="modal" aria-hidden="true">
+                <div class="modal-content">
+                    <button type="button" class="close-button" id="closeAddProductModal">×</button>
+                    <div class="p-4 border-b flex justify-center items-center">
+                        <h2 class="text-lg font-semibold w-full text-center">Add New Product</h2>
+                    </div>
+                    <div class="p-4">
+                        <div class="grid grid-cols-1 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-semibold">Name <span class="text-red-600">*</span></label>
+                                <input id="prodName" type="text" placeholder="Enter product name" class="w-full border rounded px-2 py-2 text-sm" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold">Description</label>
+                                <textarea id="prodDesc" placeholder="Enter product description" class="w-full border rounded px-2 py-2 text-sm" rows="3"></textarea>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-semibold">Product ID</label>
+                                    <input id="prodSKU" type="text" placeholder="Enter Product ID" class="w-full border rounded px-2 py-2 text-sm" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold">UOM <span class="text-red-600">*</span></label>
+                                    <input id="prodUOM" type="text" placeholder="Enter unit of measurement" class="w-full border rounded px-2 py-2 text-sm" />
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-semibold">HSN <span class="text-red-600">*</span></label>
+                                    <input id="prodHSN" type="text" placeholder="Enter HSN code" class="w-full border rounded px-2 py-2 text-sm" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold">GST Tax % <span class="text-red-600">*</span></label>
+                                    <input id="prodGST" type="number" step="0.01" placeholder="Enter GST Tax %" class="w-full border rounded px-2 py-2 text-sm" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4 border-t flex justify-end gap-3">
+                        <button id="saveProductBtn" class="px-4 py-2 rounded border text-sm bg-[#EAF3FF] text-[#002E7D]">Save</button>
+                        <button id="cancelProductBtn" class="px-4 py-2 rounded border text-sm bg-white text-[#002E7D]">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+
+    <!-- Scripts -->
+    <script type="module" src="../js/purchase-requisition-list.js"></script>
+</body>
+</html>

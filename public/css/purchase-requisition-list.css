@@ -1,0 +1,407 @@
+/* Purchase Requisition List Styles */
+
+.action-icon {
+    padding: 4px 6px;
+    margin: 0 2px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #002E7D;
+    transition: color 0.2s ease, transform 0.2s ease;
+    border: none;
+    background: none;
+    display: inline-block;
+}
+
+.action-icon:hover {
+    color: #0046C7;
+    transform: scale(1.1);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-transform: capitalize;
+}
+
+.status-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-approved {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.status-rejected {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+/* Table styling consistency */
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+/* Main requisitions list table styling */
+#requisitionsTable,
+.w-full.bg-white.shadow-md.rounded.table-fixed {
+    border-collapse: collapse;
+}
+
+#requisitionsTable th,
+.w-full.bg-white.shadow-md.rounded.table-fixed th {
+    background-color: #232f3e;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 8px 6px;
+    text-align: center;
+    font-size: 0.75rem;
+    border: 1px solid #d1d5db;
+}
+
+#requisitionsTable td,
+.w-full.bg-white.shadow-md.rounded.table-fixed td {
+    padding: 6px;
+    text-align: center;
+    font-size: 0.75rem;
+    border: 1px solid #d1d5db;
+}
+
+#requisitionsTable tbody tr,
+.w-full.bg-white.shadow-md.rounded.table-fixed tbody tr {
+    background-color: white;
+    transition: background-color 0.2s ease;
+}
+
+#requisitionsTable tbody tr:hover,
+.w-full.bg-white.shadow-md.rounded.table-fixed tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Purchase Requisition Item Table - Contenteditable (DCN-like) */
+#prItemTable {
+    border: 1px solid #cbd5e1;
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed; /* enforce fixed column widths so they don't expand with content */
+}
+
+#prItemTable th,
+#prItemTable td {
+    border: 1px solid #cbd5e1;
+    padding: 8px;
+    font-size: 0.9rem;
+    min-height: 36px;
+    word-wrap: break-word;
+    outline: none !important;
+}
+
+/* Narrow SR and Actions columns for modal table (fixed widths prevent expansion) */
+#prItemTable th.pr-sr, #prItemTable td.pr-item-sr,
+#prItemTable th.pr-actions, #prItemTable td.pr-item-actions {
+    width: 4%;
+    max-width: 4%;
+    min-width: 30px;
+    padding: 4px 2px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Item table column widths */
+#prItemTable th.pr-item, #prItemTable td.pr-item {
+    width: 15%;
+}
+
+#prItemTable th.pr-description, #prItemTable td.pr-description {
+    width: 20%;
+}
+
+#prItemTable th.pr-uom, #prItemTable td.pr-uom,
+#prItemTable th.pr-qty, #prItemTable td.pr-qty,
+#prItemTable th.pr-stock, #prItemTable td.pr-stock {
+    width: 5%;
+    padding: 3px 2px; /* slightly reduced padding so content doesn't overflow */
+}
+
+#prItemTable th.pr-date, #prItemTable td.pr-date {
+    width: 8%;
+    padding: 4px 2px;
+}
+
+/* Prevent expansion: clip overflowing content in these fixed columns */
+#prItemTable td.pr-uom,
+#prItemTable td.pr-qty,
+#prItemTable td.pr-stock,
+#prItemTable td.pr-date {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Allow header to wrap without widening the column */
+#prItemTable thead th.pr-uom,
+#prItemTable thead th.pr-qty,
+#prItemTable thead th.pr-stock,
+#prItemTable thead th.pr-date {
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+#prItemTable thead th {
+    background: #232f3e;
+    color: #ffffff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.75rem;
+    padding: 8px 4px;
+    word-wrap: break-word;
+    white-space: normal;
+    overflow-wrap: break-word;
+    line-height: 1.2;
+}
+
+#prItemTable tbody td {
+    background: white;
+    vertical-align: middle;
+    outline: none !important;
+}
+
+#prItemTable tbody td[contenteditable] {
+    background: white;
+    cursor: text;
+    outline: none !important;
+    word-wrap: break-word;
+    white-space: normal;
+    /* Padding handled by column-specific rules to prevent overflow */
+}
+
+#prItemTable td.pr-item-select,
+#prItemTable td.pr-item-desc {
+    text-align: left; /* keep actual item/description text left aligned */
+}
+
+#prItemTable tbody td[contenteditable]:empty::before {
+    content: attr(data-placeholder);
+    color: #999;
+    font-style: italic;
+    display: block;
+    text-align: center; /* center placeholder text */
+    height: 100%;
+    line-height: 36px; /* vertical center placeholder text */
+}
+
+#prItemTable tbody td[contenteditable]:hover {
+    background-color: #f9fafb !important;
+    outline: none !important;
+}
+
+#prItemTable tbody td[contenteditable]:focus {
+    background-color: #fffbea !important;
+    box-shadow: inset 0 0 0 1px #007bff !important;
+    outline: none !important;
+}
+
+/* Date input inside table cell: make it fit and look native */
+#prItemTable td .pr-item-last-purchased-input {
+    width: 100%;
+    height: 30px;
+    box-sizing: border-box;
+    padding: 2px 3px; /* slightly tighter horizontal padding */
+    border: 1px solid transparent;
+    background: transparent;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* Center placeholders ONLY for table inputs (all vendor prefixes) */
+#prItemTable input::placeholder,
+#prItemTable input::-webkit-input-placeholder,
+#prItemTable input::-ms-input-placeholder,
+#prItemTable input::-moz-placeholder,
+#prItemTable textarea::placeholder,
+#prItemTable textarea::-webkit-input-placeholder,
+#prItemTable textarea::-ms-input-placeholder,
+#prItemTable textarea::-moz-placeholder {
+    text-align: center;
+    line-height: 1.6;
+}
+
+/* Left-align all other modal input placeholders (outside table, all vendor prefixes) */
+#purchaseRequisitionModal input::placeholder,
+#purchaseRequisitionModal input::-webkit-input-placeholder,
+#purchaseRequisitionModal input::-ms-input-placeholder,
+#purchaseRequisitionModal input::-moz-placeholder,
+#purchaseRequisitionModal textarea::placeholder,
+#purchaseRequisitionModal textarea::-webkit-input-placeholder,
+#purchaseRequisitionModal textarea::-ms-input-placeholder,
+#purchaseRequisitionModal textarea::-moz-placeholder {
+    text-align: left !important;
+}
+
+/* Ensure text input and textarea are also left-aligned */
+#purchaseRequisitionModal input[type="text"],
+#purchaseRequisitionModal textarea {
+    text-align: left !important;
+}
+
+/* Center selected value for selects inside modal */
+#purchaseRequisitionModal select {
+    text-align: center;
+}
+
+/* Add button style for blue action buttons */
+.add-action-btn {
+    background-color: #002E7D;
+    color: #ffffff;
+    border-color: #002E7D;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+}
+.add-action-btn:hover {
+    background-color: #0046C7;
+    border-color: #0046C7;
+    color: #ffffff;
+}
+
+#prItemTable td .pr-item-last-purchased-input:focus {
+    outline: none;
+    border-color: #cbd5e1;
+    background: #fff;
+}
+
+/* Filter container */
+#filterContainer {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Pagination styling */
+.pagination-wrapper {
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding: 8px 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.pagination-btn {
+    padding: 6px 10px;
+    background-color: #002E7D;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background-color: #0046C7;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-info {
+    font-size: 0.75rem;
+    color: #666;
+    white-space: nowrap;
+}
+
+/* --- Shared modal styles (same as other forms) --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 3% auto;
+    padding: 0;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 1100px;
+    min-height: 400px;
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 6px 20px rgba(0,0,0,0.19);
+    display: flex;
+    flex-direction: column;
+}
+
+.close-button {
+    color: #aaa;
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: #000;
+    text-decoration: none;
+}
+
+.modal-content .form-group {
+    margin-bottom: 15px;
+}
+
+.modal-content .form-actions {
+    text-align: right;
+    margin-top: 20px;
+}
+
+.modal-content #edit-album-description {
+    min-height: 150px;
+    resize: vertical;
+    overflow-y: auto;
+}
+
+#purchaseRequisitionModal .pr-item-delete {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+#purchaseRequisitionModal input[type="text"],
+#purchaseRequisitionModal input[type="date"],
+#purchaseRequisitionModal input[type="number"],
+#purchaseRequisitionModal select {
+    font-size: 0.9rem;
+    height: 40px;
+    box-sizing: border-box;
+}
+
+/* Center the save buttons inside modal footer if necessary */
+.modal-content .p-4.border-t .btn-center-right {
+    display: flex;
+    justify-content: flex-end;
+}

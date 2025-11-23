@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Document Review Form List - Document Control Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../css/common-header.css">
+    <!-- MT-job-requisition-form.css removed: replicated locally below to avoid external dependency -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Inline styles removed. Use Tailwind utilities or external css files (e.g., employee-dashboard.css) for styling. -->
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
+    <div class="header-container">
+        <button type="button" class="header-back-button" onclick="(window.history.length > 1 ? window.history.back() : window.location.href='dcn-list.html')">Back</button>
+        <div class="header-title">Document Review Form List</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+
+    <!-- DCC Review Form styles: MJR-like UI inline (no header) -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        /*
+         * Part of MT-job-requisition-form.css copied inline here to avoid external file reference.
+         * NOTE: header selectors (.header-container, .header-title) are intentionally excluded
+         * so we do not override the global header for the site.
+         */
+        :root{
+            --primary-color: #002E7D;
+            --primary-gradient: linear-gradient(45deg, #002E7D, #0046C7);
+            --background: #eaf1fa;
+            --form-bg: #fff;
+            --border-color: #ced4da;
+            --shadow: 0 4px 10px rgba(0,0,0,0.12);
+        }
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #eaf1fa;
+    background-image: url('data:image/svg+xml;utf8,<svg width="60" height="30" viewBox="0 0 60 30" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><circle cx="45" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><line x1="25" y1="15" x2="35" y2="15" stroke="%2399aabb" stroke-width="1" opacity="0.10"/></svg>');
+    background-size: 60px 30px;
+    background-repeat: repeat;
+    background-position: center center;
+    background-attachment: fixed;
+    color: #333;
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+        /* Container like MJR form */
+        .dcc-container { max-width: 800px; margin: 4.5rem auto 1.25rem auto; }
+        .dcc-card { background: var(--form-bg); padding: 1.25rem; border-radius: 8px; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.08); }
+        .maintenance-form-section { width: 100%; max-width: 800px; background: var(--form-bg); border-radius: 0.5rem; padding: 1.25rem; padding-top: 1.25rem; margin: 0 auto; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.08); position: relative; }
+
+        /* Form section and header style */
+        .dcc-section { margin-bottom: 1rem; }
+        .dcc-title { font-size: 1.2rem; font-weight: 600; color: var(--primary-color); margin-bottom: 0.75rem; display:block; }
+        .section-header { font-size: 1.1rem; font-weight: 600; color: var(--primary-color); margin-bottom:0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid #dee2e6; }
+
+        /* Grid layout */
+        .dcc-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:1rem; }
+        .span-2 { grid-column: 1 / -1; }
+        .dcc-grid-3 { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:1rem; }
+        .dcc-details-container { border: 2px solid #ddd; border-radius: 8px; padding: 1.25rem; background: #fafafa; margin-bottom: 1rem; }
+
+        /* Inputs & labels like MJR */
+        label { display:block; font-weight:500; margin-bottom:0.25rem; color:#222; font-size:0.9rem; }
+        input[type="text"], input[type="date"], select, textarea, .dcc-input { width:100%; padding:0.56rem; border:1px solid var(--border-color); border-radius:6px; font-size:0.95rem; background: white; box-sizing:border-box; }
+        input:focus, select:focus { outline:none; border-color: #007bff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.12); }
+        textarea:focus { outline:none; }
+        textarea, .dcc-textarea { min-height: 36px; resize:vertical; box-sizing:border-box; }
+        textarea.dcc-large { min-height: 80px; }
+        /* Override focus styles for textareas in table cells */
+        table .dcc-textarea:focus { border-color: inherit; box-shadow: none; }
+
+        /* Button container (MJR) */
+        .button-container { display:flex; gap: var(--form-element-spacing-desktop); justify-content:center; margin-top: calc(var(--form-element-spacing-desktop) * 1.25); }
+
+        /* Submit button style from MJR */
+        .submit-btn { padding:8px 16px; border-radius:0.4rem; background:var(--primary-gradient); color:white; border:none; cursor:pointer; }
+
+        /* small responsive tweaks used by MJR */
+        @media (max-width:768px) {
+            .form-row.grid-layout { grid-template-columns:1fr; }
+            .maintenance-form-section { padding: 1rem; }
+        }
+        /* Table textarea styling */
+        table td textarea { resize: none; overflow: hidden; }
+        /* Make rows compact */
+        table tbody tr { height: auto; }
+        /* Match DCN list specs: compact padding and small text */
+        #dccReviewTable td { vertical-align: middle; padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+        /* Action icon size similar to DCN list */
+        .action-icons i { font-size: 0.95rem; }
+        /* Contenteditable cells */
+        .dcc-cell { outline: none; word-wrap: break-word; white-space: pre-wrap; background: #fafafa; cursor: text; }
+
+        /* DCN List Table Styling */
+        .dcc-button {
+            background: #2563eb;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .dcc-button:hover {
+            background: #1d4ed8;
+        }
+        .dcc-button-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        .dcc-button-secondary:hover {
+            background: #4b5563;
+        }
+        .status-active {
+            color: #059669;
+            font-weight: 600;
+        }
+        .status-draft {
+            color: #d97706;
+            font-weight: 600;
+        }
+        .status-under-review {
+            color: #9333ea;
+            font-weight: 600;
+        }
+        .status-obsolete {
+            color: #dc2626;
+            font-weight: 600;
+        }
+        .action-icons { display:inline-flex; gap:0.5rem; align-items:center; justify-content:center; }
+        .action-icons a, .action-icons button { display:inline-flex; align-items:center; justify-content:center; width:36px; height:30px; border-radius:6px; background:#f3f4f6; color:#374151; border:1px solid #e5e7eb; cursor:pointer; }
+        .action-icons a:hover, .action-icons button:hover { background:#e6eef8; }
+        .action-icons i { font-size:0.95rem; }
+        /* Striped rows and hover for tbody */
+        #dccReviewTableBody tr {
+            background-color: #ffffff;
+            transition: background-color 0.2s ease;
+        }
+        #dccReviewTableBody tr:hover {
+            background-color: #f8fafc;
+            cursor: pointer;
+        }
+        #dccReviewTableBody tr {
+            border-bottom: 1px solid #d1d5db;
+        }
+        #dccReviewTable th {
+            border-right: 1px solid #d1d5db;
+            border-bottom: 1px solid #d1d5db;
+        }
+        #dccReviewTable td {
+            border-right: 1px solid #d1d5db;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            text-align: center;
+        }
+        #dccReviewTable td:last-child {
+            border-right: none;
+        }
+        /* Ensure header cells match compact table styling */
+        #dccReviewTable thead th {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.7rem;
+            vertical-align: middle;
+        }
+    </style>
+
+    <!-- DCN Review List Table (Above Form) -->
+    <div class="w-full flex justify-center mt-16">
+        <div class="w-full overflow-x-auto">
+            <table class="w-full bg-white shadow-md rounded table-fixed text-xs" id="dccReviewTable">
+                <thead>
+                    <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center text-xs">
+                        <th class="py-1 px-2 border-r border-gray-300 w-8 whitespace-normal break-words">Sr No</th>
+                        <th class="py-1 px-2 border-r border-gray-300 w-16 whitespace-normal break-words">DCN No</th>
+                        <th class="py-1 px-2 border-r border-gray-300 w-24 whitespace-normal break-words">Requestor Name</th>
+                        <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Requestor Dept</th>
+                        <th class="py-1 px-2 border-r border-gray-300 w-36 whitespace-normal break-words">Document Name</th>
+                        <th class="py-1 px-2 border-r border-gray-300 w-28 whitespace-normal break-words">Purpose of Review</th>
+                        <th class="py-1 px-2 border-r border-gray-300 w-20 whitespace-normal break-words">Document Type</th>
+                        <th class="py-1 px-2 border-r border-gray-300 w-16 whitespace-normal break-words">Status</th>
+                        <th class="py-1 px-2 border-r border-gray-300 w-48 whitespace-normal break-words">Review Status</th>
+                        <th class="py-1 px-2 w-20 whitespace-normal break-words">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="dccReviewTableBody">
+                    <!-- Data rows will go here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Form removed: this page is now list-only. -->
+
+    <!-- Confirmation Modal for Approve/Reject DCN (compact) -->
+    <div id="dcnConfirmationModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: none; align-items: center; justify-content: center; z-index: 10000;">
+        <div style="background: #ffffff; padding: 8px 12px; border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.10); max-width: 300px; width: min(300px, 92%);">
+            <p id="dcnConfirmationMessage" style="margin: 4px 0 8px 0; color: #6b7280; font-size: 13px; text-align: center; line-height: 1.1; font-weight:500;"></p>
+            <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                <button id="dcnConfirmNo" type="button" style="height:32px; padding: 6px 12px; background: #6b7280; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;">Cancel</button>
+                <button id="dcnConfirmYes" type="button" style="height:32px; padding: 6px 12px; background: #f97316; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- inline script moved to ../js/document-review-form-list.js to keep HTML clean -->
+    <script type="module" src="../js/document-review-form-list.js"></script>
+</body>
+</html>

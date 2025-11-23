@@ -3966,12 +3966,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Function to calculate summary statistics for Page 4 (all data columns)
         function calculatePage4SummaryStats(dataRows, tableBody) {
             // Page 4 input columns: Color L(3), A(4), B(5), Delta E(6), Gloss 1(7), 2(8), 3(9), Ave(10)
-            // Page 4 summary columns: [Label(colspan=3), Color L(1), A(2), B(3), Delta E(4), Gloss 1(5), 2(6), 3(7), Ave(8)]
-            const inputColumns = [3, 4, 5, 6, 7, 8, 9, 10];
-            const summaryColumns = [1, 2, 3, 4, 5, 6, 7, 8];
+            // Page 4 summary columns: [Label(colspan=3), Color L(1), A(2), B(3), Delta E(4), Gloss merged(5-7), Ave(8)]
+            // Process Color columns (3, 4, 5, 6) normally
+            const colorInputColumns = [3, 4, 5, 6];
+            const colorSummaryColumns = [1, 2, 3, 4];
             
-            inputColumns.forEach((inputColIndex, arrayIndex) => {
-                const summaryColIndex = summaryColumns[arrayIndex];
+            colorInputColumns.forEach((inputColIndex, arrayIndex) => {
+                const summaryColIndex = colorSummaryColumns[arrayIndex];
                 const values = [];
                 
                 // Collect all values from this input column across all data rows
@@ -3994,51 +3995,72 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Format based on column type
                     let avgFormatted, minFormatted, maxFormatted;
                     
-                    if (inputColIndex === 10) {
-                        // Gloss Ave: 1 decimal (0.0)
-                        avgFormatted = average.toFixed(1);
-                        minFormatted = minimum.toFixed(1);
-                        maxFormatted = maximum.toFixed(1);
-                    } else if (inputColIndex >= 7 && inputColIndex <= 9) {
-                        // Gloss 1, 2, 3: 1 decimal (0.0)
-                        avgFormatted = average.toFixed(1);
-                        minFormatted = minimum.toFixed(1);
-                        maxFormatted = maximum.toFixed(1);
-                    } else if (inputColIndex === 6) {
-                        // Color Delta E: 2 decimals (0.00)
-                        avgFormatted = average.toFixed(2);
-                        minFormatted = minimum.toFixed(2);
-                        maxFormatted = maximum.toFixed(2);
-                    } else if (inputColIndex >= 3 && inputColIndex <= 5) {
+                    if (inputColIndex >= 3 && inputColIndex <= 5) {
                         // Color L, A, B: 2 decimals (0.00)
                         avgFormatted = average.toFixed(2);
                         minFormatted = minimum.toFixed(2);
                         maxFormatted = maximum.toFixed(2);
                     } else {
-                        // Other columns: 1 decimal (0.0)
-                        avgFormatted = average.toFixed(1);
-                        minFormatted = minimum.toFixed(1);
-                        maxFormatted = maximum.toFixed(1);
+                        // Color Delta E: 2 decimals (0.00)
+                        avgFormatted = average.toFixed(2);
+                        minFormatted = minimum.toFixed(2);
+                        maxFormatted = maximum.toFixed(2);
                     }
                     
                     updateSummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
                     updateSummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
                     updateSummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
                 } else {
-                    // Clear summary rows if no data - use appropriate decimal places
-                    let defaultValue;
-                    if (inputColIndex >= 3 && inputColIndex <= 5) {
-                        // Color L, A, B: 2 decimals (0.00)
-                        defaultValue = '0.00';
-                    } else {
-                        // Color Delta E, Gloss: 1 decimal (0.0)
-                        defaultValue = '0.0';
-                    }
-                    updateSummaryRow(tableBody, 'Average', summaryColIndex, defaultValue);
-                    updateSummaryRow(tableBody, 'Minimum', summaryColIndex, defaultValue);
-                    updateSummaryRow(tableBody, 'Maximum', summaryColIndex, defaultValue);
+                    // Clear summary rows if no data
+                    updateSummaryRow(tableBody, 'Average', summaryColIndex, '0.00');
+                    updateSummaryRow(tableBody, 'Minimum', summaryColIndex, '0.00');
+                    updateSummaryRow(tableBody, 'Maximum', summaryColIndex, '0.00');
                 }
             });
+            
+            // Process Gloss Ave (column 10) - compute from Gloss 1, 2, 3 averages
+            // Collect all row averages for Gloss (Gloss Ave = average of Gloss 1/2/3 for each row)
+            const glossAveValues = [];
+            dataRows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                // Get Gloss 1, 2, 3 values
+                const gloss1 = inputs[7] ? parseFloat(inputs[7].value) : NaN;
+                const gloss2 = inputs[8] ? parseFloat(inputs[8].value) : NaN;
+                const gloss3 = inputs[9] ? parseFloat(inputs[9].value) : NaN;
+                
+                // Calculate average of Gloss 1, 2, 3 for this row
+                let count = 0;
+                let sum = 0;
+                
+                if (!isNaN(gloss1)) { sum += gloss1; count++; }
+                if (!isNaN(gloss2)) { sum += gloss2; count++; }
+                if (!isNaN(gloss3)) { sum += gloss3; count++; }
+                
+                if (count > 0) {
+                    glossAveValues.push(sum / count);
+                }
+            });
+            
+            // Calculate summary statistics for Gloss Ave
+            if (glossAveValues.length > 0) {
+                const glossAveAverage = glossAveValues.reduce((sum, val) => sum + val, 0) / glossAveValues.length;
+                const glossAveMinimum = Math.min(...glossAveValues);
+                const glossAveMaximum = Math.max(...glossAveValues);
+                
+                const avgFormatted = glossAveAverage.toFixed(1);
+                const minFormatted = glossAveMinimum.toFixed(1);
+                const maxFormatted = glossAveMaximum.toFixed(1);
+                
+                // After merged Gloss cell (colspan=3), Gloss Ave is at column index 6
+                updateSummaryRow(tableBody, 'Average', 6, avgFormatted);
+                updateSummaryRow(tableBody, 'Minimum', 6, minFormatted);
+                updateSummaryRow(tableBody, 'Maximum', 6, maxFormatted);
+            } else {
+                // After merged Gloss cell (colspan=3), Gloss Ave is at column index 6
+                updateSummaryRow(tableBody, 'Average', 6, '0.00');
+                updateSummaryRow(tableBody, 'Minimum', 6, '0.00');
+                updateSummaryRow(tableBody, 'Maximum', 6, '0.00');
+            }
         }
 
         // Function to calculate individual column statistics for Page 1

@@ -111,7 +111,11 @@ module.exports = function(app) {
         }
   worksheet.getCell('B5').value = customerValue;
       } else if (data.product_code) {
-        worksheet.getCell('B5').value = data.product_code;
+        let cleanedProductCode = data.product_code;
+        if (cleanedProductCode.toLowerCase().includes('jeddah')) {
+          cleanedProductCode = cleanedProductCode.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
+        }
+        worksheet.getCell('B5').value = cleanedProductCode;
       }
 
       // Handle standard_packing field - may not exist in all tables
@@ -120,7 +124,11 @@ module.exports = function(app) {
       }
 
       if (data.product_code) {
-        worksheet.getCell('G4').value = data.product_code;
+        let cleanedProductCode = data.product_code;
+        if (cleanedProductCode.toLowerCase().includes('jeddah')) {
+          cleanedProductCode = cleanedProductCode.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
+        }
+        worksheet.getCell('G4').value = cleanedProductCode;
       }
 
       if (data.specification) {
@@ -237,10 +245,14 @@ module.exports = function(app) {
 
       if (data.prestore_ref_no !== undefined) {
         worksheet.getCell('V3').value = data.prestore_ref_no || 'N/A';
-      }
+      };
 
       // 5. Set response headers for file download
-      const productCode = data.product_code || 'UNKNOWN';
+      let productCode = data.product_code || 'UNKNOWN';
+      // Clean product code for filename (remove "(Jeddah)" part)
+      if (productCode.toLowerCase().includes('jeddah')) {
+        productCode = productCode.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
+      }
       const filename = `Pre-Store-${productCode}-.xlsx`;
 
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

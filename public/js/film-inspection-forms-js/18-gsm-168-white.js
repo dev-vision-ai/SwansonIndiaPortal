@@ -2894,7 +2894,7 @@ document.addEventListener('DOMContentLoaded', function() {
          // Function to force recalculation of all summary statistics to populate Average/Min/Max rows
          function forceRecalculateAllSummaryStatistics() {
              // Force recalculation for all pages that have summary statistics
-             const tableBodies = [testingTableBody2, testingTableBody3, testingTableBody4];
+             const tableBodies = [testingTableBody2, testingTableBody3, testingTableBody4, testingTableBody5];
              
              tableBodies.forEach(tableBody => {
                  // Get all data rows (excluding summary rows)
@@ -3464,8 +3464,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (tableBody.id !== 'testingTableBody') {
                                 calculateRowAverages(tr, tableBody);
                             }
-                            // Also calculate summary statistics for vertical Ave columns (Page 2, 3 & 4)
-                            if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
+                            // Also calculate summary statistics for vertical Ave columns (Page 2, 3, 4 & 5)
+                            if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4' || tableBody.id === 'testingTableBody5') {
                                 calculateSummaryStatistics(tableBody);
                             }
                             // Calculate individual column stats for Page 1 (only the changed column)
@@ -3510,8 +3510,8 @@ document.addEventListener('DOMContentLoaded', function() {
            // Clear cache since table structure changed
            clearTableCache(tableBody);
            
-           // Recalculate summary statistics for Pages 2, 3 and 4 after adding rows
-           if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
+           // Recalculate summary statistics for Pages 2, 3, 4 and 5 after adding rows
+           if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4' || tableBody.id === 'testingTableBody5') {
                calculateSummaryStatistics(tableBody);
            }
            
@@ -3581,8 +3581,8 @@ document.addEventListener('DOMContentLoaded', function() {
            // Clear cache since table structure changed
            clearTableCache(tableBody);
            
-           // Recalculate summary statistics for Pages 2, 3 and 4 after deleting rows
-           if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
+           // Recalculate summary statistics for Pages 2, 3, 4 and 5 after deleting rows
+           if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4' || tableBody.id === 'testingTableBody5') {
                calculateSummaryStatistics(tableBody);
            }
            
@@ -3749,8 +3749,8 @@ document.addEventListener('DOMContentLoaded', function() {
        // Function to calculate summary statistics (Average, Min, Max) for vertical Ave columns
        // ONLY for Page 2, 3 & 4
        function calculateSummaryStatistics(tableBody) {
-           // Only process Page 2, 3 and 4
-           if (tableBody.id !== 'testingTableBody2' && tableBody.id !== 'testingTableBody3' && tableBody.id !== 'testingTableBody4') {
+           // Only process Page 2, 3, 4 and 5
+           if (tableBody.id !== 'testingTableBody2' && tableBody.id !== 'testingTableBody3' && tableBody.id !== 'testingTableBody4' && tableBody.id !== 'testingTableBody5') {
                return;
            }
            
@@ -3766,6 +3766,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (tableBody.id === 'testingTableBody4') {
                 // Page 4: Calculate summary for ALL data columns: Color L(3), A(4), B(5), Delta E(6), Gloss 1(7), 2(8), 3(9), Ave(10)
                 calculatePage4SummaryStats(dataRows, tableBody);
+            } else if (tableBody.id === 'testingTableBody5') {
+                // Page 5: Calculate summary for PG Quality column (column 3)
+                calculatePage5SummaryStats(dataRows, tableBody);
             } else {
                // Page 2 & 3: 3 Ave columns (positions 6, 10, 14)
                // Page 2: Sample No (3 cols), Elongation MD (4 cols: 1,2,3,Ave), Force MD (4 cols: 1,2,3,Ave), Force 5% MD (4 cols: 1,2,3,Ave)
@@ -3868,12 +3871,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Function to calculate summary statistics for Page 4 (all data columns)
         function calculatePage4SummaryStats(dataRows, tableBody) {
             // Page 4 input columns: Color L(3), A(4), B(5), Delta E(6), Gloss 1(7), 2(8), 3(9), Ave(10)
-            // Page 4 summary columns: [Label(colspan=3), Color L(1), A(2), B(3), Delta E(4), Gloss 1(5), 2(6), 3(7), Ave(8)]
-            const inputColumns = [3, 4, 5, 6, 7, 8, 9, 10];
-            const summaryColumns = [1, 2, 3, 4, 5, 6, 7, 8];
+            // Page 4 summary columns: [Label(colspan=3), Color L(1), A(2), B(3), Delta E(4), Gloss merged(5-7), Ave(8)]
+            // Process Color columns (3, 4, 5, 6) normally
+            const colorInputColumns = [3, 4, 5, 6];
+            const colorSummaryColumns = [1, 2, 3, 4];
             
-            inputColumns.forEach((inputColIndex, arrayIndex) => {
-                const summaryColIndex = summaryColumns[arrayIndex];
+            colorInputColumns.forEach((inputColIndex, arrayIndex) => {
+                const summaryColIndex = colorSummaryColumns[arrayIndex];
                 const values = [];
                 
                 // Collect all values from this input column across all data rows
@@ -3896,17 +3900,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Format based on column type
                     let avgFormatted, minFormatted, maxFormatted;
                     
-                    if (inputColIndex === 10) {
-                        // Gloss Ave: 1 decimal (0.0)
-                        avgFormatted = average.toFixed(1);
-                        minFormatted = minimum.toFixed(1);
-                        maxFormatted = maximum.toFixed(1);
-                    } else if (inputColIndex >= 7 && inputColIndex <= 9) {
-                        // Gloss 1, 2, 3: 1 decimal (0.0)
-                        avgFormatted = average.toFixed(1);
-                        minFormatted = minimum.toFixed(1);
-                        maxFormatted = maximum.toFixed(1);
-                    } else if (inputColIndex >= 3 && inputColIndex <= 5) {
+                    if (inputColIndex >= 3 && inputColIndex <= 5) {
                         // Color L, A, B: 2 decimals (0.00)
                         avgFormatted = average.toFixed(2);
                         minFormatted = minimum.toFixed(2);
@@ -3922,20 +3916,96 @@ document.addEventListener('DOMContentLoaded', function() {
                     updateSummaryRow(tableBody, 'Minimum', summaryColIndex, minFormatted);
                     updateSummaryRow(tableBody, 'Maximum', summaryColIndex, maxFormatted);
                 } else {
-                    // Clear summary rows if no data - use appropriate decimal places
-                    let defaultValue;
-                    if (inputColIndex >= 3 && inputColIndex <= 5) {
-                        // Color L, A, B: 2 decimals (0.00)
-                        defaultValue = '0.00';
-                    } else {
-                        // Color Delta E, Gloss: 1 decimal (0.0)
-                        defaultValue = '0.0';
-                    }
-                    updateSummaryRow(tableBody, 'Average', summaryColIndex, defaultValue);
-                    updateSummaryRow(tableBody, 'Minimum', summaryColIndex, defaultValue);
-                    updateSummaryRow(tableBody, 'Maximum', summaryColIndex, defaultValue);
+                    // Clear summary rows if no data
+                    updateSummaryRow(tableBody, 'Average', summaryColIndex, '0.00');
+                    updateSummaryRow(tableBody, 'Minimum', summaryColIndex, '0.00');
+                    updateSummaryRow(tableBody, 'Maximum', summaryColIndex, '0.00');
                 }
             });
+            
+            // Process Gloss Ave (column 10) - compute from Gloss 1, 2, 3 averages
+            // Collect all row averages for Gloss (Gloss Ave = average of Gloss 1/2/3 for each row)
+            const glossAveValues = [];
+            dataRows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                // Get Gloss 1, 2, 3 values
+                const gloss1 = inputs[7] ? parseFloat(inputs[7].value) : NaN;
+                const gloss2 = inputs[8] ? parseFloat(inputs[8].value) : NaN;
+                const gloss3 = inputs[9] ? parseFloat(inputs[9].value) : NaN;
+                
+                // Calculate average of Gloss 1, 2, 3 for this row
+                let count = 0;
+                let sum = 0;
+                
+                if (!isNaN(gloss1)) { sum += gloss1; count++; }
+                if (!isNaN(gloss2)) { sum += gloss2; count++; }
+                if (!isNaN(gloss3)) { sum += gloss3; count++; }
+                
+                if (count > 0) {
+                    glossAveValues.push(sum / count);
+                }
+            });
+            
+            // Calculate summary statistics for Gloss Ave
+            if (glossAveValues.length > 0) {
+                const glossAveAverage = glossAveValues.reduce((sum, val) => sum + val, 0) / glossAveValues.length;
+                const glossAveMinimum = Math.min(...glossAveValues);
+                const glossAveMaximum = Math.max(...glossAveValues);
+                
+                const avgFormatted = glossAveAverage.toFixed(1);
+                const minFormatted = glossAveMinimum.toFixed(1);
+                const maxFormatted = glossAveMaximum.toFixed(1);
+                
+                // After merged Gloss cell (colspan=3), Gloss Ave is at column index 6
+                updateSummaryRow(tableBody, 'Average', 6, avgFormatted);
+                updateSummaryRow(tableBody, 'Minimum', 6, minFormatted);
+                updateSummaryRow(tableBody, 'Maximum', 6, maxFormatted);
+            } else {
+                // After merged Gloss cell (colspan=3), Gloss Ave is at column index 6
+                updateSummaryRow(tableBody, 'Average', 6, '0.00');
+                updateSummaryRow(tableBody, 'Minimum', 6, '0.00');
+                updateSummaryRow(tableBody, 'Maximum', 6, '0.00');
+            }
+        }
+
+        // Function to calculate summary statistics for Page 5 (PG Quality)
+        function calculatePage5SummaryStats(dataRows, tableBody) {
+            // Page 5: PG Quality data column is at input index 3
+            // Page 5 summary row structure: td[0]=label(colspan=3), td[1]=PGQuality, td[2]=blank
+            const values = [];
+            
+            // Collect all values from PG Quality column
+            dataRows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                if (inputs[3] && inputs[3].value) {
+                    const value = parseFloat(inputs[3].value);
+                    if (!isNaN(value)) {
+                        values.push(value);
+                    }
+                }
+            });
+            
+            if (values.length > 0) {
+                // Calculate Average, Min, Max
+                const average = values.reduce((sum, val) => sum + val, 0) / values.length;
+                const minimum = Math.min(...values);
+                const maximum = Math.max(...values);
+                
+                // Format: For PG Quality (0 or 1), round to nearest integer (0 or 1)
+                const avgFormatted = (average >= 0.5 ? 1 : 0).toString();
+                const minFormatted = minimum.toString();
+                const maxFormatted = maximum.toString();
+                
+                // Update summary rows (column index 1 for PG Quality in summary row - after label colspan=3)
+                updateSummaryRow(tableBody, 'Average', 1, avgFormatted);
+                updateSummaryRow(tableBody, 'Minimum', 1, minFormatted);
+                updateSummaryRow(tableBody, 'Maximum', 1, maxFormatted);
+            } else {
+                // Clear summary rows if no data
+                updateSummaryRow(tableBody, 'Average', 1, '0');
+                updateSummaryRow(tableBody, 'Minimum', 1, '0');
+                updateSummaryRow(tableBody, 'Maximum', 1, '0');
+            }
         }
 
         // Function to calculate individual column statistics for Page 1
@@ -6032,6 +6102,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Auto-save to database after each change (debounced)
                 debouncedSave();
+                
+                // Calculate summary statistics when PG Quality changes
+                const tableBody = this.closest('tbody');
+                if (tableBody && tableBody.id === 'testingTableBody5') {
+                    calculateSummaryStatistics(tableBody);
+                }
                 
                 // Force immediate recalculation of ALL summary statistics for instant sync
                 triggerSummaryRecalculation();

@@ -1616,8 +1616,12 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
     // 3. Map data to Excel cells
 
-    // Product Code (B4)
-    worksheet.cell('B4').value(data.product_code || '');
+    // Product Code (B4) - Clean product code for Jeddah (remove "(Jeddah)" part)
+    let cleanedProductCode = data.product_code || '';
+    if (cleanedProductCode.toLowerCase().includes('jeddah')) {
+      cleanedProductCode = cleanedProductCode.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
+    }
+    worksheet.cell('B4').value(cleanedProductCode);
 
     // Specification (B5)
     worksheet.cell('B5').value(data.specification || '');
