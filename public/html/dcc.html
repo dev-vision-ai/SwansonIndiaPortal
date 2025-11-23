@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>DCC - Document Control Center</title>
+    <link rel="stylesheet" href="../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../css/common-header.css">
+    <link rel="stylesheet" href="../css/dcc.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="header-container">
+        <button type="button" class="header-back-button" onclick="window.location.href='employee-dashboard.html'">Back</button>
+        <div class="header-title">Document Control Center (DCC)</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+
+    <!-- Main content area with background -->
+    <main class="w-full min-h-screen">
+        <div class="container">
+            <section class="dashboard-section">
+                <div class="quick-action-grid">
+                    <div class="action-card js-hide" data-department="All" onclick="location.href='../html/dcn-list.html'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-file-signature"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>Document Change Notification (DCN)</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>All Submitted DCNs</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="action-card js-hide" data-department="Human Resources,Administration" onclick="location.href='../html/dcn-form.html'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>DCN Form</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Create new Document Change Notification Form</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="action-card js-hide" data-department="All" onclick="location.href='../html/document-review-form-list.html'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>Document Review Form</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Document Control Center Review Form</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <script type="module" src="../js/dcc.js"></script>
+</body>
+</html>
