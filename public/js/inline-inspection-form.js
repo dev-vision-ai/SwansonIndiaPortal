@@ -1136,7 +1136,7 @@ async function handleFormSubmit(e) {
         
         const updateObject = {
           customer: formData.get('customer'),
-          production_no: formData.get('production_no'),
+          production_no: (formData.get('production_no') || '').toUpperCase(),
           prod_code: formData.get('prod_code'),
           spec: formData.get('spec'),
           production_date: formData.get('production_date'),
@@ -1239,7 +1239,7 @@ async function handleFormSubmit(e) {
         traceability_code: traceability_code,
         lot_letter: lot_letter,
         customer: formData.get('customer'),
-        production_no: formData.get('production_no'),
+        production_no: (formData.get('production_no') || '').toUpperCase(),
         prod_code: formData.get('prod_code'),
         spec: formData.get('spec'),
         production_date: formData.get('production_date'),
