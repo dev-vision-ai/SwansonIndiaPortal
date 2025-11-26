@@ -16,6 +16,14 @@ document.addEventListener('DOMContentLoaded', () => {
         mobileNavLinks.querySelectorAll('a').forEach(link => {
             if (!link.classList.contains('dropdown-toggle-mobile')) {
                 link.addEventListener('click', () => {
+                    const targetHref = link.getAttribute('href');
+                    
+                    // Special handling for Employee Login - open in new tab
+                    if (targetHref && targetHref.includes('auth.html')) {
+                        window.open(targetHref, '_blank');
+                        return;
+                    }
+                    
                     if (mobileNavLinks.classList.contains('active')) {
                         mobileNavLinks.classList.remove('active');
                         menuToggle.classList.remove('active');
@@ -82,6 +90,13 @@ document.addEventListener('DOMContentLoaded', () => {
     desktopLinks.forEach(link => {
         link.addEventListener('click', function(event) {
             const targetHref = link.getAttribute('href');
+            
+            // Special handling for Employee Login - open in new tab
+            if (targetHref && targetHref.includes('auth.html')) {
+                event.preventDefault();
+                window.open(targetHref, '_blank');
+                return;
+            }
             
             if (!targetHref.startsWith('#')) {
                 event.preventDefault(); // Prevent default only for non-anchor links

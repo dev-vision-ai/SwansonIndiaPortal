@@ -68,59 +68,59 @@ document.addEventListener('DOMContentLoaded', async () => {
             const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc290pResult, uc290npResult, uc250wResult, uc210wResult, microWhite234Result, microWhite102Result, white168Result, uc165wResult] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('168_16c_white')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('176_18cp_ww')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('168_18c_white_jeddah')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('214_18_micro_white')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-250p-abqr')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-290p-abqr')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-290np-abqr')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-250w-bfqr')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-210w-bfqr')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('234_18_micro_white')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('102_18c_micro_white')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('168_18c_white')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-16gsm-165w')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false })
             ]);
 
@@ -426,12 +426,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         currentPageData.forEach((formData, index) => {
             const row = tableBody.insertRow();
-            // Store all form data in data attributes for instant access
-            row.setAttribute('data-customer', formData.customer || '');
-            row.setAttribute('data-production-order', formData.production_order || '');
-            row.setAttribute('data-film-insp-form-ref-no', formData.film_insp_form_ref_no || '');
-            row.setAttribute('data-lot-no', formData.lot_no || '');
-            row.setAttribute('data-specification', formData.specification || '');
 
             // Serial number based on overall position in filtered dataset: latest entry gets highest number
             const serialNumber = totalItems - (startIndex + index);
@@ -506,6 +500,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </button>
                 </td>
             `;
+            
+            // Store all form data in data attributes AFTER innerHTML assignment
+            row.setAttribute('data-customer', formData.customer || '');
+            row.setAttribute('data-production-order', formData.production_order || '');
+            row.setAttribute('data-film-insp-form-ref-no', formData.film_insp_form_ref_no || '');
+            row.setAttribute('data-lot-no', formData.lot_no || '');
+            row.setAttribute('data-specification', formData.specification || '');
+            row.setAttribute('data-production-date', formData.production_date ? new Date(formData.production_date).toLocaleDateString('en-GB') : '');
+            row.setAttribute('data-inspection-date', formData.inspection_date ? new Date(formData.inspection_date).toLocaleDateString('en-GB') : '');
+            row.setAttribute('data-machine-no', formData.machine_no || '');
         });
     }
 
@@ -1177,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (formId) {
                 try {
                     // Try to fetch from all tables using .maybeSingle() to avoid errors when no data found
-                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc290pResult, uc290npResult, uc250wResult, uc210wResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
+                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc290pResult, uc290npResult, uc250wResult, uc210wResult, microWhite234Result, microWhite102Result, white168Result, uc165wResult] = await Promise.all([
                         supabase
                             .from('168_16cp_kranti')
                             .select('*')
@@ -1242,6 +1246,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                             .from('168_18c_white')
                             .select('*')
                             .eq('form_id', formId)
+                            .maybeSingle(),
+                        supabase
+                            .from('uc-16gsm-165w')
+                            .select('*')
+                            .eq('form_id', formId)
                             .maybeSingle()
                     ]);
                     
@@ -1277,6 +1286,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     
                     if (data) {
                         prePopulatePrestoreForm(data);
+                    } else if (!uc165wResult?.error && uc165wResult?.data) {
+                        // Fallback: if data wasn't found in other tables, use uc-16gsm-165w result
+                        prePopulatePrestoreForm(uc165wResult.data);
                     }
                 } catch (error) {
                     console.error('Error loading existing data:', error);
@@ -1646,13 +1658,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const row = editDetailsButton.closest('tr');
             
             // Extract data from the table row (INSTANT - no database calls!)
-            const productionDate = row.querySelector('td:nth-child(2)').textContent.trim();
-            const inspectionDate = row.querySelector('td:nth-child(3)').textContent.trim();
-            const machineNo = row.querySelector('td:nth-child(4)').textContent.trim();
+            const productionDate = row.getAttribute('data-production-date') || '';
+            const inspectionDate = row.getAttribute('data-inspection-date') || '';
+            const machineNo = row.getAttribute('data-machine-no') || '';
             const productCode = row.querySelector('td:nth-child(5)').textContent.trim();
-            const lotNo = row.querySelector('td:nth-child(6)').textContent.trim();
-            const preparedBy = row.querySelector('td:nth-child(7)').textContent.trim();
-            const verifiedBy = row.querySelector('td:nth-child(8)').textContent.trim();
+            const lotNo = row.getAttribute('data-lot-no') || '';
+            const preparedBy = row.querySelector('td:nth-child(6)').textContent.trim();
+            const verifiedBy = row.querySelector('td:nth-child(7)').textContent.trim();
             
             // Get additional data from data attributes (INSTANT!)
             const customer = row.getAttribute('data-customer') || '';
@@ -3151,7 +3163,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     });
                     
                     // Try to update in all tables with film_insp_form_ref_no for ALL tables
-                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc290pResult, uc250wResult, uc210wResult, microWhite234Result, microWhite102Result, white168Result, uc165wResult] = await Promise.all([
+                    const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc250wResult, uc210wResult, microWhite234Result, microWhite102Result, white168Result, uc165wResult] = await Promise.all([
                         supabase
                             .from('168_16cp_kranti')
                             .update(updateData)
@@ -4247,32 +4259,38 @@ window.deleteFilmForm = async function(formId) {
                 }
             }
 
-            // Get the logged-in user's full name
-            const { data: { user }, error: userError } = await supabase.auth.getUser();
-            if (userError) {
-                console.error('Error fetching user:', userError.message);
-                alert('Could not retrieve user information. Please try again.');
-                return;
-            }
-            
-            // Fetch user's full name from users table
-            if (user && user.id) {
-                const { data: profile, error: profileError } = await supabase
-                    .from('users')
-                    .select('full_name')
-                    .eq('id', user.id)
-                    .single();
+            // Get the logged-in user's full name ONLY for new forms (not when updating)
+            if (!preStoreFormId) {
+                // Only set prepared_by for new forms
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                if (userError) {
+                    console.error('Error fetching user:', userError.message);
+                    alert('Could not retrieve user information. Please try again.');
+                    return;
+                }
                 
-                if (profileError) {
-                    console.error('Error fetching user profile:', profileError.message);
-                    finalData.prepared_by = user.email || 'Unknown User'; // Fallback to email
-                } else if (profile && profile.full_name) {
-                    finalData.prepared_by = profile.full_name;
+                // Fetch user's full name from users table
+                if (user && user.id) {
+                    const { data: profile, error: profileError } = await supabase
+                        .from('users')
+                        .select('full_name')
+                        .eq('id', user.id)
+                        .single();
+                    
+                    if (profileError) {
+                        console.error('Error fetching user profile:', profileError.message);
+                        finalData.prepared_by = user.email || 'Unknown User'; // Fallback to email
+                    } else if (profile && profile.full_name) {
+                        finalData.prepared_by = profile.full_name;
+                    } else {
+                        finalData.prepared_by = user.email || 'Unknown User'; // Fallback to email
+                    }
                 } else {
-                    finalData.prepared_by = user.email || 'Unknown User'; // Fallback to email
+                    finalData.prepared_by = 'Unknown User'; // Fallback if user ID is not available
                 }
             } else {
-                finalData.prepared_by = 'Unknown User'; // Fallback if user ID is not available
+                // For updates, remove prepared_by to preserve original author
+                delete finalData.prepared_by;
             }
 
             // Convert "N/A" values to empty strings for Excel compatibility, but keep N/A for radio buttons
@@ -4308,7 +4326,8 @@ window.deleteFilmForm = async function(formId) {
                     'INUE1C18-210W(BF-QR)': 'uc-18gsm-210w-bfqr', // UC-18gsm-210W-BFQR form
                     'WHITE-234(18)': '234_18_micro_white', // New 234 Micro White product
                     'APE-102(18)C': '102_18c_micro_white', // New 102 Micro White product
-                    'APE-168(18)C': '168_18c_white' // New 168 White product
+                    'APE-168(18)C': '168_18c_white', // New 168 White product
+                    'INUE16-165W': 'uc-16gsm-165w' // UC-16gsm-165W form (INUE16-165W)
                     // Add more product-specific tables as they are created
                 };
                 tableName = productTableMap[finalData.product_code];

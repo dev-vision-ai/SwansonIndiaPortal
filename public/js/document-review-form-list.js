@@ -323,26 +323,25 @@ async function approveDCN(dcnId, dcnNo) {
             return;
         }
 
-        // Check if current user is assigned as reviewer and find their department
+        // Check if current user is assigned as reviewer and find ALL their occurrences
         let isAssigned = false;
-        let userDepartment = null;
+        let userDepartments = []; // Store ALL occurrences, not just first one
         const participants = dcn.review_participants;
 
         if (Array.isArray(participants)) {
-            // Array format - find user and get their index
+            // Array format - find ALL user occurrences and get their indices
             participants.forEach((participant, index) => {
                 if (participant && participant.user_id === user.id) {
                     isAssigned = true;
-                    userDepartment = index; // Use index for array format
+                    userDepartments.push(index);
                 }
             });
         } else if (typeof participants === 'object') {
-            // Object format - find user's department
+            // Object format - find ALL user occurrences
             for (const [dept, participant] of Object.entries(participants)) {
                 if (participant && participant.user_id === user.id) {
                     isAssigned = true;
-                    userDepartment = dept;
-                    break;
+                    userDepartments.push(dept);
                 }
             }
         }
@@ -352,28 +351,32 @@ async function approveDCN(dcnId, dcnNo) {
             return;
         }
 
-        // Update the review_participants with the user's approval
+        // Update the review_participants with the user's approval for ALL occurrences
         const updatedParticipants = { ...participants };
         const currentTime = new Date().toISOString();
 
         if (Array.isArray(participants)) {
-            // Array format
-            if (updatedParticipants[userDepartment]) {
-                updatedParticipants[userDepartment] = {
-                    ...updatedParticipants[userDepartment],
-                    review_status: 'approved',
-                    reviewed_at: currentTime
-                };
-            }
+            // Array format - update all indices
+            userDepartments.forEach(index => {
+                if (updatedParticipants[index]) {
+                    updatedParticipants[index] = {
+                        ...updatedParticipants[index],
+                        review_status: 'approved',
+                        reviewed_at: currentTime
+                    };
+                }
+            });
         } else {
-            // Object format
-            if (updatedParticipants[userDepartment]) {
-                updatedParticipants[userDepartment] = {
-                    ...updatedParticipants[userDepartment],
-                    review_status: 'approved',
-                    reviewed_at: currentTime
-                };
-            }
+            // Object format - update all departments
+            userDepartments.forEach(dept => {
+                if (updatedParticipants[dept]) {
+                    updatedParticipants[dept] = {
+                        ...updatedParticipants[dept],
+                        review_status: 'approved',
+                        reviewed_at: currentTime
+                    };
+                }
+            });
         }
 
         const { error } = await supabase
@@ -443,26 +446,25 @@ async function rejectDCN(dcnId, dcnNo) {
             return;
         }
 
-        // Check if current user is assigned as reviewer and find their department
+        // Check if current user is assigned as reviewer and find ALL their occurrences
         let isAssigned = false;
-        let userDepartment = null;
+        let userDepartments = []; // Store ALL occurrences, not just first one
         const participants = dcn.review_participants;
 
         if (Array.isArray(participants)) {
-            // Array format - find user and get their index
+            // Array format - find ALL user occurrences and get their indices
             participants.forEach((participant, index) => {
                 if (participant && participant.user_id === user.id) {
                     isAssigned = true;
-                    userDepartment = index; // Use index for array format
+                    userDepartments.push(index);
                 }
             });
         } else if (typeof participants === 'object') {
-            // Object format - find user's department
+            // Object format - find ALL user occurrences
             for (const [dept, participant] of Object.entries(participants)) {
                 if (participant && participant.user_id === user.id) {
                     isAssigned = true;
-                    userDepartment = dept;
-                    break;
+                    userDepartments.push(dept);
                 }
             }
         }
@@ -472,28 +474,32 @@ async function rejectDCN(dcnId, dcnNo) {
             return;
         }
 
-        // Update the review_participants with the user's rejection
+        // Update the review_participants with the user's rejection for ALL occurrences
         const updatedParticipants = { ...participants };
         const currentTime = new Date().toISOString();
 
         if (Array.isArray(participants)) {
-            // Array format
-            if (updatedParticipants[userDepartment]) {
-                updatedParticipants[userDepartment] = {
-                    ...updatedParticipants[userDepartment],
-                    review_status: 'rejected',
-                    reviewed_at: currentTime
-                };
-            }
+            // Array format - update all indices
+            userDepartments.forEach(index => {
+                if (updatedParticipants[index]) {
+                    updatedParticipants[index] = {
+                        ...updatedParticipants[index],
+                        review_status: 'rejected',
+                        reviewed_at: currentTime
+                    };
+                }
+            });
         } else {
-            // Object format
-            if (updatedParticipants[userDepartment]) {
-                updatedParticipants[userDepartment] = {
-                    ...updatedParticipants[userDepartment],
-                    review_status: 'rejected',
-                    reviewed_at: currentTime
-                };
-            }
+            // Object format - update all departments
+            userDepartments.forEach(dept => {
+                if (updatedParticipants[dept]) {
+                    updatedParticipants[dept] = {
+                        ...updatedParticipants[dept],
+                        review_status: 'rejected',
+                        reviewed_at: currentTime
+                    };
+                }
+            });
         }
 
         const { error } = await supabase

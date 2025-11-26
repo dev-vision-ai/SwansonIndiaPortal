@@ -131,11 +131,11 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
     // Quantity (H5) - Add "Rolls" text like prestore form
     page1Worksheet.cell('H5').value(data.quantity ? `${data.quantity} Rolls` : '');
 
-    // Production Date (J4) - format as DD/MM/YYYY
-    page1Worksheet.cell('J4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+    // Production Date (I4) - format as DD/MM/YYYY
+    page1Worksheet.cell('I4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
 
-    // Inspection Date (J5) - format as DD/MM/YYYY
-    page1Worksheet.cell('J5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    // Inspection Date (I5) - format as DD/MM/YYYY
+    page1Worksheet.cell('I5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
 
     // Equipment Data for Page 1
     if (data.equipment_used && data.equipment_used.page1) {
@@ -152,11 +152,11 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
     // Inspection Date (B43) - format as DD/MM/YYYY
     page1Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
 
-    // Verified By (J42)
-    page1Worksheet.cell('J42').value(data.verified_by || 'Not Verified');
+    // Verified By (H42)
+    page1Worksheet.cell('H42').value(data.verified_by || 'Not Verified');
 
-    // Verified Date (J43) - format as DD/MM/YYYY
-    page1Worksheet.cell('J43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+    // Verified Date (H43) - format as DD/MM/YYYY
+    page1Worksheet.cell('H43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
 
     // Film Inspection Form Ref No (K3)
     page1Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
@@ -3027,43 +3027,14 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
 
     // 3. Map data to Excel cells for Page 1
 
-    // Product Code (C4)
-    page1Worksheet.cell('C4').value(data.product_code || '');
-
-    // Specification (C5)
-    page1Worksheet.cell('C5').value(data.specification || '');
-
-    // Production Order (F4)
-    page1Worksheet.cell('F4').value(data.production_order || '');
-
-    // Purchase Order (F5)
-  page1Worksheet.cell('F5').value(data.purchase_order ? data.purchase_order : 'NA');
-
-    // Machine (H4)
-    page1Worksheet.cell('H4').value(data.machine_no || '');
-
-    // Quantity (H5) - Add "Rolls" text like prestore form
-    page1Worksheet.cell('H5').value(data.quantity ? `${data.quantity} Rolls` : '');
-
-    // Production Date (J4) - format as DD/MM/YYYY
-    page1Worksheet.cell('J4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
-
-    // Inspection Date (J5) - format as DD/MM/YYYY
-    page1Worksheet.cell('J5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-
-    // Prepared By (B43)
-    page1Worksheet.cell('B43').value(data.prepared_by || 'Unknown User');
-
-    // 3. Map data to Excel cells for Page 1
-
     // Product Code (B4)
     page1Worksheet.cell('B4').value(data.product_code || '');
 
     // Specification (B5)
     page1Worksheet.cell('B5').value(data.specification || '');
 
-    // Production Order (E4)
-    page1Worksheet.cell('E4').value(data.production_order || '');
+    // Film Inspection Form Ref No (I3)
+    page1Worksheet.cell('I3').value(data.film_insp_form_ref_no || '');
 
     // Purchase Order (E5)
   page1Worksheet.cell('E5').value(data.purchase_order ? data.purchase_order : 'NA');
@@ -3074,24 +3045,16 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
     // Quantity (G5) - Add "Rolls" text like prestore form
     page1Worksheet.cell('G5').value(data.quantity ? `${data.quantity} Rolls` : '');
 
+    // Production Order (E4)
+    page1Worksheet.cell('E4').value(data.production_order || '');
+
     // Production Date (I4) - format as DD/MM/YYYY
     page1Worksheet.cell('I4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
 
+    // Inspection Date (I5) - format as DD/MM/YYYY
+    page1Worksheet.cell('I5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+
     // Personnel Information Section
-    // Inspected By (B42)
-    page1Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-
-    // Inspection Date (B43) - format as DD/MM/YYYY
-    page1Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-
-    // Verified By (J42)
-    page1Worksheet.cell('J42').value(data.verified_by || 'Not Verified');
-
-    // Verified Date (J43) - format as DD/MM/YYYY
-    page1Worksheet.cell('J43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-
-    // Film Inspection Form Ref No (I3)
-    page1Worksheet.cell('I3').value(data.film_insp_form_ref_no || '');
 
     // Prepared By (for reference in equipment section)
     // Note: data.prepared_by is already mapped above as Inspected By
@@ -3110,11 +3073,59 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         // Thickness Equipment (E6) - DIAL GAUGE
         page1Worksheet.cell('E6').value(equipment.thickness || '');
 
-        // Tensile/Elongation/Modulus Equipment (F6) - INSTRON UTM (shared)
-        // Tensile Break Equipment (F6, G6) - INSTRON UTM (tensile break, elongation, modulus now use same equipment)
+        // COF Equipment (F6) - COF TESTER
+        page1Worksheet.cell('F6').value(equipment.cof_rr || '');
+
+        // Tensile/Elongation/Modulus Equipment (G6, H6, I6) - INSTRON UTM
         const tensileEquipment = equipment.tensile_break || equipment.elongation || equipment.modulus_10 || '';
-        page1Worksheet.cell('F6').value(tensileEquipment);
         page1Worksheet.cell('G6').value(tensileEquipment);
+        page1Worksheet.cell('H6').value(tensileEquipment);
+        page1Worksheet.cell('I6').value(tensileEquipment);
+      }
+
+      // Lot & Roll data to column A (A9-A38)
+      if (data.lot_and_roll) {
+        const lotAndRollData = data.lot_and_roll;
+        const dataValues = Object.values(lotAndRollData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            page1Worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+          } else {
+            page1Worksheet.cell(`A${row}`).value('');
+          }
+        }
+      }
+
+      // Roll ID data to column B (B9-B38)
+      if (data.roll_id) {
+        const rollIdData = data.roll_id;
+        const dataValues = Object.values(rollIdData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            page1Worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+          } else {
+            page1Worksheet.cell(`B${row}`).value('');
+          }
+        }
+      }
+
+      // Lot Time data to column C (C9-C38)
+      if (data.lot_time) {
+        const lotTimeData = data.lot_time;
+        const dataValues = Object.values(lotTimeData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            page1Worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+          } else {
+            page1Worksheet.cell(`C${row}`).value('');
+          }
+        }
       }
 
       // Basis Weight data to column D (D9-D38)
@@ -3213,12 +3224,12 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         }
       }
 
-      // Add personnel information to Page 1
-      page1Worksheet.cell('B44').value(data.prepared_by || 'Unknown User');
-      page1Worksheet.cell('B45').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page1Worksheet.cell('J44').value(data.verified_by || 'Not Verified');
-      page1Worksheet.cell('J45').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page1Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+      // Add personnel information to Page 1 (corrected cell positions)
+      page1Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
+      page1Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+      page1Worksheet.cell('H42').value(data.verified_by || 'Not Verified');
+      page1Worksheet.cell('H43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+      // FIF Ref No mapped to E4 in header section above
     }
 
     // PAGE 2 DATA MAPPING - UC-16gsm-165W Page 2 data (Mechanical Properties - CD & Others)
@@ -3238,11 +3249,56 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         // Opacity Equipment (G6) - SPECTROPHOTOMETER
         page2Worksheet.cell('G6').value(equipment.opacity || '');
 
-        // Roll Width Equipment (I6) - STEEL RULER
-        page2Worksheet.cell('I6').value(equipment.roll_width || '');
+        // Roll Width Equipment (H6) - STEEL RULER
+        page2Worksheet.cell('H6').value(equipment.roll_width || '');
 
-        // Diameter Equipment (K6) - STEEL RULER
-        page2Worksheet.cell('K6').value(equipment.diameter || '');
+        // Diameter Equipment (I6) - STEEL RULER
+        page2Worksheet.cell('I6').value(equipment.diameter || '');
+      }
+
+      // Lot & Roll data to column A (A11-A40)
+      if (data.lot_and_roll) {
+        const lotAndRollData = data.lot_and_roll;
+        const dataValues = Object.values(lotAndRollData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 11; row <= 40; row++) {
+          const dataIndex = row - 11;
+          if (dataIndex < dataValues.length) {
+            page2Worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+          } else {
+            page2Worksheet.cell(`A${row}`).value('');
+          }
+        }
+      }
+
+      // Roll ID data to column B (B11-B40)
+      if (data.roll_id) {
+        const rollIdData = data.roll_id;
+        const dataValues = Object.values(rollIdData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 11; row <= 40; row++) {
+          const dataIndex = row - 11;
+          if (dataIndex < dataValues.length) {
+            page2Worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+          } else {
+            page2Worksheet.cell(`B${row}`).value('');
+          }
+        }
+      }
+
+      // Lot Time data to column C (C11-C40)
+      if (data.lot_time) {
+        const lotTimeData = data.lot_time;
+        const dataValues = Object.values(lotTimeData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 11; row <= 40; row++) {
+          const dataIndex = row - 11;
+          if (dataIndex < dataValues.length) {
+            page2Worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+          } else {
+            page2Worksheet.cell(`C${row}`).value('');
+          }
+        }
       }
 
       // Tensile Break (CD) data to column D (D11-D40)
@@ -3261,12 +3317,12 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         }
       }
 
-      // CD Elongation data to column E (E11-E38)
+      // CD Elongation data to column E (E11-E40)
       if (data.page2_cd_elongation) {
         const cdElongationData = data.page2_cd_elongation;
         const dataValues = Object.values(cdElongationData).filter(value => value !== null && value !== undefined && value !== '');
 
-        for (let row = 11; row <= 38; row++) {
+        for (let row = 11; row <= 40; row++) {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
@@ -3277,13 +3333,13 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         }
       }
 
-      // Modulus (CD) data to column F (F9-F40)
+      // Modulus (CD) data to column F (F11-F40)
       if (data.page2_modulus) {
         const modulusData = data.page2_modulus;
         const dataValues = Object.values(modulusData).filter(value => value !== null && value !== undefined && value !== '');
 
-        for (let row = 9; row <= 40; row++) {
-          const dataIndex = row - 9;
+        for (let row = 11; row <= 40; row++) {
+          const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
             page2Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
@@ -3327,7 +3383,7 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
 
       // Diameter data to column I (I11-I40)
       if (data.page2_diameter) {
-      const diameterData = data.page2_diameter;
+        const diameterData = data.page2_diameter;
         const dataValues = Object.values(diameterData).filter(value => value !== null && value !== undefined && value !== '');
 
         for (let row = 11; row <= 40; row++) {
@@ -3339,29 +3395,6 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
             page2Worksheet.cell(`I${row}`).value('');
           }
         }
-      }
-
-      // Equipment Data for Page 2
-      if (data.equipment_used && data.equipment_used.page2) {
-        const equipment = data.equipment_used.page2;
-
-        // Tensile Break Equipment (D6) - INSTRON UTM
-        page2Worksheet.cell('D6').value(equipment.tensile_break || '');
-
-        // CD Elongation Equipment (E6) - INSTRON UTM
-        page2Worksheet.cell('E6').value(equipment.cd_elongation || '');
-
-        // Modulus Equipment (F6) - INSTRON UTM
-        page2Worksheet.cell('F6').value(equipment.modulus || '');
-
-        // Opacity Equipment (G6) - SPECTROPHOTOMETER
-        page2Worksheet.cell('G6').value(equipment.opacity || '');
-
-        // Roll Width Equipment (I6) - STEEL RULER
-        page2Worksheet.cell('I6').value(equipment.roll_width || '');
-
-        // Diameter Equipment (K6) - STEEL RULER
-        page2Worksheet.cell('K6').value(equipment.diameter || '');
       }
 
       // Personnel information only on Page 1 for UC-16gsm-165W
@@ -3378,6 +3411,51 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
 
         // Color Equipment (D6) - STM SPECTROPHOTOMETER
         page3Worksheet.cell('D6').value(equipment.colour || '');
+      }
+
+      // Lot & Roll data to column A (A9-A38)
+      if (data.lot_and_roll) {
+        const lotAndRollData = data.lot_and_roll;
+        const dataValues = Object.values(lotAndRollData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            page3Worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+          } else {
+            page3Worksheet.cell(`A${row}`).value('');
+          }
+        }
+      }
+
+      // Roll ID data to column B (B9-B38)
+      if (data.roll_id) {
+        const rollIdData = data.roll_id;
+        const dataValues = Object.values(rollIdData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            page3Worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+          } else {
+            page3Worksheet.cell(`B${row}`).value('');
+          }
+        }
+      }
+
+      // Lot Time data to column C (C9-C38)
+      if (data.lot_time) {
+        const lotTimeData = data.lot_time;
+        const dataValues = Object.values(lotTimeData).filter(value => value !== null && value !== undefined && value !== '');
+
+        for (let row = 9; row <= 38; row++) {
+          const dataIndex = row - 9;
+          if (dataIndex < dataValues.length) {
+            page3Worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+          } else {
+            page3Worksheet.cell(`C${row}`).value('');
+          }
+        }
       }
 
       // Color L data to column D (D9-D38)
@@ -3452,8 +3530,8 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
     if (coaWorksheet) {
       console.log('COA Form sheet detected, mapping COA data');
 
-      // Inspected By (C41)
-      coaWorksheet.cell('C41').value(data.prepared_by || 'Unknown User');
+      // Inspected By (C39)
+      coaWorksheet.cell('C39').value(data.prepared_by || 'Unknown User');
 
       // Add other COA fields as needed
       // You can add more COA-specific mappings here

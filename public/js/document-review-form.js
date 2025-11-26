@@ -686,7 +686,7 @@ async function submitDCCReviewForm(status) {
             // Show success toast and then redirect so the user sees the notification
             showToast && showToast('Review submitted', 'success');
             // Keep the toast visible for slightly longer before redirecting
-            setTimeout(() => { window.location.href = '../html/dcc.html'; }, 4500);
+            setTimeout(() => { window.location.href = '../html/document-review-form-list.html'; }, 4500);
         } else {
             // Save as Draft - insert into a draft table or save locally
             showToast && showToast('Draft functionality not yet implemented for this page.', 'info');

@@ -2101,6 +2101,8 @@ async function collectFormData() {
             formData.equipment_used = equipmentData;
         }
         
+        // IMPORTANT: Do NOT include prepared_by to preserve original author on all updates/creates
+        delete formData.prepared_by;
 
         return formData;
 
