@@ -2612,10 +2612,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             tbody.appendChild(tr);
         }
         table.appendChild(tbody);
-        // Ensure every table has a data-formId attribute
-        if (!table.dataset.formId) {
-            table.dataset.formId = crypto.randomUUID();
-        }
         return table;
     }
 
@@ -2962,43 +2958,41 @@ document.addEventListener('DOMContentLoaded', async function() {
             rolls.push(buildEmptyRoll(i, nextLotNumber));
         }
         
-        // Generate new form_id
-        const form_id = crypto.randomUUID();
-        
         // Insert new row in Supabase with individual JSONB columns
+        const formObject = {
+            traceability_code: traceabilityCode,
+            lot_letter: lotLetter,
+            lot_no: nextLotNumber,
+            roll_weights: {},
+            roll_widths: {},
+            film_weights_gsm: {},
+            thickness_data: {},
+            roll_diameters: {},
+            accept_reject_status: {},
+            defect_names: {},
+            film_appearance: {},
+            printing_quality: {},
+            roll_appearance: {},
+            paper_core_data: {},
+            time_data: {},
+            remarks_data: {},
+            total_rolls: rowCount, // Store the row count
+            accepted_rolls: 0,
+            rejected_rolls: 0,
+            rework_rolls: 0,
+            kiv_rolls: 0,
+            accepted_weight: 0,
+            rejected_weight: 0,
+            rework_weight: 0,
+            kiv_weight: 0,
+            status: 'draft',
+            created_at: getISTTimestamp(),
+            updated_at: getISTTimestamp()
+        };
+        delete formObject.form_id;
         const { error } = await supabase
             .from('inline_inspection_form_master_2')
-            .insert([{
-                form_id: form_id,
-                traceability_code: traceabilityCode,
-                lot_letter: lotLetter,
-                lot_no: nextLotNumber,
-                roll_weights: {},
-                roll_widths: {},
-                film_weights_gsm: {},
-                thickness_data: {},
-                roll_diameters: {},
-                accept_reject_status: {},
-                defect_names: {},
-                film_appearance: {},
-                printing_quality: {},
-                roll_appearance: {},
-                paper_core_data: {},
-                time_data: {},
-                remarks_data: {},
-                total_rolls: rowCount, // Store the row count
-                accepted_rolls: 0,
-                rejected_rolls: 0,
-                rework_rolls: 0,
-                kiv_rolls: 0,
-                accepted_weight: 0,
-                rejected_weight: 0,
-                rework_weight: 0,
-                kiv_weight: 0,
-                status: 'draft',
-                created_at: getISTTimestamp(),
-                updated_at: getISTTimestamp()
-            }]);
+            .insert([formObject]);
         if (error) {
             alert('Error creating new lot: ' + error.message);
             // Re-enable button on error
@@ -4333,39 +4327,39 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         if (!lots || lots.length === 0) {
             // No lots found, create a new one with empty JSONB columns
-            const form_id = crypto.randomUUID();
+            const formObject = {
+                traceability_code: traceabilityCode,
+                lot_letter: lotLetter,
+                lot_no: '01', // Set initial lot number to 01
+                roll_weights: {},
+                roll_widths: {},
+                film_weights_gsm: {},
+                thickness_data: {},
+                roll_diameters: {},
+                accept_reject_status: {},
+                defect_names: {},
+                film_appearance: {},
+                printing_quality: {},
+                roll_appearance: {},
+                paper_core_data: {},
+                time_data: {},
+                remarks_data: {},
+                total_rolls: 0,
+                accepted_rolls: 0,
+                rejected_rolls: 0,
+                rework_rolls: 0,
+                kiv_rolls: 0,
+                accepted_weight: 0,
+                rejected_weight: 0,
+                rework_weight: 0,
+                kiv_weight: 0,
+                created_at: getISTTimestamp(),
+                updated_at: getISTTimestamp()
+            };
+            delete formObject.form_id;
             await supabase
                 .from('inline_inspection_form_master_2')
-                .insert([{
-                    form_id: form_id,
-                    traceability_code: traceabilityCode,
-                    lot_letter: lotLetter,
-                    lot_no: '01', // Set initial lot number to 01
-                    roll_weights: {},
-                    roll_widths: {},
-                    film_weights_gsm: {},
-                    thickness_data: {},
-                    roll_diameters: {},
-                    accept_reject_status: {},
-                    defect_names: {},
-                    film_appearance: {},
-                    printing_quality: {},
-                    roll_appearance: {},
-                    paper_core_data: {},
-                    time_data: {},
-                    remarks_data: {},
-                    total_rolls: 0,
-                    accepted_rolls: 0,
-                    rejected_rolls: 0,
-                    rework_rolls: 0,
-                    kiv_rolls: 0,
-                    accepted_weight: 0,
-                    rejected_weight: 0,
-                    rework_weight: 0,
-                    kiv_weight: 0,
-                    created_at: getISTTimestamp(),
-                    updated_at: getISTTimestamp()
-                }]);
+                .insert([formObject]);
             // Now reload to show the new table
             return await loadAllLots();
         }
