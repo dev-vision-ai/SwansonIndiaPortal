@@ -1183,7 +1183,6 @@ async function handleFormSubmit(e) {
         formDataCache.delete(cacheKey);
       } else {
         // Create new form
-      const form_id = crypto.randomUUID();
 
       // --- Determine next available lot_letter based on same shift, machine, and date ---
       let lot_letter = 'A';
@@ -1235,7 +1234,6 @@ async function handleFormSubmit(e) {
       // --- End lot_letter logic ---
 
       const formObject = {
-        form_id: form_id,
         traceability_code: traceability_code,
         lot_letter: lot_letter,
         customer: formData.get('customer'),
@@ -1267,6 +1265,9 @@ async function handleFormSubmit(e) {
         kiv_rolls: 0,
         created_at: getISTTimestamp()
       };
+        
+      // Ensure Supabase generates the UUID instead of frontend
+      delete formObject.form_id;
         
       const { data, error } = await supabase
         .from('inline_inspection_form_master_2')
@@ -2265,6 +2266,16 @@ function showMessage(message, type) {
 }
 
 // ===== UTILITY FUNCTIONS =====
+function getTableNameForMachine(mcNo) {
+  // Normalize machine number (handle both '1' and '01')
+  const normalizedMcNo = String(mcNo).padStart(2, '0');
+  if (normalizedMcNo === '01') return 'inline_inspection_form_master_1';
+  if (normalizedMcNo === '02') return 'inline_inspection_form_master_2';
+  if (normalizedMcNo === '03') return 'inline_inspection_form_master_3';
+  // Default to table_2 for any other machine numbers
+  return 'inline_inspection_form_master_2';
+}
+
 function formatDate(dateString) {
   if (!dateString) return '-';
   const date = new Date(dateString);
