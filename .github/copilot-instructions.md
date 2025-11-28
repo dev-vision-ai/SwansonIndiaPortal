@@ -1,5 +1,29 @@
 # Swanson India Portal - AI Coding Instructions
 
+## Initial Setup Instructions
+
+### Prerequisites
+- Node.js (v16 or higher)
+- Git
+- Supabase account with project access
+- VS Code with Live Server extension
+
+### Quick Start
+1. Clone the repository: `git clone <repo-url>`
+2. Install dependencies: `npm install && cd backend && npm install`
+3. Configure Supabase credentials in `public/supabase-config.js`
+4. Start development: `npm run dev` (backend) + Live Server on `public/index.html` (frontend)
+
+### Coding Standards
+- **Clean Code**: Write readable, maintainable code with clear variable names
+- **ES6+ Features**: Use modern JavaScript (arrow functions, async/await, destructuring)
+- **Error Handling**: Always wrap async operations in try/catch blocks
+- **Comments**: Add JSDoc comments for functions, explain complex logic
+- **Consistent Formatting**: Use consistent indentation (2 spaces), semicolons, and naming conventions
+- **Modular Code**: Keep functions small and focused on single responsibilities
+
+---
+
 ## Architecture Overview
 
 **Swanson India Portal** is a full-stack employee management and quality control system for Swanson Plastics India Pvt Ltd.

@@ -45,24 +45,56 @@ module.exports = function(app) {
       // Get query parameters for specific form
       const { traceability_code, lot_letter } = req.query;
 
-      // 1. Fetch data from Supabase - filter by specific form if parameters provided
-      let query = supabase.from('inline_inspection_form_master_2').select('*');
+      // 1. Find the correct table and fetch data from Supabase
+      let targetTable = null;
+      let data = null;
+      let error = null;
 
       if (traceability_code && lot_letter) {
-        // Export specific form
-        query = query.eq('traceability_code', traceability_code).eq('lot_letter', lot_letter);
+        // Search across all three tables to find the form
+        const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+        
+        for (const table of tables) {
+          const { data: tableData, error: tableError } = await supabase
+            .from(table)
+            .select('*')
+            .eq('traceability_code', traceability_code)
+            .eq('lot_letter', lot_letter);
+            
+          if (!tableError && tableData && tableData.length > 0) {
+            targetTable = table;
+            data = tableData;
+            break;
+          }
+        }
+        
+        if (!data || data.length === 0) {
+          return res.status(404).send('No data found for the specified form');
+        }
+      } else {
+        // If no parameters, export all forms from all tables (combined)
+        const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+        let allData = [];
+        
+        for (const table of tables) {
+          const result = await supabase.from(table).select('*');
+          if (result.data && result.data.length > 0) {
+            // Add table name to each record for tracking
+            result.data.forEach(record => {
+              record.table_name = table;
+            });
+            allData = allData.concat(result.data);
+          }
+        }
+        
+        data = allData;
+        error = null; // Reset error since we're combining results
+        targetTable = 'combined'; // Indicate this is combined data
       }
-      // If no parameters, export all forms (existing behavior)
 
-      const { data, error } = await query;
       if (error) {
         console.error('Supabase error:', error);
         return res.status(500).send('Error fetching data');
-      }
-
-
-      if (!data || data.length === 0) {
-        return res.status(404).send('No data found for the specified form');
       }
 
       // 2. Load the client's Excel template
@@ -152,37 +184,43 @@ module.exports = function(app) {
         // If main fields are null, try to find data from other forms with same traceability_code and lot_letter
         if (!customer || !production_no || !prod_code || !spec || !shift || !mc_no) {
           try {
-            const { data: otherForms, error } = await supabase
-              .from('inline_inspection_form_master_2')
-              .select('customer, production_no, production_no_2, prod_code, spec, shift, mc_no, production_date, emboss_type, printed, non_printed, ct')
-              .eq('traceability_code', targetLot.traceability_code)
-              .eq('lot_letter', targetLot.lot_letter)
-              .not('customer', 'is', null)
-              .limit(1);
+            // Search across all tables for header data
+            const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+            
+            for (const table of tables) {
+              const { data: otherForms, error } = await supabase
+                .from(table)
+                .select('customer, production_no, production_no_2, prod_code, spec, shift, mc_no, production_date, emboss_type, printed, non_printed, ct')
+                .eq('traceability_code', targetLot.traceability_code)
+                .eq('lot_letter', targetLot.lot_letter)
+                .not('customer', 'is', null)
+                .limit(1);
 
-            if (!error && otherForms && otherForms.length > 0) {
-              const otherForm = otherForms[0];
-              if (!customer) customer = otherForm.customer || '';
-              if (!production_no) production_no = otherForm.production_no || '';
-              if (!production_no_2) production_no_2 = otherForm.production_no_2 || '';
-              if (!prod_code) {
-                // Clean product code from other forms too
-                const otherProdCode = otherForm.prod_code || '';
-                if (otherProdCode.toLowerCase().includes('jeddah')) {
-                  prod_code = otherProdCode.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
-                } else {
-                  prod_code = otherProdCode;
+              if (!error && otherForms && otherForms.length > 0) {
+                const otherForm = otherForms[0];
+                if (!customer) customer = otherForm.customer || '';
+                if (!production_no) production_no = otherForm.production_no || '';
+                if (!production_no_2) production_no_2 = otherForm.production_no_2 || '';
+                if (!prod_code) {
+                  // Clean product code from other forms too
+                  const otherProdCode = otherForm.prod_code || '';
+                  if (otherProdCode.toLowerCase().includes('jeddah')) {
+                    prod_code = otherProdCode.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
+                  } else {
+                    prod_code = otherProdCode;
+                  }
                 }
-              }
-              if (!spec) spec = otherForm.spec || '';
-              if (!shift) shift = otherForm.shift || '';
-              if (!mc_no) mc_no = otherForm.mc_no || '';
-              if (!production_date) production_date = otherForm.production_date || '';
-              if (!emboss_type) emboss_type = otherForm.emboss_type || '';
-              if (!printed) printed = otherForm.printed || false;
-              if (!non_printed) non_printed = otherForm.non_printed || false;
-              if (!ct) ct = otherForm.ct || false;
+                if (!spec) spec = otherForm.spec || '';
+                if (!shift) shift = otherForm.shift || '';
+                if (!mc_no) mc_no = otherForm.mc_no || '';
+                if (!production_date) production_date = otherForm.production_date || '';
+                if (!emboss_type) emboss_type = otherForm.emboss_type || '';
+                if (!printed) printed = otherForm.printed || false;
+                if (!non_printed) non_printed = otherForm.non_printed || false;
+                if (!ct) ct = otherForm.ct || false;
 
+                break; // Found data, no need to check other tables
+              }
             }
           } catch (err) {
             console.log('  Error searching for header data in other forms:', err.message);
@@ -913,32 +951,31 @@ module.exports = function(app) {
       // If still no prod_code, try to find it from other forms with same traceability_code
       if (!prodCode) {
         try {
-          const { data: otherForms, error } = await supabase
-            .from('inline_inspection_form_master_2')
-            .select('prod_code')
-            .eq('traceability_code', targetLot.traceability_code)
-            .eq('lot_letter', targetLot.lot_letter)
-            .not('prod_code', 'is', null)
-            .limit(1);
+          // Search across all tables for prod_code
+          const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+          
+          for (const table of tables) {
+            const { data: otherForms, error } = await supabase
+              .from(table)
+              .select('prod_code')
+              .eq('traceability_code', targetLot.traceability_code)
+              .eq('lot_letter', targetLot.lot_letter)
+              .not('prod_code', 'is', null)
+              .neq('prod_code', '')
+              .limit(1);
 
-          if (!error && otherForms && otherForms.length > 0) {
-            prodCode = otherForms[0].prod_code;
-
-            // Update original product code for filename if we found it from other forms
-            originalProdCodeForFilename = prodCode;
-
-            // Remove extra spaces around "(Jeddah)" for filename from other forms too
-            if (originalProdCodeForFilename.toLowerCase().includes('jeddah')) {
-              originalProdCodeForFilename = originalProdCodeForFilename.replace(/\s*\(([^)]*jeddah[^)]*)\)/gi, '($1)').trim();
+            if (!error && otherForms && otherForms.length > 0) {
+              prodCode = otherForms[0].prod_code;
+              
+              // Clean the retrieved product code by removing "(Jeddah)" part if present
+              if (prodCode.toLowerCase().includes('jeddah')) {
+                prodCode = prodCode.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
+              }
+              break; // Found prod_code, no need to check other tables
             }
-
-            // Clean the retrieved product code by removing "(Jeddah)" part if present (for Excel content only)
-            if (prodCode.toLowerCase().includes('jeddah')) {
-              // Remove "(Jeddah)" or "(JEDDAH)" or any case variation
-              const originalProdCode = prodCode;
-              prodCode = prodCode.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
-            }
-          } else {
+          }
+          
+          if (!prodCode) {
             prodCode = 'PROD-CODE'; // Default value
           }
         } catch (err) {
@@ -949,17 +986,25 @@ module.exports = function(app) {
       // If still no shift, try to find it from other forms with same traceability_code
       if (!shiftNumber) {
         try {
-          const { data: otherForms, error } = await supabase
-            .from('inline_inspection_form_master_2')
-            .select('shift')
-            .eq('traceability_code', targetLot.traceability_code)
-            .eq('lot_letter', targetLot.lot_letter)
-            .not('shift', 'is', null)
-            .limit(1);
+          // Search across all tables for shift
+          const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+          
+          for (const table of tables) {
+            const { data: otherForms, error } = await supabase
+              .from(table)
+              .select('shift')
+              .eq('traceability_code', targetLot.traceability_code)
+              .eq('lot_letter', targetLot.lot_letter)
+              .not('shift', 'is', null)
+              .limit(1);
 
-          if (!error && otherForms && otherForms.length > 0) {
-            shiftNumber = otherForms[0].shift;
-          } else {
+            if (!error && otherForms && otherForms.length > 0) {
+              shiftNumber = otherForms[0].shift;
+              break; // Found shift, no need to check other tables
+            }
+          }
+          
+          if (!shiftNumber) {
             shiftNumber = '1'; // Default to shift 1
           }
         } catch (err) {

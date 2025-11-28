@@ -496,46 +496,60 @@ async function loadFormsData() {
     try {
 
         
-        // First, get the total count to understand our data size
-        const { count, error: countError } = await supabase
-            .from('inline_inspection_form_master_2')
-            .select('*', { count: 'exact', head: true });
+        // First, get the total count to understand our data size across all tables
+        const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+        let totalCount = 0;
         
-        if (countError) {
-            console.error('❌ Count error:', countError);
-        } else {
-            // Total records count available if needed
+        for (const table of tables) {
+            const { count, error: countError } = await supabase
+                .from(table)
+                .select('*', { count: 'exact', head: true });
+            
+            if (countError) {
+                console.error(`❌ Count error for ${table}:`, countError);
+            } else {
+                totalCount += count || 0;
+            }
         }
         
-        // Load data in chunks if needed
+        // Total records count available if needed
+        
+        // Load data in chunks from all tables
         let allData = [];
-        let hasMore = true;
-        let offset = 0;
         const chunkSize = 1000;
         
-        while (hasMore) {
-            const { data, error } = await supabase
-                .from('inline_inspection_form_master_2')
-                .select('*')
-                .order('production_date', { ascending: false })
-                .range(offset, offset + chunkSize - 1);
+        for (const table of tables) {
+            let hasMore = true;
+            let offset = 0;
             
-            if (error) {
-                console.error('❌ Database error:', error);
-                throw error;
-            }
-            
-            if (data && data.length > 0) {
-                allData = [...allData, ...data];
-                offset += chunkSize;
-
+            while (hasMore) {
+                const { data, error } = await supabase
+                    .from(table)
+                    .select('*')
+                    .order('production_date', { ascending: false })
+                    .range(offset, offset + chunkSize - 1);
                 
-                // Stop if we got less than chunk size (end of data)
-                if (data.length < chunkSize) {
+                if (error) {
+                    console.error(`❌ Database error for ${table}:`, error);
+                    throw error;
+                }
+                
+                if (data && data.length > 0) {
+                    // Add table name to each record for tracking
+                    data.forEach(record => {
+                        record.table_name = table;
+                    });
+                    allData = [...allData, ...data];
+                    offset += chunkSize;
+
+                    
+                    // Stop if we got less than chunk size (end of data)
+                    if (data.length < chunkSize) {
+                        hasMore = false;
+                    }
+                } else {
                     hasMore = false;
                 }
-            } else {
-                hasMore = false;
             }
         }
         

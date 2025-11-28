@@ -1017,6 +1017,8 @@ function applyLotRollValidation(input) {
 
 function validateLotRoll(input) {
     let value = input.value;
+    const previousValue = input.dataset.previousValue || '';
+    const isDeleting = value.length < previousValue.length;
     
     // Only allow numbers, dash, and double quote
     value = value.replace(/[^0-9-"]/g, '');
@@ -1038,12 +1040,13 @@ function validateLotRoll(input) {
             value = parts[0];
         }
         // Auto-insert dash after 2 digits
-        if (parts[0].length === 2) {
+        if (!isDeleting && parts[0].length === 2) {
             value = parts[0] + '-';
         }
     }
     
     input.value = value;
+    input.dataset.previousValue = value;
 }
 
 function formatLotRollOnEnter(input) {
@@ -1162,6 +1165,8 @@ function applyLotTimeValidation(input) {
 
 function validateLotTime(input) {
     let value = input.value;
+    const previousValue = input.dataset.previousValue || '';
+    const isDeleting = value.length < previousValue.length;
     
     // Only allow numbers, colon, and double quote
     value = value.replace(/[^0-9:"]/g, '');
@@ -1183,12 +1188,13 @@ function validateLotTime(input) {
             value = parts[0];
         }
         // Auto-insert colon after 2 digits
-        if (parts[0].length === 2) {
+        if (!isDeleting && parts[0].length === 2) {
             value = parts[0] + ':';
         }
     }
     
     input.value = value;
+    input.dataset.previousValue = value;
 }
 
 function formatLotTimeOnEnter(input) {
