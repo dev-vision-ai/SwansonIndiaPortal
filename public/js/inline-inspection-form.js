@@ -495,27 +495,34 @@ async function populateMachineDropdown(fromDate, toDate) {
   // If date filters are applied, load historical data from database
   if (fromDate || toDate) {
     try {
-      let query = supabase
-        .from('inline_inspection_form_master_2')
-        .select('mc_no, production_date')
-        .not('customer', 'is', null)
-        .neq('customer', '');
+      // Query all three tables and combine results
+      const allHistoricalData = [];
+      const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
       
-      if (fromDate) {
-        query = query.gte('production_date', fromDate);
+      for (const table of tables) {
+        let query = supabase
+          .from(table)
+          .select('mc_no, production_date')
+          .not('customer', 'is', null)
+          .neq('customer', '');
+        
+        if (fromDate) {
+          query = query.gte('production_date', fromDate);
+        }
+        if (toDate) {
+          query = query.lte('production_date', toDate);
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error(`Error loading historical data from ${table}:`, error);
+        } else if (data) {
+          allHistoricalData.push(...data);
+        }
       }
-      if (toDate) {
-        query = query.lte('production_date', toDate);
-      }
       
-      const { data: historicalData, error } = await query;
-      
-      if (error) {
-        console.error('Error loading historical data for machine dropdown:', error);
-        return;
-      }
-      
-      dataToUse = historicalData || [];
+      dataToUse = allHistoricalData || [];
     } catch (error) {
       console.error('Error in populateMachineDropdown:', error);
       return;
@@ -535,27 +542,34 @@ async function populateProductDropdown(fromDate, toDate, machine) {
   // If date filters are applied, load historical data from database
   if (fromDate || toDate) {
     try {
-      let query = supabase
-        .from('inline_inspection_form_master_2')
-        .select('prod_code, mc_no, production_date')
-        .not('customer', 'is', null)
-        .neq('customer', '');
+      // Query all three tables and combine results
+      const allHistoricalData = [];
+      const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
       
-      if (fromDate) {
-        query = query.gte('production_date', fromDate);
+      for (const table of tables) {
+        let query = supabase
+          .from(table)
+          .select('prod_code, mc_no, production_date')
+          .not('customer', 'is', null)
+          .neq('customer', '');
+        
+        if (fromDate) {
+          query = query.gte('production_date', fromDate);
+        }
+        if (toDate) {
+          query = query.lte('production_date', toDate);
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error(`Error loading historical data from ${table}:`, error);
+        } else if (data) {
+          allHistoricalData.push(...data);
+        }
       }
-      if (toDate) {
-        query = query.lte('production_date', toDate);
-      }
       
-      const { data: historicalData, error } = await query;
-      
-      if (error) {
-        console.error('Error loading historical data for product dropdown:', error);
-        return;
-      }
-      
-      dataToUse = historicalData || [];
+      dataToUse = allHistoricalData || [];
     } catch (error) {
       console.error('Error in populateProductDropdown:', error);
       return;
@@ -580,27 +594,34 @@ async function populateShiftDropdown(fromDate, toDate, machine, product) {
   // If date filters are applied, load historical data from database
   if (fromDate || toDate) {
     try {
-      let query = supabase
-        .from('inline_inspection_form_master_2')
-        .select('shift, mc_no, prod_code, production_date')
-        .not('customer', 'is', null)
-        .neq('customer', '');
+      // Query all three tables and combine results
+      const allHistoricalData = [];
+      const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
       
-      if (fromDate) {
-        query = query.gte('production_date', fromDate);
+      for (const table of tables) {
+        let query = supabase
+          .from(table)
+          .select('shift, mc_no, prod_code, production_date')
+          .not('customer', 'is', null)
+          .neq('customer', '');
+        
+        if (fromDate) {
+          query = query.gte('production_date', fromDate);
+        }
+        if (toDate) {
+          query = query.lte('production_date', toDate);
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error(`Error loading historical data from ${table}:`, error);
+        } else if (data) {
+          allHistoricalData.push(...data);
+        }
       }
-      if (toDate) {
-        query = query.lte('production_date', toDate);
-      }
       
-      const { data: historicalData, error } = await query;
-      
-      if (error) {
-        console.error('Error loading historical data for shift dropdown:', error);
-        return;
-      }
-      
-      dataToUse = historicalData || [];
+      dataToUse = allHistoricalData || [];
     } catch (error) {
       console.error('Error in populateShiftDropdown:', error);
       return;
@@ -655,31 +676,38 @@ async function populateNonCascadingDropdowns(fromDate, toDate) {
   if (!fromDate && !toDate) return;
   
   try {
-    let query = supabase
-      .from('inline_inspection_form_master_2')
-      .select('operator, operator2, supervisor, supervisor2, qc_inspector, qc_inspector2')
-      .not('customer', 'is', null)
-      .neq('customer', '');
+    // Query all three tables and combine results
+    const allHistoricalData = [];
+    const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
     
-    if (fromDate) {
-      query = query.gte('production_date', fromDate);
+    for (const table of tables) {
+      let query = supabase
+        .from(table)
+        .select('operator, operator2, supervisor, supervisor2, qc_inspector, qc_inspector2')
+        .not('customer', 'is', null)
+        .neq('customer', '');
+      
+      if (fromDate) {
+        query = query.gte('production_date', fromDate);
+      }
+      if (toDate) {
+        query = query.lte('production_date', toDate);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error(`Error loading historical data from ${table}:`, error);
+      } else if (data) {
+        allHistoricalData.push(...data);
+      }
     }
-    if (toDate) {
-      query = query.lte('production_date', toDate);
-    }
     
-    const { data: historicalData, error } = await query;
-    
-    if (error) {
-      console.error('Error loading historical data for non-cascading dropdowns:', error);
-      return;
-    }
-    
-    if (historicalData && historicalData.length > 0) {
+    if (allHistoricalData && allHistoricalData.length > 0) {
       // Get unique values for non-cascading filters from historical data
-      const operators = [...new Set(historicalData.flatMap(form => [form.operator, form.operator2]).filter(Boolean))].sort();
-      const supervisors = [...new Set(historicalData.flatMap(form => [form.supervisor, form.supervisor2]).filter(Boolean))].sort();
-      const qcInspectors = [...new Set(historicalData.flatMap(form => [form.qc_inspector, form.qc_inspector2]).filter(Boolean))].sort();
+      const operators = [...new Set(allHistoricalData.flatMap(form => [form.operator, form.operator2]).filter(Boolean))].sort();
+      const supervisors = [...new Set(allHistoricalData.flatMap(form => [form.supervisor, form.supervisor2]).filter(Boolean))].sort();
+      const qcInspectors = [...new Set(allHistoricalData.flatMap(form => [form.qc_inspector, form.qc_inspector2]).filter(Boolean))].sort();
       
       // Populate non-cascading dropdowns with historical data
       populateSelect('filterOperator', operators);
@@ -848,41 +876,47 @@ async function applyFilters() {
   // If date filters are applied, load historical data from database
   if (hasDateFilters) {
     try {
-      // Build query for historical data
-      let query = supabase
-        .from('inline_inspection_form_master_2')
-        .select(`
-          id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
-          production_date, emboss_type, printed, non_printed, ct, year, month, date,
-          mc_no, shift, supervisor, supervisor2,
-          operator, operator2, qc_inspector, qc_inspector2, status,
-          total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
-          created_at, updated_at
-        `);
+      // Query all three tables and combine results
+      const allHistoricalData = [];
+      const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
       
-      // Apply date filters to database query
-      if (fromDate) {
-        query = query.gte('production_date', fromDate);
-      }
-      if (toDate) {
-        query = query.lte('production_date', toDate);
-      }
-      
-      // Add ordering
-      query = query
-        .order('production_date', { ascending: false })
-        .order('created_at', { ascending: false })
-        .order('mc_no', { ascending: true });
-      
-      const { data: historicalData, error } = await query;
-      
-      if (error) {
-        console.error('Error loading historical data:', error);
-        return;
+      for (const table of tables) {
+        let query = supabase
+          .from(table)
+          .select(`
+            id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
+            production_date, emboss_type, printed, non_printed, ct, year, month, date,
+            mc_no, shift, supervisor, supervisor2,
+            operator, operator2, qc_inspector, qc_inspector2, status,
+            total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
+            created_at, updated_at
+          `);
+        
+        // Apply date filters to database query
+        if (fromDate) {
+          query = query.gte('production_date', fromDate);
+        }
+        if (toDate) {
+          query = query.lte('production_date', toDate);
+        }
+        
+        // Add ordering
+        query = query
+          .order('production_date', { ascending: false })
+          .order('created_at', { ascending: false })
+          .order('mc_no', { ascending: true });
+        
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error(`Error loading historical data from ${table}:`, error);
+        } else if (data) {
+          allHistoricalData.push(...data);
+        }
       }
       
       // Filter historical data with other filters
-      const validHistoricalForms = historicalData.filter(form => form.customer !== null && form.customer !== '');
+      const validHistoricalForms = allHistoricalData.filter(form => form.customer !== null && form.customer !== '');
       
       // Apply other filters to historical data
       filteredForms = validHistoricalForms.filter(form => {
@@ -1114,25 +1148,40 @@ async function handleFormSubmit(e) {
         // Get the lot_letter from the existing record for cache clearing
         let lot_letter = 'A'; // Default fallback
         
-        // Check if the record we're trying to update actually exists
-        const { data: checkRecord, error: checkError } = await supabase
-          .from('inline_inspection_form_master_2')
-          .select(`
-            id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
-            production_date, emboss_type, printed, non_printed, ct, year, month, date,
-            mc_no, shift, supervisor, supervisor2,
-            operator, operator2, qc_inspector, qc_inspector2, status,
-            total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
-            created_at, updated_at
-          `)
-          .eq('id', editRecordId);
-          
-        // Record check completed
+        // Find the record across all tables to determine which table it belongs to
+        let foundRecord = null;
+        let tableName = null;
+        const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+        
+        for (const table of tables) {
+          const { data: record, error } = await supabase
+            .from(table)
+            .select(`
+              id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
+              production_date, emboss_type, printed, non_printed, ct, year, month, date,
+              mc_no, shift, supervisor, supervisor2,
+              operator, operator2, qc_inspector, qc_inspector2, status,
+              total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
+              created_at, updated_at
+            `)
+            .eq('id', editRecordId)
+            .single();
+            
+          if (!error && record) {
+            foundRecord = record;
+            tableName = table;
+            break;
+          }
+        }
+        
+        if (!foundRecord) {
+          console.error('Record not found in any table for ID:', editRecordId);
+          alert('Error: Record not found for editing.');
+          return;
+        }
         
         // Get lot_letter from the existing record
-        if (checkRecord && checkRecord.length > 0) {
-          lot_letter = checkRecord[0].lot_letter || 'A';
-        }
+        lot_letter = foundRecord.lot_letter || 'A';
         
         const updateObject = {
           customer: formData.get('customer'),
@@ -1160,7 +1209,7 @@ async function handleFormSubmit(e) {
         
         // Update query prepared
         const { data, error } = await supabase
-          .from('inline_inspection_form_master_2')
+          .from(tableName)
           .update(updateObject)
           .eq('id', editRecordId)
           .select();
@@ -1191,14 +1240,18 @@ async function handleFormSubmit(e) {
         const currentMachine = formData.get('mc_no');
         const currentDate = formData.get('production_date');
         
+        // Get the correct table for this machine
+        const tableName = getTableNameForMachine(currentMachine);
+        
         // console.log('Checking for existing forms with:', {
         //   shift: currentShift,
         //   machine: currentMachine,
-        //   date: currentDate
+        //   date: currentDate,
+        //   table: tableName
         // });
         
         const { data: existingForms, error: fetchError } = await supabase
-          .from('inline_inspection_form_master_2')
+          .from(tableName)
           .select('lot_letter, shift, mc_no, production_date')
           .eq('shift', currentShift)
           .eq('mc_no', currentMachine)
@@ -1268,9 +1321,12 @@ async function handleFormSubmit(e) {
         
       // Ensure Supabase generates the UUID instead of frontend
       delete formObject.form_id;
+      
+      // Get the correct table for this machine and insert
+      const tableName = getTableNameForMachine(formData.get('mc_no'));
         
       const { data, error } = await supabase
-        .from('inline_inspection_form_master_2')
+        .from(tableName)
         .insert([formObject])
         .select();
           
@@ -1596,37 +1652,44 @@ async function handleFormSubmit(e) {
       
       // Loading forms for target date range
       
-      let query = supabase
-        .from('inline_inspection_form_master_2')
-        .select(`
-          id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
-          production_date, emboss_type, printed, non_printed, ct, year, month, date,
-          mc_no, shift, supervisor, supervisor2,
-          operator, operator2, qc_inspector, qc_inspector2, status,
-          total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
-          created_at, updated_at
-        `);
+      // Query all three tables and combine results
+      const allFormsData = [];
+      const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
       
-      // Apply date filters if they exist
-      if (startDate) {
-        query = query.gte('production_date', startDate);
-      }
-      if (endDate) {
-        query = query.lte('production_date', endDate);
-      }
-      
-      const { data, error } = await query
-        .order('production_date', { ascending: false })
-        .order('created_at', { ascending: false })
-        .order('mc_no', { ascending: true });
+      for (const table of tables) {
+        let query = supabase
+          .from(table)
+          .select(`
+            id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
+            production_date, emboss_type, printed, non_printed, ct, year, month, date,
+            mc_no, shift, supervisor, supervisor2,
+            operator, operator2, qc_inspector, qc_inspector2, status,
+            total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
+            created_at, updated_at
+          `);
+        
+        // Apply date filters if they exist
+        if (startDate) {
+          query = query.gte('production_date', startDate);
+        }
+        if (endDate) {
+          query = query.lte('production_date', endDate);
+        }
+        
+        const { data, error } = await query
+          .order('production_date', { ascending: false })
+          .order('created_at', { ascending: false })
+          .order('mc_no', { ascending: true });
 
-    if (error) {
-      console.error('Error loading forms:', error);
-      return;
-    }
+        if (error) {
+          console.error(`Error loading forms from ${table}:`, error);
+        } else if (data) {
+          allFormsData.push(...data);
+        }
+      }
 
-    // Only show forms with a non-null and non-empty customer value
-    const validForms = data.filter(form => form.customer !== null && form.customer !== '');
+      // Only show forms with a non-null and non-empty customer value
+      const validForms = allFormsData.filter(form => form.customer !== null && form.customer !== '');
     
 
     
@@ -2005,28 +2068,30 @@ async function editForm(traceability_code, lot_letter) {
   submitButton.disabled = true;
 
   try {
-    // Find the record with actual form data for this traceability_code
-    const { data: allData, error: listError } = await supabase
-      .from('inline_inspection_form_master_2')
-      .select(`
-        id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
-        production_date, emboss_type, printed, non_printed, ct, year, month, date,
-        mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
-        operator, operator2, qc_inspector, qc_inspector2, status,
-        total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
-        created_at, updated_at
-      `)
-      .eq('traceability_code', traceability_code)
-      .eq('lot_letter', lot_letter);
+    // Find the record across all tables
+    let selectedFormData = null;
+    const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+    
+    for (const table of tables) {
+      const { data: allData, error: listError } = await supabase
+        .from(table)
+        .select(`
+          id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
+          production_date, emboss_type, printed, non_printed, ct, year, month, date,
+          mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
+          operator, operator2, qc_inspector, qc_inspector2, status,
+          total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
+          created_at, updated_at
+        `)
+        .eq('traceability_code', traceability_code)
+        .eq('lot_letter', lot_letter);
 
-    if (listError) {
-      console.error('Error listing forms:', listError);
-      alert('Error loading form for editing.');
-      return;
+      if (!listError && allData && allData.length > 0) {
+        // Prefer exact match by lot_letter (query already filters by it). Fallback to any record
+        selectedFormData = allData.find(f => (f.customer || f.production_no || f.prod_code || f.spec)) || allData[0];
+        break;
+      }
     }
-
-    // Prefer exact match by lot_letter (query already filters by it). Fallback to any record
-    const selectedFormData = (allData || []).find(f => (f.customer || f.production_no || f.prod_code || f.spec)) || (allData && allData[0]);
 
     if (!selectedFormData) {
       console.error('No form with data found for traceability_code and lot_letter:', traceability_code, lot_letter);
@@ -2074,8 +2139,32 @@ async function confirmFinalDelete() {
   const { traceability_code, lot_letter } = window.pendingDeleteForm;
   
   try {
+    // Find the record across all tables to determine which table it belongs to
+    let tableName = null;
+    const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+    
+    for (const table of tables) {
+      const { data: record, error } = await supabase
+        .from(table)
+        .select('id')
+        .eq('traceability_code', traceability_code)
+        .eq('lot_letter', lot_letter)
+        .single();
+        
+      if (!error && record) {
+        tableName = table;
+        break;
+      }
+    }
+    
+    if (!tableName) {
+      console.error('Record not found in any table for deletion:', traceability_code, lot_letter);
+      alert('Error: Record not found for deletion.');
+      return;
+    }
+    
     const { error } = await supabase
-      .from('inline_inspection_form_master_2')
+      .from(tableName)
       .delete()
       .eq('traceability_code', traceability_code)
       .eq('lot_letter', lot_letter);

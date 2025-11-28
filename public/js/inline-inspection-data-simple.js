@@ -1,5 +1,24 @@
 import { supabase } from '../supabase-config.js';
 
+// ===== TABLE ROUTING HELPER FUNCTION =====
+function getTableNameForMachine(mcNo) {
+    // Normalize mc_no to handle different formats (01, 1, MC01, etc.)
+    let normalizedMcNo = mcNo?.toString().replace(/[^0-9]/g, '') || '';
+    
+    // Ensure it's 2 digits with leading zero
+    if (normalizedMcNo.length === 1) {
+        normalizedMcNo = '0' + normalizedMcNo;
+    }
+    
+    // Route based on machine number
+    if (normalizedMcNo === '01') return 'inline_inspection_form_master_1';
+    if (normalizedMcNo === '02') return 'inline_inspection_form_master_2';
+    if (normalizedMcNo === '03') return 'inline_inspection_form_master_3';
+    
+    // Default to table_2 for any other machine numbers
+    return 'inline_inspection_form_master_2';
+}
+
 // Move this to the very top of the file
 const tablesContainer = document.getElementById('tablesContainer');
 
@@ -671,23 +690,31 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     if (traceabilityCode) {
         try {
-            // Load all lots for this traceability_code, order by created_at ascending to get the oldest first
-            const { data: lots, error } = await supabase
-                .from('inline_inspection_form_master_2')
-                .select('*')
-                .eq('traceability_code', traceabilityCode)
-                .eq('lot_letter', lotLetter)
-                .order('created_at', { ascending: true });
+            // Load all lots for this traceability_code from all machine tables
+            const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+            let allLots = [];
             
-            if (error) {
-                console.error('Error loading form:', error);
-                alert('Error loading form data: ' + error.message);
-                return;
+            for (const tableName of tables) {
+                const { data: lots, error } = await supabase
+                    .from(tableName)
+                    .select('*')
+                    .eq('traceability_code', traceabilityCode)
+                    .eq('lot_letter', lotLetter)
+                    .order('created_at', { ascending: true });
+                
+                if (error) {
+                    console.error(`Error loading from ${tableName}:`, error);
+                    continue;
+                }
+                
+                if (lots && lots.length > 0) {
+                    allLots = allLots.concat(lots);
+                }
             }
             
-            if (lots && lots.length > 0) {
+            if (allLots.length > 0) {
                 // Use the oldest lot for header section
-                const formData = lots[0];
+                const formData = allLots[0];
                 
                 document.getElementById('customer').textContent = formData.customer || '[Customer]';
                 // Show only production_no in the main Production No field
@@ -706,10 +733,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                         saveTimeout = setTimeout(async () => {
                             try {
                                 const newValue = this.value.trim();
-                                // Auto-saving production_no_2
+                                // Auto-saving production_no_2 - need to find the correct table
+                                const mcNo = formData.mc_no;
+                                const tableName = getTableNameForMachine(mcNo);
                                 
                                 const { error } = await supabase
-                                    .from('inline_inspection_form_master_2')
+                                    .from(tableName)
                                     .update({ production_no_2: newValue })
                                     .eq('traceability_code', traceabilityCode)
                                     .eq('lot_letter', lotLetter);
@@ -1384,6 +1413,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             return;
         }
         const formId = table.dataset.formId;
+        
+        // Get mc_no to determine the correct table
+        const mcNoElement = document.getElementById('mc_no');
+        const mcNo = mcNoElement ? mcNoElement.textContent.trim() : '';
+        const tableName = getTableNameForMachine(mcNo);
+        
         // Debug: Log which table is being saved
         const allTables = Array.from(document.querySelectorAll('#tablesContainer table'));
         const tableIndex = allTables.indexOf(table);
@@ -1543,7 +1578,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Update row in Supabase with individual JSONB columns
         const { error } = await supabase
-            .from('inline_inspection_form_master_2')
+            .from(tableName)
             .update({ 
                 roll_weights: rollWeights,
                 roll_widths: rollWidths,
@@ -2618,27 +2653,39 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ===== DUPLICATE LOT NUMBER DETECTION =====
     async function checkForDuplicateLotNumber(traceabilityCode, lotLetter, lotNumber) {
         try {
-            // Check if this lot number already exists in the database
-            const { data: existingLots, error } = await supabase
-                .from('inline_inspection_form_master_2')
-                .select('id, form_id, lot_no, created_at, status')
-                .eq('traceability_code', traceabilityCode)
-                .eq('lot_letter', lotLetter)
-                .eq('lot_no', lotNumber);
-            
-            if (error) {
-                console.error('Error checking for duplicate lot numbers:', error);
-                return { hasDuplicates: false, duplicates: [] };
+            // Check if this lot number already exists in the database across all tables
+            const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+            let allExistingLots = [];
+
+            for (const tableName of tables) {
+                const { data: existingLots, error } = await supabase
+                    .from(tableName)
+                    .select('id, form_id, lot_no, created_at, status')
+                    .eq('traceability_code', traceabilityCode)
+                    .eq('lot_letter', lotLetter)
+                    .eq('lot_no', lotNumber);
+
+                if (error) {
+                    console.error(`Error checking for duplicate lot numbers in ${tableName}:`, error);
+                    continue;
+                }
+
+                if (existingLots && existingLots.length > 0) {
+                    // Add table name to each lot for reference
+                    existingLots.forEach(lot => lot.table_name = tableName);
+                    allExistingLots.push(...existingLots);
+                }
             }
-            
-            if (existingLots && existingLots.length > 0) {
-                return { 
-                    hasDuplicates: true, 
-                    duplicates: existingLots,
-                    message: `⚠️ DUPLICATE LOT DETECTED!\n\nLot Number: ${lotNumber}\nTraceability Code: ${traceabilityCode}\nLot Letter: ${lotLetter}\n\nFound ${existingLots.length} existing record(s) with the same lot number.\n\nThis could cause data conflicts. Please verify before proceeding.`
+
+            // Check if any duplicates were found
+            if (allExistingLots.length > 0) {
+                return {
+                    hasDuplicates: true,
+                    duplicates: allExistingLots,
+                    message: `⚠️ DUPLICATE LOT DETECTED!\n\nLot Number: ${lotNumber}\nTraceability Code: ${traceabilityCode}\nLot Letter: ${lotLetter}\n\nFound ${allExistingLots.length} existing record(s) with the same lot number.\n\nThis could cause data conflicts. Please verify before proceeding.`
                 };
             }
-            
+
             return { hasDuplicates: false, duplicates: [] };
         } catch (error) {
             console.error('Error in duplicate lot number check:', error);
@@ -2958,6 +3005,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             rolls.push(buildEmptyRoll(i, nextLotNumber));
         }
         
+        // Get mc_no to determine the correct table
+        const mcNoElement = document.getElementById('mc_no');
+        const mcNo = mcNoElement ? mcNoElement.textContent.trim() : '02'; // Default to 02 if not found
+        const tableName = getTableNameForMachine(mcNo);
+        
         // Insert new row in Supabase with individual JSONB columns
         const formObject = {
             traceability_code: traceabilityCode,
@@ -2991,7 +3043,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         };
         delete formObject.form_id;
         const { error } = await supabase
-            .from('inline_inspection_form_master_2')
+            .from(tableName)
             .insert([formObject]);
         if (error) {
             alert('Error creating new lot: ' + error.message);
@@ -3272,16 +3324,27 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!traceabilityCode || !lotLetter) return;
         
         try {
-            const { data: allLots, error } = await supabase
-                .from('inline_inspection_form_master_2')
-                .select('id, form_id, lot_no, created_at, status')
-                .eq('traceability_code', traceabilityCode)
-                .eq('lot_letter', lotLetter)
-                .order('lot_no');
+            const allLots = [];
+            const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
             
-            if (error) {
-                console.error('Error checking for existing duplicates:', error);
-                return;
+            for (const tableName of tables) {
+                const { data: lots, error } = await supabase
+                    .from(tableName)
+                    .select('id, form_id, lot_no, created_at, status')
+                    .eq('traceability_code', traceabilityCode)
+                    .eq('lot_letter', lotLetter)
+                    .order('lot_no');
+                    
+                if (error) {
+                    console.error(`Error checking for existing duplicates in ${tableName}:`, error);
+                    continue;
+                }
+                
+                if (lots && lots.length > 0) {
+                    // Add table name to each lot for reference
+                    lots.forEach(lot => lot.table_name = tableName);
+                    allLots.push(...lots);
+                }
             }
             
             if (!allLots || allLots.length === 0) return;
@@ -3531,7 +3594,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         try {
             // console.log('Starting migration of old data to JSONB...');
             
-            // Load all old individual row data
+    // Load all old individual row data
             const { data: oldData, error } = await supabase
                 .from('inline_inspection_form_master_2')
                 .select('*')
@@ -4140,6 +4203,28 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!tbody) return;
         const rows = tbody.rows;
         
+        // First, find which table contains this form_id
+        const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+        let targetTable = null;
+        
+        for (const tableName of tables) {
+            const { data: existingRecord, error } = await supabase
+                .from(tableName)
+                .select('id')
+                .eq('form_id', formId)
+                .single();
+                
+            if (!error && existingRecord) {
+                targetTable = tableName;
+                break;
+            }
+        }
+        
+        if (!targetTable) {
+            console.error('Could not find table containing form_id:', formId);
+            return;
+        }
+        
         // Initialize JSONB objects for individual columns
         const rollWeights = {};
         const rollWidths = {};
@@ -4272,7 +4357,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Update row in Supabase with individual JSONB columns
         const { error } = await supabase
-            .from('inline_inspection_form_master_2')
+            .from(targetTable)
             .update({ 
                 roll_weights: rollWeights,
                 roll_widths: rollWidths,
@@ -4313,20 +4398,38 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!traceabilityCode) return;
         // Clear existing tables
         tablesContainer.innerHTML = '';
-        // Fetch all lots
-        const { data: lots, error } = await supabase
-            .from('inline_inspection_form_master_2')
-            .select('*')
-            .eq('traceability_code', traceabilityCode)
-            .eq('lot_letter', lotLetter)
-            .order('created_at', { ascending: true });
-        // Lots fetched successfully
-        if (error) {
-            alert('Error loading lots: ' + error.message);
-            return;
+        // Fetch all lots from all tables
+        const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+        let allLots = [];
+        
+        for (const tableName of tables) {
+            const { data: lots, error } = await supabase
+                .from(tableName)
+                .select('*')
+                .eq('traceability_code', traceabilityCode)
+                .eq('lot_letter', lotLetter)
+                .order('created_at', { ascending: true });
+                
+            if (error) {
+                console.error(`Error loading lots from ${tableName}:`, error);
+                continue;
+            }
+            
+            if (lots && lots.length > 0) {
+                allLots = allLots.concat(lots);
+            }
         }
-        if (!lots || lots.length === 0) {
+        
+        // Sort all lots by creation time
+        allLots.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        
+        if (allLots.length === 0) {
             // No lots found, create a new one with empty JSONB columns
+            // Get mc_no to determine the correct table
+            const mcNoElement = document.getElementById('mc_no');
+            const mcNo = mcNoElement ? mcNoElement.textContent.trim() : '02'; // Default to 02 if not found
+            const tableName = getTableNameForMachine(mcNo);
+            
             const formObject = {
                 traceability_code: traceabilityCode,
                 lot_letter: lotLetter,
@@ -4358,20 +4461,20 @@ document.addEventListener('DOMContentLoaded', async function() {
             };
             delete formObject.form_id;
             await supabase
-                .from('inline_inspection_form_master_2')
+                .from(tableName)
                 .insert([formObject]);
             // Now reload to show the new table
             return await loadAllLots();
         }
         // Fix existing lots that have null lot_no
-        for (const lot of lots) {
+        for (const lot of allLots) {
             if (!lot.lot_no || lot.lot_no === null) {
                 // console.log('Fixing lot with null lot_no:', lot.id);
                 // Update the lot to have lot_no '01' if it's the first lot
-                const lotIndex = lots.indexOf(lot);
+                const lotIndex = allLots.indexOf(lot);
                 const newLotNo = (lotIndex + 1).toString().padStart(2, '0');
                 await supabase
-                    .from('inline_inspection_form_master_2')
+                    .from(allLots[lotIndex].table_name || 'inline_inspection_form_master_2')
                     .update({ lot_no: newLotNo })
                     .eq('id', lot.id);
                 // Update the lot object for rendering
@@ -4381,7 +4484,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Clear the container before repopulating
         tablesContainer.innerHTML = '';
-        lots.forEach((lot, index) => {
+        allLots.forEach((lot, index) => {
             // Rendering lot
             // Calculate number of rolls from JSONB data
             let rollCount = Object.keys(lot.accept_reject_status || {}).length;
@@ -4453,7 +4556,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // After all lots are loaded and tables are rendered, show defects summary
         // 1. Aggregate all rolls from all lots using JSONB data
         let allRolls = [];
-        lots.forEach(lot => {
+        allLots.forEach(lot => {
             // Reconstruct rolls from individual JSONB columns
             const rollPositions = Object.keys(lot.accept_reject_status || {});
             rollPositions.forEach(position => {
@@ -5205,38 +5308,59 @@ document.addEventListener('DOMContentLoaded', async function() {
                     // Clear all Supabase data to zero (like newly added table)
                     const formId = table.dataset.formId;
                     if (formId) {
-                        const { error } = await supabase
-                            .from('inline_inspection_form_master_2')
-                            .update({
-                                roll_weights: {},
-                                roll_widths: {},
-                                film_weights_gsm: {},
-                                thickness_data: {},
-                                roll_diameters: {},
-                                accept_reject_status: {},
-                                defect_names: {},
-                                film_appearance: {},
-                                printing_quality: {},
-                                roll_appearance: {},
-                                paper_core_data: {},
-                                time_data: {},
-                                remarks_data: {},
-                                total_rolls: 0,
-                                accepted_rolls: 0,
-                                rejected_rolls: 0,
-                                rework_rolls: 0,
-                                kiv_rolls: 0,
-                                accepted_weight: 0,
-                                rejected_weight: 0,
-                                rework_weight: 0,
-                                kiv_weight: 0,
-                                lot_no: null, // Reset lot number to null when no rows
-                                updated_at: getISTTimestamp()
-                            })
-                            .eq('form_id', formId);
+                        // First, find which table contains this form_id
+                        const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+                        let targetTable = null;
                         
-                        if (error) {
-                            console.error('Error clearing Supabase data:', error);
+                        for (const tableName of tables) {
+                            const { data: existingRecord, error } = await supabase
+                                .from(tableName)
+                                .select('id')
+                                .eq('form_id', formId)
+                                .single();
+                                
+                            if (!error && existingRecord) {
+                                targetTable = tableName;
+                                break;
+                            }
+                        }
+                        
+                        if (targetTable) {
+                            const { error } = await supabase
+                                .from(targetTable)
+                                .update({
+                                    roll_weights: {},
+                                    roll_widths: {},
+                                    film_weights_gsm: {},
+                                    thickness_data: {},
+                                    roll_diameters: {},
+                                    accept_reject_status: {},
+                                    defect_names: {},
+                                    film_appearance: {},
+                                    printing_quality: {},
+                                    roll_appearance: {},
+                                    paper_core_data: {},
+                                    time_data: {},
+                                    remarks_data: {},
+                                    total_rolls: 0,
+                                    accepted_rolls: 0,
+                                    rejected_rolls: 0,
+                                    rework_rolls: 0,
+                                    kiv_rolls: 0,
+                                    accepted_weight: 0,
+                                    rejected_weight: 0,
+                                    rework_weight: 0,
+                                    kiv_weight: 0,
+                                    lot_no: null, // Reset lot number to null when no rows
+                                    updated_at: getISTTimestamp()
+                                })
+                                .eq('form_id', formId);
+                            
+                            if (error) {
+                                console.error('Error clearing Supabase data:', error);
+                            }
+                        } else {
+                            console.error('Could not find table containing form_id for main table clear:', formId);
                         }
                     }
                     
@@ -5258,12 +5382,35 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Delete from Supabase using formId
                 const formId = table.dataset.formId;
                 if (formId) {
-                    const { error } = await supabase
-                        .from('inline_inspection_form_master_2')
-                        .delete()
-                        .eq('form_id', formId);
-                    if (error) {
-                        alert('Error deleting table from Supabase: ' + error.message);
+                    // First, find which table contains this form_id
+                    const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+                    let targetTable = null;
+                    
+                    for (const tableName of tables) {
+                        const { data: existingRecord, error } = await supabase
+                            .from(tableName)
+                            .select('id')
+                            .eq('form_id', formId)
+                            .single();
+                            
+                        if (!error && existingRecord) {
+                            targetTable = tableName;
+                            break;
+                        }
+                    }
+                    
+                    if (targetTable) {
+                        const { error } = await supabase
+                            .from(targetTable)
+                            .delete()
+                            .eq('form_id', formId);
+                        if (error) {
+                            alert('Error deleting table from Supabase: ' + error.message);
+                            return;
+                        }
+                    } else {
+                        console.error('Could not find table containing form_id for deletion:', formId);
+                        alert('Error: Could not find the table containing this form data.');
                         return;
                     }
                 }
@@ -5307,34 +5454,48 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Reorder lot numbers after table deletion
     async function reorderLotNumbers() {
         try {
-            // Fetch all lots for this traceability_code and lot_letter
-            const { data: lots, error } = await supabase
-                .from('inline_inspection_form_master_2')
-                .select('*')
-                .eq('traceability_code', traceabilityCode)
-                .eq('lot_letter', lotLetter)
-                .order('created_at', { ascending: true });
+            // Fetch all lots from all tables for this traceability_code and lot_letter
+            const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+            let allLots = [];
             
-            if (error) {
-                console.error('Error fetching lots for reordering:', error);
-                return;
+            for (const tableName of tables) {
+                const { data: lots, error } = await supabase
+                    .from(tableName)
+                    .select('*')
+                    .eq('traceability_code', traceabilityCode)
+                    .eq('lot_letter', lotLetter)
+                    .order('created_at', { ascending: true });
+                
+                if (error) {
+                    console.error(`Error fetching lots from ${tableName} for reordering:`, error);
+                    continue;
+                }
+                
+                if (lots && lots.length > 0) {
+                    // Add table name to each lot for reference
+                    lots.forEach(lot => lot.table_name = tableName);
+                    allLots = allLots.concat(lots);
+                }
             }
             
-            // Update lot numbers sequentially
-            for (let i = 0; i < lots.length; i++) {
-                const lot = lots[i];
+            // Sort all lots by creation time
+            allLots.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            
+            // Update lot numbers sequentially across all tables
+            for (let i = 0; i < allLots.length; i++) {
+                const lot = allLots[i];
                 const newLotNo = (i + 1).toString().padStart(2, '0');
                 
                 if (lot.lot_no !== newLotNo) {
-                    // console.log(`Updating lot ${lot.id} from ${lot.lot_no} to ${newLotNo}`);
+                    // console.log(`Updating lot ${lot.id} from ${lot.lot_no} to ${newLotNo} in table ${lot.table_name}`);
                     await supabase
-                        .from('inline_inspection_form_master_2')
+                        .from(lot.table_name)
                         .update({ lot_no: newLotNo })
                         .eq('id', lot.id);
                 }
             }
             
-            // console.log('Lot numbers reordered successfully');
+            // console.log('Lot numbers reordered successfully across all tables');
         } catch (error) {
             console.error('Error reordering lot numbers:', error);
         }
@@ -5377,20 +5538,41 @@ document.addEventListener('DOMContentLoaded', async function() {
             setTimeout(async () => {
                 const tableRef = tbody.closest('table');
                 if (tableRef && tableRef.dataset && tableRef.dataset.formId) {
-                    // Update the database to set lot_no to "01"
-                    const { error } = await supabase
-                        .from('inline_inspection_form_master_2')
-                        .update({ lot_no: '01' })
-                        .eq('form_id', tableRef.dataset.formId);
+                    // First, find which table contains this form_id
+                    const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+                    let targetTable = null;
                     
-                    if (error) {
-                        console.error('Error updating lot number:', error);
-                    } else {
-                        // console.log('Lot number updated to 01 in database');
+                    for (const tableName of tables) {
+                        const { data: existingRecord, error } = await supabase
+                            .from(tableName)
+                            .select('id')
+                            .eq('form_id', tableRef.dataset.formId)
+                            .single();
+                            
+                        if (!error && existingRecord) {
+                            targetTable = tableName;
+                            break;
+                        }
                     }
                     
-                    // Also save the table data
-                    saveLotToSupabase(tableRef);
+                    if (targetTable) {
+                        // Update the database to set lot_no to "01"
+                        const { error } = await supabase
+                            .from(targetTable)
+                            .update({ lot_no: '01' })
+                            .eq('form_id', tableRef.dataset.formId);
+                        
+                        if (error) {
+                            console.error('Error updating lot number:', error);
+                        } else {
+                            // console.log('Lot number updated to 01 in database');
+                        }
+                        
+                        // Also save the table data
+                        saveLotToSupabase(tableRef);
+                    } else {
+                        console.error('Could not find table containing form_id for lot number update:', tableRef.dataset.formId);
+                    }
                 }
             }, 100);
         }

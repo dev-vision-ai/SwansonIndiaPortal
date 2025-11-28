@@ -2008,7 +2008,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update row count for all pages
     function updateAllRowCounts() {
-        for (let i = 1; i <= 4; i++) {
+        for (let i = 1; i <= 5; i++) {
             updateRowCountByPage(i);
         }
     }
@@ -3520,6 +3520,9 @@ document.addEventListener('DOMContentLoaded', function() {
            
            // Force immediate recalculation of ALL summary statistics across all pages
            forceRecalculateAllSummaryStatistics();
+           
+           // Re-attach sync listeners to new rows for real-time syncing of Sample No columns
+           addRealTimeSyncListeners();
            
            // Save the updated table state to database after adding rows
            debouncedSave();
@@ -5134,6 +5137,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Validation functions for sample columns
         function validateLotRoll(input) {
             let value = input.value;
+            const previousValue = input.dataset.previousValue || '';
+            const isDeleting = value.length < previousValue.length;
             
             // Only allow numbers, dash, and double quote
             value = value.replace(/[^0-9-"]/g, '');
@@ -5163,13 +5168,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Auto-insert dash after 2 digits
-                if (parts[0].length === 2 && !value.includes('-')) {
+                if (!isDeleting && parts[0].length === 2 && !value.includes('-')) {
                     value = parts[0] + '-';
                 }
             }
             
             // Update input value with validated format
             input.value = value;
+            input.dataset.previousValue = value;
         }
         
         function validateRollID(input) {
@@ -5189,6 +5195,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         function validateLotTime(input) {
             let value = input.value;
+            const previousValue = input.dataset.previousValue || '';
+            const isDeleting = value.length < previousValue.length;
             
             // Only allow numbers, colon, and double quote
             value = value.replace(/[^0-9:"]/g, '');
@@ -5218,13 +5226,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Auto-insert colon after 2 digits
-                if (parts[0].length === 2 && !value.includes(':')) {
+                if (!isDeleting && parts[0].length === 2 && !value.includes(':')) {
                     value = parts[0] + ':';
                 }
             }
             
             // Update input value with validated format
             input.value = value;
+            input.dataset.previousValue = value;
         }
         
         // Format functions for sample columns

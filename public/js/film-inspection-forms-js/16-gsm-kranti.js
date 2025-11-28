@@ -1675,6 +1675,11 @@ document.addEventListener('DOMContentLoaded', function() {
        
        // Function to handle keyboard navigation
        function handleKeyboardNavigation(e, currentCell) {
+           // Allow Backspace and Delete keys to work normally (don't prevent default)
+           if (e.key === 'Backspace' || e.key === 'Delete') {
+               return; // Let default behavior handle text deletion
+           }
+           
            const allTables = [testingTableBody, testingTableBody2, testingTableBody3, testingTableBody4];
            let allCells = [];
            
@@ -3339,6 +3344,9 @@ document.addEventListener('DOMContentLoaded', function() {
            // Force immediate recalculation of ALL summary statistics across all pages
            forceRecalculateAllSummaryStatistics();
            
+           // Re-attach sync listeners to new rows for real-time syncing of Sample No columns
+           addRealTimeSyncListeners();
+           
            // Save the updated table state to database after adding rows
            debouncedSave();
        }
@@ -4974,6 +4982,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Validation functions for sample columns
         function validateLotRoll(input) {
             let value = input.value;
+            const previousValue = input.dataset.previousValue || '';
+            
+            // If user is deleting (value is shorter), allow it without forcing dash
+            const isDeleting = value.length < previousValue.length;
             
             // Only allow numbers, dash, and double quote
             value = value.replace(/[^0-9-"]/g, '');
@@ -5002,14 +5014,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     value = parts[0];
                 }
                 
-                // Auto-insert dash after 2 digits
-                if (parts[0].length === 2 && !value.includes('-')) {
+                // Auto-insert dash after 2 digits (but NOT if user is deleting)
+                if (!isDeleting && parts[0].length === 2 && !value.includes('-')) {
                     value = parts[0] + '-';
                 }
             }
             
             // Update input value with validated format
             input.value = value;
+            input.dataset.previousValue = value; // Store current value for next comparison
         }
         
         function validateRollID(input) {
@@ -5029,6 +5042,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         function validateLotTime(input) {
             let value = input.value;
+            const previousValue = input.dataset.previousValue || '';
+            
+            // If user is deleting (value is shorter), allow it without forcing colon
+            const isDeleting = value.length < previousValue.length;
             
             // Only allow numbers, colon, and double quote
             value = value.replace(/[^0-9:"]/g, '');
@@ -5057,14 +5074,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     value = parts[0];
                 }
                 
-                // Auto-insert colon after 2 digits
-                if (parts[0].length === 2 && !value.includes(':')) {
+                // Auto-insert colon after 2 digits (but NOT if user is deleting)
+                if (!isDeleting && parts[0].length === 2 && !value.includes(':')) {
                     value = parts[0] + ':';
                 }
             }
             
             // Update input value with validated format
             input.value = value;
+            input.dataset.previousValue = value; // Store current value for next comparison
         }
         
         // Format functions for sample columns
