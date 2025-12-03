@@ -6,6 +6,7 @@
     <title>Inline Inspection Form List</title>
     <link rel="icon" type="image/png" href="../assets/logo2.png">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../css/employee-dashboard.css">
     <link rel="stylesheet" href="../css/common-header.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
@@ -477,6 +478,28 @@
         text-align: center;
       }
     </style>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirm Logout</h3>
+                <button class="modal-close" id="logoutModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-icon">
+                    <i class="fas fa-sign-out-alt"></i>
+                </div>
+                <p>Are you sure you want to log out?</p>
+                <p class="modal-subtitle">You will be redirected to the login page.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="logoutCancel">Cancel</button>
+                <button class="btn btn-primary" id="logoutConfirm">Logout</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="../js/inline-inspection-form.js?v=1.1"></script>
 
     <script>

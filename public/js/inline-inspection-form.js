@@ -273,34 +273,10 @@ window.addEventListener('DOMContentLoaded', async function() {
     if (isShiftUser) {
       backBtn.textContent = 'Logout';
       backBtn.onclick = async function() {
-        // Add confirmation dialog for shift users
-        if (window.confirm("Are you sure you want to log out?")) {
-          try {
-        await supabase.auth.signOut();
-            
-            // Cleanup all resources before logout
-            cleanupResources();
-            
-            // Remove session from both storages
-            localStorage.removeItem('supabase.auth.session');
-            sessionStorage.removeItem('supabase.auth.session');
-            
-            // FORCE IMMEDIATE REDIRECT - NO HISTORY MANIPULATION
-            // Clear all storage first
-            localStorage.clear();
-            sessionStorage.clear();
-            
-            // Force immediate redirect
-            window.location.replace('auth.html');
-            
-            // Force immediate redirect
-            window.location.replace('auth.html');
-          } catch (err) {
-            console.error('Exception during logout:', err);
-            alert('An unexpected error occurred during logout.');
-          }
-        } else {
-          // Logout cancelled by user
+        // Show logout confirmation modal
+        const logoutModal = document.getElementById('logoutModal');
+        if (logoutModal) {
+          logoutModal.classList.add('show');
         }
       };
       // Add shift label after the Logout button
@@ -2375,12 +2351,6 @@ document.addEventListener('DOMContentLoaded', function() {
     confirmSubmitBtn.addEventListener('click', confirmSubmit);
   }
   
-  // Delete modal buttons (if not already set up)
-  const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-  const cancelFinalDeleteBtn = document.getElementById('cancelFinalDeleteBtn');
-  const confirmFinalDeleteBtn = document.getElementById('confirmFinalDeleteBtn');
-  
   if (cancelDeleteBtn) {
     cancelDeleteBtn.addEventListener('click', cancelDelete);
   }
@@ -2395,6 +2365,53 @@ document.addEventListener('DOMContentLoaded', function() {
   
   if (confirmFinalDeleteBtn) {
     confirmFinalDeleteBtn.addEventListener('click', confirmFinalDelete);
+  }
+
+  // Logout modal event handlers
+  const logoutModalClose = document.getElementById('logoutModalClose');
+  const logoutCancel = document.getElementById('logoutCancel');
+  const logoutConfirm = document.getElementById('logoutConfirm');
+  const logoutModal = document.getElementById('logoutModal');
+
+  // Close modal handlers
+  if (logoutModalClose) {
+    logoutModalClose.addEventListener('click', () => {
+      logoutModal.classList.remove('show');
+    });
+  }
+
+  if (logoutCancel) {
+    logoutCancel.addEventListener('click', () => {
+      logoutModal.classList.remove('show');
+    });
+  }
+
+  // Confirm logout handler
+  if (logoutConfirm) {
+    logoutConfirm.addEventListener('click', async () => {
+      logoutModal.classList.remove('show');
+      
+      try {
+        await supabase.auth.signOut();
+        
+        // Cleanup all resources before logout
+        cleanupResources();
+        
+        // Remove session from both storages
+        localStorage.removeItem('supabase.auth.session');
+        sessionStorage.removeItem('supabase.auth.session');
+        
+        // Clear all storage first
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Force immediate redirect
+        window.location.replace('auth.html');
+      } catch (err) {
+        console.error('Exception during logout:', err);
+        alert('An unexpected error occurred during logout.');
+      }
+    });
   }
 });
 
