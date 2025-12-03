@@ -10,38 +10,6 @@ console.log('myFormsPrevPage:', sessionStorage.getItem('myFormsPrevPage'));
 
 import { supabase } from '../supabase-config.js';
 
-async function loadUserProfile() {
-    try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user) {
-            const { data: profile, error: profileError } = await supabase
-                .from('users')
-                .select('full_name, employee_code')
-                .eq('id', user.id)
-                .single();
-
-            const userNameElement = document.querySelector('.user-name');
-
-            if (profile) {
-                if (userNameElement) {
-                    userNameElement.textContent = 'Hi, ' + profile.full_name;
-                }
-            } else if (profileError) {
-                console.error("Error fetching profile:", profileError);
-                if (userNameElement) {
-                    userNameElement.textContent = user.email ? 'Hi, ' + user.email : 'Hi there';
-                }
-            }
-        } else {
-            console.error("User not logged in.");
-            window.location.href = '../html/auth.html';
-        }
-    } catch (error) {
-        console.error('Error loading user profile:', error);
-    }
-}
-
 function showQuickActions() {
     document.getElementById('myFormsQuickActions').style.display = 'flex';
     document.getElementById('safetyTableContainer').classList.remove('active');
@@ -158,7 +126,7 @@ function renderQATable(data) {
                 <td>${alert.responsibledept || 'N/A'}</td>
                 <td>${alert.abnormalitytype || 'N/A'}</td>
                 <td>${alert.status || 'N/A'}</td>
-                <td><a href="${alert.status === 'Draft' ? 'quality-alert.html' : 'quality-alerts-actions.html'}?id=${alert.id}&action=${alert.status === 'Draft' ? 'edit' : 'view'}" class="action-link">${alert.status === 'Draft' ? 'Edit Draft' : 'View Actions'}</a></td>
+                <td><a href="${alert.status === 'Draft' ? 'quality-alert.html' : 'quality-alerts-actions.html'}?id=${alert.id}&action=${alert.status === 'Draft' ? 'edit' : 'view'}&from=emp-quality-alerts-table" class="action-link">${alert.status === 'Draft' ? 'Edit Draft' : 'View Actions'}</a></td>
             </tr>
         `;
     }).join('');
@@ -333,7 +301,6 @@ function setupEventListeners() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadUserProfile();
     setupEventListeners();
     showQuickActions(); // Ensure quick actions are visible on load
 });

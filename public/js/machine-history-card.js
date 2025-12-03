@@ -702,34 +702,9 @@ function populateEquipmentFilter() {
   });
 }
 
-// Load user profile
-async function loadUserProfile() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user) {
-    const { data: profile, error: profileError } = await supabase
-      .from('users')
-      .select('full_name, employee_code')
-      .eq('id', user.id)
-      .single();
-
-    if (profile) {
-      const userNameEl = document.querySelector('.user-name');
-      if (userNameEl) userNameEl.textContent = 'Hi, ' + profile.full_name;
-    } else if (profileError) {
-      console.error("Error fetching profile:", profileError);
-    }
-  } else {
-    console.error("User not logged in.");
-    window.location.href = '../html/auth.html';
-  }
-}
-
 // Setup event listeners
 function setupEventListeners() {
   document.addEventListener('DOMContentLoaded', async () => {
-    // Load user profile
-    await loadUserProfile();
-
     // Initialize cascading filter system
     initializeCascadingFilters();
 

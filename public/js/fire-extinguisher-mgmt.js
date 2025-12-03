@@ -47,44 +47,11 @@ const serviceDueInspectionsEl = document.getElementById('serviceDueInspections')
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadUserProfile();
     await loadFireExtinguishers();
     await loadFireExtinguisherInspections();
     setupEventListeners();
     updateStatistics();
 });
-
-// Load user profile
-async function loadUserProfile() {
-    const userNameElement = document.querySelector('.user-name');
-    if (!userNameElement) return;
-
-    try {
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError) throw userError;
-
-        if (user) {
-            const { data: profile, error: profileError } = await supabase
-                .from('users')
-                .select('full_name')
-                .eq('id', user.id)
-                .single();
-
-            if (profileError) throw profileError;
-
-            if (profile && profile.full_name) {
-                userNameElement.textContent = 'Hi, ' + profile.full_name;
-            } else {
-                userNameElement.textContent = 'Hi, ' + (user.email || 'Admin');
-            }
-        } else {
-            window.location.href = '../html/auth.html';
-        }
-    } catch (error) {
-        console.error('Error loading user profile:', error);
-        userNameElement.textContent = 'Error loading name';
-    }
-}
 
 // Setup event listeners
 function setupEventListeners() {
@@ -92,7 +59,7 @@ function setupEventListeners() {
     const backBtn = document.querySelector('.header-back-button');
     if (backBtn) {
         backBtn.addEventListener('click', function() {
-            window.location.href = 'admin-adhr.html';
+            window.location.href = 'employee-dashboard.html';
         });
     }
 

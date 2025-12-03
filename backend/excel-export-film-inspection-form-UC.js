@@ -1,13 +1,6 @@
 const XlsxPopulate = require('xlsx-populate');
 const path = require('path');
 const fs = require('fs');
-const { createClient } = require('@supabase/supabase-js');
-
-// Supabase configuration from environment variables
-const supabase = createClient(
-  process.env.SUPABASE_URL || 'https://ufczydnvscaicygwlmhz.supabase.co',
-  process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3p5ZG52c2NhaWN5Z3dsbWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyMTg5NDYsImV4cCI6MjA1OTc5NDk0Nn0.0TUriXYvPuml-Jzr9v1jvcuzKjh-cZgnZhYKkQEj3t0'
-);
 
 // Helper function to format date to DD/MM/YYYY
 function formatDateToDDMMYYYY(dateString) {
@@ -37,11 +30,14 @@ function convertToNumber(value) {
   return !isNaN(numValue) ? numValue : value;
 }
 
-module.exports = function(app) {
+module.exports = function(app, createAuthenticatedSupabaseClient) {
   // UC Series Film Inspection Form Excel Export Endpoints
 // UC-18gsm-250P-ABQR Film Inspection Form Excel Export Endpoint
 app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
   try {
+    // Get authenticated Supabase client using JWT from request
+    const supabase = createAuthenticatedSupabaseClient(req);
+    
     // Get form_id parameter
     const { form_id } = req.query;
 
@@ -626,6 +622,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
 // UC-18gsm-290P-ABQR Film Inspection Form Excel Export Endpoint
 app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
   try {
+    // Get authenticated Supabase client using JWT from request
+    const supabase = createAuthenticatedSupabaseClient(req);
+    
     // Get form_id parameter
     const { form_id } = req.query;
 
@@ -1210,6 +1209,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
 // UC-18gsm-290NP-ABQR Film Inspection Form Excel Export Endpoint
 app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
   try {
+    // Get authenticated Supabase client using JWT from request
+    const supabase = createAuthenticatedSupabaseClient(req);
+    
     // Get form_id parameter
     const { form_id } = req.query;
 
@@ -1794,6 +1796,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
 // UC-18gsm-250W-BFQR Film Inspection Form Excel Export Endpoint
 app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
   try {
+    // Get authenticated Supabase client using JWT from request
+    const supabase = createAuthenticatedSupabaseClient(req);
+    
     // Get form_id parameter
     const { form_id } = req.query;
 
@@ -2378,6 +2383,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
 // UC-18gsm-210W-BFQR Film Inspection Form Excel Export Endpoint
 app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
   try {
+    // Get authenticated Supabase client using JWT from request
+    const supabase = createAuthenticatedSupabaseClient(req);
+    
     // Get form_id parameter
     const { form_id } = req.query;
 
@@ -2957,6 +2965,9 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
 // UC-16gsm-165W Film Inspection Form Excel Export Endpoint
 app.get('/export-uc-16gsm-165w-form', async (req, res) => {
   try {
+    // Get authenticated Supabase client using JWT from request
+    const supabase = createAuthenticatedSupabaseClient(req);
+    
     // Get form_id parameter
     const { form_id } = req.query;
 

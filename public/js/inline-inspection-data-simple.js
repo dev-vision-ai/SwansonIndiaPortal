@@ -784,6 +784,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             alert('Error loading form: ' + error.message);
         }
     }
+
+    // Submit button removed per user request
     
     // Initialize tablesContainer early
     if (!tablesContainer.id) {

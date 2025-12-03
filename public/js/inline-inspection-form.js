@@ -197,13 +197,17 @@ function startSessionMonitoring() {
 }
 
 // Enhanced client-side keep-alive ping to prevent cold starts
+// Compute backend URL (allow override via `window.BACKEND_URL` in dev or production)
+const BACKEND_URL = window.BACKEND_URL || (['127.0.0.1', 'localhost'].includes(window.location.hostname)
+  ? `${window.location.protocol}//${window.location.hostname}:3000`
+  : `${window.location.protocol}//${window.location.hostname}`);
+
 // Multiple intervals for maximum reliability
 const keepAliveInterval1 = setInterval(async () => {
   try {
-    const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
-    const response = await fetch(`${basePath}/ping`);
+    const response = await fetch(`${BACKEND_URL}/ping`);
     if (!response.ok) {
-      console.warn('⚠️ Client keep-alive ping failed');
+      console.warn('⚠️ Client keep-alive ping failed', response.status);
     }
   } catch (error) {
     console.warn('⚠️ Client keep-alive ping error:', error);
@@ -215,10 +219,9 @@ intervals.add(keepAliveInterval1);
 // Secondary client-side keep-alive for redundancy
 const keepAliveInterval2 = setInterval(async () => {
   try {
-    const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
-    const response = await fetch(`${basePath}/health`);
+    const response = await fetch(`${BACKEND_URL}/health`);
     if (!response.ok) {
-      console.warn('⚠️ Client health check failed');
+      console.warn('⚠️ Client health check failed', response.status);
     }
   } catch (error) {
     console.warn('⚠️ Client health check error:', error);
@@ -1243,13 +1246,6 @@ async function handleFormSubmit(e) {
         // Get the correct table for this machine
         const tableName = getTableNameForMachine(currentMachine);
         
-        // console.log('Checking for existing forms with:', {
-        //   shift: currentShift,
-        //   machine: currentMachine,
-        //   date: currentDate,
-        //   table: tableName
-        // });
-        
         const { data: existingForms, error: fetchError } = await supabase
           .from(tableName)
           .select('lot_letter, shift, mc_no, production_date')
@@ -1258,15 +1254,11 @@ async function handleFormSubmit(e) {
           .eq('production_date', currentDate);
           
         if (!fetchError && existingForms && existingForms.length > 0) {
-          // console.log('Found existing forms for same shift/machine/date:', existingForms);
-          
           // Collect used letters
           const usedLetters = existingForms
             .map(f => f.lot_letter)
             .filter(l => l && typeof l === 'string')
             .map(l => l.toUpperCase());
-            
-                      // console.log('Used lot letters:', usedLetters);
           
           // Find next available letter
           const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -1276,10 +1268,7 @@ async function handleFormSubmit(e) {
               break;
             }
           }
-          
-                      // console.log('Assigned lot letter:', lot_letter);
         } else {
-          // console.log('No existing forms found for same shift/machine/date, using A');
         }
       } catch (err) {
         console.warn('Could not determine next lot_letter, defaulting to A.', err);
@@ -1400,58 +1389,53 @@ async function handleFormSubmit(e) {
     const createFormBtn = document.getElementById('showInspectionFormOverlay');
     const closeBtn = document.getElementById('closeInspectionFormOverlay');
 
-  if (form) {
-    // Remove the old addEventListener if present
-    form.onsubmit = null;
-  }
+    if (form) {
+      // Submit button removed per user request - form submission disabled
+      form.onsubmit = null;
+    }
 
-  if (createFormBtn) {
-    createFormBtn.addEventListener('click', function() {
-      // console.log('Create form button clicked');
-      
-      if (form) {
-        const submitBtn = form.querySelector('button[type="submit"]');
-        if (submitBtn) submitBtn.textContent = 'Create Inline Inspection Form';
-        form.onsubmit = handleFormSubmit;
-        
+    // Create form button handler
+    if (createFormBtn) {
+      createFormBtn.addEventListener('click', function() {
         // Reset form to clear any previous data
-        form.reset();
-        
-        // Clear any validation styling
-        form.querySelectorAll('input, select').forEach(field => {
-          field.classList.remove('required-field');
-        });
-        
-        // Clear checkbox group error styling
-        const checkboxGroup = form.querySelector('.flex.flex-row.items-center.gap-10.border.border-gray-200.bg-gray-50.rounded-lg.px-4.py-3.w-fit.mb-2');
-        if (checkboxGroup) {
-          checkboxGroup.classList.remove('checkbox-group-error');
+        if (form) {
+          form.reset();
+          
+          // Clear any validation styling
+          form.querySelectorAll('input, select').forEach(field => {
+            field.classList.remove('required-field');
+          });
+          
+          // Clear checkbox group error styling
+          const checkboxGroup = form.querySelector('.flex.flex-row.items-center.gap-10.border.border-gray-200.bg-gray-50.rounded-lg.px-4.py-3.w-fit.mb-2');
+          if (checkboxGroup) {
+            checkboxGroup.classList.remove('checkbox-group-error');
+          }
+          
+          // Hide product type error
+          const productTypeError = document.getElementById('productTypeError');
+          if (productTypeError) {
+            productTypeError.classList.add('hidden');
+          }
         }
         
-        // Hide product type error
-        const productTypeError = document.getElementById('productTypeError');
-        if (productTypeError) {
-          productTypeError.classList.add('hidden');
+        // Reset warning message for create mode
+        const warningMessage = overlay.querySelector('p.text-red-600');
+        if (warningMessage) {
+          warningMessage.textContent = '*Note : Please ensure all entered details are correct before creating form';
         }
-      }
-      
-      // Reset warning message for create mode
-      const warningMessage = overlay.querySelector('p.text-red-600');
-      if (warningMessage) {
-        warningMessage.textContent = '*Note : Please ensure all entered details are correct before creating form';
-      }
-      
-      // Show modal
-      overlay.style.display = 'flex';
-      overlay.classList.remove('hidden');
-      
-      // Setup autocomplete for personnel and product fields
-      setTimeout(() => {
-        setupPersonnelAutocomplete();
-        setupProductAutocomplete();
-      }, 100);
-    });
-  }
+        
+        // Show modal
+        overlay.style.display = 'flex';
+        overlay.classList.remove('hidden');
+        
+        // Setup autocomplete for personnel and product fields
+        setTimeout(() => {
+          setupPersonnelAutocomplete();
+          setupProductAutocomplete();
+        }, 100);
+      });
+    }
 
   // Close button handler
   if (closeBtn) {
@@ -1749,6 +1733,25 @@ async function getCurrentUserDepartment() {
   }
 }
 
+async function getCurrentUserLevel() {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    
+    const { data: userProfile, error } = await supabase
+      .from('users')
+      .select('user_level')
+      .eq('id', user.id)
+      .single();
+    
+    if (error || !userProfile) return null;
+    return userProfile.user_level;
+  } catch (error) {
+    console.error('Error getting user level:', error);
+    return null;
+  }
+}
+
 function hasEditDeletePermission(userDepartment, formStatus) {
   if (!userDepartment) return false;
   
@@ -1791,6 +1794,7 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
 
   // Get user department once for all forms
   const userDepartment = await getCurrentUserDepartment();
+  const userLevel = await getCurrentUserLevel();
 
   limitedForms.forEach((form, index) => {
     // Combine names with '/'
@@ -1807,11 +1811,19 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
     // Debug: Log the shift conversion
             // Shift conversion completed
     
-    // Check if form status is "submit" - if so, only show eye icon
+    // Check if form status is "submit" - if so, check user level for permissions
     const isSubmitted = form.status === 'submit';
     
     // Check permissions synchronously
     const hasPermission = hasEditDeletePermission(userDepartment, form.status);
+    
+    // Check if user has level 1 (admin level)
+    const isAdminLevel = userLevel === 1;
+    
+    // Show all buttons if:
+    // - Form is not submitted, OR
+    // - Form is submitted AND user is from Quality Assurance, Quality Control, OR Production with level 1
+    const shouldShowAllButtons = !isSubmitted || (isSubmitted && (userDepartment === 'Quality Assurance' || userDepartment === 'Quality Control' || (userDepartment === 'Production' && userLevel === 1)));
     
     // Format status for display
     const statusDisplay = form.status ? 
@@ -1832,7 +1844,7 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
     const row = document.createElement('tr');
     row.className = 'hover:bg-gray-50 transition-colors';
     row.innerHTML = `
-      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${showAllForDateFilters ? (forms.length - index) : (limitedForms.length - index)}</td>
+      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${forms.length - index}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${formatDate(form.production_date)}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${form.prod_code || '-'}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">
@@ -1846,14 +1858,14 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">
         <div class="flex flex-col justify-center items-center space-y-1 max-w-full overflow-hidden">
           <div class="flex space-x-3">
-            ${(!isSubmitted || hasPermission) ? `
-              <!-- Sky blue Enter Data button - show if not submitted OR user has permission -->
+            ${shouldShowAllButtons ? `
+              <!-- Sky blue Enter Data button - show if all buttons should display -->
               <button onclick="enterData('${form.traceability_code}', '${form.lot_letter}')" class="p-1.5 rounded-md bg-sky-50 hover:bg-sky-100 text-sky-600 hover:text-sky-800 transition-all duration-200 border border-sky-200 hover:border-sky-300 flex-shrink-0" title="Enter Inspection Data">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
               </button>
-              <!-- Green Edit button - show if not submitted OR user has permission -->
+              <!-- Green Edit button - show if all buttons should display -->
               <button onclick="editForm('${form.traceability_code}', '${form.lot_letter}')" class="p-1.5 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0" title="Edit Form">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -1870,8 +1882,8 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
               </svg>
             </button>
             
-            <!-- Red Delete button - show if not submitted OR user has permission -->
-            ${(!isSubmitted || hasPermission) ? `
+            <!-- Red Delete button - show if all buttons should display -->
+            ${shouldShowAllButtons ? `
               <button onclick="deleteForm('${form.traceability_code}', '${form.lot_letter}')" class="p-1.5 rounded-md bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition-all duration-200 border border-red-200 hover:border-red-300 flex-shrink-0" title="Delete Form">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -1882,12 +1894,23 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
         </div>
       </td>
       <td class="py-3 px-4 text-center whitespace-normal break-words">
-        <button onclick="downloadFormExcel('${form.traceability_code}', '${form.lot_letter}', this)" class="p-1.5 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Download Form Excel">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 10l5 5 5-5M12 15V3" />
-          </svg>
-        </button>
+        <div class="flex flex-col justify-center items-center space-y-1 max-w-full overflow-hidden">
+          ${form.status === 'draft' ? `
+            <!-- Submit button - only show for draft forms -->
+            <button onclick="submitForm('${form.traceability_code}', '${form.lot_letter}', this)" class="p-1.5 rounded-md bg-orange-50 hover:bg-orange-100 text-orange-600 hover:text-orange-800 transition-all duration-200 border border-orange-200 hover:border-orange-300 flex-shrink-0" title="Submit Form">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </button>
+          ` : ''}
+          <!-- Download button - always show -->
+          <button onclick="downloadFormExcel('${form.traceability_code}', '${form.lot_letter}', this)" class="p-1.5 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" title="Download Form Excel">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 10l5 5 5-5M12 15V3" />
+            </svg>
+          </button>
+        </div>
       </td>
     `;
     tbody.appendChild(row);
@@ -2027,8 +2050,10 @@ function populateFormWithData(formData, form, submitButton) {
   }
   
   // Restore button state
-  submitButton.textContent = 'Update Inline Inspection Form';
-  submitButton.disabled = false;
+  if (submitButton) {
+    submitButton.textContent = 'Update Inline Inspection Form';
+    submitButton.disabled = false;
+  }
 }
 
 async function editForm(traceability_code, lot_letter) {
@@ -2064,8 +2089,10 @@ async function editForm(traceability_code, lot_letter) {
   overlay.classList.remove('hidden');
   
   // Always fetch fresh data from database (no cache check)
-  submitButton.textContent = 'Loading...';
-  submitButton.disabled = true;
+  if (submitButton) {
+    submitButton.textContent = 'Loading...';
+    submitButton.disabled = true;
+  }
 
   try {
     // Find the record across all tables
@@ -2097,8 +2124,10 @@ async function editForm(traceability_code, lot_letter) {
       console.error('No form with data found for traceability_code and lot_letter:', traceability_code, lot_letter);
       alert('No form data found for editing.');
       // Reset button state
-      submitButton.textContent = 'Update Inline Inspection Form';
-      submitButton.disabled = false;
+      if (submitButton) {
+        submitButton.textContent = 'Update Inline Inspection Form';
+        submitButton.disabled = false;
+      }
       return;
     }
 
@@ -2109,9 +2138,20 @@ async function editForm(traceability_code, lot_letter) {
     console.error('Error in editForm function:', error);
     alert('Error loading form for editing. Please try again.');
     // Reset button state on error
-    submitButton.textContent = 'Update Inline Inspection Form';
-    submitButton.disabled = false;
+    if (submitButton) {
+      submitButton.textContent = 'Update Inline Inspection Form';
+      submitButton.disabled = false;
+    }
   }
+}
+
+async function submitForm(traceability_code, lot_letter, buttonElement) {
+  // Store the form details for submission
+  window.pendingSubmitForm = { traceability_code, lot_letter, buttonElement };
+  
+  // Show submit confirmation overlay
+  const submitOverlay = document.getElementById('submitConfirmationOverlay');
+  submitOverlay.style.display = 'flex';
 }
 
 async function deleteForm(traceability_code, lot_letter) {
@@ -2144,14 +2184,13 @@ async function confirmFinalDelete() {
     const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
     
     for (const table of tables) {
-      const { data: record, error } = await supabase
+      const { data: records, error } = await supabase
         .from(table)
         .select('id')
         .eq('traceability_code', traceability_code)
-        .eq('lot_letter', lot_letter)
-        .single();
+        .eq('lot_letter', lot_letter);
         
-      if (!error && record) {
+      if (!error && records && records.length > 0) {
         tableName = table;
         break;
       }
@@ -2208,15 +2247,156 @@ function cancelFinalDelete() {
   delete window.pendingDeleteForm;
 }
 
+async function confirmSubmit() {
+  const { traceability_code, lot_letter, buttonElement } = window.pendingSubmitForm;
+
+  // Hide submit confirmation overlay
+  const submitOverlay = document.getElementById('submitConfirmationOverlay');
+  submitOverlay.style.display = 'none';
+
+  // Show loading state
+  const submitBtn = buttonElement;
+  const originalContent = submitBtn ? submitBtn.innerHTML : '';
+  const originalTitle = submitBtn ? submitBtn.title : '';
+
+  if (submitBtn) {
+    submitBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+    submitBtn.title = 'Submitting...';
+    submitBtn.disabled = true;
+  }
+
+  try {
+    // Find the record across all tables to determine which table it belongs to
+    let tableName = null;
+    const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+
+    console.log('Looking for record with:', { traceability_code, lot_letter });
+
+    for (const table of tables) {
+      console.log(`Checking table: ${table}`);
+      const { data: records, error } = await supabase
+        .from(table)
+        .select('id, status, mc_no, shift, production_date')
+        .eq('traceability_code', traceability_code)
+        .eq('lot_letter', lot_letter);
+
+      console.log(`Table ${table} query result:`, { records, error });
+
+      if (!error && records && records.length === 1) {
+        tableName = table;
+        break;
+      } else if (!error && records && records.length > 1) {
+        // All these records share the same identifier and will be updated together
+        tableName = table;
+        break;
+      }
+    }
+
+    if (!tableName) {
+      console.error('Record not found in any table for submission:', traceability_code, lot_letter);
+      alert('Error: Record not found for submission. Please refresh the page and try again.');
+      return;
+    }
+
+    // Update the form status to 'submit'
+    // When we submit, ALL forms with same traceability_code & lot_letter get updated together
+    // But other forms with different codes/letters are NOT affected
+    const { error } = await supabase
+      .from(tableName)
+      .update({
+        status: 'submit',
+        updated_at: getISTTimestamp()
+      })
+      .eq('traceability_code', traceability_code)
+      .eq('lot_letter', lot_letter);
+
+    if (error) {
+      console.error('Error submitting form:', error);
+      alert('Error submitting form: ' + error.message);
+      return;
+    }
+
+    // Success message
+    showSuccessMessage('Form submitted successfully!');
+
+    // Reload the table to reflect the status change
+    loadFormsTable();
+
+  } catch (error) {
+    console.error('Error in confirmSubmit:', error);
+    alert('Error submitting form: ' + error.message);
+  } finally {
+    // Reset button state
+    const submitBtn = buttonElement;
+    if (submitBtn) {
+      submitBtn.innerHTML = originalContent;
+      submitBtn.title = originalTitle;
+      submitBtn.disabled = false;
+    }
+
+    // Clear pending submit data
+    delete window.pendingSubmitForm;
+  }
+}
+
+function cancelSubmit() {
+  // Hide submit confirmation overlay
+  const submitOverlay = document.getElementById('submitConfirmationOverlay');
+  submitOverlay.style.display = 'none';
+  
+  // Clear pending submit data
+  delete window.pendingSubmitForm;
+}
+
 // Make form actions globally accessible for onclick handlers
 window.enterData = enterData;
 window.viewForm = viewForm;
 window.editForm = editForm;
 window.deleteForm = deleteForm;
+window.submitForm = submitForm;
 window.confirmDelete = confirmDelete;
 window.confirmFinalDelete = confirmFinalDelete;
 window.cancelDelete = cancelDelete;
 window.cancelFinalDelete = cancelFinalDelete;
+window.confirmSubmit = confirmSubmit;
+window.cancelSubmit = cancelSubmit;
+
+// Set up event listeners for modal buttons
+document.addEventListener('DOMContentLoaded', function() {
+  // Submit confirmation modal buttons
+  const cancelSubmitBtn = document.getElementById('cancelSubmitBtn');
+  const confirmSubmitBtn = document.getElementById('confirmSubmitBtn');
+  
+  if (cancelSubmitBtn) {
+    cancelSubmitBtn.addEventListener('click', cancelSubmit);
+  }
+  
+  if (confirmSubmitBtn) {
+    confirmSubmitBtn.addEventListener('click', confirmSubmit);
+  }
+  
+  // Delete modal buttons (if not already set up)
+  const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+  const cancelFinalDeleteBtn = document.getElementById('cancelFinalDeleteBtn');
+  const confirmFinalDeleteBtn = document.getElementById('confirmFinalDeleteBtn');
+  
+  if (cancelDeleteBtn) {
+    cancelDeleteBtn.addEventListener('click', cancelDelete);
+  }
+  
+  if (confirmDeleteBtn) {
+    confirmDeleteBtn.addEventListener('click', confirmDelete);
+  }
+  
+  if (cancelFinalDeleteBtn) {
+    cancelFinalDeleteBtn.addEventListener('click', cancelFinalDelete);
+  }
+  
+  if (confirmFinalDeleteBtn) {
+    confirmFinalDeleteBtn.addEventListener('click', confirmFinalDelete);
+  }
+});
 
 // Add a placeholder for the download function
 window.downloadFormExcel = async function(traceability_code, lot_letter, buttonElement) {

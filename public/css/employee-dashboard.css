@@ -29,7 +29,6 @@ body {
     font-weight: 400;
     line-height: 1.5;
     color: var(--text-dark);
-    /* Subtle polymer chain SVG pattern for plastic industry */
     background-color: #eaf1fa;
     background-image: url('data:image/svg+xml;utf8,<svg width="60" height="30" viewBox="0 0 60 30" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><circle cx="45" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><line x1="25" y1="15" x2="35" y2="15" stroke="%2399aabb" stroke-width="1" opacity="0.10"/></svg>');
     background-size: 60px 30px;
@@ -41,37 +40,31 @@ body {
     flex-direction: column;
     gap: 2rem;
     width: 100%;
-    min-height: 100vh; /* Ensure it takes full viewport height */
-    justify-content: flex-start; /* Align items to the top */
+    min-height: 100vh;
+    justify-content: flex-start;
     align-items: center;
     margin: 0;
-    padding-top: 50px; /* Add padding to account for smaller fixed header */
-    /* overflow-y: auto; */ /* Removed to allow body to scroll */
-    padding-bottom: 2rem; /* Add some space at the bottom */
+    padding-top: 50px;
+    padding-bottom: 2rem;
 }
 
 .dashboard-section {
-    margin-top: 0; /* Adjusted to rely on body padding-top */
-    width: 100%; /* Expand to full width */
-    height: auto; /* Allow content to dictate height */
+    margin-top: 0;
+    width: 100%;
+    height: auto;
     flex-shrink: 0;
-    /* background: #FFFFFF; */
-    /* background-image: url('../assets/page-bg.png'); */ /* Removed redundant background image */
     background-size: cover;
-    background-position: center; /* Centers the image */
+    background-position: center;
     background-repeat: no-repeat;
-    border-radius: 0; /* Remove border-radius for full edge contact */
-    padding: 0; /* Remove padding for full edge contact */
-    /* box-shadow: var(--shadow-md); */
-    /* border: 1px solid rgba(0, 0, 0, 0.1); */
+    border-radius: 0;
+    padding: 0;
 }
 
 .incident-section {
     display: none;
-    width: 100%; /* Match width to header */
-    height: 60px; /* Match height to header */
+    width: 100%;
+    height: 60px;
     flex-shrink: 0;
-    /* background: #FFFFFF; */
     border-radius: 0.5rem;
     padding: 2.5rem;
     box-shadow: var(--shadow-md);
@@ -82,7 +75,6 @@ body {
     display: block;
 }
 
-/* General style for desktop and larger screens */
 .quality-alerts-container h2 {
     font-size: 1.6rem;
     font-weight: 600;
@@ -92,24 +84,19 @@ body {
 }
 
 
+/* ===== HEADER & NAVIGATION STYLES ===== */
+
 .menu-icon {
     position: relative;
     cursor: pointer;
     color: white;
-    font-size: 1.5rem; /* Increase font size for larger icon */
-}
-
-.notification-icon {
-    position: relative;
-    cursor: pointer;
-    color: white;
-    font-size: 1.5rem; /* Increase font size for larger icon */
+    font-size: 1.0rem;
 }
 
 .dropdown-menu {
     display: none;
     position: absolute;
-    top: 100%; /* Position below the arrow */
+    top: 100%;
     left: 0;
     background-color: white;
     box-shadow: var(--shadow-md);
@@ -134,6 +121,7 @@ body {
     background-color: var(--accent-color);
     color: white;
 }
+
 .nav-item {
     display: flex;
     align-items: center;
@@ -149,12 +137,54 @@ body {
     color: var(--accent-color);
 }
 
+.left-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.employee-profile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1em;
+    background-color: #004080;
+    border-radius: 8px;
+}
+
+.employee-profile img {
+    border-radius: 50%;
+    margin-right: 1em;
+}
+
+.employee-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.employee-details span {
+    color: #fff;
+}
+
+.user-name {
+    color: white;
+    white-space: nowrap;
+}
+
+/* ===== WELCOME SECTION & ACTION CARDS ===== */
+
 .welcome-section {
     padding: 2rem;
     background: var(--primary-gradient);
     color: white;
     margin-bottom: 2rem;
-    margin-top: 5.5rem; /* Add margin-top to bring the section lower */
+    margin-top: 5.5rem;
 }
 
 .welcome-section h2 {
@@ -169,8 +199,6 @@ body {
     justify-content: center;
     margin: 2rem 0;
     padding: 0;
-    /* height: 300px; */ /* Removed fixed grid height */
-    /* overflow-y: auto; */ /* Removed overflow */
     align-content: flex-start;
 }
 
@@ -181,18 +209,17 @@ body {
     box-shadow: var(--shadow-md);
     cursor: pointer;
     transition: box-shadow 0.18s;
-    border: 2px solid #e4c829; /* yellow border for accent */
+    border: 2px solid #e4c829;
     width: 200px;
-    height: 80px; /* Further reduced card height */
+    height: 80px;
     min-height: 80px;
     max-height: 80px;
     display: flex;
     align-items: center;
     position: relative;
-    margin-left: 1rem; /* space for pop-out circle */
+    margin-left: 1rem;
     overflow: visible;
     text-align: left;
-    /* Add animation only when card is shown */
     transition: opacity 0.3s, transform 0.3s;
 }
 
@@ -236,7 +263,6 @@ body {
 }
 
 .action-card-heading {
-    /* Glassmorphism gradient using #002E7D */
     background: linear-gradient(135deg, rgba(0,46,125,0.92) 60%, rgba(0,70,199,0.85) 100%);
     color: #fff;
     flex: 1 1 50%;
@@ -298,187 +324,43 @@ body {
     padding: 0;
 }
 
-/* Remove old nth-child background tints for cards */
 .action-card:nth-child(n) {
     background: #fff;
 }
 
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* ===== Tablet Layout (≤768px) ===== */
 @media (max-width: 768px) {
     body {
-        padding-top: 0; /* Removed padding-top as it's handled by container */
+        padding-top: 0;
     }
 
     .quality-alerts-container h2 {
-        padding-top: 60px; /* Reduced padding for smaller mobile header */
+        padding-top: 60px;
     }
-}
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-
-.left-section {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.menu-icon {
-    color: white;
-    font-size: 1.0rem; /* Adjust font size if needed */
-    cursor: pointer;
-}
-
-
-.employee-profile {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1em;
-    background-color: #004080;
-    border-radius: 8px;
-}
-
-.employee-profile img {
-    border-radius: 50%;
-    margin-right: 1em;
-}
-
-.employee-details {
-    display: flex;
-    flex-direction: column;
-}
-
-.employee-details span {
-    color: #fff;
-}
-
-/* Removed notification-icon styles */
-
-.user-name {
-    color: white;
-    white-space: nowrap; /* Prevent wrapping to multiple lines initially */
-}
-
-/* Adjustments for smaller screens directly in this file */
-@media (max-width: 768px) { /* Apply to tablets and smaller phones */
-    .user-name {
-        display: none; /* Hide user name on mobile */
-    }
-}
-
-@media (max-width: 480px) {
-    /* user-name is already hidden by the 768px rule, specific 480px rules for user-name can be removed or kept if other adjustments are needed */
-    /* For clarity, explicitly hiding again or ensuring it's hidden if other 768px rules were to be overridden */
     .user-name {
         display: none;
     }
-}
 
-/* Removed notification-dropdown styles */
-
-.notification-dropdown::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: 10px;
-    width: 16px;
-    height: 16px;
-    background: white;
-    transform: rotate(45deg);
-    box-shadow: var(--shadow-md);
-    z-index: -1;
-}
-
-.notification-dropdown.show {
-    display: block;
-}
-
-.notification-item {
-    padding: 10px;
-    border-bottom: 1px solid var(--border-color);
-    cursor: pointer;
-}
-
-.notification-item:last-child {
-    border-bottom: none;
-}
-
-.notification-item:hover {
-    background-color: var(--bg-color);
-}
-
-.notification-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: red;
-    color: white;
-    border-radius: 50%;
-    min-width: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    padding: 0 4px;
-    z-index: 1001;
-}
-
-.no-notifications {
-    padding: 15px 20px;
-    color: var(--text-light);
-    text-align: center;
-}
-
-/* Table Styles (copied from admin_qa/dashboard_qa.css for consistency) */
-.quality-alerts-container {
-    background: transparent !important;
-    margin-top: 0;
-    padding-top: 10px;
-    width: 100%;
-    min-height: calc(100vh - 60px); /* Changed to min-height */
-    background: white;
-    border-radius: 0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    overflow-y: visible; /* Changed to visible */
-    position: relative; /* Changed to relative */
-    text-align: center;
-    padding-bottom: 2rem; /* Added bottom padding */
-}
-
-.filter-controls {
-    margin-top: 1rem; /* Add spacing above the filters */
-    margin-bottom: 2rem; /* Maintain existing spacing below filters */
-}
-
-@media (max-width: 768px) {
     .quality-alerts-container {
-        width: 100%; /* Ensure container takes full width */
-        padding: 0 10px; /* Add some horizontal padding */
+        width: 100%;
+        padding: 0 10px;
     }
 
     table {
         width: 100%;
         display: block;
-        white-space: nowrap; /* Prevent text wrapping in cells */
+        white-space: nowrap;
     }
 
-    th,
-    td {
-        padding: 8px 10px; /* Adjust padding for smaller screens */
-        font-size: 0.85rem; /* Smaller font size for readability */
-        box-sizing: border-box; /* Include padding in element's total width */
+    th, td {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+        box-sizing: border-box;
     }
 
-    /* Adjust filter controls for mobile */
     .filter-controls {
         flex-direction: column;
         align-items: center;
@@ -488,7 +370,14 @@ body {
     .filter-input,
     .filter-select,
     .filter-btn {
-        width: 90%; /* Make filter elements take more width */
+        width: 90%;
+    }
+
+    .main-form-container {
+        padding: 1.2rem 0.5rem;
+        border-radius: 0px;
+        margin-top: 40px;
+        min-height: calc(100vh - 40px);
     }
 }
 
@@ -497,186 +386,16 @@ body {
     width: 100%;
     border-collapse: collapse;
     background: white;
-    border-radius: 0;
-    overflow: auto;
-    box-shadow: none;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     table-layout: auto;
     box-sizing: border-box;
-}
-
-.quality-alerts-container th,
-.quality-alerts-container td {
-    padding: 0.5rem 0.7rem;
-    text-align: left;
-    border-bottom: 1px solid #e5e7eb;
-    border-right: 1px solid #e5e7eb;
-    white-space: normal;
-}
-
-/* Remove right border from last column */
-.quality-alerts-container th:last-child,
-.quality-alerts-container td:last-child {
-    border-right: none;
-}
-
-/* Add left border to first column */
-.quality-alerts-container th:first-child,
-.quality-alerts-container td:first-child {
-    border-left: 1px solid #e5e7eb;
-}
-
-.quality-alerts-container th {
-    background-color: #1e293b; /* Dark blue-gray */
-    color: white;
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.875rem;
-    letter-spacing: 0.5px;
-    border-right-color: #374151; /* Darker separator for header */
-    position: sticky;
-    top: 0; /* Make header sticky within the container */
-    z-index: 2;
-}
-
-.quality-alerts-container tr:hover td {
-    background-color: #f8fafc; /* Light gray hover */
-}
-
-/* Loading/Empty row style */
-.quality-alerts-container .loading-row td,
-.quality-alerts-container .empty-row td,
-.quality-alerts-container .error-row td {
-    padding: 20px;
-    text-align: center;
-    color: #64748b; /* Gray text */
-    font-style: italic;
-}
-
-/* Zebra striping */
-.quality-alerts-container tbody tr:nth-child(even) {
-    background-color: #f8fafc;
-}
-
-/* Style for description cell to allow wrapping */
-.quality-alerts-container td.description-cell {
-    white-space: normal; /* Allow description to wrap */
-    width: 30%; /* Set a fixed percentage width */
-    min-width: 200px; /* Keep minimum width */
-}
-
-.filter-input,
-.filter-select {
-  border: 1px solid #ccc;
-  padding: 0.5rem;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  transition: var(--transition);
-}
-
-.filter-input:focus,
-.filter-select:focus {
-  border-color: var(--accent-color);
-  outline: none;
-  box-shadow: 0 0 5px rgba(0, 46, 125, 0.3);
-}
-
-#findButton {
-  background-color: var(--accent-color);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease; /* Simplified transition */
-}
-
-#findButton:hover {
-  background-color: #0046C7; /* Darker shade for hover effect */
-}
-
-
-
-@media (max-width: 768px) {
-    .quality-alerts-container {
-        width: 100%; /* Ensure container takes full width */
-        padding: 0 10px; /* Add some horizontal padding */
-    }
-
-    table {
-        width: 100%;
-        display: block;
-        white-space: nowrap; /* Prevent text wrapping in cells */
-    }
-
-    th,
-    td {
-        padding: 8px 10px; /* Adjust padding for smaller screens */
-        font-size: 0.85rem; /* Smaller font size for readability */
-        box-sizing: border-box; /* Include padding in element's total width */
-    }
-
-    /* Adjust filter controls for mobile */
-    .filter-controls {
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .filter-input,
-    .filter-select,
-    .filter-btn {
-        width: 90%; /* Make filter elements take more width */
-    }
-}
-
-.quality-alerts-container table {
-    margin-top: 10px;
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 0;
-    overflow: auto;
-    box-shadow: none;
-    table-layout: auto;
-    box-sizing: border-box;
-}
-
-.quality-alerts-container {
-    background-image: url('../assets/page-bg.png');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-}
-
-.quality-alerts-container table {
-    background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
 }
 
 .quality-alerts-container th,
 .quality-alerts-container td {
     background-color: transparent; /* Let the table background show through */
-}
-
-  .quality-alerts-container th,
-  .quality-alerts-container td {
-    padding: 0.5rem; /* Adjust padding for smaller screens */
-    white-space: normal; /* Prevent text wrapping */
-  }
-
-.quality-alerts-container table {
-    margin-top: 10px;
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 0;
-    overflow: auto;
-    box-shadow: none;
-    table-layout: auto;
-    box-sizing: border-box;
-}
-
-.quality-alerts-container th,
-.quality-alerts-container td {
     padding: 0.5rem 0.7rem;
     text-align: left;
     border-bottom: 1px solid #e5e7eb;
@@ -751,54 +470,73 @@ body {
   box-shadow: 0 0 5px rgba(0, 46, 125, 0.3);
 }
 
-.filter-btn { 
-    background-color: #ffe342; 
-    color: #000000; 
-    padding: 0.5rem 1rem; 
-    border: 1px solid #ccc; 
-    border-radius: 4px; 
-    cursor: pointer; 
-    transition: all 0.3s ease; 
+.filter-btn {
+    background-color: #ffe342;
+    color: #000000;
+    padding: 0.5rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
-.filter-btn:hover { 
-    background-color: #e0e0e0; 
+.filter-btn:hover {
+    background-color: #e0e0e0;
 }
 
-/* Styles for Logout Button (Matching Back Button) */
+/* ===== FILTER CONTROLS CENTERING ===== */
+.filter-controls {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 0.75rem !important;
+    margin-bottom: 1rem !important;
+}
+
+/* ===== LOGOUT BUTTON ===== */
+
 .logout-button {
-    padding: 4px 10px; /* Match optimized back button padding */
-    font-size: 0.8rem;  /* Match optimized back button font size */
-    background-color: #fcfcfc; /* Yellow background */
-    color: #000000; /* Blue text */
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    background-color: #fcfcfc;
+    color: #000000;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    margin-right: 8px; /* Space between button and name */
-    font-weight: 600; /* Make text bold like back button */
+    margin-right: 8px;
+    font-weight: 600;
     transition: background-color 0.3s ease, color 0.3s ease;
-  }
-  
-  .logout-button:hover {
-    background-color: #dfc532; /* Darker yellow on hover */
-    color: #000000; /* Darker blue on hover */
-  }
+}
+
+.logout-button:hover {
+    background-color: #dfc532;
+    color: #000000;
+}
 
 
+/* ===== Large Mobile (≤600px) ===== */
 @media (max-width: 600px) {
     .logout-button {
         padding: 4px 8px;
         font-size: 0.75rem;
         margin-right: 6px;
     }
+
     .quick-action-grid {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        width: 100%;
-        padding: 0;
-        gap: 0;
+        gap: 5px;
     }
+
+    .action-card {
+        width: 48%;
+        min-width: 120px;
+        margin-left: 0;
+        margin-right: 0;
+        height: 90px;
+        min-height: 90px;
+        max-height: 90px;
+    }
+
     .action-card {
         width: calc(50% - 1.2rem);
         min-width: 120px;
@@ -813,6 +551,7 @@ body {
         min-height: 90px;
         max-height: 90px;
     }
+
     .action-card-heading,
     .action-card-heading h3,
     .action-card-description,
@@ -821,24 +560,31 @@ body {
         white-space: normal;
         text-align: center;
     }
+
     .action-card-heading {
         font-size: 0.7rem;
     }
+
     .action-card-description {
         font-size: 0.65rem;
     }
+
     .action-card-icon-circle {
         display: none;
     }
+
     .filter-controls {
         flex-direction: column !important;
+        align-items: center !important;
         gap: 6px !important;
         margin-bottom: 10px !important;
     }
+
     .filter-controls span {
         font-size: 0.95rem !important;
         margin-bottom: 2px !important;
     }
+
     .filter-input,
     .filter-select {
         font-size: 0.92rem !important;
@@ -848,6 +594,7 @@ body {
         width: 100% !important;
         margin-bottom: 2px !important;
     }
+
     .filter-btn {
         font-size: 0.95rem !important;
         padding: 0.4rem 0.5rem !important;
@@ -855,34 +602,41 @@ body {
         width: 100% !important;
         margin-bottom: 2px !important;
     }
+
     .quality-alerts-container th:nth-child(4),
     .quality-alerts-container td:nth-child(4) {
         min-width: 130px;
         max-width: 180px;
     }
+
+    .quality-alerts-container h2 {
+        font-size: 1.1rem !important;
+        padding-top: 24px;
+    }
+
+    /* Table horizontal scrolling for mobile */
+    .quality-alerts-container table {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        display: block;
+        white-space: nowrap;
+    }
+
+    .quality-alerts-container {
+        padding: 0.5rem !important;
+        margin: 0.5rem 0 !important;
+    }
+
+    .desktop-only {
+        display: none !important;
+    }
 }
 
-@media (max-width: 600px) {
-  .quick-action-grid {
-    gap: 5px;
-  }
-  .action-card {
-    width: 48%;
-    min-width: 120px;
-    margin-left: 0;
-    margin-right: 0;
-    height: 90px;
-    min-height: 90px;
-    max-height: 90px;
-  }
-}
+/* ===== ANIMATIONS ===== */
 
-@media (max-width: 600px) {
-    .desktop-only { display: none !important; }
-}
-
-.js-hide {
-  display: none !important;
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes cardFadeInPop {
@@ -896,105 +650,276 @@ body {
   }
 }
 
+/* ===== UTILITY CLASSES ===== */
 
-/* Full page fade-in (excluding header) */
 .page-fade-in {
   opacity: 1;
 }
 
-/* Header fade-in (no movement, just opacity) */
 .header-fade-in {
   opacity: 1;
 }
 
-@media (max-width: 600px) {
-  .quality-alerts-container h2 {
-    font-size: 1.1rem !important;
-    padding-top: 24px;
-  }
+.js-hide {
+  display: none !important;
 }
 
-.filter-controls span,
-.filter-input,
-.filter-select,
-.filter-btn {
-  font-size: 1.6rem;
-}
+/* ===== TABLE STYLES ===== */
 
-@media (max-width: 600px) {
-  .filter-controls span,
-  .filter-input,
-  .filter-select,
-  .filter-btn {
-    font-size: 0.85rem !important;
-  }
-}
+/* ===== MODAL STYLES ===== */
 
-@media (min-width: 601px) {
-  .filter-controls span,
-  .filter-input,
-  .filter-select,
-  .filter-btn {
-    font-size: 1rem;
-    padding: 0.35rem 0.7rem;
-    height: 2.2rem;
-    min-width: 0;
-    width: auto;
-    margin-bottom: 0;
-  }
-  .filter-controls {
-    gap: 12px;
-    margin-bottom: 18px;
-  }
-}
-
-.quality-alerts-container th[data-sort="id"],
-.quality-alerts-container td:first-child {
-    white-space: nowrap;
-    min-width: 90px;
-    max-width: 110px;
-    overflow: visible;
-    text-overflow: unset;
-}
-
-.main-form-container {
-    background: #fff;
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    min-height: calc(100vh - 45px); /* Adjusted for even smaller header */
-    margin-top: 45px; /* Shifted content much higher */
-    box-shadow: 0 4px 24px rgba(0, 46, 125, 0.08);
-    border-radius: 0px;
-    padding: 2.5rem 2rem;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
 }
 
-@media (max-width: 768px) {
-    .main-form-container {
-        padding: 1.2rem 0.5rem;
-        border-radius: 01px;
-        margin-top: 40px; /* Shifted content much higher for mobile */
-        min-height: calc(100vh - 40px);
+.modal-overlay.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    max-width: 320px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.25rem 0.75rem;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--text-dark);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.modal-close:hover {
+    background-color: #f5f5f5;
+    color: var(--text-dark);
+}
+
+.modal-body {
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+}
+
+.modal-icon {
+    margin-bottom: 0.75rem;
+}
+
+.modal-icon i {
+    font-size: 2.5rem;
+    color: #ff6b6b;
+}
+
+.modal-body p {
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+.modal-subtitle {
+    color: var(--text-light) !important;
+    font-size: 0.9rem !important;
+    font-weight: 400 !important;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem 1.25rem;
+    border-top: 1px solid #eee;
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    min-width: 80px;
+}
+
+.btn-secondary {
+    background-color: #f8f9fa;
+    color: var(--text-dark);
+    border: 1px solid #dee2e6;
+}
+
+.btn-secondary:hover {
+    background-color: #e9ecef;
+}
+
+.btn-primary {
+    background: var(--primary-gradient);
+    color: white;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 4px 12px rgba(0, 46, 125, 0.3);
+}
+
+/* ===== RESPONSIVE DESIGN - DEVICE BREAKPOINTS ===== */
+
+/*
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           DEVICE BREAKPOINT GUIDE                           ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ MOBILE DEVICES (320px - 600px)                                             ║
+║ ├── Very Small Mobile: ≤380px (iPhone SE, small phones)                   ║
+║ ├── Standard Mobile: 381px-480px (iPhone, Android phones)                 ║
+║ └── Large Mobile: 481px-600px (Large phones, small tablets)               ║
+║                                                                            ║
+║ TABLET DEVICES (601px - 768px)                                             ║
+║ └── Small Tablet: 601px-768px (iPad mini, tablets in portrait)            ║
+║                                                                            ║
+║ DESKTOP DEVICES (769px+)                                                   ║
+║ └── Desktop: 769px+ (Laptops, desktops, large screens)                    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+CARD LAYOUT BY DEVICE:
+- Mobile (320px-600px): 2 cards per row
+- Tablet (601px-768px): 1 card per row
+- Desktop (769px+): 1 card per row
+*/
+
+/* ===== MOBILE DEVICES ===== */
+
+/* ===== Very Small Mobile (≤380px) ===== */
+@media (max-width: 380px) {
+    .action-card {
+        width: calc(50% - 0.6rem);
+        min-width: 120px;
+        max-width: 160px;
+        margin: 0.3rem;
+        height: 85px;
+        min-height: 85px;
+        max-height: 85px;
+    }
+
+    .action-card-heading {
+        font-size: 0.65rem;
+    }
+
+    .action-card-description {
+        font-size: 0.6rem;
     }
 }
 
-.inspection-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-    background: #fff;
+/* ===== Standard Mobile (381px-480px) ===== */
+@media (min-width: 381px) and (max-width: 480px) {
+    .action-card {
+        width: calc(50% - 0.8rem);
+        min-width: 130px;
+        max-width: 170px;
+        margin: 0.4rem;
+        height: 88px;
+        min-height: 88px;
+        max-height: 88px;
+    }
+
+    .action-card-heading {
+        font-size: 0.68rem;
+    }
+
+    .action-card-description {
+        font-size: 0.62rem;
+    }
 }
-.inspection-table td, .inspection-table th {
-    border: 1px solid #222;
-    padding: 12px 6px;
-    text-align: center;
-    font-size: 1.15rem;
-    min-width: 48px;
-    min-height: 36px;
-    height: 40px;
-    vertical-align: middle;
-    word-break: break-word;
+
+/* ===== Mobile Modal Adjustments (≤480px) ===== */
+@media (max-width: 480px) {
+    .user-name {
+        display: none;
+    }
+
+    .modal-content {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+        max-width: 280px;
+    }
+
+    .modal-header {
+        padding: 1rem 1rem 0.5rem;
+    }
+
+    .modal-body {
+        padding: 1.25rem 1rem;
+    }
+
+    .modal-footer {
+        padding: 0.5rem 1rem 1rem;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 0.7rem 1rem;
+    }
 }
+
+/* ===== TABLET DEVICES ===== */
+
+/* ===== Desktop Filter Layout (≥601px) ===== */
+@media (min-width: 601px) {
+    .filter-controls span,
+    .filter-input,
+    .filter-select,
+    .filter-btn {
+        font-size: 1rem;
+        padding: 0.35rem 0.7rem;
+        height: 2.2rem;
+        min-width: 0;
+        width: auto;
+        margin-bottom: 0;
+    }
+
+    .filter-controls {
+        gap: 12px !important;
+        margin-bottom: 18px !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+}
+
+/* ===== DESKTOP DEVICES ===== */
+
+/* ===== Default Desktop Styles (≥769px) ===== */
+/* No media query needed - these are the default desktop styles above */

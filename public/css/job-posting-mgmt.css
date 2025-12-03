@@ -32,19 +32,14 @@ body {
 }
 
 /* Section Styling */
-#add-job-section, 
+#add-job-section,
 #job-list-section {
-    background-color: #fff;
     padding: 20px;
     margin-bottom: 20px; /* Keep bottom margin */
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     /* Remove margin-left/right auto if it was here */
-}
-
-/* Add this new rule specifically for the add job section */
+}/* Add this new rule specifically for the add job section */
 #add-job-section {
-    max-width: 900px; /* <<< Set a maximum width for the form section */
+    max-width: 700px; /* <<< Reduced from 900px to 700px for narrower container */
     margin-left: auto;  /* <<< Center the section horizontally */
     margin-right: auto; /* <<< Center the section horizontally */
 }
@@ -173,13 +168,13 @@ h2 {
 }
 
 table.job-table { 
-    width: 100%;
+    width: 100%; /* Back to 100% to avoid scrollbar */
     border-collapse: collapse;
     border: 1px solid #e5e7eb;
-    margin-top: 0; 
+    margin: 0; /* Remove auto margin, let container handle centering */
     background: white; 
     box-shadow: none;
-    table-layout: fixed; /* <<< Changed to fixed for predictable widths */
+    table-layout: auto; /* Changed from fixed to auto for flexible column sizing */
     box-sizing: border-box;
 }
 
@@ -195,21 +190,21 @@ table.job-table td {
     font-size: 0.85rem; /* <<< Added/Adjusted font size */
 }
 
-/* --- START: Approximate Column Widths (Adjust percentages as needed) --- */
-table.job-table th:nth-child(1), table.job-table td:nth-child(1) { width: 10%; } /* Title */
-table.job-table th:nth-child(2), table.job-table td:nth-child(2) { width: 6%; }  /* Location */
-table.job-table th:nth-child(3), table.job-table td:nth-child(3) { width: 8%; }  /* Salary */
-table.job-table th:nth-child(4), table.job-table td:nth-child(4) { width: 15%; } /* Experience */
-table.job-table th:nth-child(5), table.job-table td:nth-child(5) { width: 18%; } /* Qualification */
-table.job-table th:nth-child(6), table.job-table td:nth-child(6) { width: 7%; }  /* Vacant Positions */
-table.job-table th:nth-child(7), table.job-table td:nth-child(7) { width: 8%; }  /* Enrollment Type */
-table.job-table th:nth-child(8), table.job-table td:nth-child(8) { width: 7%; }  /* Department */
-table.job-table th:nth-child(9), table.job-table td:nth-child(9) { width: 6%; }  /* Duration */
-table.job-table th:nth-child(10), table.job-table td:nth-child(10){ width: 5%; }  /* Status */
-table.job-table th:nth-child(11), table.job-table td:nth-child(11){ width: 7%; }  /* Apply Before */
-table.job-table th:nth-child(12), table.job-table td:nth-child(12){ width: 7%; }  /* Created At */
-table.job-table th:nth-child(13), table.job-table td:nth-child(13){ width: 5%; }  /* Actions */
-/* --- END: Approximate Column Widths --- */
+/* --- START: Minimum Column Widths (for auto table layout) --- */
+table.job-table th:nth-child(1), table.job-table td:nth-child(1) { min-width: 150px; } /* Title */
+table.job-table th:nth-child(2), table.job-table td:nth-child(2) { min-width: 100px; } /* Location */
+table.job-table th:nth-child(3), table.job-table td:nth-child(3) { min-width: 120px; } /* Salary */
+table.job-table th:nth-child(4), table.job-table td:nth-child(4) { min-width: 140px; } /* Experience */
+table.job-table th:nth-child(5), table.job-table td:nth-child(5) { min-width: 180px; } /* Qualification */
+table.job-table th:nth-child(6), table.job-table td:nth-child(6) { min-width: 110px; } /* Vacant Positions */
+table.job-table th:nth-child(7), table.job-table td:nth-child(7) { min-width: 130px; } /* Enrollment Type */
+table.job-table th:nth-child(8), table.job-table td:nth-child(8) { min-width: 110px; } /* Department */
+table.job-table th:nth-child(9), table.job-table td:nth-child(9) { min-width: 100px; } /* Duration */
+table.job-table th:nth-child(10), table.job-table td:nth-child(10){ min-width: 80px; } /* Status */
+table.job-table th:nth-child(11), table.job-table td:nth-child(11){ min-width: 110px; } /* Apply Before */
+table.job-table th:nth-child(12), table.job-table td:nth-child(12){ min-width: 110px; } /* Created At */
+table.job-table th:nth-child(13), table.job-table td:nth-child(13){ min-width: 120px; } /* Actions */
+/* --- END: Minimum Column Widths --- */
 
 
 /* Remove right border from last column */
@@ -275,5 +270,21 @@ table.job-table td .btn:last-child {
 }
 
 /* REMOVED Redundant section/main styles from the end */
+
+/* --- Merged from admin-adhr-job-posting.css (job-posting specific styles) --- */
+/* Quick action grid for job posting cards */
+.quick-action-grid { display: flex !important; flex-wrap: wrap !important; gap: 1.5rem !important; justify-content: flex-start !important; margin: 20px 0 0 2.5rem !important; }
+
+.action-card { background: #fff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); border: 2px solid #e4c829; width: 200px; height: 80px; display:flex; align-items:center; position:relative; }
+
+.action-card-heading { background: linear-gradient(135deg, rgba(0,46,125,0.92) 60%, rgba(0,70,199,0.85) 100%); color: #fff; display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:600; }
+
+/* Buttons */
+.filter-btn { background-color: #ffe342; color: #000000; padding: 0.5rem 1rem; border-radius: 4px; border: 1px solid #ccc; }
+
+/* Mobile tweaks */
+@media (max-width:600px) { .quick-action-grid { flex-direction: column; align-items: center; } }
+
+/* --- End merged section --- */
 
 

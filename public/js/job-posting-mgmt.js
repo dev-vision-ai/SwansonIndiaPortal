@@ -24,7 +24,14 @@ function escapeHTML(str) {
 // --- Function to Load and Display Job Postings --- (Combined fetch and display)
 async function loadJobPostings() {
     console.log('Loading job postings...');
-    jobListTableContainer.innerHTML = '<p>Loading jobs...</p>';
+
+    // Set loading state in tbody if it exists
+    const tbody = jobListTableContainer.querySelector('tbody');
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="13" style="text-align: center; padding: 20px; color: #777; font-style: italic;">Loading jobs...</td></tr>';
+    } else {
+        jobListTableContainer.innerHTML = '<p>Loading jobs...</p>';
+    }
 
     try {
         const { data: jobs, error } = await supabase
@@ -36,82 +43,129 @@ async function loadJobPostings() {
 
         console.log('Fetched jobs:', jobs);
 
-        if (!jobs || jobs.length === 0) {
-            jobListTableContainer.innerHTML = '<p>No job postings found.</p>';
-            return;
-        }
-
         renderJobTable(jobs);
 
     } catch (error) {
         console.error('Error fetching job postings:', error);
-        jobListTableContainer.innerHTML = `<p style="color: red;">Error loading jobs: ${error.message}</p>`;
+        const errorMsg = `<p style="color: red;">Error loading jobs: ${error.message}</p>`;
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="13" style="text-align: center; padding: 20px; color: red;">Error loading jobs: ${error.message}</td></tr>`;
+        } else {
+            jobListTableContainer.innerHTML = errorMsg;
+        }
     }
 }
 
 function renderJobTable(jobs) {
-    let tableHTML = `
-        <table class="job-table">
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Location</th>
-                    <th>Salary</th>
-                    <th>Experience</th>
-                    <th>Qualification</th> 
-                    <th>Vacant Positions</th>
-                    <th>Enrollment Type</th>
-                    <th>Department</th>
-                    <th>Duration</th>
-                    <th>Status</th>
-                    <th>Apply Before</th>
-                    <th>Posted On</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    jobs.forEach(job => {
-        // Format dates using 'en-GB' locale for DD/MM/YYYY
-        const applyBeforeDate = job.apply_before
-            ? new Date(job.apply_before).toLocaleDateString('en-GB') // <<< Use en-GB
-            : 'N/A';
-        const createdAtDate = job.created_at
-            ? new Date(job.created_at).toLocaleDateString('en-GB') // <<< Use en-GB
-            : 'N/A';
-
-        // Capitalize status
-        let displayStatus = job.status || '';
-        if (displayStatus) {
-            displayStatus = displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1);
-        }
-
-        tableHTML += `
-            <tr data-id="${job.id}">
-                <td>${escapeHTML(job.title)}</td>
-                <td>${escapeHTML(job.location || '')}</td>
-                <td>${escapeHTML(job.salary_range || '')}</td>
-                <td>${escapeHTML(job.experience_needed || '')}</td>
-                <td>${escapeHTML(job.qualification || '')}</td>
-                <td>${escapeHTML(job.num_positions || '')}</td>
-                <td>${escapeHTML(job.employment_type || '')}</td>
-                <td>${escapeHTML(job.department || '')}</td>
-                <td>${escapeHTML(job.program_duration || '')}</td>
-                <td>${escapeHTML(displayStatus)}</td>
-                <td>${applyBeforeDate}</td>
-                <td>${createdAtDate}</td>
-                <td>
-                    <button class="edit-btn btn btn-sm btn-warning" data-id="${job.id}">Edit</button>
-                    <button class="delete-btn btn btn-sm btn-danger" data-id="${job.id}">Delete</button>
-                </td>
-            </tr>
+    const tbody = jobListTableContainer.querySelector('tbody');
+    if (!tbody) {
+        // Fallback: if no tbody exists, replace entire container
+        let tableHTML = `
+            <table class="job-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Location</th>
+                        <th>Salary</th>
+                        <th>Experience</th>
+                        <th>Qualification</th>
+                        <th>Vacant Positions</th>
+                        <th>Enrollment Type</th>
+                        <th>Department</th>
+                        <th>Duration</th>
+                        <th>Status</th>
+                        <th>Apply Before</th>
+                        <th>Posted On</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
         `;
-    });
+        jobs.forEach(job => {
+            // Format dates using 'en-GB' locale for DD/MM/YYYY
+            const applyBeforeDate = job.apply_before
+                ? new Date(job.apply_before).toLocaleDateString('en-GB') // <<< Use en-GB
+                : 'N/A';
+            const createdAtDate = job.created_at
+                ? new Date(job.created_at).toLocaleDateString('en-GB') // <<< Use en-GB
+                : 'N/A';
 
-    tableHTML += `</tbody></table>`;
-    jobListTableContainer.innerHTML = tableHTML;
-    // Event listeners are handled by delegation in setupEventListeners
+            // Capitalize status
+            let displayStatus = job.status || '';
+            if (displayStatus) {
+                displayStatus = displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1);
+            }
+
+            tableHTML += `
+                <tr data-id="${job.id}">
+                    <td>${escapeHTML(job.title)}</td>
+                    <td>${escapeHTML(job.location || '')}</td>
+                    <td>${escapeHTML(job.salary_range || '')}</td>
+                    <td>${escapeHTML(job.experience_needed || '')}</td>
+                    <td>${escapeHTML(job.qualification || '')}</td>
+                    <td>${escapeHTML(job.num_positions || '')}</td>
+                    <td>${escapeHTML(job.employment_type || '')}</td>
+                    <td>${escapeHTML(job.department || '')}</td>
+                    <td>${escapeHTML(job.program_duration || '')}</td>
+                    <td>${escapeHTML(displayStatus)}</td>
+                    <td>${applyBeforeDate}</td>
+                    <td>${createdAtDate}</td>
+                    <td>
+                        <button class="edit-btn btn btn-sm btn-warning" data-id="${job.id}">Edit</button>
+                        <button class="delete-btn btn btn-sm btn-danger" data-id="${job.id}">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tableHTML += `</tbody></table>`;
+        jobListTableContainer.innerHTML = tableHTML;
+        return;
+    }
+
+    // If tbody exists, just update the rows
+    let tbodyHTML = '';
+    if (jobs.length === 0) {
+        tbodyHTML = '<tr><td colspan="13" style="text-align: center; padding: 20px; color: #777; font-style: italic;">No job postings found.</td></tr>';
+    } else {
+        jobs.forEach(job => {
+            // Format dates using 'en-GB' locale for DD/MM/YYYY
+            const applyBeforeDate = job.apply_before
+                ? new Date(job.apply_before).toLocaleDateString('en-GB') // <<< Use en-GB
+                : 'N/A';
+            const createdAtDate = job.created_at
+                ? new Date(job.created_at).toLocaleDateString('en-GB') // <<< Use en-GB
+                : 'N/A';
+
+            // Capitalize status
+            let displayStatus = job.status || '';
+            if (displayStatus) {
+                displayStatus = displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1);
+            }
+
+            tbodyHTML += `
+                <tr data-id="${job.id}">
+                    <td>${escapeHTML(job.title)}</td>
+                    <td>${escapeHTML(job.location || '')}</td>
+                    <td>${escapeHTML(job.salary_range || '')}</td>
+                    <td>${escapeHTML(job.experience_needed || '')}</td>
+                    <td>${escapeHTML(job.qualification || '')}</td>
+                    <td>${escapeHTML(job.num_positions || '')}</td>
+                    <td>${escapeHTML(job.employment_type || '')}</td>
+                    <td>${escapeHTML(job.department || '')}</td>
+                    <td>${escapeHTML(job.program_duration || '')}</td>
+                    <td>${escapeHTML(displayStatus)}</td>
+                    <td>${applyBeforeDate}</td>
+                    <td>${createdAtDate}</td>
+                    <td>
+                        <button class="edit-btn btn btn-sm btn-warning" data-id="${job.id}">Edit</button>
+                        <button class="delete-btn btn btn-sm btn-danger" data-id="${job.id}">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+    tbody.innerHTML = tbodyHTML;
 }
 
 // --- Function to Auto-Resize Textarea ---

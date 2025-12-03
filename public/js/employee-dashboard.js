@@ -3,6 +3,36 @@ import { supabase } from '../supabase-config.js';
 let alertsData = []; // Define globally
 let currentSort = { column: 'id', direction: 'asc' }; // Define globally
 
+// Make filter elements globally accessible
+let filterDate, filterDept, filterAbnormality;
+
+/**
+ * Checks if user is authenticated and redirects to login if not
+ * This runs immediately to prevent cached pages from loading
+ */
+async function checkAuthentication() {
+    try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+
+        if (error || !user) {
+            // User not authenticated, redirect to login immediately
+            console.log('User not authenticated, redirecting to login');
+            window.location.replace('../html/auth.html');
+            return false;
+        }
+
+        return true;
+    } catch (err) {
+        console.error('Authentication check failed:', err);
+        window.location.replace('../html/auth.html');
+        return false;
+    }
+}
+
+/**
+ * Renders the alerts table with the provided data
+ * @param {Array} data - Array of alert objects to display
+ */
 function renderTable(data) {
     const tbody = document.getElementById('alertsBody');
     if (!tbody) {
@@ -29,12 +59,16 @@ function renderTable(data) {
                 <td>${alert.responsibledept || 'N/A'}</td>
                 <td>${alert.abnormalitytype || 'N/A'}</td>
                 <td>${alert.status || 'N/A'}</td>
-                <td><a href="${alert.status === 'Draft' ? 'quality-alert.html' : 'quality-alerts-actions.html'}?id=${alert.id}&action=${alert.status === 'Draft' ? 'edit' : 'view'}" class="action-link">${alert.status === 'Draft' ? 'Edit Draft' : 'View Actions'}</a></td>
+                <td><a href="${alert.status === 'Draft' ? 'quality-alert.html' : 'quality-alerts-actions.html'}?id=${alert.id}&action=${alert.status === 'Draft' ? 'edit' : 'view'}&from=emp-quality-alerts-table" class="action-link">${alert.status === 'Draft' ? 'Edit Draft' : 'View Actions'}</a></td>
             </tr>
         `;
     }).join('');
 }
 
+/**
+ * Sorts the alerts data by the specified column
+ * @param {string} column - The column name to sort by
+ */
 function sortData(column) {
     if (!alertsData.length) return;
 
@@ -48,6 +82,7 @@ function sortData(column) {
 
     currentlyDisplayedData.sort((a, b) => {
         const modifier = currentSort.direction === 'asc' ? 1 : -1;
+
         if (currentSort.column === 'id') {
             // Sort by prefix (YYMM), then by serial (XX) as number
             const parseId = (id) => {
@@ -61,9 +96,10 @@ function sortData(column) {
             }
             return (aId.serial - bId.serial) * modifier;
         }
+
         const aValue = a[currentSort.column];
         const bValue = b[currentSort.column];
-     
+
         if (aValue == null && bValue == null) return 0;
         if (aValue == null) return -1 * modifier;
         if (bValue == null) return 1 * modifier;
@@ -71,32 +107,34 @@ function sortData(column) {
         if (typeof aValue === 'string' && typeof bValue === 'string') {
             return aValue.localeCompare(bValue) * modifier;
         }
-        
+
         return (aValue - bValue) * modifier;
     });
 
     renderTable(currentlyDisplayedData);
 }
 
+/**
+ * Applies current filter values to the alerts data
+ * @param {boolean} render - Whether to render the filtered results (default: true)
+ * @returns {Array} Filtered data array if render is false
+ */
 function applyFilters(render = true) {
-    const dateValue = filterDate.value;
-    const deptValue = filterDept.value;
-    const abnormalityValue = filterAbnormality.value;
+    const dateValue = filterDate?.value || '';
+    const deptValue = filterDept?.value || '';
+    const abnormalityValue = filterAbnormality?.value || '';
 
     let filteredData = alertsData;
 
     if (dateValue) {
-        
         filteredData = filteredData.filter(alert => alert.incidentdate && alert.incidentdate === dateValue);
     }
 
     if (deptValue) {
-        
         filteredData = filteredData.filter(alert => alert.responsibledept === deptValue);
     }
 
     if (abnormalityValue) {
-        
         filteredData = filteredData.filter(alert => alert.abnormalitytype === abnormalityValue);
     }
 
@@ -107,6 +145,10 @@ function applyFilters(render = true) {
     }
 }
 
+/**
+ * Fetches draft quality alerts for the current user
+ * @returns {Promise<Array>} Array of draft alert objects
+ */
 async function fetchDraftQualityAlerts() {
     try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -114,7 +156,6 @@ async function fetchDraftQualityAlerts() {
             console.error("User not logged in, cannot fetch draft alerts.");
             return [];
         }
-        const userId = user.id;
 
         const { data, error } = await supabase
             .from('quality_alert_drafts')
@@ -128,7 +169,7 @@ async function fetchDraftQualityAlerts() {
                 user_id,
                 users ( full_name )
             `)
-            .eq('user_id', userId)
+            .eq('user_id', user.id)
             .order('drafted_at', { ascending: false });
 
         if (error) {
@@ -139,7 +180,7 @@ async function fetchDraftQualityAlerts() {
         return data.map(draft => ({
             ...draft,
             user_name: draft.users ? draft.users.full_name : 'Unknown',
-            status: 'Draft' // Add a status to differentiate drafts
+            status: 'Draft'
         }));
 
     } catch (error) {
@@ -148,6 +189,9 @@ async function fetchDraftQualityAlerts() {
     }
 }
 
+/**
+ * Fetches and displays the latest alerts for the current user
+ */
 async function fetchLatestAlerts() {
     const tbody = document.getElementById('alertsBody');
     if (tbody) {
@@ -155,7 +199,6 @@ async function fetchLatestAlerts() {
     }
 
     try {
-        
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
             console.error("User not logged in, cannot fetch alerts.");
@@ -165,7 +208,6 @@ async function fetchLatestAlerts() {
             window.location.href = '/';
             return;
         }
-        const userId = user.id;
 
         const { data, error } = await supabase
             .from('quality_alerts')
@@ -179,8 +221,7 @@ async function fetchLatestAlerts() {
                 user_id,
                 users ( full_name )
             `)
-            .eq('user_id', userId) 
-            
+            .eq('user_id', user.id)
             .order('incidentdate', { ascending: false });
 
         if (error) {
@@ -191,23 +232,23 @@ async function fetchLatestAlerts() {
         const submittedAlerts = data.map(alert => ({
             ...alert,
             user_name: alert.users ? alert.users.full_name : 'Unknown',
-            status: 'Submitted' // Add a status to differentiate submitted alerts
+            status: 'Submitted'
         }));
 
         const draftAlerts = await fetchDraftQualityAlerts();
 
-        // Combine and sort alerts (you might want a more sophisticated sort)
+        // Combine and sort alerts by most recent date
         alertsData = [...submittedAlerts, ...draftAlerts].sort((a, b) => {
             const dateA = new Date(a.incidentdate || a.drafted_at);
             const dateB = new Date(b.incidentdate || b.drafted_at);
-            return dateB - dateA; // Sort by most recent date
+            return dateB - dateA;
         });
 
         renderTable(alertsData);
 
     } catch (error) {
         console.error('Error fetching or processing alerts:', error);
-        
+
         const tbody = document.getElementById('alertsBody');
         if (tbody) {
             tbody.innerHTML = '<tr><td colspan="8" class="error-message">Could not load your alerts. Please try again later.</td></tr>';
@@ -215,8 +256,10 @@ async function fetchLatestAlerts() {
     }
 }
 
+/**
+ * Loads and displays notifications from localStorage
+ */
 async function loadNotifications() {
-    
     const notifications = JSON.parse(localStorage.getItem('notifications')) || [
         { id: 1, message: "New quality alert submitted", date: "2 mins ago", read: false, icon: "fas fa-exclamation-circle" },
         { id: 2, message: "Form approval pending", date: "1 hour ago", read: false, icon: "fas fa-clock" }
@@ -226,13 +269,11 @@ async function loadNotifications() {
     const notificationList = document.querySelector('.notification-list');
     const notificationDropdown = document.querySelector('.notification-dropdown');
 
-
     if (notificationBadge) {
         const unreadCount = notifications.filter(n => !n.read).length;
         notificationBadge.textContent = unreadCount;
         notificationBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
     }
-
 
     const notificationHTML = notifications.map(notification => `
         <div class="notification-item ${notification.read ? 'read' : ''}" data-id="${notification.id}">
@@ -245,55 +286,50 @@ async function loadNotifications() {
     `).join('');
 
     if (notificationList) {
-         notificationList.innerHTML = notifications.length ? notificationHTML : '<p class="no-data">No notifications</p>';
+        notificationList.innerHTML = notifications.length ? notificationHTML : '<p class="no-data">No notifications</p>';
     }
-     if (notificationDropdown) {
-        
+
+    if (notificationDropdown) {
         notificationDropdown.innerHTML = notifications.length ? notificationHTML : '<p class="no-data">No notifications</p>';
-     }
+    }
 }
 
 
-function printRTCIS() {
-    alert("RTCIS print functionality will be implemented here.");
-    
-}
-
+/**
+ * Sets up all event listeners for the dashboard
+ */
 function setupEventListeners() {
-    // --- Look up filter elements only if they might exist --- 
-    const filterDate = document.getElementById('filterDate');
-    const filterDept = document.getElementById('filterDept');
-    const filterAbnormality = document.getElementById('filterAbnormality');
+    // Look up filter elements
+    filterDate = document.getElementById('filterDate');
+    filterDept = document.getElementById('filterDept');
+    filterAbnormality = document.getElementById('filterAbnormality');
     const clearFiltersButton = document.getElementById('clearFilters');
-    // const findButton = document.getElementById('findButton'); // If you have a find button
 
-    // --- Add filter listeners only if elements exist --- 
+    // Add filter listeners
     if (filterDate) filterDate.addEventListener('change', () => applyFilters());
     if (filterDept) filterDept.addEventListener('change', () => applyFilters());
     if (filterAbnormality) filterAbnormality.addEventListener('change', () => applyFilters());
-    // if (findButton) findButton.addEventListener('click', () => applyFilters());
 
     if (clearFiltersButton) {
         clearFiltersButton.addEventListener('click', () => {
             if (filterDate) filterDate.value = '';
             if (filterDept) filterDept.value = '';
             if (filterAbnormality) filterAbnormality.value = '';
-            applyFilters(); 
+            applyFilters();
         });
     } else {
-        // Only log error if we expect the button (e.g., on the table page)
-        if (document.getElementById('alertsBody')) { // Check if we are likely on the table page
-             console.warn("Element with ID 'clearFilters' not found, but expected on table page.");
+        if (document.getElementById('alertsBody')) {
+            console.warn("Element with ID 'clearFilters' not found, but expected on table page.");
         }
     }
 
-    // --- Add sort listeners only if table headers exist --- 
+    // Add sort listeners
     document.querySelectorAll('#alertsBody th[data-sort]').forEach(header => {
         header.addEventListener('click', () => sortData(header.dataset.sort));
     });
 
-    // --- Existing Notification Listeners --- 
-    const notificationIcon = document.querySelector('.notification-icon'); 
+    // Notification listeners
+    const notificationIcon = document.querySelector('.notification-icon');
     const notificationDropdown = document.querySelector('.notification-dropdown');
 
     if (notificationIcon && notificationDropdown) {
@@ -304,36 +340,42 @@ function setupEventListeners() {
 
         document.addEventListener('click', (e) => {
             if (!notificationIcon.contains(e.target) && !notificationDropdown.contains(e.target)) {
-                 notificationDropdown.classList.remove('show');
-             }
+                notificationDropdown.classList.remove('show');
+            }
         });
     }
 
-    const qualityAlertLink = document.querySelector('.quality-alert-link'); 
+    const qualityAlertLink = document.querySelector('.quality-alert-link');
     const dailyReportLink = document.querySelector('.daily-report-link');
 
-    if(qualityAlertLink) {
+    if (qualityAlertLink) {
         qualityAlertLink.addEventListener('click', (e) => {
             e.preventDefault();
             window.location.href = '../html/quality-alert.html';
         });
     }
 
-     if(dailyReportLink) {
+    if (dailyReportLink) {
         dailyReportLink.addEventListener('click', (e) => {
             e.preventDefault();
             window.location.href = '../html/dailyreport.html';
         });
-     }
+    }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    loadNotifications(); 
-    setupEventListeners(); 
-    await loadUserProfile(); 
+    // Check authentication first before doing anything else
+    const isAuthenticated = await checkAuthentication();
+    if (!isAuthenticated) {
+        return; // Stop execution if not authenticated
+    }
+
+    loadNotifications();
+    setupEventListeners();
+    await loadUserProfile();
 
     if (document.getElementById('alertsBody')) {
-        await fetchLatestAlerts(); 
+        await fetchLatestAlerts();
         // Add delegated click handler for 'View Actions' links
         document.getElementById('alertsBody').addEventListener('click', function(e) {
             const target = e.target;
@@ -345,111 +387,195 @@ document.addEventListener('DOMContentLoaded', async () => {
    
     const logoutButton = document.getElementById('logoutButton');
     if (logoutButton) {
-        logoutButton.addEventListener('click', async (e) => { // Make the handler async
-            e.preventDefault(); // Keep this if you had it
-
-            // --- Add Confirmation --- 
-            if (window.confirm("Are you sure you want to log out?")) {
-                // Logout confirmed, signing out
-                try {
-                    const { error } = await supabase.auth.signOut();
-                    if (error) {
-                        console.error('Error logging out:', error);
-                        alert('Logout failed. Please try again.');
-                    } else {
-                        // Logout successful, redirecting
-                        window.location.replace('../html/auth.html'); // Redirect after successful logout
-                    }
-                } catch (err) {
-                    console.error('Exception during logout:', err);
-                    alert('An unexpected error occurred during logout.');
-                }
-            } else {
-                // Logout cancelled by user
+        logoutButton.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            // Show logout confirmation modal
+            const logoutModal = document.getElementById('logoutModal');
+            logoutModal.classList.add('show');
+        });
+    }
+    
+    // Logout modal event handlers
+    const logoutModalClose = document.getElementById('logoutModalClose');
+    const logoutCancel = document.getElementById('logoutCancel');
+    const logoutConfirm = document.getElementById('logoutConfirm');
+    const logoutModal = document.getElementById('logoutModal');
+    
+    // Close modal handlers
+    if (logoutModalClose) {
+        logoutModalClose.addEventListener('click', () => {
+            logoutModal.classList.remove('show');
+        });
+    }
+    
+    if (logoutCancel) {
+        logoutCancel.addEventListener('click', () => {
+            logoutModal.classList.remove('show');
+        });
+    }
+    
+    // Message modal event handlers
+    const messageModalClose = document.getElementById('messageModalClose');
+    const messageModalOk = document.getElementById('messageModalOk');
+    const messageModal = document.getElementById('messageModal');
+    
+    if (messageModalClose) {
+        messageModalClose.addEventListener('click', () => {
+            messageModal.classList.remove('show');
+        });
+    }
+    
+    if (messageModalOk) {
+        messageModalOk.addEventListener('click', () => {
+            messageModal.classList.remove('show');
+        });
+    }
+    
+    if (messageModal) {
+        messageModal.addEventListener('click', (e) => {
+            if (e.target === messageModal) {
+                messageModal.classList.remove('show');
             }
-            // --- End Confirmation ---
+        });
+    }
+    
+    // Confirm logout handler
+    if (logoutConfirm) {
+        logoutConfirm.addEventListener('click', async () => {
+            logoutModal.classList.remove('show');
+            
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) {
+                    console.error('Error logging out:', error);
+                    // Show error modal instead of alert
+                    showMessageModal('Logout Failed', 'An error occurred during logout. Please try again.', 'error');
+                } else {
+                    // Logout successful, redirecting
+                    window.location.replace('../html/auth.html');
+                }
+            } catch (err) {
+                console.error('Exception during logout:', err);
+                // Show error modal instead of alert
+                showMessageModal('Logout Failed', 'An unexpected error occurred during logout.', 'error');
+            }
         });
     }
 });
 
+/**
+ * Shows a styled message modal
+ * @param {string} title - Modal title
+ * @param {string} message - Modal message
+ * @param {string} type - Modal type ('success', 'error', 'info', 'warning')
+ */
+function showMessageModal(title, message, type = 'info') {
+    const messageModal = document.getElementById('messageModal');
+    const messageModalTitle = document.getElementById('messageModalTitle');
+    const messageModalText = document.getElementById('messageModalText');
+    const messageModalIcon = document.getElementById('messageModalIcon');
+    
+    if (messageModalTitle) messageModalTitle.textContent = title;
+    if (messageModalText) messageModalText.textContent = message;
+    
+    // Set icon based on type
+    let iconClass = 'fas fa-info-circle';
+    let iconColor = '#17a2b8'; // info color
+    
+    switch (type) {
+        case 'success':
+            iconClass = 'fas fa-check-circle';
+            iconColor = '#28a745';
+            break;
+        case 'error':
+            iconClass = 'fas fa-exclamation-circle';
+            iconColor = '#dc3545';
+            break;
+        case 'warning':
+            iconClass = 'fas fa-exclamation-triangle';
+            iconColor = '#ffc107';
+            break;
+    }
+    
+    if (messageModalIcon) {
+        messageModalIcon.innerHTML = `<i class="${iconClass}" style="color: ${iconColor}"></i>`;
+    }
+    
+    if (messageModal) {
+        messageModal.classList.add('show');
+    }
+}
+
+/**
+ * Loads and displays the current user's profile information
+ */
 async function loadUserProfile() {
-    console.time('loadUserProfile total'); // Start total timer
-    console.time('getUser'); // Start getUser timer
     const { data: { user } } = await supabase.auth.getUser();
-    console.timeEnd('getUser'); // End getUser timer
 
     if (user) {
-        console.time('fetchProfile'); // Start profile fetch timer
         const { data: profile, error: profileError } = await supabase
             .from('users')
-            .select('full_name, employee_code, department')
+            .select('full_name, employee_code, department, user_level')
             .eq('id', user.id)
             .single();
-        console.timeEnd('fetchProfile'); // End profile fetch timer
 
-        const userNameElement = document.querySelector('.user-name');
+        // Check if device is mobile (≤600px) - skip user-name functionality on mobile
+        const isMobile = window.innerWidth <= 600;
+        const userNameElement = isMobile ? null : document.querySelector('.user-name');
         const employeeNameElement = document.getElementById('employeeName');
         const employeeCodeElement = document.getElementById('employeeCode');
 
         if (profile) {
+            // Only update user-name element if not on mobile
             if (userNameElement) {
                 userNameElement.textContent = 'Hi, ' + profile.full_name;
-            } else {
-                console.error("Element with class 'user-name' not found."); // Log error
             }
             if (employeeNameElement) employeeNameElement.textContent = profile.full_name;
             if (employeeCodeElement) employeeCodeElement.textContent = (profile.employee_code || '').toUpperCase();
 
-            // Call the filtering function after user profile is loaded
-            filterQuickActionsByDepartment(user, profile.department);
+            filterQuickActionsByDepartment(user, profile.department, profile.user_level);
 
         } else if (profileError) {
             console.error("Error fetching profile:", profileError);
+            // Only update user-name element if not on mobile
             if (userNameElement) userNameElement.textContent = user.email ? 'Hi, ' + user.email : 'Hi there';
             if (employeeNameElement) employeeNameElement.textContent = user.email || 'Employee';
             if (employeeCodeElement) employeeCodeElement.textContent = user.id.substring(0, 8).toUpperCase();
 
-            // Call the filtering function even if profile fetch failed (no department filtering)
-            filterQuickActionsByDepartment(user, null);
+            filterQuickActionsByDepartment(user, null, null);
         }
     } else {
         console.error("User not logged in.");
         window.location.href = '../html/auth.html';
     }
-    console.timeEnd('loadUserProfile total');
 }
 
-async function filterQuickActionsByDepartment(user, userDepartment) {
-    // filterQuickActionsByDepartment called
-    // User object
-
-    if (!user) {
-        // No user object, cannot filter quick actions
-        return;
-    }
+/**
+ * Filters quick action cards based on user department and level
+ * @param {Object} user - Authenticated user object
+ * @param {string|null} userDepartment - User's department or null
+ * @param {number|null} userLevel - User's level or null
+ */
+async function filterQuickActionsByDepartment(user, userDepartment, userLevel) {
+    if (!user) return;
 
     try {
-        // User department is passed as parameter
-
-        // User profile data
-
         const quickActionGrid = document.querySelector('.quick-action-grid');
         if (quickActionGrid) {
-            quickActionGrid.style.display = 'none'; // Hide the entire grid initially
+            quickActionGrid.style.display = 'none';
         }
 
-        const quickActionCards = document.querySelectorAll('.action-card'); // Changed to action-card based on HTML
-        // Found quick action cards
+        const quickActionCards = document.querySelectorAll('.action-card');
 
         quickActionCards.forEach(card => {
             const cardDepartments = card.getAttribute('data-department');
-            // Card data-department
+            const cardUserLevel = card.getAttribute('data-user-level');
 
             let shouldDisplay = false;
 
             if (cardDepartments) {
                 const departmentsArray = cardDepartments.split(',').map(dept => dept.trim());
-                // Card departments array
 
                 if (departmentsArray.includes('All')) {
                     shouldDisplay = true;
@@ -459,7 +585,17 @@ async function filterQuickActionsByDepartment(user, userDepartment) {
                 }
             }
 
-            // Card display decision
+            // Check user level if specified - if card requires a level, user must have that exact level
+            if (shouldDisplay && cardUserLevel) {
+                if (userLevel === null || userLevel === undefined) {
+                    // Card requires a user level but user doesn't have one - hide it
+                    shouldDisplay = false;
+                } else {
+                    const requiredLevels = cardUserLevel.split(',').map(level => parseInt(level.trim()));
+                    shouldDisplay = requiredLevels.includes(userLevel);
+                }
+            }
+
             if (shouldDisplay) {
                 card.classList.remove('js-hide');
             } else {
@@ -468,49 +604,10 @@ async function filterQuickActionsByDepartment(user, userDepartment) {
         });
 
         if (quickActionGrid) {
-             quickActionGrid.style.display = 'flex'; // Show the entire grid after filtering
-         }
+            quickActionGrid.style.display = 'flex';
+        }
 
     } catch (error) {
         console.error('Unexpected error in filterQuickActionsByDepartment:', error);
     }
 }
-
-// Logout functionality with back button prevention
-document.getElementById("logoutButton")?.addEventListener("click", async () => {
-    try {
-        const { error } = await supabase.auth.signOut();
-        if (error) throw error;
-        
-        // Remove session from both storages
-        localStorage.removeItem('supabase.auth.session');
-        sessionStorage.removeItem('supabase.auth.session');
-        
-        // Clear all browser history and prevent back navigation
-        window.history.pushState(null, '', window.location.href);
-        window.onpopstate = function() {
-            window.history.pushState(null, '', window.location.href);
-        };
-        
-        // Clear all session storage and local storage except essential items
-        const essentialKeys = ['rememberedEmpCode', 'rememberedPassword'];
-        for (let i = sessionStorage.length - 1; i >= 0; i--) {
-            const key = sessionStorage.key(i);
-            if (!essentialKeys.includes(key)) {
-                sessionStorage.removeItem(key);
-            }
-        }
-        for (let i = localStorage.length - 1; i >= 0; i--) {
-            const key = localStorage.key(i);
-            if (!essentialKeys.includes(key)) {
-                localStorage.removeItem(key);
-            }
-        }
-        
-        const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
-        window.location.replace(`${basePath}/html/auth.html`);
-    } catch (error) {
-        console.error("Error logging out:", error);
-        alert("Error logging out. Please try again.");
-    }
-});

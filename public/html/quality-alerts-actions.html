@@ -4,9 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Quality Alert Details</title> <!-- Form Title -->
+  <title>Quality Alert Details</title>
+    <link rel="icon" type="image/png" href="../assets/logo2.png"> <!-- Form Title -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-  <link rel="stylesheet" href="../css/admin-qa.css">
+  <link rel="stylesheet" href="../css/style-2.css">
   <link rel="stylesheet" href="../css/common-header.css">
   <style>
     /* Compact styling for smaller content - using !important to override conflicts */
@@ -220,7 +221,7 @@
 <body>
 
   <div class="header-container centered-layout">
-    <button type="button" class="header-back-button" onclick="window.history.back();">Back</button>
+    <button type="button" class="header-back-button" id="headerBackBtn" onclick="return false;">Back</button>
     <div class="header-title">Quality Alert Actions</div>
     <div class="company-logo">
       <img src="../assets/logo.png" class="auth-logo" alt="Logo"/>
@@ -490,3 +491,4 @@
   <script type="module" src="../js/quality-alerts-actions.js"></script>
 </body>
 </html>
+

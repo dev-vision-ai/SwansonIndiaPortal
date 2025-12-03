@@ -30,7 +30,6 @@ const easyAccess = null;
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadUserProfile();
     setFormDefaults();
     await loadExistingFireExtinguisherData();
     setupEventListeners();
@@ -38,83 +37,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Additional security for public access
     setupPublicAccessSecurity();
 });
-
-// Load user profile
-async function loadUserProfile() {
-    const userNameElement = document.querySelector('.user-name');
-    const backButton = document.getElementById('backButton');
-    const qrDownloadContainer = document.getElementById('qrDownloadContainer');
-
-    try {
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError || !user) {
-            // User is not authenticated - public access mode
-            console.log('Public access mode - no authentication required');
-            
-            // Hide back button for public access
-            if (backButton) {
-                backButton.style.display = 'none';
-            }
-            
-            // Hide QR download button for public access
-            if (qrDownloadContainer) {
-                qrDownloadContainer.style.display = 'none';
-            }
-            
-            // Remove user name display for public access
-            if (userNameElement) {
-                userNameElement.style.display = 'none';
-            }
-            
-            return; // Don't redirect - allow public access
-        }
-
-        // User is authenticated - show back button and user info
-        if (backButton) {
-            backButton.style.display = 'block';
-        }
-
-        // Show QR download button for authenticated users
-        if (qrDownloadContainer) {
-            qrDownloadContainer.style.display = 'block';
-        }
-
-        if (userNameElement) {
-            try {
-            const { data: profile, error: profileError } = await supabase
-                .from('users')
-                .select('full_name')
-                .eq('id', user.id)
-                .single();
-
-            if (profileError) throw profileError;
-
-            if (profile && profile.full_name) {
-                userNameElement.textContent = 'Hi, ' + profile.full_name;
-            } else {
-                userNameElement.textContent = 'Hi, ' + (user.email || 'Admin');
-            }
-            } catch (error) {
-                console.error('Error loading user profile:', error);
-                userNameElement.textContent = 'Hi, Admin';
-            }
-        }
-    } catch (error) {
-        console.error('Error checking authentication:', error);
-        
-        // On error, treat as public access
-        if (backButton) {
-            backButton.style.display = 'none';
-        }
-        if (qrDownloadContainer) {
-            qrDownloadContainer.style.display = 'none';
-        }
-        if (userNameElement) {
-            userNameElement.style.display = 'none';
-        }
-    }
-}
 
 // Set form defaults
 function setFormDefaults() {
