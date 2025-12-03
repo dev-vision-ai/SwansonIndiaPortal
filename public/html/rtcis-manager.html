@@ -5,6 +5,7 @@
     <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>RTCIS Label Manager</title>
+    <link rel="icon" type="image/png" href="../assets/logo2.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
     <link rel="stylesheet" href="../css/employee-dashboard.css">
@@ -218,12 +219,12 @@
           }
           const from = getQueryParam('from');
           backBtn.addEventListener('click', function() {
-            if (from === 'admin-qc') {
-              window.location.href = 'admin-qc.html';
-            } else if (from === 'admin-mt') {
-              window.location.href = 'admin-mt.html';
-            } else {
+            if (from === 'employee-dashboard') {
+              window.location.href = 'employee-dashboard.html';
+            } else if (from === 'admin-qa') {
               window.location.href = 'admin-qa.html';
+            } else {
+              alert('Error: Invalid or missing source parameter. Cannot determine where to navigate back to.');
             }
           });
         }

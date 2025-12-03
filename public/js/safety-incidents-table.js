@@ -23,7 +23,7 @@ function renderTable(data) {
     }
 
     if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4">No incidents found for the current criteria.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">No incidents found for the current criteria.</td></tr>';
         return;
     }
 
@@ -35,11 +35,10 @@ function renderTable(data) {
                 <td>${incidentNo}</td>
                 <td>${incidentDate}</td>
                 <td>${incident.user_name || 'Unknown'}</td>
-                <td>${incident.incident_type || 'N/A'}</td>
+                <td>${incident.users?.department || incident.user_department || 'N/A'}</td>
                 <td class="description-cell">${incident.description || 'No Description'}</td>
-                <td>${incident.department || 'N/A'}</td>
-                <td>${incident.severity || 'N/A'}</td>
-                <td>${incident.status || 'N/A'}</td>
+                <td>${incident.department || incident.responsibledept || 'N/A'}</td>
+                <td>${incident.incident_type || 'N/A'}</td>
                 <td class="actions-cell">
                   ${incident.status === 'Draft' 
                     ? `<a href="safety-incident.html?draft_id=${incident.id}" class="action-btn edit-btn">Edit Draft</a>`
@@ -165,7 +164,7 @@ async function fetchDraftSafetyIncidents() {
 async function fetchLatestIncidents() {
     const tbody = document.getElementById('incidentsBody');
     if (tbody) {
-        tbody.innerHTML = '<tr class="loading-row"><td colspan="9" class="text-center py-4">Loading incidents...</td></tr>';
+        tbody.innerHTML = '<tr class="loading-row"><td colspan="8" class="text-center py-4">Loading incidents...</td></tr>';
     }
 
     try {
@@ -173,7 +172,7 @@ async function fetchLatestIncidents() {
         if (!user) {
             console.error("User not logged in, cannot fetch incidents.");
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="9" class="error-message">Please log in to view incidents.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="error-message">Please log in to view incidents.</td></tr>';
             }
             window.location.href = '../html/auth.html';
             return;
@@ -222,7 +221,7 @@ async function fetchLatestIncidents() {
     } catch (error) {
         console.error('Error fetching incidents:', error);
         if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="9" class="error-message">Error loading incidents. Please try again.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="error-message">Error loading incidents. Please try again.</td></tr>';
         }
     }
 }

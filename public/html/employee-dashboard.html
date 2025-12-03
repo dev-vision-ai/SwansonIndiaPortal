@@ -4,7 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Employee Dashboard</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Dashboard Menu</title>
+    <link rel="icon" type="image/png" href="../assets/logo2.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
     <link rel="stylesheet" href="../css/employee-dashboard.css">
     <link rel="stylesheet" href="../css/common-header.css">
@@ -22,7 +26,7 @@
                              <div class="user-name"></div> 
                         </div>
                     </div>
-                    <div class="header-title">Employee Dashboard</div>
+                    <div class="header-title">Dashboard Menu</div>
                     <div class="company-logo">
                         <img src="../assets/logo.png" alt="Company Logo" class="auth-logo">
                     </div>
@@ -54,7 +58,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="action-card js-hide" data-department="All" onclick="location.href='../html/dcc.html'">
+                    <div class="action-card js-hide" data-department="All" data-user-level="1" onclick="location.href='../html/dcc.html'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-folder-open"></i>
                         </div>
@@ -187,6 +191,34 @@
                         </div>
                     </div>
 
+                    <div class="action-card js-hide" data-department="Quality Assurance" data-user-level="1" onclick="location.href='../html/quality-alerts-table.html?from=employee-dashboard'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>View All Quality Alerts</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Edit Status</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="action-card js-hide" data-department="Quality Control,Quality Assurance" data-user-level="1" onclick="location.href='../html/rtcis-manager.html?from=employee-dashboard'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-barcode"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>Manage RTCIS Labels</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Add/Delete Products</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="action-card js-hide desktop-only" data-department="Quality Control,Quality Assurance,Production" onclick="location.href='../html/inline-inspection-form.html'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-search-plus"></i>
@@ -201,6 +233,73 @@
                         </div>
                     </div>
 
+                    <!-- Admin & HR Cards - Only visible to Human Resources and Administration users with level 1 -->
+                    <div class="action-card js-hide" data-department="Human Resources,Administration" data-user-level="1" onclick="location.href='../html/user-mgmt.html'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>User Management</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Create new users and manage existing accounts.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="action-card js-hide" data-department="Human Resources,Administration" data-user-level="1" onclick="location.href='../html/job-posting-mgmt.html'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>Job Postings</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Create, update, and manage job listings for the careers page.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="action-card js-hide" data-department="Human Resources,Administration" data-user-level="1" onclick="location.href='../html/gallery-admin.html'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-images"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>Gallery Management</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Manage website gallery albums and images.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="action-card js-hide" data-department="Human Resources,Administration" data-user-level="1" onclick="location.href='../html/safety-incidents-table.html'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>View All Safety Incidents</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Review and manage all reported safety incidents.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="action-card js-hide" data-department="Human Resources,Administration" data-user-level="1" onclick="location.href='../html/fire-extinguisher-mgmt.html'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>Fire Extinguisher Management</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Manage fire extinguisher inventory, inspections, and QR codes.</p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div id="recentActivitiesList" class="activity-list">
@@ -211,6 +310,47 @@
                 </section>
         </div>
     </main>
+    
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirm Logout</h3>
+                <button class="modal-close" id="logoutModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-icon">
+                    <i class="fas fa-sign-out-alt"></i>
+                </div>
+                <p>Are you sure you want to log out?</p>
+                <p class="modal-subtitle">You will be redirected to the login page.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="logoutCancel">Cancel</button>
+                <button class="btn btn-primary" id="logoutConfirm">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Modal for errors/success -->
+    <div id="messageModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="messageModalTitle">Message</h3>
+                <button class="modal-close" id="messageModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-icon" id="messageModalIcon">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <p id="messageModalText">Message content</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="messageModalOk">OK</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer" style="position: fixed; bottom: 0; width: 100%; background-color: rgba(255, 255, 255, 0.0);"> <!-- Reduced opacity -->
         <div class="footer-content" style="text-align: center; padding: 6.5px;">
         </div>

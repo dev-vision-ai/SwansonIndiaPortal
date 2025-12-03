@@ -1,14 +1,6 @@
 const XlsxPopulate = require('xlsx-populate');
-const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
-const { createClient } = require('@supabase/supabase-js');
-
-// Supabase configuration from environment variables
-const supabase = createClient(
-  process.env.SUPABASE_URL || 'https://ufczydnvscaicygwlmhz.supabase.co',
-  process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3p5ZG52c2NhaWN5Z3dsbWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyMTg5NDYsImV4cCI6MjA1OTc5NDk0Nn0.0TUriXYvPuml-Jzr9v1jvcuzKjh-cZgnZhYKkQEj3t0'
-);
 
 // Helper function to format date to DD/MM/YYYY
 function formatDateToDDMMYYYY(dateString) {
@@ -38,10 +30,13 @@ function convertToNumber(value) {
   return !isNaN(numValue) ? numValue : value;
 }
 
-module.exports = function(app) {
+module.exports = function(app, createAuthenticatedSupabaseClient) {
   // Quality Alert Form Excel Export Endpoint
   app.get('/export-quality-alert', async (req, res) => {
     try {
+      // Get authenticated Supabase client using JWT from request
+      const supabase = createAuthenticatedSupabaseClient(req);
+      
       // Get query parameters for specific alert
       const { alert_id } = req.query;
 

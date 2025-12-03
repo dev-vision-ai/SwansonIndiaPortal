@@ -27,6 +27,30 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3p5ZG52c2NhaWN5Z3dsbWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyMTg5NDYsImV4cCI6MjA1OTc5NDk0Nn0.0TUriXYvPuml-Jzr9v1jvcuzKjh-cZgnZhYKkQEj3t0'
 );
 
+// Helper function to create authenticated Supabase client from JWT
+function createAuthenticatedSupabaseClient(req) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split('Bearer ')[1];
+
+  if (!token) {
+    // Fallback to anon client if no token
+    return supabase;
+  }
+
+  // Create a new client with user's JWT token
+  return createClient(
+    process.env.SUPABASE_URL || 'https://ufczydnvscaicygwlmhz.supabase.co',
+    process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3p5ZG52c2NhaWN5Z3dsbWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyMTg5NDYsImV4cCI6MjA1OTc5NDk0Nn0.0TUriXYvPuml-Jzr9v1jvcuzKjh-cZgnZhYKkQEj3t0',
+    {
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    }
+  );
+}
+
 // Keep-alive system to prevent cold starts
 setInterval(() => {
   try {
@@ -96,13 +120,13 @@ const mjrExportModule = require('./excel-export-MJR-form');
 const qualityAlertExportModule = require('./excel-export-quality-alert-form');
 const prestoreExportModule = require('./excel-export-prestore-form');
 
-// Initialize export modules
-inlineExportModule(app);
-pgExportModule(app);
-ucExportModule(app);
-mjrExportModule(app);
-qualityAlertExportModule(app);
-prestoreExportModule(app);
+// Initialize export modules with authenticated client creator
+inlineExportModule(app, createAuthenticatedSupabaseClient);
+pgExportModule(app, createAuthenticatedSupabaseClient);
+ucExportModule(app, createAuthenticatedSupabaseClient);
+mjrExportModule(app, createAuthenticatedSupabaseClient);
+qualityAlertExportModule(app, createAuthenticatedSupabaseClient);
+prestoreExportModule(app, createAuthenticatedSupabaseClient);
 
 
 console.log(`🚀 Server starting on port ${PORT}`);

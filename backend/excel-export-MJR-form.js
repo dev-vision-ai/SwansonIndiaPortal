@@ -1,14 +1,6 @@
 const XlsxPopulate = require('xlsx-populate');
-const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
-const { createClient } = require('@supabase/supabase-js');
-
-// Supabase configuration from environment variables
-const supabase = createClient(
-  process.env.SUPABASE_URL || 'https://ufczydnvscaicygwlmhz.supabase.co',
-  process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3p5ZG52c2NhaWN5Z3dsbWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyMTg5NDYsImV4cCI6MjA1OTc5NDk0Nn0.0TUriXYvPuml-Jzr9v1jvcuzKjh-cZgnZhYKkQEj3t0'
-);
 
 // Helper function to format date to DD/MM/YYYY
 function formatDateToDDMMYYYY(dateString) {
@@ -102,7 +94,7 @@ function convertToNumber(value) {
   return !isNaN(numValue) ? numValue : value;
 }
 
-module.exports = function(app) {
+module.exports = function(app, createAuthenticatedSupabaseClient) {
   // Test endpoint to verify backend is working
 app.get('/api/test', (req, res) => {
   res.json({
@@ -120,6 +112,9 @@ app.get('/api/test', (req, res) => {
 // MT Job Requisition Excel Export Endpoint
 app.get('/api/export-mjr-record/:requisitionId', async (req, res) => {
   try {
+    // Get authenticated Supabase client using JWT from request
+    const supabase = createAuthenticatedSupabaseClient(req);
+    
     const { requisitionId } = req.params;
     console.log('🔄 MJR Export Request - ID:', requisitionId);
     console.log('📋 Request headers:', Object.fromEntries(Object.entries(req.headers).slice(0, 5)));
@@ -358,6 +353,9 @@ app.get('/api/export-mjr-record/:requisitionId', async (req, res) => {
 // Machine History Card Excel Export Endpoint
 app.get('/api/export-machine-history-card', async (req, res) => {
   try {
+    // Get authenticated Supabase client using JWT from request
+    const supabase = createAuthenticatedSupabaseClient(req);
+    
     console.log('🔄 Machine History Card Export Request (GET)');
     console.log('📋 Request query params:', req.query);
 

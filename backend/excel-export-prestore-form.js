@@ -1,17 +1,13 @@
 const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
-const { createClient } = require('@supabase/supabase-js');
 
-const supabase = createClient(
-  process.env.SUPABASE_URL || 'https://ufczydnvscaicygwlmhz.supabase.co',
-  process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3p5ZG52c2NhaWN5Z3dsbWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyMTg5NDYsImV4cCI6MjA1OTc5NDk0Nn0.0TUriXYvPuml-Jzr9v1jvcuzKjh-cZgnZhYKkQEj3t0'
-);
-
-module.exports = function(app) {
+module.exports = function(app, createAuthenticatedSupabaseClient) {
   // Pre-Store Form Excel Export Endpoint
   app.get('/api/download-prestore-excel/:formId', async (req, res) => {
     try {
+      const supabase = createAuthenticatedSupabaseClient(req);
+      
       const { formId } = req.params;
       if (!formId) {
         return res.status(400).send('formId parameter is required');

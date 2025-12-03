@@ -25,14 +25,16 @@ async function ensureAuthenticated() {
 async function determineUserRole(userId) {
   try {
     const { data: profile } = await supabase
-      .from('users')
-      .select('is_admin, department')
+            .from('users')
+            .select('is_admin, department, user_level')
       .eq('id', userId)
       .single();
     if (!profile) return ROLE_EMPLOYEE; // Fallback
     currentUserDepartment = profile.department || null; // store
-    if (profile.is_admin && profile.department === 'Quality Assurance') return ROLE_QA_ADMIN;
-    if (profile.is_admin) return ROLE_DEPT_ADMIN;
+        // Treat any user in Quality Assurance with user_level === 1 as QA admin
+        if (profile.department === 'Quality Assurance' && parseInt(profile.user_level, 10) === 1) return ROLE_QA_ADMIN;
+    // Treat any user with user_level === 1 as department admin (from any department)
+    if (parseInt(profile.user_level, 10) === 1) return ROLE_DEPT_ADMIN;
     return ROLE_EMPLOYEE;
   } catch (e) {
     console.error('Error determining user role:', e);
@@ -100,18 +102,18 @@ const counterStatusInput = document.getElementById('counter_status');
 
 // Add event listener for send alert button
 document.getElementById('sendAlertButton').addEventListener('click', async function() {
-  // Check if user is QA admin
+  // Check if user is QA with level 1
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
-    const { data: profile } = await supabase
-      .from('users')
-      .select('is_admin, department')
-      .eq('id', user.id)
-      .single();
-    if (!profile?.is_admin || profile?.department !== 'Quality Assurance') {
-      alert('Only QA Admins can send alerts');
-      return;
-    }
+        const { data: profile } = await supabase
+            .from('users')
+            .select('department, user_level')
+            .eq('id', user.id)
+            .single();
+        if (profile?.department !== 'Quality Assurance' || parseInt(profile?.user_level, 10) !== 1) {
+            alert('Only Quality Assurance users with user level 1 can send alerts');
+            return;
+        }
   }
 
   // Gather all fields
@@ -287,11 +289,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         recipientEditCompleted = !!alertData.recipient_edit_completed;
         populateForm(alertData);
 
+        // Only Quality Assurance users with user_level=1 (ROLE_QA_ADMIN) or users with user_level=1 from any department (ROLE_DEPT_ADMIN) may enter edit mode.
+        if (actionParam === 'edit' && currentUserRole !== ROLE_QA_ADMIN && currentUserRole !== ROLE_DEPT_ADMIN) {
+            showError('Unauthorized recipient');
+            return;
+        }
+
         // Determine page mode based on role & completion flag
         if (currentUserRole === ROLE_QA_ADMIN) {
             const desiredMode = actionParam === 'edit' ? 'edit' : 'view';
             setupFormMode(desiredMode); // Full permissions
         } else if (currentUserRole === ROLE_DEPT_ADMIN) {
+            // Dept admins get limited interactions (view or limited edit where allowed),
+            // but they are not permitted to perform full 'edit' actions triggered via ?action=edit
             if (recipientEditCompleted) {
                 setupDeptAdminMode(true); // read-only
             } else {
@@ -727,6 +737,11 @@ deleteButton.replaceWith(deleteButton.cloneNode(true));
 deleteButton = document.querySelector('.delete-button');
 deleteButton.type = 'button'; // Ensure type is always button
 deleteButton.addEventListener('click', async function () {
+    if (currentUserRole !== ROLE_QA_ADMIN) {
+        alert('Only Quality Assurance users with user_level = 1 can delete alerts.');
+        return;
+    }
+
     if (confirm('Are you sure you want to delete this alert?')) {
         try {
             const { error } = await supabase
@@ -807,28 +822,26 @@ function setupBackButton() {
     if (!buttons.length) return;
     const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
     const params = new URLSearchParams(window.location.search);
-    const fromTable = params.get('from') === 'table';
+    const fromParam = params.get('from');
     buttons.forEach(btn => {
         btn.onclick = null;
         btn.addEventListener('click', e => {
             e.preventDefault();
-            if (currentUserRole === ROLE_DEPT_ADMIN) {
+            if (fromParam === 'emp-quality-alerts-table') {
+                window.location.href = `${basePath}/html/emp-quality-alerts-table.html`;
+            } else if (fromParam === 'quality-alerts-table' || fromParam === 'table') {
+                window.location.href = `${basePath}/html/quality-alerts-table.html`;
+            } else if (currentUserRole === ROLE_DEPT_ADMIN) {
                 let dest = '/html/employee-dashboard.html';
                 switch ((currentUserDepartment || '').trim()) {
                     case 'Human Resources': dest = '/html/admin-adhr.html'; break;
                     case 'Quality Assurance': dest = '/html/admin-qa.html'; break;
                     case 'IQA': dest = '/html/admin-iqa.html'; break;
-                    case 'QC':
-                    case 'Quality Control': dest = '/html/admin-qc.html'; break;
                     default: dest = '/html/employee-dashboard.html';
                 }
                 window.location.href = `${basePath}${dest}`;
             } else if (currentUserRole === ROLE_QA_ADMIN) {
-                if (fromTable) {
-                    window.location.href = `${basePath}/html/quality-alerts-table.html`;
-                } else {
-                    window.location.href = `${basePath}/html/admin-qa.html`;
-                }
+                window.location.href = `${basePath}/html/employee-dashboard.html`;
             } else {
                 window.history.back();
             }

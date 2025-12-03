@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Inline Inspection Form - Entry</title>
+    <title>Inline Inspection Form List</title>
+    <link rel="icon" type="image/png" href="../assets/logo2.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../css/employee-dashboard.css">
     <link rel="stylesheet" href="../css/common-header.css">
@@ -130,6 +131,29 @@
             </div>
         </div>
     </div>
+
+    <!-- Submit Confirmation Overlay -->
+    <div id="submitConfirmationOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-4 max-w-sm w-full mx-4">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-10 w-10 rounded-full bg-orange-100 mb-3">
+                    <svg class="h-5 w-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h3 class="text-base font-medium text-gray-900 mb-1.5">Confirm Submission</h3>
+                <p class="text-xs text-gray-500 mb-4">Are you sure you want to submit this form? Once submitted, the form cannot be edited.</p>
+                <div class="flex justify-center space-x-2">
+                    <button id="cancelSubmitBtn" class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Cancel
+                    </button>
+                    <button id="confirmSubmitBtn" class="px-3 py-1.5 text-xs font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                        Submit Form
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <!-- Overlay for Inline Inspection Form -->
     <div id="inspectionFormOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
@@ -236,15 +260,18 @@
                             <input type="text" name="qc_inspector2" placeholder="QC Inspector 2" autocomplete="off" class="block w-full px-2 py-1 h-7 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" oninput="this.value = this.value.replace(/[^a-zA-Z0-9\s\(\)\-&]/g, '')">
                         </div>
                     </div>
-                    <div class="flex justify-center mb-2">
-                        <button type="submit" class="inline-flex justify-center py-1.5 px-3 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 mx-auto">
-                            Create Inline Inspection Form
-                        </button>
-                    </div>
+
                     <div class="flex justify-center mb-2">
                         <p class="text-red-600 text-sm font-medium text-center">
                             *Note : Please ensure all entered details are correct before creating form
                         </p>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="flex justify-center">
+                        <button type="submit" class="bg-[#002E7D] hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow text-base transition-all duration-200">
+                            Create Inline Inspection Form
+                        </button>
                     </div>
                 </form>
             </div>
@@ -364,7 +391,7 @@
             <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 13%;">QC Inspector</th>
             <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 7%;">Status</th>
             <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 8%;">Action</th>
-            <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 7%;">Download</th>
+            <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 7%;">Submit & Download</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -446,7 +473,7 @@
 
       /* Center align action buttons in table cells */
       table tbody td:nth-child(10), /* Action column */
-      table tbody td:nth-child(11)  /* Download column */ {
+      table tbody td:nth-child(11)  /* Submit & Download column */ {
         text-align: center;
       }
     </style>

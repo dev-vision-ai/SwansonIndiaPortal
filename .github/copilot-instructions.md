@@ -105,7 +105,7 @@ renderTable(data);
 ### Admin Role Access
 - Auth check: `const user = await supabase.auth.getUser()`
 - Admin verification: Database query to check `is_admin` flag or department membership
-- Used in: `admin-adhr.js`, `admin-mt.js`, `admin-qa.js`, `admin-qc.js`
+- Used in: `admin-adhr.js`, `admin-mt.js`, `admin-qa.js`
 
 ### Dynamic Film Inspection Forms
 - Product-specific forms in `film-inspection-forms-js/` (e.g., `16-gsm-168-white.js`)

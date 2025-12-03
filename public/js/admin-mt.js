@@ -225,34 +225,10 @@ function showMessage(message) {
   }
 }
 
-async function loadUserProfile() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user) {
-    const { data: profile, error: profileError } = await supabase
-      .from('users')
-      .select('full_name, employee_code')
-      .eq('id', user.id)
-      .single();
-
-    if (profile) {
-      const userNameEl = document.querySelector('.user-name');
-      if (userNameEl) userNameEl.textContent = 'Hi, ' + profile.full_name;
-    } else if (profileError) {
-      console.error("Error fetching profile:", profileError);
-    }
-  } else {
-    console.error("User not logged in.");
-    window.location.href = '../html/auth.html';
-  }
-}
-
 
 // Enhanced setup function that includes table functionality
 function setupEventListeners() {
   document.addEventListener('DOMContentLoaded', async () => {
-    // Load user profile
-    await loadUserProfile();
-
     // Set up table event listeners if we're on the table page
     if (document.getElementById('alertsBody')) {
       setupTableEventListeners();

@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Inline Inspection Form</title>
+    <link rel="icon" type="image/png" href="../assets/logo2.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../css/employee-dashboard.css">
     <link rel="stylesheet" href="../css/inline-responsive.css">
@@ -252,48 +253,53 @@
                 
                 <!-- Product Specifications Table - Right Side -->
                 <div class="w-full lg:w-auto lg:flex-1 max-w-full lg:max-w-[500px] mt-4 lg:mt-0">
-                    <table class="w-full border border-gray-400" style="font-size: 12px;">
-                        <thead>
-                            <tr class="bg-gray-100">
-                                <th class="border border-gray-400 px-2 py-1 text-center font-semibold" style="font-size: 12px;">Parameter</th>
-                                <th class="border border-gray-400 px-2 py-1 text-center font-semibold" style="font-size: 12px;">LSL</th>
-                                <th class="border border-gray-400 px-2 py-1 text-center font-semibold" style="font-size: 12px;">TGT</th>
-                                <th class="border border-gray-400 px-2 py-1 text-center font-semibold" style="font-size: 12px;">USL</th>
-                            </tr>
-                        </thead>
-                        <tbody id="productSpecsBody">
-                            <tr style="background-color: white;">
-                                <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px;">Roll Weight (kg)</td>
-                                <td class="border border-gray-400 px-2 py-1 text-center" id="weight_lsl" style="font-size: 12px;">-</td>
-                                <td class="border border-gray-400 px-2 py-1 text-center" id="weight_tgt" style="font-size: 12px;">-</td>
-                                <td class="border border-gray-400 px-2 py-1 text-center" id="weight_usl" style="font-size: 12px;">-</td>
-                            </tr>
-                            <tr style="background-color: white;">
-                                <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px;">Film Weight (GSM)</td>
-                                <td class="border border-gray-400 px-2 py-1 text-center" id="gsm_lsl" style="font-size: 12px;">-</td>
-                                <td class="border border-gray-400 px-2 py-1 text-center" id="gsm_tgt" style="font-size: 12px;">-</td>
-                                <td class="border border-gray-400 px-2 py-1 text-center" id="gsm_usl" style="font-size: 12px;">-</td>
-                            </tr>
-                            <tr style="background-color: white;">
-                                <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px;">Roll Dia (mm)</td>
-                                <td class="border border-gray-400 px-2 py-1 text-center" id="rolldia_lsl" style="font-size: 12px;">-</td>
-                                <td class="border border-gray-400 px-2 py-1 text-center" id="rolldia_tgt" style="font-size: 12px;">-</td>
-                                <td class="border border-gray-400 px-2 py-1 text-center" id="rolldia_usl" style="font-size: 12px;">-</td>
-                            </tr>
-                            <tr style="background-color: white;">
-                                <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px;">Roll Width (mm)</td>
-                                <td class="border border-gray-400 px-2 py-1 text-center" id="width_lsl" style="font-size: 12px;">-</td>
-                                <td class="border border-gray-400 px-2 py-1 text-center" id="width_tgt" style="font-size: 12px;">-</td>
-                                <td class="border border-gray-400 px-2 py-1 text-center" id="width_usl" style="font-size: 12px;">-</td>
-                            </tr>
-                            <tr style="background-color: white;">
-                                <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px;">Thickness (Microns)</td>
-                                <td class="border border-gray-400 px-2 py-1 text-center" id="thickness_lsl" style="font-size: 12px;">-</td>
-                                <td class="border border-gray-400 px-2 py-1 text-center" id="thickness_tgt" style="font-size: 12px;">-</td>
-                                <td class="border border-gray-400 px-2 py-1 text-center" id="thickness_usl" style="font-size: 12px;">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div style="display:flex; align-items:flex-start; gap:12px;">
+                        <div style="flex:1;">
+                            <table class="w-full border border-gray-400" style="font-size: 12px;">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="border border-gray-400 px-2 py-1 text-center font-semibold" style="font-size: 12px;">Parameter</th>
+                                        <th class="border border-gray-400 px-2 py-1 text-center font-semibold" style="font-size: 12px;">LSL</th>
+                                        <th class="border border-gray-400 px-2 py-1 text-center font-semibold" style="font-size: 12px;">TGT</th>
+                                        <th class="border border-gray-400 px-2 py-1 text-center font-semibold" style="font-size: 12px;">USL</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productSpecsBody">
+                                    <tr style="background-color: white;">
+                                        <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px;">Roll Weight (kg)</td>
+                                        <td class="border border-gray-400 px-2 py-1 text-center" id="weight_lsl" style="font-size: 12px;">-</td>
+                                        <td class="border border-gray-400 px-2 py-1 text-center" id="weight_tgt" style="font-size: 12px;">-</td>
+                                        <td class="border border-gray-400 px-2 py-1 text-center" id="weight_usl" style="font-size: 12px;">-</td>
+                                    </tr>
+                                    <tr style="background-color: white;">
+                                        <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px;">Film Weight (GSM)</td>
+                                        <td class="border border-gray-400 px-2 py-1 text-center" id="gsm_lsl" style="font-size: 12px;">-</td>
+                                        <td class="border border-gray-400 px-2 py-1 text-center" id="gsm_tgt" style="font-size: 12px;">-</td>
+                                        <td class="border border-gray-400 px-2 py-1 text-center" id="gsm_usl" style="font-size: 12px;">-</td>
+                                    </tr>
+                                    <tr style="background-color: white;">
+                                        <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px;">Roll Dia (mm)</td>
+                                        <td class="border border-gray-400 px-2 py-1 text-center" id="rolldia_lsl" style="font-size: 12px;">-</td>
+                                        <td class="border border-gray-400 px-2 py-1 text-center" id="rolldia_tgt" style="font-size: 12px;">-</td>
+                                        <td class="border border-gray-400 px-2 py-1 text-center" id="rolldia_usl" style="font-size: 12px;">-</td>
+                                    </tr>
+                                    <tr style="background-color: white;">
+                                        <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px;">Roll Width (mm)</td>
+                                        <td class="border border-gray-400 px-2 py-1 text-center" id="width_lsl" style="font-size: 12px;">-</td>
+                                        <td class="border border-gray-400 px-2 py-1 text-center" id="width_tgt" style="font-size: 12px;">-</td>
+                                        <td class="border border-gray-400 px-2 py-1 text-center" id="width_usl" style="font-size: 12px;">-</td>
+                                    </tr>
+                                    <tr style="background-color: white;">
+                                        <td class="border border-gray-400 px-2 py-1 text-left" style="font-size: 12px;">Thickness (Microns)</td>
+                                        <td class="border border-gray-400 px-2 py-1 text-center" id="thickness_lsl" style="font-size: 12px;">-</td>
+                                        <td class="border border-gray-400 px-2 py-1 text-center" id="thickness_tgt" style="font-size: 12px;">-</td>
+                                        <td class="border border-gray-400 px-2 py-1 text-center" id="thickness_usl" style="font-size: 12px;">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
                 </div>
             </div>
         </section>

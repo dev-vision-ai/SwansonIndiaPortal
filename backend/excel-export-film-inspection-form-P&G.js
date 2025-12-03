@@ -1,13 +1,6 @@
 const XlsxPopulate = require('xlsx-populate');
 const path = require('path');
 const fs = require('fs');
-const { createClient } = require('@supabase/supabase-js');
-
-// Supabase configuration from environment variables
-const supabase = createClient(
-  process.env.SUPABASE_URL || 'https://ufczydnvscaicygwlmhz.supabase.co',
-  process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3p5ZG52c2NhaWN5Z3dsbWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyMTg5NDYsImV4cCI6MjA1OTc5NDk0Nn0.0TUriXYvPuml-Jzr9v1jvcuzKjh-cZgnZhYKkQEj3t0'
-);
 
 // Helper function to format date to DD/MM/YYYY
 function formatDateToDDMMYYYY(dateString) {
@@ -37,10 +30,13 @@ function convertToNumber(value) {
   return !isNaN(numValue) ? numValue : value;
 }
 
-module.exports = function(app) {
+module.exports = function(app, createAuthenticatedSupabaseClient) {
   // 168-16CP Kranti Film Inspection Form Excel Export Endpoint
 app.get('/export-168-16cp-kranti-form', async (req, res) => {
   try {
+    // Get authenticated Supabase client using JWT from request
+    const supabase = createAuthenticatedSupabaseClient(req);
+    
     // Get form_id parameter
     const { form_id } = req.query;
     
@@ -760,6 +756,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
 // APE-168(16)C White Film Inspection Form Excel Export Endpoint
 app.get('/export-168-16c-white-form', async (req, res) => {
   try {
+    // Get authenticated Supabase client using JWT from request
+    const supabase = createAuthenticatedSupabaseClient(req);
+    
     // Get form_id parameter
     const { form_id } = req.query;
 
@@ -1539,6 +1538,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
 // APE-168(18)C (Jeddah) Film Inspection Form Excel Export Endpoint
 app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
   try {
+    // Get authenticated Supabase client using JWT from request
+    const supabase = createAuthenticatedSupabaseClient(req);
+    
     // Get form_id parameter
     const { form_id } = req.query;
 
@@ -2475,6 +2477,9 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 // APE-168(18)C White Film Inspection Form Excel Export Endpoint
 app.get('/export-168-18c-white-form', async (req, res) => {
   try {
+    // Get authenticated Supabase client using JWT from request
+    const supabase = createAuthenticatedSupabaseClient(req);
+    
     // Get form_id parameter
     const { form_id } = req.query;
 
@@ -3333,6 +3338,9 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 // APE-176(18)CP(LCC+WW)BS Film Inspection Form Excel Export Endpoint
 app.get('/export-176-18cp-ww-form', async (req, res) => {
   try {
+    // Get authenticated Supabase client using JWT from request
+    const supabase = createAuthenticatedSupabaseClient(req);
+    
     // Get form_id parameter
     const { form_id } = req.query;
 
@@ -4061,6 +4069,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
 // Export 234-18-micro-white form endpoint
 app.get('/export-234-18-micro-white-form', async (req, res) => {
   try {
+    // Get authenticated Supabase client using JWT from request
+    const supabase = createAuthenticatedSupabaseClient(req);
+    
     // Get form_id parameter
     const { form_id } = req.query;
 
@@ -4894,6 +4905,9 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
 // Export 214-18-micro-white form endpoint
 app.get('/export-214-18-micro-white-form', async (req, res) => {
   try {
+    // Get authenticated Supabase client using JWT from request
+    const supabase = createAuthenticatedSupabaseClient(req);
+    
     // Get form_id parameter
     const { form_id } = req.query;
 
@@ -5475,6 +5489,9 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
 // APE-102(18)C White Film Inspection Form Excel Export Endpoint
 app.get('/export-102-18c-white-form', async (req, res) => {
   try {
+    // Get authenticated Supabase client using JWT from request
+    const supabase = createAuthenticatedSupabaseClient(req);
+    
     // Get form_id parameter
     const { form_id } = req.query;
 

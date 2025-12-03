@@ -5,8 +5,9 @@
   <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Quality Alerts Table</title>
+    <link rel="icon" type="image/png" href="../assets/logo2.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-  <link rel="stylesheet" href="../css/admin-qa.css">
+  <link rel="stylesheet" href="../css/style-2.css">
   <link rel="stylesheet" href="../css/common-header.css">
   <!-- Add styles for the back button -->
   <style>
@@ -57,7 +58,7 @@
   <!-- Pasted Header -->
   <div class="header-container bg-white shadow-md p-4 flex justify-between items-center">
     <!-- Changed Back Button Action -->
-    <button type="button" class="header-back-button" onclick="window.location.href='admin-qa.html';">Back</button>
+    <button type="button" class="header-back-button" id="backButton">Back</button>
     
     <div class="header-title text-2xl font-bold">Quality Alerts Table</div>
     <div class="company-logo">
@@ -129,6 +130,28 @@
       </tbody>
     </table>
   </div>
-  <script type="module" src="../js/admin-qa.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const backBtn = document.getElementById('backButton');
+      if (backBtn) {
+        // Get ?from=... parameter
+        function getQueryParam(name) {
+          const url = new URL(window.location.href);
+          return url.searchParams.get(name);
+        }
+        const from = getQueryParam('from');
+        backBtn.addEventListener('click', function() {
+          if (from === 'admin-qa') {
+            window.location.href = 'admin-qa.html';
+          } else if (from === 'employee-dashboard') {
+            window.location.href = 'employee-dashboard.html';
+          } else {
+            window.location.href = 'employee-dashboard.html';
+          }
+        });
+      }
+    });
+  </script>
+  <script type="module" src="../js/quality-alerts-table.js"></script>
 </body>
 </html>

@@ -5,22 +5,179 @@
   <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Job Posting Management</title>
+    <link rel="icon" type="image/png" href="../assets/logo2.png">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <!-- Main styles for this page -->
   <link rel="stylesheet" href="../css/job-posting-mgmt.css">
   <!-- Common admin styles (adjust if needed) -->
-  <link rel="stylesheet" href="../css/admin-adhr.css"> 
-  <link rel="stylesheet" href="../css/admin-qa.css">
+  <link rel="stylesheet" href="../css/style-1.css"> 
+  <link rel="stylesheet" href="../css/style-2.css">
   <link rel="stylesheet" href="../css/common-header.css">
   <!-- ADD THIS LINE for mobile responsiveness -->
   <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<head>
+  <style>
+    /* Compact overrides for Job Posting Management */
+    /* Constrain and center main content to a smaller width for compact layout */
+    .main-content {
+      /* Increase main content to allow wider job listing container */
+      max-width: 1200px;
+      margin: 1rem auto;
+      padding: 0 0.75rem;
+    }
+
+    /* Ensure the page wrapper doesn't force a wider layout */
+    .container.page-fade-in {
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+
+    /* Center add-job title above the compact form */
+    #add-job-section h2 {
+      text-align: center;
+      font-size: 1.05rem;
+      margin: 0.5rem auto;
+      width: 640px;
+      font-weight: 600;
+    }
+
+    /* Keep the job list heading left-aligned */
+    #job-list-section h2 {
+      text-align: left;
+      margin-top: 1rem;
+      font-size: 1.02rem;
+    }
+
+    /* Compact form */
+    .user-form {
+      max-width: 640px;
+      margin: 0.5rem auto 1rem;
+      padding: 0.75rem;
+      border-radius: 0 !important;
+      box-shadow: none;
+      border: 1px solid #eee;
+      background: #fff;
+    }
+
+    .form-group {
+      margin-bottom: 0.6rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      margin-bottom: 0.25rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      padding: 0.45rem 0.5rem;
+      border: 1px solid #e6e6e6;
+      border-radius: 2px;
+      font-size: 0.92rem;
+      margin-bottom: 0;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .btn {
+      padding: 0.45rem 0.8rem;
+      font-size: 0.9rem;
+      border-radius: 3px;
+    }
+
+    /* Table container default (when you want it constrained) */
+    .table-container {
+      overflow-x: auto; /* allow horizontal scrolling on small screens */
+      margin: 0.75rem auto 0;
+      border: 1px solid #eee;
+      border-radius: 0 !important;
+      box-shadow: none;
+      width: 100%;
+      background: #fff;
+      box-sizing: border-box;
+    }
+
+    /* Make the job-list table full-bleed (edge-to-edge) while keeping it visually centered.
+       This expands the element to the viewport width and offsets it so it aligns with the
+       page edges even when inside a centered container (.main-content). */
+    #job-list-table-container {
+      width: 100vw; /* full viewport width */
+      max-width: 100vw;
+      margin-left: calc(50% - 50vw); /* center full-bleed element */
+      margin-right: calc(50% - 50vw);
+      padding: 0 20px; /* internal side padding so content doesn't touch edges */
+      box-sizing: border-box;
+      overflow-x: auto; /* keep scrolling for narrow screens */
+      border: none; /* keep visual border on .table-container if desired */
+      background: transparent; /* transparent so underlying bg shows — table itself has white bg */
+    }
+
+    #job-list-table-container p { padding: 0.6rem; margin: 0; }
+
+    @media (max-width: 768px) {
+      .user-form { padding: 0.6rem; }
+      .main-content { margin: 0.6rem auto; }
+      .form-group label { font-size: 0.82rem; }
+      .btn { padding: 0.35rem 0.6rem; font-size: 0.82rem; }
+    }
+
+    /* Responsive behavior for job list table */
+    /* Tablet: constrain table container to readable width and center it */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      #job-list-table-container {
+        width: calc(100% - 40px);
+        max-width: 960px;
+        margin: 0.75rem auto 0;
+        border: 1px solid #eee;
+        background: #fff;
+        padding: 0; /* keep inner table flush */
+      }
+      #job-list-table-container table.job-table {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        table-layout: auto;
+      }
+    }
+
+    /* Laptop / Desktop: full-bleed container but keep the table content centered and constrained */
+    @media (min-width: 1025px) {
+      #job-list-table-container {
+        width: 100vw;
+        max-width: 100vw;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        padding: 0 40px; /* give space from edges on large screens */
+        box-sizing: border-box;
+        background: transparent;
+        border: none;
+      }
+      /* keep the actual table constrained and centered within the full-bleed container */
+      #job-list-table-container table.job-table {
+        max-width: 1200px;
+        width: 100%;
+        margin: 0 auto;
+        box-sizing: border-box;
+      }
+    }
+  </style>
+</head>
 </head>
 <body>
   <div class="container page-fade-in">
     <section class="dashboard-section">
       <div class="header-container header-fade-in">
         <!-- Back button first -->
-        <button type="button" class="header-back-button" onclick="window.location.href='admin-adhr.html';">Back</button>
+        <button type="button" class="header-back-button" onclick="window.location.href='employee-dashboard.html';">Back</button>
         
         <!-- Header title second -->
         <div class="header-title">Job Posting Management</div> 
@@ -117,8 +274,30 @@
       <h2>Existing Job Postings</h2>
       <!-- Apply the 'table-container' class for consistency -->
       <div id="job-list-table-container" class="table-container">
-        <!-- JS will populate this -->
-        <p>Loading jobs...</p> 
+        <table class="job-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Location</th>
+              <th>Salary</th>
+              <th>Experience</th>
+              <th>Qualification</th>
+              <th>Vacant Positions</th>
+              <th>Enrollment Type</th>
+              <th>Department</th>
+              <th>Duration</th>
+              <th>Status</th>
+              <th>Apply Before</th>
+              <th>Posted On</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="13" style="text-align: center; padding: 20px; color: #777; font-style: italic;">Loading jobs...</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
   </main>
