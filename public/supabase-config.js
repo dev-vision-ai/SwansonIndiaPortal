@@ -1,4 +1,5 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+// Pin a stable supabase-js ESM build to avoid transient CDN wrapper issues
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.36.0/+esm';
 
 // ✅ Your new project credentials
 const supabaseUrl = "https://ufczydnvscaicygwlmhz.supabase.co";
