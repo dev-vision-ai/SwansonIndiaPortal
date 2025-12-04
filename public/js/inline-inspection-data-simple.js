@@ -505,14 +505,33 @@ async function validateSession() {
     try {
         const { data: { user }, error } = await supabase.auth.getUser();
         if (error || !user) {
-    
-            window.location.replace('auth.html');
-            return false;
+            // Try to refresh the session first
+            console.log('User not found, attempting session refresh...');
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+            
+            if (refreshError || !refreshData.user) {
+                console.log('Session refresh failed, redirecting to login');
+                // Prevent multiple redirects
+                if (!window.redirectingToAuth) {
+                    window.redirectingToAuth = true;
+                    window.location.replace('auth.html');
+                }
+                return false;
+            }
+            
+            console.log('Session refreshed successfully');
+            lastSessionCheck = Date.now();
+            return true;
         }
         lastSessionCheck = Date.now();
         return true;
     } catch (error) {
         console.error('Session validation error:', error);
+        // Prevent multiple redirects
+        if (!window.redirectingToAuth) {
+            window.redirectingToAuth = true;
+            window.location.replace('auth.html');
+        }
         return false;
     }
 }
@@ -528,7 +547,7 @@ function startSessionMonitoring() {
         if (!isValid) {
             cleanupResources();
         }
-    }, 5 * 60 * 1000); // Check every 5 minutes
+    }, 10 * 60 * 1000); // Check every 10 minutes
     
     intervals.add(sessionCheckInterval);
 }
@@ -620,6 +639,28 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Start the clock
     startClock();
+    
+    // ===== SESSION RESTORATION =====
+    // Try to restore session from storage if not already authenticated
+    try {
+        const storedSession = localStorage.getItem('supabase.auth.session') || sessionStorage.getItem('supabase.auth.session');
+        if (storedSession) {
+            const sessionData = JSON.parse(storedSession);
+            if (sessionData && sessionData.access_token) {
+                // Set the session in Supabase client
+                await supabase.auth.setSession({
+                    access_token: sessionData.access_token,
+                    refresh_token: sessionData.refresh_token
+                });
+                console.log('Session restored from storage');
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to restore session from storage:', error);
+        // Clear invalid session data
+        localStorage.removeItem('supabase.auth.session');
+        sessionStorage.removeItem('supabase.auth.session');
+    }
     
     // Set shift display based on user session
     setShiftDisplay();

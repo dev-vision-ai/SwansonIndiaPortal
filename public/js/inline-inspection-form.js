@@ -125,13 +125,33 @@ let lastSessionCheck = Date.now();
         try {
             const { data: { user }, error } = await supabase.auth.getUser();
             if (error || !user) {
-                window.location.replace('auth.html');
-                return false;
+                // Try to refresh the session first
+                console.log('User not found, attempting session refresh...');
+                const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+                
+                if (refreshError || !refreshData.user) {
+                    console.log('Session refresh failed, redirecting to login');
+                    // Prevent multiple redirects
+                    if (!window.redirectingToAuth) {
+                        window.redirectingToAuth = true;
+                        window.location.replace('auth.html');
+                    }
+                    return false;
+                }
+                
+                console.log('Session refreshed successfully');
+                lastSessionCheck = Date.now();
+                return true;
             }
             lastSessionCheck = Date.now();
             return true;
         } catch (error) {
             console.error('Session validation error:', error);
+            // Prevent multiple redirects
+            if (!window.redirectingToAuth) {
+                window.redirectingToAuth = true;
+                window.location.replace('auth.html');
+            }
             return false;
         }
     }
@@ -191,7 +211,7 @@ function startSessionMonitoring() {
         if (!isValid) {
             cleanupResources();
         }
-    }, 5 * 60 * 1000); // Check every 5 minutes
+    }, 10 * 60 * 1000); // Check every 10 minutes
     
     intervals.add(sessionCheckInterval);
 }
@@ -202,33 +222,40 @@ const BACKEND_URL = window.BACKEND_URL || (['127.0.0.1', 'localhost'].includes(w
   ? `${window.location.protocol}//${window.location.hostname}:3000`
   : `${window.location.protocol}//${window.location.hostname}`);
 
-// Multiple intervals for maximum reliability
-const keepAliveInterval1 = setInterval(async () => {
-  try {
-    const response = await fetch(`${BACKEND_URL}/ping`);
-    if (!response.ok) {
-      console.warn('⚠️ Client keep-alive ping failed', response.status);
+// Only run keep-alive pings in production (not localhost) to avoid console errors during development
+const isProduction = !['127.0.0.1', 'localhost'].includes(window.location.hostname);
+
+let keepAliveInterval1, keepAliveInterval2;
+
+if (isProduction) {
+  // Multiple intervals for maximum reliability
+  keepAliveInterval1 = setInterval(async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/ping`);
+      if (!response.ok) {
+        console.warn('⚠️ Client keep-alive ping failed', response.status);
+      }
+    } catch (error) {
+      console.warn('⚠️ Client keep-alive ping error:', error);
     }
-  } catch (error) {
-    console.warn('⚠️ Client keep-alive ping error:', error);
-  }
-}, 4 * 60 * 1000); // Every 4 minutes (more aggressive for cold start prevention)
+  }, 4 * 60 * 1000); // Every 4 minutes (more aggressive for cold start prevention)
 
-intervals.add(keepAliveInterval1);
+  intervals.add(keepAliveInterval1);
 
-// Secondary client-side keep-alive for redundancy
-const keepAliveInterval2 = setInterval(async () => {
-  try {
-    const response = await fetch(`${BACKEND_URL}/health`);
-    if (!response.ok) {
-      console.warn('⚠️ Client health check failed', response.status);
+  // Secondary client-side keep-alive for redundancy
+  keepAliveInterval2 = setInterval(async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/health`);
+      if (!response.ok) {
+        console.warn('⚠️ Client health check failed', response.status);
+      }
+    } catch (error) {
+      console.warn('⚠️ Client health check error:', error);
     }
-  } catch (error) {
-    console.warn('⚠️ Client health check error:', error);
-  }
-}, 6 * 60 * 1000); // Every 6 minutes
+  }, 6 * 60 * 1000); // Every 6 minutes
 
-intervals.add(keepAliveInterval2);
+  intervals.add(keepAliveInterval2);
+}
 
 // Back button and mutually exclusive checkboxes logic
 window.addEventListener('DOMContentLoaded', async function() {
@@ -238,28 +265,54 @@ window.addEventListener('DOMContentLoaded', async function() {
   // Start the clock
   startClock();
   
+  // ===== SESSION RESTORATION =====
+  // Try to restore session from storage if not already authenticated
+  try {
+    const storedSession = localStorage.getItem('supabase.auth.session') || sessionStorage.getItem('supabase.auth.session');
+    if (storedSession) {
+      const sessionData = JSON.parse(storedSession);
+      if (sessionData && sessionData.access_token) {
+        // Set the session in Supabase client
+        await supabase.auth.setSession({
+          access_token: sessionData.access_token,
+          refresh_token: sessionData.refresh_token
+        });
+        console.log('Session restored from storage');
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to restore session from storage:', error);
+    // Clear invalid session data
+    localStorage.removeItem('supabase.auth.session');
+    sessionStorage.removeItem('supabase.auth.session');
+  }
+  
   // Auth check: redirect to login if not authenticated (only for shift-a/b/c users)
   let isShiftUser = false;
   let user = null;
   try {
-    const result = await supabase.auth.getUser();
+    let result = await supabase.auth.getUser();
     user = result.data.user;
+    
+    // If no user found, try to refresh session
+    if (!user) {
+      console.log('No user found, attempting session refresh...');
+      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+      
+      if (!refreshError && refreshData.user) {
+        user = refreshData.user;
+        console.log('Session refreshed successfully on page load');
+      }
+    }
+    
     if (user && user.email) {
       const username = user.email.split('@')[0].toLowerCase();
       if (username.includes('shift-a') || username.includes('shift-b') || username.includes('shift-c')) {
         isShiftUser = true;
       }
     }
-  } catch (e) {}
-  
-  // Check if user is authenticated
-  if (isShiftUser && !user) {
-    // Clear any remaining session data
-    localStorage.removeItem('supabase.auth.session');
-    sessionStorage.removeItem('supabase.auth.session');
-    cleanupResources();
-    window.location.replace('auth.html');
-    return;
+  } catch (e) {
+    console.warn('Auth check failed:', e);
   }
   
   // FORCE REDIRECT ON BACK BUTTON

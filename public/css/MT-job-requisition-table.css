@@ -28,6 +28,7 @@ body {
     background-size: 60px 30px;
     background-repeat: repeat;
     min-height: fixed;
+    padding-top: 80px; /* Add top padding to account for fixed header */
 }
 
 
