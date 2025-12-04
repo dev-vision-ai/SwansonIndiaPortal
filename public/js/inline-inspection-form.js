@@ -1366,8 +1366,8 @@ async function handleFormSubmit(e) {
     const closeBtn = document.getElementById('closeInspectionFormOverlay');
 
     if (form) {
-      // Submit button removed per user request - form submission disabled
-      form.onsubmit = null;
+      // Attach form submission handler
+      form.onsubmit = handleFormSubmit;
     }
 
     // Create form button handler
