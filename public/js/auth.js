@@ -7,7 +7,7 @@ const SHIFT_USER_PREFIXES = ['shift-a', 'shift-b', 'shift-c'];
 
 // Slideshow configuration
 const SLIDESHOW_IMAGES = ['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.png'];
-const SLIDESHOW_INTERVAL = 5000; // 5 seconds per image
+const SLIDESHOW_INTERVAL = 4000; // 4 seconds per image
 let currentSlideIndex = 0;
 let slideshowInterval = null;
 
@@ -15,8 +15,8 @@ let slideshowInterval = null;
 const ADMIN_REDIRECTS = {
     'Human Resources': 'admin-adhr.html',
     'IQA': 'admin-iqa.html',
-    'Maintenance': 'admin-mt.html',
-    'MT': 'admin-mt.html'
+    'Maintenance': 'employee-dashboard.html',
+    'MT': 'employee-dashboard.html'
 };
 
 // ===== SLIDESHOW FUNCTIONALITY =====
@@ -38,16 +38,23 @@ function updateSlideshow() {
     // Add transition animation
     slideshowImage.classList.add('transitioning');
     
-    // Change image at the blackout midpoint
+    // Change image at the blackout midpoint (optimized for 4-second intervals)
     setTimeout(() => {
         const imagePath = `../assets/login-page/${SLIDESHOW_IMAGES[currentSlideIndex]}`;
         slideshowImage.src = imagePath;
-    }, 750); // Middle of animation for smooth blackout effect
+        
+        // Add error handling for image loading
+        slideshowImage.onerror = () => {
+            console.warn(`Failed to load image: ${imagePath}`);
+            // Skip to next image if current one fails
+            currentSlideIndex = (currentSlideIndex + 1) % SLIDESHOW_IMAGES.length;
+        };
+    }, 750); // Optimized timing for 4-second intervals
     
     // Remove animation class after completion
     setTimeout(() => {
         slideshowImage.classList.remove('transitioning');
-    }, 1500);
+    }, 1500); // Longer animation duration for 4-second intervals
 }
 
 function stopSlideshow() {
@@ -152,6 +159,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         const username = user.email.split('@')[0].toLowerCase();
         if (SHIFT_USER_PREFIXES.some(prefix => username.includes(prefix))) {
             console.log("Shift user detected. Redirecting directly to inline inspection form.");
+            stopSlideshow(); // Stop slideshow before redirect
             window.location.href = `${basePath}/html/inline-inspection-form.html`;
             return;
         }
@@ -163,6 +171,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
             const adminPage = ADMIN_REDIRECTS[department];
             if (adminPage) {
                 console.log(`Department matches '${department}'. Redirecting to ${adminPage}.`);
+                stopSlideshow(); // Stop slideshow before redirect
                 window.location.href = `${basePath}/html/${adminPage}`;
             } else {
                 console.warn("Admin user has an unrecognized department:", department);
@@ -170,6 +179,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
             }
         } else {
             console.log("User is not admin. Redirecting to dashboard.");
+            stopSlideshow(); // Stop slideshow before redirect
             window.location.href = `${basePath}/html/employee-dashboard.html`;
         }
 
@@ -220,6 +230,7 @@ document.getElementById("logoutBtn")?.addEventListener("click", async () => {
 
         // Force redirect with cache busting
         const logoutUrl = `${basePath}/html/auth.html?logout=${Date.now()}`;
+        stopSlideshow(); // Stop slideshow before logout redirect
         window.location.replace(logoutUrl);
 
     } catch (error) {

@@ -713,7 +713,7 @@ function setupEventListeners() {
 
     // Set up back button
     document.getElementById('backButton')?.addEventListener('click', () => {
-      window.location.href = '../html/admin-mt.html';
+      window.location.href = '../html/employee-dashboard.html';
     });
 
     // Update export button text based on current table config

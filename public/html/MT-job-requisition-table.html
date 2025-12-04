@@ -7,14 +7,14 @@
   <title>Maintenance Job Requisitions Table</title>
     <link rel="icon" type="image/png" href="../assets/logo2.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-  <link rel="stylesheet" href="../css/admin-mt.css">
+  <link rel="stylesheet" href="../css/MT-job-requisition-table.css">
   <link rel="stylesheet" href="../css/common-header.css">
 </head>
 <body>
   <!-- Pasted Header -->
   <div class="header-container bg-white shadow-md p-4 flex justify-between items-center">
     <!-- Changed Back Button Action -->
-    <button type="button" class="header-back-button" onclick="if(sessionStorage.getItem('mjrTablePrevPage')) { window.location.href = sessionStorage.getItem('mjrTablePrevPage'); } else { window.location.href='admin-mt.html'; }">Back</button>
+    <button type="button" class="header-back-button" onclick="if(sessionStorage.getItem('mjrTablePrevPage')) { window.location.href = sessionStorage.getItem('mjrTablePrevPage'); } else { window.location.href='employee-dashboard.html'; }">Back</button>
     
     <div class="header-title text-2xl font-bold">Maintenance Job Requisitions</div>
     <div class="company-logo">
@@ -24,32 +24,31 @@
   </div>
   <!-- End Pasted Header -->
 
-    <div class="recent-alerts-container p-6">
-        <h2 class="text-xl font-semibold mb-4 text-center">All Maintenance Job Requisitions</h2>
+    <h2 class="text-xl font-semibold mb-4 text-center" style="text-align: center; width: 100%;">All Maintenance Job Requisitions</h2>
 
-        <!-- Filter Controls -->
-        <div class="filter-controls mb-4 flex justify-center space-x-4">
-            <span class="text-sm font-medium">Filter Requisitions:</span>
-            <input type="date" id="filterDate" class="filter-input border rounded px-2 py-1" placeholder="Filter by date">
-            <select id="filterDept" class="filter-input border rounded px-2 py-1">
-                <option value="">All Departments</option>
-                <option value="Production">Production</option>
-                <option value="Quality Control">Quality Control</option>
-                <option value="Maintenance">Maintenance</option>
-                <option value="Administration">Administration</option>
-                <option value="Quality Assurance">Quality Assurance</option>
-                <option value="Sales">Sales</option>
-                <option value="Human Resource">Human Resource</option>
-                <option value="Warehouse">Warehouse</option>
-                <option value="Logistics">Logistics</option>
-                <option value="Purchase">Purchase</option>
-            </select>
-            <input type="text" id="filterEquipment" placeholder="Filter by equipment" class="filter-input border rounded px-2 py-1">
-            <button id="clearFilters" class="clear-btn bg-gray-500 text-white px-3 py-1 rounded">Clear</button>
-        </div>
-        <!-- End Filter Controls -->
+    <!-- Filter Controls -->
+    <div class="filter-controls mb-4 flex justify-center space-x-4">
+        <span class="text-sm font-medium">Filter Requisitions:</span>
+        <input type="date" id="filterDate" class="filter-input border rounded px-2 py-1" placeholder="Filter by date">
+        <select id="filterDept" class="filter-input border rounded px-2 py-1">
+            <option value="">All Departments</option>
+            <option value="Production">Production</option>
+            <option value="Quality Control">Quality Control</option>
+            <option value="Maintenance">Maintenance</option>
+            <option value="Administration">Administration</option>
+            <option value="Quality Assurance">Quality Assurance</option>
+            <option value="Sales">Sales</option>
+            <option value="Human Resource">Human Resource</option>
+            <option value="Warehouse">Warehouse</option>
+            <option value="Logistics">Logistics</option>
+            <option value="Purchase">Purchase</option>
+        </select>
+        <input type="text" id="filterEquipment" placeholder="Filter by equipment" class="filter-input border rounded px-2 py-1">
+        <button id="clearFilters" class="clear-btn bg-gray-500 text-white px-3 py-1 rounded">Clear</button>
+    </div>
+    <!-- End Filter Controls -->
 
-        <table class="min-w-full bg-white shadow-md rounded text-xs">
+    <table class="min-w-full bg-white shadow-md rounded text-xs">
       <thead>
         <tr class="bg-gray-200 text-left">
           <!-- MT Job Requisition table headers -->
@@ -70,7 +69,6 @@
           </tr>
       </tbody>
     </table>
-  </div>
-  <script type="module" src="../js/admin-mt.js"></script>
+  <script type="module" src="../js/MT-job-requisition-table.js"></script>
 </body>
 </html>
