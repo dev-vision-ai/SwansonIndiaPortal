@@ -115,21 +115,46 @@
 
     <div class="relative w-full md:w-1/2 h-64 md:h-auto">
       <!-- Slideshow Container -->
-      <div id="slideshowContainer" class="relative w-full h-full overflow-hidden">
-        <img id="slideshowImage" alt="Slideshow image" class="object-cover w-full h-full" src="../assets/login-page/1.jpg" />
+      <div id="slideshowContainer" class="relative w-full h-full overflow-hidden group">
+        <img id="slideshowImage" alt="Slideshow image" class="slide-image object-cover w-full h-full absolute inset-0" src="../assets/login-page/1.png" />
+        <img id="slideshowImageNext" alt="Next slideshow image" class="slide-image slide-next object-cover w-full h-full absolute inset-0" src="../assets/login-page/1.png" style="transform: translateX(100%);" />
+        
+        <!-- Left Arrow Button (smaller) -->
+        <button id="slideshowPrevBtn" class="absolute left-1 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white w-6 h-6 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 focus:outline-none focus:ring-2 focus:ring-white" aria-label="Previous slide">
+          <i class="fas fa-chevron-left text-[10px]"></i>
+        </button>
+        
+        <!-- Right Arrow Button (smaller) -->
+        <button id="slideshowNextBtn" class="absolute right-1 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white w-6 h-6 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 focus:outline-none focus:ring-2 focus:ring-white" aria-label="Next slide">
+          <i class="fas fa-chevron-right text-[10px]"></i>
+        </button>
       </div>
     </div>
     
     <style>
-      @keyframes fadeBlackout {
-        0% { opacity: 1; }
-        40% { opacity: 0; }
-        60% { opacity: 0; }
-        100% { opacity: 1; }
+      /* Sliding animation styles for slideshow */
+      .slide-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        will-change: transform;
       }
-      
-      #slideshowImage.transitioning {
-        animation: fadeBlackout 1.5s ease-in-out forwards;
+
+      .slide-next {
+        transform: translateX(100%);
+      }
+
+      .sliding-current {
+        transform: translateX(-100%);
+        transition: transform 700ms ease-in-out;
+      }
+
+      .sliding-next {
+        transform: translateX(0%);
+        transition: transform 700ms ease-in-out;
       }
     </style>
 
@@ -204,8 +229,8 @@
     </div>
   </div>
 
-  <script type="module" src="../supabase-config.js"></script>
   <script type="module" src="../js/auth.js"></script>
+  <!-- Note: `auth.js` imports `supabase-config.js` as a module; do not include it twice to avoid CDN wrapper errors -->
   <script>
     // Handle logout parameter and prevent back navigation
     const urlParams = new URLSearchParams(window.location.search);

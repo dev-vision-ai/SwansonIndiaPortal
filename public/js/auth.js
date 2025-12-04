@@ -6,55 +6,163 @@ const ESSENTIAL_STORAGE_KEYS = ['rememberedEmpCode', 'rememberedPassword'];
 const SHIFT_USER_PREFIXES = ['shift-a', 'shift-b', 'shift-c'];
 
 // Slideshow configuration
-const SLIDESHOW_IMAGES = ['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.png'];
-const SLIDESHOW_INTERVAL = 4000; // 4 seconds per image
+const SLIDESHOW_IMAGES = ['1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png', '10.png'];
+const SLIDESHOW_INTERVAL = 5000; // 5 seconds per image
 let currentSlideIndex = 0;
 let slideshowInterval = null;
-
-// Admin department mappings
-const ADMIN_REDIRECTS = {
-    'Human Resources': 'admin-adhr.html',
-    'IQA': 'admin-iqa.html',
-    'Maintenance': 'employee-dashboard.html',
-    'MT': 'employee-dashboard.html'
-};
+let isHovering = false;
+let resumeTimer = null;
 
 // ===== SLIDESHOW FUNCTIONALITY =====
 function initializeSlideshow() {
     const slideshowImage = document.getElementById('slideshowImage');
-    if (!slideshowImage) return;
+    const slideshowContainer = document.getElementById('slideshowContainer');
+    const prevBtn = document.getElementById('slideshowPrevBtn');
+    const nextBtn = document.getElementById('slideshowNextBtn');
+
+    if (!slideshowImage || !slideshowContainer) return;
 
     // Start automatic slideshow
     slideshowInterval = setInterval(() => {
-        currentSlideIndex = (currentSlideIndex + 1) % SLIDESHOW_IMAGES.length;
-        updateSlideshow();
+        nextSlide();
     }, SLIDESHOW_INTERVAL);
+
+    // Add mouse hover pause/resume functionality
+    slideshowContainer.addEventListener('mouseenter', () => {
+        isHovering = true;
+        pauseSlideshow();
+        // Cancel any scheduled resumes while hovering
+        if (resumeTimer) {
+            clearTimeout(resumeTimer);
+            resumeTimer = null;
+        }
+    });
+    slideshowContainer.addEventListener('mouseleave', () => {
+        isHovering = false;
+        // Resume only when the cursor has left the slideshow container
+        resumeSlideshow();
+    });
+
+    // Add mouse wheel scroll functionality
+    slideshowContainer.addEventListener('wheel', handleMouseWheel, { passive: false });
+
+    // Add button click handlers
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            pauseSlideshow();
+            prevSlide();
+            scheduleResume(2000);
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            pauseSlideshow();
+            nextSlide();
+            scheduleResume(2000);
+        });
+    }
 }
 
-function updateSlideshow() {
-    const slideshowImage = document.getElementById('slideshowImage');
-    if (!slideshowImage) return;
+function pauseSlideshow() {
+    if (slideshowInterval) {
+        clearInterval(slideshowInterval);
+        slideshowInterval = null;
+    }
+}
 
-    // Add transition animation
-    slideshowImage.classList.add('transitioning');
-    
-    // Change image at the blackout midpoint (optimized for 4-second intervals)
+function resumeSlideshow() {
+    // Only resume if the cursor is not hovering over the slideshow
+    if (isHovering) return;
+
+    // Clear any scheduled resume timer, since we're resuming now
+    if (resumeTimer) {
+        clearTimeout(resumeTimer);
+        resumeTimer = null;
+    }
+
+    if (!slideshowInterval) {
+        slideshowInterval = setInterval(() => {
+            nextSlide();
+        }, SLIDESHOW_INTERVAL);
+    }
+}
+
+
+function handleMouseWheel(event) {
+    event.preventDefault(); // Prevent default scrolling behavior
+
+    // Pause automatic slideshow temporarily
+    pauseSlideshow();
+
+    // Determine scroll direction
+    if (event.deltaY > 0) {
+        // Scroll down - next slide
+        nextSlide();
+    } else {
+        // Scroll up - previous slide
+        prevSlide();
+    }
+
+    // Resume slideshow after a short delay if not hovering
+    scheduleResume(2000);
+}
+
+function nextSlide() {
+    const nextIndex = (currentSlideIndex + 1) % SLIDESHOW_IMAGES.length;
+    slideTo(nextIndex, 'next');
+}
+
+function prevSlide() {
+    const prevIndex = (currentSlideIndex - 1 + SLIDESHOW_IMAGES.length) % SLIDESHOW_IMAGES.length;
+    slideTo(prevIndex, 'prev');
+}
+function slideTo(index, direction = 'next') {
+    const currentImg = document.getElementById('slideshowImage');
+    const nextImg = document.getElementById('slideshowImageNext');
+    if (!currentImg || !nextImg) return;
+
+    const newSrc = `../assets/login-page/${SLIDESHOW_IMAGES[index]}`;
+    // Prepare next image
+    nextImg.src = newSrc;
+    // starting positions
+    if (direction === 'next') {
+        nextImg.style.transform = 'translateX(100%)';
+        currentImg.style.transform = 'translateX(0)';
+    } else {
+        nextImg.style.transform = 'translateX(-100%)';
+        currentImg.style.transform = 'translateX(0)';
+    }
+
+    // Force reflow so initial transform is applied
+    // eslint-disable-next-line no-unused-expressions
+    nextImg.getBoundingClientRect();
+
+    // Apply transitions
+    currentImg.style.transition = 'transform 700ms ease-in-out';
+    nextImg.style.transition = 'transform 700ms ease-in-out';
+
+    if (direction === 'next') {
+        currentImg.style.transform = 'translateX(-100%)';
+        nextImg.style.transform = 'translateX(0)';
+    } else {
+        currentImg.style.transform = 'translateX(100%)';
+        nextImg.style.transform = 'translateX(0)';
+    }
+
+    // After transition completes, swap images
     setTimeout(() => {
-        const imagePath = `../assets/login-page/${SLIDESHOW_IMAGES[currentSlideIndex]}`;
-        slideshowImage.src = imagePath;
-        
-        // Add error handling for image loading
-        slideshowImage.onerror = () => {
-            console.warn(`Failed to load image: ${imagePath}`);
-            // Skip to next image if current one fails
-            currentSlideIndex = (currentSlideIndex + 1) % SLIDESHOW_IMAGES.length;
-        };
-    }, 750); // Optimized timing for 4-second intervals
-    
-    // Remove animation class after completion
-    setTimeout(() => {
-        slideshowImage.classList.remove('transitioning');
-    }, 1500); // Longer animation duration for 4-second intervals
+        // set current image to new src and reset transforms
+        currentImg.src = newSrc;
+        currentImg.style.transition = '';
+        currentImg.style.transform = 'translateX(0)';
+
+        // reset nextImg off-screen for reuse
+        nextImg.style.transition = '';
+        nextImg.style.transform = direction === 'next' ? 'translateX(100%)' : 'translateX(-100%)';
+
+        // Update current index
+        currentSlideIndex = index;
+    }, 750); // transition duration (matches CSS)
 }
 
 function stopSlideshow() {
@@ -62,6 +170,18 @@ function stopSlideshow() {
         clearInterval(slideshowInterval);
         slideshowInterval = null;
     }
+}
+
+function scheduleResume(delay) {
+    if (resumeTimer) {
+        clearTimeout(resumeTimer);
+        resumeTimer = null;
+    }
+    resumeTimer = setTimeout(() => {
+        // Only resume automatically if not hovering
+        if (!isHovering) resumeSlideshow();
+        resumeTimer = null;
+    }, delay);
 }
 
 // Prefill saved credentials on page load
@@ -149,9 +269,6 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
             return;
         }
 
-        const isAdmin = userProfile.is_admin;
-        const department = userProfile.department;
-
         // Determine base path depending on deployment (local dev adds '/public')
         const basePath = window.location.pathname.includes('/public/') ? '/public' : '';
 
@@ -164,24 +281,10 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
             return;
         }
 
-        // Redirect based on admin status and department
-        if (isAdmin === true) {
-            console.log("User is admin. Checking department...");
-
-            const adminPage = ADMIN_REDIRECTS[department];
-            if (adminPage) {
-                console.log(`Department matches '${department}'. Redirecting to ${adminPage}.`);
-                stopSlideshow(); // Stop slideshow before redirect
-                window.location.href = `${basePath}/html/${adminPage}`;
-            } else {
-                console.warn("Admin user has an unrecognized department:", department);
-                message.textContent = "Login successful, but admin role is unclear.";
-            }
-        } else {
-            console.log("User is not admin. Redirecting to dashboard.");
-            stopSlideshow(); // Stop slideshow before redirect
-            window.location.href = `${basePath}/html/employee-dashboard.html`;
-        }
+        // Redirect all users to employee dashboard
+        console.log("Redirecting to employee dashboard.");
+        stopSlideshow(); // Stop slideshow before redirect
+        window.location.href = `${basePath}/html/employee-dashboard.html`;
 
     } catch (error) {
         console.error("Login failed:", error);
