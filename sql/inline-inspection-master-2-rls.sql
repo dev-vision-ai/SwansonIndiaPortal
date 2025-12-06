@@ -1,53 +1,58 @@
--- RLS policies for inline_inspection_form_master_2
--- Created: 2025-12-03
--- Mirrors the registered/authenticated policies used for inline_inspection_form_master_1
+ALTER TABLE public.inline_inspection_form_master_2
+ENABLE ROW LEVEL SECURITY;
 
-ALTER TABLE public.inline_inspection_form_master_2 ENABLE ROW LEVEL SECURITY;
+CREATE POLICY inline_inspection_select_authenticated_master_2
+ON public.inline_inspection_form_master_2
+FOR SELECT
+USING (auth.uid() IS NOT NULL);
 
--- SELECT: authenticated users
-DROP POLICY IF EXISTS "inline_inspection_select_authenticated_master_2" ON public.inline_inspection_form_master_2;
-CREATE POLICY "inline_inspection_select_authenticated_master_2" ON public.inline_inspection_form_master_2
-    FOR SELECT
-    TO public
-    USING (
-        (auth.uid() IS NOT NULL)
-    );
+CREATE POLICY inline_inspection_select_registered_master_2
+ON public.inline_inspection_form_master_2
+FOR SELECT
+USING (
+  auth.uid() IS NOT NULL
+  AND EXISTS (
+    SELECT 1 FROM public.users u
+    WHERE u.id = auth.uid()::uuid
+  )
+);
 
--- SELECT: registered users (exist in users table)
-DROP POLICY IF EXISTS "inline_inspection_select_registered_master_2" ON public.inline_inspection_form_master_2;
-CREATE POLICY "inline_inspection_select_registered_master_2" ON public.inline_inspection_form_master_2
-    FOR SELECT
-    TO public
-    USING (
-        ((auth.uid() IS NOT NULL) AND (EXISTS ( SELECT 1 FROM public.users u WHERE (u.id = auth.uid()) )))
-    );
+CREATE POLICY inline_inspection_insert_registered_master_2
+ON public.inline_inspection_form_master_2
+FOR INSERT
+WITH CHECK (
+  auth.uid() IS NOT NULL
+  AND EXISTS (
+    SELECT 1 FROM public.users u
+    WHERE u.id = auth.uid()::uuid
+  )
+);
 
--- INSERT: registered users
-DROP POLICY IF EXISTS "inline_inspection_insert_registered_master_2" ON public.inline_inspection_form_master_2;
-CREATE POLICY "inline_inspection_insert_registered_master_2" ON public.inline_inspection_form_master_2
-    FOR INSERT
-    TO public
-    WITH CHECK (
-        ((auth.uid() IS NOT NULL) AND (EXISTS ( SELECT 1 FROM public.users u WHERE (u.id = auth.uid()) )))
-    );
+CREATE POLICY inline_inspection_update_registered_master_2
+ON public.inline_inspection_form_master_2
+FOR UPDATE
+USING (
+  auth.uid() IS NOT NULL
+  AND EXISTS (
+    SELECT 1 FROM public.users u
+    WHERE u.id = auth.uid()::uuid
+  )
+)
+WITH CHECK (
+  auth.uid() IS NOT NULL
+  AND EXISTS (
+    SELECT 1 FROM public.users u
+    WHERE u.id = auth.uid()::uuid
+  )
+);
 
--- UPDATE: registered users
-DROP POLICY IF EXISTS "inline_inspection_update_registered_master_2" ON public.inline_inspection_form_master_2;
-CREATE POLICY "inline_inspection_update_registered_master_2" ON public.inline_inspection_form_master_2
-    FOR UPDATE
-    TO public
-    USING (
-        ((auth.uid() IS NOT NULL) AND (EXISTS ( SELECT 1 FROM public.users u WHERE (u.id = auth.uid()) )))
-    )
-    WITH CHECK (
-        ((auth.uid() IS NOT NULL) AND (EXISTS ( SELECT 1 FROM public.users u WHERE (u.id = auth.uid()) )))
-    );
-
--- DELETE: registered users
-DROP POLICY IF EXISTS "inline_inspection_delete_registered_master_2" ON public.inline_inspection_form_master_2;
-CREATE POLICY "inline_inspection_delete_registered_master_2" ON public.inline_inspection_form_master_2
-    FOR DELETE
-    TO public
-    USING (
-        ((auth.uid() IS NOT NULL) AND (EXISTS ( SELECT 1 FROM public.users u WHERE (u.id = auth.uid()) )))
-    );
+CREATE POLICY inline_inspection_delete_registered_master_2
+ON public.inline_inspection_form_master_2
+FOR DELETE
+USING (
+  auth.uid() IS NOT NULL
+  AND EXISTS (
+    SELECT 1 FROM public.users u
+    WHERE u.id = auth.uid()::uuid
+  )
+);

@@ -2628,7 +2628,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             for (const tableName of tables) {
                 const { data: existingLots, error } = await supabase
                     .from(tableName)
-                    .select('id, lot_no, created_at, status')
+                    .select('id, form_id, lot_no, created_at, status')
                     .eq('traceability_code', traceabilityCode)
                     .eq('lot_letter', lotLetter)
                     .eq('lot_no', lotNumber);
@@ -3323,7 +3323,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             for (const tableName of tables) {
                 const { data: lots, error } = await supabase
                     .from(tableName)
-                    .select('id, lot_no, created_at, status')
+                    .select('id, form_id, lot_no, created_at, status')
                     .eq('traceability_code', traceabilityCode)
                     .eq('lot_letter', lotLetter)
                     .order('lot_no');
@@ -4342,25 +4342,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!tbody) return;
         const rows = tbody.rows;
         
-        // First, find which table contains this form_id
-        const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
-        let targetTable = null;
-        
-        for (const tableName of tables) {
-            const { data: existingRecord, error } = await supabase
-                .from(tableName)
-                .select('id')
-                .eq('form_id', formId)
-                .single();
-                
-            if (!error && existingRecord) {
-                targetTable = tableName;
-                break;
-            }
-        }
+        // Get mc_no to determine the correct table (DON'T query all tables)
+        const mcNoElement = document.getElementById('mc_no');
+        const mcNo = mcNoElement ? mcNoElement.textContent.trim() : '';
+        const targetTable = getTableNameForMachine(mcNo);
         
         if (!targetTable) {
-            console.error('Could not find table containing form_id:', formId);
+            console.error('Could not determine target table for machine number:', mcNo);
             return;
         }
         
