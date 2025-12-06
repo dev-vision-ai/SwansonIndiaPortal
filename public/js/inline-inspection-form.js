@@ -157,48 +157,8 @@ let lastSessionCheck = Date.now();
     }
 
 // Enhanced cleanup function that's more robust
-function enhancedCleanup() {
-    try {
-        // Clear all intervals
-        intervals.forEach(interval => {
-            try {
-                clearInterval(interval);
-            } catch (e) {
-                console.warn('Failed to clear interval:', e);
-            }
-        });
-        intervals.clear();
-        
-        // Clear all timeouts
-        timeouts.forEach(timeout => {
-            try {
-                clearTimeout(timeout);
-            } catch (e) {
-                console.warn('Failed to clear timeout:', e);
-            }
-        });
-        timeouts.clear();
-        
-        // Remove all tracked event listeners
-        eventListeners.forEach((listener, element) => {
-            try {
-                if (element && element.removeEventListener) {
-                    element.removeEventListener('input', listener);
-                    element.removeEventListener('change', listener);
-                    element.removeEventListener('click', listener);
-                    element.removeEventListener('blur', listener);
-                }
-            } catch (e) {
-                console.warn('Failed to remove event listener:', e);
-            }
-        });
-        eventListeners.clear();
-        
-        // Enhanced cleanup completed successfully
-    } catch (error) {
-        console.error('❌ Error during enhanced cleanup:', error);
-    }
-}
+// Cleanup function consolidated into cleanupResources - removed duplicate
+
 
 // Periodic session check
 function startSessionMonitoring() {
@@ -325,13 +285,13 @@ window.addEventListener('DOMContentLoaded', async function() {
   if (backBtn) {
     if (isShiftUser) {
       backBtn.textContent = 'Logout';
-      backBtn.onclick = async function() {
+      backBtn.addEventListener('click', async function() {
         // Show logout confirmation modal
         const logoutModal = document.getElementById('logoutModal');
         if (logoutModal) {
           logoutModal.classList.add('show');
         }
-      };
+      });
       // Add shift label after the Logout button
       let shiftLabel = '';
       if (user && user.email) {
@@ -399,6 +359,7 @@ window.addEventListener('DOMContentLoaded', async function() {
 let allForms = []; // Store all forms for filtering
 let filteredForms = []; // Store filtered forms
 let currentFilters = {}; // Store current filter state
+let isRestoringFilters = false; // Flag to prevent double loading during filter restoration
 
 function setupFilterHandlers() {
   const clearFilterBtn = document.getElementById('clearFilter');
@@ -708,11 +669,11 @@ async function populateNonCascadingDropdowns(fromDate, toDate) {
   if (!fromDate && !toDate) return;
   
   try {
-    // Query all three tables and combine results
+    // Query all three tables in parallel for better performance
     const allHistoricalData = [];
     const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
     
-    for (const table of tables) {
+    const queryPromises = tables.map(table => {
       let query = supabase
         .from(table)
         .select('operator, operator2, supervisor, supervisor2, qc_inspector, qc_inspector2')
@@ -726,14 +687,19 @@ async function populateNonCascadingDropdowns(fromDate, toDate) {
         query = query.lte('production_date', toDate);
       }
       
-      const { data, error } = await query;
-      
+      return query;
+    });
+
+    // Execute all queries in parallel
+    const results = await Promise.all(queryPromises);
+    results.forEach((result, index) => {
+      const { data, error } = result;
       if (error) {
-        console.error(`Error loading historical data from ${table}:`, error);
+        console.error(`Error loading historical data from ${tables[index]}:`, error);
       } else if (data) {
         allHistoricalData.push(...data);
       }
-    }
+    });
     
     if (allHistoricalData && allHistoricalData.length > 0) {
       // Get unique values for non-cascading filters from historical data
@@ -751,22 +717,7 @@ async function populateNonCascadingDropdowns(fromDate, toDate) {
   }
 }
 
-// Helper function to populate datalist options
-function populateDatalist(datalistId, options) {
-  const datalist = document.getElementById(datalistId);
-  if (!datalist) return;
-  
-  // Clear existing options except "All"
-  datalist.innerHTML = '<option value="">All</option>';
-  
-  // Add new options
-  options.forEach(option => {
-    const optionElement = document.createElement('option');
-    optionElement.value = option;
-    datalist.appendChild(optionElement);
-  });
-}
-
+// Unused populateDatalist function removed - replaced by populateSelect which does the same thing
 // Helper function to populate select dropdown
 function populateSelect(selectId, options) {
   const select = document.getElementById(selectId);
@@ -887,6 +838,8 @@ function updateFilterStatus() {
 }
 
 async function applyFilters() {
+  // Skip if currently restoring filters to avoid double loading
+  if (isRestoringFilters) return;
   const fromDate = document.getElementById('filterFromDate').value;
   const toDate = document.getElementById('filterToDate').value;
   const product = document.getElementById('filterProduct').value;
@@ -908,11 +861,11 @@ async function applyFilters() {
   // If date filters are applied, load historical data from database
   if (hasDateFilters) {
     try {
-      // Query all three tables and combine results
+      // Query all three tables in parallel for better performance
       const allHistoricalData = [];
       const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
       
-      for (const table of tables) {
+      const queryPromises = tables.map(table => {
         let query = supabase
           .from(table)
           .select(`
@@ -933,19 +886,22 @@ async function applyFilters() {
         }
         
         // Add ordering
-        query = query
+        return query
           .order('production_date', { ascending: false })
           .order('created_at', { ascending: false })
           .order('mc_no', { ascending: true });
-        
-        const { data, error } = await query;
-        
+      });
+
+      // Execute all queries in parallel
+      const results = await Promise.all(queryPromises);
+      results.forEach((result, index) => {
+        const { data, error } = result;
         if (error) {
-          console.error(`Error loading historical data from ${table}:`, error);
+          console.error(`Error loading historical data from ${tables[index]}:`, error);
         } else if (data) {
           allHistoricalData.push(...data);
         }
-      }
+      });
       
       // Filter historical data with other filters
       const validHistoricalForms = allHistoricalData.filter(form => form.customer !== null && form.customer !== '');
@@ -1570,20 +1526,7 @@ async function handleFormSubmit(e) {
     }
   });
 
-  if (closeBtn) {
-    closeBtn.addEventListener('click', function() {
-      overlay.style.display = 'none';
-    });
-  }
-
-  // Close overlay when clicking outside
-  if (overlay) {
-    overlay.addEventListener('click', function(e) {
-      if (e.target === overlay) {
-        overlay.style.display = 'none';
-      }
-    });
-  }
+  // Duplicate event listeners removed - already attached above (lines 1427-1456)
 
   // Load forms table on page load
   loadFormsTable();
@@ -1665,11 +1608,11 @@ async function handleFormSubmit(e) {
       
       // Loading forms for target date range
       
-      // Query all three tables and combine results
+      // Query all three tables in parallel for better performance
       const allFormsData = [];
       const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
       
-      for (const table of tables) {
+      const queryPromises = tables.map(table => {
         let query = supabase
           .from(table)
           .select(`
@@ -1689,17 +1632,22 @@ async function handleFormSubmit(e) {
           query = query.lte('production_date', endDate);
         }
         
-        const { data, error } = await query
+        return query
           .order('production_date', { ascending: false })
           .order('created_at', { ascending: false })
           .order('mc_no', { ascending: true });
+      });
 
+      // Execute all queries in parallel
+      const results = await Promise.all(queryPromises);
+      results.forEach((result, index) => {
+        const { data, error } = result;
         if (error) {
-          console.error(`Error loading forms from ${table}:`, error);
+          console.error(`Error loading forms from ${tables[index]}:`, error);
         } else if (data) {
           allFormsData.push(...data);
         }
-      }
+      });
 
       // Only show forms with a non-null and non-empty customer value
       const validForms = allFormsData.filter(form => form.customer !== null && form.customer !== '');
@@ -1736,7 +1684,11 @@ async function handleFormSubmit(e) {
     allForms = sortedForms; // Store all forms for filtering
     filteredForms = sortedForms; // Initialize filtered forms with all valid forms
     await updateFormsTable(sortedForms, hasDateFilters); // Pass hasDateFilters to show all forms if date filters are applied
-    await populateFilterDropdowns(); // Populate dropdowns after loading forms
+    
+    // Populate dropdowns immediately for instant loading
+    isRestoringFilters = true; // Prevent loadFormsTable from being called again
+    await populateFilterDropdowns();
+    isRestoringFilters = false;
   } catch (error) {
     console.error('Error:', error);
   }
@@ -1781,20 +1733,7 @@ async function getCurrentUserLevel() {
   }
 }
 
-function hasEditDeletePermission(userDepartment, formStatus) {
-  if (!userDepartment) return false;
-  
-  const authorizedDepartments = ['Quality Assurance', 'Quality Control', 'Production'];
-  
-  // If form is submitted, only authorized departments can edit/delete
-  if (formStatus === 'submit') {
-    return authorizedDepartments.includes(userDepartment);
-  }
-  
-  // If form is draft, all departments can edit/delete
-  return true;
-}
-
+// Unused hasEditDeletePermission function removed - logic duplicated inline in updateFormsTable
 // ===== UPDATE FORMS TABLE =====
 async function updateFormsTable(forms, showAllForDateFilters = false) {
   const tbody = document.querySelector('table tbody');
@@ -1821,9 +1760,18 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
     // Limit to maximum entries (unless date filters are applied)
   const limitedForms = showAllForDateFilters ? forms : forms.slice(0, MAX_FORMS_DISPLAY);
 
-  // Get user department once for all forms
+  // Get user department and level once for all forms (not per row)
   const userDepartment = await getCurrentUserDepartment();
   const userLevel = await getCurrentUserLevel();
+  
+  // Pre-calculate permissions once
+  const checkShowAllButtons = (status) => {
+    const isSubmitted = status === 'submit';
+    return !isSubmitted || (isSubmitted && (userDepartment === 'Quality Assurance' || userDepartment === 'Quality Control' || (userDepartment === 'Production' && userLevel === 1)));
+  };
+
+  // Use DocumentFragment for better performance with multiple DOM inserts
+  const fragment = document.createDocumentFragment();
 
   limitedForms.forEach((form, index) => {
     // Combine names with '/'
@@ -1840,19 +1788,8 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
     // Debug: Log the shift conversion
             // Shift conversion completed
     
-    // Check if form status is "submit" - if so, check user level for permissions
-    const isSubmitted = form.status === 'submit';
-    
-    // Check permissions synchronously
-    const hasPermission = hasEditDeletePermission(userDepartment, form.status);
-    
-    // Check if user has level 1 (admin level)
-    const isAdminLevel = userLevel === 1;
-    
-    // Show all buttons if:
-    // - Form is not submitted, OR
-    // - Form is submitted AND user is from Quality Assurance, Quality Control, OR Production with level 1
-    const shouldShowAllButtons = !isSubmitted || (isSubmitted && (userDepartment === 'Quality Assurance' || userDepartment === 'Quality Control' || (userDepartment === 'Production' && userLevel === 1)));
+    // Use pre-calculated permission checks
+    const shouldShowAllButtons = checkShowAllButtons(form.status);
     
     // Format status for display
     const statusDisplay = form.status ? 
@@ -1942,8 +1879,11 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
         </div>
       </td>
     `;
-    tbody.appendChild(row);
+    fragment.appendChild(row);
   });
+
+  // Append all rows at once (single DOM operation)
+  tbody.appendChild(fragment);
 
   // Show message at bottom of table if there are more forms than the limit (only when not showing all for date filters)
   if (!showAllForDateFilters && forms.length > MAX_FORMS_DISPLAY) {

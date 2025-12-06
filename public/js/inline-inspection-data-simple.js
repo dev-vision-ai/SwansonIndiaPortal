@@ -2495,82 +2495,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Immediately redirect to login if back button is pressed
         window.location.replace('auth.html');
     };
-    
-    // On page load, fetch and render all lots for the current traceability_code
-    if (traceabilityCode) {
-        try {
-            const { data: lots, error } = await supabase
-                .from('inline_inspection_form_master_2')
-                .select('*')
-                .eq('traceability_code', traceabilityCode)
-                .eq('lot_letter', lotLetter);
 
-            if (lots && lots.length > 0) {
-                lots.forEach(lot => {
-                    // renderLotTable(lot.inspection_data); // This line is removed
-                });
-            }
-        } catch (error) {
-            console.error('Error loading lots:', error);
-        }
-    }
-
-    // Function to render a lot as a table in the UI (with thead)
-    // This function is no longer used as the summary table is removed.
-    // function renderLotTable(inspection_data) {
-    //     // Create a new table element
-    //     const table = document.createElement('table');
-    //     table.className = 'min-w-full bg-white shadow-md rounded mt-8';
-
-    //     // Build thead (copy from your HTML structure)
-    //     const thead = document.createElement('thead');
-    //     thead.innerHTML = `
-    //         <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center">
-    //             <th class="py-2 px-4 border-r border-gray-300">Sr No</th>
-    //             <th class="py-2 px-4 border-r border-gray-300">Production Date</th>
-    //             <th class="py-2 px-4 border-r border-gray-300">Product</th>
-    //             <th class="py-2 px-4 border-r border-gray-300">M/C No</th>
-    //             <th class="py-2 px-4 border-r border-gray-300">Shift</th>
-    //             <th class="py-2 px-4 border-r border-gray-300">Operator</th>
-    //             <th class="py-2 px-4 border-r border-gray-300">Supervisor</th>
-    //             <th class="py-2 px-4 border-r border-gray-300">Line Leader</th>
-    //             <th class="py-2 px-4 border-r border-gray-300">QC Inspector</th>
-    //             <th class="py-2 px-4">Action</th>
-    //         </tr>
-    //     `;
-    //     table.appendChild(thead);
-
-    //     // Build tbody
-    //     const tbody = document.createElement('tbody');
-    //     if (inspection_data.rolls && inspection_data.rolls.length > 0) {
-    //         inspection_data.rolls.forEach((roll, i) => {
-    //             const tr = document.createElement('tr');
-    //             // Example: show Sr No, Production Date, Product, etc. (customize as needed)
-    //             tr.innerHTML = `
-    //                 <td class="py-3 px-4 border-r border-gray-200 text-center">${i + 1}</td>
-    //                 <td class="py-3 px-4 border-r border-gray-200 text-center">${inspection_data.date || '-'}</td>
-    //                 <td class="py-3 px-4 border-r border-gray-200 text-center">${inspection_data.prod_code || '-'}</td>
-    //                 <td class="py-3 px-4 border-r border-gray-200 text-center">${inspection_data.machine || '-'}</td>
-    //                 <td class="py-3 px-4 border-r border-gray-200 text-center">${inspection_data.shift || '-'}</td>
-    //                 <td class="py-3 px-4 border-r border-gray-200 text-center">${roll.operator || '-'}</td>
-    //                 <td class="py-3 px-4 border-r border-gray-200 text-center">${roll.supervisor || '-'}</td>
-    //                 <td class="py-3 px-4 border-r border-gray-200 text-center">${roll.line_leader || '-'}</td>
-    //                 <td class="py-3 px-4 border-r border-gray-200 text-center">${roll.qc_inspector || '-'}</td>
-    //                 <td class="py-3 px-4 text-center">-</td>
-    //             `;
-    //             tbody.appendChild(tr);
-    //         });
-    //     }
-    //     table.appendChild(tbody);
-    //     // Append the table to the tablesContainer
-    //     const tablesContainer = document.getElementById('tablesContainer');
-    //     tablesContainer.appendChild(table);
-    // }
-
-    // Don't add any default rows - start with empty table
-    // User will add rows manually using the "Add New Rows" button
-
-    // ===== ADD NEW TABLE FUNCTIONALITY =====
     
     // Create and style the "Add Next Lot" button (only in edit mode)
     if (!viewMode) {
@@ -2703,7 +2628,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             for (const tableName of tables) {
                 const { data: existingLots, error } = await supabase
                     .from(tableName)
-                    .select('id, form_id, lot_no, created_at, status')
+                    .select('id, lot_no, created_at, status')
                     .eq('traceability_code', traceabilityCode)
                     .eq('lot_letter', lotLetter)
                     .eq('lot_no', lotNumber);
@@ -3051,7 +2976,32 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Get mc_no to determine the correct table
         const mcNoElement = document.getElementById('mc_no');
         const mcNo = mcNoElement ? mcNoElement.textContent.trim() : '02'; // Default to 02 if not found
-        const tableName = getTableNameForMachine(mcNo);
+        let tableName = getTableNameForMachine(mcNo);
+        
+        // If there are existing lots already loaded, use their table instead (to avoid creating duplicates in different tables)
+        const existingTables = tablesContainer.querySelectorAll('table');
+        if (existingTables.length > 0) {
+            // Get the table name from the data attribute or determine from existing data
+            const firstTable = existingTables[0];
+            const formId = firstTable.getAttribute('data-form-id');
+            if (formId) {
+                // Try to find which table this form_id belongs to, AND verify traceability_code and lot_letter match
+                const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+                for (const checkTable of tables) {
+                    const { data: checkData } = await supabase
+                        .from(checkTable)
+                        .select('id')
+                        .eq('form_id', formId)
+                        .eq('traceability_code', traceabilityCode)
+                        .eq('lot_letter', lotLetter)
+                        .limit(1);
+                    if (checkData && checkData.length > 0) {
+                        tableName = checkTable;
+                        break;
+                    }
+                }
+            }
+        }
         
         // Insert new row in Supabase with individual JSONB columns
         const formObject = {
@@ -3373,7 +3323,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             for (const tableName of tables) {
                 const { data: lots, error } = await supabase
                     .from(tableName)
-                    .select('id, form_id, lot_no, created_at, status')
+                    .select('id, lot_no, created_at, status')
                     .eq('traceability_code', traceabilityCode)
                     .eq('lot_letter', lotLetter)
                     .order('lot_no');
@@ -3497,137 +3447,278 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 
     // ===== FILL O FUNCTIONALITY =====
-    const fillOBtn = document.getElementById('fillOBtn');
-    if (fillOBtn) {
-        fillOBtn.addEventListener('click', async function() {
-            // Disable button during operation
-            fillOBtn.disabled = true;
-            const originalText = fillOBtn.textContent;
-            fillOBtn.textContent = 'Processing...';
-            
-            try {
-                // Get all tables in the container
-                const allTables = tablesContainer.querySelectorAll('table');
-                const tablesToSave = [];
-                
-                allTables.forEach(table => {
-                    const tbody = table.querySelector('tbody');
-                    if (!tbody) return;
-                    
-                    // Define the specific fields to fill (Film Appearance, Printing, Roll Appearance)
-                    const fieldsToFill = [
-                        'lines_strips', 'glossy', 'film_color', 'pin_hole', 'patch_mark', 'odour', 'ct_appearance', 'print_color', // Film Appearance
-                        'mis_print', 'dirty_print', 'tape_test', 'centralization', // Printing
-                        'wrinkles', 'prs', 'roll_curve', 'core_misalignment', 'others' // Roll Appearance
-                    ];
-                    
-                    let hasChanges = false;
-                    
-                    // Get cells with data-field attributes that match our target fields
-                    const cells = tbody.querySelectorAll('td[data-field]');
-                    
-                    cells.forEach(cell => {
-                        const fieldName = cell.dataset.field;
-                        
-                        // Only process cells that are in our target fields
-                        if (!fieldsToFill.includes(fieldName)) return;
-                        
-                        // Skip cells that already have content (not empty)
-                        if (cell.textContent.trim() !== '') return;
-                        
-                        // Fill empty cells with "O"
-                        cell.textContent = 'O';
-                        
-                        // Apply color coding
-                        applyXOColorCoding(cell);
-                        
-                        hasChanges = true;
-                    });
-                    
-                    // After filling O values, update Accept/Reject status for each row
-                    if (hasChanges) {
-                        const rows = tbody.querySelectorAll('tr');
-                        rows.forEach(row => {
-                            // Check if this row has any X values
-                            const xoFields = [
-                                'lines_strips', 'glossy', 'film_color', 'pin_hole', 'patch_mark', 'odour',
-                                'print_color', 'mis_print', 'dirty_print', 'tape_test', 'centralization',
-                                'wrinkles', 'prs', 'roll_curve', 'core_misalignment', 'others'
-                            ];
-                            
-                            let hasX = false;
-                            let hasO = false;
-                            let totalXOFilled = 0;
-                            
-                            // Check all X/O fields in this row
-                            xoFields.forEach(field => {
-                                const fieldCell = row.querySelector(`td[data-field="${field}"]`);
-                                if (fieldCell) {
-                                    const value = fieldCell.textContent.trim().toUpperCase();
-                                    if (value === 'X') {
-                                        hasX = true;
-                                        totalXOFilled++;
-                                    } else if (value === 'O') {
-                                        hasO = true;
-                                        totalXOFilled++;
-                                    }
-                                }
-                            });
-                            
-                            // Find the Accept/Reject dropdown in the same row
-                            const acceptRejectCell = row.querySelector('td[data-field="accept_reject"]');
-                            if (acceptRejectCell) {
-                                const acceptRejectSelect = acceptRejectCell.querySelector('select');
-                                if (acceptRejectSelect) {
-                                    // Auto-update Accept/Reject based on X/O fields
-                                    if (hasX) {
-                                        // If ANY field has X, set to Reject
-                                        acceptRejectSelect.value = 'Reject';
-                                        acceptRejectSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                                    } else if (hasO && totalXOFilled > 0) {
-                                        // If ALL filled fields are O (no X found), set to Accept
-                                        acceptRejectSelect.value = 'Accept';
-                                        acceptRejectSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                                    }
-                                }
-                            }
-                        });
-                                         }
-                     
-                     // Only save tables that had changes
-                    if (hasChanges && table.dataset.formId) {
-                        tablesToSave.push(table);
-                    }
-                });
-                
-                // Batch save all modified tables
-                if (tablesToSave.length > 0) {
-                    await Promise.all(tablesToSave.map(table => saveLotToSupabase(table)));
+    const fillORequiredFieldChecks = [
+        { field: 'hour', label: 'Hour (Row 1)', firstRowOnly: true },
+        { field: 'minute', label: 'Minute (Row 1)', firstRowOnly: true },
+        { field: 'lot_no', label: 'Lot Number', firstRowOnly: true },
+        { field: 'arm', label: 'Arm', firstRowOnly: true },
+        { field: 'inspected_by', label: 'Inspected By', firstRowOnly: true },
+        { field: 'roll_weight', label: 'Roll Weight', allRows: true },
+        { field: 'roll_width_mm', label: 'Roll Width', allRows: true },
+        { field: 'thickness', label: 'Thickness', allRows: true },
+        { field: 'roll_dia', label: 'Roll θ', allRows: true }
+    ];
+
+    function getFillOCellValue(cell) {
+        if (!cell) return '';
+        const input = cell.querySelector('input');
+        if (input) return (input.value || '').trim();
+        const select = cell.querySelector('select');
+        if (select) return (select.value || '').trim();
+        return (cell.textContent || '').trim();
+    }
+
+    function clearFillORequiredHighlights(table) {
+        if (!table) return;
+        table.querySelectorAll('.required-field').forEach(cell => {
+            cell.classList.remove('required-field');
+        });
+    }
+
+    function isPrintedProduct() {
+        const checkbox = document.getElementById('printed') || document.querySelector('input[name="printed"]');
+        return checkbox ? checkbox.checked : false;
+    }
+
+    function validateFirstRowBeforeFillO(table) {
+        if (!table) return { valid: true };
+        clearFillORequiredHighlights(table);
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return { valid: true };
+
+        const rows = tbody.querySelectorAll('tr');
+        if (rows.length === 0) return { valid: true };
+
+        const missingCells = [];
+        const missingColumnNames = new Set(); // To collect unique column names only
+
+        // Check first row only fields
+        const firstRow = rows[0];
+        fillORequiredFieldChecks.forEach(check => {
+            if (check.firstRowOnly) {
+                const cell = firstRow.querySelector(`td[data-field="${check.field}"]`);
+                if (!cell) return;
+                const value = getFillOCellValue(cell);
+                if (!value) {
+                    missingCells.push(cell);
+                    missingColumnNames.add(check.label);
                 }
-                
-                // Update summary table once after all changes
-                updateSummaryTable();
-                
-                // Show success confirmation
-                fillOBtn.textContent = 'Saved!';
-                fillOBtn.style.backgroundColor = '#10b981'; // green
-                setTimeout(() => {
-                    fillOBtn.textContent = originalText;
-                    fillOBtn.style.backgroundColor = ''; // reset to original
-                    fillOBtn.disabled = false;
-                }, 1000);
-                
-            } catch (error) {
-                console.error('Error in Fill O operation:', error);
-                fillOBtn.textContent = 'Error!';
-                fillOBtn.style.backgroundColor = '#ef4444'; // red
-                setTimeout(() => {
-                    fillOBtn.textContent = originalText;
-                    fillOBtn.style.backgroundColor = ''; // reset to original
-                    fillOBtn.disabled = false;
-                }, 2000);
             }
         });
+
+        // Check all rows fields
+        fillORequiredFieldChecks.forEach(check => {
+            if (check.allRows) {
+                rows.forEach((row, rowIndex) => {
+                    const cell = row.querySelector(`td[data-field="${check.field}"]`);
+                    if (!cell) return;
+                    const value = getFillOCellValue(cell);
+                    if (!value) {
+                        missingCells.push(cell);
+                        missingColumnNames.add(check.label); // Only add column name, not row number
+                    }
+                });
+            }
+        });
+
+        // Check CT appearance for printed products (first row only)
+        if (isPrintedProduct()) {
+            const ctCell = firstRow.querySelector('td[data-field="ct_appearance"]');
+            const ctValue = getFillOCellValue(ctCell);
+            if (!ctValue) {
+                missingCells.push(ctCell);
+                missingColumnNames.add('CT Appearance');
+            }
+        }
+
+        if (missingColumnNames.size === 0) return { valid: true };
+
+        missingCells.forEach(cell => {
+            cell.classList.add('required-field');
+        });
+
+        const lotNoCell = firstRow.querySelector('td[data-field="lot_no"]');
+        const lotNoValue = getFillOCellValue(lotNoCell);
+        const allTables = Array.from(tablesContainer.querySelectorAll('table'));
+        const tableIndex = allTables.indexOf(table);
+        const tableLabel = lotNoValue ? `Lot ${lotNoValue}` : `Table ${tableIndex + 1}`;
+        const fieldList = Array.from(missingColumnNames).join(', ');
+        return {
+            valid: false,
+            message: `${tableLabel} is missing some required data in :\n${fieldList}\n\nPlease check`
+        };
+    }
+
+    function validateTablesBeforeFillO(tables) {
+        const errors = [];
+        tables.forEach(table => {
+            const result = validateFirstRowBeforeFillO(table);
+            if (!result.valid) {
+                errors.push(result.message);
+            }
+        });
+        return {
+            valid: errors.length === 0,
+            message: errors.join('\n')
+        };
+    }
+
+    function showValidationModal(message) {
+        // Create modal overlay
+        const modalOverlay = document.createElement('div');
+        modalOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        `;
+
+        // Create modal content
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+        `;
+
+        // Create message container
+        const messageContainer = document.createElement('div');
+        messageContainer.style.cssText = `
+            margin: 0 0 20px 0;
+            font-size: 16px;
+            line-height: 1.5;
+            text-align: center;
+        `;
+
+        // Parse the message - format: "Lot XX is missing some required data in :\nfield1, field2, field3\n\nPlease check"
+        const lines = message.split('\n');
+        const headerText = lines[0]; // "Lot XX is missing some required data in :"
+        const fieldsText = lines[1]; // "Roll Width, Thickness, Roll θ"
+        const footerText = lines[3]; // "Please check"
+
+        // Extract lot number from headerText (e.g., "Lot 04 is missing..." -> "Lot No. 04")
+        const lotMatch = headerText.match(/^Lot\s+\d+/);
+        const lotNumberText = lotMatch ? lotMatch[0].replace(/^Lot\s+/, 'Lot No. ') : '';
+        const restOfHeader = headerText.replace(lotMatch ? lotMatch[0] + ' ' : '', '');
+
+        // Create header element - only lot number gets yellow background
+        const headerElement = document.createElement('div');
+        headerElement.style.cssText = `
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        `;
+        
+        if (lotNumberText) {
+            const lotSpan = document.createElement('span');
+            lotSpan.textContent = lotNumberText;
+            lotSpan.style.cssText = `
+                font-weight: bold;
+                background-color: #FFEB3B;
+                padding: 4px 8px;
+                border-radius: 4px;
+                color: #000;
+            `;
+            headerElement.appendChild(lotSpan);
+            
+            const restSpan = document.createElement('span');
+            restSpan.textContent = restOfHeader;
+            restSpan.style.cssText = `
+                font-weight: bold;
+            `;
+            headerElement.appendChild(restSpan);
+        } else {
+            headerElement.textContent = headerText;
+            headerElement.style.fontWeight = 'bold';
+        }
+
+        // Create fields element (red, bold)
+        const fieldsElement = document.createElement('div');
+        fieldsElement.textContent = fieldsText;
+        fieldsElement.style.cssText = `
+            color: #dc2626;
+            font-weight: bold;
+            margin-bottom: 10px;
+        `;
+
+        // Create footer element (normal black)
+        const footerElement = document.createElement('div');
+        footerElement.textContent = footerText;
+        footerElement.style.cssText = `
+            color: #000000;
+            font-weight: normal;
+        `;
+
+        // Assemble message container
+        messageContainer.appendChild(headerElement);
+        messageContainer.appendChild(fieldsElement);
+        messageContainer.appendChild(footerElement);
+
+        // Create OK button
+        const okButton = document.createElement('button');
+        okButton.textContent = 'OK';
+        okButton.style.cssText = `
+            background-color: #dc2626;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        `;
+
+        // Add hover effect
+        okButton.onmouseover = () => okButton.style.backgroundColor = '#b91c1c';
+        okButton.onmouseout = () => okButton.style.backgroundColor = '#dc2626';
+
+        // Close modal function
+        const closeModal = () => {
+            document.body.removeChild(modalOverlay);
+        };
+
+        // Add click handler to OK button
+        okButton.onclick = closeModal;
+
+        // Add click handler to overlay (close when clicking outside)
+        modalOverlay.onclick = (e) => {
+            if (e.target === modalOverlay) {
+                closeModal();
+            }
+        };
+
+        // Assemble modal
+        modalContent.appendChild(messageContainer);
+        modalContent.appendChild(okButton);
+        modalOverlay.appendChild(modalContent);
+        document.body.appendChild(modalOverlay);
+
+        // Focus the OK button
+        okButton.focus();
+    }
+
+    function handleFillOValidationError(button, originalText, message) {
+        showValidationModal(message);
+        button.textContent = 'Validation Failed';
+        button.style.backgroundColor = '#ef4444';
+        button.disabled = false;
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.backgroundColor = '';
+        }, 2000);
     }
 
     // ===== MIGRATION FUNCTION - Convert old data to JSONB =====
@@ -3841,6 +3932,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             fillOButton.disabled = true;
             const originalText = fillOButton.textContent;
             fillOButton.textContent = 'Processing...';
+            const validation = validateFirstRowBeforeFillO(table);
+            if (!validation.valid) {
+                handleFillOValidationError(fillOButton, originalText, validation.message);
+                return;
+            }
             
             try {
                 const rows = table.querySelectorAll('tbody tr');
@@ -4439,29 +4535,32 @@ document.addEventListener('DOMContentLoaded', async function() {
     // On page load, fetch all lots for this traceability_code and render tables - Updated for individual JSONB columns
     async function loadAllLots() {
         if (!traceabilityCode) return;
-        // Clear existing tables
-        tablesContainer.innerHTML = '';
-        // Fetch all lots from all tables
-        const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
-        let allLots = [];
         
-        for (const tableName of tables) {
-            const { data: lots, error } = await supabase
-                .from(tableName)
-                .select('*')
-                .eq('traceability_code', traceabilityCode)
-                .eq('lot_letter', lotLetter)
-                .order('created_at', { ascending: true });
-                
-            if (error) {
-                console.error(`Error loading lots from ${tableName}:`, error);
-                continue;
-            }
+        try {
+            // Clear existing tables
+            tablesContainer.innerHTML = '';
             
-            if (lots && lots.length > 0) {
-                allLots = allLots.concat(lots);
-            }
-        }
+            // Fetch all lots from all tables IN PARALLEL (not sequentially)
+            const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+            const queryPromises = tables.map(tableName => 
+                supabase
+                    .from(tableName)
+                    .select('*')
+                    .eq('traceability_code', traceabilityCode)
+                    .eq('lot_letter', lotLetter)
+                    .order('created_at', { ascending: true })
+            );
+            
+            const results = await Promise.all(queryPromises);
+            let allLots = [];
+            
+            results.forEach((result, index) => {
+                if (result.error) {
+                    console.error(`Error loading lots from ${tables[index]}:`, result.error);
+                } else if (result.data && result.data.length > 0) {
+                    allLots = allLots.concat(result.data);
+                }
+            });
         
         // Sort all lots by creation time
         allLots.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
@@ -4684,29 +4783,17 @@ document.addEventListener('DOMContentLoaded', async function() {
             Object.entries(defectCounts).forEach(([defect, count]) => {
                 html += `<tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">${defect}</td><td style="border: 1px solid #9ca3af;">${count}</td></tr>`;
             });
+            }
+            html += '</tbody>';
+            summaryTable.innerHTML = html;
+            // Append the defects summary table to the container if not already present
+            if (!summaryTableContainer.contains(summaryTable)) {
+                summaryTableContainer.appendChild(summaryTable);
+            }
+        } catch (error) {
+            console.error('Error loading lots:', error);
         }
-        html += '</tbody>';
-        summaryTable.innerHTML = html;
-        // Append the defects summary table to the container if not already present
-        if (!summaryTableContainer.contains(summaryTable)) {
-            summaryTableContainer.appendChild(summaryTable);
-        }
-
     }
-
-    // On initial load
-    await loadAllLots();
-    addSaveListeners(); // <-- Ensure new table cells are hooked up for saving
-    // Update Add Next Lot button state after loading all lots
-    updateAddNextLotButtonState();
-    
-    // Render summary tables after data is loaded
-    setTimeout(() => {
-        renderDefectsSummaryTable();
-        renderIPQCDefectsTable();
-        renderStatisticsTable();
-        renderProductionNoSummaryTable();
-    }, 1000);
 
     // ===== MULTI-LOT SUPPORT END =====
 
