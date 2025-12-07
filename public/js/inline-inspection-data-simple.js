@@ -1649,7 +1649,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 rework_weight: summary.rework_weight,
                 kiv_weight: summary.kiv_weight
             })
-            .eq('form_id', formId);
+            .eq('form_id', formId)
+            .eq('traceability_code', traceabilityCode)
+            .eq('lot_letter', lotLetter);
         if (error) {
             alert('Error saving lot: ' + error.message);
         } else {
@@ -4512,7 +4514,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 rework_weight: summary.rework_weight,
                 kiv_weight: summary.kiv_weight
             })
-            .eq('form_id', formId);
+            .eq('form_id', formId)
+            .eq('traceability_code', traceabilityCode)
+            .eq('lot_letter', lotLetter);
         if (error) {
             console.error('Error saving lot: ' + error.message);
         } else {
@@ -5444,6 +5448,30 @@ document.addEventListener('DOMContentLoaded', async function() {
                         }
                         
                         if (targetTable) {
+                            // VERIFY the record exists and matches before clearing
+                            const { data: recordToClear, error: fetchError } = await supabase
+                                .from(targetTable)
+                                .select('id, form_id, traceability_code, lot_letter, lot_no')
+                                .eq('form_id', formId)
+                                .eq('traceability_code', traceabilityCode)
+                                .eq('lot_letter', lotLetter)
+                                .single();
+
+                            if (fetchError || !recordToClear) {
+                                console.error('Record verification failed for clear:', fetchError);
+                                alert('Error: Could not verify the record to clear. Please check if it exists.');
+                                return;
+                            }
+
+                            // Log what we're about to clear for safety
+                            console.log('Clearing record:', {
+                                table: targetTable,
+                                form_id: recordToClear.form_id,
+                                traceability_code: recordToClear.traceability_code,
+                                lot_letter: recordToClear.lot_letter,
+                                lot_no: recordToClear.lot_no
+                            });
+
                             const { error } = await supabase
                                 .from(targetTable)
                                 .update({
@@ -5472,7 +5500,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                                     lot_no: null, // Reset lot number to null when no rows
                                     updated_at: getISTTimestamp()
                                 })
-                                .eq('form_id', formId);
+                                .eq('form_id', formId)
+                                .eq('traceability_code', traceabilityCode)
+                                .eq('lot_letter', lotLetter);
                             
                             if (error) {
                                 console.error('Error clearing Supabase data:', error);
@@ -5500,35 +5530,50 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Delete from Supabase using formId
                 const formId = table.dataset.formId;
                 if (formId) {
-                    // First, find which table contains this form_id
-                    const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
-                    let targetTable = null;
-                    
-                    for (const tableName of tables) {
-                        const { data: existingRecord, error } = await supabase
-                            .from(tableName)
-                            .select('id')
-                            .eq('form_id', formId)
-                            .single();
-                            
-                        if (!error && existingRecord) {
-                            targetTable = tableName;
-                            break;
-                        }
-                    }
-                    
+                    // Get mc_no to determine the correct table
+                    const mcNoElement = document.getElementById('mc_no');
+                    const mcNo = mcNoElement ? mcNoElement.textContent.trim() : '';
+                    const targetTable = getTableNameForMachine(mcNo);
+
                     if (targetTable) {
+                        // VERIFY the record exists and matches before deleting
+                        const { data: recordToDelete, error: fetchError } = await supabase
+                            .from(targetTable)
+                            .select('id, form_id, traceability_code, lot_letter, lot_no')
+                            .eq('form_id', formId)
+                            .eq('traceability_code', traceabilityCode)
+                            .eq('lot_letter', lotLetter)
+                            .single();
+
+                        if (fetchError || !recordToDelete) {
+                            console.error('Record verification failed:', fetchError);
+                            alert('Error: Could not verify the record to delete. Please check if it exists.');
+                            return;
+                        }
+
+                        // Log what we're about to delete for safety
+                        console.log('Deleting record:', {
+                            table: targetTable,
+                            form_id: recordToDelete.form_id,
+                            traceability_code: recordToDelete.traceability_code,
+                            lot_letter: recordToDelete.lot_letter,
+                            lot_no: recordToDelete.lot_no
+                        });
+
                         const { error } = await supabase
                             .from(targetTable)
                             .delete()
-                            .eq('form_id', formId);
+                            .eq('form_id', formId)
+                            .eq('traceability_code', traceabilityCode)
+                            .eq('lot_letter', lotLetter);
+
                         if (error) {
                             alert('Error deleting table from Supabase: ' + error.message);
                             return;
                         }
                     } else {
-                        console.error('Could not find table containing form_id for deletion:', formId);
-                        alert('Error: Could not find the table containing this form data.');
+                        console.error('Could not determine target table for machine:', mcNo);
+                        alert('Error: Could not determine the correct table for deletion.');
                         return;
                     }
                 }

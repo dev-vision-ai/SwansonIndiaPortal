@@ -359,7 +359,6 @@ window.addEventListener('DOMContentLoaded', async function() {
 let allForms = []; // Store all forms for filtering
 let filteredForms = []; // Store filtered forms
 let currentFilters = {}; // Store current filter state
-let isRestoringFilters = false; // Flag to prevent double loading during filter restoration
 
 function setupFilterHandlers() {
   const clearFilterBtn = document.getElementById('clearFilter');
@@ -838,8 +837,6 @@ function updateFilterStatus() {
 }
 
 async function applyFilters() {
-  // Skip if currently restoring filters to avoid double loading
-  if (isRestoringFilters) return;
   const fromDate = document.getElementById('filterFromDate').value;
   const toDate = document.getElementById('filterToDate').value;
   const product = document.getElementById('filterProduct').value;
@@ -869,7 +866,7 @@ async function applyFilters() {
         let query = supabase
           .from(table)
           .select(`
-            id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
+            id, traceability_code, lot_letter, customer, production_no, production_no_2, prod_code, spec,
             production_date, emboss_type, printed, non_printed, ct, year, month, date,
             mc_no, shift, supervisor, supervisor2,
             operator, operator2, qc_inspector, qc_inspector2, status,
@@ -1145,7 +1142,7 @@ async function handleFormSubmit(e) {
           const { data: record, error } = await supabase
             .from(table)
             .select(`
-              id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
+              id, traceability_code, lot_letter, customer, production_no, production_no_2, prod_code, spec,
               production_date, emboss_type, printed, non_printed, ct, year, month, date,
               mc_no, shift, supervisor, supervisor2,
               operator, operator2, qc_inspector, qc_inspector2, status,
@@ -1616,7 +1613,7 @@ async function handleFormSubmit(e) {
         let query = supabase
           .from(table)
           .select(`
-            id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
+            id, traceability_code, lot_letter, customer, production_no, production_no_2, prod_code, spec,
             production_date, emboss_type, printed, non_printed, ct, year, month, date,
             mc_no, shift, supervisor, supervisor2,
             operator, operator2, qc_inspector, qc_inspector2, status,
@@ -1686,9 +1683,7 @@ async function handleFormSubmit(e) {
     await updateFormsTable(sortedForms, hasDateFilters); // Pass hasDateFilters to show all forms if date filters are applied
     
     // Populate dropdowns immediately for instant loading
-    isRestoringFilters = true; // Prevent loadFormsTable from being called again
     await populateFilterDropdowns();
-    isRestoringFilters = false;
   } catch (error) {
     console.error('Error:', error);
   }
@@ -1812,7 +1807,14 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
     row.innerHTML = `
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${forms.length - index}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${formatDate(form.production_date)}</td>
-      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${form.prod_code || '-'}</td>
+      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">
+        <div class="font-semibold">${form.prod_code || '-'}</div>
+        ${form.production_no || form.production_no_2 ? `
+          <div class="text-xs text-green-600 font-medium">
+            ${[...new Set([form.production_no, form.production_no_2].filter(Boolean))].join(', ')}
+          </div>
+        ` : ''}
+      </td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">
         <div class="${mcNoStyle}">${mcNo}</div>
       </td>
@@ -2072,7 +2074,7 @@ async function editForm(traceability_code, lot_letter) {
       const { data: allData, error: listError } = await supabase
         .from(table)
         .select(`
-          id, traceability_code, lot_letter, customer, production_no, prod_code, spec,
+          id, traceability_code, lot_letter, customer, production_no, production_no_2, prod_code, spec,
           production_date, emboss_type, printed, non_printed, ct, year, month, date,
           mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
           operator, operator2, qc_inspector, qc_inspector2, status,
