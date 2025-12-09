@@ -16,6 +16,10 @@
       "dest": "backend/server.js"
     },
     {
+      "src": "/export(.*)",
+      "dest": "backend/server.js"
+    },
+    {
       "src": "/",
       "dest": "public/index.html"
     },

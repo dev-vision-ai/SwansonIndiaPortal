@@ -55,6 +55,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Fetch defect types and initialize defect tracking table
     await fetchDefectTypes();
     initializeDefectTrackingTable();
+
+    // Wire download button for defect report
+    bindDefectDownloadButton();
     
     // Load initial data
     loadFormsData();
@@ -209,6 +212,23 @@ function updateFilterStatus(isActive) {
             statusElement.textContent = 'Off';
             statusElement.className = 'px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700';
         }
+    }
+    // Keep download button visibility in sync with filter status
+    updateDownloadButtonVisibility();
+}
+
+// Toggle download button visibility based on whether filters are active
+function updateDownloadButtonVisibility() {
+    const btn = document.getElementById('downloadDefectsBtn');
+    if (!btn) return;
+    try {
+        if (areFiltersActive()) {
+            btn.style.display = 'inline-block';
+        } else {
+            btn.style.display = 'none';
+        }
+    } catch (e) {
+        // ignore
     }
 }
 
@@ -863,8 +883,18 @@ function updateSummaryTablesWithData(shiftData, skipStatistics = false) {
 // Update Defects Summary Table
 function updateDefectsSummaryTable(shiftData) {
     const defectData = {};
+    let totalProduced = 0;
     
+    // Calculate total produced rolls and defect data
     shiftData.forEach(form => {
+        // Calculate total produced rolls for this form
+        const acceptedRolls = parseInt(form.accepted_rolls) || 0;
+        const rejectedRolls = parseInt(form.rejected_rolls) || 0;
+        const reworkRolls = parseInt(form.rework_rolls) || 0;
+        const kivRolls = parseInt(form.kiv_rolls) || 0;
+        totalProduced += acceptedRolls + rejectedRolls + reworkRolls + kivRolls;
+        
+        // Extract defect data
         if (form.defect_names && typeof form.defect_names === 'object' && 
             form.roll_weights && typeof form.roll_weights === 'object') {
             
@@ -892,18 +922,20 @@ function updateDefectsSummaryTable(shiftData) {
     if (container) {
         const tbody = container.querySelector('table tbody');
         if (Object.keys(defectData).length === 0) {
-            tbody.innerHTML = '<tr><td class="metric-label" colspan="3">No defects found in this shift.</td></tr>';
+            tbody.innerHTML = '<tr><td class="metric-label" colspan="4">No defects found in this shift.</td></tr>';
         } else {
             // Calculate totals
             const totalCount = Object.values(defectData).reduce((sum, data) => sum + data.count, 0);
             const totalWeight = Object.values(defectData).reduce((sum, data) => sum + data.weight, 0);
+            const totalDefectPercent = totalProduced > 0 ? ((totalCount / totalProduced) * 100).toFixed(2) : '0.00';
             
             tbody.innerHTML = Object.entries(defectData)
                 .sort(([,a], [,b]) => b.count - a.count) // Sort by count (highest to lowest)
-                .map(([defect, data]) => 
-                    `<tr><td class="metric-label">${defect}</td><td class="defect-count">${data.count}</td><td class="metric-value">${data.weight.toFixed(2)}</td></tr>`
-                ).join('') + 
-                `<tr class="highlight-row"><td class="metric-label">Total</td><td class="defect-count">${totalCount}</td><td class="metric-value">${totalWeight.toFixed(2)}</td></tr>`;
+                .map(([defect, data]) => {
+                    const defectPercent = totalProduced > 0 ? ((data.count / totalProduced) * 100).toFixed(2) : '0.00';
+                    return `<tr><td class="metric-label">${defect}</td><td class="defect-count">${data.count}</td><td class="defect-percent">${defectPercent}%</td><td class="metric-value">${data.weight.toFixed(2)}</td></tr>`;
+                }).join('') + 
+                `<tr class="highlight-row"><td class="metric-label">Total</td><td class="defect-count">${totalCount}</td><td class="defect-percent">${totalDefectPercent}%</td><td class="metric-value">${totalWeight.toFixed(2)}</td></tr>`;
         }
     }
 }
@@ -1083,7 +1115,7 @@ function initializeDefectTrackingTable() {
     if (!defectTypes || defectTypes.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="23" class="text-center py-4">Loading defect types...</td>
+                <td colspan="24" class="text-center py-4">Loading defect types...</td>
             </tr>
         `;
         return;
@@ -1098,6 +1130,7 @@ function initializeDefectTrackingTable() {
             <tr>
                 <td class="defect-name">${defect}</td>
                 <td class="defect-qty">0</td>
+                <td style="font-weight: 500; color: #1f2937;">0.00%</td>
                 ${cells}
             </tr>
         `;
@@ -1124,7 +1157,7 @@ function updateDefectTrackingTable(formsData) {
     defectTypes.forEach(defect => {
         defectData[defect] = {
             totalQty: 0,
-            occurrences: Array(21).fill(0)
+            occurrences: Array(21).fill(0)  // Array with 21 elements for positions 1-21
         };
     });
 
@@ -1163,19 +1196,30 @@ function updateDefectTrackingTable(formsData) {
     
     // Defects with data
 
+    // Calculate total produced for defect % calculation
+    let totalProduced = 0;
+    formsData.forEach(form => {
+        const acceptedRolls = parseInt(form.accepted_rolls) || 0;
+        const rejectedRolls = parseInt(form.rejected_rolls) || 0;
+        const reworkRolls = parseInt(form.rework_rolls) || 0;
+        const kivRolls = parseInt(form.kiv_rolls) || 0;
+        totalProduced += acceptedRolls + rejectedRolls + reworkRolls + kivRolls;
+    });
+
     // Update the table - show only defects with data
     const tbody = document.getElementById('defectTrackingTableBody');
     if (tbody) {
         if (defectsWithData.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="23" class="text-center py-4" style="color: #6b7280; font-style: italic;">
+                    <td colspan="24" class="text-center py-4" style="color: #6b7280; font-style: italic;">
                         No defects found for the selected filters.
                     </td>
                 </tr>
             `;
         } else {
             tbody.innerHTML = defectsWithData.map(([defect, data]) => {
+                const defectPercent = totalProduced > 0 ? ((data.totalQty / totalProduced) * 100).toFixed(2) : '0.00';
                 const cells = data.occurrences.map(occurrence => 
                     `<td class="${occurrence > 0 ? 'defect-present' : 'defect-absent'}">${occurrence}</td>`
                 ).join('');
@@ -1184,6 +1228,7 @@ function updateDefectTrackingTable(formsData) {
                     <tr>
                         <td class="defect-name">${defect}</td>
                         <td class="defect-qty">${data.totalQty}</td>
+                        <td style="font-weight: 500; color: #1f2937;">${defectPercent}%</td>
                         ${cells}
                     </tr>
                 `;
@@ -1217,6 +1262,7 @@ function clearDefectTrackingTable() {
                     <tr>
                         <td class="defect-name">${defect}</td>
                         <td class="defect-qty">0</td>
+                        <td style="font-weight: 500; color: #1f2937;">0.00%</td>
                         ${cells}
                     </tr>
                 `;
@@ -1258,4 +1304,139 @@ function updateDefectTrackingSummary(formsData) {
     document.getElementById('totalRejectedQty').textContent = totalRejected;
     document.getElementById('totalProducedQty').textContent = totalProduced;
     document.getElementById('totalRejectionPercent').textContent = rejectionPercent;
+}
+
+// Build query string from currentFilters
+function buildExportQuery() {
+    const params = new URLSearchParams();
+    if (currentFilters.fromDate) params.append('fromDate', currentFilters.fromDate);
+    if (currentFilters.toDate) params.append('toDate', currentFilters.toDate);
+    if (currentFilters.machine) params.append('machine', currentFilters.machine);
+    if (currentFilters.product) params.append('product', currentFilters.product);
+    if (currentFilters.shift) params.append('shift', currentFilters.shift);
+    return params.toString();
+}
+
+// Download handler - calls backend endpoint and triggers file download
+async function downloadDefectReport() {
+    const btn = document.getElementById('downloadDefectsBtn');
+    const originalContent = btn ? btn.innerHTML : 'Download';
+    const originalTitle = btn ? btn.title : '';
+
+    if (btn) {
+        btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+        btn.title = 'Downloading...';
+        btn.disabled = true;
+    }
+
+    try {
+        const qs = buildExportQuery();
+
+        // Determine backend URL (local vs production) following existing project pattern
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+        const url = `${backendUrl}/export-production-defects${qs ? ('?' + qs) : ''}`;
+
+        // Prepare abort & timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minutes
+
+        // Include authorization header if available
+        const session = await supabase.auth.getSession();
+        const headers = {
+            'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        };
+        if (session.data.session?.access_token) {
+            headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
+        }
+
+        const resp = await fetch(url, { method: 'GET', signal: controller.signal, credentials: 'include', headers });
+        clearTimeout(timeoutId);
+
+        if (!resp.ok) {
+            throw new Error(`HTTP error! status: ${resp.status}`);
+        }
+
+        const blob = await resp.blob();
+
+        // Create download link
+        const urlObj = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = urlObj;
+        
+        // Get filename from Content-Disposition header
+        const contentDisposition = resp.headers.get('Content-Disposition') || '';
+        let filename = 'production-defects.xlsx';
+        const match = contentDisposition.match(/filename="?([^";]+)"?/);
+        if (match && match[1]) {
+            filename = match[1];
+        }
+
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(urlObj);
+
+        // Success message
+        showSuccessMessage('Production defects report downloaded successfully!');
+
+    } catch (err) {
+        console.error('Download error:', err);
+        
+        if (err.name === 'AbortError') {
+            showErrorMessage('Request timed out. Please try again or check your internet connection.');
+        } else {
+            showErrorMessage('Failed to download report. Please try again.');
+        }
+    } finally {
+        const btn2 = document.getElementById('downloadDefectsBtn');
+        if (btn2) {
+            btn2.innerHTML = originalContent;
+            btn2.title = originalTitle;
+            btn2.disabled = false;
+        }
+    }
+}
+
+function bindDefectDownloadButton() {
+    const btn = document.getElementById('downloadDefectsBtn');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        // Ensure filters are applied before export
+        if (!areFiltersActive()) {
+            if (!confirm('No active filters detected. Export will include all data for selected date range/machine. Continue?')) return;
+        }
+        downloadDefectReport();
+    });
+}
+
+// Toast message functions (matching inline-inspection-form.js pattern)
+function showSuccessMessage(message) {
+    showMessage(message, 'success');
+}
+
+function showErrorMessage(message) {
+    showMessage(message, 'error');
+}
+
+function showMessage(message, type) {
+    const messageDiv = document.createElement('div');
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 5px;
+        color: white;
+        z-index: 10000;
+        font-weight: bold;
+        ${type === 'success' ? 'background: #28a745;' : 'background: #dc3545;'}
+    `;
+    messageDiv.textContent = message;
+    document.body.appendChild(messageDiv);
+    
+    setTimeout(() => {
+        messageDiv.remove();
+    }, 5000);
 }
