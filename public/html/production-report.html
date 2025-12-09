@@ -144,6 +144,12 @@
             font-size: 12px;
         }
 
+        .defects-table .defect-percent {
+            font-weight: 700;
+            color: #1f2937;
+            font-size: 12px;
+        }
+
         /* Defects Table Total Row - Same as Production Summary */
         .defects-table .highlight-row {
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
@@ -158,6 +164,11 @@
 
         /* Override defect-count color for total row */
         .defects-table .highlight-row .defect-count {
+            color: #92400e !important;
+        }
+
+        /* Override defect-percent color for total row */
+        .defects-table .highlight-row .defect-percent {
             color: #92400e !important;
         }
 
@@ -224,6 +235,19 @@
         /* Animation for table appearance */
         .table-wrapper {
             animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Download button style - matches quality alert submit button */
+        .download-btn {
+            transition: box-shadow 0.2s ease;
+        }
+        .download-btn:hover {
+            /* Change background color to slightly lower opacity on hover */
+            background-color: rgba(0, 46, 125, 0.88) !important;
+        }
+        .download-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         @keyframes fadeInUp {
@@ -348,8 +372,13 @@
             width: 40px;
             min-width: 40px;
         }
+
+        .defect-tracking-table th:nth-child(3) { /* Defect % */
+            width: 55px;
+            min-width: 55px;
+        }
         
-        .defect-tracking-table th:nth-child(n+3) { /* Roll positions 1-21 */
+        .defect-tracking-table th:nth-child(n+4) { /* Roll positions 1-21 */
             width: 25px;
             min-width: 25px;
             max-width: 25px;
@@ -539,12 +568,13 @@
                                             <tr>
                                                 <th>Defect Name</th>
                                                 <th>Count</th>
-                                                <th>KGS</th>
+                                                <th>Defect %</th>
+                                                <th>Rejection KGS</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td colspan="3" class="metric-label">No defects found in this shift.</td>
+                                                <td colspan="4" class="metric-label">No defects found in this shift.</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -608,7 +638,14 @@
                 <div id="defectTrackingSection" class="w-full mt-4 mb-4">
                     <div class="table-container">
                         <div class="table-wrapper" style="width: 100%; max-width: none;">
-                            <div class="table-title">Detailed Defect Tracking Report</div>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                <div style="width:100%; display:flex; justify-content:flex-end;">
+                                    <button id="downloadDefectsBtn" class="btn download-btn" style="display:none;background-color:#002E7D;color:#fff;padding:4px 8px;border-radius:4px;border:none;cursor:pointer;font-weight:600;font-size:12px;min-width:64px;">
+                                        Download
+                                    </button>
+                                </div>
+                                <div class="table-title" style="text-align:center;">Detailed Defect Tracking Report</div>
+                            </div>
                             <div style="text-align: center; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">Roll Positions (1-21)</div>
                             <div id="defectTrackingTableContainer" style="overflow-x: auto;">
                                 <table id="defectTrackingTable" class="summary-table defect-tracking-table">
@@ -616,6 +653,7 @@
                                         <tr>
                                             <th>Cause of Defect</th>
                                             <th>Qty</th>
+                                            <th>Defect %</th>
                                             <th>1</th>
                                             <th>2</th>
                                             <th>3</th>
@@ -646,17 +684,17 @@
                                         <tr class="summary-row" style="background-color: #fef3c7;">
                                             <td><strong>Total Rejected Qty</strong></td>
                                             <td id="totalRejectedQty">0</td>
-                                            <td colspan="21"></td>
+                                            <td colspan="22"></td>
                                         </tr>
                                         <tr class="summary-row" style="background-color: #fef3c7;">
                                             <td><strong>Total Produced Qty</strong></td>
                                             <td id="totalProducedQty">0</td>
-                                            <td colspan="21"></td>
+                                            <td colspan="22"></td>
                                         </tr>
                                         <tr class="summary-row" style="background-color: #fef3c7;">
                                             <td><strong>Total Rejection %</strong></td>
                                             <td id="totalRejectionPercent">0.0</td>
-                                            <td colspan="21"></td>
+                                            <td colspan="22"></td>
                                         </tr>
                                     </tfoot>
                                 </table>

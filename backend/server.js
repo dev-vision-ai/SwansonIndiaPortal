@@ -119,6 +119,7 @@ const ucExportModule = require('./excel-export-film-inspection-form-UC');
 const mjrExportModule = require('./excel-export-MJR-form');
 const qualityAlertExportModule = require('./excel-export-quality-alert-form');
 const prestoreExportModule = require('./excel-export-prestore-form');
+const productionDefectsExportModule = require('./excel-export-production-defects');
 
 // Initialize export modules with authenticated client creator
 inlineExportModule(app, createAuthenticatedSupabaseClient);
@@ -127,15 +128,8 @@ ucExportModule(app, createAuthenticatedSupabaseClient);
 mjrExportModule(app, createAuthenticatedSupabaseClient);
 qualityAlertExportModule(app, createAuthenticatedSupabaseClient);
 prestoreExportModule(app, createAuthenticatedSupabaseClient);
-
-
-console.log(`🚀 Server starting on port ${PORT}`);
-console.log(`📊 Excel export: http://localhost:${PORT}/export`);
-console.log(`📥 Prestore Excel export: http://localhost:${PORT}/api/download-prestore-excel/:formId`);
+productionDefectsExportModule(app, createAuthenticatedSupabaseClient);
 
 app.listen(PORT, () => {
-  console.log(`✅ Swanson India Portal Backend running on port ${PORT}`);
-  console.log(`🌐 Frontend URLs configured for CORS`);
-  console.log(`🗄️  Database: Supabase connected`);
-  console.log(`📋 Total endpoints: 28 (3 system + 25 export)`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
