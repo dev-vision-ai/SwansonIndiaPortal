@@ -1374,6 +1374,29 @@ async function handleFormSubmit(e) {
     if (form) {
       // Attach form submission handler
       form.onsubmit = handleFormSubmit;
+
+      // Auto-populate year, month, date fields when production_date is selected
+      const productionDateField = form.querySelector('input[name="production_date"]');
+      if (productionDateField) {
+        productionDateField.addEventListener('change', function() {
+          const selectedDate = this.value; // Format: YYYY-MM-DD
+          if (selectedDate) {
+            const dateObj = new Date(selectedDate);
+            const year = dateObj.getFullYear().toString().slice(-2); // Last 2 digits only
+            const month = (dateObj.getMonth() + 1).toString().padStart(2, '0'); // getMonth() returns 0-11
+            const date = dateObj.getDate().toString().padStart(2, '0');
+
+            // Auto-fill the Lot ID fields
+            const yearField = form.querySelector('input[name="year"]');
+            const monthField = form.querySelector('input[name="month"]');
+            const dateField = form.querySelector('input[name="date"]');
+
+            if (yearField) yearField.value = year;
+            if (monthField) monthField.value = month;
+            if (dateField) dateField.value = date;
+          }
+        });
+      }
     }
 
     // Create form button handler
@@ -1382,6 +1405,13 @@ async function handleFormSubmit(e) {
         // Reset form to clear any previous data
         if (form) {
           form.reset();
+          
+          // Set max date for production date input to today
+          const productionDateInput = form.querySelector('input[name="production_date"]');
+          if (productionDateInput) {
+            const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+            productionDateInput.setAttribute('max', today);
+          }
           
           // Clear any validation styling
           form.querySelectorAll('input, select').forEach(field => {
@@ -2104,6 +2134,13 @@ async function editForm(traceability_code, lot_letter) {
 
     // Populate the form with the fetched data (no caching)
     populateFormWithData(selectedFormData, form, submitButton);
+    
+    // Set max date for production date input to today (for edit mode)
+    const productionDateInput = form.querySelector('input[name="production_date"]');
+    if (productionDateInput) {
+      const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      productionDateInput.setAttribute('max', today);
+    }
 
   } catch (error) {
     console.error('Error in editForm function:', error);

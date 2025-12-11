@@ -36,6 +36,85 @@ const capacity = document.getElementById('capacity');
 const checkedBy = document.getElementById('checkedBy');
 const verifiedBy = document.getElementById('verifiedBy');
 
+// --- Small DOM & formatting helpers (kept simple, purely cosmetic) ---
+function getEl(el) { return el || null; }
+function setInputValue(el, value) {
+    if (!el) return;
+    try { el.value = value == null ? '' : value; } catch (e) { /* ignore */ }
+}
+function setText(el, value) {
+    if (!el) return;
+    try { el.textContent = value == null ? '' : value; } catch (e) { /* ignore */ }
+}
+function setDateInput(el, dateStr) {
+    if (!el) return;
+    if (!dateStr) { el.value = ''; return; }
+    // Normalize to YYYY-MM-DD (works for ISO or yyyy-mm-ddT...)
+    try {
+        const d = String(dateStr).split('T')[0];
+        el.value = d;
+    } catch (e) { el.value = ''; }
+}
+function clearInputs(arr) { if (!Array.isArray(arr)) return; arr.forEach(a => setInputValue(a, '')); }
+// ---------------------------------------------------------------------
+
+// Small presentation helpers
+function padFEId(fe) {
+    if (!fe) return '00';
+    try { return String(parseInt(String(fe).replace('FE-', '').replace(/^0+/, '') || '0')).padStart(2, '0'); } catch (e) { return String(fe).padStart(2, '0'); }
+}
+
+function buildActionButtons(inspection) {
+    return `
+        <div class="action-buttons">
+            <button onclick="viewInspection(${inspection.id})" class="btn-small" title="View Details" style="background-color: #dbeafe; color: #1e40af; border: 1px solid #93c5fd;">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+            </button>
+            <button onclick="addInspectionForExtinguisher(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small" title="Add Inspection" style="background-color: #dbeafe; color: #0369a1; border: 1px solid #7dd3fc;">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+            </button>
+            <button onclick="editFireExtinguisher(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small" title="Edit Fire Extinguisher" style="background-color: #dcfce7; color: #166534; border: 1px solid #86efac;">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+            </button>
+            <button onclick="deleteInspectionRecord(${inspection.id}, '${inspection.extinguisher_no}')" class="btn-small" title="Delete This Inspection" style="background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </button>
+            <button onclick="openDeleteOptionsModal(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small" title="More Options" style="background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db;">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                </svg>
+            </button>
+        </div>`;
+}
+
+function buildInspectionRow(inspection, index) {
+    return `
+        <td>${index + 1}</td>
+        <td>${padFEId(inspection.extinguisher_no)}</td>
+        <td>${inspection.type || ''}</td>
+        <td>${inspection.location || ''}</td>
+        <td>${inspection.capacity || ''} kg</td>
+        <td>${formatDate(inspection.refilled_date)}</td>
+        <td>${formatDate(inspection.expiry_date)}</td>
+        <td>${formatDate(inspection.inspection_date)}</td>
+        <td>${formatDate(inspection.next_due_date)}</td>
+        <td><span class="status-badge status-${inspection.status.toLowerCase().replace(' ', '-')}">${inspection.status}</span></td>
+        <td>${inspection.remarks || ''}</td>
+        <td style="text-align: center;">
+            ${buildActionButtons(inspection)}
+        </td>
+    `;
+}
+
 // Delete Selection Modal elements
 const deleteSelectionModal = document.getElementById('deleteSelectionModal');
 
@@ -70,7 +149,6 @@ function setupEventListeners() {
 
     // Clear filter
     if (clearFilterBtn) {
-        console.log('Clear button found, adding event listener');
         clearFilterBtn.addEventListener('click', clearAllFilters);
     } else {
         console.error('Clear button not found!');
@@ -103,7 +181,6 @@ async function loadFireExtinguishers() {
         if (error) throw error;
 
         allExtinguishers = extinguishers || [];
-        console.log('Available Fire Extinguishers:', allExtinguishers);
         
         // Update help text based on available extinguishers
         updateExtinguisherHelpText();
@@ -233,51 +310,7 @@ function renderTable() {
     
     filteredInspections.forEach((inspection, index) => {
         const row = document.createElement('tr');
-        
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${parseInt((inspection.extinguisher_no || '').replace('FE-', '')).toString().padStart(2, '0')}</td>
-            <td>${inspection.type || ''}</td>
-            <td>${inspection.location || ''}</td>
-            <td>${inspection.capacity || ''} kg</td>
-            <td>${formatDate(inspection.refilled_date)}</td>
-            <td>${formatDate(inspection.expiry_date)}</td>
-            <td>${formatDate(inspection.inspection_date)}</td>
-            <td>${formatDate(inspection.next_due_date)}</td>
-            <td><span class="status-badge status-${inspection.status.toLowerCase().replace(' ', '-')}">${inspection.status}</span></td>
-            <td>${inspection.remarks || ''}</td>
-            <td style="text-align: center;">
-                <div class="action-buttons">
-                    <button onclick="viewInspection(${inspection.id})" class="btn-small" title="View Details" style="background-color: #dbeafe; color: #1e40af; border: 1px solid #93c5fd;">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                    </button>
-                    <button onclick="addInspectionForExtinguisher(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small" title="Add Inspection" style="background-color: #dbeafe; color: #0369a1; border: 1px solid #7dd3fc;">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
-                    </button>
-                    <button onclick="editFireExtinguisher(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small" title="Edit Fire Extinguisher" style="background-color: #dcfce7; color: #166534; border: 1px solid #86efac;">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
-                    </button>
-                    <button onclick="deleteInspectionRecord(${inspection.id}, '${inspection.extinguisher_no}')" class="btn-small" title="Delete This Inspection" style="background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                    </button>
-                    <button onclick="openDeleteOptionsModal(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small" title="More Options" style="background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db;">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
-                        </svg>
-                    </button>
-                </div>
-            </td>
-        `;
-        
+        row.innerHTML = buildInspectionRow(inspection, index);
         tableBody.appendChild(row);
     });
 }
@@ -307,19 +340,14 @@ function filterInspections() {
 
 // Clear all filters
 function clearAllFilters() {
-    console.log('Clear button clicked!');
-
     if (searchInput) {
         searchInput.value = '';
-        console.log('Search input cleared');
     }
     if (typeFilter) {
         typeFilter.value = '';
-        console.log('Type filter cleared');
     }
     if (statusFilter) {
         statusFilter.value = '';
-        console.log('Status filter cleared');
     }
 
     currentFilters = {
@@ -329,11 +357,9 @@ function clearAllFilters() {
     };
 
     filteredInspections = [...allInspections];
-    console.log('Filtered inspections reset to:', filteredInspections.length);
 
     renderTable();
     updateFilterStatus();
-    console.log('Table rendered and filter status updated');
 }
 
 // Update filter status display
@@ -450,14 +476,7 @@ function openAddInspectionModal() {
     inspectionForm.reset();
     
     // Clear manual input fields
-    if (extinguisherInput) extinguisherInput.value = '';
-    if (extinguisherType) extinguisherType.value = '';
-    if (extinguisherLocation) extinguisherLocation.value = '';
-    if (refilledDate) refilledDate.value = '';
-    if (expiryDate) expiryDate.value = '';
-    if (capacity) capacity.value = '';
-    if (checkedBy) checkedBy.value = '';
-    if (verifiedBy) verifiedBy.value = '';
+    clearInputs([extinguisherInput, extinguisherType, extinguisherLocation, refilledDate, expiryDate, capacity, checkedBy, verifiedBy]);
     
     // Setup location autocomplete
     setupLocationAutocomplete();
@@ -661,12 +680,8 @@ window.viewInspection = function(id) {
 
 // Add inspection for specific extinguisher
 window.addInspectionForExtinguisher = function(extinguisherId, extinguisherNo) {
-    console.log('addInspectionForExtinguisher called with:', extinguisherId, extinguisherNo);
-    console.log('allExtinguishers:', allExtinguishers);
-    
     // Find the extinguisher data
     const extinguisher = allExtinguishers.find(e => e.id === extinguisherId);
-    console.log('Found extinguisher:', extinguisher);
     
     if (!extinguisher) {
         console.error('Extinguisher not found for ID:', extinguisherId);
@@ -678,8 +693,6 @@ window.addInspectionForExtinguisher = function(extinguisherId, extinguisherNo) {
     
     // Pre-populate the extinguisher fields
     setTimeout(() => {
-        console.log('Pre-populating fields for extinguisher:', extinguisher);
-        
         // Convert FE number from database format (FE-001) to display format (1)
         let numericValue = extinguisher.extinguisher_no;
         if (extinguisher.extinguisher_no.includes('FE-')) {
@@ -687,28 +700,41 @@ window.addInspectionForExtinguisher = function(extinguisherId, extinguisherNo) {
         } else if (extinguisher.extinguisher_no.match(/^\d+$/)) {
             numericValue = extinguisher.extinguisher_no.replace(/^0+/, '') || '0';
         }
-        
-        console.log('Setting extinguisher input to:', numericValue);
-        if (extinguisherInput) {
-            extinguisherInput.value = numericValue;
-            console.log('Extinguisher input set to:', extinguisherInput.value);
-        } else {
-            console.error('extinguisherInput element not found');
-        }
-        
-        if (extinguisherType) {
-            extinguisherType.value = extinguisher.type_of_extinguisher || '';
-            console.log('Extinguisher type set to:', extinguisherType.value);
-        }
-        
-        if (extinguisherLocation) {
-            extinguisherLocation.value = extinguisher.location || '';
-            console.log('Extinguisher location set to:', extinguisherLocation.value);
-        }
-        
-        if (capacity) {
-            capacity.value = extinguisher.capacity || '';
-            console.log('Capacity set to:', capacity.value);
+        setInputValue(extinguisherInput, numericValue);
+        setInputValue(extinguisherType, extinguisher.type_of_extinguisher || '');
+        setInputValue(extinguisherLocation, extinguisher.location || '');
+        setInputValue(capacity, extinguisher.capacity || '');
+        // Pre-populate refilled and expiry dates from latest inspection if available
+        try {
+            let latestRefilled = '';
+            let latestExpiry = '';
+            if (extinguisher.inspection_data && Array.isArray(extinguisher.inspection_data.inspections) && extinguisher.inspection_data.inspections.length > 0) {
+                const sortedInspections = extinguisher.inspection_data.inspections
+                    .filter(i => i && (i.date || i.refilled_date || i.expiry_date))
+                    .sort((a, b) => new Date(b.date || b.refilled_date || b.expiry_date) - new Date(a.date || a.refilled_date || a.expiry_date));
+
+                if (sortedInspections.length > 0) {
+                    const latest = sortedInspections[0];
+                    if (latest.refilled_date) {
+                        // ensure value is in YYYY-MM-DD for input[type=date]
+                        latestRefilled = String(latest.refilled_date).split('T')[0];
+                    }
+                    if (latest.expiry_date) {
+                        latestExpiry = String(latest.expiry_date).split('T')[0];
+                    }
+                }
+            }
+
+            if (refilledDate) {
+                refilledDate.value = latestRefilled;
+                console.log('Refilled date pre-populated:', refilledDate.value);
+            }
+            if (expiryDate) {
+                expiryDate.value = latestExpiry;
+                console.log('Expiry date pre-populated:', expiryDate.value);
+            }
+        } catch (e) {
+            console.error('Error pre-populating refill/expiry dates:', e);
         }
         
         // Leave inspection date empty for user to fill
