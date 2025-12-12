@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Employee Access</title>
+  <title>Swanson India Login</title>
   <link rel="icon" type="image/png" href="../assets/logo2.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -16,16 +16,15 @@
       font-family: 'Inter', sans-serif;
       text-rendering: optimizeLegibility;
       -webkit-font-smoothing: antialiased;
-      background: linear-gradient(rgba(0, 46, 125, 0.7), rgba(0, 46, 125, 0.7)),
-        url('../assets/company-photo.png') no-repeat center center/cover;
+      background: url('../assets/company-photo.png') no-repeat center center/cover;
     padding: 1rem;
     }
     
     .auth-container-wrapper {
-        max-width: 1080px;
+        max-width: 380px;
         width: 100%;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        border-radius: 0; /* Changed from 1.5rem */
+        border-radius: 0.75rem;
         overflow: hidden;
     }
     .login-button {
@@ -113,60 +112,14 @@
 
   <div class="auth-container-wrapper flex flex-col md:flex-row bg-white w-full"> <!-- Removed 'mt-16' -->
 
-    <div class="relative w-full md:w-1/2 h-64 md:h-auto">
-      <!-- Slideshow Container -->
-      <div id="slideshowContainer" class="relative w-full h-full overflow-hidden group">
-        <img id="slideshowImage" alt="Slideshow image" class="slide-image object-cover w-full h-full absolute inset-0" src="../assets/login-page/1.png" />
-        <img id="slideshowImageNext" alt="Next slideshow image" class="slide-image slide-next object-cover w-full h-full absolute inset-0" src="../assets/login-page/1.png" style="transform: translateX(100%);" />
-        
-        <!-- Left Arrow Button (smaller) -->
-        <button id="slideshowPrevBtn" class="absolute left-1 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white w-6 h-6 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 focus:outline-none focus:ring-2 focus:ring-white" aria-label="Previous slide">
-          <i class="fas fa-chevron-left text-[10px]"></i>
-        </button>
-        
-        <!-- Right Arrow Button (smaller) -->
-        <button id="slideshowNextBtn" class="absolute right-1 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white w-6 h-6 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 focus:outline-none focus:ring-2 focus:ring-white" aria-label="Next slide">
-          <i class="fas fa-chevron-right text-[10px]"></i>
-        </button>
-      </div>
-    </div>
-    
-    <style>
-      /* Sliding animation styles for slideshow */
-      .slide-image {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        will-change: transform;
-      }
-
-      .slide-next {
-        transform: translateX(100%);
-      }
-
-      .sliding-current {
-        transform: translateX(-100%);
-        transition: transform 700ms ease-in-out;
-      }
-
-      .sliding-next {
-        transform: translateX(0%);
-        transition: transform 700ms ease-in-out;
-      }
-    </style>
-
-
-    <div class="flex flex-col justify-center w-full md:w-1/2 px-8 py-12 sm:px-16 lg:px-24">
-      <div class="max-w-md w-full mx-auto">
+    <div class="flex flex-col justify-center w-full px-6 py-12">
+      <div class="max-w-sm w-full mx-auto">
 
         <!-- Home Button REMOVED from here -->
 
-        <div class="text-center mb-8">
-            <img src="../assets/logo.png" alt="Company Logo" class="h-12 mx-auto mb-4"> 
-            <h1 class="text-2xl font-bold text-blue-800">Employee Access</h1> 
+        <div class="flex items-center justify-center mb-8">
+            <img src="../assets/logo.png" alt="Company Logo" class="h-12 mr-4"> 
+            <h1 class="text-2xl font-bold text-blue-800">Login</h1> 
         </div>
 
         <form id="loginForm" class="space-y-5"> 
@@ -253,7 +206,7 @@
 </body>
 
 <!-- Footer -->
-<footer class="fixed bottom-0 right-0 p-2 text-xs text-white/70">
+<footer class="fixed bottom-0 right-0 p-2 text-white/70" style="font-size: 8px;">
   © VirtualDevs Technologies | 2026-2027
 </footer>
 
