@@ -529,7 +529,7 @@ async function loadUserProfile() {
         if (profile) {
             // Only update user-name element if not on mobile
             if (userNameElement) {
-                userNameElement.textContent = 'Hi, ' + profile.full_name;
+                userNameElement.innerHTML = `${profile.full_name}<div style="font-size: 11px; color: white; margin-top: 2px; line-height: 1;">${profile.department || 'Department'}</div>`;
             }
             if (employeeNameElement) employeeNameElement.textContent = profile.full_name;
             if (employeeCodeElement) employeeCodeElement.textContent = (profile.employee_code || '').toUpperCase();
@@ -539,7 +539,10 @@ async function loadUserProfile() {
         } else if (profileError) {
             console.error("Error fetching profile:", profileError);
             // Only update user-name element if not on mobile
-            if (userNameElement) userNameElement.textContent = user.email ? 'Hi, ' + user.email : 'Hi there';
+            if (userNameElement) {
+                const displayName = user.email || 'Employee';
+                userNameElement.innerHTML = `${displayName}<div style="font-size: 11px; color: white; margin-top: 2px; line-height: 1;">Department</div>`;
+            }
             if (employeeNameElement) employeeNameElement.textContent = user.email || 'Employee';
             if (employeeCodeElement) employeeCodeElement.textContent = user.id.substring(0, 8).toUpperCase();
 
