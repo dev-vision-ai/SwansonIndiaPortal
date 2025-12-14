@@ -867,7 +867,7 @@ async function applyFilters() {
           .from(table)
           .select(`
             id, traceability_code, lot_letter, customer, production_no, production_no_2, prod_code, spec,
-            production_date, emboss_type, printed, non_printed, ct, year, month, date,
+            production_date, emboss_type, production_type, printed, non_printed, ct, year, month, date,
             mc_no, shift, supervisor, supervisor2,
             operator, operator2, qc_inspector, qc_inspector2, status,
             total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
@@ -1035,6 +1035,7 @@ async function handleFormSubmit(e) {
     'spec',
     'production_date',
     'emboss_type',
+    'production_type',
     'year',
     'month',
     'date',
@@ -1143,7 +1144,7 @@ async function handleFormSubmit(e) {
             .from(table)
             .select(`
               id, traceability_code, lot_letter, customer, production_no, production_no_2, prod_code, spec,
-              production_date, emboss_type, printed, non_printed, ct, year, month, date,
+              production_date, emboss_type, production_type, printed, non_printed, ct, year, month, date,
               mc_no, shift, supervisor, supervisor2,
               operator, operator2, qc_inspector, qc_inspector2, status,
               total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
@@ -1175,6 +1176,7 @@ async function handleFormSubmit(e) {
           spec: formData.get('spec'),
           production_date: formData.get('production_date'),
           emboss_type: formData.get('emboss_type'),
+          production_type: formData.get('production_type'),
           printed: formData.get('printed') === 'on',
           non_printed: formData.get('non_printed') === 'on',
           ct: formData.get('ct') === 'on',
@@ -1266,6 +1268,7 @@ async function handleFormSubmit(e) {
         spec: formData.get('spec'),
         production_date: formData.get('production_date'),
         emboss_type: formData.get('emboss_type'),
+        production_type: formData.get('production_type'),
         printed: formData.get('printed') === 'on',
         non_printed: formData.get('non_printed') === 'on',
         ct: formData.get('ct') === 'on',
@@ -1644,7 +1647,7 @@ async function handleFormSubmit(e) {
           .from(table)
           .select(`
             id, traceability_code, lot_letter, customer, production_no, production_no_2, prod_code, spec,
-            production_date, emboss_type, printed, non_printed, ct, year, month, date,
+            production_date, emboss_type, production_type, printed, non_printed, ct, year, month, date,
             mc_no, shift, supervisor, supervisor2,
             operator, operator2, qc_inspector, qc_inspector2, status,
             total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
@@ -1963,6 +1966,7 @@ function populateFormWithData(formData, form, submitButton) {
     spec: formData.spec || '',
     production_date: formData.production_date || '',
     emboss_type: formData.emboss_type || '',
+    production_type: formData.production_type || 'Commercial', // Treat NULL as Commercial
     printed: formData.printed || false,
     non_printed: formData.non_printed || false,
     ct: formData.ct || false,
@@ -2005,6 +2009,7 @@ function populateFormWithData(formData, form, submitButton) {
       spec: form.querySelector('[name="spec"]'),
       production_date: form.querySelector('[name="production_date"]'),
       emboss_type: form.querySelector('[name="emboss_type"]'),
+      production_type: form.querySelector('[name="production_type"]'),
       printed: form.querySelector('[name="printed"]'),
       non_printed: form.querySelector('[name="non_printed"]'),
       ct: form.querySelector('[name="ct"]'),
@@ -2105,7 +2110,7 @@ async function editForm(traceability_code, lot_letter) {
         .from(table)
         .select(`
           id, traceability_code, lot_letter, customer, production_no, production_no_2, prod_code, spec,
-          production_date, emboss_type, printed, non_printed, ct, year, month, date,
+          production_date, emboss_type, production_type, printed, non_printed, ct, year, month, date,
           mc_no, shift, supervisor, supervisor2, line_leader, line_leader2,
           operator, operator2, qc_inspector, qc_inspector2, status,
           total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
