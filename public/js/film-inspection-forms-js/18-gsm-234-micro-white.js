@@ -1982,9 +1982,13 @@ function loadHistoricalRowData(row, historicalData, historicalRow) {
         // Load Page 2 specific data
         const page2Data = [
             { key: 'page2_force_elongation_md_5p', inputIndex: 3 },
-            { key: 'page2_force_tensile_md', inputIndex: 7 },
-            { key: 'page2_force_elongation_cd_5p', inputIndex: 11 },
-            { key: 'page2_force_tensile_cd', inputIndex: 15 }
+            { key: 'page2_force_tensile_md', inputIndex: 4 },
+            { key: 'page2_force_elongation_cd_5p', inputIndex: 5 },
+            { key: 'page2_force_tensile_cd', inputIndex: 6 },
+            { key: 'page2_color_l', inputIndex: 7 },
+            { key: 'page2_color_a', inputIndex: 8 },
+            { key: 'page2_color_b', inputIndex: 9 },
+            { key: 'page2_color_delta_e', inputIndex: 10 }
         ];
         
         page2Data.forEach(({ key, inputIndex }) => {

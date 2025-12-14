@@ -51,6 +51,7 @@ function parseFilters(query) {
   return {
     fromDate: query.fromDate || null,
     toDate: query.toDate || null,
+    productionType: query.productionType || null,
     machine: query.machine || null,
     product: query.product && query.product !== 'all' ? query.product : null,
     shift: query.shift && query.shift !== '' ? query.shift : null
@@ -98,12 +99,17 @@ async function fetchInspectionRecords(supabase, filters) {
 }
 
 /**
- * Filter records by product and shift
+ * Filter records by product, production type, and shift
  */
 function filterRecordsByCriteria(records, filters) {
   return records.filter(form => {
     if (filters.product && String(form.prod_code) !== String(filters.product)) return false;
     if (filters.machine && String(form.mc_no) !== String(filters.machine)) return false;
+    if (filters.productionType) {
+      // Treat NULL as 'Commercial'
+      const formProductionType = form.production_type || 'Commercial';
+      if (String(formProductionType) !== String(filters.productionType)) return false;
+    }
     if (filters.shift && String(form.shift) !== String(filters.shift)) return false;
     return true;
   });

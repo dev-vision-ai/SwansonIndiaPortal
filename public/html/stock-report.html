@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Stock Report</title>
+    <link rel="icon" type="image/png" href="../assets/logo2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../css/common-header.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        /* Base font for the entire body */
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+        }
+
+        .page-fade-in {
+            opacity: 1;
+        }
+
+        /* Override Tailwind's container class conflict */
+        .container {
+            max-width: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        /* Slightly increase action card font sizes */
+        .action-card-heading {
+            font-size: 0.85rem !important;
+            font-weight: 600 !important;
+        }
+
+        .action-card-heading h3 {
+            font-weight: 600 !important;
+        }
+
+        .action-card-description {
+            font-size: 0.65rem !important;
+            font-weight: 500 !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium">
+    <main>
+        <div class="container page-fade-in">
+            <section class="dashboard-section">
+                <div class="header-container header-fade-in">
+                    <button type="button" class="header-back-button">Back</button>
+                    <div class="header-title">Stock Report</div>
+                    <div class="company-logo">
+                        <img src="../assets/logo.png" alt="Company Logo">
+                    </div>
+                </div>
+                <div class="quick-action-grid">
+                    <div class="action-card" data-department="All" onclick="location.href='../html/job-cost-record.html'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>Job Cost Record</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Create New Job Cost Record</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="action-card" data-department="All" onclick="location.href='../html/job-cost-records-list.html'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>Job Cost Record List</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>View All Job Cost Records</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script type="module" src="../js/stock-report.js"></script>
+</body>
+</html>

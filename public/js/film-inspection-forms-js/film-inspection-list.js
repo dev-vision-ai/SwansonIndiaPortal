@@ -1418,7 +1418,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     'WHITE-234(18)': '234_18_micro_white', // New 234 Micro White product
                     'APE-102(18)C': '102_18c_micro_white', // New 102 Micro White product
                     'APE-168(18)C': '168_18c_white', // New 168 White product
-                    'INUE16-165W': 'uc-16gsm-165w' // UC-16gsm-165W form
+                    'INUE16-165W': 'uc-16gsm-165w', // UC-16gsm-165W form
+                    'APE-176(18)CP(LCC+WW)BS': '176_18cp_ww' // Added mapping for APE-176 product
                 };
                 tableName = productTableMap[preStoreFormData.product_code];
                 if (!tableName) {
@@ -2222,13 +2223,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const originalContent = downloadBtn.innerHTML;
         const originalTitle = downloadBtn.title;
         const originalDisabled = downloadBtn.disabled;
-
+        
         try {
             // Show loading state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
             downloadBtn.title = 'Downloading...';
             downloadBtn.disabled = true;
-
+            
             // Make API call to download film inspection Excel
             // Use localhost for IDE testing, Render URL for production
             const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -2250,14 +2251,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 method: 'GET',
                 headers: headers,
             });
-
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-
-            // Get the blob data
+            
+            // Get the blob from response
             const blob = await response.blob();
-
+            
             // Create download link
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -2266,31 +2267,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Use product code for dynamic filename, fallback to default if not provided
             const productName = productCode || 'APE-168(16)CP(KRANTI)';
             const filename = `FIF-${productName}-.xlsx`;
-
             a.download = filename;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-
+            
             // Show success state briefly
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
             downloadBtn.title = 'Downloaded!';
-
+            
             // Reset button after 2 seconds
             setTimeout(() => {
                 downloadBtn.innerHTML = originalContent;
                 downloadBtn.title = originalTitle;
                 downloadBtn.disabled = originalDisabled;
             }, 2000);
-
+            
         } catch (error) {
-            console.error('Error downloading APE-168(16)CP(Kranti) Excel:', error);
-
+            console.error('Error downloading film inspection Excel:', error);
+            
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
             downloadBtn.title = 'Download failed';
-
+            
             // Reset button after 3 seconds
             setTimeout(() => {
                 downloadBtn.innerHTML = originalContent;
@@ -2768,88 +2768,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     // Function to download APE-168(16)CP(Kranti) Excel file
-    window.download16GSMKrantiExcel = async function(formId, buttonElement, productCode = null) {
-        // Store original button state immediately
-        const downloadBtn = buttonElement || event.target;
-        const originalContent = downloadBtn.innerHTML;
-        const originalTitle = downloadBtn.title;
-        const originalDisabled = downloadBtn.disabled;
-        
-        try {
-            // Show loading state
-            downloadBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
-            downloadBtn.title = 'Downloading...';
-            downloadBtn.disabled = true;
-            
-            // Make API call to download film inspection Excel
-            // Use localhost for IDE testing, Render URL for production
-            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
-            const downloadUrl = `${backendUrl}/export-168-16cp-kranti-form?form_id=${encodeURIComponent(formId)}`;
-
-            // Get the current session for authentication
-            const session = await supabase.auth.getSession();
-            const headers = {
-                'Content-Type': 'application/json',
-            };
-
-            // Add authorization header if session exists
-            if (session.data.session?.access_token) {
-                headers['Authorization'] = `Bearer ${session.data.session.access_token}`;
-            }
-
-            const response = await fetch(downloadUrl, {
-                method: 'GET',
-                headers: headers,
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            // Get the blob from response
-            const blob = await response.blob();
-            
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            // Use consistent filename pattern
-            const filename = `FIF-APE-168(16)CP(Kranti)-.xlsx`;
-            console.log('APE-168(16)CP(Kranti) download filename:', filename);
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            
-            // Show success state briefly
-            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
-            downloadBtn.title = 'Downloaded!';
-            
-            // Reset button after 2 seconds
-            setTimeout(() => {
-                downloadBtn.innerHTML = originalContent;
-                downloadBtn.title = originalTitle;
-                downloadBtn.disabled = originalDisabled;
-            }, 2000);
-            
-        } catch (error) {
-            console.error('Error downloading film inspection Excel:', error);
-            
-            // Show error state
-            downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
-            downloadBtn.title = 'Download failed';
-            
-            // Reset button after 3 seconds
-            setTimeout(() => {
-                downloadBtn.innerHTML = originalContent;
-                downloadBtn.title = originalTitle;
-                downloadBtn.disabled = originalDisabled;
-            }, 3000);
-        }
-    };
+    // NOTE: REMOVED DUPLICATE - kept first definition above (line 2220)
+    // DUPLICATE DEFINITION REMOVED HERE (previously line 2772)
 
     // Function to download UC-16gsm-165W Excel file
     window.downloadUC165WExcel = async function(formId, buttonElement, productCode = null) {

@@ -149,6 +149,7 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
       let non_printed = false;
       let ct = false;
       let emboss_type = '';
+      let production_type = '';
 
       if (targetLot) {
         // Clean product code by removing "(Jeddah)" part if present
@@ -176,6 +177,7 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
         non_printed = targetLot.non_printed || false;
         ct = targetLot.ct || false;
         emboss_type = targetLot.emboss_type || '';
+        production_type = targetLot.production_type || '';
 
         // If main fields are null, try to find data from other forms with same traceability_code and lot_letter
         if (!customer || !production_no || !prod_code || !spec || !shift || !mc_no) {
@@ -186,7 +188,7 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
             for (const table of tables) {
               const { data: otherForms, error } = await supabase
                 .from(table)
-                .select('customer, production_no, production_no_2, prod_code, spec, shift, mc_no, production_date, emboss_type, printed, non_printed, ct')
+                .select('customer, production_no, production_no_2, prod_code, spec, shift, mc_no, production_date, emboss_type, production_type, printed, non_printed, ct')
                 .eq('traceability_code', targetLot.traceability_code)
                 .eq('lot_letter', targetLot.lot_letter)
                 .not('customer', 'is', null)
@@ -211,6 +213,7 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
                 if (!mc_no) mc_no = otherForm.mc_no || '';
                 if (!production_date) production_date = otherForm.production_date || '';
                 if (!emboss_type) emboss_type = otherForm.emboss_type || '';
+                if (!production_type) production_type = otherForm.production_type || '';
                 if (!printed) printed = otherForm.printed || false;
                 if (!non_printed) non_printed = otherForm.non_printed || false;
                 if (!ct) ct = otherForm.ct || false;
@@ -244,6 +247,7 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
         worksheet.getCell('F11').value = emboss_type === 'Random' ? '✔' : '';
         worksheet.getCell('I11').value = emboss_type === 'Matte' ? '✔' : '';
         worksheet.getCell('L11').value = emboss_type === 'Micro' ? '✔' : '';
+        worksheet.getCell('O11').value = production_type || 'Commercial'; // Production Type (default to Commercial if empty)
 
         // Set default values if still empty
         if (!customer) customer = 'CUSTOMER';
@@ -292,6 +296,7 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
         worksheet.getCell('F11').value = emboss_type === 'Random' ? '✔' : '';
         worksheet.getCell('I11').value = emboss_type === 'Matte' ? '✔' : '';
         worksheet.getCell('L11').value = emboss_type === 'Micro' ? '✔' : '';
+        worksheet.getCell('O11').value = production_type || 'Commercial'; // Production Type (default to Commercial if empty)
       };
 
       // Apply header mapping to the first worksheet
