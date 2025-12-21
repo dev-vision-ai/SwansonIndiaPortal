@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Monthly Reconciliation Report</title>
+    <link rel="icon" type="image/png" href="../assets/logo2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../css/common-header.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            background-color: #f3f4f6 !important;
+        }
+        .page-fade-in { opacity: 1; }
+        
+        /* Table Styling matching your Consumption Page */
+        table tbody tr { 
+            background-color: #ffffff; 
+            transition: background-color 0.2s ease;
+            border-bottom: 1px solid #d1d5db; 
+        }
+        table tbody tr:hover { background-color: #f8fafc; }
+        table th { border-right: 1px solid #d1d5db; border-bottom: 1px solid #d1d5db; }
+        table td { 
+            border-right: 1px solid #d1d5db; 
+            padding: 0.375rem;
+            vertical-align: middle;
+            font-size: 0.75rem;
+            text-align: center;
+        }
+        table td:first-child { text-align: left; padding-left: 0.75rem; } /* Material Name Left Align */
+        table td:last-child, table th:last-child { border-right: none; }
+        
+        table thead th {
+            font-size: 0.65rem;
+            padding: 0.35rem !important;
+            line-height: 1.1;
+        }
+        table { border-right: 1px solid #d1d5db; border-collapse: collapse; }
+    </style>
+</head>
+<body class="bg-white text-gray-900 font-roboto-medium h-screen overflow-hidden">
+    <div class="header-container">
+        <button type="button" class="header-back-button" onclick="window.history.back();">Back</button>
+        <div class="header-title">Material Reconciliation Report</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+
+    <main class="flex-1 w-full h-full overflow-y-auto pt-16 md:pt-18 lg:pt-20 page-fade-in p-8">
+        
+        <div class="w-3/4 max-w-5xl mx-auto mb-4">
+            <div class="bg-white rounded-lg shadow-sm p-4 flex flex-wrap items-center justify-between gap-4">
+                
+                <div class="flex items-center gap-3">
+                    <div class="flex flex-col">
+                        <label class="text-[10px] text-gray-500 font-bold uppercase">From Date</label>
+                        <input type="date" id="fromDate" class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-[10px] text-gray-500 font-bold uppercase">To Date</label>
+                        <input type="date" id="toDate" class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                    <button id="generateBtn" class="mt-3 px-3 py-1.5 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 flex items-center gap-2 shadow-sm">
+                        <i class="fas fa-sync-alt"></i> Generate Report
+                    </button>
+                </div>
+
+                <div class="mt-3">
+                    <button id="printBtn" class="px-3 py-1.5 bg-gray-700 text-white rounded text-xs hover:bg-gray-800 flex items-center gap-2 shadow-sm">
+                        <i class="fas fa-print"></i> Print / PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-3/4 max-w-5xl mx-auto mb-6">
+            <div class="bg-white rounded-md shadow-sm p-1 overflow-x-auto">
+                <table id="reconciliationTable" class="min-w-full text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center">
+                            <th class="py-2 px-2 border border-gray-300 w-64 text-left pl-3">Name of the Material</th>
+                            <th class="py-2 px-2 border border-gray-300 w-24 bg-blue-900">Total Issued (Kgs)<br><span class="text-[9px] font-normal lowercase">(Op. Stock + New)</span></th>
+                            <th class="py-2 px-2 border border-gray-300 w-24">Issued (Kgs)<br><span class="text-[9px] font-normal lowercase">(Selected Date)</span></th>
+                            <th class="py-2 px-2 border border-gray-300 w-24">Used M/C 1</th>
+                            <th class="py-2 px-2 border border-gray-300 w-24">Used M/C 2</th>
+                            <th class="py-2 px-2 border border-gray-300 w-24">Used M/C 3</th>
+                            <th class="py-2 px-2 border border-gray-300 w-24 bg-yellow-600">Balance (Store)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportBody">
+                        <tr>
+                            <td colspan="6" class="py-8 text-center text-gray-500">Select a month and click Generate to see the report.</td>
+                        </tr>
+                    </tbody>
+                    <tfoot id="reportFooter" class="hidden font-bold bg-gray-100">
+                        <tr>
+                            <td class="text-right pr-3">TOTAL:</td>
+                            <td id="totalIssue">0.00</td>
+                            <td id="totalMc1">0.00</td>
+                            <td id="totalMc2">0.00</td>
+                            <td id="totalMc3">0.00</td>
+                            <td id="totalBalance" class="bg-yellow-100">0.00</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="../js/pd_monthly_reconciliation.js"></script>
+</body>
+</html>
