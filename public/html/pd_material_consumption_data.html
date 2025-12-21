@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Material Consumption Data</title>
+    <link rel="icon" type="image/png" href="../assets/logo2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../css/common-header.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        /* Base font for the entire body */
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            background-color: #f3f4f6 !important;
+        }
+
+        .page-fade-in {
+            opacity: 1;
+        }
+
+        /* Striped rows and hover for tbody - matching film inspection list */
+        table tbody tr { 
+            background-color: #ffffff; 
+            transition: background-color 0.2s ease;
+            border-bottom: 1px solid #d1d5db; 
+        }
+        table tbody tr:hover { 
+            background-color: #f8fafc; 
+            cursor: pointer;
+        }
+        
+        /* Enhanced separator lines */
+        table th { 
+            border-right: 1px solid #d1d5db; 
+            border-bottom: 1px solid #d1d5db;
+        }
+        table td { 
+            border-right: 1px solid #d1d5db; 
+            padding: 0.375rem;
+            vertical-align: middle;
+            font-size: 0.75rem;
+            text-align: center;
+        }
+        table td:last-child, table th:last-child {
+            border-right: none;
+        }
+
+        /* Contenteditable styling */
+        [contenteditable="true"] {
+            cursor: text;
+            transition: all 0.15s ease;
+        }
+
+        [contenteditable="true"]:hover {
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        [contenteditable="true"]:focus {
+            outline: none !important;
+            background-color: rgba(255, 255, 255, 0.7) !important;
+        }
+
+        /* Read-only fields with yellow background */
+        [contenteditable="false"] {
+            cursor: default;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            background-color: #fef3c7;
+            font-weight: 500;
+        }
+
+        /* Table header sizing - make headers smaller, tighter, and consistent */
+        table thead th {
+            font-size: 0.65rem; /* ~10.4px */
+            padding: 0.35rem !important;
+            line-height: 1.1;
+        }
+        /* Improve fitting on narrower screens (laptops): reduce padding, allow header wrapping */
+        #materialConsumptionTable th,
+        #materialConsumptionTable td {
+            white-space: normal; /* allow wrap */
+            padding: 0.25rem !important;
+            font-size: 0.72rem;
+        }
+        #materialConsumptionTable thead th {
+            line-height: 1.05;
+            vertical-align: middle;
+        }
+        /* Reduce spacing of table container to use available width better */
+        .overflow-x-auto > .w-screen { max-width: 100%; }
+
+        /* Media tweak: on widths <= 1366px, reduce table text slightly */
+        @media (max-width: 1366px) {
+          #materialConsumptionTable th, #materialConsumptionTable td { font-size: 0.68rem; }
+          #materialConsumptionTable thead th { padding: 0.2rem !important; }
+        }
+        /* Ensure the table has a visible outer right border (cells may remove their right border)
+           This draws the outer border so the table looks enclosed on the right side. */
+        table {
+            border-right: 1px solid #d1d5db;
+            border-collapse: collapse;
+        }
+        /* Downtime typography: normalize sizes for consistent appearance */
+        /* Sizes chosen to match main UI scale: header labels small, table cells readable, summary slightly larger */
+        .downtime-title { font-size: 0.85rem; }
+        #downtimeTable thead th { font-size: 0.78rem; font-weight:600; }
+        #downtimeTable tbody td { font-size: 0.9rem; }
+        /* Summary header and details sizes */
+        #downtimeSummaryHeader { font-size: 0.95rem; }
+        #downtimeSummaryDetails { font-size: 0.9rem; }
+        /* Ensure inputs and editable cells inside the downtime table match the same font scale */
+        #downtimeTable input,
+        #downtimeTable input[type="time"],
+        #downtimeTable td[contenteditable="true"] {
+            font-size: 0.9rem;
+        }
+        /* Description column: start text from left and vertically center it */
+        #downtimeTable td[data-col="description"] {
+            text-align: left;
+            vertical-align: middle;
+            padding-left: 0.75rem;
+        }
+        /* Summary details textarea: auto-size (no scrollbar) */
+        #downtimeSummaryDetails {
+            overflow: hidden; /* hide scrollbar */
+            resize: none; /* user cannot manually resize */
+            min-height: 60px;
+            line-height: 1.3;
+        }
+        /* Downtime Log title smaller */
+        .downtime-title {
+            font-size: 0.75rem; /* ~12px */
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900 font-roboto-medium h-screen overflow-hidden">
+    <div class="header-container">
+        <button type="button" class="header-back-button" onclick="window.location.href='pd-material-consumption.html';">Back</button>
+        <div class="header-title">Material Consumption Data</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+    <main class="flex-1 w-full h-full overflow-y-auto pt-16 md:pt-18 lg:pt-20 page-fade-in p-8">
+        
+        <!-- Production Record Details Header -->
+        <div class="w-3/4 max-w-4xl mx-auto mb-3">
+            <div class="bg-white rounded-lg shadow-sm p-3">
+                <h3 class="text-sm font-semibold text-gray-900 mb-2 text-center w-full border-b-2 border-gray-800 pb-1">Production Record Details</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+                    <div class="flex flex-col gap-2">
+                        <div><strong>Production date:</strong> <span id="headerDate" class="text-gray-700">-</span></div>
+                        <div><strong>Shift:</strong> <span id="headerShift" class="text-gray-700">-</span></div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <div><strong>Product Code:</strong> <span id="headerProduct" class="text-gray-700">-</span></div>
+                        <div><strong>Specification:</strong> <span id="headerSpecification" class="text-gray-700">-</span></div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <div><strong>Machine:</strong> <span id="headerMachine" class="text-gray-700">-</span></div>
+                        <div><strong>Customer:</strong> <span id="headerCustomer" class="text-gray-700">-</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Material Rows Controls (aligned with centered containers) -->
+        <div class="w-3/4 max-w-4xl mx-auto flex justify-end mb-3">
+            <div class="flex items-center gap-1 bg-white border border-gray-200 rounded px-2 py-1">
+                <button id="addNewRowsBtn" class="px-2 py-0.5 bg-blue-600 text-white rounded text-[10px] hover:bg-blue-700 flex items-center gap-1">
+                    <i class="fas fa-plus fa-xs"></i> Add Row
+                </button>
+                <button id="deleteTopRowBtn" class="px-2 py-0.5 bg-red-600 text-white rounded text-[10px] hover:bg-red-700 flex items-center gap-1" title="Delete top row">
+                    <i class="fas fa-trash-alt fa-xs"></i> Delete Row
+                </button>
+                <button id="saveAllMaterialDataBtn" class="px-2 py-0.5 bg-green-600 text-white rounded text-[10px] hover:bg-green-700 flex items-center gap-1 ml-3">
+                    <i class="fas fa-save fa-xs"></i> Save All
+                </button>
+            </div>
+        </div>
+
+        <!-- Table placed on page background -->
+        <div class="w-3/4 max-w-4xl mx-auto mb-3">
+            <div class="overflow-x-auto">
+                <div class="space-y-3">
+                <!-- Primary material table: Sr No, Material, Qty Available, Qty Used, Balance -->
+                <div class="bg-white rounded-md shadow-sm p-1">
+                    <table id="materialMainTable" class="min-w-full text-xs border-collapse table-fixed">
+                        <thead>
+                            <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center">
+                                <th class="py-2 px-2 border border-gray-300 w-12">Sr No</th>
+                                <th class="py-2 px-2 border border-gray-300 w-36">Material</th>
+                                <th class="py-2 px-2 border border-gray-300 w-28">Qty. Available (Kgs)</th>
+                                <th class="py-2 px-2 border border-gray-300 w-28">Qty. used (Kgs)</th>
+                                <th class="py-2 px-2 border border-gray-300 w-28">Instock Qty. (Kgs)</th>
+                                <th class="py-2 px-2 border border-gray-300 w-20">STOCK ALERTS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="materialMainBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Totals table: Produced / Accepted / Rejected / Scrap -->
+                <div class="bg-white rounded-md shadow-sm p-1">
+                    <table id="materialTotalsTable" class="min-w-full text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center">
+                                <th colspan="3" class="py-2 px-2 border border-gray-300">Total Produced Rolls</th>
+                                <th colspan="3" class="py-2 px-2 border border-gray-300">Total Accepted Rolls</th>
+                                <th colspan="3" class="py-2 px-2 border border-gray-300">Total Rejected Rolls</th>
+                                <th rowspan="2" class="py-2 px-2 border border-gray-300 w-20">Total scrap (Kgs)</th>
+                            </tr>
+                            <tr class="bg-gray-200 text-gray-800 font-semibold text-center">
+                                <th class="py-2 px-2 border border-gray-300 w-20">(Nos.)</th>
+                                <th class="py-2 px-2 border border-gray-300 w-20">Kgs (Actual Wt.)</th>
+                                <th class="py-2 px-2 border border-gray-300 w-20">Kgs (Std. Wt.)</th>
+                                <th class="py-2 px-2 border border-gray-300 w-20">(Nos.)</th>
+                                <th class="py-2 px-2 border border-gray-300 w-20">Kgs (Actual Wt.)</th>
+                                <th class="py-2 px-2 border border-gray-300 w-20">Kgs (Std. Wt.)</th>
+                                <th class="py-2 px-2 border border-gray-300 w-20">(Nos.)</th>
+                                <th class="py-2 px-2 border border-gray-300 w-20">Kgs (Actual Wt.)</th>
+                                <th class="py-2 px-2 border border-gray-300 w-20">Kgs (Std. Wt.)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="materialTotalsBody">
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty state message -->
+        <div id="emptyStateMessage" class="text-center py-8 text-gray-500 hidden">
+            <i class="fas fa-inbox text-4xl mb-2 text-gray-300"></i>
+            <p class="text-lg font-medium">No data available</p>
+            <p class="text-sm">Click "Add Rows" to add material consumption data</p>
+        </div>
+
+        <!-- Production Downtime container (includes description + downtime log) -->
+        <div class="w-3/4 max-w-4xl mx-auto mb-3">
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <h4 class="text-sm font-semibold text-gray-800 mb-2">Production Downtime</h4>
+
+                <!-- Free-text downtime input removed per request. Save button moved below the log table. -->
+
+                <div class="border-t border-gray-100 pt-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <h5 class="downtime-title text-gray-800">Downtime Log</h5>
+                        <div class="flex items-center gap-1">
+                            <button id="addDowntimeRowBtn" class="w-6 h-6 flex items-center justify-center bg-blue-600 text-white rounded-full text-xs hover:bg-blue-700" title="Add row" aria-label="Add row">
+                                <i class="fas fa-plus fa-xs"></i>
+                            </button>
+                            <button id="deleteDowntimeRowBtn" class="w-6 h-6 flex items-center justify-center bg-red-600 text-white rounded-full text-xs hover:bg-red-700" title="Delete row" aria-label="Delete row">
+                                <i class="fas fa-minus fa-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table id="downtimeTable" class="min-w-full table-auto text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-800 text-left text-xs">
+                                    <th class="py-2 px-2 border border-gray-200 w-24">From</th>
+                                    <th class="py-2 px-2 border border-gray-200 w-24">To</th>
+                                    <th class="py-2 px-2 border border-gray-200 w-20 text-center">Minutes</th>
+                                    <th class="py-2 px-2 border border-gray-200">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody id="downtimeTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-3 flex items-center gap-3">
+                        <button id="saveDowntimeBtn" class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700">Save</button>
+                        <span id="downtimeSavedMsg" class="text-sm text-green-600 hidden">Saved</span>
+                    </div>
+
+                    <div class="mt-2">
+                        <label class="text-xs text-gray-600">Downtime Summary</label>
+                        <div id="downtimeSummaryHeader" class="mt-1 text-sm text-red-600 font-semibold"></div>
+                        <textarea id="downtimeSummaryDetails" rows="3" readonly class="w-full mt-2 p-2 text-sm bg-gray-50 border border-gray-200 rounded text-gray-800"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="../js/pd-material-consumption-data.js"></script>
+</body>
+</html>
