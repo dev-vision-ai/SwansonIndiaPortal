@@ -467,7 +467,7 @@ function showError(message) {
 function showMessage(message) {
   const tbody = document.getElementById('jobCostRecordsTableBody');
   if (tbody) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="8" class="text-center py-8 text-gray-500">${message}</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="10" class="text-center py-8 text-gray-500 w-full">${message}</td></tr>`;
   }
 }
 
@@ -482,6 +482,21 @@ function showDailyStockOverlay() {
 function closeDailyStockOverlay() {
   const ov = document.getElementById('dailyStockOverlay');
   if (ov) ov.classList.add('hidden');
+  
+  // Clear all form fields
+  const form = document.getElementById('dailyStockForm');
+  if (form) {
+    form.reset();
+    // Clear individual field values to ensure they're empty
+    document.getElementById('ds_date').value = '';
+    document.getElementById('ds_prod_code').value = '';
+    document.getElementById('ds_customer').value = '';
+    document.getElementById('ds_specification').value = '';
+    document.getElementById('ds_machine').value = '';
+    document.getElementById('ds_shift').value = '';
+    document.getElementById('ds_operator').value = '';
+    document.getElementById('ds_supervisor').value = '';
+  }
 }
 
 // Wire overlay controls after DOM ready
@@ -776,15 +791,15 @@ async function setupProductCodeAutocomplete() {
       // Create dropdown
       dropdown = document.createElement('div');
       dropdown.id = 'prod-code-dropdown';
-      dropdown.className = 'absolute z-50 w-full border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto';
+      dropdown.className = 'absolute z-50 w-full border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto';
       dropdown.style.top = '100%';
       dropdown.style.left = '0';
       dropdown.style.background = '#eaf4fb';
-      dropdown.style.marginTop = '4px';
+      dropdown.style.marginTop = '2px';
 
       matches.forEach(product => {
         const item = document.createElement('div');
-        item.className = 'px-3 py-2 hover:bg-blue-200 cursor-pointer text-sm';
+        item.className = 'px-2 py-1 hover:bg-blue-200 cursor-pointer text-xs';
         item.textContent = `${product.prod_code} (${product.customer})`;
 
         item.addEventListener('click', function(e) {
