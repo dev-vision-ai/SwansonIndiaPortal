@@ -976,26 +976,43 @@ function applyInputValidation(input, tableBodyId, columnIndex) {
             } else if (columnIndex === 8) {
                 columnType = 'diameter'; // Diameter
             }
-        } else if (tableBodyId === 'testingTableBody3') {
-            // Page 3 validation is handled in the main validation section (lines 652-686)
-            // Apply OOS validation for Page 3 columns
-            if (columnIndex > 2) {
-                let columnType = '';
-                if (columnIndex === 3) {
-                    columnType = 'colourL';
-                } else if (columnIndex === 4) {
-                    columnType = 'colourA';
-                } else if (columnIndex === 5) {
-                    columnType = 'colourB';
-                } else if (columnIndex === 6) {
-                    columnType = 'deltaE';
-                } else if (columnIndex === 7) {
-                    columnType = 'baseFilmPink';
-                }
+        }
+    } else if (tableBodyId === 'testingTableBody3') {
+        // Page 3 validation
+        if (columnIndex === 0) {
+            // Lot & Roll column - apply 16 GSM Kranti validation
+            applyLotRollValidation(input);
+        } else if (columnIndex === 1) {
+            // Roll ID column - apply 16 GSM Kranti validation
+            applyRollIDValidation(input);
+        } else if (columnIndex === 2) {
+            // Lot Time column - apply 16 GSM Kranti validation
+            applyLotTimeValidation(input);
+        } else if (columnIndex > 2) {
+            // Data columns - apply numeric validation and OOS validation
+            let value = input.value;
+            value = value.replace(/[^0-9.-]/g, '');
+            input.value = value;
+            
+            // Apply OOS validation based on column index
+            let columnType = '';
+            if (columnIndex === 3) {
+                columnType = 'colourL';
+            } else if (columnIndex === 4) {
+                columnType = 'colourA';
+            } else if (columnIndex === 5) {
+                columnType = 'colourB';
+            } else if (columnIndex === 6) {
+                columnType = 'deltaE';
+            }
 
-                if (columnType) {
-                    applyOOSValidation(input, columnType);
-                }
+            if (columnType) {
+                applyOOSValidation(input, columnType);
+                
+                // Add input event listener for real-time OOS validation
+                input.addEventListener('input', function() {
+                    applyOOSValidation(this, columnType);
+                });
             }
         }
     }
@@ -4506,14 +4523,14 @@ function calculatePage2ColumnStats(tableBody, changedColumnIndex = null) {
                         avgFormatted = avg.toFixed(2);
                         minFormatted = min.toFixed(2);
                         maxFormatted = max.toFixed(2);
-                    } else if (summaryColIndex === 2) { // Colour A - 1 decimal
-                        avgFormatted = avg.toFixed(1);
-                        minFormatted = min.toFixed(1);
-                        maxFormatted = max.toFixed(1);
-                    } else if (summaryColIndex === 3) { // Colour B - 1 decimal
-                        avgFormatted = avg.toFixed(1);
-                        minFormatted = min.toFixed(1);
-                        maxFormatted = max.toFixed(1);
+                    } else if (summaryColIndex === 2) { // Colour A - 2 decimals
+                        avgFormatted = avg.toFixed(2);
+                        minFormatted = min.toFixed(2);
+                        maxFormatted = max.toFixed(2);
+                    } else if (summaryColIndex === 3) { // Colour B - 2 decimals
+                        avgFormatted = avg.toFixed(2);
+                        minFormatted = min.toFixed(2);
+                        maxFormatted = max.toFixed(2);
                     } else if (summaryColIndex === 4) { // Delta E - 2 decimals
                         avgFormatted = avg.toFixed(2);
                         minFormatted = min.toFixed(2);
@@ -5148,7 +5165,7 @@ function updateTabOrderForAllRows(tableBody) {
                         applyFlexibleTwoDecimalValidation(input);
                     } else if (j === 4) {
                         // Colour A column - flexible decimal format (negative values)
-                        applyFlexibleTwoDecimalValidation(input);
+                        applyFlexibleTwoDecimalWithNegativeValidation(input);
                     } else if (j === 5) {
                         // Colour B column - flexible decimal format (negative values)
                         applyFlexibleTwoDecimalWithNegativeValidation(input);

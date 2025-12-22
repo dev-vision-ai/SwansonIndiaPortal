@@ -127,11 +127,11 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
     // Quantity (H5) - Add "Rolls" text like prestore form
     page1Worksheet.cell('H5').value(data.quantity ? `${data.quantity} Rolls` : '');
 
-    // Production Date (I4) - format as DD/MM/YYYY
-    page1Worksheet.cell('I4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+    // Production Date (J4) - format as DD/MM/YYYY
+    page1Worksheet.cell('J4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
 
-    // Inspection Date (I5) - format as DD/MM/YYYY
-    page1Worksheet.cell('I5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    // Inspection Date (J5) - format as DD/MM/YYYY
+    page1Worksheet.cell('J5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
 
     // Equipment Data for Page 1
     if (data.equipment_used && data.equipment_used.page1) {
@@ -3541,8 +3541,8 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
     if (coaWorksheet) {
       console.log('COA Form sheet detected, mapping COA data');
 
-      // Inspected By (C39)
-      coaWorksheet.cell('C39').value(data.prepared_by || 'Unknown User');
+      // Inspected By (C33)
+      coaWorksheet.cell('C33').value(data.prepared_by || 'Unknown User');
 
       // Add other COA fields as needed
       // You can add more COA-specific mappings here

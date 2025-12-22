@@ -574,10 +574,21 @@ async function filterQuickActionsByDepartment(user, userDepartment, userLevel) {
         quickActionCards.forEach(card => {
             const cardDepartments = card.getAttribute('data-department');
             const cardUserLevel = card.getAttribute('data-user-level');
+            const cardRestrictedUser = card.getAttribute('data-restricted-user');
 
             let shouldDisplay = false;
 
-            if (cardDepartments) {
+            // Check if card is restricted to specific user
+            if (cardRestrictedUser) {
+                // This card is only for specific user(s)
+                const restrictedUsers = cardRestrictedUser.split(',').map(u => u.trim());
+                if (restrictedUsers.includes(user.id)) {
+                    shouldDisplay = true;
+                } else {
+                    shouldDisplay = false;
+                }
+            } else if (cardDepartments) {
+                // Normal department-based filtering
                 const departmentsArray = cardDepartments.split(',').map(dept => dept.trim());
 
                 if (departmentsArray.includes('All')) {
@@ -589,7 +600,7 @@ async function filterQuickActionsByDepartment(user, userDepartment, userLevel) {
             }
 
             // Check user level if specified - if card requires a level, user must have that exact level
-            if (shouldDisplay && cardUserLevel) {
+            if (shouldDisplay && cardUserLevel && !cardRestrictedUser) {
                 if (userLevel === null || userLevel === undefined) {
                     // Card requires a user level but user doesn't have one - hide it
                     shouldDisplay = false;
