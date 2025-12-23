@@ -425,7 +425,16 @@ function clearAllFilters() {
     resetDropdown('filterProduct');
     resetDropdown('filterMachine');
     resetDropdown('filterShift');
-    resetDropdown('filterProductionType');
+    
+    // Special handling for production type dropdown - restore its options
+    const productionTypeDropdown = document.getElementById('filterProductionType');
+    if (productionTypeDropdown) {
+        productionTypeDropdown.innerHTML = `
+            <option value="">All</option>
+            <option value="Commercial">Commercial</option>
+            <option value="Trial">Trial</option>
+        `;
+    }
     
     // Clear current filters
     currentFilters = {
