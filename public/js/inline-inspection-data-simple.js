@@ -1303,7 +1303,19 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 applyColorCodingToTable();
                 updateSummaryTable();
-            });            // Enter key navigation to next cell
+                
+                // ===== SAVE LOT_NO WHEN EDITED =====
+                if (field === 'lot_no') {
+                    const table = td.closest('table');
+                    if (table) {
+                        setTimeout(() => {
+                            saveLotToSupabase(table);
+                        }, 100);
+                    }
+                }
+            });
+
+            // Enter key navigation to next cell
             td.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -1491,6 +1503,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         let inspectedBy = '';
         let armValue = '';
+        let lotNo = '';
         let totalRolls = 0;
         
         for (let i = 0; i < rows.length; i++) {
@@ -1521,6 +1534,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                     }
                 } else if (fieldName === 'arm' && i === 0) {
                     armValue = value;
+                } else if (fieldName === 'lot_no' && i === 0) {
+                    lotNo = value;
                 } else {
                     // Map field names to JSONB columns
                     switch (fieldName) {
@@ -1623,6 +1638,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const { error } = await supabase
             .from(tableName)
             .update({ 
+                lot_no: lotNo,
                 roll_weights: rollWeights,
                 roll_widths: rollWidths,
                 film_weights_gsm: filmWeightsGsm,
@@ -2623,36 +2639,30 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ===== DUPLICATE LOT NUMBER DETECTION =====
     async function checkForDuplicateLotNumber(traceabilityCode, lotLetter, lotNumber) {
         try {
-            // Check if this lot number already exists in the database across all tables
-            const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
-            let allExistingLots = [];
+            // Get the correct table name from the current form
+            const mcNoElement = document.getElementById('mc_no');
+            const mcNo = mcNoElement ? mcNoElement.textContent.trim() : '02';
+            const tableName = getTableNameForMachine(mcNo);
 
-            for (const tableName of tables) {
-                const { data: existingLots, error } = await supabase
-                    .from(tableName)
-                    .select('id, form_id, lot_no, created_at, status')
-                    .eq('traceability_code', traceabilityCode)
-                    .eq('lot_letter', lotLetter)
-                    .eq('lot_no', lotNumber);
+            // Only check the current table (not all three tables) to avoid slow queries
+            const { data: existingLots, error } = await supabase
+                .from(tableName)
+                .select('id, form_id, lot_no, created_at, status')
+                .eq('traceability_code', traceabilityCode)
+                .eq('lot_letter', lotLetter)
+                .eq('lot_no', lotNumber);
 
-                if (error) {
-                    console.error(`Error checking for duplicate lot numbers in ${tableName}:`, error);
-                    continue;
-                }
-
-                if (existingLots && existingLots.length > 0) {
-                    // Add table name to each lot for reference
-                    existingLots.forEach(lot => lot.table_name = tableName);
-                    allExistingLots.push(...existingLots);
-                }
+            if (error) {
+                console.error(`Error checking for duplicate lot numbers:`, error);
+                return { hasDuplicates: false, duplicates: [] };
             }
 
             // Check if any duplicates were found
-            if (allExistingLots.length > 0) {
+            if (existingLots && existingLots.length > 0) {
                 return {
                     hasDuplicates: true,
-                    duplicates: allExistingLots,
-                    message: `⚠️ DUPLICATE LOT DETECTED!\n\nLot Number: ${lotNumber}\nTraceability Code: ${traceabilityCode}\nLot Letter: ${lotLetter}\n\nFound ${allExistingLots.length} existing record(s) with the same lot number.\n\nThis could cause data conflicts. Please verify before proceeding.`
+                    duplicates: existingLots,
+                    message: `⚠️ DUPLICATE LOT DETECTED!\n\nLot Number: ${lotNumber}\nTraceability Code: ${traceabilityCode}\nLot Letter: ${lotLetter}\n\nFound ${existingLots.length} existing record(s) with the same lot number.\n\nThis could cause data conflicts. Please verify before proceeding.`
                 };
             }
 
@@ -5594,8 +5604,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
 
                 
-                // Reorder lot numbers after deletion
-                await reorderLotNumbers();
+                // Don't automatically reorder lot numbers - user has control over them
+                // await reorderLotNumbers();
                 
                 // Update delete button visibility after deletion
                 updateDeleteButtonVisibility();
