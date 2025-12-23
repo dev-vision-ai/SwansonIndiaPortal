@@ -1561,6 +1561,28 @@ async function handleFormSubmit(e) {
   // Load forms table on page load
   loadFormsTable();
   
+  // Add event listeners for DELETE CAPTCHA overlays
+  const cancelDeleteCaptchaBtn = document.getElementById('cancelDeleteCaptchaBtn');
+  const confirmDeleteCaptchaBtn = document.getElementById('confirmDeleteCaptchaBtn');
+  const deleteCaptchaInput = document.getElementById('deleteCaptchaInput');
+  
+  if (cancelDeleteCaptchaBtn) {
+    cancelDeleteCaptchaBtn.addEventListener('click', cancelDeleteCaptcha);
+  }
+  
+  if (confirmDeleteCaptchaBtn) {
+    confirmDeleteCaptchaBtn.addEventListener('click', validateDeleteCaptcha);
+  }
+  
+  // Allow Enter key to submit captcha
+  if (deleteCaptchaInput) {
+    deleteCaptchaInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        validateDeleteCaptcha();
+      }
+    });
+  }
+  
   // Add event listeners for delete confirmation overlays
   const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
   const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
@@ -2171,11 +2193,15 @@ async function deleteForm(traceability_code, lot_letter) {
   // Store the form details for deletion
   window.pendingDeleteForm = { traceability_code, lot_letter };
   
-  // Show first confirmation overlay
-  const deleteOverlay = document.getElementById('deleteConfirmationOverlay');
-  const deleteMessage = document.getElementById('deleteConfirmationMessage');
-  deleteMessage.textContent = 'Are you sure you want to delete this inline form?';
-  deleteOverlay.style.display = 'flex';
+  // Show captcha overlay first (instead of direct confirmation)
+  const captchaOverlay = document.getElementById('deleteCaptchaOverlay');
+  if (captchaOverlay) {
+    const captchaInput = document.getElementById('deleteCaptchaInput');
+    if (captchaInput) captchaInput.value = ''; // Clear previous input
+    const captchaError = document.getElementById('deleteCaptchaError');
+    if (captchaError) captchaError.textContent = ''; // Clear previous error
+    captchaOverlay.style.display = 'flex';
+  }
 }
 
 async function confirmDelete() {
@@ -2186,6 +2212,52 @@ async function confirmDelete() {
   // Show final warning overlay
   const finalWarningOverlay = document.getElementById('finalDeleteWarningOverlay');
   finalWarningOverlay.style.display = 'flex';
+}
+
+function validateDeleteCaptcha() {
+  const captchaInput = document.getElementById('deleteCaptchaInput');
+  const captchaError = document.getElementById('deleteCaptchaError');
+  
+  if (!captchaInput) return false;
+  
+  const userInput = captchaInput.value.trim().toUpperCase();
+  const correctAnswer = 'DELETE';
+  
+  if (userInput === correctAnswer) {
+    // Captcha correct - hide captcha overlay and show confirmation
+    const captchaOverlay = document.getElementById('deleteCaptchaOverlay');
+    if (captchaOverlay) captchaOverlay.style.display = 'none';
+    
+    // Clear error message
+    if (captchaError) captchaError.textContent = '';
+    
+    // Show first confirmation overlay
+    const deleteOverlay = document.getElementById('deleteConfirmationOverlay');
+    const deleteMessage = document.getElementById('deleteConfirmationMessage');
+    deleteMessage.textContent = 'Are you sure you want to delete this inline form?';
+    deleteOverlay.style.display = 'flex';
+    
+    return true;
+  } else {
+    // Captcha incorrect - show error
+    if (captchaError) {
+      captchaError.textContent = '❌ Incorrect. Please type "DELETE" to confirm.';
+      captchaError.style.color = '#dc2626';
+      captchaError.style.fontSize = '13px';
+      captchaError.style.marginTop = '8px';
+      captchaError.style.fontWeight = '500';
+    }
+    if (captchaInput) captchaInput.focus();
+    return false;
+  }
+}
+
+function cancelDeleteCaptcha() {
+  const captchaOverlay = document.getElementById('deleteCaptchaOverlay');
+  if (captchaOverlay) captchaOverlay.style.display = 'none';
+  
+  // Clear pending delete data
+  delete window.pendingDeleteForm;
 }
 
 async function confirmFinalDelete() {
