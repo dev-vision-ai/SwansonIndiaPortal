@@ -1,6 +1,30 @@
 // Supabase integration for auto-saving to database
 import { supabase } from '../../supabase-config.js';
 
+// Ensure consistent, stable rounding across browsers and avoid floating-point edge cases
+// (e.g. 12.75 displaying as 12.7 due to 12.749999999...)
+(function patchToFixedRounding() {
+    const currentToFixed = Number.prototype.toFixed;
+    if (currentToFixed && currentToFixed.__swansonPatched) return;
+
+    const originalToFixed = Number.prototype.toFixed;
+    function patchedToFixed(digits) {
+        const num = Number(this.valueOf());
+        if (!Number.isFinite(num)) return originalToFixed.call(this, digits);
+
+        const d = Number(digits);
+        if (!Number.isFinite(d)) return originalToFixed.call(this, digits);
+
+        const factor = 10 ** d;
+        const fudge = 1e-12 * Math.sign(num || 1);
+        const rounded = Math.round((num + fudge) * factor) / factor;
+        return originalToFixed.call(rounded, digits);
+    }
+    patchedToFixed.__swansonPatched = true;
+    patchedToFixed.__swansonOriginal = originalToFixed;
+    Number.prototype.toFixed = patchedToFixed;
+})();
+
 // ===== VERIFICATION FUNCTIONALITY =====
 const VERIFICATION_PASSWORD = "QC-2256"; // Verification password for form verification
 const APPROVAL_PASSWORD = "QA-2256"; // Approval password for form approval
@@ -3466,7 +3490,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Page 2: Specific formatting
                     if (aveIndex === 6) {
                         // Elongation@ Break(%) MD Ave: 3 digits, no decimals (000)
-                        formattedValue = Math.round(average).toString();
+                        formattedValue = average.toFixed(0);
                     } else if (aveIndex === 10) {
                         // Force~Tensile Strength@Break(N)MD Ave: 2 digits + 1 decimal (00.0)
                         formattedValue = average.toFixed(1);
@@ -3480,7 +3504,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Page 3: Specific formatting
                     if (aveIndex === 6) {
                         // Elongation@ Break (%) CD Ave: 3 digits, no decimals (000)
-                        formattedValue = Math.round(average).toString();
+                        formattedValue = average.toFixed(0);
                     } else if (aveIndex === 10) {
                         // Force~Tensile Strength@Break (N) CD Ave: 1 digit + 1 decimal (0.0)
                         formattedValue = average.toFixed(1);
@@ -3937,9 +3961,9 @@ document.addEventListener('DOMContentLoaded', function() {
                          // Page 2: Apply specific formatting
                          if (avePos === 6) {
                              // Elongation Ave: 3 digits, no decimals (000)
-                             avgFormatted = Math.round(average).toString();
-                             minFormatted = Math.round(minimum).toString();
-                             maxFormatted = Math.round(maximum).toString();
+                             avgFormatted = average.toFixed(0);
+                             minFormatted = minimum.toFixed(0);
+                             maxFormatted = maximum.toFixed(0);
                          } else if (avePos === 10) {
                              // Force Ave: 2 digits + 1 decimal (00.0)
                              avgFormatted = average.toFixed(1);
@@ -3960,9 +3984,9 @@ document.addEventListener('DOMContentLoaded', function() {
                              // Page 3: Apply specific formatting
                              if (avePos === 6) {
                                  // Elongation Ave: 3 digits, no decimals (000)
-                                 avgFormatted = Math.round(average).toString();
-                                 minFormatted = Math.round(minimum).toString();
-                                 maxFormatted = Math.round(maximum).toString();
+                                 avgFormatted = average.toFixed(0);
+                                 minFormatted = minimum.toFixed(0);
+                                 maxFormatted = maximum.toFixed(0);
                              } else if (avePos === 10) {
                                  // Force Ave: 1 digit + 1 decimal (0.0)
                                  avgFormatted = average.toFixed(1);

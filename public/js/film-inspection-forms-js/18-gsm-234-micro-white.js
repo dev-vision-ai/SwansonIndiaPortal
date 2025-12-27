@@ -57,6 +57,30 @@ function calculateModulusAverage(input) {
 }
 import { supabase } from '../../supabase-config.js';
 
+// Ensure consistent, stable rounding across browsers and avoid floating-point edge cases
+// (e.g. 12.75 displaying as 12.7 due to 12.749999999...)
+(function patchToFixedRounding() {
+    const currentToFixed = Number.prototype.toFixed;
+    if (currentToFixed && currentToFixed.__swansonPatched) return;
+
+    const originalToFixed = Number.prototype.toFixed;
+    function patchedToFixed(digits) {
+        const num = Number(this.valueOf());
+        if (!Number.isFinite(num)) return originalToFixed.call(this, digits);
+
+        const d = Number(digits);
+        if (!Number.isFinite(d)) return originalToFixed.call(this, digits);
+
+        const factor = 10 ** d;
+        const fudge = 1e-12 * Math.sign(num || 1);
+        const rounded = Math.round((num + fudge) * factor) / factor;
+        return originalToFixed.call(rounded, digits);
+    }
+    patchedToFixed.__swansonPatched = true;
+    patchedToFixed.__swansonOriginal = originalToFixed;
+    Number.prototype.toFixed = patchedToFixed;
+})();
+
 // ===== VERIFICATION & APPROVAL FUNCTIONALITY =====
 // NOTE: Consolidated event listeners - initializeVerification() and initializeApproval() set up all handlers
 const VERIFICATION_PASSWORD = "QC-2256"; // Verification password for form verification

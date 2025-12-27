@@ -1507,7 +1507,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const value = dataValues[i];
           if (value && value !== '') {
-            page5Worksheet.cell(`D${row}`).value(value);
+            // Convert to number (0 or 1) to ensure proper number formatting in Excel
+            const numValue = parseInt(value);
+            page5Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : '');
           } else {
             page5Worksheet.cell(`D${row}`).value('');
           }
@@ -1610,6 +1612,47 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
     try {
       workbook = await XlsxPopulate.fromFileAsync(templatePath);
       worksheet = workbook.sheet('Page1');
+      
+      // If Jeddah template doesn't have Page5, try to load from P&G template
+      let hasPage5 = false;
+      try {
+        workbook.sheet('Page5');
+        hasPage5 = true;
+      } catch (error) {
+        // Page5 doesn't exist - will need to create it or skip
+        hasPage5 = false;
+      }
+      
+      if (!hasPage5) {
+        // Page5 doesn't exist in Jeddah template, copy from P&G template
+        const pgTemplatePath = path.join(__dirname, 'templates', 'Inline-inspection-form.xlsx');
+        if (fs.existsSync(pgTemplatePath)) {
+          try {
+            const pgWorkbook = await XlsxPopulate.fromFileAsync(pgTemplatePath);
+            const page5Sheet = pgWorkbook.sheet('Page5');
+            if (page5Sheet) {
+              // Clone the sheet - add a new sheet with same structure
+              const newPage5 = workbook.addSheet('Page5');
+              // Copy dimensions
+              page5Sheet.columns().forEach((col, colIndex) => {
+                newPage5.column(colIndex + 1).width(col.width());
+              });
+              // Copy cell values and formatting from original
+              page5Sheet.usedRange().forEach(cell => {
+                const newCell = newPage5.cell(cell.address());
+                newCell.value(cell.value());
+                if (cell.style()) {
+                  newCell.style(cell.style());
+                }
+              });
+              console.log('Page5 structure copied from P&G template to Jeddah workbook');
+            }
+          } catch (pgError) {
+            console.log('Could not copy Page5 from P&G template:', pgError.message);
+            // Continue - code below will handle missing Page5
+          }
+        }
+      }
     } catch (error) {
       console.log('Error loading template:', error.message);
       console.log('Error stack:', error.stack);
@@ -2405,33 +2448,30 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
     // PAGE 5 DATA MAPPING - APE-168(18)C (Jeddah) Page 5 data (PG Quality)
     if (data.page5_pg_quality) {
-
-      // Create Page5 sheet if it doesn't exist
+      // Get Page5 sheet (should exist from template copy above)
       let page5Worksheet;
       try {
         page5Worksheet = workbook.sheet('Page5');
       } catch (error) {
-        // Page5 sheet doesn't exist, create it
+        console.log('Page5 sheet not found, creating blank sheet');
         page5Worksheet = workbook.addSheet('Page5');
       }
 
       // PG Quality data to column D (D9-D38)
       const pgQualityData = data.page5_pg_quality;
 
-      const dataValues = [];
-      for (let i = 1; i <= 30; i++) {
-        const key = i.toString();
-        const value = pgQualityData[key];
-        if (value && value !== '' && value !== null && value !== undefined) {
-          dataValues.push(value);
-        } else {
-          dataValues.push('');
-        }
-      }
-
       for (let row = 9; row <= 38; row++) {
-        const dataIndex = row - 9;
-        page5Worksheet.cell(`D${row}`).value(dataValues[dataIndex] || '');
+        const dataIndex = row - 9; // 0-29
+        const key = (dataIndex + 1).toString(); // Convert to 1-30 (matching JSONB object keys)
+        const value = pgQualityData[key];
+        
+        if (value && value !== '' && value !== null && value !== undefined) {
+          // Convert to number (0 or 1) to ensure proper number formatting in Excel
+          const numValue = parseInt(value);
+          page5Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : '');
+        } else {
+          page5Worksheet.cell(`D${row}`).value('');
+        }
       }
 
       // Add personnel information to Page 5
