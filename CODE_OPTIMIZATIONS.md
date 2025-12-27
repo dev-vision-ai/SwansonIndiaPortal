@@ -1,7 +1,7 @@
 # Material Availability Page - Code Optimizations
 
 ## Summary
-Refactored `public/js/pd_material_availability.js` to eliminate duplicates, improve performance, and reduce unnecessary database calls.
+Refactored `public/js/pd-material-availability.js` to eliminate duplicates, improve performance, and reduce unnecessary database calls.
 
 ---
 
@@ -188,7 +188,7 @@ function populateFiltersFromTable() {
 
 ## Files Modified
 
-- [pd_material_availability.js](public/js/pd_material_availability.js)
+- [pd-material-availability.js](public/js/pd-material-availability.js)
 
 ## Statistics
 

@@ -300,7 +300,7 @@ function setupButtonEventListeners() {
         return;
       }
 
-      const targetUrl = '../html/MT-job-requisition-form-action.html';
+      const targetUrl = '../html/mt-job-requisition-form-action.html';
       window.location.href = `${targetUrl}?id=${requisitionId}&action=view`;
     });
   });
@@ -320,7 +320,7 @@ function setupButtonEventListeners() {
         return;
       }
 
-      const targetUrl = '../html/MT-job-requisition-form-action.html';
+      const targetUrl = '../html/mt-job-requisition-form-action.html';
       window.location.href = `${targetUrl}?id=${requisitionId}&action=edit`;
     });
   });

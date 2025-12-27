@@ -216,7 +216,7 @@ function handleButtonActions(e) {
         console.error('Invalid recordId for add-data-btn:', recordId, 'Button:', button);
         return;
       }
-      window.location.href = `pd_material_consumption_data.html?id=${recordId}&action=add`;
+      window.location.href = `pd-material-consumption-data.html?id=${recordId}&action=add`;
     } else if (button.classList.contains('delete-btn')) {
       console.log(`Deleting production material consumption record ${recordId}`);
       if (!recordId) {

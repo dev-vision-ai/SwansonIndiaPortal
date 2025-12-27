@@ -3,6 +3,30 @@
 // Modulus average calculation no longer needed for new table structure
 import { supabase } from '../../supabase-config.js';
 
+// Ensure consistent, stable rounding across browsers and avoid floating-point edge cases
+// (e.g. 12.75 displaying as 12.7 due to 12.749999999...)
+(function patchToFixedRounding() {
+    const currentToFixed = Number.prototype.toFixed;
+    if (currentToFixed && currentToFixed.__swansonPatched) return;
+
+    const originalToFixed = Number.prototype.toFixed;
+    function patchedToFixed(digits) {
+        const num = Number(this.valueOf());
+        if (!Number.isFinite(num)) return originalToFixed.call(this, digits);
+
+        const d = Number(digits);
+        if (!Number.isFinite(d)) return originalToFixed.call(this, digits);
+
+        const factor = 10 ** d;
+        const fudge = 1e-12 * Math.sign(num || 1);
+        const rounded = Math.round((num + fudge) * factor) / factor;
+        return originalToFixed.call(rounded, digits);
+    }
+    patchedToFixed.__swansonPatched = true;
+    patchedToFixed.__swansonOriginal = originalToFixed;
+    Number.prototype.toFixed = patchedToFixed;
+})();
+
 // ===== VERIFICATION FUNCTIONALITY =====
 const VERIFICATION_PASSWORD = "QC-2256"; // Verification password for form verification
 const APPROVAL_PASSWORD = "QA-2256"; // Approval password for form approval
@@ -4668,17 +4692,17 @@ function calculatePage2SummaryStatistics(tableBody) {
                     minFormatted = min.toFixed(2);
                     maxFormatted = max.toFixed(2);
                 } else if (summaryColIndex <= 3) { // CD Elongation Break, 10% Modulus (no decimal)
-                    avgFormatted = Math.round(avg).toString();
-                    minFormatted = Math.round(min).toString();
-                    maxFormatted = Math.round(max).toString();
+                    avgFormatted = avg.toFixed(0);
+                    minFormatted = min.toFixed(0);
+                    maxFormatted = max.toFixed(0);
                 } else if (summaryColIndex === 4) { // Opacity (1 decimal)
                     avgFormatted = avg.toFixed(1);
                     minFormatted = min.toFixed(1);
                     maxFormatted = max.toFixed(1);
                 } else { // Roll Cut Width, Diameter (no decimal)
-                    avgFormatted = Math.round(avg).toString();
-                    minFormatted = Math.round(min).toString();
-                    maxFormatted = Math.round(max).toString();
+                    avgFormatted = avg.toFixed(0);
+                    minFormatted = min.toFixed(0);
+                    maxFormatted = max.toFixed(0);
                 }
             }
             

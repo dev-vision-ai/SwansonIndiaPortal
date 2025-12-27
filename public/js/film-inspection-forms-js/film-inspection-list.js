@@ -20,6 +20,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         preparedBy: ''
     };
 
+    // LocalStorage persistence for filters
+    const FILTER_STORAGE_KEY = 'filmInspectionListFilters';
+    
+    // Function to save filters to localStorage
+    function saveFiltersToStorage() {
+        try {
+            localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(activeFilters));
+        } catch (error) {
+            console.error('Error saving filters to localStorage:', error);
+        }
+    }
+    
+    // Function to restore filters from localStorage
+    function restoreFiltersFromStorage() {
+        try {
+            const storedFilters = localStorage.getItem(FILTER_STORAGE_KEY);
+            if (storedFilters) {
+                activeFilters = JSON.parse(storedFilters);
+                return true;
+            }
+        } catch (error) {
+            console.error('Error restoring filters from localStorage:', error);
+        }
+        return false;
+    }
+    
+    // Function to restore filter UI values from activeFilters
+    function restoreFilterUIValues() {
+        if (filterFromDate) filterFromDate.value = activeFilters.fromDate || '';
+        if (filterToDate) filterToDate.value = activeFilters.toDate || '';
+        if (filterProduct) filterProduct.value = activeFilters.product || '';
+        if (filterMachine) filterMachine.value = activeFilters.machine || '';
+        if (filterStatus) filterStatus.value = activeFilters.status || '';
+        if (filterPreparedBy) filterPreparedBy.value = activeFilters.preparedBy || '';
+    }
+
     // Pagination controls
     const prevPageBtn = document.getElementById('prevPageBtn');
     const nextPageBtn = document.getElementById('nextPageBtn');
@@ -550,6 +586,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             preparedBy: ''
         };
 
+        // Clear localStorage
+        try {
+            localStorage.removeItem(FILTER_STORAGE_KEY);
+        } catch (error) {
+            console.error('Error clearing filters from localStorage:', error);
+        }
+
         // Apply filters (will show all data)
         applyFilters();
     }
@@ -566,36 +609,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (filterFromDate) {
         filterFromDate.addEventListener('change', () => {
             activeFilters.fromDate = filterFromDate.value;
+            saveFiltersToStorage();
             applyFilters();
         });
     }
     if (filterToDate) {
         filterToDate.addEventListener('change', () => {
             activeFilters.toDate = filterToDate.value;
+            saveFiltersToStorage();
             applyFilters();
         });
     }
     if (filterProduct) {
         filterProduct.addEventListener('change', () => {
             activeFilters.product = filterProduct.value;
+            saveFiltersToStorage();
             applyFilters();
         });
     }
     if (filterMachine) {
         filterMachine.addEventListener('change', () => {
             activeFilters.machine = filterMachine.value;
+            saveFiltersToStorage();
             applyFilters();
         });
     }
     if (filterStatus) {
         filterStatus.addEventListener('change', () => {
             activeFilters.status = filterStatus.value;
+            saveFiltersToStorage();
             applyFilters();
         });
     }
     if (filterPreparedBy) {
         filterPreparedBy.addEventListener('change', () => {
             activeFilters.preparedBy = filterPreparedBy.value;
+            saveFiltersToStorage();
             applyFilters();
         });
     }
@@ -652,6 +701,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load forms table on page load
     await fetchFilmInspectionForms();
     populateFilterDropdowns();
+    
+    // Restore filters from localStorage and apply them
+    if (restoreFiltersFromStorage()) {
+        restoreFilterUIValues();
+        applyFilters();
+    }
 
     // Enhanced search function with pagination support
     async function searchFilmInspectionForms(searchTerm) {

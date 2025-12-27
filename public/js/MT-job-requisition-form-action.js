@@ -972,7 +972,7 @@ function setupFormEventListeners(userId) {
                     } else {
                         showActionMessage('MJR record deleted successfully!');
                         setTimeout(() => {
-                            window.location.href = '../html/MT-job-requisition-table.html';
+                            window.location.href = '../html/mt-job-requisition-table.html';
                         }, 1500);
                     }
                 } catch (error) {

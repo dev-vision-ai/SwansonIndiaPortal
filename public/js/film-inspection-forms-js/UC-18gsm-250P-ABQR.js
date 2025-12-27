@@ -7,6 +7,30 @@
 // - Use detectViewMode() once per page load (cached in global viewMode variable)
 import { supabase } from '../../supabase-config.js';
 
+// Ensure consistent, stable rounding across browsers and avoid floating-point edge cases
+// (e.g. 12.75 displaying as 12.7 due to 12.749999999...)
+(function patchToFixedRounding() {
+    const currentToFixed = Number.prototype.toFixed;
+    if (currentToFixed && currentToFixed.__swansonPatched) return;
+
+    const originalToFixed = Number.prototype.toFixed;
+    function patchedToFixed(digits) {
+        const num = Number(this.valueOf());
+        if (!Number.isFinite(num)) return originalToFixed.call(this, digits);
+
+        const d = Number(digits);
+        if (!Number.isFinite(d)) return originalToFixed.call(this, digits);
+
+        const factor = 10 ** d;
+        const fudge = 1e-12 * Math.sign(num || 1);
+        const rounded = Math.round((num + fudge) * factor) / factor;
+        return originalToFixed.call(rounded, digits);
+    }
+    patchedToFixed.__swansonPatched = true;
+    patchedToFixed.__swansonOriginal = originalToFixed;
+    Number.prototype.toFixed = patchedToFixed;
+})();
+
 // ===== VERIFICATION FUNCTIONALITY =====
 const VERIFICATION_PASSWORD = "QC-2256"; // Verification password for form verification
 const APPROVAL_PASSWORD = "QA-2256"; // Approval password for form approval
@@ -4523,9 +4547,9 @@ function calculatePage2ColumnStats(tableBody, changedColumnIndex = null) {
 
                 if (isPage3) {
                     // Page 3 column formatting - all use 2 decimals with proper rounding
-                    avgFormatted = (Math.round(avg * 100) / 100).toFixed(2);
-                    minFormatted = (Math.round(min * 100) / 100).toFixed(2);
-                    maxFormatted = (Math.round(max * 100) / 100).toFixed(2);
+                    avgFormatted = avg.toFixed(2);
+                    minFormatted = min.toFixed(2);
+                    maxFormatted = max.toFixed(2);
                 } else {
                     // Page 2 column formatting
                     if (summaryColIndex === 1) { // Tensile Break - 0 decimals
@@ -4623,23 +4647,23 @@ function calculatePage2SummaryStatistics(tableBody) {
 
             if (isPage3) {
                 // Page 3 formatting - all columns use proper rounding to 2 decimals
-                avgFormatted = (Math.round(avg * 100) / 100).toFixed(2);
-                minFormatted = (Math.round(min * 100) / 100).toFixed(2);
-                maxFormatted = (Math.round(max * 100) / 100).toFixed(2);
+                avgFormatted = avg.toFixed(2);
+                minFormatted = min.toFixed(2);
+                maxFormatted = max.toFixed(2);
             } else {
                 // Page 2 formatting
                 if (summaryColIndex <= 3) { // Tensile Break, CD Elongation Break, 10% Modulus (no decimal)
-                    avgFormatted = Math.round(avg).toString();
-                    minFormatted = Math.round(min).toString();
-                    maxFormatted = Math.round(max).toString();
+                    avgFormatted = avg.toFixed(0);
+                    minFormatted = min.toFixed(0);
+                    maxFormatted = max.toFixed(0);
                 } else if (summaryColIndex === 4) { // Opacity (1 decimal)
                     avgFormatted = avg.toFixed(1);
                     minFormatted = min.toFixed(1);
                     maxFormatted = max.toFixed(1);
                 } else { // Roll Cut Width, Diameter (no decimal)
-                    avgFormatted = Math.round(avg).toString();
-                    minFormatted = Math.round(min).toString();
-                    maxFormatted = Math.round(max).toString();
+                    avgFormatted = avg.toFixed(0);
+                    minFormatted = min.toFixed(0);
+                    maxFormatted = max.toFixed(0);
                 }
             }
             
@@ -4718,9 +4742,9 @@ function calculatePage3SummaryStatistics(tableBody) {
             let avgFormatted, minFormatted, maxFormatted;
 
             // Page 3 formatting (all columns use 2 decimals with proper rounding)
-            avgFormatted = (Math.round(avg * 100) / 100).toFixed(2);
-            minFormatted = (Math.round(min * 100) / 100).toFixed(2);
-            maxFormatted = (Math.round(max * 100) / 100).toFixed(2);
+            avgFormatted = avg.toFixed(2);
+            minFormatted = min.toFixed(2);
+            maxFormatted = max.toFixed(2);
 
             // Update summary rows
             updatePageSummaryRow(tableBody, 'Average', summaryColIndex, avgFormatted);
