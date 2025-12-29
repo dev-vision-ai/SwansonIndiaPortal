@@ -374,44 +374,6 @@
             min-width: 170px !important;
         }
         
-        /* Page 5 - Sample No. columns (1st and 3rd columns) - slightly reduced width */
-        .page5-table td:nth-child(1), .page5-table th:nth-child(1),
-        .page5-table td:nth-child(3), .page5-table th:nth-child(3) {
-            width: 2.5% !important;
-            min-width: 35px !important;
-            max-width: 35px !important;
-        }
-        
-        /* Page 5 - Roll ID column (2nd column) - slightly reduced width */
-        .page5-table td:nth-child(2), .page5-table th:nth-child(2) {
-            width: 3.5% !important;
-            min-width: 45px !important;
-            max-width: 45px !important;
-        }
-        
-        /* Page 5 - PG Quality System Requirements column (4th column) - narrow, leave right side blank */
-        .page5-table td:nth-child(4), .page5-table th:nth-child(4) {
-            width: 15% !important; /* Narrow column, rest of space will be blank */
-            min-width: 120px !important;
-        }
-        
-        /* Page 5 - Blank column (5th column) - additional blank space */
-        .page5-table td:nth-child(5), .page5-table th:nth-child(5) {
-            width: 20% !important; /* Increased blank column width */
-            min-width: 160px !important;
-        }
-        
-        /* Override for merged Sample No. header in Page 5 */
-        .page5-table th[colspan="3"] {
-            width: 8.5% !important; /* 2.5% + 3.5% + 2.5% = 8.5% */
-            min-width: 115px !important;
-        }
-        
-        /* Page 5 header background - use same gray as other pages */
-        .page5-table thead tr th {
-            background: #f3f4f6 !important; /* Same gray as bg-gray-100 */
-        }
-        
         /* Yellow background for summary rows - ONLY in testing parameter tables */
         .testing-table:not(.modern-header-table) tr.average-row td,
         .testing-table:not(.modern-header-table) tr.average-row th {
@@ -801,7 +763,7 @@
 
             <!-- Bottom Section - Testing Parameters Table -->
             <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 1 of 5</h3>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 1 of 4</h3>
                 
                             <!-- Add/Delete Rows Controls -->
             <div class="flex justify-between items-center mb-4">
@@ -862,7 +824,7 @@
 
             <!-- Page 2 Section - Testing Parameters Table -->
             <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 2 of 5</h3>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 2 of 4</h3>
                 
                 <!-- Row Count Display -->
                 <div class="flex justify-between items-center mb-4">
@@ -936,7 +898,7 @@
 
             <!-- Page 3 Section - Testing Parameters Table -->
             <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 3 of 5</h3>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 3 of 4</h3>
                 
                 <!-- Row Count Display -->
                 <div class="flex justify-between items-center mb-4">
@@ -1010,7 +972,7 @@
 
             <!-- Page 4 Section - Testing Parameters Table -->
             <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 4 of 5</h3>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 4 of 4</h3>
                 
                 <!-- Row Count Display -->
                 <div class="flex justify-between items-center mb-4">
@@ -1077,48 +1039,13 @@
                 </div>
             </section>
 
-            <!-- Page 5 Section - PG Quality System Requirements -->
-            <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 5 of 5</h3>
-                
-                <!-- Row Count Display -->
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center gap-4">
-                        <span id="rowCountDisplay5" class="text-sm font-bold text-gray-700">Rows: 0</span>
-                    </div>
-                </div>
-                
-                <!-- PG Quality System Requirements Table -->
-                <div class="overflow-x-auto">
-                    <table class="w-full border-2 border-gray-800 testing-table page5-table" style="font-size: 13px;">
-                        <thead>
-                            <tr class="bg-gray-100">
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px; background-color: #f3f4f6 !important;">Sample No.</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px; background-color: #f3f4f6 !important;">PG Quality System Requirements<br>(Pass=0, Fail=1)</th>
-                                <th class="border border-gray-800 px-3 py-2 text-center font-semibold" style="font-size: 13px; background-color: #f3f4f6 !important;"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="testingTableBody5">
-                            <!-- Summary Statistics Rows -->
-                            <tr class="average-row">
-                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Average</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;"></td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Minimum</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;"></td>
-                            </tr>
-                            <tr>
-                                <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Maximum</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">0</td>
-                                <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+            <!-- Page 5 removed: keep hidden placeholders so existing JS remains functional -->
+            <div style="display:none;">
+                <table>
+                    <tbody id="testingTableBody5"></tbody>
+                </table>
+                <span id="rowCountDisplay5">Rows: 0</span>
+            </div>
 
             <!-- Verification and Approval Sections Side by Side -->
             <div class="flex justify-center mt-4 gap-4">

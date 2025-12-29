@@ -883,7 +883,6 @@ document.addEventListener('DOMContentLoaded', function() {
            if (tableBody.id === 'testingTableBody2') return 15;     // Page 2: 15 columns  
            if (tableBody.id === 'testingTableBody3') return 15;     // Page 3: 15 columns
            if (tableBody.id === 'testingTableBody4') return 11;     // Page 4: 11 columns (3 for Sample No + 4 Color + 4 Gloss columns)
-           if (tableBody.id === 'testingTableBody5') return 5;      // Page 5: 5 columns (3 for Sample No + 1 PG Quality + 1 blank column)
            return 0;
        };
        
@@ -1027,9 +1026,6 @@ document.addEventListener('DOMContentLoaded', function() {
                page4: {
                    color_common: document.getElementById('color-common-equipment')?.value || '',
                    gloss: document.getElementById('gloss-equipment')?.value || ''
-               },
-               page5: {
-                   common: document.getElementById('page5-common-equipment')?.value || ''
                }
            };
            
@@ -1184,9 +1180,6 @@ document.addEventListener('DOMContentLoaded', function() {
                    page4_gloss_2: convertColumnToJSONB(testingTableBody4, 8),            // Gloss 2 - HTML column 8
                    page4_gloss_3: convertColumnToJSONB(testingTableBody4, 9),            // Gloss 3 - HTML column 9
                    // page4_gloss_ave is calculated automatically and not saved to database
-                   
-                   // Page 5 - PG Quality System Requirements
-                   page5_pg_quality: convertColumnToJSONB(testingTableBody5, 3)          // PG Quality - HTML column 3
                };
                
                // Get equipment selections
@@ -1464,27 +1457,8 @@ document.addEventListener('DOMContentLoaded', function() {
                        const inputs = row.querySelectorAll('input');
                        inputElement = inputs[columnIndex] || null;
                    }
-               } else if (tableBody.id === 'testingTableBody5') {
-                   // Page 5: 3 sample columns + 1 data column (PG Quality)
-                   // DOM columns: 0(Sample1), 1(Sample2), 2(Sample3), 3(PG Quality)
-                   // Input indices: 0(Sample1), 1(Sample2), 2(Sample3), 3(PG Quality)
-                   if (columnIndex === 0) {
-                       // Sample Number column - find input in first column
-                       const inputs = row.querySelectorAll('input');
-                       inputElement = inputs[0] || null;
-                   } else if (columnIndex === 1) {
-                       // Lot Number column - find input in second column
-                       const inputs = row.querySelectorAll('input');
-                       inputElement = inputs[1] || null;
-                   } else if (columnIndex === 2) {
-                       // Roll Number column - find input in third column
-                       const inputs = row.querySelectorAll('input');
-                       inputElement = inputs[2] || null;
-                   } else if (columnIndex === 3) {
-                       // PG Quality column - find input in fourth column
-                       const inputs = row.querySelectorAll('input');
-                       inputElement = inputs[3] || null;
-                   }
+               } else if (false) {
+                   // Dead code: page 5 logic removed
                } else if (tableBody.id === 'testingTableBody4') {
                    // Page 4: 3 sample columns + 8 data columns
                    // DOM columns: 0(Sample1), 1(Sample2), 2(Sample3), 3(Color L), 4(Color A), 5(Color B), 6(Color~Delta E), 7(Gloss1), 8(Gloss2), 9(Gloss3), 10(GlossAve)
@@ -1682,15 +1656,6 @@ document.addEventListener('DOMContentLoaded', function() {
                        return numValue.toFixed(1);
                    }
                }
-           // Page 5 formatting
-           } else if (tableBodyId === 'testingTableBody5') {
-               // PG Quality column (column 3) - format to integer (0 or 1)
-               if (columnIndex === 3) {
-                   const numValue = parseInt(value);
-                   if (!isNaN(numValue)) {
-                       return numValue.toString();
-                   }
-               }
            }
            
            // Return original value if no formatting applies
@@ -1824,7 +1789,6 @@ document.addEventListener('DOMContentLoaded', function() {
                if (tableBody.id === 'testingTableBody2') return 15;     // Page 2: 15 columns  
                if (tableBody.id === 'testingTableBody3') return 15;     // Page 3: 15 columns
                if (tableBody.id === 'testingTableBody4') return 11;     // Page 4: 11 columns (3 for Sample No + 4 Color + 4 Gloss columns)
-               if (tableBody.id === 'testingTableBody5') return 5;      // Page 5: 5 columns (3 for Sample No + 1 PG Quality + 1 blank column)
                return 7; // Default fallback
            };
            
@@ -2032,7 +1996,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update row count for all pages
     function updateAllRowCounts() {
-        for (let i = 1; i <= 5; i++) {
+        for (let i = 1; i <= 4; i++) {
             updateRowCountByPage(i);
         }
     }
@@ -2175,7 +2139,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 calculateSummaryStatistics(testingTableBody2);
                 calculateSummaryStatistics(testingTableBody3);
                 calculateSummaryStatistics(testingTableBody4);
-                // Page 5: No statistics calculation needed (PG Quality uses dashes)
                 recalculateAllRowAverages();
                 forceRecalculateAllSummaryStatistics();
 
@@ -2204,7 +2167,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     addRowsToTable(testingTableBody2, rowsToAdd);
                     addRowsToTable(testingTableBody3, rowsToAdd);
                     addRowsToTable(testingTableBody4, rowsToAdd);
-                    addRowsToTable(testingTableBody5, rowsToAdd);
                     
                     // Update row counts
                     updateRowCount();
@@ -2236,8 +2198,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // Load data into Page 4 (testingTableBody4)
             loadHistoricalDataIntoTable(testingTableBody4, historicalData, 1, availableForHistorical, startFromRow);
             
-            // Load data into Page 5 (testingTableBody5)
-            loadHistoricalDataIntoTable(testingTableBody5, historicalData, 1, availableForHistorical, startFromRow);
         }
 
         // Load historical data into specific table
@@ -2412,22 +2372,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (historicalData.page4_gloss_3 && historicalData.page4_gloss_3[rowKey] && inputs[9]) {
                     inputs[9].value = historicalData.page4_gloss_3[rowKey];
                 }
-            } else if (row.closest('#testingTableBody5')) {
-                // Page 5 data - Load lot_and_roll, roll_id, lot_time for all pages
-                if (historicalData.lot_and_roll && historicalData.lot_and_roll[rowKey] && inputs[0]) {
-                    inputs[0].value = historicalData.lot_and_roll[rowKey];
-                }
-                if (historicalData.roll_id && historicalData.roll_id[rowKey] && inputs[1]) {
-                    inputs[1].value = historicalData.roll_id[rowKey];
-                }
-                if (historicalData.lot_time && historicalData.lot_time[rowKey] && inputs[2]) {
-                    inputs[2].value = historicalData.lot_time[rowKey];
-                }
-                // Page 5 specific data - Correct input indices based on HTML structure
-                // HTML columns: 0(Sample No), 1(Roll ID), 2(Lot Time), 3(PG Quality), 4(Blank)
-                if (historicalData.page5_pg_quality && historicalData.page5_pg_quality[rowKey] && inputs[3]) {
-                    inputs[3].value = historicalData.page5_pg_quality[rowKey];
-                }
             }
         }
 
@@ -2538,8 +2482,6 @@ document.addEventListener('DOMContentLoaded', function() {
              if (dbData.page4_gloss_2) loadColumnDataToTable(testingTableBody4, 8, dbData.page4_gloss_2);
              if (dbData.page4_gloss_3) loadColumnDataToTable(testingTableBody4, 9, dbData.page4_gloss_3);
              
-             // Load Page 5 data
-             if (dbData.page5_pg_quality) loadColumnDataToTable(testingTableBody5, 3, dbData.page5_pg_quality);
              
              // Populate Sample Identification columns across ALL pages (Page 1 editable, others uneditable)
              populateSampleColumnsAcrossAllPages(dbData);
@@ -2556,7 +2498,6 @@ document.addEventListener('DOMContentLoaded', function() {
              calculateSummaryStatistics(testingTableBody2);
              calculateSummaryStatistics(testingTableBody3);
              calculateSummaryStatistics(testingTableBody4);
-             // Page 5: No statistics calculation needed (PG Quality uses dashes)
              
              // Recalculate ALL row averages for Pages 2, 3, 4 after data loads
              recalculateAllRowAverages();
@@ -2740,8 +2681,8 @@ document.addEventListener('DOMContentLoaded', function() {
          
          // Function to populate Sample Identification columns across ALL pages (Page 1 editable, others uneditable)
         function populateSampleColumnsAcrossAllPages(dbData) {
-            // Get all table bodies
-            const allTableBodies = [testingTableBody, testingTableBody2, testingTableBody3, testingTableBody4, testingTableBody5];
+            // Get all table bodies (page5 removed)
+            const allTableBodies = [testingTableBody, testingTableBody2, testingTableBody3, testingTableBody4];
              
              allTableBodies.forEach((tableBody, tableIndex) => {
                  // Get data rows (excluding summary rows)
@@ -2795,8 +2736,8 @@ document.addEventListener('DOMContentLoaded', function() {
          
          // Function to sync sample data changes from Page 1 to all other pages in real-time
         function syncSampleDataToOtherPages(rowIndex, columnIndex, newValue) {
-            // Get other table bodies (Pages 2, 3, 4, 5)
-            const otherTableBodies = [testingTableBody2, testingTableBody3, testingTableBody4, testingTableBody5];
+            // Get other table bodies (Pages 2, 3, 4)
+            const otherTableBodies = [testingTableBody2, testingTableBody3, testingTableBody4];
              
              otherTableBodies.forEach(tableBody => {
                  // Get data rows (excluding summary rows)
@@ -2917,8 +2858,8 @@ document.addEventListener('DOMContentLoaded', function() {
          
          // Function to force recalculation of all summary statistics to populate Average/Min/Max rows
          function forceRecalculateAllSummaryStatistics() {
-             // Force recalculation for all pages that have summary statistics
-             const tableBodies = [testingTableBody2, testingTableBody3, testingTableBody4, testingTableBody5];
+            // Force recalculation for all pages that have summary statistics (page5 removed)
+            const tableBodies = [testingTableBody2, testingTableBody3, testingTableBody4];
              
              tableBodies.forEach(tableBody => {
                  // Get all data rows (excluding summary rows)
@@ -2944,7 +2885,7 @@ document.addEventListener('DOMContentLoaded', function() {
          
          // Function to recalculate ALL row averages for Pages 2, 3, 4 after data loads
          function recalculateAllRowAverages() {
-             // Get all table bodies for Pages 2, 3, 4 (Page 5 excluded - no averages needed)
+             // Get all table bodies for Pages 2, 3, 4
              const tableBodies = [testingTableBody2, testingTableBody3, testingTableBody4];
              
              tableBodies.forEach(tableBody => {
@@ -3162,7 +3103,6 @@ document.addEventListener('DOMContentLoaded', function() {
                addRowsToTable(testingTableBody2, rowsToAdd);
                addRowsToTable(testingTableBody3, rowsToAdd);
                addRowsToTable(testingTableBody4, rowsToAdd);
-               addRowsToTable(testingTableBody5, rowsToAdd);
                
                // Update row counts
                updateRowCount();
@@ -3240,15 +3180,12 @@ document.addEventListener('DOMContentLoaded', function() {
            const isPage2 = tableBody.id === 'testingTableBody2';
            const isPage3 = tableBody.id === 'testingTableBody3';
            const isPage4 = tableBody.id === 'testingTableBody4';
-           const isPage5 = tableBody.id === 'testingTableBody5';
            
            let columnCount;
            if (isPage2 || isPage3) {
                columnCount = 15;
            } else if (isPage4) {
                columnCount = 11; // 3 Sample No + 4 Color + 4 Gloss
-           } else if (isPage5) {
-               columnCount = 5; // 3 Sample No + 1 PG Quality + 1 blank column
            } else {
                columnCount = 7; // Updated Page 1 column count after removing Cut Width and Color Delta columns
            }
@@ -3460,17 +3397,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         applyConditionalFormatting(input, 'gloss');
                     }
                     
-                    // Page 5 validations and conditional formatting
-                    // PG Quality System Requirements column (Pass=0, Fail=1)
-                    if (tableBody.id === 'testingTableBody5' && j === 3) {
-                        applyPGQualityValidation(input);
-                        applyConditionalFormatting(input, 'pgQuality');
-                    }
-                    // Page 5 blank column (5th column) - no input, just empty cell
-                    if (tableBody.id === 'testingTableBody5' && j === 4) {
-                        input.style.display = 'none'; // Hide input for blank column
-                        td.style.backgroundColor = 'transparent';
-                    }
+                    // Page 5 logic removed
                     
                     // Add event listener for automatic average calculation
                     // Skip validated columns as they have their own comprehensive event listeners
@@ -3489,7 +3416,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 calculateRowAverages(tr, tableBody);
                             }
                             // Also calculate summary statistics for vertical Ave columns (Page 2, 3, 4 & 5)
-                            if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4' || tableBody.id === 'testingTableBody5') {
+                            if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
                                 calculateSummaryStatistics(tableBody);
                             }
                             // Calculate individual column stats for Page 1 (only the changed column)
@@ -3535,7 +3462,7 @@ document.addEventListener('DOMContentLoaded', function() {
            clearTableCache(tableBody);
            
            // Recalculate summary statistics for Pages 2, 3, 4 and 5 after adding rows
-           if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4' || tableBody.id === 'testingTableBody5') {
+           if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
                calculateSummaryStatistics(tableBody);
            }
            
@@ -3609,7 +3536,7 @@ document.addEventListener('DOMContentLoaded', function() {
            clearTableCache(tableBody);
            
            // Recalculate summary statistics for Pages 2, 3, 4 and 5 after deleting rows
-           if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4' || tableBody.id === 'testingTableBody5') {
+           if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3' || tableBody.id === 'testingTableBody4') {
                calculateSummaryStatistics(tableBody);
            }
            
@@ -3776,8 +3703,8 @@ document.addEventListener('DOMContentLoaded', function() {
        // Function to calculate summary statistics (Average, Min, Max) for vertical Ave columns
        // ONLY for Page 2, 3 & 4
        function calculateSummaryStatistics(tableBody) {
-           // Only process Page 2, 3, 4 and 5
-           if (tableBody.id !== 'testingTableBody2' && tableBody.id !== 'testingTableBody3' && tableBody.id !== 'testingTableBody4' && tableBody.id !== 'testingTableBody5') {
+           // Only process Page 2, 3, 4
+           if (tableBody.id !== 'testingTableBody2' && tableBody.id !== 'testingTableBody3' && tableBody.id !== 'testingTableBody4') {
                return;
            }
            
@@ -3793,9 +3720,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (tableBody.id === 'testingTableBody4') {
                 // Page 4: Calculate summary for ALL data columns: Color L(3), A(4), B(5), Delta E(6), Gloss 1(7), 2(8), 3(9), Ave(10)
                 calculatePage4SummaryStats(dataRows, tableBody);
-            } else if (tableBody.id === 'testingTableBody5') {
-                // Page 5: Calculate summary for PG Quality column (column 3)
-                calculatePage5SummaryStats(dataRows, tableBody);
             } else {
                // Page 2 & 3: 3 Ave columns (positions 6, 10, 14)
                // Page 2: Sample No (3 cols), Elongation MD (4 cols: 1,2,3,Ave), Force MD (4 cols: 1,2,3,Ave), Force 5% MD (4 cols: 1,2,3,Ave)
@@ -3995,45 +3919,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Function to calculate summary statistics for Page 5 (PG Quality)
-        function calculatePage5SummaryStats(dataRows, tableBody) {
-            // Page 5: PG Quality data column is at input index 3
-            // Page 5 summary row structure: td[0]=label(colspan=3), td[1]=PGQuality, td[2]=blank
-            const values = [];
-            
-            // Collect all values from PG Quality column
-            dataRows.forEach(row => {
-                const inputs = row.querySelectorAll('input');
-                if (inputs[3] && inputs[3].value) {
-                    const value = parseFloat(inputs[3].value);
-                    if (!isNaN(value)) {
-                        values.push(value);
-                    }
-                }
-            });
-            
-            if (values.length > 0) {
-                // Calculate Average, Min, Max
-                const average = values.reduce((sum, val) => sum + val, 0) / values.length;
-                const minimum = Math.min(...values);
-                const maximum = Math.max(...values);
-                
-                // Format: For PG Quality (0 or 1), round to nearest integer (0 or 1)
-                const avgFormatted = (average >= 0.5 ? 1 : 0).toString();
-                const minFormatted = minimum.toString();
-                const maxFormatted = maximum.toString();
-                
-                // Update summary rows (column index 1 for PG Quality in summary row - after label colspan=3)
-                updateSummaryRow(tableBody, 'Average', 1, avgFormatted);
-                updateSummaryRow(tableBody, 'Minimum', 1, minFormatted);
-                updateSummaryRow(tableBody, 'Maximum', 1, maxFormatted);
-            } else {
-                // Clear summary rows if no data
-                updateSummaryRow(tableBody, 'Average', 1, '0');
-                updateSummaryRow(tableBody, 'Minimum', 1, '0');
-                updateSummaryRow(tableBody, 'Maximum', 1, '0');
-            }
-        }
+        // Page 5 summary function removed (page5 was removed from UI)
 
         // Function to calculate individual column statistics for Page 1
        function calculatePage1ColumnStats(tableBody, changedColumnIndex = null) {
@@ -4409,11 +4295,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                  minFormatted = minimum.toFixed(3);
                                  maxFormatted = maximum.toFixed(3);
                              }
-                         } else if (tableBody.id === 'testingTableBody5') {
-                             // Page 5: PG Quality - format as integers (0 or 1)
-                             avgFormatted = average.toFixed(0);
-                             minFormatted = minimum.toFixed(0);
-                             maxFormatted = maximum.toFixed(0);
                          } else {
                              // Other pages: Default formatting
                              avgFormatted = average.toFixed(3);
@@ -4501,11 +4382,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                  defaultMin = '0.000';
                                  defaultMax = '0.000';
                              }
-                         } else if (tableBody.id === 'testingTableBody5') {
-                             // Page 5: PG Quality - format as integers (0 or 1)
-                             defaultAvg = '0';
-                             defaultMin = '0';
-                             defaultMax = '0';
                          } else {
                              // Other pages: Default formatting
                              defaultAvg = '0.000';
@@ -6131,26 +6007,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // PG Quality System Requirements validation (Pass=0, Fail=1)
         function applyPGQualityValidation(input) {
             input.addEventListener('input', function() {
-                validatePGQuality(this);
-                
                 // Auto-save to database after each change (debounced)
                 debouncedSave();
-                
-                // Calculate summary statistics when PG Quality changes
-                const tableBody = this.closest('tbody');
-                if (tableBody && tableBody.id === 'testingTableBody5') {
-                    calculateSummaryStatistics(tableBody);
-                }
                 
                 // Force immediate recalculation of ALL summary statistics for instant sync
                 triggerSummaryRecalculation();
             });
             
-            // Add Enter key listener for auto-formatting
+            // Add Enter key listener for navigation
             input.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    formatPGQualityOnEnter(this);
                     
                     // Move to next row after formatting
                     const row = this.closest('tr');
@@ -6163,47 +6030,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
-        }
-
-        // Validate PG Quality input (only 0 or 1 allowed)
-        function validatePGQuality(input) {
-            let value = input.value.trim();
-            
-            // Only allow 0 or 1, but don't clear if user is still typing
-            if (value === '0' || value === '1') {
-                input.value = value;
-            } else if (value === '') {
-                // Allow empty for now
-                input.value = '';
-            } else if (value.length === 1 && (value === '0' || value === '1')) {
-                // Single character 0 or 1 is valid
-                input.value = value;
-            } else if (value.length > 1) {
-                // If more than 1 character, keep only the last valid character
-                const lastChar = value.slice(-1);
-                if (lastChar === '0' || lastChar === '1') {
-                    input.value = lastChar;
-                } else {
-                    // If last character is not valid, keep previous valid value
-                    input.value = input.value.slice(0, -1);
-                }
-            }
-        }
-
-        // Format PG Quality on Enter (Pass=0, Fail=1)
-        function formatPGQualityOnEnter(input) {
-            let value = input.value.trim();
-
-            if (value === '0') {
-                input.value = '0'; // Pass
-            } else if (value === '1') {
-                input.value = '1'; // Fail
-            } else if (value === '') {
-                input.value = '';
-            } else {
-                // Clear invalid input
-                input.value = '';
-            }
         }
 
         // Format Color L, A, B, Delta E on Enter (2 decimal places)
