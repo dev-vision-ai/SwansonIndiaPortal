@@ -120,6 +120,7 @@ const mjrExportModule = require('./excel-export-MJR-form');
 const qualityAlertExportModule = require('./excel-export-quality-alert-form');
 const prestoreExportModule = require('./excel-export-prestore-form');
 const productionDefectsExportModule = require('./excel-export-production-defects');
+const controlDatapointsExportModule = require('./excel-export-control-datapoints');
 
 // Initialize export modules with authenticated client creator
 inlineExportModule(app, createAuthenticatedSupabaseClient);
@@ -129,6 +130,7 @@ mjrExportModule(app, createAuthenticatedSupabaseClient);
 qualityAlertExportModule(app, createAuthenticatedSupabaseClient);
 prestoreExportModule(app, createAuthenticatedSupabaseClient);
 productionDefectsExportModule(app, createAuthenticatedSupabaseClient);
+controlDatapointsExportModule(app, createAuthenticatedSupabaseClient);
 
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);

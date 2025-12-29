@@ -455,7 +455,26 @@ function clearAllFilters() {
     // Update filter status
     updateFilterStatus(areFiltersActive());
     
-    // All filters cleared
+    // Repopulate dropdowns to reflect cleared state and reload data view
+    try {
+        // Ensure production type dropdown exists and read its value
+        const productionTypeDropdown = document.getElementById('filterProductionType');
+        const productionType = productionTypeDropdown ? productionTypeDropdown.value : '';
+
+        // Repopulate machine/product/shift dropdowns for the cleared date range (show all)
+        populateMachineDropdown('', '', productionType);
+        populateProductDropdown('', '', '', productionType);
+        // Populate shifts (no machine/product selected) - skip auto-trigger to avoid unnecessary data fetch
+        populateShiftDropdown('', '', '', '', true);
+
+        // Explicitly update download button and filter status once more
+        updateFilterStatus(false);
+        updateDownloadButtonVisibility();
+    } catch (e) {
+        console.error('Error while reloading filters after clear:', e);
+    }
+
+    // All filters cleared and UI reloaded
 }
 
 // Clear summary tables back to default state

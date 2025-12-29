@@ -428,21 +428,95 @@ function setBarcodeCanvasStyle(id) {
     }
 
     async function populateGCASDropdown() {
-        const select = document.getElementById('irms_gcas');
-        if (!select) return;
-        select.innerHTML = '<option value="">Loading...</option>';
-        const { data, error } = await supabase
-            .from('rtcis_master_data')
-            .select('irms_gcas')
-            .order('irms_gcas', { ascending: true });
-        if (error || !data) {
-            select.innerHTML = '<option value="">Error loading GCAS</option>';
-            return;
+      const select = document.getElementById('irms_gcas');
+      if (!select) return;
+      select.innerHTML = '<option value="">Loading...</option>';
+
+      // Fetch both GCAS and product code so we can display both in the option text
+      const { data, error } = await supabase
+        .from('rtcis_master_data')
+        .select('irms_gcas, product_code')
+        .order('irms_gcas', { ascending: true });
+
+      if (error || !data) {
+        select.innerHTML = '<option value="">Error loading GCAS</option>';
+        return;
+      }
+
+      // Deduplicate by irms_gcas (keep first product_code encountered)
+      const map = new Map();
+      data.forEach(row => {
+        const key = (row.irms_gcas || '').toString();
+        if (!map.has(key)) map.set(key, row.product_code || '');
+      });
+
+      // Build options: value remains the GCAS identifier, text shows "GCAS - product_code"
+      const options = Array.from(map.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([gcas, product]) => {
+          const label = product ? `${gcas} - ${product}` : gcas;
+          return `<option value="${gcas}">${label}</option>`;
+        })
+        .join('');
+
+      select.innerHTML = '<option value="">Select IRMS/GCAS</option>' + options;
+      
+      // Add change listener to show only GCAS after selection (hide product code)
+      select.addEventListener('change', function() {
+        if (this.value) {
+          const selectedOption = this.options[this.selectedIndex];
+          const gcasValue = this.value;
+          // Update the option text to show only GCAS
+          selectedOption.textContent = gcasValue;
         }
-        select.innerHTML = '<option value="">Select IRMS/GCAS</option>' +
-            data.map(row => `<option value="${row.irms_gcas}">${row.irms_gcas}</option>`).join('');
+      });
     }
     populateGCASDropdown();
+
+    // Auto-fill LOT No with YYMMDD when Production Date is selected
+    const productionDateInput = document.getElementById('production_date');
+    const lotNumberInput = document.getElementById('lot_number');
+    
+    if (productionDateInput && lotNumberInput) {
+        productionDateInput.addEventListener('change', (e) => {
+            const selectedDate = e.target.value; // Format: YYYY-MM-DD
+            if (selectedDate) {
+                // Parse the date
+                const [year, month, day] = selectedDate.split('-');
+                // Extract last 2 digits of year and format as YYMMDD
+                const yy = year.slice(-2);
+                const lotValue = yy + month + day;
+                lotNumberInput.value = lotValue;
+            }
+            // Clear error for production_date field when user enters data
+            clearFieldError(productionDateInput);
+        });
+    }
+
+    // Add real-time error clearing for all required fields
+    const requiredFields = ['irms_gcas', 'lot_number', 'quantity', 'production_date', 'height', 'gross_weight', 'sequence_number', 'pi_number', 'pallet_number', 'pallet_type'];
+    requiredFields.forEach(fieldId => {
+        const field = form.elements[fieldId];
+        if (field) {
+            // Listen for input and change events
+            field.addEventListener('input', () => clearFieldError(field));
+            field.addEventListener('change', () => clearFieldError(field));
+        }
+    });
+
+    // Helper function to clear error styling and message for a field
+    function clearFieldError(field) {
+        if (!field) return;
+        
+        // Remove error border class
+        field.classList.remove('field-error-border');
+        
+        // Remove error message element if it exists
+        const errorMsg = field.parentNode.querySelector('.field-error-message');
+        if (errorMsg) {
+            errorMsg.remove();
+        }
+    }
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -450,6 +524,38 @@ function setBarcodeCanvasStyle(id) {
         // Get the submit button and store original content
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalContent = submitBtn ? submitBtn.innerHTML : 'Generate Label';
+
+        // Clear previous error messages
+        const existingErrors = form.querySelectorAll('.field-error-message');
+        existingErrors.forEach(error => error.remove());
+        const inputsWithErrors = form.querySelectorAll('.field-error-border');
+        inputsWithErrors.forEach(input => input.classList.remove('field-error-border'));
+
+        // Validate all required fields
+        const requiredFields = ['irms_gcas', 'lot_number', 'quantity', 'production_date', 'height', 'gross_weight', 'sequence_number', 'pi_number', 'pallet_number', 'pallet_type'];
+        let hasErrors = false;
+
+        requiredFields.forEach(fieldId => {
+            const field = form.elements[fieldId];
+            const value = field ? field.value.trim() : '';
+            if (!value) {
+                hasErrors = true;
+                // Add error class to field
+                if (field) {
+                    field.classList.add('field-error-border');
+                    // Create and insert error message
+                    const errorMsg = document.createElement('span');
+                    errorMsg.className = 'field-error-message';
+                    errorMsg.textContent = 'This field is required';
+                    field.parentNode.appendChild(errorMsg);
+                }
+            }
+        });
+
+        // If any field is empty, don't proceed
+        if (hasErrors) {
+            return;
+        }
 
         // Show loading animation
         if (submitBtn) {
@@ -498,7 +604,7 @@ function setBarcodeCanvasStyle(id) {
             height: form.elements['height'].value.trim(),
             gross_weight: form.elements['gross_weight'].value.trim(),
             sequence_number: form.elements['sequence_number'].value.trim(),
-            pi_number: form.elements['pi_number'].value.trim(),
+            pi_number: form.elements['pi_number'].value.trim().toUpperCase(),
             pallet_number: form.elements['pallet_number'].value.trim(),
             pallet_type: form.elements['pallet_type'].value.trim(),
         };
@@ -694,6 +800,13 @@ function setBarcodeCanvasStyle(id) {
     const clearDataBtn = document.getElementById('clearRTCISData');
     if (clearDataBtn) {
         clearDataBtn.addEventListener('click', () => {
+            // Clear error messages and error styling
+            const existingErrors = form.querySelectorAll('.field-error-message');
+            existingErrors.forEach(error => error.remove());
+            
+            const errorFields = form.querySelectorAll('.field-error-border');
+            errorFields.forEach(field => field.classList.remove('field-error-border'));
+
             // Complete form reset using native form.reset() method
             form.reset();
 
