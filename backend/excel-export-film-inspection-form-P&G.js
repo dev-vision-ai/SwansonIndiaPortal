@@ -1,4 +1,4 @@
-const XlsxPopulate = require('xlsx-populate');
+const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
 
@@ -28,6 +28,45 @@ function convertToNumber(value) {
   if (value === '' || value === null || value === undefined) return '';
   const numValue = parseFloat(value);
   return !isNaN(numValue) ? numValue : value;
+}
+
+// Helper function to apply password protection using ExcelJS
+async function applyPasswordProtection(workbook) {
+  try {
+    // LOCK ALL cells in all worksheets - this prevents editing without password
+    workbook.worksheets.forEach(worksheet => {
+      worksheet.eachRow(row => {
+        row.eachCell(cell => {
+          cell.protection = { locked: true, hidden: false };
+        });
+      });
+    });
+    
+    // Apply sheet protection with password - locked cells cannot be edited
+    workbook.worksheets.forEach(worksheet => {
+      worksheet.protect('2256', {
+        selectLockedCells: false,
+        selectUnlockedCells: false,
+        formatCells: false,
+        formatColumns: false,
+        formatRows: false,
+        insertColumns: false,
+        insertRows: false,
+        insertHyperlinks: false,
+        deleteColumns: false,
+        deleteRows: false,
+        sort: false,
+        autoFilter: false,
+        pivotTables: false
+      });
+    });
+    
+    // Write to buffer with password protection
+    return await workbook.xlsx.writeBuffer();
+  } catch (error) {
+    console.error('Error applying password protection:', error);
+    throw error;
+  }
 }
 
 module.exports = function(app, createAuthenticatedSupabaseClient) {
@@ -75,78 +114,78 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     
     // Load the template file
     try {
-      workbook = await XlsxPopulate.fromFileAsync(templatePath);
-      worksheet = workbook.sheet('Page1');
+      workbook = await (async () => { const wb = new ExcelJS.Workbook(); await wb.xlsx.readFile(templatePath); return wb; })();
+      worksheet = workbook.getWorksheet('Page1');
     } catch (error) {
       console.log('Error loading template:', error.message);
       workbook = await XlsxPopulate.fromBlankAsync();
-      const page1Worksheet = workbook.addSheet('Page1');
+      const page1Worksheet = workbook.addWorksheet('Page1');
       worksheet = page1Worksheet;
     }
 
     // 4. Map data to Excel cells
     
     // Product Code (C4)
-    worksheet.cell('C4').value(data.product_code || '');
+    worksheet.getCell('C4').value = data.product_code || '';
     
     // Specification (C5) 
-    worksheet.cell('C5').value(data.specification || '');
+    worksheet.getCell('C5').value = data.specification || '';
     
     // Production Order (H4)
-    worksheet.cell('H4').value(data.production_order || '');
+    worksheet.getCell('H4').value = data.production_order || '';
     
     // Purchase Order (H5)
-    worksheet.cell('H5').value(data.purchase_order || '');
+    worksheet.getCell('H5').value = data.purchase_order || '';
     
     // Machine (K4)
-    worksheet.cell('K4').value(data.machine_no || '');
+    worksheet.getCell('K4').value = data.machine_no || '';
     
     // Quantity (K5) - Add "Rolls" text like prestore form
-    worksheet.cell('K5').value(data.quantity ? `${data.quantity} Rolls` : '');
+    worksheet.getCell('K5').value = data.quantity ? `${data.quantity} Rolls` : '';
     
     // Production Date (N4) - format as DD/MM/YYYY
-    worksheet.cell('N4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+    worksheet.getCell('N4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
     
     // Inspection Date (N5) - format as DD/MM/YYYY  
-    worksheet.cell('N5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    worksheet.getCell('N5').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
     
     // Inspected By (B41)
-    worksheet.cell('B41').value(data.prepared_by || 'Unknown User');
+    worksheet.getCell('B41').value = data.prepared_by || 'Unknown User';
 
     // Inspection Date (B42) - format as DD/MM/YYYY
-    worksheet.cell('B42').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    worksheet.getCell('B42').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Verified By (M41)
-    worksheet.cell('M41').value(data.verified_by || 'Not Verified');
+    worksheet.getCell('M41').value = data.verified_by || 'Not Verified';
 
     // Verified Date (M42) - format as DD/MM/YYYY
-    worksheet.cell('M42').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+    worksheet.getCell('M42').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (O3)
-    worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+    worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
     
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
       const equipment = data.equipment_used.page1;
       
       // Basic Weight Equipment (D6)
-      worksheet.cell('D6').value(equipment.basic_weight || '');
+      worksheet.getCell('D6').value = equipment.basic_weight || '';
       
       // Thickness Equipment (F6)
-      worksheet.cell('F6').value(equipment.thickness || '');
+      worksheet.getCell('F6').value = equipment.thickness || '';
       
       // Opacity Equipment (H6)
-      worksheet.cell('H6').value(equipment.opacity || '');
+      worksheet.getCell('H6').value = equipment.opacity || '';
       
       // COF Equipment (J6)
-      worksheet.cell('J6').value(equipment.cof || '');
+      worksheet.getCell('J6').value = equipment.cof || '';
       
       // Cut Width Equipment (L6)
-      worksheet.cell('L6').value(equipment.cut_width || '');
+      worksheet.getCell('L6').value = equipment.cut_width || '';
       
       // Color Equipment (N6) - Use unprinted equipment for both unprinted and printed
       // Since both use the same equipment type (X-RITE), use unprinted equipment ID
-      worksheet.cell('N6').value(equipment.color_unprinted || '');
+      worksheet.getCell('N6').value = equipment.color_unprinted || '';
     }
     
     // Map sample data to the correct columns
@@ -162,9 +201,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`A${row}`).value(''); // Empty row
+          worksheet.getCell(`A${row}`).value = ''; // Empty row
         }
       }
     }
@@ -178,9 +217,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`B${row}`).value(''); // Empty row
+          worksheet.getCell(`B${row}`).value = ''; // Empty row
         }
       }
     }
@@ -194,9 +233,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`C${row}`).value(''); // Empty row
+          worksheet.getCell(`C${row}`).value = ''; // Empty row
         }
       }
     }
@@ -211,9 +250,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`D${row}`).value('');
+          worksheet.getCell(`D${row}`).value = '';
         }
       }
     }
@@ -227,9 +266,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`F${row}`).value('');
+          worksheet.getCell(`F${row}`).value = '';
         }
       }
     }
@@ -243,9 +282,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`H${row}`).value('');
+          worksheet.getCell(`H${row}`).value = '';
         }
       }
     }
@@ -259,9 +298,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`J${row}`).value('');
+          worksheet.getCell(`J${row}`).value = '';
         }
       }
     }
@@ -275,9 +314,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`L${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`L${row}`).value('');
+          worksheet.getCell(`L${row}`).value = '';
         }
       }
     }
@@ -291,9 +330,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`N${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`N${row}`).value('');
+          worksheet.getCell(`N${row}`).value = '';
         }
       }
     }
@@ -307,9 +346,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`O${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`O${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`O${row}`).value('');
+          worksheet.getCell(`O${row}`).value = '';
         }
       }
     }
@@ -322,26 +361,26 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     
 
     // Map Page 2 data if Page2 worksheet exists
-    const page2Worksheet = workbook.sheet('Page2');
+    const page2Worksheet = workbook.getWorksheet('Page2');
     if (page2Worksheet) {
       // Inspected By (B42)
-      page2Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
+      page2Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
 
       // Inspection Date (B43) - format as DD/MM/YYYY
-      page2Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+      page2Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
       // Verified By (M42)
-      page2Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
+      page2Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
 
       // Verified Date (M43) - format as DD/MM/YYYY
-      page2Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+      page2Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
       // Film Inspection Form Ref No (O3)
-      page2Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page2Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
       
       // Equipment data for Page 2 (D6)
       if (data.equipment_used && data.equipment_used.page2) {
-        page2Worksheet.cell('D6').value(data.equipment_used.page2.common || '');
+        page2Worksheet.getCell('D6').value = data.equipment_used.page2.common || '';
       }
       
       // Page 2 data mapping - Elongation MD and Force MD data - fill from bottom up
@@ -355,9 +394,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`D${row}`).value(''); // Preserve empty values
+            page2Worksheet.getCell(`D${row}`).value = ''; // Preserve empty values
           }
           row--;
         }
@@ -373,9 +412,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`E${row}`).value(''); // Preserve empty values
+            page2Worksheet.getCell(`E${row}`).value = ''; // Preserve empty values
           }
           row--;
         }
@@ -391,9 +430,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`F${row}`).value(''); // Preserve empty values
+            page2Worksheet.getCell(`F${row}`).value = ''; // Preserve empty values
           }
           row--;
         }
@@ -409,9 +448,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`H${row}`).value(''); // Preserve empty values
+            page2Worksheet.getCell(`H${row}`).value = ''; // Preserve empty values
           }
           row--;
         }
@@ -427,9 +466,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`I${row}`).value(''); // Preserve empty values
+            page2Worksheet.getCell(`I${row}`).value = ''; // Preserve empty values
           }
           row--;
         }
@@ -445,9 +484,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`J${row}`).value(''); // Preserve empty values
+            page2Worksheet.getCell(`J${row}`).value = ''; // Preserve empty values
           }
           row--;
         }
@@ -463,9 +502,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`L${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`L${row}`).value(''); // Preserve empty values
+            page2Worksheet.getCell(`L${row}`).value = ''; // Preserve empty values
           }
           row--;
         }
@@ -481,9 +520,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`M${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`M${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`M${row}`).value(''); // Preserve empty values
+            page2Worksheet.getCell(`M${row}`).value = ''; // Preserve empty values
           }
           row--;
         }
@@ -499,9 +538,9 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`N${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`N${row}`).value(''); // Preserve empty values
+            page2Worksheet.getCell(`N${row}`).value = ''; // Preserve empty values
           }
           row--;
         }
@@ -511,26 +550,26 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     }
 
     // Map Page 3 data if Page3 worksheet exists
-    const page3Worksheet = workbook.sheet('Page3');
+    const page3Worksheet = workbook.getWorksheet('Page3');
     if (page3Worksheet) {
       // Inspected By (B42)
-      page3Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
+      page3Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
 
       // Inspection Date (B43) - format as DD/MM/YYYY
-      page3Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+      page3Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
       // Verified By (M42)
-      page3Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
+      page3Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
 
       // Verified Date (M43) - format as DD/MM/YYYY
-      page3Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+      page3Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
       // Film Inspection Form Ref No (O3)
-      page3Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page3Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
       
       // Equipment data for Page 3 (D6)
       if (data.equipment_used && data.equipment_used.page3) {
-        page3Worksheet.cell('D6').value(data.equipment_used.page3.common || '');
+        page3Worksheet.getCell('D6').value = data.equipment_used.page3.common || '';
       }
       
       // Page 3 data mapping - Elongation CD, Force CD, and Modulus data - fill from bottom up
@@ -542,7 +581,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
+          page3Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
           row--;
         }
       }
@@ -555,7 +594,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
+          page3Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
           row--;
         }
       }
@@ -568,7 +607,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
+          page3Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
           row--;
         }
       }
@@ -581,7 +620,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
+          page3Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
           row--;
         }
       }
@@ -594,7 +633,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
+          page3Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
           row--;
         }
       }
@@ -607,7 +646,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
+          page3Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
           row--;
         }
       }
@@ -620,7 +659,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.cell(`L${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
+          page3Worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
           row--;
         }
       }
@@ -633,7 +672,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.cell(`M${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
+          page3Worksheet.getCell(`M${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
           row--;
         }
       }
@@ -646,7 +685,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page3Worksheet.cell(`N${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
+          page3Worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
           row--;
         }
       }
@@ -655,26 +694,26 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     }
 
     // Map Page 4 data if Page4 worksheet exists
-    const page4Worksheet = workbook.sheet('Page4');
+    const page4Worksheet = workbook.getWorksheet('Page4');
     if (page4Worksheet) {
       // Inspected By (B42)
-      page4Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
+      page4Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
 
       // Inspection Date (B43) - format as DD/MM/YYYY
-      page4Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+      page4Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
       // Verified By (M42)
-      page4Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
+      page4Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
 
       // Verified Date (M43) - format as DD/MM/YYYY
-      page4Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+      page4Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
       // Film Inspection Form Ref No (O3)
-      page4Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page4Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
       
       // Equipment data for Page 4 (D6)
       if (data.equipment_used && data.equipment_used.page4) {
-        page4Worksheet.cell('D6').value(data.equipment_used.page4.gloss || '');
+        page4Worksheet.getCell('D6').value = data.equipment_used.page4.gloss || '';
       }
       
       // Page 4 data mapping - Gloss and PG Quality data - fill from bottom up
@@ -686,7 +725,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page4Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
+          page4Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
           row--;
         }
       }
@@ -699,7 +738,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page4Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
+          page4Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
           row--;
         }
       }
@@ -712,7 +751,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page4Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
+          page4Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
           row--;
         }
       }
@@ -725,7 +764,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
         
         for (let i = dataValues.length - 1; i >= 0 && row >= 9; i--) {
           const numValue = parseFloat(dataValues[i]);
-          page4Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[i]);
+          page4Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[i];
           row--;
         }
       }
@@ -733,7 +772,10 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     } else {
     }
 
-    // 5. Set response headers for Excel download
+    // 5. Apply password protection using hybrid approach
+    const buffer = await applyPasswordProtection(workbook);
+    
+    // 6. Set response headers for Excel download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     
     // Generate filename with standardized format: FIF-{product_code}-
@@ -743,8 +785,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
 
-    // 6. Write the workbook to response
-    const buffer = await workbook.outputAsync();
+    // 7. Send the protected workbook to response
     res.send(buffer);
 
   } catch (error) {
@@ -796,71 +837,71 @@ app.get('/export-168-16c-white-form', async (req, res) => {
 
     // Load the template file
     try {
-      workbook = await XlsxPopulate.fromFileAsync(templatePath);
-      worksheet = workbook.sheet('Page1');
+      workbook = await (async () => { const wb = new ExcelJS.Workbook(); await wb.xlsx.readFile(templatePath); return wb; })();
+      worksheet = workbook.getWorksheet('Page1');
     } catch (error) {
       console.log('Error loading template:', error.message);
       workbook = await XlsxPopulate.fromBlankAsync();
-      const page1Worksheet = workbook.addSheet('Page1');
+      const page1Worksheet = workbook.addWorksheet('Page1');
       worksheet = page1Worksheet;
     }
 
     // 3. Map data to Excel cells
 
     // Product Code (B4)
-    worksheet.cell('B4').value(data.product_code || '');
+    worksheet.getCell('B4').value = data.product_code || '';
 
     // Specification (B5)
-    worksheet.cell('B5').value(data.specification || '');
+    worksheet.getCell('B5').value = data.specification || '';
 
     // Production Order (G4)
-    worksheet.cell('G4').value(data.production_order || '');
+    worksheet.getCell('G4').value = data.production_order || '';
 
     // Purchase Order (G5)
-    worksheet.cell('G5').value(data.purchase_order || '');
+    worksheet.getCell('G5').value = data.purchase_order || '';
 
     // Machine (J4)
-    worksheet.cell('J4').value(data.machine_no || '');
+    worksheet.getCell('J4').value = data.machine_no || '';
 
     // Quantity (J5) - Add "Rolls" text like prestore form
-    worksheet.cell('J5').value(data.quantity ? `${data.quantity} Rolls` : '');
+    worksheet.getCell('J5').value = data.quantity ? `${data.quantity} Rolls` : '';
 
     // Production Date (N4) - format as DD/MM/YYYY
-    worksheet.cell('N4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+    worksheet.getCell('N4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
 
     // Inspection Date (N5) - format as DD/MM/YYYY
-    worksheet.cell('N5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    worksheet.getCell('N5').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Inspected By (B41)
-    worksheet.cell('B41').value(data.prepared_by || 'Unknown User');
+    worksheet.getCell('B41').value = data.prepared_by || 'Unknown User';
 
     // Inspection Date (B42) - format as DD/MM/YYYY
-    worksheet.cell('B42').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    worksheet.getCell('B42').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Verified By (L41)
-    worksheet.cell('L41').value(data.verified_by || 'Not Verified');
+    worksheet.getCell('L41').value = data.verified_by || 'Not Verified';
 
     // Verified Date (L42) - format as DD/MM/YYYY
-    worksheet.cell('L42').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+    worksheet.getCell('L42').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (O3)
-    worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+    worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
       const equipment = data.equipment_used.page1;
 
       // Basic Weight Equipment (D6)
-      worksheet.cell('D6').value(equipment.basic_weight || '');
+      worksheet.getCell('D6').value = equipment.basic_weight || '';
 
       // Thickness Equipment (G6)
-      worksheet.cell('G6').value(equipment.thickness || '');
+      worksheet.getCell('G6').value = equipment.thickness || '';
 
       // Opacity Equipment (J6)
-      worksheet.cell('J6').value(equipment.opacity || '');
+      worksheet.getCell('J6').value = equipment.opacity || '';
 
       // COF Equipment (M6)
-      worksheet.cell('M6').value(equipment.cof || '');
+      worksheet.getCell('M6').value = equipment.cof || '';
     }
 
     // Map sample data to the correct columns
@@ -876,9 +917,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`A${row}`).value(''); // Empty row
+          worksheet.getCell(`A${row}`).value = ''; // Empty row
         }
       }
     }
@@ -892,9 +933,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`B${row}`).value(''); // Empty row
+          worksheet.getCell(`B${row}`).value = ''; // Empty row
         }
       }
     }
@@ -908,9 +949,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`C${row}`).value(''); // Empty row
+          worksheet.getCell(`C${row}`).value = ''; // Empty row
         }
       }
     }
@@ -924,9 +965,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`D${row}`).value('');
+          worksheet.getCell(`D${row}`).value = '';
         }
       }
     }
@@ -940,9 +981,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`G${row}`).value('');
+          worksheet.getCell(`G${row}`).value = '';
         }
       }
     }
@@ -956,9 +997,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`J${row}`).value('');
+          worksheet.getCell(`J${row}`).value = '';
         }
       }
     }
@@ -972,27 +1013,27 @@ app.get('/export-168-16c-white-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`M${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`M${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`M${row}`).value('');
+          worksheet.getCell(`M${row}`).value = '';
         }
       }
     }
 
 
     // Map Page 2 data if Page2 worksheet exists
-    const page2Worksheet = workbook.sheet('Page2');
+    const page2Worksheet = workbook.getWorksheet('Page2');
     if (page2Worksheet) {
       // Copy header info to Page 2
-      page2Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      page2Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page2Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
-      page2Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page2Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page2Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page2Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page2Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
+      page2Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page2Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
 
       // Equipment data for Page 2 (D6)
       if (data.equipment_used && data.equipment_used.page2) {
-        page2Worksheet.cell('D6').value(data.equipment_used.page2.common || '');
+        page2Worksheet.getCell('D6').value = data.equipment_used.page2.common || '';
       }
 
       // Page 2 data mapping - Elongation MD and Force MD data - fill from bottom up
@@ -1006,9 +1047,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`D${row}`).value('');
+            page2Worksheet.getCell(`D${row}`).value = '';
           }
           row--;
         }
@@ -1024,9 +1065,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`E${row}`).value('');
+            page2Worksheet.getCell(`E${row}`).value = '';
           }
           row--;
         }
@@ -1042,9 +1083,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`F${row}`).value('');
+            page2Worksheet.getCell(`F${row}`).value = '';
           }
           row--;
         }
@@ -1060,9 +1101,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`H${row}`).value('');
+            page2Worksheet.getCell(`H${row}`).value = '';
           }
           row--;
         }
@@ -1078,9 +1119,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`I${row}`).value('');
+            page2Worksheet.getCell(`I${row}`).value = '';
           }
           row--;
         }
@@ -1096,9 +1137,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`J${row}`).value('');
+            page2Worksheet.getCell(`J${row}`).value = '';
           }
           row--;
         }
@@ -1114,9 +1155,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`L${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`L${row}`).value('');
+            page2Worksheet.getCell(`L${row}`).value = '';
           }
           row--;
         }
@@ -1132,9 +1173,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`M${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`M${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`M${row}`).value('');
+            page2Worksheet.getCell(`M${row}`).value = '';
           }
           row--;
         }
@@ -1150,9 +1191,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`N${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`N${row}`).value('');
+            page2Worksheet.getCell(`N${row}`).value = '';
           }
           row--;
         }
@@ -1160,18 +1201,18 @@ app.get('/export-168-16c-white-form', async (req, res) => {
     }
 
     // Map Page 3 data if Page3 worksheet exists
-    const page3Worksheet = workbook.sheet('Page3');
+    const page3Worksheet = workbook.getWorksheet('Page3');
     if (page3Worksheet) {
       // Copy header info to Page 3
-      page3Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      page3Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page3Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
-      page3Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page3Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page3Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page3Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page3Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
+      page3Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page3Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
 
       // Equipment data for Page 3 (D6)
       if (data.equipment_used && data.equipment_used.page3) {
-        page3Worksheet.cell('D6').value(data.equipment_used.page3.common || '');
+        page3Worksheet.getCell('D6').value = data.equipment_used.page3.common || '';
       }
 
       // Page 3 data mapping - Elongation CD and Force CD data - fill from bottom up
@@ -1185,9 +1226,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`D${row}`).value('');
+            page3Worksheet.getCell(`D${row}`).value = '';
           }
           row--;
         }
@@ -1203,9 +1244,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`E${row}`).value('');
+            page3Worksheet.getCell(`E${row}`).value = '';
           }
           row--;
         }
@@ -1221,9 +1262,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`F${row}`).value('');
+            page3Worksheet.getCell(`F${row}`).value = '';
           }
           row--;
         }
@@ -1239,9 +1280,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`H${row}`).value('');
+            page3Worksheet.getCell(`H${row}`).value = '';
           }
           row--;
         }
@@ -1257,9 +1298,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`I${row}`).value('');
+            page3Worksheet.getCell(`I${row}`).value = '';
           }
           row--;
         }
@@ -1275,9 +1316,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`J${row}`).value('');
+            page3Worksheet.getCell(`J${row}`).value = '';
           }
           row--;
         }
@@ -1293,9 +1334,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`L${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`L${row}`).value('');
+            page3Worksheet.getCell(`L${row}`).value = '';
           }
           row--;
         }
@@ -1311,9 +1352,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`M${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`M${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`M${row}`).value('');
+            page3Worksheet.getCell(`M${row}`).value = '';
           }
           row--;
         }
@@ -1329,9 +1370,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`N${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`N${row}`).value('');
+            page3Worksheet.getCell(`N${row}`).value = '';
           }
           row--;
         }
@@ -1339,19 +1380,19 @@ app.get('/export-168-16c-white-form', async (req, res) => {
     }
 
     // Map Page 4 data if Page4 worksheet exists
-    const page4Worksheet = workbook.sheet('Page4');
+    const page4Worksheet = workbook.getWorksheet('Page4');
     if (page4Worksheet) {
       // Copy header info to Page 4
-      page4Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      page4Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page4Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
-      page4Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page4Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page4Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page4Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page4Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
+      page4Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page4Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
 
       // Equipment data for Page 4 (D6, L6)
       if (data.equipment_used && data.equipment_used.page4) {
-        page4Worksheet.cell('D6').value(data.equipment_used.page4.color_common || '');
-        page4Worksheet.cell('L6').value(data.equipment_used.page4.gloss || '');
+        page4Worksheet.getCell('D6').value = data.equipment_used.page4.color_common || '';
+        page4Worksheet.getCell('L6').value = data.equipment_used.page4.gloss || '';
       }
 
       // Page 4 data mapping - Color and Gloss data - fill from bottom up
@@ -1365,9 +1406,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page4Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : value);
+            page4Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page4Worksheet.cell(`D${row}`).value('');
+            page4Worksheet.getCell(`D${row}`).value = '';
           }
           row--;
         }
@@ -1383,9 +1424,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page4Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : value);
+            page4Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page4Worksheet.cell(`F${row}`).value('');
+            page4Worksheet.getCell(`F${row}`).value = '';
           }
           row--;
         }
@@ -1401,9 +1442,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page4Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : value);
+            page4Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page4Worksheet.cell(`H${row}`).value('');
+            page4Worksheet.getCell(`H${row}`).value = '';
           }
           row--;
         }
@@ -1419,9 +1460,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page4Worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : value);
+            page4Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page4Worksheet.cell(`J${row}`).value('');
+            page4Worksheet.getCell(`J${row}`).value = '';
           }
           row--;
         }
@@ -1437,9 +1478,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page4Worksheet.cell(`L${row}`).value(!isNaN(numValue) ? numValue : value);
+            page4Worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page4Worksheet.cell(`L${row}`).value('');
+            page4Worksheet.getCell(`L${row}`).value = '';
           }
           row--;
         }
@@ -1455,9 +1496,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page4Worksheet.cell(`M${row}`).value(!isNaN(numValue) ? numValue : value);
+            page4Worksheet.getCell(`M${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page4Worksheet.cell(`M${row}`).value('');
+            page4Worksheet.getCell(`M${row}`).value = '';
           }
           row--;
         }
@@ -1473,9 +1514,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page4Worksheet.cell(`N${row}`).value(!isNaN(numValue) ? numValue : value);
+            page4Worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page4Worksheet.cell(`N${row}`).value('');
+            page4Worksheet.getCell(`N${row}`).value = '';
           }
           row--;
         }
@@ -1483,18 +1524,18 @@ app.get('/export-168-16c-white-form', async (req, res) => {
     }
 
     // Map Page 5 data if Page5 worksheet exists
-    const page5Worksheet = workbook.sheet('Page5');
+    const page5Worksheet = workbook.getWorksheet('Page5');
     if (page5Worksheet) {
       // Copy header info to Page 5
-      page5Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      page5Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page5Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
-      page5Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page5Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page5Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page5Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page5Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
+      page5Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page5Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
 
       // Equipment data for Page 5 (D6)
       if (data.equipment_used && data.equipment_used.page5) {
-        page5Worksheet.cell('D6').value(data.equipment_used.page5.common || '');
+        page5Worksheet.getCell('D6').value = data.equipment_used.page5.common || '';
       }
 
       // Page 5 data mapping - PG Quality data - fill from bottom up
@@ -1509,9 +1550,9 @@ app.get('/export-168-16c-white-form', async (req, res) => {
           if (value && value !== '') {
             // Convert to number (0 or 1) to ensure proper number formatting in Excel
             const numValue = parseInt(value);
-            page5Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : '');
+            page5Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : '';
           } else {
-            page5Worksheet.cell(`D${row}`).value('');
+            page5Worksheet.getCell(`D${row}`).value = '';
           }
           row--;
         }
@@ -1528,7 +1569,7 @@ app.get('/export-168-16c-white-form', async (req, res) => {
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
 
     // 6. Write the workbook to response
-    const buffer = await workbook.outputAsync();
+    const buffer = await applyPasswordProtection(workbook);
     res.send(buffer);
 
   } catch (error) {
@@ -1610,13 +1651,13 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
     // Load the template file
     try {
-      workbook = await XlsxPopulate.fromFileAsync(templatePath);
-      worksheet = workbook.sheet('Page1');
+      workbook = await (async () => { const wb = new ExcelJS.Workbook(); await wb.xlsx.readFile(templatePath); return wb; })();
+      worksheet = workbook.getWorksheet('Page1');
       
       // If Jeddah template doesn't have Page5, try to load from P&G template
       let hasPage5 = false;
       try {
-        workbook.sheet('Page5');
+        workbook.getWorksheet('Page5');
         hasPage5 = true;
       } catch (error) {
         // Page5 doesn't exist - will need to create it or skip
@@ -1629,17 +1670,17 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
         if (fs.existsSync(pgTemplatePath)) {
           try {
             const pgWorkbook = await XlsxPopulate.fromFileAsync(pgTemplatePath);
-            const page5Sheet = pgWorkbook.sheet('Page5');
+            const page5Sheet = pgWorkbook.getWorksheet('Page5');
             if (page5Sheet) {
               // Clone the sheet - add a new sheet with same structure
-              const newPage5 = workbook.addSheet('Page5');
+              const newPage5 = workbook.addWorksheet('Page5');
               // Copy dimensions
               page5Sheet.columns().forEach((col, colIndex) => {
                 newPage5.column(colIndex + 1).width(col.width());
               });
               // Copy cell values and formatting from original
               page5Sheet.usedRange().forEach(cell => {
-                const newCell = newPage5.cell(cell.address());
+                const newCell = newPage5.getCell(cell.address());
                 newCell.value(cell.value());
                 if (cell.style()) {
                   newCell.style(cell.style());
@@ -1666,59 +1707,59 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
     if (cleanedProductCode.toLowerCase().includes('jeddah')) {
       cleanedProductCode = cleanedProductCode.replace(/\s*\([^)]*jeddah[^)]*\)/gi, '').trim();
     }
-    worksheet.cell('B4').value(cleanedProductCode);
+    worksheet.getCell('B4').value = cleanedProductCode;
 
     // Specification (B5)
-    worksheet.cell('B5').value(data.specification || '');
+    worksheet.getCell('B5').value = data.specification || '';
 
     // Production Order (F4)
-    worksheet.cell('F4').value(data.production_order || '');
+    worksheet.getCell('F4').value = data.production_order || '';
 
     // Purchase Order (F5)
-    worksheet.cell('F5').value(data.purchase_order || '');
+    worksheet.getCell('F5').value = data.purchase_order || '';
 
     // Machine (J4)
-    worksheet.cell('J4').value(data.machine_no || '');
+    worksheet.getCell('J4').value = data.machine_no || '';
 
     // Quantity (J5) - Add "Rolls" text like prestore form
-    worksheet.cell('J5').value(data.quantity ? `${data.quantity} Rolls` : '');
+    worksheet.getCell('J5').value = data.quantity ? `${data.quantity} Rolls` : '';
 
     // Production Date (N4) - format as DD/MM/YYYY
-    worksheet.cell('N4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+    worksheet.getCell('N4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
 
     // Inspection Date (N5) - format as DD/MM/YYYY
-    worksheet.cell('N5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    worksheet.getCell('N5').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Inspected By (B41)
-    worksheet.cell('B41').value(data.prepared_by || 'Unknown User');
+    worksheet.getCell('B41').value = data.prepared_by || 'Unknown User';
 
     // Inspection Date (B42) - format as DD/MM/YYYY
-    worksheet.cell('B42').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    worksheet.getCell('B42').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Verified By (L41)
-    worksheet.cell('L41').value(data.verified_by || 'Not Verified');
+    worksheet.getCell('L41').value = data.verified_by || 'Not Verified';
 
     // Verified Date (L42) - format as DD/MM/YYYY
-    worksheet.cell('L42').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+    worksheet.getCell('L42').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (O3)
-    worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+    worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
       const equipment = data.equipment_used.page1;
 
       // Basic Weight Equipment (D6)
-      worksheet.cell('D6').value(equipment.basic_weight || '');
+      worksheet.getCell('D6').value = equipment.basic_weight || '';
 
       // Thickness Equipment (G6)
-      worksheet.cell('G6').value(equipment.thickness || '');
+      worksheet.getCell('G6').value = equipment.thickness || '';
 
       // Opacity Equipment (J6)
-      worksheet.cell('J6').value(equipment.opacity || '');
+      worksheet.getCell('J6').value = equipment.opacity || '';
 
       // COF Equipment (M6)
-      worksheet.cell('M6').value(equipment.cof || '');
+      worksheet.getCell('M6').value = equipment.cof || '';
     }
 
     // Map sample data to the correct columns
@@ -1734,9 +1775,9 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`A${row}`).value(''); // Empty row
+          worksheet.getCell(`A${row}`).value = ''; // Empty row
         }
       }
     }
@@ -1750,9 +1791,9 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`B${row}`).value(''); // Empty row
+          worksheet.getCell(`B${row}`).value = ''; // Empty row
         }
       }
     }
@@ -1766,9 +1807,9 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`C${row}`).value(''); // Empty row
+          worksheet.getCell(`C${row}`).value = ''; // Empty row
         }
       }
     }
@@ -1782,9 +1823,9 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`D${row}`).value('');
+          worksheet.getCell(`D${row}`).value = '';
         }
       }
     }
@@ -1798,9 +1839,9 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`G${row}`).value('');
+          worksheet.getCell(`G${row}`).value = '';
         }
       }
     }
@@ -1814,9 +1855,9 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`J${row}`).value('');
+          worksheet.getCell(`J${row}`).value = '';
         }
       }
     }
@@ -1830,9 +1871,9 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`M${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`M${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`M${row}`).value('');
+          worksheet.getCell(`M${row}`).value = '';
         }
       }
     }
@@ -1844,15 +1885,15 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
       // Create Page2 sheet if it doesn't exist
       try {
-        page2Worksheet = workbook.sheet('Page2');
+        page2Worksheet = workbook.getWorksheet('Page2');
       } catch (error) {
         // Page2 sheet doesn't exist, create it
-        page2Worksheet = workbook.addSheet('Page2');
+        page2Worksheet = workbook.addWorksheet('Page2');
       }
 
       // Equipment data for Page 2 (D6)
       if (data.equipment_used && data.equipment_used.page2) {
-        page2Worksheet.cell('D6').value(data.equipment_used.page2.common || '');
+        page2Worksheet.getCell('D6').value = data.equipment_used.page2.common || '';
       }
 
       // Elongation MD 1 data to column D (D9-D38)
@@ -1874,7 +1915,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
         // Fill the Excel column D (rows 9-38) on Page2 sheet
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9; // Convert to 0-based index
-          page2Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`D${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -1895,7 +1936,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`E${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`E${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -1916,7 +1957,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`F${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -1937,7 +1978,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`H${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -1958,7 +1999,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`I${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -1979,7 +2020,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`J${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2000,7 +2041,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`L${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2021,7 +2062,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`M${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2042,15 +2083,15 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`N${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`N${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
 
         // Add personnel information to Page 2
-        page2Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-        page2Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-        page2Worksheet.cell('L42').value(data.verified_by || 'Not Verified');
-        page2Worksheet.cell('L43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-        page2Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+        page2Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+        page2Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+        page2Worksheet.getCell('L42').value = data.verified_by || 'Not Verified';
+        page2Worksheet.getCell('L43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+        page2Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
       }
     }
 
@@ -2062,15 +2103,15 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
       // Create Page3 sheet if it doesn't exist
       let page3Worksheet;
       try {
-        page3Worksheet = workbook.sheet('Page3');
+        page3Worksheet = workbook.getWorksheet('Page3');
       } catch (error) {
         // Page3 sheet doesn't exist, create it
-        page3Worksheet = workbook.addSheet('Page3');
+        page3Worksheet = workbook.addWorksheet('Page3');
       }
 
       // Equipment data for Page 3 (D6)
       if (data.equipment_used && data.equipment_used.page3) {
-        page3Worksheet.cell('D6').value(data.equipment_used.page3.common || '');
+        page3Worksheet.getCell('D6').value = data.equipment_used.page3.common || '';
       }
 
       // Elongation CD 1 data to column D (D9-D38)
@@ -2090,7 +2131,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`D${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2111,7 +2152,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`E${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`E${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2132,7 +2173,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`F${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2153,7 +2194,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`H${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2174,7 +2215,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`I${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2195,7 +2236,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`J${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2216,7 +2257,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`L${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2237,7 +2278,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`M${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2258,15 +2299,15 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`N${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`N${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
 
         // Add personnel information to Page 3
-        page3Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-        page3Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-        page3Worksheet.cell('L42').value(data.verified_by || 'Not Verified');
-        page3Worksheet.cell('L43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-        page3Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+        page3Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+        page3Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+        page3Worksheet.getCell('L42').value = data.verified_by || 'Not Verified';
+        page3Worksheet.getCell('L43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+        page3Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
       }
     }
 
@@ -2279,16 +2320,16 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
       // Create Page4 sheet if it doesn't exist
       let page4Worksheet;
       try {
-        page4Worksheet = workbook.sheet('Page4');
+        page4Worksheet = workbook.getWorksheet('Page4');
       } catch (error) {
         // Page4 sheet doesn't exist, create it
-        page4Worksheet = workbook.addSheet('Page4');
+        page4Worksheet = workbook.addWorksheet('Page4');
       }
 
       // Equipment data for Page 4 (D6, L6)
       if (data.equipment_used && data.equipment_used.page4) {
-        page4Worksheet.cell('D6').value(data.equipment_used.page4.color_common || '');
-        page4Worksheet.cell('L6').value(data.equipment_used.page4.gloss || '');
+        page4Worksheet.getCell('D6').value = data.equipment_used.page4.color_common || '';
+        page4Worksheet.getCell('L6').value = data.equipment_used.page4.gloss || '';
       }
 
       // Color L data to column D (D9-D38)
@@ -2308,7 +2349,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`D${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2329,7 +2370,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`F${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2350,7 +2391,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`H${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2371,7 +2412,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`J${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2392,7 +2433,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`L${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2413,7 +2454,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`M${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2434,15 +2475,15 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`N${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`N${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
 
         // Add personnel information to Page 4
-        page4Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-        page4Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-        page4Worksheet.cell('L42').value(data.verified_by || 'Not Verified');
-        page4Worksheet.cell('L43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-        page4Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+        page4Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+        page4Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+        page4Worksheet.getCell('L42').value = data.verified_by || 'Not Verified';
+        page4Worksheet.getCell('L43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+        page4Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
       }
     }
 
@@ -2451,10 +2492,10 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
       // Get Page5 sheet (should exist from template copy above)
       let page5Worksheet;
       try {
-        page5Worksheet = workbook.sheet('Page5');
+        page5Worksheet = workbook.getWorksheet('Page5');
       } catch (error) {
         console.log('Page5 sheet not found, creating blank sheet');
-        page5Worksheet = workbook.addSheet('Page5');
+        page5Worksheet = workbook.addWorksheet('Page5');
       }
 
       // PG Quality data to column D (D9-D38)
@@ -2468,18 +2509,18 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
         if (value && value !== '' && value !== null && value !== undefined) {
           // Convert to number (0 or 1) to ensure proper number formatting in Excel
           const numValue = parseInt(value);
-          page5Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : '');
+          page5Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : '';
         } else {
-          page5Worksheet.cell(`D${row}`).value('');
+          page5Worksheet.getCell(`D${row}`).value = '';
         }
       }
 
       // Add personnel information to Page 5
-      page5Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      page5Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page5Worksheet.cell('L42').value(data.verified_by || 'Not Verified');
-      page5Worksheet.cell('L43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page5Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page5Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page5Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page5Worksheet.getCell('L42').value = data.verified_by || 'Not Verified';
+      page5Worksheet.getCell('L43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page5Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
     }
 
     // 4. Generate filename and set response headers
@@ -2500,7 +2541,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
 
     // 6. Write the workbook to response
     try {
-      const buffer = await workbook.outputAsync();
+      const buffer = await applyPasswordProtection(workbook);
       res.send(buffer);
     } catch (excelError) {
       console.error('Error generating Excel file:', excelError);
@@ -2558,8 +2599,8 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
     // Load the template file
     try {
-      workbook = await XlsxPopulate.fromFileAsync(templatePath);
-      worksheet = workbook.sheet('Page1');
+      workbook = await (async () => { const wb = new ExcelJS.Workbook(); await wb.xlsx.readFile(templatePath); return wb; })();
+      worksheet = workbook.getWorksheet('Page1');
     } catch (error) {
       console.log('Error loading template:', error.message);
       console.log('Error stack:', error.stack);
@@ -2569,59 +2610,59 @@ app.get('/export-168-18c-white-form', async (req, res) => {
     // 3. Map data to Excel cells
 
     // Product Code (B4)
-    worksheet.cell('B4').value(data.product_code || '');
+    worksheet.getCell('B4').value = data.product_code || '';
 
     // Specification (B5)
-    worksheet.cell('B5').value(data.specification || '');
+    worksheet.getCell('B5').value = data.specification || '';
 
     // Production Order (F4)
-    worksheet.cell('F4').value(data.production_order || '');
+    worksheet.getCell('F4').value = data.production_order || '';
 
     // Purchase Order (F5)
-    worksheet.cell('F5').value(data.purchase_order || '');
+    worksheet.getCell('F5').value = data.purchase_order || '';
 
     // Machine (J4)
-    worksheet.cell('J4').value(data.machine_no || '');
+    worksheet.getCell('J4').value = data.machine_no || '';
 
     // Quantity (J5) - Add "Rolls" text like prestore form
-    worksheet.cell('J5').value(data.quantity ? `${data.quantity} Rolls` : '');
+    worksheet.getCell('J5').value = data.quantity ? `${data.quantity} Rolls` : '';
 
     // Production Date (N4) - format as DD/MM/YYYY
-    worksheet.cell('N4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+    worksheet.getCell('N4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
 
     // Inspection Date (N5) - format as DD/MM/YYYY
-    worksheet.cell('N5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    worksheet.getCell('N5').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Inspected By (B41)
-    worksheet.cell('B41').value(data.prepared_by || 'Unknown User');
+    worksheet.getCell('B41').value = data.prepared_by || 'Unknown User';
 
     // Inspection Date (B42) - format as DD/MM/YYYY
-    worksheet.cell('B42').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    worksheet.getCell('B42').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Verified By (L41)
-    worksheet.cell('L41').value(data.verified_by || 'Not Verified');
+    worksheet.getCell('L41').value = data.verified_by || 'Not Verified';
 
     // Verified Date (L42) - format as DD/MM/YYYY
-    worksheet.cell('L42').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+    worksheet.getCell('L42').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (O3)
-    worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+    worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
       const equipment = data.equipment_used.page1;
 
       // Basic Weight Equipment (D6)
-      worksheet.cell('D6').value(equipment.basic_weight || '');
+      worksheet.getCell('D6').value = equipment.basic_weight || '';
 
       // Thickness Equipment (G6)
-      worksheet.cell('G6').value(equipment.thickness || '');
+      worksheet.getCell('G6').value = equipment.thickness || '';
 
       // Opacity Equipment (J6)
-      worksheet.cell('J6').value(equipment.opacity || '');
+      worksheet.getCell('J6').value = equipment.opacity || '';
 
       // COF Equipment (M6)
-      worksheet.cell('M6').value(equipment.cof || '');
+      worksheet.getCell('M6').value = equipment.cof || '';
     }
 
     // Map sample data to the correct columns
@@ -2637,9 +2678,9 @@ app.get('/export-168-18c-white-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`A${row}`).value(''); // Empty row
+          worksheet.getCell(`A${row}`).value = ''; // Empty row
         }
       }
     }
@@ -2653,9 +2694,9 @@ app.get('/export-168-18c-white-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`B${row}`).value(''); // Empty row
+          worksheet.getCell(`B${row}`).value = ''; // Empty row
         }
       }
     }
@@ -2669,9 +2710,9 @@ app.get('/export-168-18c-white-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`C${row}`).value(''); // Empty row
+          worksheet.getCell(`C${row}`).value = ''; // Empty row
         }
       }
     }
@@ -2685,9 +2726,9 @@ app.get('/export-168-18c-white-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`D${row}`).value('');
+          worksheet.getCell(`D${row}`).value = '';
         }
       }
     }
@@ -2701,9 +2742,9 @@ app.get('/export-168-18c-white-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`G${row}`).value('');
+          worksheet.getCell(`G${row}`).value = '';
         }
       }
     }
@@ -2717,9 +2758,9 @@ app.get('/export-168-18c-white-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`J${row}`).value('');
+          worksheet.getCell(`J${row}`).value = '';
         }
       }
     }
@@ -2733,9 +2774,9 @@ app.get('/export-168-18c-white-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`M${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`M${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`M${row}`).value('');
+          worksheet.getCell(`M${row}`).value = '';
         }
       }
     }
@@ -2747,15 +2788,15 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
       // Create Page2 sheet if it doesn't exist
       try {
-        page2Worksheet = workbook.sheet('Page2');
+        page2Worksheet = workbook.getWorksheet('Page2');
       } catch (error) {
         // Page2 sheet doesn't exist, create it
-        page2Worksheet = workbook.addSheet('Page2');
+        page2Worksheet = workbook.addWorksheet('Page2');
       }
 
       // Equipment data for Page 2 (D6)
       if (data.equipment_used && data.equipment_used.page2) {
-        page2Worksheet.cell('D6').value(data.equipment_used.page2.common || '');
+        page2Worksheet.getCell('D6').value = data.equipment_used.page2.common || '';
       }
 
       // Elongation MD 1 data to column D (D9-D38)
@@ -2775,7 +2816,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`D${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2796,7 +2837,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`E${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`E${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2817,7 +2858,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`F${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2838,7 +2879,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`H${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2859,7 +2900,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`I${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2880,7 +2921,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`J${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2901,7 +2942,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`L${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2922,7 +2963,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`M${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -2943,16 +2984,16 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`N${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`N${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
       // Add personnel information to Page 2
-      page2Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      page2Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page2Worksheet.cell('L42').value(data.verified_by || 'Not Verified');
-      page2Worksheet.cell('L43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page2Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page2Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page2Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page2Worksheet.getCell('L42').value = data.verified_by || 'Not Verified';
+      page2Worksheet.getCell('L43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page2Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
     }
 
     // PAGE 3 DATA MAPPING - APE-168(18)C White Page 3 data (Elongation & Force CD, Modulus)
@@ -2963,15 +3004,15 @@ app.get('/export-168-18c-white-form', async (req, res) => {
       // Create Page3 sheet if it doesn't exist
       let page3Worksheet;
       try {
-        page3Worksheet = workbook.sheet('Page3');
+        page3Worksheet = workbook.getWorksheet('Page3');
       } catch (error) {
         // Page3 sheet doesn't exist, create it
-        page3Worksheet = workbook.addSheet('Page3');
+        page3Worksheet = workbook.addWorksheet('Page3');
       }
 
       // Equipment data for Page 3 (D6)
       if (data.equipment_used && data.equipment_used.page3) {
-        page3Worksheet.cell('D6').value(data.equipment_used.page3.common || '');
+        page3Worksheet.getCell('D6').value = data.equipment_used.page3.common || '';
       }
 
       // Elongation CD 1 data to column D (D9-D38)
@@ -2991,7 +3032,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`D${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -3012,7 +3053,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`E${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`E${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -3033,7 +3074,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`F${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -3054,7 +3095,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`H${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -3075,7 +3116,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`I${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -3096,7 +3137,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`J${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -3117,7 +3158,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`L${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -3138,7 +3179,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`M${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -3159,16 +3200,16 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`N${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`N${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
       // Add personnel information to Page 3
-      page3Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      page3Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page3Worksheet.cell('L42').value(data.verified_by || 'Not Verified');
-      page3Worksheet.cell('L43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page3Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page3Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page3Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page3Worksheet.getCell('L42').value = data.verified_by || 'Not Verified';
+      page3Worksheet.getCell('L43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page3Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
     }
 
     // PAGE 4 DATA MAPPING - APE-168(18)C White Page 4 data (Color & Gloss)
@@ -3180,16 +3221,16 @@ app.get('/export-168-18c-white-form', async (req, res) => {
       // Create Page4 sheet if it doesn't exist
       let page4Worksheet;
       try {
-        page4Worksheet = workbook.sheet('Page4');
+        page4Worksheet = workbook.getWorksheet('Page4');
       } catch (error) {
         // Page4 sheet doesn't exist, create it
-        page4Worksheet = workbook.addSheet('Page4');
+        page4Worksheet = workbook.addWorksheet('Page4');
       }
 
       // Equipment data for Page 4 (D6, L6)
       if (data.equipment_used && data.equipment_used.page4) {
-        page4Worksheet.cell('D6').value(data.equipment_used.page4.color_common || '');
-        page4Worksheet.cell('L6').value(data.equipment_used.page4.gloss || '');
+        page4Worksheet.getCell('D6').value = data.equipment_used.page4.color_common || '';
+        page4Worksheet.getCell('L6').value = data.equipment_used.page4.gloss || '';
       }
 
       // Color L data to column D (D9-D38)
@@ -3209,7 +3250,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`D${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -3230,7 +3271,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`F${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -3251,7 +3292,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`H${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -3272,7 +3313,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`J${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -3293,7 +3334,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`L${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -3314,7 +3355,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`M${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -3335,16 +3376,16 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`N${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`N${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
       // Add personnel information to Page 4
-      page4Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      page4Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page4Worksheet.cell('L42').value(data.verified_by || 'Not Verified');
-      page4Worksheet.cell('L43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page4Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page4Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page4Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page4Worksheet.getCell('L42').value = data.verified_by || 'Not Verified';
+      page4Worksheet.getCell('L43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page4Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
     }
 
     // NOTE: Skipping Page 5 (PG Quality) as it doesn't exist for 18gsm 168 white form
@@ -3361,7 +3402,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
 
     // 6. Write the workbook to response
     try {
-      const buffer = await workbook.outputAsync();
+      const buffer = await applyPasswordProtection(workbook);
       res.send(buffer);
     } catch (excelError) {
       console.error('Error generating Excel file:', excelError);
@@ -3417,55 +3458,55 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
 
     // Load the template file
     try {
-      workbook = await XlsxPopulate.fromFileAsync(templatePath);
-      worksheet = workbook.sheet('Page1');
+      workbook = await (async () => { const wb = new ExcelJS.Workbook(); await wb.xlsx.readFile(templatePath); return wb; })();
+      worksheet = workbook.getWorksheet('Page1');
     } catch (error) {
       console.log('Error loading template:', error.message);
       workbook = await XlsxPopulate.fromBlankAsync();
-      const page1Worksheet = workbook.addSheet('Page1');
+      const page1Worksheet = workbook.addWorksheet('Page1');
       worksheet = page1Worksheet;
     }
 
     // 3. Map data to Excel cells
 
     // Product Code (B4)
-    worksheet.cell('B4').value(data.product_code || '');
+    worksheet.getCell('B4').value = data.product_code || '';
 
     // Specification (B5)
-    worksheet.cell('B5').value(data.specification || '');
+    worksheet.getCell('B5').value = data.specification || '';
 
     // Production Order (G4)
-    worksheet.cell('G4').value(data.production_order || '');
+    worksheet.getCell('G4').value = data.production_order || '';
 
     // Purchase Order (G5)
-    worksheet.cell('G5').value(data.purchase_order || '');
+    worksheet.getCell('G5').value = data.purchase_order || '';
 
     // Machine (J4)
-    worksheet.cell('J4').value(data.machine_no || '');
+    worksheet.getCell('J4').value = data.machine_no || '';
 
     // Quantity (J5) - Add "Rolls" text like prestore form
-    worksheet.cell('J5').value(data.quantity ? `${data.quantity} Rolls` : '');
+    worksheet.getCell('J5').value = data.quantity ? `${data.quantity} Rolls` : '';
 
     // Production Date (N4) - format as DD/MM/YYYY
-    worksheet.cell('N4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+    worksheet.getCell('N4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
 
     // Inspection Date (N5) - format as DD/MM/YYYY
-    worksheet.cell('N5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    worksheet.getCell('N5').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Inspected By (B41)
-    worksheet.cell('B41').value(data.prepared_by || 'Unknown User');
+    worksheet.getCell('B41').value = data.prepared_by || 'Unknown User';
 
     // Inspection Date (B42) - format as DD/MM/YYYY
-    worksheet.cell('B42').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    worksheet.getCell('B42').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Verified By (M41)
-    worksheet.cell('M41').value(data.verified_by || 'Not Verified');
+    worksheet.getCell('M41').value = data.verified_by || 'Not Verified';
 
     // Verified Date (M42) - format as DD/MM/YYYY
-    worksheet.cell('M42').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+    worksheet.getCell('M42').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (O3)
-    worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+    worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
@@ -3475,22 +3516,22 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
         : data.equipment_used.page1;
 
       // Basic Weight Equipment (D6)
-      worksheet.cell('D6').value(equipment.basic_weight || '');
+      worksheet.getCell('D6').value = equipment.basic_weight || '';
 
       // Thickness Equipment (F6)
-      worksheet.cell('F6').value(equipment.thickness || '');
+      worksheet.getCell('F6').value = equipment.thickness || '';
 
       // Opacity Equipment (H6)
-      worksheet.cell('H6').value(equipment.opacity || '');
+      worksheet.getCell('H6').value = equipment.opacity || '';
 
       // COF Equipment (J6)
-      worksheet.cell('J6').value(equipment.cof || '');
+      worksheet.getCell('J6').value = equipment.cof || '';
 
       // Cut Width Equipment (L6)
-      worksheet.cell('L6').value(equipment.cut_width || '');
+      worksheet.getCell('L6').value = equipment.cut_width || '';
 
       // Color Equipment (N6)
-      worksheet.cell('N6').value(equipment.color_unprinted || '');
+      worksheet.getCell('N6').value = equipment.color_unprinted || '';
     }
 
     // Map sample data to the correct columns
@@ -3506,9 +3547,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`A${row}`).value(''); // Empty row
+          worksheet.getCell(`A${row}`).value = ''; // Empty row
         }
       }
     }
@@ -3522,9 +3563,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`B${row}`).value(''); // Empty row
+          worksheet.getCell(`B${row}`).value = ''; // Empty row
         }
       }
     }
@@ -3538,9 +3579,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`C${row}`).value(''); // Empty row
+          worksheet.getCell(`C${row}`).value = ''; // Empty row
         }
       }
     }
@@ -3555,9 +3596,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`D${row}`).value('');
+          worksheet.getCell(`D${row}`).value = '';
         }
       }
     }
@@ -3571,9 +3612,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`F${row}`).value('');
+          worksheet.getCell(`F${row}`).value = '';
         }
       }
     }
@@ -3587,9 +3628,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`H${row}`).value('');
+          worksheet.getCell(`H${row}`).value = '';
         }
       }
     }
@@ -3603,9 +3644,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`J${row}`).value('');
+          worksheet.getCell(`J${row}`).value = '';
         }
       }
     }
@@ -3619,9 +3660,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`L${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`L${row}`).value('');
+          worksheet.getCell(`L${row}`).value = '';
         }
       }
     }
@@ -3635,9 +3676,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`N${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`N${row}`).value('');
+          worksheet.getCell(`N${row}`).value = '';
         }
       }
     }
@@ -3651,26 +3692,26 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          worksheet.cell(`O${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          worksheet.getCell(`O${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          worksheet.cell(`O${row}`).value('');
+          worksheet.getCell(`O${row}`).value = '';
         }
       }
     }
 
     // Map Page 2 data if Page2 worksheet exists
-    const page2Worksheet = workbook.sheet('Page2');
+    const page2Worksheet = workbook.getWorksheet('Page2');
     if (page2Worksheet) {
       // Copy header info to Page 2
-      page2Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      page2Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page2Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
-      page2Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page2Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page2Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page2Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page2Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
+      page2Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page2Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
 
       // Equipment data for Page 2 (D6)
       if (data.equipment_used && data.equipment_used.page2) {
-        page2Worksheet.cell('D6').value(data.equipment_used.page2.common || '');
+        page2Worksheet.getCell('D6').value = data.equipment_used.page2.common || '';
       }
 
       // Page 2 data mapping - Elongation MD and Force MD data - fill from bottom up
@@ -3684,9 +3725,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`D${row}`).value('');
+            page2Worksheet.getCell(`D${row}`).value = '';
           }
           row--;
         }
@@ -3702,9 +3743,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`E${row}`).value('');
+            page2Worksheet.getCell(`E${row}`).value = '';
           }
           row--;
         }
@@ -3720,9 +3761,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`F${row}`).value('');
+            page2Worksheet.getCell(`F${row}`).value = '';
           }
           row--;
         }
@@ -3738,9 +3779,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`H${row}`).value('');
+            page2Worksheet.getCell(`H${row}`).value = '';
           }
           row--;
         }
@@ -3756,9 +3797,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`I${row}`).value('');
+            page2Worksheet.getCell(`I${row}`).value = '';
           }
           row--;
         }
@@ -3774,9 +3815,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`J${row}`).value('');
+            page2Worksheet.getCell(`J${row}`).value = '';
           }
           row--;
         }
@@ -3792,9 +3833,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`L${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`L${row}`).value('');
+            page2Worksheet.getCell(`L${row}`).value = '';
           }
           row--;
         }
@@ -3810,9 +3851,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`M${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`M${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`M${row}`).value('');
+            page2Worksheet.getCell(`M${row}`).value = '';
           }
           row--;
         }
@@ -3828,9 +3869,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page2Worksheet.cell(`N${row}`).value(!isNaN(numValue) ? numValue : value);
+            page2Worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page2Worksheet.cell(`N${row}`).value('');
+            page2Worksheet.getCell(`N${row}`).value = '';
           }
           row--;
         }
@@ -3838,18 +3879,18 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
     }
 
     // Map Page 3 data if Page3 worksheet exists
-    const page3Worksheet = workbook.sheet('Page3');
+    const page3Worksheet = workbook.getWorksheet('Page3');
     if (page3Worksheet) {
       // Copy header info to Page 3
-      page3Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      page3Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page3Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
-      page3Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page3Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page3Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page3Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page3Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
+      page3Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page3Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
 
       // Equipment data for Page 3 (D6)
       if (data.equipment_used && data.equipment_used.page3) {
-        page3Worksheet.cell('D6').value(data.equipment_used.page3.common || '');
+        page3Worksheet.getCell('D6').value = data.equipment_used.page3.common || '';
       }
 
       // Page 3 data mapping - Elongation CD and Force CD data - fill from bottom up
@@ -3863,9 +3904,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`D${row}`).value('');
+            page3Worksheet.getCell(`D${row}`).value = '';
           }
           row--;
         }
@@ -3881,9 +3922,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`E${row}`).value('');
+            page3Worksheet.getCell(`E${row}`).value = '';
           }
           row--;
         }
@@ -3899,9 +3940,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`F${row}`).value('');
+            page3Worksheet.getCell(`F${row}`).value = '';
           }
           row--;
         }
@@ -3917,9 +3958,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`H${row}`).value('');
+            page3Worksheet.getCell(`H${row}`).value = '';
           }
           row--;
         }
@@ -3935,9 +3976,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`I${row}`).value('');
+            page3Worksheet.getCell(`I${row}`).value = '';
           }
           row--;
         }
@@ -3953,9 +3994,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`J${row}`).value('');
+            page3Worksheet.getCell(`J${row}`).value = '';
           }
           row--;
         }
@@ -3971,9 +4012,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`L${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`L${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`L${row}`).value('');
+            page3Worksheet.getCell(`L${row}`).value = '';
           }
           row--;
         }
@@ -3989,9 +4030,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`M${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`M${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`M${row}`).value('');
+            page3Worksheet.getCell(`M${row}`).value = '';
           }
           row--;
         }
@@ -4007,9 +4048,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page3Worksheet.cell(`N${row}`).value(!isNaN(numValue) ? numValue : value);
+            page3Worksheet.getCell(`N${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page3Worksheet.cell(`N${row}`).value('');
+            page3Worksheet.getCell(`N${row}`).value = '';
           }
           row--;
         }
@@ -4017,18 +4058,18 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
     }
 
     // Map Page 4 data if Page4 worksheet exists
-    const page4Worksheet = workbook.sheet('Page4');
+    const page4Worksheet = workbook.getWorksheet('Page4');
     if (page4Worksheet) {
       // Copy header info to Page 4
-      page4Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      page4Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page4Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
-      page4Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page4Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page4Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page4Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page4Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
+      page4Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page4Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
 
       // Equipment data for Page 4 (D6)
       if (data.equipment_used && data.equipment_used.page4) {
-        page4Worksheet.cell('D6').value(data.equipment_used.page4.gloss || '');
+        page4Worksheet.getCell('D6').value = data.equipment_used.page4.gloss || '';
       }
 
       // Page 4 data mapping - Gloss data only - fill from bottom up
@@ -4042,9 +4083,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page4Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : value);
+            page4Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page4Worksheet.cell(`D${row}`).value('');
+            page4Worksheet.getCell(`D${row}`).value = '';
           }
           row--;
         }
@@ -4060,9 +4101,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page4Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : value);
+            page4Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page4Worksheet.cell(`E${row}`).value('');
+            page4Worksheet.getCell(`E${row}`).value = '';
           }
           row--;
         }
@@ -4078,9 +4119,9 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
           const value = dataValues[i];
           if (value && value !== '') {
             const numValue = parseFloat(value);
-            page4Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : value);
+            page4Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : value;
           } else {
-            page4Worksheet.cell(`F${row}`).value('');
+            page4Worksheet.getCell(`F${row}`).value = '';
           }
           row--;
         }
@@ -4097,7 +4138,7 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
 
     // 6. Write the workbook to response
-    const buffer = await workbook.outputAsync();
+    const buffer = await applyPasswordProtection(workbook);
     res.send(buffer);
 
   } catch (error) {
@@ -4162,84 +4203,84 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
 
     // Load the template file
     try {
-      workbook = await XlsxPopulate.fromFileAsync(templatePath);
-      worksheet = workbook.sheet('Page1');
+      workbook = await (async () => { const wb = new ExcelJS.Workbook(); await wb.xlsx.readFile(templatePath); return wb; })();
+      worksheet = workbook.getWorksheet('Page1');
 
       // Create or get Page2 sheet for Page 2 data
       try {
-        page2Worksheet = workbook.sheet('Page2');
+        page2Worksheet = workbook.getWorksheet('Page2');
       } catch (error) {
         // Page2 sheet doesn't exist, create it by copying Page1 structure
-        page2Worksheet = workbook.addSheet('Page2');
+        page2Worksheet = workbook.addWorksheet('Page2');
       }
     } catch (error) {
       console.log('Error loading template:', error.message);
       workbook = await XlsxPopulate.fromBlankAsync();
-      const page1Worksheet = workbook.addSheet('Page1');
+      const page1Worksheet = workbook.addWorksheet('Page1');
       worksheet = page1Worksheet;
-      page2Worksheet = workbook.addSheet('Page2');
+      page2Worksheet = workbook.addWorksheet('Page2');
       console.log('Created both Page1 and Page2 sheets');
     }
 
     // 3. Map data to Excel cells
 
     // Product Code (C4)
-    worksheet.cell('C4').value(data.product_code || '');
+    worksheet.getCell('C4').value = data.product_code || '';
 
     // Specification (C5)
-    worksheet.cell('C5').value(data.specification || '');
+    worksheet.getCell('C5').value = data.specification || '';
 
     // Production Order (F4)
-    worksheet.cell('F4').value(data.production_order || '');
+    worksheet.getCell('F4').value = data.production_order || '';
 
     // Purchase Order (F5)
-    worksheet.cell('F5').value(data.purchase_order || '');
+    worksheet.getCell('F5').value = data.purchase_order || '';
 
     // Machine (H4)
-    worksheet.cell('H4').value(data.machine_no || '');
+    worksheet.getCell('H4').value = data.machine_no || '';
 
     // Quantity (H5) - Add "Rolls" text like prestore form
-    worksheet.cell('H5').value(data.quantity ? `${data.quantity} Rolls` : '');
+    worksheet.getCell('H5').value = data.quantity ? `${data.quantity} Rolls` : '';
 
     // Production Date (L4) - format as DD/MM/YYYY
-    worksheet.cell('L4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+    worksheet.getCell('L4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
 
     // Inspection Date (L5) - format as DD/MM/YYYY
-    worksheet.cell('L5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    worksheet.getCell('L5').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Inspected By (B42)
-    worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
+    worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
 
     // Inspection Date (B43) - format as DD/MM/YYYY (duplicate for verification)
-    worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Verified By (I42)
-    worksheet.cell('I42').value(data.verified_by || 'Not Verified');
+    worksheet.getCell('I42').value = data.verified_by || 'Not Verified';
 
     // Verified Date (I43) - format as DD/MM/YYYY
-    worksheet.cell('I43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+    worksheet.getCell('I43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (L3)
-    worksheet.cell('L3').value(data.film_insp_form_ref_no || '');
+    worksheet.getCell('L3').value = data.film_insp_form_ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
       const equipment = data.equipment_used.page1;
 
       // Basic Weight Equipment (D6)
-      worksheet.cell('D6').value(equipment.basic_weight || '');
+      worksheet.getCell('D6').value = equipment.basic_weight || '';
 
       // COF Equipment (E6) - Template shows COF in column E
-      worksheet.cell('E6').value(equipment.cof_rr || equipment.cof_rs || '');
+      worksheet.getCell('E6').value = equipment.cof_rr || equipment.cof_rs || '';
 
       // Opacity Equipment (G6) - Template shows Opacity in column G
-      worksheet.cell('G6').value(equipment.opacity || '');
+      worksheet.getCell('G6').value = equipment.opacity || '';
 
       // Modulus Equipment (H6) - Template shows Modulus in column H
-      worksheet.cell('H6').value(equipment.modulus || '');
+      worksheet.getCell('H6').value = equipment.modulus || '';
 
       // Gloss Equipment (L6) - Template shows Gloss in column L
-      worksheet.cell('L6').value(equipment.gloss || '');
+      worksheet.getCell('L6').value = equipment.gloss || '';
     }
 
     // Map sample data to the correct columns - WHITE-234(18) has only Page 1 and Page 2
@@ -4255,9 +4296,9 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`A${row}`).value(''); // Empty row
+          worksheet.getCell(`A${row}`).value = ''; // Empty row
         }
       }
     }
@@ -4271,9 +4312,9 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`B${row}`).value(''); // Empty row
+          worksheet.getCell(`B${row}`).value = ''; // Empty row
         }
       }
     }
@@ -4287,9 +4328,9 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`C${row}`).value(''); // Empty row
+          worksheet.getCell(`C${row}`).value = ''; // Empty row
         }
       }
     }
@@ -4314,7 +4355,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       // Fill the Excel column D (rows 9-38)
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
-        worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        worksheet.getCell(`D${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -4338,7 +4379,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       // Fill the Excel column G (rows 9-38)
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
-        worksheet.cell(`G${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        worksheet.getCell(`G${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -4362,7 +4403,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       // Fill the Excel column H (rows 9-38)
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
-        worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        worksheet.getCell(`H${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -4385,7 +4426,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       // Fill the Excel column I (rows 9-38)
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
-        worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        worksheet.getCell(`I${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -4408,7 +4449,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       // Fill the Excel column J (rows 9-38)
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
-        worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        worksheet.getCell(`J${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -4431,7 +4472,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       // Fill the Excel column L (rows 9-38)
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
-        worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        worksheet.getCell(`L${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -4454,7 +4495,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       // Fill the Excel column E (rows 9-38)
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
-        worksheet.cell(`E${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        worksheet.getCell(`E${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -4477,7 +4518,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       // Fill the Excel column F (rows 9-38)
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
-        worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        worksheet.getCell(`F${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -4491,10 +4532,10 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
 
       // Create Page2 sheet if it doesn't exist
       try {
-        page2Worksheet = workbook.sheet('Page2');
+        page2Worksheet = workbook.getWorksheet('Page2');
       } catch (error) {
         // Page2 sheet doesn't exist, create it
-        page2Worksheet = workbook.addSheet('Page2');
+        page2Worksheet = workbook.addWorksheet('Page2');
       }
 
       // Force Elongation MD 5% data to column D (D9-D38)
@@ -4516,7 +4557,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
         // Fill the Excel column D (rows 8-37) on Page2 sheet
         for (let row = 8; row <= 37; row++) {
           const dataIndex = row - 8; // Convert to 0-based index
-          page2Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`D${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -4539,7 +4580,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
         // Fill the Excel column E (rows 8-37) on Page2 sheet
         for (let row = 8; row <= 37; row++) {
           const dataIndex = row - 8; // Convert to 0-based index
-          page2Worksheet.cell(`E${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`E${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -4562,7 +4603,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
         // Fill the Excel column F (rows 8-37) on Page2 sheet
         for (let row = 8; row <= 37; row++) {
           const dataIndex = row - 8; // Convert to 0-based index
-          page2Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`F${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -4585,7 +4626,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
         // Fill the Excel column G (rows 8-37) on Page2 sheet
         for (let row = 8; row <= 37; row++) {
           const dataIndex = row - 8; // Convert to 0-based index
-          page2Worksheet.cell(`G${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`G${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -4608,7 +4649,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
         // Fill the Excel column H (rows 8-37) on Page2 sheet
         for (let row = 8; row <= 37; row++) {
           const dataIndex = row - 8; // Convert to 0-based index
-          page2Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`H${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -4631,7 +4672,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
         // Fill the Excel column I (rows 8-37) on Page2 sheet
         for (let row = 8; row <= 37; row++) {
           const dataIndex = row - 8; // Convert to 0-based index
-          page2Worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`I${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -4654,7 +4695,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
         // Fill the Excel column J (rows 8-37) on Page2 sheet
         for (let row = 8; row <= 37; row++) {
           const dataIndex = row - 8; // Convert to 0-based index
-          page2Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`J${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -4677,7 +4718,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
         // Fill the Excel column K (rows 8-37) on Page2 sheet
         for (let row = 8; row <= 37; row++) {
           const dataIndex = row - 8; // Convert to 0-based index
-          page2Worksheet.cell(`K${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`K${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -4706,9 +4747,9 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length && dataValues[dataIndex] !== '') {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page2Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page2Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page2Worksheet.cell(`D${row}`).value('');
+          page2Worksheet.getCell(`D${row}`).value = '';
         }
       }
     }
@@ -4730,9 +4771,9 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length && dataValues[dataIndex] !== '') {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page2Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page2Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page2Worksheet.cell(`E${row}`).value('');
+          page2Worksheet.getCell(`E${row}`).value = '';
         }
       }
     }
@@ -4754,9 +4795,9 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length && dataValues[dataIndex] !== '') {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page2Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page2Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page2Worksheet.cell(`F${row}`).value('');
+          page2Worksheet.getCell(`F${row}`).value = '';
         }
       }
     }
@@ -4778,9 +4819,9 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
         const dataIndex = row - 8;
         if (dataIndex < dataValues.length && dataValues[dataIndex] !== '') {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page2Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page2Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page2Worksheet.cell(`G${row}`).value('');
+          page2Worksheet.getCell(`G${row}`).value = '';
         }
       }
     }
@@ -4805,7 +4846,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       // Fill the Excel column H (rows 8-37) on Page2 sheet
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
-        page2Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        page2Worksheet.getCell(`H${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -4829,7 +4870,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       // Fill the Excel column I (rows 8-37) on Page2 sheet
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
-        page2Worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        page2Worksheet.getCell(`I${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -4853,7 +4894,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       // Fill the Excel column J (rows 8-37) on Page2 sheet
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
-        page2Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        page2Worksheet.getCell(`J${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -4877,7 +4918,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       // Fill the Excel column K (rows 8-37) on Page2 sheet
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
-        page2Worksheet.cell(`K${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        page2Worksheet.getCell(`K${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     } else {
     }
@@ -4886,19 +4927,19 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       console.log('Mapping Page 2 headers');
 
       // Inspected By (B41)
-      page2Worksheet.cell('B41').value(data.prepared_by || 'Unknown User');
+      page2Worksheet.getCell('B41').value = data.prepared_by || 'Unknown User';
 
       // Inspection Date (B42) - format as DD/MM/YYYY
-      page2Worksheet.cell('B42').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+      page2Worksheet.getCell('B42').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
       // Verified By (I41)
-      page2Worksheet.cell('I41').value(data.verified_by || 'Not Verified');
+      page2Worksheet.getCell('I41').value = data.verified_by || 'Not Verified';
 
       // Verified Date (I42) - format as DD/MM/YYYY
-      page2Worksheet.cell('I42').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+      page2Worksheet.getCell('I42').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
       // Film Inspection Form Ref No (K3)
-      page2Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+      page2Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
 
       console.log('Page 2 headers mapped successfully');
     }
@@ -4910,10 +4951,10 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       const page2Equipment = data.equipment_used.page2;
 
       // UTM Machine (D6) - For force measurements
-      page2Worksheet.cell('D6').value(page2Equipment.force || '');
+      page2Worksheet.getCell('D6').value = page2Equipment.force || '';
 
       // Spectro Photometer (H6) - For color measurements
-      page2Worksheet.cell('H6').value(page2Equipment.colour || '');
+      page2Worksheet.getCell('H6').value = page2Equipment.colour || '';
 
       console.log('Page 2 equipment data mapped successfully');
     }
@@ -4930,7 +4971,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
 
     // 6. Write the workbook to response
     console.log('About to write workbook to buffer...');
-    const buffer = await workbook.outputAsync();
+    const buffer = await applyPasswordProtection(workbook);
     console.log('Workbook buffer created, size:', buffer.length);
     res.send(buffer);
     console.log('Response sent successfully');
@@ -4998,84 +5039,84 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
 
     // Load the template file
     try {
-      workbook = await XlsxPopulate.fromFileAsync(templatePath);
-      worksheet = workbook.sheet('Page1');
+      workbook = await (async () => { const wb = new ExcelJS.Workbook(); await wb.xlsx.readFile(templatePath); return wb; })();
+      worksheet = workbook.getWorksheet('Page1');
 
       // Create or get Page2 sheet for Page 2 data
       try {
-        page2Worksheet = workbook.sheet('Page2');
+        page2Worksheet = workbook.getWorksheet('Page2');
       } catch (error) {
         // Page2 sheet doesn't exist, create it by copying Page1 structure
-        page2Worksheet = workbook.addSheet('Page2');
+        page2Worksheet = workbook.addWorksheet('Page2');
       }
     } catch (error) {
       console.log('Error loading template:', error.message);
       workbook = await XlsxPopulate.fromBlankAsync();
-      const page1Worksheet = workbook.addSheet('Page1');
+      const page1Worksheet = workbook.addWorksheet('Page1');
       worksheet = page1Worksheet;
-      page2Worksheet = workbook.addSheet('Page2');
+      page2Worksheet = workbook.addWorksheet('Page2');
       console.log('Created both Page1 and Page2 sheets');
     }
 
     // 3. Map data to Excel cells
 
     // Product Code (C4)
-    worksheet.cell('C4').value(data.product_code || '');
+    worksheet.getCell('C4').value = data.product_code || '';
 
     // Specification (C5)
-    worksheet.cell('C5').value(data.specification || '');
+    worksheet.getCell('C5').value = data.specification || '';
 
     // Production Order (F4)
-    worksheet.cell('F4').value(data.production_order || '');
+    worksheet.getCell('F4').value = data.production_order || '';
 
     // Purchase Order (F5)
-    worksheet.cell('F5').value(data.purchase_order || '');
+    worksheet.getCell('F5').value = data.purchase_order || '';
 
     // Machine (H4)
-    worksheet.cell('H4').value(data.machine_no || '');
+    worksheet.getCell('H4').value = data.machine_no || '';
 
     // Quantity (H5) - Add "Rolls" text like prestore form
-    worksheet.cell('H5').value(data.quantity ? `${data.quantity} Rolls` : '');
+    worksheet.getCell('H5').value = data.quantity ? `${data.quantity} Rolls` : '';
 
     // Production Date (L4) - format as DD/MM/YYYY
-    worksheet.cell('L4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+    worksheet.getCell('L4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
 
     // Inspection Date (L5) - format as DD/MM/YYYY
-    worksheet.cell('L5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    worksheet.getCell('L5').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Inspected By (B42)
-    worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
+    worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
 
     // Inspection Date (B43) - format as DD/MM/YYYY (duplicate for verification)
-    worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Verified By (I42)
-    worksheet.cell('I42').value(data.verified_by || 'Not Verified');
+    worksheet.getCell('I42').value = data.verified_by || 'Not Verified';
 
     // Verified Date (I43) - format as DD/MM/YYYY
-    worksheet.cell('I43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+    worksheet.getCell('I43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (L3)
-    worksheet.cell('L3').value(data.film_insp_form_ref_no || '');
+    worksheet.getCell('L3').value = data.film_insp_form_ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
       const equipment = data.equipment_used.page1;
 
       // Basic Weight Equipment (D6)
-      worksheet.cell('D6').value(equipment.basic_weight || '');
+      worksheet.getCell('D6').value = equipment.basic_weight || '';
 
       // COF Equipment (E6) - Template shows COF in column E
-      worksheet.cell('E6').value(equipment.cof_rr || equipment.cof_rs || '');
+      worksheet.getCell('E6').value = equipment.cof_rr || equipment.cof_rs || '';
 
       // Opacity Equipment (G6) - Template shows Opacity in column G
-      worksheet.cell('G6').value(equipment.opacity || '');
+      worksheet.getCell('G6').value = equipment.opacity || '';
 
       // Modulus Equipment (H6) - Template shows Modulus in column H
-      worksheet.cell('H6').value(equipment.modulus || '');
+      worksheet.getCell('H6').value = equipment.modulus || '';
 
       // Gloss Equipment (L6) - Template shows Gloss in column L
-      worksheet.cell('L6').value(equipment.gloss || '');
+      worksheet.getCell('L6').value = equipment.gloss || '';
     }
 
     // Map sample data to the correct columns - WHITE-214(18) has only Page 1 and Page 2
@@ -5091,9 +5132,9 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`A${row}`).value(''); // Empty row
+          worksheet.getCell(`A${row}`).value = ''; // Empty row
         }
       }
     }
@@ -5107,9 +5148,9 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`B${row}`).value(''); // Empty row
+          worksheet.getCell(`B${row}`).value = ''; // Empty row
         }
       }
     }
@@ -5123,9 +5164,9 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+          worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
         } else {
-          worksheet.cell(`C${row}`).value(''); // Empty row
+          worksheet.getCell(`C${row}`).value = ''; // Empty row
         }
       }
     }
@@ -5150,7 +5191,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
       // Fill the Excel column D (rows 9-38)
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
-        worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        worksheet.getCell(`D${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -5174,7 +5215,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
       // Fill the Excel column G (rows 9-38)
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
-        worksheet.cell(`G${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        worksheet.getCell(`G${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -5198,7 +5239,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
       // Fill the Excel column H (rows 9-38)
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
-        worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        worksheet.getCell(`H${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -5221,7 +5262,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
       // Fill the Excel column I (rows 9-38)
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
-        worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        worksheet.getCell(`I${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -5244,7 +5285,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
       // Fill the Excel column J (rows 9-38)
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
-        worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        worksheet.getCell(`J${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -5267,7 +5308,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
       // Fill the Excel column L (rows 9-38)
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
-        worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        worksheet.getCell(`L${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -5298,7 +5339,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
         // Fill the Excel column D (rows 8-37) on Page2 sheet
         for (let row = 8; row <= 37; row++) {
           const dataIndex = row - 8; // Convert to 0-based index
-          page2Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`D${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -5321,7 +5362,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
         // Fill the Excel column E (rows 8-37) on Page2 sheet
         for (let row = 8; row <= 37; row++) {
           const dataIndex = row - 8; // Convert to 0-based index
-          page2Worksheet.cell(`E${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`E${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -5344,7 +5385,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
         // Fill the Excel column F (rows 8-37) on Page2 sheet
         for (let row = 8; row <= 37; row++) {
           const dataIndex = row - 8; // Convert to 0-based index
-          page2Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`F${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -5367,7 +5408,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
         // Fill the Excel column G (rows 8-37) on Page2 sheet
         for (let row = 8; row <= 37; row++) {
           const dataIndex = row - 8; // Convert to 0-based index
-          page2Worksheet.cell(`G${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`G${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -5390,7 +5431,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
         // Fill the Excel column H (rows 8-37) on Page2 sheet
         for (let row = 8; row <= 37; row++) {
           const dataIndex = row - 8; // Convert to 0-based index
-          page2Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`H${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -5413,7 +5454,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
         // Fill the Excel column I (rows 8-37) on Page2 sheet
         for (let row = 8; row <= 37; row++) {
           const dataIndex = row - 8; // Convert to 0-based index
-          page2Worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`I${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -5436,7 +5477,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
         // Fill the Excel column J (rows 8-37) on Page2 sheet
         for (let row = 8; row <= 37; row++) {
           const dataIndex = row - 8; // Convert to 0-based index
-          page2Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`J${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -5459,7 +5500,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
         // Fill the Excel column K (rows 8-37) on Page2 sheet
         for (let row = 8; row <= 37; row++) {
           const dataIndex = row - 8; // Convert to 0-based index
-          page2Worksheet.cell(`K${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`K${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
     } else {
@@ -5470,19 +5511,19 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
       console.log('Mapping Page 2 headers');
 
       // Inspected By (B41)
-      page2Worksheet.cell('B41').value(data.prepared_by || 'Unknown User');
+      page2Worksheet.getCell('B41').value = data.prepared_by || 'Unknown User';
 
       // Inspection Date (B42) - format as DD/MM/YYYY
-      page2Worksheet.cell('B42').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+      page2Worksheet.getCell('B42').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
       // Verified By (I41)
-      page2Worksheet.cell('I41').value(data.verified_by || 'Not Verified');
+      page2Worksheet.getCell('I41').value = data.verified_by || 'Not Verified';
 
       // Verified Date (I42) - format as DD/MM/YYYY
-      page2Worksheet.cell('I42').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+      page2Worksheet.getCell('I42').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
       // Film Inspection Form Ref No (K3)
-      page2Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+      page2Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
 
       console.log('Page 2 headers mapped successfully');
     }
@@ -5494,10 +5535,10 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
       const page2Equipment = data.equipment_used.page2;
 
       // UTM Machine (D6) - For force measurements
-      page2Worksheet.cell('D6').value(page2Equipment.force || '');
+      page2Worksheet.getCell('D6').value = page2Equipment.force || '';
 
       // Spectro Photometer (H6) - For color measurements
-      page2Worksheet.cell('H6').value(page2Equipment.colour || '');
+      page2Worksheet.getCell('H6').value = page2Equipment.colour || '';
 
       console.log('Page 2 equipment data mapped successfully');
     }
@@ -5515,7 +5556,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
 
     // 6. Write the workbook to response
     console.log('About to write workbook to buffer...');
-    const buffer = await workbook.outputAsync();
+    const buffer = await applyPasswordProtection(workbook);
     console.log('Workbook buffer created, size:', buffer.length);
     res.send(buffer);
     console.log('Response sent successfully');
@@ -5583,97 +5624,97 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
     // Load the template file
     try {
-      workbook = await XlsxPopulate.fromFileAsync(templatePath);
-      page1Worksheet = workbook.sheet('Page1');
+      workbook = await (async () => { const wb = new ExcelJS.Workbook(); await wb.xlsx.readFile(templatePath); return wb; })();
+      page1Worksheet = workbook.getWorksheet('Page1');
 
       // Create or get Page2 sheet for Page 2 data
       try {
-        page2Worksheet = workbook.sheet('Page2');
+        page2Worksheet = workbook.getWorksheet('Page2');
       } catch (error) {
         // Page2 sheet doesn't exist, create it by copying Page1 structure
-        page2Worksheet = workbook.addSheet('Page2');
+        page2Worksheet = workbook.addWorksheet('Page2');
       }
 
       // Create or get Page3 sheet for Page 3 data
       try {
-        page3Worksheet = workbook.sheet('Page3');
+        page3Worksheet = workbook.getWorksheet('Page3');
       } catch (error) {
         // Page3 sheet doesn't exist, create it
-        page3Worksheet = workbook.addSheet('Page3');
+        page3Worksheet = workbook.addWorksheet('Page3');
       }
 
       // Create or get Page4 sheet for Page 4 data
       try {
-        page4Worksheet = workbook.sheet('Page4');
+        page4Worksheet = workbook.getWorksheet('Page4');
       } catch (error) {
         // Page4 sheet doesn't exist, create it
-        page4Worksheet = workbook.addSheet('Page4');
+        page4Worksheet = workbook.addWorksheet('Page4');
       }
     } catch (error) {
       console.log('Error loading template:', error.message);
       workbook = await XlsxPopulate.fromBlankAsync();
-      page1Worksheet = workbook.addSheet('Page1');
-      page2Worksheet = workbook.addSheet('Page2');
-      page3Worksheet = workbook.addSheet('Page3');
-      page4Worksheet = workbook.addSheet('Page4');
+      page1Worksheet = workbook.addWorksheet('Page1');
+      page2Worksheet = workbook.addWorksheet('Page2');
+      page3Worksheet = workbook.addWorksheet('Page3');
+      page4Worksheet = workbook.addWorksheet('Page4');
     }
 
     // 3. Map data to Excel cells for Page 1
     if (page1Worksheet) {
       // Product Code (B4)
-      page1Worksheet.cell('B4').value(data.product_code || '');
+      page1Worksheet.getCell('B4').value = data.product_code || '';
 
       // Specification (B5)
-      page1Worksheet.cell('B5').value(data.specification || '');
+      page1Worksheet.getCell('B5').value = data.specification || '';
 
       // Production Order (F4)
-      page1Worksheet.cell('F4').value(data.production_order || '');
+      page1Worksheet.getCell('F4').value = data.production_order || '';
 
       // Purchase Order (F5)
-      page1Worksheet.cell('F5').value(data.purchase_order || '');
+      page1Worksheet.getCell('F5').value = data.purchase_order || '';
 
       // Machine (J4)
-      page1Worksheet.cell('J4').value(data.machine_no || '');
+      page1Worksheet.getCell('J4').value = data.machine_no || '';
 
       // Quantity (J5) - Add "Rolls" text like prestore form
-      page1Worksheet.cell('J5').value(data.quantity ? `${data.quantity} Rolls` : '');
+      page1Worksheet.getCell('J5').value = data.quantity ? `${data.quantity} Rolls` : '';
 
       // Production Date (N4) - format as DD/MM/YYYY
-      page1Worksheet.cell('N4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+      page1Worksheet.getCell('N4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
 
       // Inspection Date (N5) - format as DD/MM/YYYY
-      page1Worksheet.cell('N5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+      page1Worksheet.getCell('N5').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
       // Inspected By (B41)
-      page1Worksheet.cell('B41').value(data.prepared_by || 'Unknown User');
+      page1Worksheet.getCell('B41').value = data.prepared_by || 'Unknown User';
 
       // Inspection Date (B42) - format as DD/MM/YYYY (duplicate for verification)
-      page1Worksheet.cell('B42').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+      page1Worksheet.getCell('B42').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
       // Verified By (L41)
-      page1Worksheet.cell('L41').value(data.verified_by || 'Not Verified');
+      page1Worksheet.getCell('L41').value = data.verified_by || 'Not Verified';
 
       // Verified Date (L42) - format as DD/MM/YYYY
-      page1Worksheet.cell('L42').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+      page1Worksheet.getCell('L42').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
       // Film Inspection Form Ref No (O3)
-      page1Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page1Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
 
       // Map equipment data to Excel cells
       if (data.equipment_used && data.equipment_used.page1) {
         const equipment = data.equipment_used.page1;
 
         // Basic Weight Equipment (D6)
-        page1Worksheet.cell('D6').value(equipment.basic_weight || '');
+        page1Worksheet.getCell('D6').value = equipment.basic_weight || '';
 
         // Thickness Equipment (G6)
-        page1Worksheet.cell('G6').value(equipment.thickness || '');
+        page1Worksheet.getCell('G6').value = equipment.thickness || '';
 
         // Opacity Equipment (J6)
-        page1Worksheet.cell('J6').value(equipment.opacity || '');
+        page1Worksheet.getCell('J6').value = equipment.opacity || '';
 
         // COF Equipment (M6)
-        page1Worksheet.cell('M6').value(equipment.cof || '');
+        page1Worksheet.getCell('M6').value = equipment.cof || '';
       }
     }
 
@@ -5690,9 +5731,9 @@ app.get('/export-102-18c-white-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`A${row}`).value(''); // Empty row
+          page1Worksheet.getCell(`A${row}`).value = ''; // Empty row
         }
       }
     }
@@ -5706,9 +5747,9 @@ app.get('/export-102-18c-white-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`B${row}`).value(''); // Empty row
+          page1Worksheet.getCell(`B${row}`).value = ''; // Empty row
         }
       }
     }
@@ -5722,9 +5763,9 @@ app.get('/export-102-18c-white-form', async (req, res) => {
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`C${row}`).value(''); // Empty row
+          page1Worksheet.getCell(`C${row}`).value = ''; // Empty row
         }
       }
     }
@@ -5749,7 +5790,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
       // Fill the Excel column D (rows 8-37)
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
-        page1Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        page1Worksheet.getCell(`D${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -5772,7 +5813,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
       // Fill the Excel column G (rows 8-37)
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
-        page1Worksheet.cell(`G${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        page1Worksheet.getCell(`G${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -5795,7 +5836,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
       // Fill the Excel column J (rows 8-37)
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
-        page1Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        page1Worksheet.getCell(`J${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -5818,7 +5859,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
       // Fill the Excel column M (rows 8-37)
       for (let row = 8; row <= 37; row++) {
         const dataIndex = row - 8; // Convert to 0-based index
-        page1Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+        page1Worksheet.getCell(`M${row}`).value = convertToNumber(dataValues[dataIndex] || '');
       }
     }
 
@@ -5827,15 +5868,15 @@ app.get('/export-102-18c-white-form', async (req, res) => {
     // Map Page 2 data if Page2 worksheet exists
     if (page2Worksheet) {
       // Copy header info to Page 2
-      page2Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      page2Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page2Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
-      page2Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page2Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page2Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page2Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page2Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
+      page2Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page2Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
 
       // Equipment data for Page 2 (D6)
       if (data.equipment_used && data.equipment_used.page2) {
-        page2Worksheet.cell('D6').value(data.equipment_used.page2.common || '');
+        page2Worksheet.getCell('D6').value = data.equipment_used.page2.common || '';
       }
 
       // Page 2 data mapping - Mechanical Properties MD - fill from top down (rows 9-38)
@@ -5855,7 +5896,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`D${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -5875,7 +5916,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`E${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`E${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -5895,7 +5936,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`F${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -5916,7 +5957,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`H${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -5936,7 +5977,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`I${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -5956,7 +5997,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`J${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -5976,7 +6017,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`L${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -5996,7 +6037,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`M${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6016,7 +6057,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page2Worksheet.cell(`N${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page2Worksheet.getCell(`N${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
     }
@@ -6024,15 +6065,15 @@ app.get('/export-102-18c-white-form', async (req, res) => {
     // Map Page 3 data if Page3 worksheet exists
     if (page3Worksheet) {
       // Copy header info to Page 3
-      page3Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      page3Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page3Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
-      page3Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page3Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page3Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page3Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page3Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
+      page3Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page3Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
 
       // Equipment data for Page 3 (D6)
       if (data.equipment_used && data.equipment_used.page3) {
-        page3Worksheet.cell('D6').value(data.equipment_used.page3.common || '');
+        page3Worksheet.getCell('D6').value = data.equipment_used.page3.common || '';
       }
 
       // Page 3 data mapping - Mechanical Properties CD - fill from top down (rows 9-38)
@@ -6052,7 +6093,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`D${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6072,7 +6113,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`E${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`E${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6092,7 +6133,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`F${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6112,7 +6153,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`H${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6132,7 +6173,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`I${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`I${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6152,7 +6193,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`J${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6172,7 +6213,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`L${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6192,7 +6233,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`M${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6212,23 +6253,23 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page3Worksheet.cell(`N${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page3Worksheet.getCell(`N${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
     }
     // Map Page 4 data if Page4 worksheet exists
     if (page4Worksheet) {
       // Copy header info to Page 4
-      page4Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      page4Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page4Worksheet.cell('M42').value(data.verified_by || 'Not Verified');
-      page4Worksheet.cell('M43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page4Worksheet.cell('O3').value(data.film_insp_form_ref_no || '');
+      page4Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page4Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page4Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
+      page4Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page4Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
 
       // Equipment data for Page 4 (D6, L6)
       if (data.equipment_used && data.equipment_used.page4) {
-        page4Worksheet.cell('D6').value(data.equipment_used.page4.color_common || '');
-        page4Worksheet.cell('L6').value(data.equipment_used.page4.gloss || '');
+        page4Worksheet.getCell('D6').value = data.equipment_used.page4.color_common || '';
+        page4Worksheet.getCell('L6').value = data.equipment_used.page4.gloss || '';
       }
 
       // Page 4 data mapping - Optical Properties - fill from top down (rows 9-38)
@@ -6248,7 +6289,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`D${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`D${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6268,7 +6309,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`F${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`F${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6288,7 +6329,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`H${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`H${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6308,7 +6349,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`J${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`J${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6328,7 +6369,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`L${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`L${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6348,7 +6389,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`M${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6368,7 +6409,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`N${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`N${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6388,7 +6429,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`M${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`M${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
 
@@ -6408,13 +6449,13 @@ app.get('/export-102-18c-white-form', async (req, res) => {
 
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
-          page4Worksheet.cell(`N${row}`).value(convertToNumber(dataValues[dataIndex] || ''));
+          page4Worksheet.getCell(`N${row}`).value = convertToNumber(dataValues[dataIndex] || '');
         }
       }
     }
 
     // 4. Generate and send the Excel file
-    const buffer = await workbook.outputAsync();
+    const buffer = await applyPasswordProtection(workbook);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="FIF-${data.product_code || 'UNKNOWN'}-.xlsx"`);
     res.send(buffer);

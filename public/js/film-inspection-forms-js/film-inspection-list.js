@@ -250,7 +250,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             )];
 
             if (uniqueProductCodes.length === 0) {
-                console.log('No product codes found to lookup MRMP / GCAS / MATERIAL CODE');
                 return;
             }
 
@@ -287,8 +286,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
 
-            console.log('MRMP / GCAS / MATERIAL CODE lookup completed for', allData.length, 'forms');
-
         } catch (error) {
             console.error('Error in lookupGcasIrmsForForms:', error);
         }
@@ -305,7 +302,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             )];
 
             if (uniqueProductSpecs.length === 0) {
-                console.log('No product specifications found in search results to lookup MRMP / GCAS / MATERIAL CODE');
                 return;
             }
 
@@ -343,8 +339,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     form.gcas_irms = '';
                 }
             });
-
-            console.log('MRMP / GCAS / MATERIAL CODE lookup completed for search results');
 
         } catch (error) {
             console.error('Error in lookupGcasIrmsForSearchResults:', error);
@@ -405,7 +399,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Status filter - determine status based on approval
             if (activeFilters.status) {
-                const formStatus = form.approved_by ? 'Complete' : 'Pending';
+                const formStatus = form.approved_by ? 'Approved' : 'Pending';
                 if (formStatus !== activeFilters.status) {
                     return false;
                 }
@@ -467,7 +461,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const serialNumber = totalItems - (startIndex + index);
 
             const statusBadge = formData.approved_by ?
-                `<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Complete</span>` :
+                `<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Approved</span>` :
                 `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Pending</span>`;
 
             row.innerHTML = `
@@ -490,37 +484,37 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
                     <div class="flex justify-center space-x-1 flex-nowrap max-w-full overflow-hidden">
-                        <!-- Sky blue Enter Data button -->
-                        <button class="p-1 rounded-md bg-sky-50 hover:bg-sky-100 text-sky-600 hover:text-sky-800 transition-all duration-200 border border-sky-200 hover:border-sky-300 flex-shrink-0 view-film-form-button" data-id="${formData.form_id}" title="Add Details">
+                        <!-- Sky blue Enter Data button - hide when approved -->
+                        ${!formData.approved_by ? `<button class="p-1 rounded-md bg-sky-50 hover:bg-sky-100 text-sky-600 hover:text-sky-800 transition-all duration-200 border border-sky-200 hover:border-sky-300 flex-shrink-0 view-film-form-button" data-id="${formData.form_id}" title="Add Details">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
-                        </button>
-                        <!-- Purple Edit Details button -->
-                        <button class="p-1 rounded-md bg-purple-50 hover:bg-purple-100 text-purple-600 hover:text-purple-800 transition-all duration-200 border border-purple-200 hover:border-purple-300 flex-shrink-0 edit-details-button" data-id="${formData.form_id}" title="Edit Form Details">
+                        </button>` : ''}
+                        <!-- Purple Edit Details button - hide when approved -->
+                        ${!formData.approved_by ? `<button class="p-1 rounded-md bg-purple-50 hover:bg-purple-100 text-purple-600 hover:text-purple-800 transition-all duration-200 border border-purple-200 hover:border-purple-300 flex-shrink-0 edit-details-button" data-id="${formData.form_id}" title="Edit Form Details">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                             </svg>
-                        </button>
-                        <!-- Green Edit button - now opens prestore form -->
-                        <button onclick="openPrestoreForm('${formData.product_code}', '${formData.production_order}', '${formData.form_id}')" class="p-1 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0" title="Edit Pre-store">
+                        </button>` : ''}
+                        <!-- Green Edit button - hide when approved -->
+                        ${!formData.approved_by ? `<button onclick="openPrestoreForm('${formData.product_code}', '${formData.production_order}', '${formData.form_id}')" class="p-1 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0" title="Edit Pre-store">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
-                        </button>
-                        <!-- Dark blue View button -->
+                        </button>` : ''}
+                        <!-- Dark blue View button - always show -->
                         <button onclick="viewFilmForm('${formData.form_id}', '${formData.product_code}')" class="p-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-800 hover:text-blue-900 transition-all duration-200 border border-blue-200 hover:border-blue-300 flex-shrink-0" title="View">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                             </svg>
                         </button>
-                        <!-- Red Delete button -->
-                        <button class="p-1 rounded-md bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition-all duration-200 border border-red-200 hover:border-red-300 flex-shrink-0 delete-button" data-id="${formData.form_id}" title="Delete Film Inspection Form">
+                        <!-- Red Delete button - hide when approved -->
+                        ${!formData.approved_by ? `<button class="p-1 rounded-md bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition-all duration-200 border border-red-200 hover:border-red-300 flex-shrink-0 delete-button" data-id="${formData.form_id}" title="Delete Film Inspection Form">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
-                        </button>
+                        </button>` : ''}
                     </div>
                 </td>
                 <td class="py-2 px-4 border-b border-r text-center">
@@ -863,6 +857,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             'specification': 'specification-modal',
             'batch': 'batch-modal',
             'prestore_ref_no': 'ref-no-modal', // Only prestore_ref_no should map to ref-no-modal
+            'film_insp_form_ref_no': 'film-insp-ref-no-modal', // Film Inspection Form Ref No
             'standard_packing': 'standard-packing-modal',
             'production_date': 'production-date-modal',
             'inspection_date': 'inspection-date-modal',
@@ -878,14 +873,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (input && data[key] && data[key] !== 'N/A' && data[key] !== 'n/a' && data[key] !== 'na' && data[key] !== 'N/a' && data[key] !== 'null') {
                 // Special handling for standard_packing field
                 if (key === 'standard_packing' && modalId === 'standard-packing-modal') {
-                    console.log('Standard packing data:', data[key]); // Debug log
 
                     // Handle different possible formats
                     let number = '';
                     let unit = 'Rolls / Pallet'; // default
 
                     if (data[key] && typeof data[key] === 'string') {
-                        console.log('Processing standard packing data:', data[key]);
 
                         // For standard packing, extract numbers for input field and unit for dropdown
 
@@ -916,7 +909,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                         }
 
                         unit = extractedUnit;
-                        console.log('Number part:', numberPart, 'Unit part:', unitPart, 'Dropdown unit:', unit);
                     }
 
                     // Set the unit dropdown - handle different unit formats
@@ -1209,7 +1201,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             
             if (!formData) {
-                console.log('Form data not found in any table for prestore_ref_no');
                 return;
             }
             
@@ -1405,6 +1396,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 specification: formData.get('specification'),
                 batch: formData.get('batch'),
                 prestore_ref_no: formData.get('ref_no'),
+                film_insp_form_ref_no: formData.get('film_insp_form_ref_no'),
                 standard_packing: formData.get('standard-packing') ? `${formData.get('standard-packing')} ${formData.get('standard-packing-unit')}` : null,
                 production_date: formData.get('production-date'),
                 inspection_date: formData.get('inspection-date'),
@@ -1643,15 +1635,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Route to the correct form based on product code
             let targetForm = '';
-            console.log('Routing form for product code (ADD DETAILS):', productCode);
             switch(productCode) {
                 case 'APE-168(16)CP(KRANTI)':
                     targetForm = '16-gsm-kranti.html';
-                    console.log('Routing to kranti form');
                     break;
                 case 'APE-168(16)C':
                     targetForm = '16-gsm-168-white.html';
-                    console.log('Routing to white form');
                     break;
                 case 'APE-168(18)CP(KRANTI)':
                 case 'APE-168(18)C':
@@ -1665,39 +1654,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                     break;
                 case 'APE-176(18)CP(LCC+WW)BS':
                     targetForm = '18-gsm-176-WW.html';
-                    console.log('Routing to 18 GSM 176 WW form');
                     break;
                 case 'APE-168(18)C (Jeddah)':
                     targetForm = '18-gsm-168-white-jeddah.html';
-                    console.log('Routing to 18-gsm-168-white-jeddah form');
                     break;
                 case 'WHITE-214(18)':
                     targetForm = '18-gsm-214-micro-white.html';
-                    console.log('Routing to 18-gsm-214-micro-white form');
                     break;
                 case 'INUE1C18-250P(AB-QR)':
                     targetForm = 'UC-18gsm-250P-ABQR.html';
-                    console.log('Routing to UC-18gsm-250P-ABQR form');
                     break;
                 case 'INUE1C18-290P(AB-QR)':
                     targetForm = 'UC-18gsm-290P-ABQR.html';
-                    console.log('Routing to UC-18gsm-290P-ABQR form');
                     break;
                 case 'INUE1C18-290NP(AB-QR)':
                     targetForm = 'UC-18gsm-290NP-ABQR.html';
-                    console.log('Routing to UC-18gsm-290NP-ABQR form');
                     break;
                 case 'INUE1C18-250W(BF-QR)':
                     targetForm = 'UC-18gsm-250W-BFQR.html';
-                    console.log('Routing to UC-18gsm-250W-BFQR form');
                     break;
                 case 'INUE1C18-210W(BF-QR)':
                     targetForm = 'UC-18gsm-210W-BFQR.html';
-                    console.log('Routing to UC-18gsm-210W-BFQR form');
                     break;
                 case 'INUE16-165W':
                     targetForm = 'UC-16gsm-165W.html';
-                    console.log('Routing to UC-16gsm-165W form');
                     break;
                 default:
                     // Default fallback
@@ -1928,7 +1908,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             // For demonstration purposes, let's assume a hardcoded password for now.
             // REPLACE THIS WITH SECURE SERVER-SIDE VERIFICATION IN PRODUCTION!
             const { data: { user: currentUser } } = await supabase.auth.getUser();
-            console.log('Current Supabase User:', currentUser);
             if (!currentUser) {
                 alert('User not logged in. Cannot verify password.');
                 hidePasswordConfirmModal();
@@ -4204,6 +4183,7 @@ window.deleteFilmForm = async function(formId) {
                 specification: formData.get('specification') || '',
                 batch: formData.get('batch') || '',
                 prestore_ref_no: formData.get('ref_no') || '', // Map ref_no to prestore_ref_no (matches schema)
+                film_insp_form_ref_no: formData.get('film_insp_form_ref_no') || '',
                 standard_packing: (formData.get('standard-packing') || '') + ' ' + (formData.get('standard-packing-unit') || ''),
                 production_date: formData.get('production-date') || '',
                 inspection_date: formData.get('inspection-date') || '',

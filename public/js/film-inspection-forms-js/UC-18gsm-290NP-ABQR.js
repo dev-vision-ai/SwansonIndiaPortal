@@ -752,6 +752,12 @@ function setupViewMode() {
     } else {
         console.warn('🎛️ [VIEW MODE] Prestore section not found');
     }
+
+    // Verified/Approved blocks should be visible ONLY in view mode
+    const verificationApprovalContainer = document.getElementById('verificationApprovalContainer');
+    if (verificationApprovalContainer) {
+        verificationApprovalContainer.style.display = isViewMode ? 'flex' : 'none';
+    }
     
     // Show/hide verification sections based on mode
     const verificationSection = document.getElementById('verificationSection');
