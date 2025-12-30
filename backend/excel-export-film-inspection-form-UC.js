@@ -1,4 +1,4 @@
-const XlsxPopulate = require('xlsx-populate');
+const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
 
@@ -28,6 +28,46 @@ function convertToNumber(value) {
   if (value === '' || value === null || value === undefined) return '';
   const numValue = parseFloat(value);
   return !isNaN(numValue) ? numValue : value;
+}
+
+// Helper function to apply password protection using ExcelJS
+async function applyPasswordProtection(workbook) {
+  try {
+    // ExcelJS (v4.x) can produce workbooks that Excel “repairs” when templates
+    // contain advanced conditional formatting (DXFs). UC templates include this.
+    // Strip conditional formatting before writing to keep the XLSX valid.
+    for (const worksheet of workbook.worksheets) {
+      if (Array.isArray(worksheet.conditionalFormattings) && worksheet.conditionalFormattings.length > 0) {
+        worksheet.conditionalFormattings = [];
+      }
+    }
+
+    // Apply sheet protection with password (awaited).
+    // Note: cells are locked by default in Excel; we avoid touching per-cell
+    // protection because it can explode style records and trigger repairs.
+    for (const worksheet of workbook.worksheets) {
+      await worksheet.protect('2256', {
+        selectLockedCells: false,
+        selectUnlockedCells: false,
+        formatCells: false,
+        formatColumns: false,
+        formatRows: false,
+        insertColumns: false,
+        insertRows: false,
+        insertHyperlinks: false,
+        deleteColumns: false,
+        deleteRows: false,
+        sort: false,
+        autoFilter: false,
+        pivotTables: false
+      });
+    }
+
+    return await workbook.xlsx.writeBuffer();
+  } catch (error) {
+    console.error('Error applying password protection:', error);
+    throw error;
+  }
 }
 
 module.exports = function(app, createAuthenticatedSupabaseClient) {
@@ -79,28 +119,28 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
 
     // Load the template file
     try {
-      workbook = await XlsxPopulate.fromFileAsync(templatePath);
-      page1Worksheet = workbook.sheet('Page1');
+      workbook = new ExcelJS.Workbook(); await workbook.xlsx.readFile(templatePath);
+      page1Worksheet = workbook.getWorksheet('Page1');
 
       // Create or get Page2 sheet for Page 2 data
       try {
-        page2Worksheet = workbook.sheet('Page2');
+        page2Worksheet = workbook.getWorksheet('Page2');
       } catch (error) {
-        page2Worksheet = workbook.addSheet('Page2');
+        page2Worksheet = workbook.addWorksheet('Page2');
       }
 
       // Create or get Page3 sheet for Page 3 data
       try {
-        page3Worksheet = workbook.sheet('Page3');
+        page3Worksheet = workbook.getWorksheet('Page3');
       } catch (error) {
-        page3Worksheet = workbook.addSheet('Page3');
+        page3Worksheet = workbook.addWorksheet('Page3');
       }
 
       // Create or get COA Form sheet for COA data
       try {
-        coaWorksheet = workbook.sheet('COA Form');
+        coaWorksheet = workbook.getWorksheet('COA Form');
       } catch (error) {
-        coaWorksheet = workbook.addSheet('COA Form');
+        coaWorksheet = workbook.addWorksheet('COA Form');
       }
     } catch (error) {
       console.log('Error loading template:', error.message);
@@ -110,68 +150,68 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
     // 3. Map data to Excel cells for Page 1
 
     // Product Code (C4)
-    page1Worksheet.cell('C4').value(data.product_code || '');
+    page1Worksheet.getCell('C4').value = data.product_code || '';
 
     // Specification (C5)
-    page1Worksheet.cell('C5').value(data.specification || '');
+    page1Worksheet.getCell('C5').value = data.specification || '';
 
     // Production Order (F4)
-    page1Worksheet.cell('F4').value(data.production_order || '');
+    page1Worksheet.getCell('F4').value = data.production_order || '';
 
     // Purchase Order (F5)
-  page1Worksheet.cell('F5').value(data.purchase_order ? data.purchase_order : 'NA');
+  page1Worksheet.getCell('F5').value = data.purchase_order ? data.purchase_order : 'NA';
 
     // Machine (H4)
-    page1Worksheet.cell('H4').value(data.machine_no || '');
+    page1Worksheet.getCell('H4').value = data.machine_no || '';
 
     // Quantity (H5) - Add "Rolls" text like prestore form
-    page1Worksheet.cell('H5').value(data.quantity ? `${data.quantity} Rolls` : '');
+    page1Worksheet.getCell('H5').value = data.quantity ? `${data.quantity} Rolls` : '';
 
     // Production Date (J4) - format as DD/MM/YYYY
-    page1Worksheet.cell('J4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+    page1Worksheet.getCell('J4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
 
     // Inspection Date (J5) - format as DD/MM/YYYY
-    page1Worksheet.cell('J5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    page1Worksheet.getCell('J5').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Equipment Data for Page 1
     if (data.equipment_used && data.equipment_used.page1) {
-        page1Worksheet.cell('D6').value(data.equipment_used.page1.basic_weight || '');
-        page1Worksheet.cell('E6').value(data.equipment_used.page1.dial_gauge || '');
-        page1Worksheet.cell('F6').value('NA');
-        page1Worksheet.cell('G6').value(data.equipment_used.page1.instron || '');
-        page1Worksheet.cell('I6').value(data.equipment_used.page1.instron || '');
+        page1Worksheet.getCell('D6').value = data.equipment_used.page1.basic_weight || '';
+        page1Worksheet.getCell('E6').value = data.equipment_used.page1.dial_gauge || '';
+        page1Worksheet.getCell('F6').value = 'NA';
+        page1Worksheet.getCell('G6').value = data.equipment_used.page1.instron || '';
+        page1Worksheet.getCell('I6').value = data.equipment_used.page1.instron || '';
     }
 
     // Inspected By (B42)
-    page1Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
+    page1Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
 
     // Inspection Date (B43) - format as DD/MM/YYYY
-    page1Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    page1Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Verified By (H42)
-    page1Worksheet.cell('H42').value(data.verified_by || 'Not Verified');
+    page1Worksheet.getCell('H42').value = data.verified_by || 'Not Verified';
 
     // Verified Date (H43) - format as DD/MM/YYYY
-    page1Worksheet.cell('H43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+    page1Worksheet.getCell('H43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (K3)
-    page1Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+    page1Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
       const equipment = data.equipment_used.page1;
 
       // Film Weight Equipment (D6) - WHS
-      page1Worksheet.cell('D6').value(equipment.film_weight || '');
+      page1Worksheet.getCell('D6').value = equipment.film_weight || '';
 
       // Thickness Equipment (E6) - DTG
-      page1Worksheet.cell('E6').value(equipment.thickness || '');
+      page1Worksheet.getCell('E6').value = equipment.thickness || '';
 
       // Tensile/COF Equipment (G6) - UTM
-      page1Worksheet.cell('G6').value(equipment.tensile_break || equipment.cof_rr || '');
+      page1Worksheet.getCell('G6').value = equipment.tensile_break || equipment.cof_rr || '';
 
       // Elongation/Modulus Equipment (I6) - UTM
-      page1Worksheet.cell('I6').value(equipment.tensile_break || equipment.elongation || equipment.modulus_10 || '');
+      page1Worksheet.getCell('I6').value = equipment.tensile_break || equipment.elongation || equipment.modulus_10 || '';
     }
 
     // Map sample data to the correct columns for Page 1
@@ -186,9 +226,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`A${row}`).value(''); // Empty row
+          page1Worksheet.getCell(`A${row}`).value = ''; // Empty row
         }
       }
     }
@@ -201,9 +241,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`B${row}`).value('');
+          page1Worksheet.getCell(`B${row}`).value = '';
         }
       }
     }
@@ -216,9 +256,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`C${row}`).value('');
+          page1Worksheet.getCell(`C${row}`).value = '';
         }
       }
     }
@@ -233,9 +273,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`D${row}`).value('');
+          page1Worksheet.getCell(`D${row}`).value = '';
         }
       }
     }
@@ -249,9 +289,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`E${row}`).value('');
+          page1Worksheet.getCell(`E${row}`).value = '';
         }
       }
     }
@@ -265,9 +305,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`F${row}`).value('');
+          page1Worksheet.getCell(`F${row}`).value = '';
         }
       }
     }
@@ -281,9 +321,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`G${row}`).value('');
+          page1Worksheet.getCell(`G${row}`).value = '';
         }
       }
     }
@@ -297,9 +337,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`H${row}`).value('');
+          page1Worksheet.getCell(`H${row}`).value = '';
         }
       }
     }
@@ -313,9 +353,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`I${row}`).value('');
+          page1Worksheet.getCell(`I${row}`).value = '';
         }
       }
     }
@@ -329,9 +369,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`J${row}`).value('');
+          page1Worksheet.getCell(`J${row}`).value = '';
         }
       }
     }
@@ -345,9 +385,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`K${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`K${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`K${row}`).value('');
+          page1Worksheet.getCell(`K${row}`).value = '';
         }
       }
     }
@@ -361,16 +401,16 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
         const equipment = data.equipment_used.page2;
 
         // Tensile Break Equipment (D6) - INSTRON UTM
-        page2Worksheet.cell('D6').value(equipment.tensile_break || '');
+        page2Worksheet.getCell('D6').value = equipment.tensile_break || '';
 
         // Opacity Equipment (G6) - SPECTROPHOTOMETER
-        page2Worksheet.cell('G6').value(equipment.opacity || '');
+        page2Worksheet.getCell('G6').value = equipment.opacity || '';
 
         // Roll Width Equipment (I6) - STEEL RULER
-        page2Worksheet.cell('I6').value(equipment.roll_width || '');
+        page2Worksheet.getCell('I6').value = equipment.roll_width || '';
 
         // Diameter Equipment (K6) - STEEL RULER
-        page2Worksheet.cell('K6').value(equipment.diameter || '');
+        page2Worksheet.getCell('K6').value = equipment.diameter || '';
       }
 
       // Tensile Break data to column D (D11-D40)
@@ -382,9 +422,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`D${row}`).value('');
+            page2Worksheet.getCell(`D${row}`).value = '';
           }
         }
       }
@@ -398,9 +438,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`E${row}`).value('');
+            page2Worksheet.getCell(`E${row}`).value = '';
           }
         }
       }
@@ -414,9 +454,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`F${row}`).value('');
+            page2Worksheet.getCell(`F${row}`).value = '';
           }
         }
       }
@@ -430,9 +470,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`G${row}`).value('');
+            page2Worksheet.getCell(`G${row}`).value = '';
           }
         }
       }
@@ -446,9 +486,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`I${row}`).value('');
+            page2Worksheet.getCell(`I${row}`).value = '';
           }
         }
       }
@@ -462,19 +502,19 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`K${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`K${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`K${row}`).value('');
+            page2Worksheet.getCell(`K${row}`).value = '';
           }
         }
       }
 
       // Add personnel information to Page 2
-      page2Worksheet.cell('B44').value(data.prepared_by || 'Unknown User');
-      page2Worksheet.cell('B45').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page2Worksheet.cell('J44').value(data.verified_by || 'Not Verified');
-      page2Worksheet.cell('J45').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page2Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+      page2Worksheet.getCell('B44').value = data.prepared_by || 'Unknown User';
+      page2Worksheet.getCell('B45').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page2Worksheet.getCell('J44').value = data.verified_by || 'Not Verified';
+      page2Worksheet.getCell('J45').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page2Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
     }
 
     // PAGE 3 DATA MAPPING - UC-18gsm-250P-ABQR Page 3 data (Color Measurements)
@@ -486,10 +526,10 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
         const equipment = data.equipment_used.page3;
 
         // Color Equipment (D6) - XRITE/SPECTROPHOTOMETER
-        page3Worksheet.cell('D6').value(equipment.colour || '');
+        page3Worksheet.getCell('D6').value = equipment.colour || '';
 
         // Color Equipment (H6) - SPECTROPHOTOMETER
-        page3Worksheet.cell('H6').value(equipment.colour || '');
+        page3Worksheet.getCell('H6').value = equipment.colour || '';
       }
 
       // Color L data to column D (D10-D39)
@@ -501,9 +541,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`D${row}`).value('');
+            page3Worksheet.getCell(`D${row}`).value = '';
           }
         }
       }
@@ -517,9 +557,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`E${row}`).value('');
+            page3Worksheet.getCell(`E${row}`).value = '';
           }
         }
       }
@@ -533,9 +573,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`F${row}`).value('');
+            page3Worksheet.getCell(`F${row}`).value = '';
           }
         }
       }
@@ -549,9 +589,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`G${row}`).value('');
+            page3Worksheet.getCell(`G${row}`).value = '';
           }
         }
       }
@@ -565,19 +605,19 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`H${row}`).value('');
+            page3Worksheet.getCell(`H${row}`).value = '';
           }
         }
       }
 
       // Add personnel information to Page 3
-      page3Worksheet.cell('B43').value(data.prepared_by || 'Unknown User');
-      page3Worksheet.cell('B44').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page3Worksheet.cell('J43').value(data.verified_by || 'Not Verified');
-      page3Worksheet.cell('J44').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page3Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+      page3Worksheet.getCell('B43').value = data.prepared_by || 'Unknown User';
+      page3Worksheet.getCell('B44').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page3Worksheet.getCell('J43').value = data.verified_by || 'Not Verified';
+      page3Worksheet.getCell('J44').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page3Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
     }
 
     // COA FORM DATA MAPPING - UC-18gsm-250P-ABQR COA Form sheet
@@ -585,7 +625,10 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
       console.log('COA Form sheet detected, mapping COA data');
 
       // Inspected By (C41)
-      coaWorksheet.cell('C41').value(data.prepared_by || 'Unknown User');
+      coaWorksheet.getCell('C41').value = data.prepared_by || 'Unknown User';
+
+      // Approved By (F41)
+      coaWorksheet.getCell('F41').value = data.approved_by || 'Not Approved';
 
       // Add other COA fields as needed
       // You can add more COA-specific mappings here
@@ -604,7 +647,7 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
 
     // 6. Write the workbook to response
     try {
-      const buffer = await workbook.outputAsync();
+const buffer = await applyPasswordProtection(workbook);
       res.send(buffer);
     } catch (excelError) {
       console.error('Error generating Excel file:', excelError);
@@ -666,28 +709,28 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
 
     // Load the template file
     try {
-      workbook = await XlsxPopulate.fromFileAsync(templatePath);
-      page1Worksheet = workbook.sheet('Page1');
+      workbook = new ExcelJS.Workbook(); await workbook.xlsx.readFile(templatePath);
+      page1Worksheet = workbook.getWorksheet('Page1');
 
       // Create or get Page2 sheet for Page 2 data
       try {
-        page2Worksheet = workbook.sheet('Page2');
+        page2Worksheet = workbook.getWorksheet('Page2');
       } catch (error) {
-        page2Worksheet = workbook.addSheet('Page2');
+        page2Worksheet = workbook.addWorksheet('Page2');
       }
 
       // Create or get Page3 sheet for Page 3 data
       try {
-        page3Worksheet = workbook.sheet('Page3');
+        page3Worksheet = workbook.getWorksheet('Page3');
       } catch (error) {
-        page3Worksheet = workbook.addSheet('Page3');
+        page3Worksheet = workbook.addWorksheet('Page3');
       }
 
       // Create or get COA Form sheet for COA data
       try {
-        coaWorksheet = workbook.sheet('COA Form');
+        coaWorksheet = workbook.getWorksheet('COA Form');
       } catch (error) {
-        coaWorksheet = workbook.addSheet('COA Form');
+        coaWorksheet = workbook.addWorksheet('COA Form');
       }
     } catch (error) {
       console.log('Error loading template:', error.message);
@@ -697,68 +740,68 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
     // 3. Map data to Excel cells for Page 1
 
     // Product Code (C4)
-    page1Worksheet.cell('C4').value(data.product_code || '');
+    page1Worksheet.getCell('C4').value = data.product_code || '';
 
     // Specification (C5)
-    page1Worksheet.cell('C5').value(data.specification || '');
+    page1Worksheet.getCell('C5').value = data.specification || '';
 
     // Production Order (F4)
-    page1Worksheet.cell('F4').value(data.production_order || '');
+    page1Worksheet.getCell('F4').value = data.production_order || '';
 
     // Purchase Order (F5)
-  page1Worksheet.cell('F5').value(data.purchase_order ? data.purchase_order : 'NA');
+  page1Worksheet.getCell('F5').value = data.purchase_order ? data.purchase_order : 'NA';
 
     // Machine (H4)
-    page1Worksheet.cell('H4').value(data.machine_no || '');
+    page1Worksheet.getCell('H4').value = data.machine_no || '';
 
     // Quantity (H5) - Add "Rolls" text like prestore form
-    page1Worksheet.cell('H5').value(data.quantity ? `${data.quantity} Rolls` : '');
+    page1Worksheet.getCell('H5').value = data.quantity ? `${data.quantity} Rolls` : '';
 
     // Production Date (J4) - format as DD/MM/YYYY
-    page1Worksheet.cell('J4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+    page1Worksheet.getCell('J4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
 
     // Inspection Date (J5) - format as DD/MM/YYYY
-    page1Worksheet.cell('J5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    page1Worksheet.getCell('J5').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Equipment Data for Page 1
     if (data.equipment_used && data.equipment_used.page1) {
-        page1Worksheet.cell('D6').value(data.equipment_used.page1.basic_weight || '');
-        page1Worksheet.cell('E6').value(data.equipment_used.page1.dial_gauge || '');
-        page1Worksheet.cell('F6').value('NA');
-        page1Worksheet.cell('G6').value(data.equipment_used.page1.instron || '');
-        page1Worksheet.cell('I6').value(data.equipment_used.page1.instron || '');
+        page1Worksheet.getCell('D6').value = data.equipment_used.page1.basic_weight || '';
+        page1Worksheet.getCell('E6').value = data.equipment_used.page1.dial_gauge || '';
+        page1Worksheet.getCell('F6').value = 'NA';
+        page1Worksheet.getCell('G6').value = data.equipment_used.page1.instron || '';
+        page1Worksheet.getCell('I6').value = data.equipment_used.page1.instron || '';
     }
 
     // Inspected By (B42)
-    page1Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
+    page1Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
 
     // Inspection Date (B43) - format as DD/MM/YYYY
-    page1Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    page1Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Verified By (J42)
-    page1Worksheet.cell('J42').value(data.verified_by || 'Not Verified');
+    page1Worksheet.getCell('J42').value = data.verified_by || 'Not Verified';
 
     // Verified Date (J43) - format as DD/MM/YYYY
-    page1Worksheet.cell('J43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+    page1Worksheet.getCell('J43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (K3)
-    page1Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+    page1Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
       const equipment = data.equipment_used.page1;
 
       // Film Weight Equipment (D6) - WHS
-      page1Worksheet.cell('D6').value(equipment.film_weight || '');
+      page1Worksheet.getCell('D6').value = equipment.film_weight || '';
 
       // Thickness Equipment (E6) - DTG
-      page1Worksheet.cell('E6').value(equipment.thickness || '');
+      page1Worksheet.getCell('E6').value = equipment.thickness || '';
 
       // Tensile/COF Equipment (G6) - UTM
-      page1Worksheet.cell('G6').value(equipment.tensile_break || equipment.cof_rr || '');
+      page1Worksheet.getCell('G6').value = equipment.tensile_break || equipment.cof_rr || '';
 
       // Elongation/Modulus Equipment (I6) - UTM
-      page1Worksheet.cell('I6').value(equipment.tensile_break || equipment.elongation || equipment.modulus_10 || '');
+      page1Worksheet.getCell('I6').value = equipment.tensile_break || equipment.elongation || equipment.modulus_10 || '';
     }
 
     // Map sample data to the correct columns for Page 1
@@ -773,9 +816,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`A${row}`).value(''); // Empty row
+          page1Worksheet.getCell(`A${row}`).value = ''; // Empty row
         }
       }
     }
@@ -788,9 +831,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`B${row}`).value('');
+          page1Worksheet.getCell(`B${row}`).value = '';
         }
       }
     }
@@ -803,9 +846,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`C${row}`).value('');
+          page1Worksheet.getCell(`C${row}`).value = '';
         }
       }
     }
@@ -820,9 +863,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`D${row}`).value('');
+          page1Worksheet.getCell(`D${row}`).value = '';
         }
       }
     }
@@ -836,9 +879,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`E${row}`).value('');
+          page1Worksheet.getCell(`E${row}`).value = '';
         }
       }
     }
@@ -852,9 +895,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`F${row}`).value('');
+          page1Worksheet.getCell(`F${row}`).value = '';
         }
       }
     }
@@ -868,9 +911,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`G${row}`).value('');
+          page1Worksheet.getCell(`G${row}`).value = '';
         }
       }
     }
@@ -884,9 +927,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`H${row}`).value('');
+          page1Worksheet.getCell(`H${row}`).value = '';
         }
       }
     }
@@ -900,9 +943,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`I${row}`).value('');
+          page1Worksheet.getCell(`I${row}`).value = '';
         }
       }
     }
@@ -916,9 +959,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`J${row}`).value('');
+          page1Worksheet.getCell(`J${row}`).value = '';
         }
       }
     }
@@ -932,9 +975,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`K${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`K${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`K${row}`).value('');
+          page1Worksheet.getCell(`K${row}`).value = '';
         }
       }
     }
@@ -948,16 +991,16 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
         const equipment = data.equipment_used.page2;
 
         // Tensile Break Equipment (D6) - INSTRON UTM
-        page2Worksheet.cell('D6').value(equipment.tensile_break || '');
+        page2Worksheet.getCell('D6').value = equipment.tensile_break || '';
 
         // Opacity Equipment (G6) - SPECTROPHOTOMETER
-        page2Worksheet.cell('G6').value(equipment.opacity || '');
+        page2Worksheet.getCell('G6').value = equipment.opacity || '';
 
         // Roll Width Equipment (I6) - STEEL RULER
-        page2Worksheet.cell('I6').value(equipment.roll_width || '');
+        page2Worksheet.getCell('I6').value = equipment.roll_width || '';
 
         // Diameter Equipment (K6) - STEEL RULER
-        page2Worksheet.cell('K6').value(equipment.diameter || '');
+        page2Worksheet.getCell('K6').value = equipment.diameter || '';
       }
 
       // Tensile Break data to column D (D11-D40)
@@ -969,9 +1012,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`D${row}`).value('');
+            page2Worksheet.getCell(`D${row}`).value = '';
           }
         }
       }
@@ -985,9 +1028,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`E${row}`).value('');
+            page2Worksheet.getCell(`E${row}`).value = '';
           }
         }
       }
@@ -1001,9 +1044,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`F${row}`).value('');
+            page2Worksheet.getCell(`F${row}`).value = '';
           }
         }
       }
@@ -1017,9 +1060,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`G${row}`).value('');
+            page2Worksheet.getCell(`G${row}`).value = '';
           }
         }
       }
@@ -1033,9 +1076,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`I${row}`).value('');
+            page2Worksheet.getCell(`I${row}`).value = '';
           }
         }
       }
@@ -1049,19 +1092,19 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`K${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`K${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`K${row}`).value('');
+            page2Worksheet.getCell(`K${row}`).value = '';
           }
         }
       }
 
       // Add personnel information to Page 2
-      page2Worksheet.cell('B44').value(data.prepared_by || 'Unknown User');
-      page2Worksheet.cell('B45').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page2Worksheet.cell('J44').value(data.verified_by || 'Not Verified');
-      page2Worksheet.cell('J45').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page2Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+      page2Worksheet.getCell('B44').value = data.prepared_by || 'Unknown User';
+      page2Worksheet.getCell('B45').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page2Worksheet.getCell('J44').value = data.verified_by || 'Not Verified';
+      page2Worksheet.getCell('J45').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page2Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
     }
 
     // PAGE 3 DATA MAPPING - UC-18gsm-290P-ABQR Page 3 data (Color Measurements)
@@ -1073,10 +1116,10 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
         const equipment = data.equipment_used.page3;
 
         // Color Equipment (D6) - XRITE/SPECTROPHOTOMETER
-        page3Worksheet.cell('D6').value(equipment.colour || '');
+        page3Worksheet.getCell('D6').value = equipment.colour || '';
 
         // Color Equipment (H6) - SPECTROPHOTOMETER
-        page3Worksheet.cell('H6').value(equipment.colour || '');
+        page3Worksheet.getCell('H6').value = equipment.colour || '';
       }
 
       // Color L data to column D (D10-D39)
@@ -1088,9 +1131,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`D${row}`).value('');
+            page3Worksheet.getCell(`D${row}`).value = '';
           }
         }
       }
@@ -1104,9 +1147,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`E${row}`).value('');
+            page3Worksheet.getCell(`E${row}`).value = '';
           }
         }
       }
@@ -1120,9 +1163,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`F${row}`).value('');
+            page3Worksheet.getCell(`F${row}`).value = '';
           }
         }
       }
@@ -1136,9 +1179,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`G${row}`).value('');
+            page3Worksheet.getCell(`G${row}`).value = '';
           }
         }
       }
@@ -1152,19 +1195,19 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`H${row}`).value('');
+            page3Worksheet.getCell(`H${row}`).value = '';
           }
         }
       }
 
       // Add personnel information to Page 3
-      page3Worksheet.cell('B43').value(data.prepared_by || 'Unknown User');
-      page3Worksheet.cell('B44').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page3Worksheet.cell('J43').value(data.verified_by || 'Not Verified');
-      page3Worksheet.cell('J44').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page3Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+      page3Worksheet.getCell('B43').value = data.prepared_by || 'Unknown User';
+      page3Worksheet.getCell('B44').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page3Worksheet.getCell('J43').value = data.verified_by || 'Not Verified';
+      page3Worksheet.getCell('J44').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page3Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
     }
 
     // COA FORM DATA MAPPING - UC-18gsm-290P-ABQR COA Form sheet
@@ -1172,8 +1215,10 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
       console.log('COA Form sheet detected, mapping COA data');
 
       // Inspected By (C41)
-      coaWorksheet.cell('C41').value(data.prepared_by || 'Unknown User');
+      coaWorksheet.getCell('C41').value = data.prepared_by || 'Unknown User';
 
+      // Approved By (F41)
+      coaWorksheet.getCell('F41').value = data.approved_by || 'Not Approved';
       // Add other COA fields as needed
       // You can add more COA-specific mappings here
     }
@@ -1191,7 +1236,7 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
 
     // 6. Write the workbook to response
     try {
-      const buffer = await workbook.outputAsync();
+      const buffer = await applyPasswordProtection(workbook);
       res.send(buffer);
     } catch (excelError) {
       console.error('Error generating Excel file:', excelError);
@@ -1253,28 +1298,28 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
 
     // Load the template file
     try {
-      workbook = await XlsxPopulate.fromFileAsync(templatePath);
-      page1Worksheet = workbook.sheet('Page1');
+      workbook = new ExcelJS.Workbook(); await workbook.xlsx.readFile(templatePath);
+      page1Worksheet = workbook.getWorksheet('Page1');
 
       // Create or get Page2 sheet for Page 2 data
       try {
-        page2Worksheet = workbook.sheet('Page2');
+        page2Worksheet = workbook.getWorksheet('Page2');
       } catch (error) {
-        page2Worksheet = workbook.addSheet('Page2');
+        page2Worksheet = workbook.addWorksheet('Page2');
       }
 
       // Create or get Page3 sheet for Page 3 data
       try {
-        page3Worksheet = workbook.sheet('Page3');
+        page3Worksheet = workbook.getWorksheet('Page3');
       } catch (error) {
-        page3Worksheet = workbook.addSheet('Page3');
+        page3Worksheet = workbook.addWorksheet('Page3');
       }
 
       // Create or get COA Form sheet for COA data
       try {
-        coaWorksheet = workbook.sheet('COA Form');
+        coaWorksheet = workbook.getWorksheet('COA Form');
       } catch (error) {
-        coaWorksheet = workbook.addSheet('COA Form');
+        coaWorksheet = workbook.addWorksheet('COA Form');
       }
     } catch (error) {
       console.log('Error loading template:', error.message);
@@ -1284,68 +1329,68 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
     // 3. Map data to Excel cells for Page 1
 
     // Product Code (C4)
-    page1Worksheet.cell('C4').value(data.product_code || '');
+    page1Worksheet.getCell('C4').value = data.product_code || '';
 
     // Specification (C5)
-    page1Worksheet.cell('C5').value(data.specification || '');
+    page1Worksheet.getCell('C5').value = data.specification || '';
 
     // Production Order (F4)
-    page1Worksheet.cell('F4').value(data.production_order || '');
+    page1Worksheet.getCell('F4').value = data.production_order || '';
 
     // Purchase Order (F5)
-  page1Worksheet.cell('F5').value(data.purchase_order ? data.purchase_order : 'NA');
+  page1Worksheet.getCell('F5').value = data.purchase_order ? data.purchase_order : 'NA';
 
     // Machine (H4)
-    page1Worksheet.cell('H4').value(data.machine_no || '');
+    page1Worksheet.getCell('H4').value = data.machine_no || '';
 
     // Quantity (H5) - Add "Rolls" text like prestore form
-    page1Worksheet.cell('H5').value(data.quantity ? `${data.quantity} Rolls` : '');
+    page1Worksheet.getCell('H5').value = data.quantity ? `${data.quantity} Rolls` : '';
 
     // Production Date (J4) - format as DD/MM/YYYY
-    page1Worksheet.cell('J4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+    page1Worksheet.getCell('J4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
 
     // Inspection Date (J5) - format as DD/MM/YYYY
-    page1Worksheet.cell('J5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    page1Worksheet.getCell('J5').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Equipment Data for Page 1
     if (data.equipment_used && data.equipment_used.page1) {
-        page1Worksheet.cell('D6').value(data.equipment_used.page1.basic_weight || '');
-        page1Worksheet.cell('E6').value(data.equipment_used.page1.dial_gauge || '');
-        page1Worksheet.cell('F6').value('NA');
-        page1Worksheet.cell('G6').value(data.equipment_used.page1.instron || '');
-        page1Worksheet.cell('I6').value(data.equipment_used.page1.instron || '');
+        page1Worksheet.getCell('D6').value = data.equipment_used.page1.basic_weight || '';
+        page1Worksheet.getCell('E6').value = data.equipment_used.page1.dial_gauge || '';
+        page1Worksheet.getCell('F6').value = 'NA';
+        page1Worksheet.getCell('G6').value = data.equipment_used.page1.instron || '';
+        page1Worksheet.getCell('I6').value = data.equipment_used.page1.instron || '';
     }
 
     // Inspected By (B42)
-    page1Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
+    page1Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
 
     // Inspection Date (B43) - format as DD/MM/YYYY
-    page1Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    page1Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Verified By (J42)
-    page1Worksheet.cell('J42').value(data.verified_by || 'Not Verified');
+    page1Worksheet.getCell('J42').value = data.verified_by || 'Not Verified';
 
     // Verified Date (J43) - format as DD/MM/YYYY
-    page1Worksheet.cell('J43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+    page1Worksheet.getCell('J43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (K3)
-    page1Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+    page1Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
       const equipment = data.equipment_used.page1;
 
       // Film Weight Equipment (D6) - WHS
-      page1Worksheet.cell('D6').value(equipment.film_weight || '');
+      page1Worksheet.getCell('D6').value = equipment.film_weight || '';
 
       // Thickness Equipment (E6) - DTG
-      page1Worksheet.cell('E6').value(equipment.thickness || '');
+      page1Worksheet.getCell('E6').value = equipment.thickness || '';
 
       // Tensile/COF Equipment (G6) - UTM
-      page1Worksheet.cell('G6').value(equipment.tensile_break || equipment.cof_rr || '');
+      page1Worksheet.getCell('G6').value = equipment.tensile_break || equipment.cof_rr || '';
 
       // Elongation/Modulus Equipment (I6) - UTM
-      page1Worksheet.cell('I6').value(equipment.tensile_break || equipment.elongation || equipment.modulus_10 || '');
+      page1Worksheet.getCell('I6').value = equipment.tensile_break || equipment.elongation || equipment.modulus_10 || '';
     }
 
     // Map sample data to the correct columns for Page 1
@@ -1360,9 +1405,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`A${row}`).value(''); // Empty row
+          page1Worksheet.getCell(`A${row}`).value = ''; // Empty row
         }
       }
     }
@@ -1375,9 +1420,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`B${row}`).value('');
+          page1Worksheet.getCell(`B${row}`).value = '';
         }
       }
     }
@@ -1390,9 +1435,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`C${row}`).value('');
+          page1Worksheet.getCell(`C${row}`).value = '';
         }
       }
     }
@@ -1407,9 +1452,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`D${row}`).value('');
+          page1Worksheet.getCell(`D${row}`).value = '';
         }
       }
     }
@@ -1423,9 +1468,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`E${row}`).value('');
+          page1Worksheet.getCell(`E${row}`).value = '';
         }
       }
     }
@@ -1439,9 +1484,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`F${row}`).value('');
+          page1Worksheet.getCell(`F${row}`).value = '';
         }
       }
     }
@@ -1455,9 +1500,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`G${row}`).value('');
+          page1Worksheet.getCell(`G${row}`).value = '';
         }
       }
     }
@@ -1471,9 +1516,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`H${row}`).value('');
+          page1Worksheet.getCell(`H${row}`).value = '';
         }
       }
     }
@@ -1487,9 +1532,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`I${row}`).value('');
+          page1Worksheet.getCell(`I${row}`).value = '';
         }
       }
     }
@@ -1503,9 +1548,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`J${row}`).value('');
+          page1Worksheet.getCell(`J${row}`).value = '';
         }
       }
     }
@@ -1519,9 +1564,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`K${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`K${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`K${row}`).value('');
+          page1Worksheet.getCell(`K${row}`).value = '';
         }
       }
     }
@@ -1535,16 +1580,16 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
         const equipment = data.equipment_used.page2;
 
         // Tensile Break Equipment (D6) - INSTRON UTM
-        page2Worksheet.cell('D6').value(equipment.tensile_break || '');
+        page2Worksheet.getCell('D6').value = equipment.tensile_break || '';
 
         // Opacity Equipment (G6) - SPECTROPHOTOMETER
-        page2Worksheet.cell('G6').value(equipment.opacity || '');
+        page2Worksheet.getCell('G6').value = equipment.opacity || '';
 
         // Roll Width Equipment (I6) - STEEL RULER
-        page2Worksheet.cell('I6').value(equipment.roll_width || '');
+        page2Worksheet.getCell('I6').value = equipment.roll_width || '';
 
         // Diameter Equipment (K6) - STEEL RULER
-        page2Worksheet.cell('K6').value(equipment.diameter || '');
+        page2Worksheet.getCell('K6').value = equipment.diameter || '';
       }
 
       // Tensile Break data to column D (D11-D40)
@@ -1556,9 +1601,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`D${row}`).value('');
+            page2Worksheet.getCell(`D${row}`).value = '';
           }
         }
       }
@@ -1572,9 +1617,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`E${row}`).value('');
+            page2Worksheet.getCell(`E${row}`).value = '';
           }
         }
       }
@@ -1588,9 +1633,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`F${row}`).value('');
+            page2Worksheet.getCell(`F${row}`).value = '';
           }
         }
       }
@@ -1604,9 +1649,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`G${row}`).value('');
+            page2Worksheet.getCell(`G${row}`).value = '';
           }
         }
       }
@@ -1620,9 +1665,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`I${row}`).value('');
+            page2Worksheet.getCell(`I${row}`).value = '';
           }
         }
       }
@@ -1636,19 +1681,19 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`K${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`K${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`K${row}`).value('');
+            page2Worksheet.getCell(`K${row}`).value = '';
           }
         }
       }
 
       // Add personnel information to Page 2
-      page2Worksheet.cell('B44').value(data.prepared_by || 'Unknown User');
-      page2Worksheet.cell('B45').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page2Worksheet.cell('J44').value(data.verified_by || 'Not Verified');
-      page2Worksheet.cell('J45').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page2Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+      page2Worksheet.getCell('B44').value = data.prepared_by || 'Unknown User';
+      page2Worksheet.getCell('B45').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page2Worksheet.getCell('J44').value = data.verified_by || 'Not Verified';
+      page2Worksheet.getCell('J45').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page2Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
     }
 
     // PAGE 3 DATA MAPPING - UC-18gsm-290NP-ABQR Page 3 data (Color Measurements)
@@ -1660,10 +1705,10 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
         const equipment = data.equipment_used.page3;
 
         // Color Equipment (D6) - XRITE/SPECTROPHOTOMETER
-        page3Worksheet.cell('D6').value(equipment.colour || '');
+        page3Worksheet.getCell('D6').value = equipment.colour || '';
 
         // Color Equipment (H6) - SPECTROPHOTOMETER
-        page3Worksheet.cell('H6').value(equipment.colour || '');
+        page3Worksheet.getCell('H6').value = equipment.colour || '';
       }
 
       // Color L data to column D (D10-D39)
@@ -1675,9 +1720,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`D${row}`).value('');
+            page3Worksheet.getCell(`D${row}`).value = '';
           }
         }
       }
@@ -1691,9 +1736,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`E${row}`).value('');
+            page3Worksheet.getCell(`E${row}`).value = '';
           }
         }
       }
@@ -1707,9 +1752,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`F${row}`).value('');
+            page3Worksheet.getCell(`F${row}`).value = '';
           }
         }
       }
@@ -1723,9 +1768,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`G${row}`).value('');
+            page3Worksheet.getCell(`G${row}`).value = '';
           }
         }
       }
@@ -1739,19 +1784,19 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`H${row}`).value('');
+            page3Worksheet.getCell(`H${row}`).value = '';
           }
         }
       }
 
       // Add personnel information to Page 3
-      page3Worksheet.cell('B43').value(data.prepared_by || 'Unknown User');
-      page3Worksheet.cell('B44').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page3Worksheet.cell('J43').value(data.verified_by || 'Not Verified');
-      page3Worksheet.cell('J44').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page3Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+      page3Worksheet.getCell('B43').value = data.prepared_by || 'Unknown User';
+      page3Worksheet.getCell('B44').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page3Worksheet.getCell('J43').value = data.verified_by || 'Not Verified';
+      page3Worksheet.getCell('J44').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page3Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
     }
 
     // COA FORM DATA MAPPING - UC-18gsm-290NP-ABQR COA Form sheet
@@ -1759,8 +1804,10 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
       console.log('COA Form sheet detected, mapping COA data');
 
       // Inspected By (C41)
-      coaWorksheet.cell('C41').value(data.prepared_by || 'Unknown User');
+      coaWorksheet.getCell('C41').value = data.prepared_by || 'Unknown User';
 
+      // Approved By (F41)
+      coaWorksheet.getCell('F41').value = data.approved_by || 'Not Approved';
       // Add other COA fields as needed
       // You can add more COA-specific mappings here
     }
@@ -1778,7 +1825,7 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
 
     // 6. Write the workbook to response
     try {
-      const buffer = await workbook.outputAsync();
+      const buffer = await applyPasswordProtection(workbook);
       res.send(buffer);
     } catch (excelError) {
       console.error('Error generating Excel file:', excelError);
@@ -1840,28 +1887,28 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
 
     // Load the template file
     try {
-      workbook = await XlsxPopulate.fromFileAsync(templatePath);
-      page1Worksheet = workbook.sheet('Page1');
+      workbook = new ExcelJS.Workbook(); await workbook.xlsx.readFile(templatePath);
+      page1Worksheet = workbook.getWorksheet('Page1');
 
       // Create or get Page2 sheet for Page 2 data
       try {
-        page2Worksheet = workbook.sheet('Page2');
+        page2Worksheet = workbook.getWorksheet('Page2');
       } catch (error) {
-        page2Worksheet = workbook.addSheet('Page2');
+        page2Worksheet = workbook.addWorksheet('Page2');
       }
 
       // Create or get Page3 sheet for Page 3 data
       try {
-        page3Worksheet = workbook.sheet('Page3');
+        page3Worksheet = workbook.getWorksheet('Page3');
       } catch (error) {
-        page3Worksheet = workbook.addSheet('Page3');
+        page3Worksheet = workbook.addWorksheet('Page3');
       }
 
       // Create or get COA Form sheet for COA data
       try {
-        coaWorksheet = workbook.sheet('COA Form');
+        coaWorksheet = workbook.getWorksheet('COA Form');
       } catch (error) {
-        coaWorksheet = workbook.addSheet('COA Form');
+        coaWorksheet = workbook.addWorksheet('COA Form');
       }
     } catch (error) {
       console.log('Error loading template:', error.message);
@@ -1871,68 +1918,68 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
     // 3. Map data to Excel cells for Page 1
 
     // Product Code (C4)
-    page1Worksheet.cell('C4').value(data.product_code || '');
+    page1Worksheet.getCell('C4').value = data.product_code || '';
 
     // Specification (C5)
-    page1Worksheet.cell('C5').value(data.specification || '');
+    page1Worksheet.getCell('C5').value = data.specification || '';
 
     // Production Order (F4)
-    page1Worksheet.cell('F4').value(data.production_order || '');
+    page1Worksheet.getCell('F4').value = data.production_order || '';
 
     // Purchase Order (F5)
-  page1Worksheet.cell('F5').value(data.purchase_order ? data.purchase_order : 'NA');
+  page1Worksheet.getCell('F5').value = data.purchase_order ? data.purchase_order : 'NA';
 
     // Machine (H4)
-    page1Worksheet.cell('H4').value(data.machine_no || '');
+    page1Worksheet.getCell('H4').value = data.machine_no || '';
 
     // Quantity (H5) - Add "Rolls" text like prestore form
-    page1Worksheet.cell('H5').value(data.quantity ? `${data.quantity} Rolls` : '');
+    page1Worksheet.getCell('H5').value = data.quantity ? `${data.quantity} Rolls` : '';
 
     // Production Date (J4) - format as DD/MM/YYYY
-    page1Worksheet.cell('J4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+    page1Worksheet.getCell('J4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
 
     // Inspection Date (J5) - format as DD/MM/YYYY
-    page1Worksheet.cell('J5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    page1Worksheet.getCell('J5').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Equipment Data for Page 1
     if (data.equipment_used && data.equipment_used.page1) {
-        page1Worksheet.cell('D6').value(data.equipment_used.page1.basic_weight || '');
-        page1Worksheet.cell('E6').value(data.equipment_used.page1.dial_gauge || '');
-        page1Worksheet.cell('F6').value('NA');
-        page1Worksheet.cell('G6').value(data.equipment_used.page1.instron || '');
-        page1Worksheet.cell('I6').value(data.equipment_used.page1.instron || '');
+        page1Worksheet.getCell('D6').value = data.equipment_used.page1.basic_weight || '';
+        page1Worksheet.getCell('E6').value = data.equipment_used.page1.dial_gauge || '';
+        page1Worksheet.getCell('F6').value = 'NA';
+        page1Worksheet.getCell('G6').value = data.equipment_used.page1.instron || '';
+        page1Worksheet.getCell('I6').value = data.equipment_used.page1.instron || '';
     }
 
     // Inspected By (B42)
-    page1Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
+    page1Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
 
     // Inspection Date (B43) - format as DD/MM/YYYY
-    page1Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    page1Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Verified By (J42)
-    page1Worksheet.cell('J42').value(data.verified_by || 'Not Verified');
+    page1Worksheet.getCell('J42').value = data.verified_by || 'Not Verified';
 
     // Verified Date (J43) - format as DD/MM/YYYY
-    page1Worksheet.cell('J43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+    page1Worksheet.getCell('J43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (K3)
-    page1Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+    page1Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
       const equipment = data.equipment_used.page1;
 
       // Film Weight Equipment (D6) - WHS
-      page1Worksheet.cell('D6').value(equipment.film_weight || '');
+      page1Worksheet.getCell('D6').value = equipment.film_weight || '';
 
       // Thickness Equipment (E6) - DTG
-      page1Worksheet.cell('E6').value(equipment.thickness || '');
+      page1Worksheet.getCell('E6').value = equipment.thickness || '';
 
       // Tensile/COF Equipment (G6) - UTM
-      page1Worksheet.cell('G6').value(equipment.tensile_break || equipment.cof_rr || '');
+      page1Worksheet.getCell('G6').value = equipment.tensile_break || equipment.cof_rr || '';
 
       // Elongation/Modulus Equipment (I6) - UTM
-      page1Worksheet.cell('I6').value(equipment.tensile_break || equipment.elongation || equipment.modulus_10 || '');
+      page1Worksheet.getCell('I6').value = equipment.tensile_break || equipment.elongation || equipment.modulus_10 || '';
     }
 
     // Map sample data to the correct columns for Page 1
@@ -1947,9 +1994,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9; // Convert to 0-based index
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`A${row}`).value(''); // Empty row
+          page1Worksheet.getCell(`A${row}`).value = ''; // Empty row
         }
       }
     }
@@ -1962,9 +2009,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`B${row}`).value('');
+          page1Worksheet.getCell(`B${row}`).value = '';
         }
       }
     }
@@ -1977,9 +2024,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`C${row}`).value('');
+          page1Worksheet.getCell(`C${row}`).value = '';
         }
       }
     }
@@ -1994,9 +2041,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`D${row}`).value('');
+          page1Worksheet.getCell(`D${row}`).value = '';
         }
       }
     }
@@ -2010,9 +2057,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`E${row}`).value('');
+          page1Worksheet.getCell(`E${row}`).value = '';
         }
       }
     }
@@ -2026,9 +2073,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`F${row}`).value('');
+          page1Worksheet.getCell(`F${row}`).value = '';
         }
       }
     }
@@ -2042,9 +2089,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`G${row}`).value('');
+          page1Worksheet.getCell(`G${row}`).value = '';
         }
       }
     }
@@ -2058,9 +2105,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`H${row}`).value('');
+          page1Worksheet.getCell(`H${row}`).value = '';
         }
       }
     }
@@ -2074,9 +2121,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`I${row}`).value('');
+          page1Worksheet.getCell(`I${row}`).value = '';
         }
       }
     }
@@ -2090,9 +2137,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`J${row}`).value('');
+          page1Worksheet.getCell(`J${row}`).value = '';
         }
       }
     }
@@ -2106,9 +2153,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
           const numValue = parseFloat(dataValues[dataIndex]);
-          page1Worksheet.cell(`K${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+          page1Worksheet.getCell(`K${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`K${row}`).value('');
+          page1Worksheet.getCell(`K${row}`).value = '';
         }
       }
     }
@@ -2122,16 +2169,16 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
         const equipment = data.equipment_used.page2;
 
         // Tensile Break Equipment (D6) - INSTRON UTM
-        page2Worksheet.cell('D6').value(equipment.tensile_break || '');
+        page2Worksheet.getCell('D6').value = equipment.tensile_break || '';
 
         // Opacity Equipment (G6) - SPECTROPHOTOMETER
-        page2Worksheet.cell('G6').value(equipment.opacity || '');
+        page2Worksheet.getCell('G6').value = equipment.opacity || '';
 
         // Roll Width Equipment (I6) - STEEL RULER
-        page2Worksheet.cell('I6').value(equipment.roll_width || '');
+        page2Worksheet.getCell('I6').value = equipment.roll_width || '';
 
         // Diameter Equipment (K6) - STEEL RULER
-        page2Worksheet.cell('K6').value(equipment.diameter || '');
+        page2Worksheet.getCell('K6').value = equipment.diameter || '';
       }
 
       // Tensile Break data to column D (D11-D40)
@@ -2143,9 +2190,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`D${row}`).value('');
+            page2Worksheet.getCell(`D${row}`).value = '';
           }
         }
       }
@@ -2159,9 +2206,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`E${row}`).value('');
+            page2Worksheet.getCell(`E${row}`).value = '';
           }
         }
       }
@@ -2175,9 +2222,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`F${row}`).value('');
+            page2Worksheet.getCell(`F${row}`).value = '';
           }
         }
       }
@@ -2191,9 +2238,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`G${row}`).value('');
+            page2Worksheet.getCell(`G${row}`).value = '';
           }
         }
       }
@@ -2207,9 +2254,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`I${row}`).value('');
+            page2Worksheet.getCell(`I${row}`).value = '';
           }
         }
       }
@@ -2223,19 +2270,19 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`K${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`K${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`K${row}`).value('');
+            page2Worksheet.getCell(`K${row}`).value = '';
           }
         }
       }
 
       // Add personnel information to Page 2
-      page2Worksheet.cell('B44').value(data.prepared_by || 'Unknown User');
-      page2Worksheet.cell('B45').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page2Worksheet.cell('J44').value(data.verified_by || 'Not Verified');
-      page2Worksheet.cell('J45').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page2Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+      page2Worksheet.getCell('B44').value = data.prepared_by || 'Unknown User';
+      page2Worksheet.getCell('B45').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page2Worksheet.getCell('J44').value = data.verified_by || 'Not Verified';
+      page2Worksheet.getCell('J45').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page2Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
     }
 
     // PAGE 3 DATA MAPPING - UC-18gsm-250W-BFQR Page 3 data (Color Measurements)
@@ -2247,10 +2294,10 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
         const equipment = data.equipment_used.page3;
 
         // Color Equipment (D6) - XRITE/SPECTROPHOTOMETER
-        page3Worksheet.cell('D6').value(equipment.colour || '');
+        page3Worksheet.getCell('D6').value = equipment.colour || '';
 
         // Color Equipment (H6) - SPECTROPHOTOMETER
-        page3Worksheet.cell('H6').value(equipment.baseFilm || '');
+        page3Worksheet.getCell('H6').value = equipment.baseFilm || '';
       }
 
       // Color L data to column D (D10-D39)
@@ -2262,9 +2309,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`D${row}`).value('');
+            page3Worksheet.getCell(`D${row}`).value = '';
           }
         }
       }
@@ -2278,9 +2325,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`E${row}`).value('');
+            page3Worksheet.getCell(`E${row}`).value = '';
           }
         }
       }
@@ -2294,9 +2341,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`F${row}`).value('');
+            page3Worksheet.getCell(`F${row}`).value = '';
           }
         }
       }
@@ -2310,9 +2357,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`G${row}`).value('');
+            page3Worksheet.getCell(`G${row}`).value = '';
           }
         }
       }
@@ -2326,19 +2373,19 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`H${row}`).value('');
+            page3Worksheet.getCell(`H${row}`).value = '';
           }
         }
       }
 
       // Add personnel information to Page 3
-      page3Worksheet.cell('B43').value(data.prepared_by || 'Unknown User');
-      page3Worksheet.cell('B44').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page3Worksheet.cell('J43').value(data.verified_by || 'Not Verified');
-      page3Worksheet.cell('J44').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page3Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+      page3Worksheet.getCell('B43').value = data.prepared_by || 'Unknown User';
+      page3Worksheet.getCell('B44').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page3Worksheet.getCell('J43').value = data.verified_by || 'Not Verified';
+      page3Worksheet.getCell('J44').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page3Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
     }
 
     // COA FORM DATA MAPPING - UC-18gsm-250W-BFQR COA Form sheet
@@ -2346,8 +2393,10 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
       console.log('COA Form sheet detected, mapping COA data');
 
       // Inspected By (C41)
-      coaWorksheet.cell('C41').value(data.prepared_by || 'Unknown User');
+      coaWorksheet.getCell('C41').value = data.prepared_by || 'Unknown User';
 
+      // Approved By (F41)
+      coaWorksheet.getCell('F41').value = data.approved_by || 'Not Approved';
       // Add other COA fields as needed
       // You can add more COA-specific mappings here
     }
@@ -2365,7 +2414,7 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
 
     // 6. Write the workbook to response
     try {
-      const buffer = await workbook.outputAsync();
+      const buffer = await applyPasswordProtection(workbook);
       res.send(buffer);
     } catch (excelError) {
       console.error('Error generating Excel file:', excelError);
@@ -2427,28 +2476,28 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
 
     // Load the template file
     try {
-      workbook = await XlsxPopulate.fromFileAsync(templatePath);
-      page1Worksheet = workbook.sheet('Page1');
+      workbook = new ExcelJS.Workbook(); await workbook.xlsx.readFile(templatePath);
+      page1Worksheet = workbook.getWorksheet('Page1');
 
       // Create or get Page2 sheet for Page 2 data
       try {
-        page2Worksheet = workbook.sheet('Page2');
+        page2Worksheet = workbook.getWorksheet('Page2');
       } catch (error) {
-        page2Worksheet = workbook.addSheet('Page2');
+        page2Worksheet = workbook.addWorksheet('Page2');
       }
 
       // Create or get Page3 sheet for Page 3 data
       try {
-        page3Worksheet = workbook.sheet('Page3');
+        page3Worksheet = workbook.getWorksheet('Page3');
       } catch (error) {
-        page3Worksheet = workbook.addSheet('Page3');
+        page3Worksheet = workbook.addWorksheet('Page3');
       }
 
       // Create or get COA Form sheet for COA data
       try {
-        coaWorksheet = workbook.sheet('COA Form');
+        coaWorksheet = workbook.getWorksheet('COA Form');
       } catch (error) {
-        coaWorksheet = workbook.addSheet('COA Form');
+        coaWorksheet = workbook.addWorksheet('COA Form');
       }
     } catch (error) {
       console.log('Error loading template:', error.message);
@@ -2458,31 +2507,31 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
     // 3. Map data to Excel cells for Page 1
 
     // Product Code (C4)
-    page1Worksheet.cell('C4').value(data.product_code || '');
+    page1Worksheet.getCell('C4').value = data.product_code || '';
 
     // Specification (C5)
-    page1Worksheet.cell('C5').value(data.specification || '');
+    page1Worksheet.getCell('C5').value = data.specification || '';
 
     // Production Order (F4)
-    page1Worksheet.cell('F4').value(data.production_order || '');
+    page1Worksheet.getCell('F4').value = data.production_order || '';
 
     // Purchase Order (F5)
-  page1Worksheet.cell('F5').value(data.purchase_order ? data.purchase_order : 'NA');
+  page1Worksheet.getCell('F5').value = data.purchase_order ? data.purchase_order : 'NA';
 
     // Machine (H4)
-    page1Worksheet.cell('H4').value(data.machine_no || '');
+    page1Worksheet.getCell('H4').value = data.machine_no || '';
 
     // Quantity (H5) - Add "Rolls" text like prestore form
-    page1Worksheet.cell('H5').value(data.quantity ? `${data.quantity} Rolls` : '');
+    page1Worksheet.getCell('H5').value = data.quantity ? `${data.quantity} Rolls` : '';
 
     // Production Date (J4) - format as DD/MM/YYYY
-    page1Worksheet.cell('J4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+    page1Worksheet.getCell('J4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
 
     // Inspection Date (J5) - format as DD/MM/YYYY
-    page1Worksheet.cell('J5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    page1Worksheet.getCell('J5').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Prepared By (B43)
-    page1Worksheet.cell('B43').value(data.prepared_by || 'Unknown User');
+    page1Worksheet.getCell('B43').value = data.prepared_by || 'Unknown User';
 
     // PAGE 1 DATA MAPPING - UC-18gsm-210W-BFQR Page 1 data (Mechanical Properties)
     // Lot & Roll data to Sample No. column (A9-A38)
@@ -2492,9 +2541,9 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`A${row}`).value('');
+          page1Worksheet.getCell(`A${row}`).value = '';
         }
       }
     }
@@ -2506,9 +2555,9 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`B${row}`).value('');
+          page1Worksheet.getCell(`B${row}`).value = '';
         }
       }
     }
@@ -2520,9 +2569,9 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
       for (let row = 9; row <= 38; row++) {
         const dataIndex = row - 9;
         if (dataIndex < dataValues.length) {
-          page1Worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+          page1Worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
         } else {
-          page1Worksheet.cell(`C${row}`).value('');
+          page1Worksheet.getCell(`C${row}`).value = '';
         }
       }
     }
@@ -2535,22 +2584,22 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
         const equipment = data.equipment_used.page1;
 
         // Film Weight Equipment (D6) - WEIGH SCALE
-        page1Worksheet.cell('D6').value(equipment.film_weight || '');
+        page1Worksheet.getCell('D6').value = equipment.film_weight || '';
 
         // Thickness Equipment (E6) - DIAL GAUGE
-        page1Worksheet.cell('E6').value(equipment.thickness || '');
+        page1Worksheet.getCell('E6').value = equipment.thickness || '';
 
         // COF Equipment (G6) - INSTRON UTM
-        page1Worksheet.cell('G6').value(equipment.cof_rr || equipment.cof_cc || '');
+        page1Worksheet.getCell('G6').value = equipment.cof_rr || equipment.cof_cc || '';
 
         // Tensile Break Equipment (H6) - INSTRON UTM
-        page1Worksheet.cell('H6').value(equipment.tensile_break || '');
+        page1Worksheet.getCell('H6').value = equipment.tensile_break || '';
 
         // Elongation Equipment (I6) - INSTRON UTM
-        page1Worksheet.cell('I6').value(equipment.elongation || '');
+        page1Worksheet.getCell('I6').value = equipment.elongation || '';
 
         // Modulus Equipment (J6) - INSTRON UTM
-        page1Worksheet.cell('J6').value(equipment.modulus || '');
+        page1Worksheet.getCell('J6').value = equipment.modulus || '';
       }
 
       // Basis Weight data to column D (D9-D38)
@@ -2562,9 +2611,9 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page1Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page1Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`D${row}`).value('');
+            page1Worksheet.getCell(`D${row}`).value = '';
           }
         }
       }
@@ -2578,9 +2627,9 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page1Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page1Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`E${row}`).value('');
+            page1Worksheet.getCell(`E${row}`).value = '';
           }
         }
       }
@@ -2594,9 +2643,9 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page1Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page1Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`F${row}`).value('');
+            page1Worksheet.getCell(`F${row}`).value = '';
           }
         }
       }
@@ -2610,9 +2659,9 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page1Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page1Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`G${row}`).value('');
+            page1Worksheet.getCell(`G${row}`).value = '';
           }
         }
       }
@@ -2626,9 +2675,9 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page1Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page1Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`H${row}`).value('');
+            page1Worksheet.getCell(`H${row}`).value = '';
           }
         }
       }
@@ -2642,9 +2691,9 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page1Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page1Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`I${row}`).value('');
+            page1Worksheet.getCell(`I${row}`).value = '';
           }
         }
       }
@@ -2658,9 +2707,9 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page1Worksheet.cell(`J${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page1Worksheet.getCell(`J${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`J${row}`).value('');
+            page1Worksheet.getCell(`J${row}`).value = '';
           }
         }
       }
@@ -2674,150 +2723,150 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page1Worksheet.cell(`K${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page1Worksheet.getCell(`K${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`K${row}`).value('');
+            page1Worksheet.getCell(`K${row}`).value = '';
           }
         }
       }
 
       // Add personnel information to Page 1
-      page1Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      page1Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page1Worksheet.cell('J42').value(data.verified_by || 'Not Verified');
-      page1Worksheet.cell('J43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page1Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+      page1Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page1Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page1Worksheet.getCell('J42').value = data.verified_by || 'Not Verified';
+      page1Worksheet.getCell('J43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page1Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
     }
 
     // PAGE 2 DATA MAPPING - UC-18gsm-210W-BFQR Page 2 data (Mechanical Properties)
     if (page2Worksheet && (data.page2_tensile_break || data.page2_cd_elongation || data.page2_modulus ||
-                          data.page2_opacity || data.page2_roll_width || data.page2_diameter)) {
+                data.page2_opacity || data.page2_roll_width || data.page2_diameter)) {
 
       // Equipment Data for Page 2
       if (data.equipment_used && data.equipment_used.page2) {
         const equipment = data.equipment_used.page2;
 
         // Tensile Break Equipment (D6) - INSTRON UTM
-        page2Worksheet.cell('D6').value(equipment.tensile_break || '');
+        page2Worksheet.getCell('D6').value = equipment.tensile_break || '';
 
         // Elongation Equipment (E6) - INSTRON UTM
-        page2Worksheet.cell('E6').value(equipment.elongation || '');
+        page2Worksheet.getCell('E6').value = equipment.elongation || '';
 
         // Modulus Equipment (F6) - INSTRON UTM
-        page2Worksheet.cell('F6').value(equipment.modulus || '');
+        page2Worksheet.getCell('F6').value = equipment.modulus || '';
 
         // Opacity Equipment (G6) - SPECTROPHOTOMETER
-        page2Worksheet.cell('G6').value(equipment.opacity || '');
+        page2Worksheet.getCell('G6').value = equipment.opacity || '';
 
         // Roll Width Equipment (I6) - STEEL RULER
-        page2Worksheet.cell('I6').value(equipment.roll_width || '');
+        page2Worksheet.getCell('I6').value = equipment.roll_width || '';
 
         // Diameter Equipment (K6) - STEEL RULER
-        page2Worksheet.cell('K6').value(equipment.diameter || '');
+        page2Worksheet.getCell('K6').value = equipment.diameter || '';
       }
 
-      // Tensile Break data to column D (D9-D38)
+      // Tensile Break data to column D (D11-D40)
       if (data.page2_tensile_break) {
         const tensileBreakData = data.page2_tensile_break;
         const dataValues = Object.values(tensileBreakData).filter(value => value !== null && value !== undefined && value !== '');
 
-        for (let row = 9; row <= 38; row++) {
-          const dataIndex = row - 9;
+        for (let row = 11; row <= 40; row++) {
+          const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`D${row}`).value('');
+            page2Worksheet.getCell(`D${row}`).value = '';
           }
         }
       }
 
-      // CD Elongation data to column E (E9-E38)
+      // CD Elongation data to column E (E11-E40)
       if (data.page2_cd_elongation) {
         const cdElongationData = data.page2_cd_elongation;
         const dataValues = Object.values(cdElongationData).filter(value => value !== null && value !== undefined && value !== '');
 
-        for (let row = 9; row <= 38; row++) {
-          const dataIndex = row - 9;
+        for (let row = 11; row <= 40; row++) {
+          const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`E${row}`).value('');
+            page2Worksheet.getCell(`E${row}`).value = '';
           }
         }
       }
 
-      // Modulus data to column F (F9-F38)
+      // Modulus data to column F (F11-F40)
       if (data.page2_modulus) {
         const modulusData = data.page2_modulus;
         const dataValues = Object.values(modulusData).filter(value => value !== null && value !== undefined && value !== '');
 
-        for (let row = 9; row <= 38; row++) {
-          const dataIndex = row - 9;
+        for (let row = 11; row <= 40; row++) {
+          const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`F${row}`).value('');
+            page2Worksheet.getCell(`F${row}`).value = '';
           }
         }
       }
 
-      // Opacity data to column G (G9-G38)
+      // Opacity data to column G (G11-G40)
       if (data.page2_opacity) {
         const opacityData = data.page2_opacity;
         const dataValues = Object.values(opacityData).filter(value => value !== null && value !== undefined && value !== '');
 
-        for (let row = 9; row <= 38; row++) {
-          const dataIndex = row - 9;
+        for (let row = 11; row <= 40; row++) {
+          const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`G${row}`).value('');
+            page2Worksheet.getCell(`G${row}`).value = '';
           }
         }
       }
 
-      // Roll Width data to column I (I9-I38)
+      // Roll Width data to column I (I11-I40)
       if (data.page2_roll_width) {
         const rollWidthData = data.page2_roll_width;
         const dataValues = Object.values(rollWidthData).filter(value => value !== null && value !== undefined && value !== '');
 
-        for (let row = 9; row <= 38; row++) {
-          const dataIndex = row - 9;
+        for (let row = 11; row <= 40; row++) {
+          const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`I${row}`).value('');
+            page2Worksheet.getCell(`I${row}`).value = '';
           }
         }
       }
 
-      // Diameter data to column K (K9-K38)
+      // Diameter data to column K (K11-K40)
       if (data.page2_diameter) {
         const diameterData = data.page2_diameter;
         const dataValues = Object.values(diameterData).filter(value => value !== null && value !== undefined && value !== '');
 
-        for (let row = 9; row <= 38; row++) {
-          const dataIndex = row - 9;
+        for (let row = 11; row <= 40; row++) {
+          const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`K${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`K${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`K${row}`).value('');
+            page2Worksheet.getCell(`K${row}`).value = '';
           }
         }
       }
 
       // Add personnel information to Page 2
-      page2Worksheet.cell('B44').value(data.prepared_by || 'Unknown User');
-      page2Worksheet.cell('B45').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page2Worksheet.cell('J44').value(data.verified_by || 'Not Verified');
-      page2Worksheet.cell('J45').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page2Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+      page2Worksheet.getCell('B44').value = data.prepared_by || 'Unknown User';
+      page2Worksheet.getCell('B45').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page2Worksheet.getCell('J44').value = data.verified_by || 'Not Verified';
+      page2Worksheet.getCell('J45').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page2Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
     }
 
     // PAGE 3 DATA MAPPING - UC-18gsm-210W-BFQR Page 3 data (Color Measurements)
@@ -2829,10 +2878,10 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
         const equipment = data.equipment_used.page3;
 
         // Color Equipment (D6) - XRITE/SPECTROPHOTOMETER
-        page3Worksheet.cell('D6').value(equipment.colour || '');
+        page3Worksheet.getCell('D6').value = equipment.colour || '';
 
         // Color Equipment (H6) - SPECTROPHOTOMETER
-        page3Worksheet.cell('H6').value(equipment.baseFilm || '');
+        page3Worksheet.getCell('H6').value = equipment.baseFilm || '';
       }
 
       // Color L data to column D (D10-D39)
@@ -2844,9 +2893,9 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`D${row}`).value('');
+            page3Worksheet.getCell(`D${row}`).value = '';
           }
         }
       }
@@ -2860,9 +2909,9 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`E${row}`).value('');
+            page3Worksheet.getCell(`E${row}`).value = '';
           }
         }
       }
@@ -2876,9 +2925,9 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`F${row}`).value('');
+            page3Worksheet.getCell(`F${row}`).value = '';
           }
         }
       }
@@ -2892,9 +2941,9 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`G${row}`).value('');
+            page3Worksheet.getCell(`G${row}`).value = '';
           }
         }
       }
@@ -2908,19 +2957,19 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
           const dataIndex = row - 10;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`H${row}`).value('');
+            page3Worksheet.getCell(`H${row}`).value = '';
           }
         }
       }
 
       // Add personnel information to Page 3
-      page3Worksheet.cell('B43').value(data.prepared_by || 'Unknown User');
-      page3Worksheet.cell('B44').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page3Worksheet.cell('J43').value(data.verified_by || 'Not Verified');
-      page3Worksheet.cell('J44').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
-      page3Worksheet.cell('K3').value(data.film_insp_form_ref_no || '');
+      page3Worksheet.getCell('B43').value = data.prepared_by || 'Unknown User';
+      page3Worksheet.getCell('B44').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page3Worksheet.getCell('J43').value = data.verified_by || 'Not Verified';
+      page3Worksheet.getCell('J44').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+      page3Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
     }
 
     // COA FORM DATA MAPPING - UC-18gsm-210W-BFQR COA Form sheet
@@ -2928,8 +2977,10 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
       console.log('COA Form sheet detected, mapping COA data');
 
       // Inspected By (C41)
-      coaWorksheet.cell('C41').value(data.prepared_by || 'Unknown User');
+      coaWorksheet.getCell('C41').value = data.prepared_by || 'Unknown User';
 
+      // Approved By (F41)
+      coaWorksheet.getCell('F41').value = data.approved_by || 'Not Approved';
       // Add other COA fields as needed
       // You can add more COA-specific mappings here
     }
@@ -2947,7 +2998,7 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
 
     // 6. Write the workbook to response
     try {
-      const buffer = await workbook.outputAsync();
+      const buffer = await applyPasswordProtection(workbook);
       res.send(buffer);
     } catch (excelError) {
       console.error('Error generating Excel file:', excelError);
@@ -3008,28 +3059,28 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
 
     // Load the template file
     try {
-      workbook = await XlsxPopulate.fromFileAsync(templatePath);
-      page1Worksheet = workbook.sheet('Page1');
+      workbook = new ExcelJS.Workbook(); await workbook.xlsx.readFile(templatePath);
+      page1Worksheet = workbook.getWorksheet('Page1');
 
       // Create or get Page2 sheet for Page 2 data
       try {
-        page2Worksheet = workbook.sheet('Page2');
+        page2Worksheet = workbook.getWorksheet('Page2');
       } catch (error) {
-        page2Worksheet = workbook.addSheet('Page2');
+        page2Worksheet = workbook.addWorksheet('Page2');
       }
 
       // Create or get Page3 sheet for Page 3 data
       try {
-        page3Worksheet = workbook.sheet('Page3');
+        page3Worksheet = workbook.getWorksheet('Page3');
       } catch (error) {
-        page3Worksheet = workbook.addSheet('Page3');
+        page3Worksheet = workbook.addWorksheet('Page3');
       }
 
       // Create or get COA Form sheet for COA data
       try {
-        coaWorksheet = workbook.sheet('COA Form');
+        coaWorksheet = workbook.getWorksheet('COA Form');
       } catch (error) {
-        coaWorksheet = workbook.addSheet('COA Form');
+        coaWorksheet = workbook.addWorksheet('COA Form');
       }
     } catch (error) {
       console.log('Error loading template:', error.message);
@@ -3039,31 +3090,31 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
     // 3. Map data to Excel cells for Page 1
 
     // Product Code (B4)
-    page1Worksheet.cell('B4').value(data.product_code || '');
+    page1Worksheet.getCell('B4').value = data.product_code || '';
 
     // Specification (B5)
-    page1Worksheet.cell('B5').value(data.specification || '');
+    page1Worksheet.getCell('B5').value = data.specification || '';
 
     // Film Inspection Form Ref No (I3)
-    page1Worksheet.cell('I3').value(data.film_insp_form_ref_no || '');
+    page1Worksheet.getCell('I3').value = data.film_insp_form_ref_no || '';
 
     // Purchase Order (E5)
-  page1Worksheet.cell('E5').value(data.purchase_order ? data.purchase_order : 'NA');
+  page1Worksheet.getCell('E5').value = data.purchase_order ? data.purchase_order : 'NA';
 
     // Machine (G4)
-    page1Worksheet.cell('G4').value(data.machine_no || '');
+    page1Worksheet.getCell('G4').value = data.machine_no || '';
 
     // Quantity (G5) - Add "Rolls" text like prestore form
-    page1Worksheet.cell('G5').value(data.quantity ? `${data.quantity} Rolls` : '');
+    page1Worksheet.getCell('G5').value = data.quantity ? `${data.quantity} Rolls` : '';
 
     // Production Order (E4)
-    page1Worksheet.cell('E4').value(data.production_order || '');
+    page1Worksheet.getCell('E4').value = data.production_order || '';
 
     // Production Date (I4) - format as DD/MM/YYYY
-    page1Worksheet.cell('I4').value(data.production_date ? formatDateToDDMMYYYY(data.production_date) : '');
+    page1Worksheet.getCell('I4').value = data.production_date ? formatDateToDDMMYYYY(data.production_date) : '';
 
     // Inspection Date (I5) - format as DD/MM/YYYY
-    page1Worksheet.cell('I5').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
+    page1Worksheet.getCell('I5').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
     // Personnel Information Section
 
@@ -3079,19 +3130,19 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         const equipment = data.equipment_used.page1;
 
         // Film Weight Equipment (D6) - WEIGH SCALE
-        page1Worksheet.cell('D6').value(equipment.film_weight || '');
+        page1Worksheet.getCell('D6').value = equipment.film_weight || '';
 
         // Thickness Equipment (E6) - DIAL GAUGE
-        page1Worksheet.cell('E6').value(equipment.thickness || '');
+        page1Worksheet.getCell('E6').value = equipment.thickness || '';
 
         // COF Equipment (F6) - COF TESTER
-        page1Worksheet.cell('F6').value(equipment.cof_rr || '');
+        page1Worksheet.getCell('F6').value = equipment.cof_rr || '';
 
         // Tensile/Elongation/Modulus Equipment (G6, H6, I6) - INSTRON UTM
         const tensileEquipment = equipment.tensile_break || equipment.elongation || equipment.modulus_10 || '';
-        page1Worksheet.cell('G6').value(tensileEquipment);
-        page1Worksheet.cell('H6').value(tensileEquipment);
-        page1Worksheet.cell('I6').value(tensileEquipment);
+        page1Worksheet.getCell('G6').value = tensileEquipment;
+        page1Worksheet.getCell('H6').value = tensileEquipment;
+        page1Worksheet.getCell('I6').value = tensileEquipment;
       }
 
       // Lot & Roll data to column A (A9-A38)
@@ -3102,9 +3153,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
-            page1Worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+            page1Worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`A${row}`).value('');
+            page1Worksheet.getCell(`A${row}`).value = '';
           }
         }
       }
@@ -3117,9 +3168,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
-            page1Worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+            page1Worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`B${row}`).value('');
+            page1Worksheet.getCell(`B${row}`).value = '';
           }
         }
       }
@@ -3132,9 +3183,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
-            page1Worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+            page1Worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`C${row}`).value('');
+            page1Worksheet.getCell(`C${row}`).value = '';
           }
         }
       }
@@ -3148,9 +3199,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page1Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page1Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`D${row}`).value('');
+            page1Worksheet.getCell(`D${row}`).value = '';
           }
         }
       }
@@ -3164,9 +3215,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page1Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page1Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`E${row}`).value('');
+            page1Worksheet.getCell(`E${row}`).value = '';
           }
         }
       }
@@ -3180,9 +3231,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page1Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page1Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`F${row}`).value('');
+            page1Worksheet.getCell(`F${row}`).value = '';
           }
         }
       }
@@ -3196,9 +3247,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page1Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page1Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`G${row}`).value('');
+            page1Worksheet.getCell(`G${row}`).value = '';
           }
         }
       }
@@ -3212,9 +3263,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page1Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page1Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`H${row}`).value('');
+            page1Worksheet.getCell(`H${row}`).value = '';
           }
         }
       }
@@ -3228,18 +3279,18 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page1Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page1Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page1Worksheet.cell(`I${row}`).value('');
+            page1Worksheet.getCell(`I${row}`).value = '';
           }
         }
       }
 
       // Add personnel information to Page 1 (corrected cell positions)
-      page1Worksheet.cell('B42').value(data.prepared_by || 'Unknown User');
-      page1Worksheet.cell('B43').value(data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '');
-      page1Worksheet.cell('H42').value(data.verified_by || 'Not Verified');
-      page1Worksheet.cell('H43').value(data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '');
+      page1Worksheet.getCell('B42').value = data.prepared_by || 'Unknown User';
+      page1Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      page1Worksheet.getCell('H42').value = data.verified_by || 'Not Verified';
+      page1Worksheet.getCell('H43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
       // FIF Ref No mapped to E4 in header section above
     }
 
@@ -3253,18 +3304,18 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
 
         // Combined UTM Equipment (D6, E6, F6) - INSTRON UTM (tensile break, elongation, modulus now use same equipment)
         const utmEquipment = equipment.tensile_break || equipment.cd_elongation || equipment.modulus || '';
-        page2Worksheet.cell('D6').value(utmEquipment);
-        page2Worksheet.cell('E6').value(utmEquipment);
-        page2Worksheet.cell('F6').value(utmEquipment);
+        page2Worksheet.getCell('D6').value = utmEquipment;
+        page2Worksheet.getCell('E6').value = utmEquipment;
+        page2Worksheet.getCell('F6').value = utmEquipment;
 
         // Opacity Equipment (G6) - SPECTROPHOTOMETER
-        page2Worksheet.cell('G6').value(equipment.opacity || '');
+        page2Worksheet.getCell('G6').value = equipment.opacity || '';
 
         // Roll Width Equipment (H6) - STEEL RULER
-        page2Worksheet.cell('H6').value(equipment.roll_width || '');
+        page2Worksheet.getCell('H6').value = equipment.roll_width || '';
 
         // Diameter Equipment (I6) - STEEL RULER
-        page2Worksheet.cell('I6').value(equipment.diameter || '');
+        page2Worksheet.getCell('I6').value = equipment.diameter || '';
       }
 
       // Lot & Roll data to column A (A11-A40)
@@ -3275,9 +3326,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         for (let row = 11; row <= 40; row++) {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
-            page2Worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+            page2Worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`A${row}`).value('');
+            page2Worksheet.getCell(`A${row}`).value = '';
           }
         }
       }
@@ -3290,9 +3341,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         for (let row = 11; row <= 40; row++) {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
-            page2Worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+            page2Worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`B${row}`).value('');
+            page2Worksheet.getCell(`B${row}`).value = '';
           }
         }
       }
@@ -3305,9 +3356,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         for (let row = 11; row <= 40; row++) {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
-            page2Worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+            page2Worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`C${row}`).value('');
+            page2Worksheet.getCell(`C${row}`).value = '';
           }
         }
       }
@@ -3321,9 +3372,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`D${row}`).value('');
+            page2Worksheet.getCell(`D${row}`).value = '';
           }
         }
       }
@@ -3337,9 +3388,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`E${row}`).value('');
+            page2Worksheet.getCell(`E${row}`).value = '';
           }
         }
       }
@@ -3353,9 +3404,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`F${row}`).value('');
+            page2Worksheet.getCell(`F${row}`).value = '';
           }
         }
       }
@@ -3369,9 +3420,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`G${row}`).value('');
+            page2Worksheet.getCell(`G${row}`).value = '';
           }
         }
       }
@@ -3385,9 +3436,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`H${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`H${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`H${row}`).value('');
+            page2Worksheet.getCell(`H${row}`).value = '';
           }
         }
       }
@@ -3401,9 +3452,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
           const dataIndex = row - 11;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page2Worksheet.cell(`I${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page2Worksheet.getCell(`I${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page2Worksheet.cell(`I${row}`).value('');
+            page2Worksheet.getCell(`I${row}`).value = '';
           }
         }
       }
@@ -3421,7 +3472,7 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         const equipment = data.equipment_used.page3;
 
         // Color Equipment (D6) - STM SPECTROPHOTOMETER
-        page3Worksheet.cell('D6').value(equipment.colour || '');
+        page3Worksheet.getCell('D6').value = equipment.colour || '';
       }
 
       // Lot & Roll data to column A (A9-A38)
@@ -3432,9 +3483,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
-            page3Worksheet.cell(`A${row}`).value(dataValues[dataIndex]);
+            page3Worksheet.getCell(`A${row}`).value = dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`A${row}`).value('');
+            page3Worksheet.getCell(`A${row}`).value = '';
           }
         }
       }
@@ -3447,9 +3498,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
-            page3Worksheet.cell(`B${row}`).value(dataValues[dataIndex]);
+            page3Worksheet.getCell(`B${row}`).value = dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`B${row}`).value('');
+            page3Worksheet.getCell(`B${row}`).value = '';
           }
         }
       }
@@ -3462,9 +3513,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         for (let row = 9; row <= 38; row++) {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
-            page3Worksheet.cell(`C${row}`).value(dataValues[dataIndex]);
+            page3Worksheet.getCell(`C${row}`).value = dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`C${row}`).value('');
+            page3Worksheet.getCell(`C${row}`).value = '';
           }
         }
       }
@@ -3478,9 +3529,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`D${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`D${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`D${row}`).value('');
+            page3Worksheet.getCell(`D${row}`).value = '';
           }
         }
       }
@@ -3494,9 +3545,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`E${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`E${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`E${row}`).value('');
+            page3Worksheet.getCell(`E${row}`).value = '';
           }
         }
       }
@@ -3510,9 +3561,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`F${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`F${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`F${row}`).value('');
+            page3Worksheet.getCell(`F${row}`).value = '';
           }
         }
       }
@@ -3526,9 +3577,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
           const dataIndex = row - 9;
           if (dataIndex < dataValues.length) {
             const numValue = parseFloat(dataValues[dataIndex]);
-            page3Worksheet.cell(`G${row}`).value(!isNaN(numValue) ? numValue : dataValues[dataIndex]);
+            page3Worksheet.getCell(`G${row}`).value = !isNaN(numValue) ? numValue : dataValues[dataIndex];
           } else {
-            page3Worksheet.cell(`G${row}`).value('');
+            page3Worksheet.getCell(`G${row}`).value = '';
           }
         }
       }
@@ -3542,8 +3593,10 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
       console.log('COA Form sheet detected, mapping COA data');
 
       // Inspected By (C33)
-      coaWorksheet.cell('C33').value(data.prepared_by || 'Unknown User');
+      coaWorksheet.getCell('C33').value = data.prepared_by || 'Unknown User';
 
+      // Approved By (F33) - UC-16gsm-165W uses a different COA layout
+      coaWorksheet.getCell('F33').value = data.approved_by || 'Not Approved';
       // Add other COA fields as needed
       // You can add more COA-specific mappings here
     }
@@ -3561,8 +3614,8 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
 
     // 6. Write the workbook to response
     try {
-      const buffer = await workbook.outputAsync();
-    res.send(buffer);
+      const buffer = await applyPasswordProtection(workbook);
+      res.send(buffer);
     } catch (excelError) {
       console.error('Error generating Excel file:', excelError);
       console.error('Error stack:', excelError.stack);
@@ -3576,3 +3629,12 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
   }
 });
 };
+
+
+
+
+
+
+
+
+

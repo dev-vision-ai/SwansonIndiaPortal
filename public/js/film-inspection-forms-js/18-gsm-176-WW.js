@@ -692,6 +692,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (prestoreSection) {
         prestoreSection.style.display = viewMode ? 'block' : 'none';
     }
+
+    // Verified/Approved blocks should be visible ONLY in view mode
+    const verificationApprovalContainer = document.getElementById('verificationApprovalContainer');
+    if (verificationApprovalContainer) {
+        verificationApprovalContainer.style.display = viewMode ? 'flex' : 'none';
+    }
     
     // Show/hide verification sections based on mode
     const verificationSection = document.getElementById('verificationSection');
