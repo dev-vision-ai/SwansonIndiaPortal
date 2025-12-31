@@ -438,6 +438,21 @@ function showCustomConfirmationPopup(formDetails, currentUser, verificationDate)
             // Show success message
             alert('Form verified successfully!');
             
+            // Reload form data from database to sync all fields
+            const formId = getCurrentFormId();
+            if (formId) {
+                const { data, error } = await supabase
+                    .from('uc-16gsm-165w')
+                    .select('*')
+                    .eq('form_id', formId)
+                    .single();
+                
+                if (data && !error) {
+                    loadFormHeaderData(data);
+                    loadTableDataFromDatabase(data);
+                }
+            }
+            
             // Update UI to show verification status
             showVerificationStatus();
             document.getElementById('verifiedByDisplay').textContent = 'Verified by: ' + currentUser;
@@ -491,6 +506,21 @@ function showApprovalConfirmationPopup(formDetails, currentUser, approvalDate) {
                 
                 // Show success message
                 alert('Form approved successfully!');
+                
+                // Reload form data from database to sync all fields
+                const formId = getCurrentFormId();
+                if (formId) {
+                    const { data, error } = await supabase
+                        .from('uc-16gsm-165w')
+                        .select('*')
+                        .eq('form_id', formId)
+                        .single();
+                    
+                    if (data && !error) {
+                        loadFormHeaderData(data);
+                        loadTableDataFromDatabase(data);
+                    }
+                }
                 
                 // Update UI to show approval status
                 showApprovalStatus();
@@ -4476,10 +4506,14 @@ function calculatePage1ColumnStats(tableBody, changedColumnIndex = null) {
                 updatePage1SummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
             }
         }
+        // Update COA fields after calculating stats
+        updateCOAFields();
         return;
     } else {
         // Calculate all columns initially
         calculateSummaryStatistics(tableBody);
+        // Update COA fields after initial calculation
+        updateCOAFields();
     }
 }
 
@@ -4616,10 +4650,14 @@ function calculatePage2ColumnStats(tableBody, changedColumnIndex = null) {
                 updatePageSummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
             }
         }
+        // Update COA fields after calculating stats
+        updateCOAFields();
         return;
     } else {
         // Calculate all columns initially
         calculatePage2SummaryStatistics(tableBody);
+        // Update COA fields after initial calculation
+        updateCOAFields();
     }
 }
 
@@ -4736,6 +4774,98 @@ function calculatePage2SummaryStatistics(tableBody) {
             updatePageSummaryRow(tableBody, 'Minimum', summaryColIndex, zeroFormatted);
             updatePageSummaryRow(tableBody, 'Maximum', summaryColIndex, zeroFormatted);
         }
+    });
+    
+    // Update COA fields after calculating stats
+    updateCOAFields();
+}
+
+// Function to update COA fields based on summary statistics from all pages
+function updateCOAFields() {
+    // Page 1 Table
+    const table1 = document.getElementById('testingTableBody');
+    if (table1) {
+        const rows = table1.querySelectorAll('tr');
+        const avgRow = Array.from(rows).find(r => r.querySelector('td')?.textContent.trim() === 'Average');
+        if (avgRow) {
+            const cells = avgRow.querySelectorAll('td');
+            // Page 1 summaryColumnIndices = [1, 2, 3, 4, 5, 6]
+            // 1: Film Weight, 2: Thickness, 3: COF-RR, 4: Tensile MD, 5: Elongation MD, 6: 10% Modulus MD
+            const coaResFilmWeight = document.getElementById('coa-res-film-weight');
+            if (coaResFilmWeight && cells[1]) coaResFilmWeight.textContent = cells[1].textContent;
+            
+            const coaResThickness = document.getElementById('coa-res-thickness');
+            if (coaResThickness && cells[2]) coaResThickness.textContent = cells[2].textContent;
+            
+            const coaResCof = document.getElementById('coa-res-cof');
+            if (coaResCof && cells[3]) coaResCof.textContent = cells[3].textContent;
+            
+            const coaResTensileMd = document.getElementById('coa-res-tensile-md');
+            if (coaResTensileMd && cells[4]) coaResTensileMd.textContent = cells[4].textContent;
+            
+            const coaResElongationMd = document.getElementById('coa-res-elongation-md');
+            if (coaResElongationMd && cells[5]) coaResElongationMd.textContent = cells[5].textContent;
+            
+            const coaResModulusMd = document.getElementById('coa-res-modulus-md');
+            if (coaResModulusMd && cells[6]) coaResModulusMd.textContent = cells[6].textContent;
+        }
+    }
+
+    // Page 2 Table
+    const table2 = document.getElementById('testingTableBody2');
+    if (table2) {
+        const rows = table2.querySelectorAll('tr');
+        const avgRow = Array.from(rows).find(r => r.querySelector('td')?.textContent.trim() === 'Average');
+        if (avgRow) {
+            const cells = avgRow.querySelectorAll('td');
+            // Page 2 summaryColumnIndices = [1, 2, 3, 4, 5, 6]
+            // 1: Tensile CD, 2: Elongation CD, 3: 10% Modulus CD, 4: Opacity, 5: Width, 6: Diameter
+            const coaResTensileCd = document.getElementById('coa-res-tensile-cd');
+            if (coaResTensileCd && cells[1]) coaResTensileCd.textContent = cells[1].textContent;
+            
+            const coaResElongationCd = document.getElementById('coa-res-elongation-cd');
+            if (coaResElongationCd && cells[2]) coaResElongationCd.textContent = cells[2].textContent;
+            
+            const coaResModulusCd = document.getElementById('coa-res-modulus-cd');
+            if (coaResModulusCd && cells[3]) coaResModulusCd.textContent = cells[3].textContent;
+            
+            const coaResOpacity = document.getElementById('coa-res-opacity');
+            if (coaResOpacity && cells[4]) coaResOpacity.textContent = cells[4].textContent;
+            
+            const coaResWidth = document.getElementById('coa-res-width');
+            if (coaResWidth && cells[5]) coaResWidth.textContent = cells[5].textContent;
+            
+            const coaResDiameter = document.getElementById('coa-res-diameter');
+            if (coaResDiameter && cells[6]) coaResDiameter.textContent = cells[6].textContent;
+        }
+    }
+}
+
+// Setup real-time COA field sync - triggers whenever data in tables changes
+function setupCOARealtimeSync() {
+    const tableBodyIds = ['testingTableBody', 'testingTableBody2', 'testingTableBody3'];
+    
+    tableBodyIds.forEach(tableBodyId => {
+        const tableBody = document.getElementById(tableBodyId);
+        if (!tableBody) return;
+        
+        // Listen for input changes in all input fields within this table
+        tableBody.addEventListener('input', function(event) {
+            if (event.target && (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT')) {
+                // Debounce by using a small timeout to avoid excessive updates during rapid input
+                clearTimeout(tableBody._coaSyncTimeout);
+                tableBody._coaSyncTimeout = setTimeout(() => {
+                    updateCOAFields();
+                }, 100);
+            }
+        }, true); // Use capture phase to catch all input events
+        
+        // Also listen for change events (for select/dropdown changes)
+        tableBody.addEventListener('change', function(event) {
+            if (event.target && (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT')) {
+                updateCOAFields();
+            }
+        }, true);
     });
 }
 
@@ -5602,7 +5732,52 @@ function loadFormHeaderData(data) {
 
     }
     
+    // Populate COA Header Fields (with null checks for DOM elements)
+    const coaProductCode = document.getElementById('coa-product-code');
+    if (coaProductCode && data.product_code) coaProductCode.textContent = data.product_code;
+    
+    const coaLotNo = document.getElementById('coa-lot-no');
+    if (coaLotNo && data.lot_no) coaLotNo.textContent = data.lot_no;
+    
+    const coaMfgDate = document.getElementById('coa-mfg-date');
+    if (coaMfgDate && data.production_date) coaMfgDate.textContent = formatDateToDDMMYYYY(data.production_date);
+    
+    const coaQuantity = document.getElementById('coa-quantity');
+    if (coaQuantity && data.quantity) coaQuantity.textContent = data.quantity;
+    
+    const coaPoNo = document.getElementById('coa-po-no');
+    if (coaPoNo && data.purchase_order) coaPoNo.textContent = data.purchase_order;
+    
+    // Set COA Inspection Date (use inspection_date if available, else production_date)
+    const coaInspDate = document.getElementById('coa-inspection-date');
+    const coaInspDateValue = data.inspection_date || data.production_date;
+    if (coaInspDate && coaInspDateValue) coaInspDate.textContent = formatDateToDDMMYYYY(coaInspDateValue);
 
+    // Populate COA Machine
+    const coaMachine = document.getElementById('coa-machine');
+    if (coaMachine && data.machine_no) coaMachine.textContent = data.machine_no;
+
+    // Populate COA Production Date
+    const coaProductionDate = document.getElementById('coa-production-date');
+    if (coaProductionDate && data.production_date) coaProductionDate.textContent = formatDateToDDMMYYYY(data.production_date);
+
+    // Populate COA Specification
+    const coaSpecification = document.getElementById('coa-specification');
+    if (coaSpecification && data.specification) coaSpecification.textContent = data.specification;
+
+    // Populate COA Inspected By
+    const coaInspectedBy = document.getElementById('coa-inspected-by');
+    if (coaInspectedBy && data.prepared_by) coaInspectedBy.textContent = data.prepared_by;
+
+    // Populate COA Approved By
+    const coaApprovedBy = document.getElementById('coa-approved-by');
+    if (coaApprovedBy && data.approved_by) {
+        coaApprovedBy.textContent = data.approved_by;
+    }
+
+    // Populate COA Remarks (if available)
+    const coaRemarks = document.getElementById('coa-remarks');
+    if (coaRemarks && data.remarks) coaRemarks.textContent = data.remarks;
 }
 
 // Load table data from database
@@ -6088,6 +6263,9 @@ function loadColumnDataToTable(tableBody, inputIndex, jsonbData) {
             }
         }
     });
+    
+    // Update COA fields after all table data is loaded and summary rows are calculated
+    updateCOAFields();
 }
 
 // Load equipment selections from database
@@ -6642,6 +6820,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Load QC equipment dropdowns
     loadQCEquipmentDropdowns();
+
+    // Setup real-time COA sync
+    setupCOARealtimeSync();
 
     // Note: Historical data trigger is already set up in DOMContentLoaded
     

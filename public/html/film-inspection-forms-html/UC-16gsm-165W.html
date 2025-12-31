@@ -185,6 +185,12 @@
             height: auto !important;
         }
 
+        /* COA Table row hover effect */
+        .coa-table tbody tr:hover td {
+            background: rgba(135, 206, 235, 0.3) !important; /* Light sky blue hover */
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important; /* Very subtle shadow */
+        }
+
         /* Enhanced text wrapping for General Product & Production Information table */
         .testing-table.modern-header-table td {
             white-space: normal !important;
@@ -879,6 +885,242 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </section>
+
+            <!-- Page 4 Section - Certificate of Analysis -->
+            <section class="mb-8 border border-black rounded-lg p-6 mt-8 mx-auto max-w-4xl" style="background-color: white; page-break-before: always;">
+                <h2 class="text-xl font-bold text-center mb-4 border-b-2 border-black pb-2">Certificate of Analysis</h2>
+                
+                <!-- Header Info Table -->
+                <table class="w-full border-collapse border border-black mb-4 text-sm">
+                    <tr>
+                        <td class="border border-black p-1 font-semibold w-1/6 bg-gray-100">Customer:</td>
+                        <td class="border border-black p-1 w-1/4" id="coa-customer">Unicharm</td>
+                        <td class="border border-black p-1 font-semibold w-1/6 bg-gray-100">Machine</td>
+                        <td class="border border-black p-1 w-1/6" id="coa-machine">0</td>
+                        <td class="border border-black p-1 font-semibold w-1/8 bg-gray-100" rowspan="2">Production Date</td>
+                        <td class="border border-black p-1 w-1/8" rowspan="2" id="coa-production-date">00/01/1900</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-black p-1 font-semibold bg-gray-100">Lot No.</td>
+                        <td class="border border-black p-1" id="coa-lot-no"></td>
+                        <td class="border border-black p-1 font-semibold bg-gray-100">P/O NO.</td>
+                        <td class="border border-black p-1" id="coa-po-no">0</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-black p-1 font-semibold bg-gray-100">Product Code</td>
+                        <td class="border border-black p-1" id="coa-product-code">0</td>
+                        <td class="border border-black p-1 font-semibold bg-gray-100">Quantity</td>
+                        <td class="border border-black p-1" id="coa-quantity">0</td>
+                        <td class="border border-black p-1 font-semibold bg-gray-100" rowspan="2">Inspection Date</td>
+                        <td class="border border-black p-1 w-1/8" rowspan="2" id="coa-inspection-date">00/01/1900</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-black p-1 font-semibold bg-gray-100">Material Code</td>
+                        <td class="border border-black p-1" id="coa-material-code">461343000</td>
+                        <td class="border border-black p-1 font-semibold bg-gray-100">Embossed</td>
+                        <td class="border border-black p-1" id="coa-embossed">Matte</td>
+                    </tr>
+                    <tr>
+                        <td class="border border-black p-1 font-semibold bg-gray-100">Product Specification</td>
+                        <td class="border border-black p-1" colspan="5" id="coa-specification">0</td>
+                    </tr>
+                </table>
+
+                <!-- Test Items Table -->
+                <table class="w-full border-collapse border border-black mb-4 text-sm text-center coa-table">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-black p-1" rowspan="2">Test Items</th>
+                            <th class="border border-black p-1" rowspan="2">Unit</th>
+                            <th class="border border-black p-1" colspan="3">Specification</th>
+                            <th class="border border-black p-1" rowspan="2">Result</th>
+                            <th class="border border-black p-1" rowspan="2">Test Method</th>
+                        </tr>
+                        <tr class="bg-gray-100">
+                            <th class="border border-black p-1">LSL</th>
+                            <th class="border border-black p-1">TGT</th>
+                            <th class="border border-black p-1">USL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border border-black p-1 text-left">Film Weight</td>
+                            <td class="border border-black p-1">g/m²</td>
+                            <td class="border border-black p-1">15.00</td>
+                            <td class="border border-black p-1">16.00</td>
+                            <td class="border border-black p-1">18.00</td>
+                            <td class="border border-black p-1" id="coa-res-film-weight">#DIV/0!</td>
+                            <td class="border border-black p-1">Weighing Scale</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black p-1 text-left">Thickness</td>
+                            <td class="border border-black p-1">μm</td>
+                            <td class="border border-black p-1">32</td>
+                            <td class="border border-black p-1">42</td>
+                            <td class="border border-black p-1">52</td>
+                            <td class="border border-black p-1" id="coa-res-thickness">#DIV/0!</td>
+                            <td class="border border-black p-1">Thickness Gauge</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black p-1 text-left">10% Modulus-MD</td>
+                            <td class="border border-black p-1">g/25mm</td>
+                            <td class="border border-black p-1">300</td>
+                            <td class="border border-black p-1">-</td>
+                            <td class="border border-black p-1">-</td>
+                            <td class="border border-black p-1" id="coa-res-modulus-md">#DIV/0!</td>
+                            <td class="border border-black p-1" rowspan="6">UTM</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black p-1 text-left">10% Modulus-CD</td>
+                            <td class="border border-black p-1">g/25mm</td>
+                            <td class="border border-black p-1">300</td>
+                            <td class="border border-black p-1">-</td>
+                            <td class="border border-black p-1">-</td>
+                            <td class="border border-black p-1" id="coa-res-modulus-cd">#DIV/0!</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black p-1 text-left">Tensile Break-MD</td>
+                            <td class="border border-black p-1">N/25mm</td>
+                            <td class="border border-black p-1">5.00</td>
+                            <td class="border border-black p-1">-</td>
+                            <td class="border border-black p-1">11.00</td>
+                            <td class="border border-black p-1" id="coa-res-tensile-md">#DIV/0!</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black p-1 text-left">Tensile Break-CD</td>
+                            <td class="border border-black p-1">N/25mm</td>
+                            <td class="border border-black p-1">3.00</td>
+                            <td class="border border-black p-1">-</td>
+                            <td class="border border-black p-1">9.00</td>
+                            <td class="border border-black p-1" id="coa-res-tensile-cd">#DIV/0!</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black p-1 text-left">Elongation Break-MD</td>
+                            <td class="border border-black p-1">%/25mm</td>
+                            <td class="border border-black p-1">350</td>
+                            <td class="border border-black p-1">-</td>
+                            <td class="border border-black p-1">-</td>
+                            <td class="border border-black p-1" id="coa-res-elongation-md">#DIV/0!</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black p-1 text-left">Elongation Break-CD</td>
+                            <td class="border border-black p-1">%/25mm</td>
+                            <td class="border border-black p-1">400</td>
+                            <td class="border border-black p-1">-</td>
+                            <td class="border border-black p-1">-</td>
+                            <td class="border border-black p-1" id="coa-res-elongation-cd">#DIV/0!</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black p-1 text-left">COF (R-R)</td>
+                            <td class="border border-black p-1">-</td>
+                            <td class="border border-black p-1">0.30</td>
+                            <td class="border border-black p-1">0.45</td>
+                            <td class="border border-black p-1">0.60</td>
+                            <td class="border border-black p-1" id="coa-res-cof">#DIV/0!</td>
+                            <td class="border border-black p-1">UTM</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black p-1 text-left">Width</td>
+                            <td class="border border-black p-1">mm</td>
+                            <td class="border border-black p-1">-</td>
+                            <td class="border border-black p-1">165</td>
+                            <td class="border border-black p-1">168</td>
+                            <td class="border border-black p-1" id="coa-res-width">#DIV/0!</td>
+                            <td class="border border-black p-1">Measuring Tape</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black p-1 text-left">Roll Length</td>
+                            <td class="border border-black p-1">Meter</td>
+                            <td class="border border-black p-1">6000</td>
+                            <td class="border border-black p-1">-</td>
+                            <td class="border border-black p-1">-</td>
+                            <td class="border border-black p-1" id="coa-res-length">6000</td>
+                            <td class="border border-black p-1">Length Counter</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black p-1 text-left">Roll Diameter</td>
+                            <td class="border border-black p-1">mm</td>
+                            <td class="border border-black p-1">430</td>
+                            <td class="border border-black p-1">460</td>
+                            <td class="border border-black p-1">510</td>
+                            <td class="border border-black p-1" id="coa-res-diameter">#DIV/0!</td>
+                            <td class="border border-black p-1">Measuring Tape</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Film Appearance Table -->
+                <table class="w-full border-collapse border border-black mb-4 text-sm text-center">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-black p-1 text-left w-1/3">Film Appearance</th>
+                            <th class="border border-black p-1 w-1/3">Specification</th>
+                            <th class="border border-black p-1 w-1/6">Result</th>
+                            <th class="border border-black p-1 w-1/6">Test Method</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border border-black p-1 text-left">Opacity</td>
+                            <td class="border border-black p-1 text-left">LSL-42.0, TGT-48.0, USL-54.0</td>
+                            <td class="border border-black p-1">O</td>
+                            <td class="border border-black p-1">Spectrophotometer</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black p-1 text-left">Glossiness</td>
+                            <td class="border border-black p-1 text-left">No Glossy</td>
+                            <td class="border border-black p-1">O</td>
+                            <td class="border border-black p-1">Visual</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black p-1 text-left">Colour</td>
+                            <td class="border border-black p-1 text-left">Within QC Standard Colour Tolerance</td>
+                            <td class="border border-black p-1">O</td>
+                            <td class="border border-black p-1">Spectrophotometer</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black p-1 text-left">Smell</td>
+                            <td class="border border-black p-1 text-left">No odd smell</td>
+                            <td class="border border-black p-1">O</td>
+                            <td class="border border-black p-1">Sensory</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black p-1 text-left">Pin Hole</td>
+                            <td class="border border-black p-1 text-left">No pin hole is allowed</td>
+                            <td class="border border-black p-1">O</td>
+                            <td class="border border-black p-1">Web Defect Detector</td>
+                        </tr>
+                        <tr>
+                            <td class="border border-black p-1 text-left">Fish-Eyes</td>
+                            <td class="border border-black p-1 text-left">Width < 3 mm<br>Area < 60 Sq. mm</td>
+                            <td class="border border-black p-1">O</td>
+                            <td class="border border-black p-1">Web Defect Detector</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Footer Section -->
+                <div class="grid grid-cols-3 border border-black text-sm">
+                    <div class="border-r border-black p-2 min-h-[150px]">
+                        <div class="font-bold mb-2">Remarks:</div>
+                        <div id="coa-remarks"></div>
+                    </div>
+                    <div class="border-r border-black p-2 flex flex-col justify-between items-center min-h-[150px]">
+                        <div class="font-bold">Inspected By</div>
+                        <div class="text-center">
+                            <div id="coa-inspected-by" class="font-semibold"></div>
+                            <div class="mt-4 border-t border-black pt-1">(QC Inspector)</div>
+                        </div>
+                    </div>
+                    <div class="p-2 flex flex-col justify-between items-center min-h-[150px]">
+                        <div class="font-bold">Approved By</div>
+                        <div class="text-center">
+                            <div id="coa-approved-by" class="font-semibold"></div>
+                            <div class="mt-4 border-t border-black pt-1">(QA)</div>
+                        </div>
+                    </div>
                 </div>
             </section>
 

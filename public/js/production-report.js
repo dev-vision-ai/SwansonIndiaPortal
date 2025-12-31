@@ -584,74 +584,58 @@ function clearSummaryTables() {
 
 // Load forms data from database
 async function loadFormsData() {
-    try {
-
-        
-        // First, get the total count to understand our data size across all tables
-        const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
-        let totalCount = 0;
-        
-        for (const table of tables) {
-            const { count, error: countError } = await supabase
-                .from(table)
-                .select('*', { count: 'exact', head: true });
-            
-            if (countError) {
-                console.error(`❌ Count error for ${table}:`, countError);
-            } else {
-                totalCount += count || 0;
-            }
-        }
-        
-        // Total records count available if needed
-        
-        // Load data in chunks from all tables
-        let allData = [];
+    // Define a helper function to fetch one table completely
+    const fetchTableData = async (tableName) => {
+        let tableData = [];
+        let hasMore = true;
+        let offset = 0;
         const chunkSize = 1000;
-        
-        for (const table of tables) {
-            let hasMore = true;
-            let offset = 0;
-            
-            while (hasMore) {
-                const { data, error } = await supabase
-                    .from(table)
-                    .select('*')
-                    .order('production_date', { ascending: false })
-                    .range(offset, offset + chunkSize - 1);
-                
-                if (error) {
-                    console.error(`❌ Database error for ${table}:`, error);
-                    throw error;
-                }
-                
-                if (data && data.length > 0) {
-                    // Add table name to each record for tracking
-                    data.forEach(record => {
-                        record.table_name = table;
-                    });
-                    allData = [...allData, ...data];
-                    offset += chunkSize;
 
-                    
-                    // Stop if we got less than chunk size (end of data)
-                    if (data.length < chunkSize) {
-                        hasMore = false;
-                    }
-                } else {
-                    hasMore = false;
-                }
+        while (hasMore) {
+            const { data, error } = await supabase
+                .from(tableName)
+                .select('*')
+                .neq('status', 'deleted') // Don't forget our previous fix!
+                // .order('production_date', { ascending: false }) // Optional: sorting here matters less if we sort combined data later
+                .range(offset, offset + chunkSize - 1);
+
+            if (error) {
+                console.error(`❌ Error ${tableName}:`, error);
+                throw error;
+            }
+
+            if (data && data.length > 0) {
+                data.forEach(record => {
+                    record.table_name = tableName;
+                    // BONUS: Parse date ONCE here so we don't do it 1000 times in filters
+                    record._parsedDate = record.production_date ? new Date(record.production_date) : null; 
+                });
+                tableData = [...tableData, ...data];
+                offset += chunkSize;
+                if (data.length < chunkSize) hasMore = false;
+            } else {
+                hasMore = false;
             }
         }
-        
+        return tableData;
+    };
 
+    // NOW: Run all 3 fetches at the exact same time
+    try {
+        const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
         
-        // Set the global data
-        allForms = allData;
+        // This runs them in parallel! 🚀
+        const results = await Promise.all(tables.map(table => fetchTableData(table)));
         
-        // Load saved filter state after data is loaded
+        // Combine the results
+        allForms = results.flat();
+        
+        // OPTIONAL: Sort the combined big list once
+        allForms.sort((a, b) => new Date(b.production_date) - new Date(a.production_date));
+
+        console.log(`✅ Total records loaded: ${allForms.length}`);
         loadFilterState();
-        
+
     } catch (error) {
         console.error('❌ Error loading forms:', error);
     }
@@ -813,13 +797,13 @@ function getProductionShiftData(fromDate, toDate, product, machine, shift) {
         return true;
     });
     
-    // STEP 2: Extract all traceability codes and lot letters from master records
-    const traceabilityKeys = [...new Set(masterRecords.map(form => `${form.traceability_code}-${form.lot_letter}`))];
+    // STEP 2: Use a SET instead of an Array
+    const traceabilityKeys = new Set(masterRecords.map(form => `${form.traceability_code}-${form.lot_letter}`));
     
-    // STEP 3: Find ALL records (including all lots) that match these traceability keys
+    // STEP 3: Use .has() instead of .includes()
     const allShiftData = allForms.filter(form => {
         const traceabilityKey = `${form.traceability_code}-${form.lot_letter}`;
-        return traceabilityKeys.includes(traceabilityKey);
+        return traceabilityKeys.has(traceabilityKey); // This is O(1) - Instant!
     });
     
     // Update summary tables with ALL shift data (master + lots)
@@ -846,13 +830,13 @@ function getAllShiftsData(fromDate, toDate, product, machine) {
         return true; // Include all shifts
     });
     
-    // STEP 2: Extract all traceability codes and lot letters from master records
-    const traceabilityKeys = [...new Set(masterRecords.map(form => `${form.traceability_code}-${form.lot_letter}`))];
+    // STEP 2: Use a SET instead of an Array
+    const traceabilityKeys = new Set(masterRecords.map(form => `${form.traceability_code}-${form.lot_letter}`));
     
-    // STEP 3: Find ALL records (including all lots) that match these traceability keys
+    // STEP 3: Use .has() instead of .includes()
     const allShiftsData = allForms.filter(form => {
         const traceabilityKey = `${form.traceability_code}-${form.lot_letter}`;
-        return traceabilityKeys.includes(traceabilityKey);
+        return traceabilityKeys.has(traceabilityKey); // This is O(1) - Instant!
     });
     
     // Update summary tables with ALL shifts data (master + lots)
@@ -1242,6 +1226,13 @@ function updateDefectTrackingTable(formsData) {
 
     // Processing forms data for defect tracking
 
+    // 1. Create a "Lookup Map" for speed
+    // This turns ["Hole", "Wrinkle"] into { "hole": "Hole", "wrinkle": "Wrinkle" }
+    const defectLookup = {};
+    defectTypes.forEach(d => {
+        defectLookup[d.toLowerCase()] = d;
+    });
+
     // Initialize defect tracking data structure
     const defectData = {};
     defectTypes.forEach(defect => {
@@ -1261,10 +1252,12 @@ function updateDefectTrackingTable(formsData) {
                 if (defectName && defectName.trim() !== '') {
                     const rollPos = parseInt(rollPosition);
                     if (rollPos >= 1 && rollPos <= 21) {
-                        // Find the defect in our defect types list
-                        const matchingDefect = defectTypes.find(defect => 
-                            defect.toLowerCase() === defectName.toLowerCase()
-                        );
+                        
+                        // OLD SLOW WAY:
+                        // const matchingDefect = defectTypes.find(defect => defect.toLowerCase() === defectName.toLowerCase());
+
+                        // NEW FAST WAY:
+                        const matchingDefect = defectLookup[defectName.toLowerCase()];
                         
                         if (matchingDefect) {
                             defectData[matchingDefect].totalQty += 1;
