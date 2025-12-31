@@ -5,10 +5,7 @@ const MAX_FORMS_DISPLAY = 6; // Maximum number of forms to display
 
 // ===== IST TIMESTAMP UTILITY =====
 function getISTTimestamp() {
-    const now = new Date();
-    const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
-    const istTime = new Date(now.getTime() + istOffset);
-    return istTime.toISOString();
+    return new Date().toISOString(); 
 }
 
 // ===== CLOCK FUNCTIONALITY =====
@@ -836,6 +833,8 @@ function updateFilterStatus() {
   }
 }
 
+// ===== OPTIMIZED FILTER LOGIC =====
+// This replaces your slow applyFilters function
 async function applyFilters() {
   const fromDate = document.getElementById('filterFromDate').value;
   const toDate = document.getElementById('filterToDate').value;
@@ -845,149 +844,122 @@ async function applyFilters() {
   const operator = document.getElementById('filterOperator').value;
   const supervisor = document.getElementById('filterSupervisor').value;
   const qcInspector = document.getElementById('filterQCInspector').value;
-  
+
   // Save current filter state
   saveFilterState();
-  
+
   // Update filter status
   updateFilterStatus();
-  
+
   // Check if date filters are applied
   const hasDateFilters = fromDate || toDate;
-  
-  // If date filters are applied, load historical data from database
-  if (hasDateFilters) {
-    try {
-      // Query all three tables in parallel for better performance
-      const allHistoricalData = [];
-      const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
-      
-      const queryPromises = tables.map(table => {
-        let query = supabase
-          .from(table)
-          .select(`
-            id, traceability_code, lot_letter, customer, production_no, production_no_2, prod_code, spec,
-            production_date, emboss_type, production_type, printed, non_printed, ct, year, month, date,
-            mc_no, shift, supervisor, supervisor2,
-            operator, operator2, qc_inspector, qc_inspector2, status,
-            total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
-            created_at, updated_at
-          `);
-        
-        // Apply date filters to database query
-        if (fromDate) {
-          query = query.gte('production_date', fromDate);
-        }
-        if (toDate) {
-          query = query.lte('production_date', toDate);
-        }
-        
-        // Add ordering
-        return query
-          .order('production_date', { ascending: false })
-          .order('created_at', { ascending: false })
-          .order('mc_no', { ascending: true });
-      });
 
-      // Execute all queries in parallel
-      const results = await Promise.all(queryPromises);
-      results.forEach((result, index) => {
-        const { data, error } = result;
-        if (error) {
-          console.error(`Error loading historical data from ${tables[index]}:`, error);
-        } else if (data) {
-          allHistoricalData.push(...data);
-        }
-      });
-      
-      // Filter historical data with other filters
-      const validHistoricalForms = allHistoricalData.filter(form => form.customer !== null && form.customer !== '');
-      
-      // Apply other filters to historical data
-      filteredForms = validHistoricalForms.filter(form => {
-        // Product filter
-        if (product && form.prod_code) {
-          if (form.prod_code !== product) return false;
-        }
-        
-        // Machine filter
-        if (machine && form.mc_no) {
-          if (form.mc_no !== machine) return false;
-        }
-        
-        // Shift filter
-        if (shift && form.shift) {
-          if (parseInt(form.shift) !== parseInt(shift)) return false;
-        }
-        
-        // Operator filter
-        if (operator && (form.operator || form.operator2)) {
-          if (form.operator !== operator && form.operator2 !== operator) return false;
-        }
-        
-        // Supervisor filter
-        if (supervisor && (form.supervisor || form.supervisor2)) {
-          if (form.supervisor !== supervisor && form.supervisor2 !== supervisor) return false;
-        }
-        
-        
-        // QC Inspector filter
-        if (qcInspector && (form.qc_inspector || form.qc_inspector2)) {
-          if (form.qc_inspector !== qcInspector && form.qc_inspector2 !== qcInspector) return false;
-        }
-        
-        return true;
-      });
-      
-    } catch (error) {
-      console.error('Error in historical data filtering:', error);
-      return;
+  // Show loading indicator in table (Optional but good UX)
+  const tbody = document.querySelector('table tbody');
+  if (tbody) tbody.innerHTML = `<tr><td colspan="11" class="py-4 text-center text-gray-500">Loading filtered data...</td></tr>`;
+
+  try {
+    // 🚀 OPTIMIZATION 1: Determine which tables to query
+    // If a specific machine is selected, we ONLY query that machine's table.
+    // Otherwise, we must query all 3.
+    let tablesToQuery = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+
+    if (machine) {
+        // If Machine 1 is selected, we ONLY check table 1. This cuts load time by ~66%.
+        tablesToQuery = [getTableNameForMachine(machine)];
     }
-  } else {
-    // No date filters - use existing allForms data
-    filteredForms = allForms.filter(form => {
-      // Product filter
-      if (product && form.prod_code) {
-        if (form.prod_code !== product) return false;
+
+    const allHistoricalData = [];
+
+    // Run queries in parallel
+    const queryPromises = tablesToQuery.map(table => {
+      let query = supabase
+        .from(table)
+        .select(`
+          id, traceability_code, lot_letter, customer, production_no, production_no_2, prod_code, spec,
+          production_date, emboss_type, production_type, printed, non_printed, ct, year, month, date,
+          mc_no, shift, supervisor, supervisor2,
+          operator, operator2, qc_inspector, qc_inspector2, status,
+          total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
+          created_at, updated_at
+        `);
+
+      // 🚀 OPTIMIZATION 2: Apply filters IN THE DATABASE
+      // Instead of downloading everything and filtering in JS, we tell Supabase to only send what matches.
+
+      // Date Filters
+      if (fromDate) query = query.gte('production_date', fromDate);
+      if (toDate) query = query.lte('production_date', toDate);
+
+      // Server-Side Filters (These are fast!)
+      if (machine) query = query.eq('mc_no', machine);
+      if (product) query = query.eq('prod_code', product);
+      if (shift) query = query.eq('shift', shift);
+
+      // Note: We leave Operator/Supervisor filtering for the client-side below
+      // because they are split across two columns (operator1/operator2) which is complex for basic queries.
+      // But since we already filtered by Date + Machine + Product + Shift, the data size is tiny now.
+
+      return query
+        .order('production_date', { ascending: false })
+        .order('created_at', { ascending: false });
+    });
+
+    // Execute the optimized queries
+    const results = await Promise.all(queryPromises);
+
+    results.forEach((result, index) => {
+      const { data, error } = result;
+      if (error) {
+        console.error(`Error loading data from table:`, error);
+      } else if (data) {
+        allHistoricalData.push(...data);
       }
-      
-      // Machine filter
-      if (machine && form.mc_no) {
-        if (form.mc_no !== machine) return false;
-      }
-      
-      // Shift filter
-      if (shift && form.shift) {
-        if (parseInt(form.shift) !== parseInt(shift)) return false;
-      }
-      
-      // Operator filter
+    });
+
+    // Filter valid forms
+    const validHistoricalForms = allHistoricalData.filter(form => form.customer !== null && form.customer !== '');
+
+    // 🧹 FINAL CLIENT-SIDE FILTERING (For complex text fields only)
+    filteredForms = validHistoricalForms.filter(form => {
+      // Operator filter (Checks both Operator 1 AND Operator 2)
       if (operator && (form.operator || form.operator2)) {
         if (form.operator !== operator && form.operator2 !== operator) return false;
       }
-      
+
       // Supervisor filter
       if (supervisor && (form.supervisor || form.supervisor2)) {
         if (form.supervisor !== supervisor && form.supervisor2 !== supervisor) return false;
       }
-      
-      
+
       // QC Inspector filter
       if (qcInspector && (form.qc_inspector || form.qc_inspector2)) {
         if (form.qc_inspector !== qcInspector && form.qc_inspector2 !== qcInspector) return false;
       }
-      
+
       return true;
     });
-  }
-  
-  // Update the table with filtered results
-  await updateFormsTable(filteredForms, hasDateFilters);
-  
-  // Check if filters are applied
-  const hasFilters = fromDate || toDate || product || machine || shift || operator || supervisor || qcInspector;
-  if (hasFilters) {
-    // Filter applied successfully
+
+    // Sort combined results
+    filteredForms.sort((a, b) => {
+        // Sort by Production Date (Newest First)
+        const dateA = new Date(a.production_date);
+        const dateB = new Date(b.production_date);
+        if (dateA > dateB) return -1;
+        if (dateA < dateB) return 1;
+
+        // Then by Created At
+        const createdA = new Date(a.created_at);
+        const createdB = new Date(b.created_at);
+        return createdB - createdA;
+    });
+
+    // Update UI
+    await updateFormsTable(filteredForms, hasDateFilters);
+
+  } catch (error) {
+    console.error('Error in optimized filtering:', error);
+    if (tbody) tbody.innerHTML = `<tr><td colspan="11" class="py-4 text-center text-red-500">Error loading data. Please try again.</td></tr>`;
   }
 }
 
