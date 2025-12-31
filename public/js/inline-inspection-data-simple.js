@@ -29,10 +29,7 @@ let qcInspectorsCache = [];
 
 // ===== IST TIMESTAMP UTILITY =====
 function getISTTimestamp() {
-    const now = new Date();
-    const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
-    const istTime = new Date(now.getTime() + istOffset);
-    return istTime.toISOString();
+    return new Date().toISOString(); 
 }
 
 // ===== PRODUCT SPECIFICATIONS (OOS VALIDATION) =====
@@ -5922,9 +5919,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 </tr>
                 <tr style="height: 25px;">
                     <td style="font-weight: bold; border: 1px solid #9ca3af;">Thickness</td>
-                    <td style="border: 1px solid #9ca3af;">${stats.thickness.min.toFixed(2)}</td>
-                    <td style="border: 1px solid #9ca3af;">${stats.thickness.max.toFixed(2)}</td>
-                    <td style="border: 1px solid #9ca3af;">${stats.thickness.avg.toFixed(2)}</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.thickness.min.toFixed(0)}</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.thickness.max.toFixed(0)}</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.thickness.avg.toFixed(0)}</td>
                 </tr>
             </tbody>
         `;

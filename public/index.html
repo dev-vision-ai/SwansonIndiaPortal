@@ -3,192 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Swanson Plastics India Pvt. Ltd.</title>
     <link rel="icon" type="image/png" href="./assets/logo2.png">
-    <!-- Updated for Vercel deployment -->
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
+    
     <link rel="stylesheet" href="./css/index.css">
-    <link rel="stylesheet" href="./css/responsive.css">
 </head>
 <body>
 
-    <header id="desktop-header" class="navbar"> <!-- <<< Added id="desktop-header" -->
+    <nav class="navbar" id="main-nav">
         <div class="nav-container">
-            <div class="logo-container">
+            <div class="brand">
                 <img src="./assets/logo.png" alt="Swanson Logo" class="logo">
-                <div class="company-names">
-                    <span class="company-name">Swanson Plastics India Private Limited</span>
-                    <span class="company-name-translated">स्वानसन प्लास्टिक्स इंडिया प्रायवेट लिमिटेड</span>
+                <div class="brand-text">
+                    <span class="company-en">Swanson Plastics India Pvt. Ltd.</span>
+                    <span class="company-local">स्वानसन प्लास्टिक्स इंडिया प्रायवेट लिमिटेड</span>
                 </div>
             </div>
-            <nav class="nav-links">
-                <a href="./html/aboutus.html">About Us</a>
-                <a href="./html/products.html">Products</a>
-                <a href="./html/contact.html">Contact</a>
-                <a href="./html/career.html">Career Opportunities</a>
-                <a href="./html/auth.html">Employee Login</a>
-            </nav>
-        </div>
-    </header>
 
-    <!-- MOBILE Navigation Bar -->
-    <header id="mobile-header" class="navbar-mobile">
-        <div class="nav-container-mobile">
-            <div class="logo-container-mobile">
-                <img src="./assets/logo.png" alt="Swanson Logo" class="logo-mobile">
-                <div class="company-names-mobile">
-                    <span class="company-name">Swanson Plastics India Private Limited</span>
-                    <span class="company-name-translated">स्वानसन प्लास्टिक्स इंडिया प्रायवेट लिमिटेड</span>
-                </div>
-            </div>
-            <button class="menu-icon" id="menu-toggle" aria-label="Toggle menu">
-                <!-- Ensure this is empty inside -->
+            <ul class="nav-links" id="nav-links">
+                <li><a href="./html/aboutus.html">About Us</a></li>
+                <li><a href="./html/products.html">Products</a></li>
+                <li><a href="./html/contact.html">Contact</a></li>
+                <li><a href="./html/career.html">Careers</a></li>
+                <li><a href="./html/auth.html" class="btn-login">Employee Login</a></li>
+            </ul>
+
+            <button class="menu-toggle" id="menu-toggle" aria-label="Toggle navigation">
+                <i class="bi bi-list"></i>
             </button>
         </div>
-        <nav id="mobile-nav-links" class="mobile-nav-links">
-            <a href="./html/aboutus.html">About Us</a>
-            <a href="./html/products.html">Products</a>
-            <a href="./html/contact.html">Contact</a>
-            <a href="./html/career.html">Career Opportunities</a>
-            <a href="./html/auth.html">Employee Login</a>
-        </nav>
-    </header>
+    </nav>
 
-    <!-- Hero Section -->
     <section class="hero" id="hero-slideshow">
         <div class="hero-overlay">
-            <h1>Innovative and High-quality solutions to meet your needs</h1>
-            <p>Your partner in eco-friendly manufacturing.</p>
-            <a href="./html/products.html" class="cta-button">Explore Our Products</a>
+            <div class="hero-content">
+                <h1>Innovative Solutions for a <br><span class="highlight">Greener Future</span></h1>
+                <p>Leading the way in eco-friendly manufacturing and high-quality plastic solutions.</p>
+                <div class="hero-buttons">
+                    <a href="./html/products.html" class="btn-primary">Explore Products</a>
+                    <a href="./html/contact.html" class="btn-secondary">Get in Touch</a>
+                </div>
+            </div>
         </div>
     </section>
 
-    <!-- Quality Policy Section -->
     <section class="section" id="quality-policy">
         <div class="container">
-            <h2>Our Quality Policy</h2>
-            <div class="grid-1">
-                <div class="policy-single-box">
-                    <div class="policy-content">
-                        <div class="policy-item">
-                            <i class="bi bi-emoji-smile"></i>
-                            <h4>Total Customer Satisfaction</h4>
-                        </div>
-                        <div class="policy-item">
-                            <i class="bi bi-people"></i>
-                            <h4>Participation by all Employees</h4>
-                        </div>
-                        <div class="policy-item">
-                            <i class="bi bi-check-circle"></i>
-                            <h4>Do it Right, the First Time</h4>
-                        </div>
-                    </div>
+            <div class="section-header">
+                <h2>Our Quality Policy</h2>
+                <div class="divider"></div>
+            </div>
+            <div class="grid-3 feature-grid">
+                <div class="card feature-card">
+                    <div class="icon-box"><i class="bi bi-emoji-smile"></i></div>
+                    <h3>Customer Satisfaction</h3>
+                    <p>We prioritize our clients' needs, ensuring precision and reliability in every order.</p>
+                </div>
+                <div class="card feature-card">
+                    <div class="icon-box"><i class="bi bi-people"></i></div>
+                    <h3>Team Participation</h3>
+                    <p>Success is a collective effort. We empower every employee to contribute to our excellence.</p>
+                </div>
+                <div class="card feature-card">
+                    <div class="icon-box"><i class="bi bi-check-circle"></i></div>
+                    <h3>Do It Right, First Time</h3>
+                    <p>Zero defects and maximum efficiency are at the core of our manufacturing process.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Featured Albums Slideshow Section -->
+    <section class="section bg-light" id="core-offering">
+        <div class="container">
+            <div class="split-layout">
+                <div class="split-image">
+                    <img src="./assets/roll.png" alt="PE Embossed Film Roll">
+                </div>
+                <div class="split-content">
+                    <h4 class="sub-heading">Core Offering</h4>
+                    <h2>Hygiene Materials</h2>
+                    <p class="lead">Customer-Specified PE Embossed Film Rolls</p>
+                    <p>Swanson is a leading producer of embossed film for hygienic products in Asia. Utilizing advanced cast film technologies, we produce customized formulas with finely wrought textures.</p>
+                    <ul class="check-list">
+                        <li><i class="bi bi-check2"></i> Customized Formulas</li>
+                        <li><i class="bi bi-check2"></i> Advanced Cast Film Technology</li>
+                        <li><i class="bi bi-check2"></i> Global Production Standards</li>
+                    </ul>
+                    <a href="./html/products.html" class="btn-text">View Specifications <i class="bi bi-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section class="section" id="featured-slideshow-section">
         <div class="container">
-            <h2>Featured Gallery</h2>
-            <div class="slideshow-container">
-                <!-- Slides will be dynamically inserted here by JavaScript -->
-                <div id="slideshow-inner">
-                </div>
-                <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
-                <a class="next" onclick="plusSlides(1)">&#10095;</a>
+            <div class="section-header">
+                <h2>Featured Gallery</h2>
+                <div class="divider"></div>
             </div>
-            <div style="text-align:center" id="slide-dots">
-                <!-- Dots will be dynamically inserted here -->
+            <div class="gallery-wrapper">
+                <div class="slideshow-container" id="slideshow-inner">
+                    </div>
+                <button class="slide-btn prev" onclick="plusSlides(-1)"><i class="bi bi-chevron-left"></i></button>
+                <button class="slide-btn next" onclick="plusSlides(1)"><i class="bi bi-chevron-right"></i></button>
             </div>
+            <div class="slide-dots" id="slide-dots"></div>
         </div>
     </section>
 
-
-    <!-- Our Core Offering Section -->
-    <section class="section" id="core-offering">
-                <div class="container">
-            <h2>Our Core Offering</h2>
-            <h3 style="text-align: center; margin-top: 40px; margin-bottom: 30px; font-size: 1.5rem; color: #002E7D; font-weight: 700; letter-spacing: 0.5px; padding-bottom: 15px;">HYGIENE MATERIALS</h3>
-            <div class="product-single">
-                <img src="./assets/roll.png" alt="PE Embossed Film Roll">
-                <h4>Customer-Specified PE Embossed Film Rolls</h4>
-                <p>Swanson is a leading producer of embossed film for hygienic products in Asia. Our production facilities are situated throughout major regions of Asia, and we use the advanced cast film and extension equipment and technologies for producing special customized formulas, texturing, and prints. Products can be made from a variety of materials with finely wrought textures.</p>
+    <section class="section bg-dark text-white" id="services">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Services</h2>
+                <div class="divider accent"></div>
             </div>
-        </div>
-    </section>
-
-    <!-- Services Section -->
-    <section class="section" id="services">
-        <div class="container center">  <!-- Added 'center' class -->
-            <h2>Our Services</h2>
-            <div class="grid-3">
-                <div class="service-card">
-                    <i class="bi bi-gear policy-icon"></i>
+            <div class="grid-4 service-grid">
+                <div class="card service-card">
+                    <i class="bi bi-gear-wide-connected"></i>
                     <h4>Custom Manufacturing</h4>
-                    <p>We offer Tailored Solutions for your Unique Product Needs.</p>
+                    <p>Tailored solutions for unique product needs.</p>
                 </div>
-                <div class="service-card">
-                    <i class="bi bi-recycle policy-icon"></i>
+                <div class="card service-card">
+                    <i class="bi bi-recycle"></i>
                     <h4>Sustainability</h4>
-                    <p>Commitment to Eco-friendly Processes and Recyclable Materials.</p>
+                    <p>Eco-friendly processes and recyclable materials.</p>
                 </div>
-                <div class="service-card">
-                    <i class="bi bi-box-seam policy-icon"></i>
-                    <h4>Product Packaging</h4>
-                    <p>Custom packaging solutions for safe transportation and brand presentation.</p>
+                <div class="card service-card">
+                    <i class="bi bi-box-seam"></i>
+                    <h4>Packaging</h4>
+                    <p>Safe transportation and brand presentation.</p>
                 </div>
-                <div class="service-card">
-                    <i class="bi bi-lightbulb policy-icon"></i>
+                <div class="card service-card">
+                    <i class="bi bi-lightbulb"></i>
                     <h4>Innovation</h4>
-                    <p>Constantly Evolving with Cutting-edge Technology and Designs.</p>
+                    <p>Cutting-edge technology and modern designs.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
     <footer class="footer">
-        <div class="footer-content">
-            <!-- Map First -->
-            <div class="footer-map-section">
-                 <div class="map-container">
+        <div class="container footer-grid">
+            <div class="footer-col map-col">
+                <div class="map-wrapper">
                     <iframe 
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4729.814270724126!2d74.0697509543609!3d15.542818047035338!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bbfa2f48774e285%3A0x5909f5e875028f2!2sSwanson%20Plastics%20India%20Pvt%20Ltd!5e1!3m2!1sen!2sin!4v1744537737813!5m2!1sen!2sin" 
-                        width="100%" 
-                        height="300" 
-                        style="border:0;" 
-                        allowfullscreen 
-                        loading="lazy" 
-                        referrerpolicy="no-referrer-when-downgrade">
+                        src="https://maps.google.com/maps?q=Swanson%20Plastics%20India&t=&z=13&ie=UTF8&iwloc=&output=embed" 
+                        allowfullscreen loading="lazy">
                     </iframe>
                 </div>
             </div>
 
-            <!-- Contact Info Second -->
-            <div class="footer-contact-section">
+            <div class="footer-col contact-col">
                 <h4>Contact Us</h4>
-                <p>Plot No. 2, Goa Industrial Development Corporation<br>Onda, Bhuimpal, Sattari-Goa, 403530<br>Phone: +91 7262002306</p>
+                <address>
+                    <p><i class="bi bi-geo-alt-fill"></i> Plot No. 2, Goa Industrial Development Corporation, Onda, Bhuimpal, Sattari-Goa, 403530</p>
+                    <p><i class="bi bi-telephone-fill"></i> <a href="tel:+917262002306">+91 7262002306</a></p>
+                </address>
             </div>
 
-            <!-- Quick Links Third -->
-            <div class="footer-links-section">
+            <div class="footer-col links-col">
                 <h4>Quick Links</h4>
-                <a href="./html/aboutus.html">About Us</a>
-                <a href="./html/products.html">Products</a>
-                <a href="./html/contact.html">Contact</a>
-                <a href="./html/products.html">Career Opportunities</a>
-                <a href="./html/auth.html">Employee Portal</a>
+                <ul class="footer-nav">
+                    <li><a href="./html/aboutus.html">About Us</a></li>
+                    <li><a href="./html/products.html">Products</a></li>
+                    <li><a href="./html/career.html">Careers</a></li>
+                    <li><a href="./html/auth.html">Employee Portal</a></li>
+                </ul>
             </div>
         </div>
-        <div class="footer-copyright">
+        <div class="footer-bottom">
             <p>© 2025 Swanson Plastics India Pvt. Ltd. All rights reserved.</p>
         </div>
     </footer>
+
+    <script type="module" src="./js/index.js"></script>
 </body>
-<script type="module" src="./js/index.js"></script>
 </html>
