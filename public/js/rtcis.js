@@ -473,20 +473,30 @@ function setBarcodeCanvasStyle(id) {
     }
     populateGCASDropdown();
 
-    // Auto-fill LOT No with YYMMDD when Production Date is selected
+    // Auto-fill LOT No (YYMMDD) and Sequence No (YYMM) when Production Date is selected
     const productionDateInput = document.getElementById('production_date');
     const lotNumberInput = document.getElementById('lot_number');
+    const sequenceNumberInput = document.getElementById('sequence_number');
     
-    if (productionDateInput && lotNumberInput) {
+    if (productionDateInput) {
         productionDateInput.addEventListener('change', (e) => {
             const selectedDate = e.target.value; // Format: YYYY-MM-DD
             if (selectedDate) {
                 // Parse the date
                 const [year, month, day] = selectedDate.split('-');
-                // Extract last 2 digits of year and format as YYMMDD
                 const yy = year.slice(-2);
-                const lotValue = yy + month + day;
-                lotNumberInput.value = lotValue;
+                
+                // Auto-fill LOT No (YYMMDD)
+                if (lotNumberInput) {
+                    lotNumberInput.value = yy + month + day;
+                    clearFieldError(lotNumberInput);
+                }
+                
+                // Auto-fill Sequence No (YYMM)
+                if (sequenceNumberInput) {
+                    sequenceNumberInput.value = yy + month;
+                    clearFieldError(sequenceNumberInput);
+                }
             }
             // Clear error for production_date field when user enters data
             clearFieldError(productionDateInput);

@@ -2,48 +2,14 @@ import { supabase } from '../supabase-config.js';
 
 // Global variables
 let currentExtinguisherId = null;
-let currentExtinguisherNo = null;
-
-// DOM elements - These will be null since we're using a static HTML form
-const form = null;
-const extinguisherNo = null;
-const extinguisherType = null;
-const location = null;
-const capacity = null;
-const formDate = null;
-const expiryDate = null;
-const refilledDate = null;
-const checkedBy = null;
-const verifiedBy = null;
-const inspectionDate = null;
-const nextDueDate = null;
-const inspector = null;
-const remarks = null;
-
-// Checkbox elements - These will be null since we're using a static HTML form
-const pinSeal = null;
-const pressure = null;
-const hoseNozzle = null;
-const handleKnob = null;
-const dentRustLeak = null;
-const easyAccess = null;
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', async () => {
-    setFormDefaults();
     await loadExistingFireExtinguisherData();
-    setupEventListeners();
     
     // Additional security for public access
     setupPublicAccessSecurity();
 });
-
-// Set form defaults
-function setFormDefaults() {
-    // Since we're using a static HTML form, we don't need to set form defaults
-    // The form will be populated when viewing existing data
-    console.log('Form defaults set - using static HTML form');
-}
 
 // Load existing Fire Extinguisher data if accessed via View button
 async function loadExistingFireExtinguisherData() {
@@ -94,7 +60,6 @@ function populateFormWithExistingData(extinguisher) {
 
     // Store extinguisher ID for form submission
     currentExtinguisherId = extinguisher.id;
-    currentExtinguisherNo = extinguisher.extinguisher_no;
 }
 
 // Populate the top section fields
@@ -103,12 +68,6 @@ function populateTopSectionFields(extinguisher, numericValue) {
     const topTable = document.querySelector('table[style*="border: 1px solid #000"]');
     if (topTable) {
         const cells = topTable.querySelectorAll('td');
-
-        console.log('=== DEBUG: Cell population ===');
-        console.log('Total cells found:', cells.length);
-        console.log('Extinguisher:', extinguisher.extinguisher_no);
-        console.log('Has inspection data:', !!extinguisher.inspection_data);
-        console.log('Inspection count:', extinguisher.inspection_data?.inspections?.length || 0);
 
         // First row: Type, Number, Location, Capacity
         if (cells.length >= 8) {
@@ -129,15 +88,6 @@ function populateTopSectionFields(extinguisher, numericValue) {
             cells[9].textContent = formattedToday;
             cells[9].style.textAlign = 'center';
 
-            console.log('Total cells found:', cells.length);
-            console.log('Extinguisher data:', extinguisher.extinguisher_no);
-            console.log('Has inspection data:', !!extinguisher.inspection_data);
-            console.log('Inspection count:', extinguisher.inspection_data?.inspections?.length || 0);
-
-            if (extinguisher.inspection_data?.inspections) {
-                console.log('First inspection sample:', extinguisher.inspection_data.inspections[0]);
-            }
-
             // Get inspection data for both latest and previous dates
             let latestRefilledDate = '';
             let latestExpiryDate = '';
@@ -151,14 +101,11 @@ function populateTopSectionFields(extinguisher, numericValue) {
                     .filter(inspection => inspection.date)
                     .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-                console.log('Sorted inspections count:', sortedInspections.length);
-
                 // Latest inspection (first in sorted array)
                 if (sortedInspections.length > 0) {
                     const latestInspection = sortedInspections[0];
                     latestRefilledDate = latestInspection.refilled_date || '';
                     latestExpiryDate = latestInspection.expiry_date || '';
-                    console.log('Latest inspection dates:', latestRefilledDate, latestExpiryDate);
                 }
 
                 // Previous inspection (second in sorted array)
@@ -166,35 +113,26 @@ function populateTopSectionFields(extinguisher, numericValue) {
                     const previousInspection = sortedInspections[1];
                     previousRefilledDate = previousInspection.refilled_date || '';
                     previousExpiryDate = previousInspection.expiry_date || '';
-                    console.log('Previous inspection dates:', previousRefilledDate, previousExpiryDate);
                 }
             }
 
             // If not found in inspection data, try extinguisher data
             if (!latestRefilledDate && extinguisher.refilled_date) {
                 latestRefilledDate = extinguisher.refilled_date;
-                console.log('Using extinguisher refilled_date:', latestRefilledDate);
             }
             if (!latestExpiryDate && extinguisher.expiry_date) {
                 latestExpiryDate = extinguisher.expiry_date;
-                console.log('Using extinguisher expiry_date:', latestExpiryDate);
             }
 
             // If still no data, use some test data for debugging
             if (!latestRefilledDate) {
                 latestRefilledDate = '2024-09-01'; // Test data
-                console.log('Using test refilled_date:', latestRefilledDate);
             }
             if (!latestExpiryDate) {
                 latestExpiryDate = '2025-09-01'; // Test data
-                console.log('Using test expiry_date:', latestExpiryDate);
             }
 
             // Populate Previous dates (Row 2 - cells 11 and 13)
-            console.log('Populating Previous dates - cells 11 and 13');
-            console.log('Previous refilled:', previousRefilledDate);
-            console.log('Previous expiry:', previousExpiryDate);
-
             if (previousRefilledDate) {
                 const prevRefilledDateObj = new Date(previousRefilledDate);
                 cells[11].textContent = formatDate(prevRefilledDateObj);
@@ -212,10 +150,6 @@ function populateTopSectionFields(extinguisher, numericValue) {
             cells[13].style.textAlign = 'center';
 
             // Populate Latest dates (Row 3 - cells 17 and 19)
-            console.log('Populating Latest dates - cells 17 and 19');
-            console.log('Latest refilled:', latestRefilledDate);
-            console.log('Latest expiry:', latestExpiryDate);
-
             if (cells.length >= 20) {
                 if (latestRefilledDate) {
                     const latestRefilledDateObj = new Date(latestRefilledDate);
@@ -302,12 +236,6 @@ function populateInspectionTable(extinguisher) {
         `;
         tableBody.appendChild(row);
     }
-}
-
-// Setup event listeners
-function setupEventListeners() {
-    // Since we're using a static HTML form for viewing, we don't need form submission listeners
-    console.log('Event listeners set up - using static HTML form for viewing');
 }
 
 // Handle form submission
@@ -440,6 +368,7 @@ async function saveInspection(inspectionData) {
 
     // Prepare new inspection record
     const newInspection = {
+        id: Date.now() + Math.random().toString(36).substr(2, 9), // Unique ID for each inspection
         date: inspectionData.inspection_date,
         inspector: inspectionData.inspector,
         next_due_date: inspectionData.next_due_date,
@@ -551,98 +480,3 @@ function isInputField(element) {
            element.tagName === 'SELECT' ||
            element.contentEditable === 'true';
 }
-
-// Download QR Code function
-window.downloadQRCode = async function() {
-    // Get the current page URL
-    const currentURL = window.location.href;
-    
-    // Get extinguisher details from URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const extinguisherNo = urlParams.get('extinguisher_no') || 'Unknown';
-    const extinguisherId = urlParams.get('extinguisher_id');
-    
-    // Format extinguisher number (e.g., "FE-001" -> "01")
-    let formattedExtinguisherNo = 'Unknown';
-    if (extinguisherNo && extinguisherNo.startsWith('FE-')) {
-        const numPart = extinguisherNo.substring(3); // Get "001" from "FE-001"
-        const num = parseInt(numPart, 10); // Convert to integer: 1
-        formattedExtinguisherNo = String(num).padStart(2, '0'); // Format as "01"
-    }
-    
-    // Get location from database
-    let location = 'Unknown Location';
-    if (extinguisherId) {
-        try {
-            const { data: extinguisher, error } = await supabase
-                .from('fire_extinguishers')
-                .select('location')
-                .eq('id', extinguisherId)
-                .single();
-            
-            if (!error && extinguisher && extinguisher.location) {
-                location = extinguisher.location;
-            }
-        } catch (error) {
-            console.error('Error fetching location:', error);
-        }
-    }
-    
-    // Create QR code with text below it using a canvas
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Set canvas size (QR code + text space)
-    canvas.width = 400;
-    canvas.height = 550;
-    
-    // Fill background with white
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Create QR code image
-    const qrImage = new Image();
-    qrImage.crossOrigin = 'anonymous';
-    
-    qrImage.onload = function() {
-        // Draw QR code in center
-        const qrSize = 300;
-        const qrX = (canvas.width - qrSize) / 2;
-        const qrY = 20;
-        ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
-        
-        // Add text below QR code
-        ctx.fillStyle = 'black';
-        ctx.font = 'bold 24px Arial';
-        ctx.textAlign = 'center';
-        
-        // Add "Fire Extinguisher" text
-        ctx.fillText('Fire Extinguisher', canvas.width / 2, qrY + qrSize + 40);
-        
-        // Add extinguisher number
-        ctx.font = 'bold 20px Arial';
-        ctx.fillText(`No. ${formattedExtinguisherNo}`, canvas.width / 2, qrY + qrSize + 70);
-        
-        // Add location
-        ctx.font = 'bold 16px Arial';
-        ctx.fillText(`Location: ${location}`, canvas.width / 2, qrY + qrSize + 100);
-        
-        // Convert canvas to blob and download
-        canvas.toBlob(function(blob) {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `fire-extinguisher-${formattedExtinguisherNo}-qr.png`;
-            link.click();
-            URL.revokeObjectURL(url);
-        }, 'image/png');
-    };
-    
-    // Handle QR code loading error
-    qrImage.onerror = function() {
-        alert('Error generating QR code. Please try again.');
-    };
-    
-    // Load QR code image
-    qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(currentURL)}`;
-};
