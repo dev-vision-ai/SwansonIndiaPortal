@@ -10,9 +10,6 @@ let currentFilters = {
     location: ''
 };
 
-// Debug flag for troubleshooting
-const DEBUG_DATES = true;
-
 
 // DOM elements
 const tableBody = document.getElementById('fireInspectionTableBody');
@@ -66,30 +63,39 @@ function padFEId(fe) {
 
 function buildActionButtons(inspection) {
     return `
-        <div class="action-buttons">
-            <button onclick="viewInspection(${inspection.id})" class="btn-small" title="View Details" style="background-color: #dbeafe; color: #1e40af; border: 1px solid #93c5fd;">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex justify-center items-center space-x-2 max-w-full overflow-hidden">
+            <!-- View Details -->
+            <button onclick="viewInspection('${inspection.id}')" class="p-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-800 hover:text-blue-900 transition-all duration-200 border border-blue-200 hover:border-blue-300 flex-shrink-0" title="View Details">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                 </svg>
             </button>
-            <button onclick="addInspectionForExtinguisher(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small" title="Add Inspection" style="background-color: #dbeafe; color: #0369a1; border: 1px solid #7dd3fc;">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            
+            <!-- Add Inspection -->
+            <button onclick="addInspectionForExtinguisher('${inspection.extinguisher_id}', '${inspection.extinguisher_no}')" class="p-1 rounded-md bg-sky-50 hover:bg-sky-100 text-sky-600 hover:text-sky-800 transition-all duration-200 border border-sky-200 hover:border-sky-300 flex-shrink-0" title="Add Inspection">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
             </button>
-            <button onclick="editFireExtinguisher(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small" title="Edit Fire Extinguisher" style="background-color: #dcfce7; color: #166534; border: 1px solid #86efac;">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+            <!-- Edit Fire Extinguisher -->
+            <button onclick="editFireExtinguisher('${inspection.extinguisher_id}', '${inspection.extinguisher_no}')" class="p-1 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0" title="Edit Fire Extinguisher">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                 </svg>
             </button>
-            <button onclick="deleteInspectionRecord(${inspection.id}, '${inspection.extinguisher_no}')" class="btn-small" title="Delete This Inspection" style="background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+
+            <!-- Delete This Inspection -->
+            <button onclick="deleteInspectionRecord('${inspection.id}', '${inspection.extinguisher_no}')" class="p-1 rounded-md bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition-all duration-200 border border-red-200 hover:border-red-300 flex-shrink-0" title="Delete This Inspection">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
             </button>
-            <button onclick="openDeleteOptionsModal(${inspection.extinguisher_id}, '${inspection.extinguisher_no}')" class="btn-small" title="More Options" style="background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db;">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+            <!-- More Options -->
+            <button onclick="openDeleteOptionsModal('${inspection.extinguisher_id}', '${inspection.extinguisher_no}')" class="p-1 rounded-md bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition-all duration-200 border border-gray-200 hover:border-gray-300 flex-shrink-0" title="More Options">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
                 </svg>
             </button>
@@ -126,7 +132,7 @@ const serviceDueInspectionsEl = document.getElementById('serviceDueInspections')
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadFireExtinguishers();
+    // Single load for all data
     await loadFireExtinguisherInspections();
     setupEventListeners();
     updateStatistics();
@@ -170,26 +176,6 @@ function setupEventListeners() {
     });
 }
 
-// Load fire extinguishers for dropdown
-async function loadFireExtinguishers() {
-    try {
-        const { data: extinguishers, error } = await supabase
-            .from('fire_extinguishers')
-            .select('*')
-            .order('extinguisher_no', { ascending: true });
-
-        if (error) throw error;
-
-        allExtinguishers = extinguishers || [];
-        
-        // Update help text based on available extinguishers
-        updateExtinguisherHelpText();
-    } catch (error) {
-        console.error('Error loading fire extinguishers:', error);
-        showErrorMessage('Error loading fire extinguishers. Please try again.');
-    }
-}
-
 // Load fire extinguisher inspections from database
 async function loadFireExtinguisherInspections() {
     try {
@@ -201,9 +187,14 @@ async function loadFireExtinguisherInspections() {
 
         if (extinguisherError) throw extinguisherError;
 
+        // Store for other functions to use
+        allExtinguishers = extinguishers || [];
+        
+        // Update help text for the search input
+        updateExtinguisherHelpText();
+
         // Process inspections from each extinguisher - only keep the latest one
         allInspections = [];
-        let inspectionId = 1;
 
         extinguishers.forEach(extinguisher => {
             // Always add the extinguisher, even if no inspections exist
@@ -216,17 +207,9 @@ async function loadFireExtinguisherInspections() {
                 if (sortedInspections.length > 0) {
                     const latestInspection = sortedInspections[0]; // Get the latest inspection
 
-                    // Debug date processing
-                    if (DEBUG_DATES) {
-                        console.log('Processing inspection for extinguisher:', extinguisher.extinguisher_no);
-                        console.log('Latest inspection date:', latestInspection.date);
-                        console.log('Next due date:', latestInspection.next_due_date);
-                        console.log('Formatted inspection date:', formatDate(latestInspection.date));
-                        console.log('Formatted next due date:', formatDate(latestInspection.next_due_date));
-                    }
-
                     allInspections.push({
-                        id: inspectionId++,
+                        id: extinguisher.id, // Use database ID for stable identification
+                        inspection_id: latestInspection.id, // Unique inspection ID
                         extinguisher_id: extinguisher.id,
                         extinguisher_no: extinguisher.extinguisher_no,
                         type: extinguisher.type_of_extinguisher,
@@ -253,7 +236,7 @@ async function loadFireExtinguisherInspections() {
             } else {
                 // Add extinguisher with no inspection data (empty inspection fields)
                 allInspections.push({
-                    id: inspectionId++,
+                    id: extinguisher.id, // Use database ID
                     extinguisher_id: extinguisher.id,
                     extinguisher_no: extinguisher.extinguisher_no,
                     type: extinguisher.type_of_extinguisher,
@@ -382,11 +365,14 @@ function updateFilterStatus() {
 
 // Get inspection status
 function getInspectionStatus(nextDueDate, inspectionDate) {
-    if (!nextDueDate) return 'Unknown';
+    if (!nextDueDate) return 'No Inspection';
 
     try {
         const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time for accurate day calculation
+        
         const dueDate = new Date(nextDueDate);
+        dueDate.setHours(0, 0, 0, 0);
 
         // Validate due date
         if (isNaN(dueDate.getTime())) {
@@ -394,24 +380,11 @@ function getInspectionStatus(nextDueDate, inspectionDate) {
             return 'Unknown';
         }
 
-        const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-
-        // If inspection date is provided, check if inspection was recent
-        if (inspectionDate) {
-            const lastInspection = new Date(inspectionDate);
-            if (!isNaN(lastInspection.getTime())) {
-                const daysSinceInspection = Math.floor((today - lastInspection) / (1000 * 60 * 60 * 24));
-
-                // If inspection was done within last 30 days, consider it Active
-                // (prevents immediate "Service Due" status after recent inspection)
-                if (daysSinceInspection <= 30) {
-                    return 'Active';
-                }
-            }
-        }
+        const diffTime = dueDate - today;
+        const daysUntilDue = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
         if (daysUntilDue < 0) return 'Expired';
-        if (daysUntilDue <= 60) return 'Service Due'; // Increased to 60 days for better UX
+        if (daysUntilDue <= 0) return 'Service Due'; // Include today as service due
         return 'Active';
 
     } catch (error) {
@@ -484,6 +457,29 @@ function openAddInspectionModal() {
     // Leave all dates empty for user to fill manually
     // Users should enter actual inspection date, expiry date, and next due date
     
+    // Add event listener to automatically calculate next due date when inspection date is selected
+    const inspectionDateField = document.getElementById('inspectionDate');
+    const nextDueDateField = document.getElementById('nextDueDate');
+    
+    if (inspectionDateField && nextDueDateField) {
+        inspectionDateField.addEventListener('change', function() {
+            const inspectionDate = new Date(this.value);
+            if (inspectionDate && !isNaN(inspectionDate.getTime())) {
+                // Calculate next due date as 30 days from inspection date (or 31 if current month has 31 days)
+                const currentMonth = inspectionDate.getMonth();
+                const currentYear = inspectionDate.getFullYear();
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                
+                const nextDueDate = new Date(inspectionDate);
+                nextDueDate.setDate(nextDueDate.getDate() + (daysInMonth === 31 ? 31 : 30));
+                
+                // Format date as YYYY-MM-DD for input field
+                const formattedDate = nextDueDate.toISOString().split('T')[0];
+                nextDueDateField.value = formattedDate;
+            }
+        });
+    }
+    
     inspectionModal.style.display = 'block';
 }
 
@@ -524,17 +520,17 @@ async function handleInspectionSubmit(event) {
         return;
     }
     
-    // Check if extinguisher number format is valid (00-99)
-    const extinguisherPattern = /^\d{1,2}$/;
+    // Check if extinguisher number format is valid (numeric)
+    const extinguisherPattern = /^\d+$/;
     if (!extinguisherPattern.test(inspectionData.extinguisher_no.trim())) {
-        showErrorMessage('Please enter a valid Fire Extinguisher number (00 to 99).');
+        showErrorMessage('Please enter a valid Fire Extinguisher number (numeric).');
         return;
     }
     
-    // Check if number is within range (00-99)
+    // Check if number is positive
     const extinguisherNum = parseInt(inspectionData.extinguisher_no.trim());
-    if (extinguisherNum < 0 || extinguisherNum > 99) {
-        showErrorMessage('Fire Extinguisher number must be between 00 and 99.');
+    if (extinguisherNum < 0) {
+        showErrorMessage('Fire Extinguisher number must be positive.');
         return;
     }
 
@@ -558,9 +554,37 @@ async function handleInspectionSubmit(event) {
         return;
     }
 
+    // Validate inspection dates
+    if (inspectionData.inspection_date && inspectionData.next_due_date) {
+        const inspDate = new Date(inspectionData.inspection_date);
+        const dueDate = new Date(inspectionData.next_due_date);
+        
+        if (dueDate <= inspDate) {
+            showErrorMessage('Next Due Date must be after the Inspection Date.');
+            return;
+        }
+    }
+
+    // Validate refill/expiry dates
+    if (inspectionData.refilled_date && inspectionData.expiry_date) {
+        const refill = new Date(inspectionData.refilled_date);
+        const expiry = new Date(inspectionData.expiry_date);
+        
+        if (expiry <= refill) {
+            showErrorMessage('Expiry Date must be after the Refilled Date.');
+            return;
+        }
+    }
+
     // Validate capacity
     if (!inspectionData.capacity || inspectionData.capacity <= 0) {
         showErrorMessage('Please enter a valid capacity.');
+        return;
+    }
+
+    // Validate inspector
+    if (!inspectionData.inspector || !inspectionData.inspector.trim()) {
+        showErrorMessage('Please enter the name of the inspector.');
         return;
     }
 
@@ -583,8 +607,6 @@ async function addInspection(inspectionData) {
     const numericValue = inspectionData.extinguisher_no.trim();
     const databaseFormat = `FE-${numericValue.padStart(3, '0')}`;
     
-    console.log('Looking for extinguisher:', databaseFormat);
-    console.log('Available extinguishers:', allExtinguishers.map(e => e.extinguisher_no));
     
     // Find the extinguisher by extinguisher number (database format)
     let extinguisher = allExtinguishers.find(e => e.extinguisher_no === databaseFormat);
@@ -595,7 +617,6 @@ async function addInspection(inspectionData) {
         
         if (!extinguisher) {
             // Create a new Fire Extinguisher if it doesn't exist
-            console.log('Creating new Fire Extinguisher:', databaseFormat);
             
             const newExtinguisherData = {
                 extinguisher_no: databaseFormat,
@@ -615,7 +636,6 @@ async function addInspection(inspectionData) {
             }
             
             extinguisher = newExtinguisher;
-            console.log('Created new Fire Extinguisher:', extinguisher);
             
             // Add to local array so future lookups work
             allExtinguishers.push(extinguisher);
@@ -660,7 +680,12 @@ async function addInspection(inspectionData) {
     // Update the database
     const { error: updateError } = await supabase
         .from('fire_extinguishers')
-        .update({ inspection_data: updatedInspectionData })
+        .update({ 
+            inspection_data: updatedInspectionData,
+            type_of_extinguisher: inspectionData.type,
+            location: inspectionData.location,
+            capacity: inspectionData.capacity
+        })
         .eq('id', extinguisherId);
 
     if (updateError) throw updateError;
@@ -669,8 +694,8 @@ async function addInspection(inspectionData) {
 
 
 // View inspection details - Navigate to form page
-window.viewInspection = function(id) {
-    const inspection = allInspections.find(i => i.id === id);
+function viewInspection(id) {
+    const inspection = allInspections.find(i => String(i.id) === String(id));
     if (!inspection) return;
 
     // Navigate to the Fire Extinguisher Inspection Form page
@@ -678,10 +703,13 @@ window.viewInspection = function(id) {
     window.location.href = `fire-extinguisher-inspection-form.html?extinguisher_id=${inspection.extinguisher_id}&extinguisher_no=${inspection.extinguisher_no}`;
 }
 
+// Make function globally available for onclick handlers
+window.viewInspection = viewInspection;
+
 // Add inspection for specific extinguisher
-window.addInspectionForExtinguisher = function(extinguisherId, extinguisherNo) {
+function addInspectionForExtinguisher(extinguisherId, extinguisherNo) {
     // Find the extinguisher data
-    const extinguisher = allExtinguishers.find(e => e.id === extinguisherId);
+    const extinguisher = allExtinguishers.find(e => String(e.id) === String(extinguisherId));
     
     if (!extinguisher) {
         console.error('Extinguisher not found for ID:', extinguisherId);
@@ -691,63 +719,50 @@ window.addInspectionForExtinguisher = function(extinguisherId, extinguisherNo) {
     // Open the add inspection modal
     openAddInspectionModal();
     
-    // Pre-populate the extinguisher fields
-    setTimeout(() => {
-        // Convert FE number from database format (FE-001) to display format (1)
-        let numericValue = extinguisher.extinguisher_no;
-        if (extinguisher.extinguisher_no.includes('FE-')) {
-            numericValue = extinguisher.extinguisher_no.replace('FE-', '').replace(/^0+/, '') || '0';
-        } else if (extinguisher.extinguisher_no.match(/^\d+$/)) {
-            numericValue = extinguisher.extinguisher_no.replace(/^0+/, '') || '0';
-        }
-        setInputValue(extinguisherInput, numericValue);
-        setInputValue(extinguisherType, extinguisher.type_of_extinguisher || '');
-        setInputValue(extinguisherLocation, extinguisher.location || '');
-        setInputValue(capacity, extinguisher.capacity || '');
-        // Pre-populate refilled and expiry dates from latest inspection if available
-        try {
-            let latestRefilled = '';
-            let latestExpiry = '';
-            if (extinguisher.inspection_data && Array.isArray(extinguisher.inspection_data.inspections) && extinguisher.inspection_data.inspections.length > 0) {
-                const sortedInspections = extinguisher.inspection_data.inspections
-                    .filter(i => i && (i.date || i.refilled_date || i.expiry_date))
-                    .sort((a, b) => new Date(b.date || b.refilled_date || b.expiry_date) - new Date(a.date || a.refilled_date || a.expiry_date));
+    // Pre-populate the extinguisher fields immediately
+    // Convert FE number from database format (FE-001) to display format (1)
+    let numericValue = extinguisher.extinguisher_no;
+    if (extinguisher.extinguisher_no.includes('FE-')) {
+        numericValue = extinguisher.extinguisher_no.replace('FE-', '').replace(/^0+/, '') || '0';
+    } else if (extinguisher.extinguisher_no.match(/^\d+$/)) {
+        numericValue = extinguisher.extinguisher_no.replace(/^0+/, '') || '0';
+    }
+    
+    setInputValue(extinguisherInput, numericValue);
+    setInputValue(extinguisherType, extinguisher.type_of_extinguisher || '');
+    setInputValue(extinguisherLocation, extinguisher.location || '');
+    setInputValue(capacity, extinguisher.capacity || '');
 
-                if (sortedInspections.length > 0) {
-                    const latest = sortedInspections[0];
-                    if (latest.refilled_date) {
-                        // ensure value is in YYYY-MM-DD for input[type=date]
-                        latestRefilled = String(latest.refilled_date).split('T')[0];
-                    }
-                    if (latest.expiry_date) {
-                        latestExpiry = String(latest.expiry_date).split('T')[0];
-                    }
-                }
-            }
+    // Pre-populate refilled and expiry dates from latest inspection if available
+    try {
+        let latestRefilled = '';
+        let latestExpiry = '';
+        
+        if (extinguisher.inspection_data && Array.isArray(extinguisher.inspection_data.inspections) && extinguisher.inspection_data.inspections.length > 0) {
+            // Sort to find truly latest record
+            const sortedInspections = [...extinguisher.inspection_data.inspections]
+                .filter(i => i && (i.date || i.refilled_date || i.expiry_date))
+                .sort((a, b) => new Date(b.date || b.refilled_date || b.expiry_date) - new Date(a.date || a.refilled_date || a.expiry_date));
 
-            if (refilledDate) {
-                refilledDate.value = latestRefilled;
-                console.log('Refilled date pre-populated:', refilledDate.value);
+            if (sortedInspections.length > 0) {
+                const latest = sortedInspections[0];
+                if (latest.refilled_date) latestRefilled = String(latest.refilled_date).split('T')[0];
+                if (latest.expiry_date) latestExpiry = String(latest.expiry_date).split('T')[0];
             }
-            if (expiryDate) {
-                expiryDate.value = latestExpiry;
-                console.log('Expiry date pre-populated:', expiryDate.value);
-            }
-        } catch (e) {
-            console.error('Error pre-populating refill/expiry dates:', e);
         }
+
+        if (refilledDate) refilledDate.value = latestRefilled;
+        if (expiryDate) expiryDate.value = latestExpiry;
         
-        // Leave inspection date empty for user to fill
-        // Leave next due date empty for user to fill (they can use current year or set manually)
-        
-        // Update modal title
-        if (modalTitle) {
-            modalTitle.textContent = 'Add Inspection Record';
-        }
-        
-        console.log('Pre-population completed');
-    }, 100);
+    } catch (e) {
+        console.error('Error pre-populating dates:', e);
+    }
+    
+    if (modalTitle) modalTitle.textContent = 'Add Inspection Record';
 }
+
+// Make function globally available for onclick handlers
+window.addInspectionForExtinguisher = addInspectionForExtinguisher;
 
 
 
@@ -764,13 +779,13 @@ let currentDeleteOptionsExtinguisherNo = null;
 let selectedInspectionsToClear = [];
 
 // Open delete selection modal
-window.openDeleteSelectionModal = function(extinguisherId, extinguisherNo) {
+function openDeleteSelectionModal(extinguisherId, extinguisherNo) {
     currentDeleteExtinguisherId = extinguisherId;
     currentDeleteExtinguisherNo = extinguisherNo;
     selectedInspectionsToDelete = [];
     
     // Find the extinguisher data
-    const extinguisher = allExtinguishers.find(e => e.id === extinguisherId);
+    const extinguisher = allExtinguishers.find(e => String(e.id) === String(extinguisherId));
     if (!extinguisher || !extinguisher.inspection_data || !extinguisher.inspection_data.inspections) {
         showErrorMessage('No inspection records found for this Fire Extinguisher.');
         return;
@@ -839,7 +854,7 @@ window.openDeleteSelectionModal = function(extinguisherId, extinguisherNo) {
 }
 
 // Toggle select all checkboxes
-window.toggleSelectAll = function() {
+function toggleSelectAll() {
     const selectAllCheckbox = document.getElementById('selectAll');
     const inspectionCheckboxes = document.querySelectorAll('#deleteSelectionContent input[type="checkbox"]:not(#selectAll)');
     
@@ -851,22 +866,17 @@ window.toggleSelectAll = function() {
 }
 
 // Update selected inspections array
-window.updateSelectedInspections = function() {
-    console.log('updateSelectedInspections called');
+function updateSelectedInspections() {
     
     const inspectionCheckboxes = document.querySelectorAll('#deleteSelectionContent input[type="checkbox"]:not(#selectAll)');
-    console.log('Found checkboxes:', inspectionCheckboxes.length);
     
     selectedInspectionsToDelete = [];
     
     inspectionCheckboxes.forEach((checkbox, index) => {
-        console.log(`Checkbox ${index}:`, checkbox.checked, checkbox.value);
         if (checkbox.checked) {
             selectedInspectionsToDelete.push(parseInt(checkbox.value));
         }
     });
-    
-    console.log('Selected inspections:', selectedInspectionsToDelete);
     
     // Update select all checkbox
     const selectAllCheckbox = document.getElementById('selectAll');
@@ -877,7 +887,7 @@ window.updateSelectedInspections = function() {
 }
 
 // Close delete selection modal
-window.closeDeleteSelectionModal = function() {
+function closeDeleteSelectionModal() {
     document.getElementById('deleteSelectionModal').style.display = 'none';
     currentDeleteExtinguisherId = null;
     currentDeleteExtinguisherNo = null;
@@ -885,8 +895,7 @@ window.closeDeleteSelectionModal = function() {
 }
 
 // Confirm and delete selected inspections
-window.confirmDeleteSelected = async function() {
-    console.log('Confirm delete called. Selected inspections:', selectedInspectionsToDelete);
+async function confirmDeleteSelected() {
     
     if (selectedInspectionsToDelete.length === 0) {
         showErrorMessage('Please select at least one inspection record to delete.');
@@ -926,11 +935,17 @@ window.confirmDeleteSelected = async function() {
         });
 
         // Update the database
-        const { error: updateError } = await supabase
+        const { data: updateData, error: updateError } = await supabase
             .from('fire_extinguishers')
-            .update({ inspection_data: updatedInspectionData })
-            .eq('id', currentDeleteExtinguisherId);
-
+            .update({ 
+                inspection_data: {
+                    ...currentData.inspection_data, // Preserve other metadata
+                    inspections: updatedInspectionData.inspections
+                }
+            })
+            .eq('id', currentDeleteExtinguisherId)
+            .select();
+            
         if (updateError) throw updateError;
 
         // Store the count before clearing the array
@@ -955,12 +970,11 @@ window.confirmDeleteSelected = async function() {
 }
 
 // Delete individual inspection record
-window.deleteInspectionRecord = async function(inspectionId, extinguisherNo) {
+async function deleteInspectionRecord(inspectionId, extinguisherNo) {
     if (confirm(`Are you sure you want to delete this inspection record for ${extinguisherNo}?`)) {
         try {
-            console.log('Deleting inspection:', inspectionId, 'for extinguisher:', extinguisherNo);
 
-            const inspection = allInspections.find(i => i.id === inspectionId);
+            const inspection = allInspections.find(i => String(i.id) === String(inspectionId));
             if (!inspection) {
                 showErrorMessage('Inspection record not found.');
                 return;
@@ -975,30 +989,45 @@ window.deleteInspectionRecord = async function(inspectionId, extinguisherNo) {
 
             if (fetchError) throw fetchError;
 
-            // Remove the specific inspection from the array
+            // Remove the specific inspection from the array using the unique inspection ID
             const updatedInspectionData = currentData.inspection_data || { inspections: [] };
             updatedInspectionData.inspections = updatedInspectionData.inspections || [];
 
-            // Find and remove the inspection by matching multiple fields for accuracy
-            const inspectionIndex = updatedInspectionData.inspections.findIndex(insp =>
-                insp.date === inspection.inspection_date &&
-                insp.inspector === inspection.inspector &&
-                insp.next_due_date === inspection.next_due_date
-            );
+            // Find and remove the inspection - try unique ID first, then fall back to field matching
+            let inspectionIndex = -1;
+            
+            if (inspection.inspection_id) {
+                // Use unique ID if available
+                inspectionIndex = updatedInspectionData.inspections.findIndex(insp => insp.id === inspection.inspection_id);
+            }
+            
+            if (inspectionIndex === -1) {
+                // Fall back to field matching for backward compatibility
+                inspectionIndex = updatedInspectionData.inspections.findIndex(insp =>
+                    insp.date === inspection.inspection_date &&
+                    insp.inspector === inspection.inspector &&
+                    insp.next_due_date === inspection.next_due_date
+                );
+            }
 
             if (inspectionIndex !== -1) {
                 updatedInspectionData.inspections.splice(inspectionIndex, 1);
-                console.log('Inspection removed from database');
             } else {
                 showErrorMessage('Inspection record not found in database.');
                 return;
             }
 
             // Update the database
-            const { error: updateError } = await supabase
+            const { data: updateData, error: updateError } = await supabase
                 .from('fire_extinguishers')
-                .update({ inspection_data: updatedInspectionData })
-                .eq('id', inspection.extinguisher_id);
+                .update({ 
+                    inspection_data: {
+                        ...currentData.inspection_data, // Preserve other metadata
+                        inspections: updatedInspectionData.inspections 
+                    }
+                })
+                .eq('id', inspection.extinguisher_id)
+                .select();
 
             if (updateError) throw updateError;
 
@@ -1012,59 +1041,8 @@ window.deleteInspectionRecord = async function(inspectionId, extinguisherNo) {
     }
 }
 
-// Delete inspection (old function - kept for backward compatibility)
-window.deleteInspection = async function(id) {
-    if (confirm('Are you sure you want to delete this inspection record?')) {
-        try {
-            const inspection = allInspections.find(i => i.id === id);
-            if (!inspection) {
-                showErrorMessage('Inspection record not found.');
-        return;
-    }
-
-            // Get current inspection data
-            const { data: currentData, error: fetchError } = await supabase
-                .from('fire_extinguishers')
-                .select('inspection_data')
-                .eq('id', inspection.extinguisher_id)
-                .single();
-
-            if (fetchError) throw fetchError;
-
-            // Remove the specific inspection from the array
-            const updatedInspectionData = currentData.inspection_data || { inspections: [] };
-            updatedInspectionData.inspections = updatedInspectionData.inspections || [];
-
-            // Find and remove the inspection by matching date and inspector
-            const inspectionIndex = updatedInspectionData.inspections.findIndex(insp =>
-                insp.date === inspection.inspection_date &&
-                insp.inspector === inspection.inspector
-            );
-
-            if (inspectionIndex !== -1) {
-                updatedInspectionData.inspections.splice(inspectionIndex, 1);
-        } else {
-                showErrorMessage('Inspection record not found in database.');
-                return;
-            }
-
-            // Update the database
-            const { error: updateError } = await supabase
-                .from('fire_extinguishers')
-                .update({ inspection_data: updatedInspectionData })
-                .eq('id', inspection.extinguisher_id);
-
-            if (updateError) throw updateError;
-
-            // Reload the data and show success message
-            await loadFireExtinguisherInspections();
-            showSuccessMessage('Inspection record deleted successfully!');
-        } catch (error) {
-            console.error('Error deleting inspection:', error);
-            showErrorMessage('Error deleting inspection record. Please try again.');
-        }
-    }
-}
+// Make function globally available for onclick handlers
+window.deleteInspectionRecord = deleteInspectionRecord;
 
 // Show success message
 function showSuccessMessage(message) {
@@ -1117,11 +1095,10 @@ function setupLocationAutocomplete() {
 
 
 // Edit Fire Extinguisher function
-window.editFireExtinguisher = function(extinguisherId, extinguisherNo) {
-    console.log('editFireExtinguisher called with:', extinguisherId, extinguisherNo);
+function editFireExtinguisher(extinguisherId, extinguisherNo) {
     
     // Find the extinguisher data
-    const extinguisher = allExtinguishers.find(e => e.id === extinguisherId);
+    const extinguisher = allExtinguishers.find(e => String(e.id) === String(extinguisherId));
     if (!extinguisher) {
         showErrorMessage('Fire extinguisher not found.');
         return;
@@ -1130,6 +1107,9 @@ window.editFireExtinguisher = function(extinguisherId, extinguisherNo) {
     // Open edit modal with pre-filled data
     openEditExtinguisherModal(extinguisher);
 };
+
+// Make function globally available for onclick handlers
+window.editFireExtinguisher = editFireExtinguisher;
 
 // Open Edit Extinguisher Modal
 function openEditExtinguisherModal(extinguisher) {
@@ -1155,7 +1135,7 @@ function openEditExtinguisherModal(extinguisher) {
 }
 
 // Close Edit Extinguisher Modal
-window.closeEditExtinguisherModal = function() {
+function closeEditExtinguisherModal() {
     const modal = document.getElementById('editExtinguisherModal');
     modal.style.display = 'none';
 };
@@ -1164,13 +1144,33 @@ window.closeEditExtinguisherModal = function() {
 async function handleEditExtinguisherSubmit(event) {
     event.preventDefault();
     
+    let rawNo = document.getElementById('editExtinguisherNo').value.trim();
+    // Normalize format to FE-000
+    if (rawNo && !rawNo.startsWith('FE-')) {
+        rawNo = `FE-${rawNo.padStart(3, '0')}`;
+    }
+
     const formData = {
         id: document.getElementById('editExtinguisherId').value,
-        extinguisher_no: document.getElementById('editExtinguisherNo').value,
+        extinguisher_no: rawNo,
         type_of_extinguisher: document.getElementById('editExtinguisherType').value,
         location: document.getElementById('editLocation').value,
         capacity: document.getElementById('editCapacity').value
     };
+
+    // Basic validation
+    if (!formData.extinguisher_no) {
+        showErrorMessage('Fire Extinguisher number is required.');
+        return;
+    }
+    if (!formData.type_of_extinguisher) {
+        showErrorMessage('Type is required.');
+        return;
+    }
+    if (!formData.location) {
+        showErrorMessage('Location is required.');
+        return;
+    }
     
     try {
         // Update the fire extinguisher in the database
@@ -1188,7 +1188,6 @@ async function handleEditExtinguisherSubmit(event) {
         
         // Close modal and reload data
         closeEditExtinguisherModal();
-        await loadFireExtinguishers();
         await loadFireExtinguisherInspections();
         showSuccessMessage('Fire extinguisher updated successfully!');
         
@@ -1199,7 +1198,7 @@ async function handleEditExtinguisherSubmit(event) {
 }
 
 // Add New Fire Extinguisher functions
-window.openAddNewExtinguisherModal = function() {
+function openAddNewExtinguisherModal() {
     const modal = document.getElementById('addNewExtinguisherModal');
     const form = document.getElementById('addNewExtinguisherForm');
     
@@ -1213,7 +1212,7 @@ window.openAddNewExtinguisherModal = function() {
     form.onsubmit = handleAddNewExtinguisherSubmit;
 };
 
-window.closeAddNewExtinguisherModal = function() {
+function closeAddNewExtinguisherModal() {
     const modal = document.getElementById('addNewExtinguisherModal');
     modal.style.display = 'none';
 };
@@ -1222,12 +1221,35 @@ window.closeAddNewExtinguisherModal = function() {
 async function handleAddNewExtinguisherSubmit(event) {
     event.preventDefault();
     
+    let rawNo = document.getElementById('newExtinguisherNo').value.trim();
+    if (!rawNo) {
+        showErrorMessage('Fire Extinguisher number is required.');
+        return;
+    }
+
+    // Normalize format to FE-000
+    if (!rawNo.startsWith('FE-')) {
+        // If it's just a number, pad it
+        if (/^\d+$/.test(rawNo)) {
+            rawNo = `FE-${rawNo.padStart(3, '0')}`;
+        }
+    }
+
     const formData = {
-        extinguisher_no: document.getElementById('newExtinguisherNo').value,
+        extinguisher_no: rawNo,
         type_of_extinguisher: document.getElementById('newExtinguisherType').value,
         location: document.getElementById('newLocation').value,
         capacity: document.getElementById('newCapacity').value
     };
+
+    if (!formData.type_of_extinguisher) {
+        showErrorMessage('Type is required.');
+        return;
+    }
+    if (!formData.location) {
+        showErrorMessage('Location is required.');
+        return;
+    }
     
     try {
         // Insert new fire extinguisher into the database
@@ -1245,7 +1267,6 @@ async function handleAddNewExtinguisherSubmit(event) {
         
         // Close modal and reload data
         closeAddNewExtinguisherModal();
-        await loadFireExtinguishers();
         await loadFireExtinguisherInspections();
         showSuccessMessage('New fire extinguisher added successfully!');
         
@@ -1258,7 +1279,6 @@ async function handleAddNewExtinguisherSubmit(event) {
 // Make functions globally available
 window.viewInspection = viewInspection;
 window.deleteInspectionRecord = deleteInspectionRecord;
-window.deleteInspection = deleteInspection;
 window.editFireExtinguisher = editFireExtinguisher;
 window.closeEditExtinguisherModal = closeEditExtinguisherModal;
 window.openAddNewExtinguisherModal = openAddNewExtinguisherModal;
@@ -1283,14 +1303,15 @@ window.confirmDeleteSelected = confirmDeleteSelected;
 function openDeleteOptionsModal(extinguisherId, extinguisherNo) {
     currentDeleteOptionsExtinguisherId = extinguisherId;
     currentDeleteOptionsExtinguisherNo = extinguisherNo;
-    
+
     const modal = document.getElementById('deleteOptionsModal');
     const extinguisherNoElement = document.getElementById('deleteOptionsExtinguisherNo');
-    
+
     extinguisherNoElement.textContent = extinguisherNo;
     modal.style.display = 'block';
 }
 
+// Make function globally available for onclick handlers
 window.openDeleteOptionsModal = openDeleteOptionsModal;
 
 function closeDeleteOptionsModal() {
@@ -1299,8 +1320,6 @@ function closeDeleteOptionsModal() {
     currentDeleteOptionsExtinguisherId = null;
     currentDeleteOptionsExtinguisherNo = null;
 }
-
-window.closeDeleteOptionsModal = closeDeleteOptionsModal;
 
 // Delete entire fire extinguisher
 async function deleteEntireExtinguisher() {
@@ -1311,15 +1330,16 @@ async function deleteEntireExtinguisher() {
     }
 
     try {
-        const { error } = await supabase
+        
+        const { data, error } = await supabase
             .from('fire_extinguishers')
             .delete()
-            .eq('id', currentDeleteOptionsExtinguisherId);
+            .eq('id', currentDeleteOptionsExtinguisherId)
+            .select();
         
         if (error) throw error;
         
         closeDeleteOptionsModal();
-        await loadFireExtinguishers();
         await loadFireExtinguisherInspections();
         showSuccessMessage(`Fire extinguisher ${currentDeleteOptionsExtinguisherNo} deleted successfully!`);
         
@@ -1333,50 +1353,72 @@ async function deleteEntireExtinguisher() {
 function openClearInspectionDataModal() {
     if (!currentDeleteOptionsExtinguisherId) return;
     
-    // Find the extinguisher data
-    const extinguisher = allExtinguishers.find(e => e.id === currentDeleteOptionsExtinguisherId);
-    if (!extinguisher || !extinguisher.inspection_data || !extinguisher.inspection_data.inspections) {
-        showErrorMessage('No inspection data found for this extinguisher.');
-        return;
-    }
+    // Fetch current data from database instead of using potentially stale local data
+    supabase
+        .from('fire_extinguishers')
+        .select('inspection_data')
+        .eq('id', currentDeleteOptionsExtinguisherId)
+        .single()
+        .then(({ data: extinguisher, error }) => {
+            if (error) {
+                console.error('Error fetching extinguisher data:', error);
+                showErrorMessage('Error loading inspection data.');
+                return;
+            }
+            
+            if (!extinguisher || !extinguisher.inspection_data || !extinguisher.inspection_data.inspections || extinguisher.inspection_data.inspections.length === 0) {
+                showErrorMessage('No inspection data found for this extinguisher.');
+                return;
+            }
 
-    const modal = document.getElementById('clearInspectionDataModal');
-    const extinguisherNoElement = document.getElementById('clearInspectionDataExtinguisherNo');
-    const inspectionListElement = document.getElementById('inspectionDataList');
-    
-    extinguisherNoElement.textContent = currentDeleteOptionsExtinguisherNo;
-    
-    // Clear previous selections
-    selectedInspectionsToClear = [];
-    
-    // Populate inspection records with checkboxes
-    inspectionListElement.innerHTML = '';
-    extinguisher.inspection_data.inspections.forEach((inspection, index) => {
-        const inspectionDiv = document.createElement('div');
-        inspectionDiv.style.cssText = 'display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #e5e7eb; border-radius: 4px; margin-bottom: 8px; background: #f9fafb;';
-        
-        inspectionDiv.innerHTML = `
-            <input type="checkbox" id="inspection_${index}" value="${index}" onchange="toggleInspectionSelection(${index})">
-            <div style="flex: 1;">
-                <div style="font-weight: 600; color: #374151; font-size: 13px;">Inspection Date: ${formatDate(inspection.date)}</div>
-                <div style="font-size: 12px; color: #6b7280;">Inspector: ${inspection.inspector || 'N/A'}</div>
-                <div style="font-size: 12px; color: #6b7280;">Remarks: ${inspection.remarks || 'N/A'}</div>
-            </div>
-        `;
-        
-        inspectionListElement.appendChild(inspectionDiv);
-    });
-    
-    // Store the extinguisher ID before closing the delete options modal
-    const extinguisherIdToClear = currentDeleteOptionsExtinguisherId;
-    
-    // Close the delete options modal and open the clear data modal
-    closeDeleteOptionsModal();
-    
-    // Set the ID for the clear modal
-    currentDeleteOptionsExtinguisherId = extinguisherIdToClear;
-    
-    modal.style.display = 'block';
+            const modal = document.getElementById('clearInspectionDataModal');
+            const extinguisherNoElement = document.getElementById('clearInspectionDataExtinguisherNo');
+            const inspectionListElement = document.getElementById('inspectionDataList');
+            
+            extinguisherNoElement.textContent = currentDeleteOptionsExtinguisherNo;
+            
+            // Clear previous selections
+            selectedInspectionsToClear = [];
+            
+            // Populate inspection records with checkboxes
+            inspectionListElement.innerHTML = '';
+            extinguisher.inspection_data.inspections.forEach((inspection, index) => {
+                const inspectionDiv = document.createElement('div');
+                inspectionDiv.style.cssText = 'display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #e5e7eb; border-radius: 4px; margin-bottom: 8px; background: #f9fafb;';
+                
+                inspectionDiv.innerHTML = `
+                    <input type="checkbox" id="inspection_${index}" value="${index}" onchange="toggleInspectionSelection(${index})">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; color: #374151; font-size: 13px;">Inspection Date: ${formatDate(inspection.date)}</div>
+                        <div style="font-size: 12px; color: #6b7280;">Inspector: ${inspection.inspector || 'N/A'}</div>
+                        <div style="font-size: 12px; color: #6b7280;">Remarks: ${inspection.remarks || 'N/A'}</div>
+                    </div>
+                `;
+                
+                inspectionListElement.appendChild(inspectionDiv);
+            });
+            
+            // Store the extinguisher ID before closing the delete options modal
+            const extinguisherIdToClear = currentDeleteOptionsExtinguisherId;
+            
+            // Close the delete options modal and open the clear data modal
+            closeDeleteOptionsModal();
+            
+            // Set the ID for the clear modal
+            currentDeleteOptionsExtinguisherId = extinguisherIdToClear;
+            
+            // Add event listeners to buttons
+            const clearButton = document.getElementById('clearSelectedButton');
+            if (clearButton) {
+                clearButton.addEventListener('click', confirmClearSelectedInspections);
+            }
+            
+            modal.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error in openClearInspectionDataModal:', error);
+            showErrorMessage('Error loading inspection data.');
+        });
 }
 
 function closeClearInspectionDataModal() {
@@ -1403,10 +1445,8 @@ function toggleSelectAllInspections() {
 }
 
 function toggleInspectionSelection(index) {
-    console.log('toggleInspectionSelection called with index:', index);
     
     const checkbox = document.getElementById(`inspection_${index}`);
-    console.log('Checkbox found:', checkbox, 'Checked:', checkbox.checked);
     
     if (checkbox.checked) {
         if (!selectedInspectionsToClear.includes(index)) {
@@ -1415,8 +1455,6 @@ function toggleInspectionSelection(index) {
     } else {
         selectedInspectionsToClear = selectedInspectionsToClear.filter(i => i !== index);
     }
-    
-    console.log('selectedInspectionsToClear after toggle:', selectedInspectionsToClear);
     
     // Update select all checkbox
     const selectAllCheckbox = document.getElementById('selectAllInspections');
@@ -1428,10 +1466,6 @@ function toggleInspectionSelection(index) {
 }
 
 async function confirmClearSelectedInspections() {
-    console.log('confirmClearSelectedInspections called');
-    console.log('currentDeleteOptionsExtinguisherId:', currentDeleteOptionsExtinguisherId);
-    console.log('selectedInspectionsToClear:', selectedInspectionsToClear);
-    
     if (!currentDeleteOptionsExtinguisherId || selectedInspectionsToClear.length === 0) {
         showErrorMessage('Please select at least one inspection record to clear.');
         return;
@@ -1442,40 +1476,58 @@ async function confirmClearSelectedInspections() {
     }
 
     try {
-        // Find the extinguisher data
-        const extinguisher = allExtinguishers.find(e => e.id === currentDeleteOptionsExtinguisherId);
-        if (!extinguisher || !extinguisher.inspection_data || !extinguisher.inspection_data.inspections) {
-            throw new Error('Extinguisher data not found');
+        // Get current inspection data from database
+        const { data: currentData, error: fetchError } = await supabase
+            .from('fire_extinguishers')
+            .select('inspection_data')
+            .eq('id', currentDeleteOptionsExtinguisherId)
+            .single();
+
+        if (fetchError) throw fetchError;
+
+        if (!currentData || !currentData.inspection_data || !Array.isArray(currentData.inspection_data.inspections)) {
+            throw new Error('Extinguisher inspection data not found in database');
         }
         
-        console.log('Original inspections:', extinguisher.inspection_data.inspections);
-        console.log('Selected indices to clear:', selectedInspectionsToClear);
-        
-        // Remove selected inspections (in reverse order to maintain indices)
-        const updatedInspections = extinguisher.inspection_data.inspections.filter((_, index) => 
+        // Remove selected inspections by index
+        const updatedInspections = currentData.inspection_data.inspections.filter((_, index) => 
             !selectedInspectionsToClear.includes(index)
         );
         
-        console.log('Updated inspections after filter:', updatedInspections);
-        
-        // Update the database
-        console.log('Updating database with:', { inspection_data: { inspections: updatedInspections } });
-        
-        const { data, error } = await supabase
+        // Simple direct update - just update inspection_data
+        const { error } = await supabase
             .from('fire_extinguishers')
-            .update({ inspection_data: { inspections: updatedInspections } })
+            .update({ 
+                inspection_data: {
+                    inspections: updatedInspections
+                }
+            })
+            .eq('id', currentDeleteOptionsExtinguisherId);
+
+        console.log('Update error:', error);
+        
+        if (error) {
+            console.error('Update error details:', error);
+            throw new Error(`Database update failed: ${error.message}`);
+        }
+        
+        console.log('Update successful! Now verifying...');
+        
+        // Verify the update was successful by fetching fresh data
+        const { data: verifyData, error: verifyError } = await supabase
+            .from('fire_extinguishers')
+            .select('inspection_data')
             .eq('id', currentDeleteOptionsExtinguisherId)
-            .select();
+            .single();
         
-        console.log('Database response:', { data, error });
+        if (verifyError) {
+            throw new Error(`Verification failed: ${verifyError.message}`);
+        }
         
-        if (error) throw error;
+        console.log('Verification data:', verifyData);
+        console.log('New inspection count:', verifyData.inspection_data.inspections.length);
         
         const clearedCount = selectedInspectionsToClear.length;
-        console.log('About to show success message. Cleared count:', clearedCount);
-        console.log('selectedInspectionsToClear array:', selectedInspectionsToClear);
-        
-        // Store the count before closing modal (which clears the array)
         const finalClearedCount = clearedCount;
         
         closeClearInspectionDataModal();
@@ -1485,5 +1537,281 @@ async function confirmClearSelectedInspections() {
     } catch (error) {
         console.error('Error clearing inspection data:', error);
         showErrorMessage('Error clearing inspection data. Please try again.');
+    }
+};
+
+// Download QR Code function
+window.downloadQRCodes = async function() {
+    if (!currentDeleteOptionsExtinguisherId || !currentDeleteOptionsExtinguisherNo) {
+        showErrorMessage('No extinguisher selected for QR code generation.');
+        return;
+    }
+
+    // Create the inspection form URL with extinguisher parameters
+    // Use production URL for QR codes so they work when scanned from mobile
+    const productionUrl = 'https://swanson-india-portal.vercel.app';
+    const baseUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+        ? productionUrl 
+        : window.location.origin;
+    
+    // The files are located in the /html/ directory relative to the root
+    const inspectionUrl = `${baseUrl}/html/fire-extinguisher-inspection-form.html?extinguisher_id=${currentDeleteOptionsExtinguisherId}&extinguisher_no=${encodeURIComponent(currentDeleteOptionsExtinguisherNo)}`;
+
+    // Format extinguisher number (e.g., "FE-001" -> "01")
+    let formattedExtinguisherNo = 'Unknown';
+    if (currentDeleteOptionsExtinguisherNo && currentDeleteOptionsExtinguisherNo.startsWith('FE-')) {
+        const numPart = currentDeleteOptionsExtinguisherNo.substring(3); // Get "001" from "FE-001"
+        const num = parseInt(numPart, 10); // Convert to integer: 1
+        formattedExtinguisherNo = String(num).padStart(2, '0'); // Format as "01"
+    }
+
+    // Get location from database
+    let location = 'Unknown Location';
+    // Find the button inside the modal and update text
+    const buttons = document.querySelectorAll('#deleteOptionsModal button');
+    let qrButton = null;
+    buttons.forEach(btn => {
+        if (btn.textContent.includes('Download QR Code')) {
+            qrButton = btn;
+        }
+    });
+
+    // Save original content
+    const originalContent = qrButton ? qrButton.innerHTML : '';
+    
+    // Set loading state with spinner
+    if (qrButton) {
+        qrButton.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Downloading...
+        `;
+        qrButton.disabled = true;
+        qrButton.style.opacity = '0.7';
+        qrButton.style.cursor = 'not-allowed';
+        qrButton.style.display = 'flex';
+        qrButton.style.alignItems = 'center';
+        qrButton.style.justifyContent = 'center';
+    }
+
+    try {
+        const { data: extinguisher, error } = await supabase
+            .from('fire_extinguishers')
+            .select('location')
+            .eq('id', currentDeleteOptionsExtinguisherId)
+            .single();
+
+        if (!error && extinguisher && extinguisher.location) {
+            location = extinguisher.location;
+        }
+    } catch (error) {
+        console.error('Error fetching location:', error);
+    }
+
+    // Create QR code with text below it using a canvas
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas size (QR code + text space)
+    canvas.width = 400;
+    canvas.height = 550;
+
+    // Fill background with white
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Create QR code image
+    const qrImage = new Image();
+    qrImage.crossOrigin = 'anonymous';
+
+    qrImage.onload = function() {
+        // Draw border
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+
+        // Draw QR code in center
+        const qrSize = 300;
+        const qrX = (canvas.width - qrSize) / 2;
+        const qrY = 20;
+        ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+
+        // Add text below QR code
+        ctx.fillStyle = 'black';
+        ctx.font = 'bold 28px Arial'; // Increased from 24px
+        ctx.textAlign = 'center';
+
+        // Add "Fire Extinguisher" text
+        ctx.fillText('Fire Extinguisher', canvas.width / 2, qrY + qrSize + 40);
+
+        // Add extinguisher number
+        ctx.font = 'bold 24px Arial'; // Increased from 20px
+        ctx.fillText(`No. ${formattedExtinguisherNo}`, canvas.width / 2, qrY + qrSize + 75);
+
+        // Add location
+        ctx.font = 'bold 20px Arial'; // Increased from 16px
+        ctx.fillText(`Location: ${location}`, canvas.width / 2, qrY + qrSize + 110);
+
+        // Convert canvas to blob and download
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `fire-extinguisher-${formattedExtinguisherNo}-qr.png`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            // Restore button state
+            if (qrButton) {
+                qrButton.innerHTML = originalContent;
+                qrButton.disabled = false;
+                qrButton.style.opacity = '1';
+                qrButton.style.cursor = 'pointer';
+            }
+        }, 'image/png');
+    };
+
+    // Handle QR code loading error
+    qrImage.onerror = function() {
+        showErrorMessage('Error generating QR code. Please try again.');
+        
+        // Restore button state
+        if (qrButton) {
+            qrButton.innerHTML = originalContent;
+            qrButton.disabled = false;
+            qrButton.style.opacity = '1';
+            qrButton.style.cursor = 'pointer';
+        }
+    };
+
+    // Load QR code image
+    qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(inspectionUrl)}`;
+};
+
+// Download All QR Codes function
+window.downloadAllQRCodes = async function() {
+    const downloadBtn = document.querySelector('button[onclick="downloadAllQRCodes()"]');
+    const originalContent = downloadBtn ? downloadBtn.innerHTML : '';
+
+    if (downloadBtn) {
+        downloadBtn.innerHTML = `
+            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Generating PDF...
+        `;
+        downloadBtn.disabled = true;
+        downloadBtn.style.opacity = '0.7';
+    }
+
+    try {
+        // Fetch all extinguishers from Supabase
+        const { data: extinguishers, error } = await supabase
+            .from('fire_extinguishers')
+            .select('*')
+            .order('extinguisher_no', { ascending: true });
+
+        if (error) throw error;
+        if (!extinguishers || extinguishers.length === 0) {
+            showErrorMessage('No fire extinguishers found to generate QR codes.');
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 10;
+        const cols = 3;
+        const rows = 4;
+        const qrPerBatch = cols * rows;
+        
+        const cellWidth = (pageWidth - (2 * margin)) / cols;
+        const cellHeight = (pageHeight - (2 * margin)) / rows;
+        const qrSize = 40; // Increased size for 3x4 grid
+
+        for (let i = 0; i < extinguishers.length; i++) {
+            if (i > 0 && i % qrPerBatch === 0) {
+                doc.addPage();
+            }
+
+            const ext = extinguishers[i];
+            const pageIdx = i % qrPerBatch;
+            const col = pageIdx % cols;
+            const row = Math.floor(pageIdx / cols);
+
+            const x = margin + (col * cellWidth);
+            const y = margin + (row * cellHeight);
+
+            // Draw border box for each QR code
+            const boxPadding = 2;
+            doc.setDrawColor(0); // Black color
+            doc.setLineWidth(0.1);
+            doc.rect(x + boxPadding, y + boxPadding, cellWidth - (boxPadding * 2), cellHeight - (boxPadding * 2));
+
+            // Generate inspection URL
+            // Use production URL for QR codes so they work when scanned from mobile
+            const productionUrl = 'https://swanson-india-portal.vercel.app';
+            const baseUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+                ? productionUrl 
+                : window.location.origin;
+            
+            const inspectionUrl = `${baseUrl}/html/fire-extinguisher-inspection-form.html?extinguisher_id=${ext.id}&extinguisher_no=${encodeURIComponent(ext.extinguisher_no)}`;
+
+            // Use qrcode-generator to create QR code data URL
+            const typeNumber = 0;
+            const errorCorrectionLevel = 'H';
+            const qr = qrcode(typeNumber, errorCorrectionLevel);
+            qr.addData(inspectionUrl);
+            qr.make();
+            const qrDataUrl = qr.createDataURL(4);
+
+            // Draw QR Code
+             const qrX = x + (cellWidth - qrSize) / 2;
+             const qrY = y + 5;
+             doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+ 
+             // Add Text below QR
+             doc.setFontSize(10); // Increased from 8
+             doc.setFont('helvetica', 'bold');
+             doc.text('Fire Extinguisher', x + cellWidth / 2, qrY + qrSize + 5, { align: 'center' });
+             
+             // Format extinguisher number (e.g., "FE-001" -> "No. 01")
+             let displayNo = ext.extinguisher_no;
+             if (displayNo && displayNo.startsWith('FE-')) {
+                 const numPart = displayNo.substring(3);
+                 const num = parseInt(numPart, 10);
+                 displayNo = `No. ${String(num).padStart(2, '0')}`;
+             }
+ 
+             doc.setFontSize(12); // Increased from 10
+             doc.text(displayNo, x + cellWidth / 2, qrY + qrSize + 11, { align: 'center' });
+ 
+             doc.setFontSize(9); // Increased from 7
+             doc.setFont('helvetica', 'normal');
+             const locationText = ext.location || 'No Location';
+             const splitLocation = doc.splitTextToSize(locationText, cellWidth - 4);
+             doc.text(splitLocation, x + cellWidth / 2, qrY + qrSize + 16, { align: 'center' });
+        }
+
+        doc.save('All_Fire_Extinguisher_QR_Codes.pdf');
+
+    } catch (error) {
+        console.error('Error generating PDF:', error);
+        showErrorMessage('Error generating PDF. Please try again.');
+    } finally {
+        if (downloadBtn) {
+            downloadBtn.innerHTML = originalContent;
+            downloadBtn.disabled = false;
+            downloadBtn.style.opacity = '1';
+        }
     }
 };

@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="../css/employee-dashboard.css">
   <link rel="stylesheet" href="../css/common-header.css">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   <style>
     body { 
       font-family: 'Roboto', sans-serif; 
@@ -342,10 +344,9 @@
     
     /* Statistics cards */
     .stats-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
     }
     
     .stat-card {
@@ -356,15 +357,38 @@
       text-align: center;
     }
     
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      align-items: center;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 4px;
+      border-radius: 6px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+    }
+    
     .stat-number {
-      font-size: 1.6em;
+      font-size: 1.2em;
       font-weight: bold;
       color: #007bff;
+      margin-bottom: 1px;
     }
+    
+    /* Specific colors for each statistic */
+    #totalInspections { color: #2563eb; } /* BLUE */
+    #activeInspections { color: #16a34a; } /* GREEN */
+    #expiredInspections { color: #dc2626; } /* RED */
+    #serviceDueInspections { color: #ea580c; } /* ORANGE */
     
     .stat-label {
       color: #666;
-      margin-top: 5px;
+      font-size: 0.85em;
+      font-weight: 500;
     }
 
     /* Modal styles */
@@ -508,23 +532,25 @@
       background-color: #4b5563;
     }
 
-    /* Management button */
+    /* Management button - styled like inline inspection form */
     .add-button {
       background-color: #002E7D;
       color: white;
-      padding: 10px 20px;
+      padding: 8px 24px;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 600;
       display: flex;
       align-items: center;
       gap: 8px;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      transition: all 200ms;
     }
 
     .add-button:hover {
-      background-color: #001f5c;
+      background-color: #1d4ed8;
     }
 
     /* Management controls section */
@@ -550,6 +576,73 @@
       margin-bottom: 20px;
       font-size: 13px;
     }
+
+    /* Professional Action Buttons */
+    .action-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      min-height: 44px;
+    }
+
+    .action-btn:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .action-btn:active {
+      transform: translateY(0);
+    }
+
+    .action-btn-warning {
+      background: #f59e0b;
+      color: white;
+    }
+
+    .action-btn-warning:hover {
+      background: #d97706;
+    }
+
+    .action-btn-danger {
+      background: #dc2626;
+      color: white;
+    }
+
+    .action-btn-danger:hover {
+      background: #b91c1c;
+    }
+
+    .action-btn-secondary {
+      background: #6b7280;
+      color: white;
+    }
+
+    .action-btn-secondary:hover {
+      background: #4b5563;
+    }
+
+    .action-btn-primary {
+      background: #000000;
+      color: white;
+    }
+
+    .action-btn-primary:hover {
+      background: #1f2937;
+    }
+
+    .btn-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body class="bg-gray-100">
@@ -570,72 +663,107 @@
     <main>
 
 
-      <!-- Statistics Cards -->
-      <div class="stats-container">
-        <div class="stat-card">
-          <div class="stat-number" id="totalInspections">0</div>
-          <div class="stat-label">Total Fire Extinguishers</div>
+      <!-- Top Bar: Stats & Filter -->
+      <div class="flex flex-wrap justify-center items-stretch gap-3 mt-3 mb-4">
+        <!-- Statistics Card -->
+        <div class="bg-white rounded-lg shadow-md p-3 w-[380px] flex flex-col min-h-[120px]">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex-1"></div>
+            <h3 class="text-sm font-semibold text-gray-800 text-center flex-1">Statistics</h3>
+            <div class="flex-1"></div>
+          </div>
+          <div class="flex-1 flex items-center">
+            <div class="stat-grid w-full">
+              <div class="stat-item">
+                <div class="stat-number" id="totalInspections">0</div>
+                <div class="stat-label">Total</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number" id="activeInspections">0</div>
+                <div class="stat-label">Active</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number" id="expiredInspections">0</div>
+                <div class="stat-label">Expired</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number" id="serviceDueInspections">0</div>
+                <div class="stat-label">Due</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-number" id="activeInspections">0</div>
-          <div class="stat-label">Active</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="expiredInspections">0</div>
-          <div class="stat-label">Expired</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="serviceDueInspections">0</div>
-          <div class="stat-label">Service Due</div>
-        </div>
-      </div>
 
-      <!-- Filter Section -->
-      <div class="filter-container">
-        <div style="text-align: center; margin-bottom: 8px;">
-          <h4 style="margin: 0; color: #002E7D; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Filter</h4>
-        </div>
-        <div style="display: grid; grid-template-columns: 3fr 1fr 1fr auto; gap: 6px; align-items: center; max-width: 600px; margin: 0;">
-          <div class="form-group" style="margin-bottom: 0; position: relative;">
-            <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Search</div>
-            <input type="text" id="filterLocation" class="filter-input" placeholder="🔍 Location/Ext/Type/Inspector" style="width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; height: 28px;" title="Search by Location, Extinguisher Number, Type, or Inspector">
+        <!-- Filter Section -->
+        <div id="filterContainer" class="bg-white rounded-lg shadow-md p-3 w-[380px] flex flex-col min-h-[120px]">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex-1"></div>
+            <h3 class="text-sm font-semibold text-gray-800 text-center flex-1">Filter</h3>
+            <div class="flex items-center space-x-2 flex-1 justify-end">
+              <span class="text-xs text-gray-600">Filter Status:</span>
+              <span id="filterStatusIndicator" class="px-1.5 py-0.5 text-xs font-semibold rounded-full bg-gray-200 text-gray-700">
+                Off
+              </span>
+            </div>
           </div>
-          <div class="form-group" style="margin-bottom: 0;">
-            <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Type</div>
-            <select id="filterType" class="filter-input" style="width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; height: 28px;" title="Filter by Extinguisher Type">
-              <option value="">All</option>
-              <option value="ABC">ABC</option>
-              <option value="BC">BC</option>
-              <option value="CO2">CO2</option>
-              <option value="MECH FOAM">FOAM</option>
-            </select>
-          </div>
-          <div class="form-group" style="margin-bottom: 0;">
-            <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Status</div>
-            <select id="filterStatus" class="filter-input" style="width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; height: 28px;" title="Filter by Status">
-              <option value="">All</option>
-              <option value="Active">Active</option>
-              <option value="Expired">Expired</option>
-              <option value="Service Due">Due</option>
-              <option value="No Inspection">None</option>
-            </select>
-          </div>
-          <div style="display: flex; gap: 4px; align-items: center;">
-            <button id="clearFilter" style="background: #6b7280; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 10px; font-weight: 600; white-space: nowrap; height: 28px;" title="Clear All Filters">Clear</button>
-            <div id="filterStatusIndicator" class="px-1 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700" style="height: 28px; display: flex; align-items: center; min-width: 30px; justify-content: center;" title="Filter Status">Off</div>
+          <div class="flex-1 flex items-end justify-center">
+            <div class="flex flex-wrap items-end justify-center gap-2">
+              <!-- Search Filter -->
+              <div class="flex flex-col items-center">
+                <label class="block text-xs font-medium text-gray-700 mb-1">Search:</label>
+                <input type="text" id="filterLocation" class="w-36 h-6 px-2 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]" placeholder="Location/Ext/Type/Inspector">
+              </div>
+              <!-- Type Filter -->
+              <div class="flex flex-col items-center">
+                <label class="block text-xs font-medium text-gray-700 mb-1">Type:</label>
+                <select id="filterType" class="w-14 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                  <option value="">All</option>
+                  <option value="ABC">ABC</option>
+                  <option value="BC">BC</option>
+                  <option value="CO2">CO2</option>
+                  <option value="MECH FOAM">FOAM</option>
+                </select>
+              </div>
+              <!-- Status Filter -->
+              <div class="flex flex-col items-center">
+                <label class="block text-xs font-medium text-gray-700 mb-1">Status:</label>
+                <select id="filterStatus" class="w-18 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                  <option value="">All</option>
+                  <option value="Active">Active</option>
+                  <option value="Expired">Expired</option>
+                  <option value="Service Due">Due</option>
+                  <option value="No Inspection">None</option>
+                </select>
+              </div>
+              <!-- Filter Buttons -->
+              <div class="flex flex-col items-center">
+                <div class="h-3"></div> <!-- Spacer to align with inputs -->
+                <div class="flex">
+                  <button id="clearFilter" class="w-10 h-6 bg-gray-500 text-white text-xs font-medium rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                    Clear
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Add New Fire Extinguisher Button -->
-      <div class="w-full flex justify-center mt-8 mb-4">
-        <button class="add-button" onclick="openAddNewExtinguisherModal()">
-          <i class="bi bi-plus"></i> Add New Fire Extinguisher
+      <div class="w-full flex justify-center mt-8 mb-4 gap-4">
+        <button onclick="openAddNewExtinguisherModal()" class="bg-[#002E7D] hover:bg-blue-700 text-white font-semibold py-1.5 px-4 rounded-lg shadow text-sm transition-all duration-200">
+          + Add New Fire Extinguisher
+        </button>
+        <button onclick="downloadAllQRCodes()" class="bg-black hover:bg-gray-800 text-white font-semibold py-1.5 px-4 rounded-lg shadow text-sm transition-all duration-200 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 21h.01M12 17h.01M9 12h6m-6 4h6m2-5V7a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"></path>
+          </svg>
+          Download All QR Codes
         </button>
       </div>
 
       <!-- Fire Extinguisher Inspection Management Table -->
-      <div class="w-full flex justify-center">
+      <div class="w-full flex justify-center mb-8">
         <div class="w-full overflow-x-auto">
           <table class="fire-inspection-table">
             <thead>
@@ -665,19 +793,30 @@
 
   <!-- More Options Modal -->
   <div id="deleteOptionsModal" class="modal">
-    <div class="modal-content" style="width: 85%; max-width: 350px; min-width: 280px;">
-      <span class="close" onclick="closeDeleteOptionsModal()">&times;</span>
-      <h2 style="margin-bottom: 12px; color: #002E7D; font-size: 1.1em;">More Options</h2>
-      <p style="margin-bottom: 16px; color: #666; font-size: 13px;">Choose an action for <strong id="deleteOptionsExtinguisherNo"></strong>:</p>
+    <div class="modal-content" style="width: 85%; max-width: 320px; min-width: 260px; padding: 12px;">
+      <span class="close" onclick="closeDeleteOptionsModal()" style="font-size: 20px; line-height: 20px;">&times;</span>
+      <h2 style="margin-bottom: 8px; color: #002E7D; font-size: 1em;">More Options</h2>
+      <p style="margin-bottom: 12px; color: #666; font-size: 12px;">Choose an action for <strong id="deleteOptionsExtinguisherNo"></strong>:</p>
 
-      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
-        <button onclick="openClearInspectionDataModal()" style="background: #ffc107; color: #000; border: none; padding: 10px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px;">
-          🧹 Clear Inspection Data
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
+        <button onclick="downloadQRCodes()" class="action-btn action-btn-primary" style="padding: 8px 12px; min-height: 36px; font-size: 13px;">
+          <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 18px; height: 18px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 21h.01M12 17h.01M9 12h6m-6 4h6m2-5V7a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"></path>
+          </svg>
+          Download QR Code
         </button>
-      </div>
-
-      <div style="text-align: right;">
-        <button onclick="closeDeleteOptionsModal()" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;">Cancel</button>
+        <button onclick="openClearInspectionDataModal()" class="action-btn action-btn-warning" style="padding: 8px 12px; min-height: 36px; font-size: 13px;">
+          <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 18px; height: 18px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+          Clear Inspection Data
+        </button>
+        <button onclick="deleteEntireExtinguisher()" class="action-btn action-btn-danger" style="padding: 8px 12px; min-height: 36px; font-size: 13px;">
+          <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 18px; height: 18px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+          Delete Fire Extinguisher
+        </button>
       </div>
     </div>
   </div>
@@ -701,8 +840,8 @@
       </div>
 
       <div style="text-align: right;">
-        <button onclick="closeClearInspectionDataModal()" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 8px; font-size: 11px;">Cancel</button>
-        <button onclick="confirmClearSelectedInspections()" style="background: #ffc107; color: #000; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 11px;">Clear Selected</button>
+        <button type="button" onclick="closeClearInspectionDataModal()" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 8px; font-size: 11px;">Cancel</button>
+        <button type="button" id="clearSelectedButton" style="background: #ffc107; color: #000; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 11px;">Clear Selected</button>
       </div>
     </div>
   </div>
@@ -756,7 +895,7 @@
           </div>
           <div class="form-group">
             <label for="inspector">Inspected By <span class="required-asterisk">*</span></label>
-            <input type="text" id="inspector" placeholder="Enter inspector name" required>
+            <input type="text" id="inspector" required>
           </div>
         </div>
 
@@ -789,7 +928,7 @@
             <input type="date" id="expiryDate" required>
           </div>
           <div class="form-group">
-            <label for="inspectionDate">Inspection Date <span class="required-asterisk">*</span></label>
+            <label for="inspectionDate">New Inspection Date <span class="required-asterisk">*</span></label>
             <input type="date" id="inspectionDate" required>
           </div>
           <div class="form-group">
