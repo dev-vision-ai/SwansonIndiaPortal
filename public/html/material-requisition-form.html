@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Material Requisition Cum Issue Slip</title>
+    <link rel="icon" type="image/png" href="../assets/logo2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../css/common-header.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        /* Base font for the entire body */
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+        }
+
+        .page-fade-in {
+            opacity: 1;
+        }
+
+        /* Override Tailwind's container class conflict */
+        .container {
+            max-width: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        /* Modern Enterprise Styles */
+        .modern-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+            border-radius: 12px;
+            padding: 15px;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Modern Table Styling - STRICT ENFORCEMENT */
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid #000; /* Outer border thicker */
+        }
+
+        .modern-table th {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            padding: 6px;
+            border: 1px solid #000 !important; /* Force Black */
+            text-align: center;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .modern-table td {
+            border: 1px solid #000 !important; /* Force Black, Uniform Size */
+            padding: 4px; /* Reduced padding for tighter look */
+            vertical-align: middle;
+        }
+
+        /* Clean Input inside Table */
+        .modern-table input {
+            width: 100%;
+            height: 100%;
+            border: none !important; /* No box border inside cell */
+            outline: none !important;
+            background: transparent !important; /* No gray background */
+            font-family: inherit;
+            font-size: 0.9rem;
+            padding: 4px;
+            color: #000;
+        }
+
+        /* Focus state for inputs */
+        .modern-table input:focus {
+            background-color: #f0f9ff !important; /* Very light blue only when typing */
+        }
+
+        /* Read-only state - text only, no gray box */
+        .modern-table input:read-only,
+        .modern-table input:disabled {
+            color: #444; /* Slightly darker text */
+            cursor: default;
+        }
+
+        /* Modern Input Styling */
+        .modern-input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            background-color: #ffffff;
+        }
+
+        .modern-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Remove grey backgrounds from specific readonly fields */
+        #requestedBy, #requesterDept, #issuedDate, #issuedBy {
+            background-color: transparent !important;
+        }
+        #requestedBy:read-only, #requesterDept:read-only,
+        #requestedBy:disabled, #requesterDept:disabled,
+        #issuedDate:read-only, #issuedBy:read-only,
+        #issuedDate:disabled, #issuedBy:disabled {
+            background-color: transparent !important;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
+
+        .status-badge.status-requested {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+
+        .status-badge.status-issued {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            color: #166534;
+            border: 1px solid #16a34a;
+        }
+
+        .status-badge.status-rejected {
+            background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+            color: #991b1b;
+            border: 1px solid #dc2626;
+        }
+
+        .status-badge.status-approved {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            .modern-card { box-shadow: none; border: none; }
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 10px;
+        }
+
+        .form-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            text-decoration: underline;
+            text-decoration-color: #3b82f6;
+        }
+
+        .top-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .info-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-group input {
+            border: none;
+            border-bottom: 1px solid #000;
+            padding: 2px 5px;
+            outline: none;
+            font-weight: 500;
+        }
+
+        .store-keeper-msg {
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .store-keeper-msg input {
+            border: none;
+            border-bottom: 1px solid #000;
+            width: 300px;
+            outline: none;
+            padding: 2px 5px;
+        }
+
+        /* ... rest of your styles ... */
+
+        /* Footer Styles */
+        .form-footer {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 40px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+        }
+
+        .footer-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .footer-item label {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .footer-item input {
+            border: none;
+            border-bottom: 1px solid #000;
+            outline: none;
+            padding: 5px 0;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            border: 1px solid #065f46;
+        }
+
+        .btn-submit:hover {
+            background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+        }
+
+        .btn-print {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-print:hover {
+            background-color: #218838;
+        }
+
+        .btn-add-row {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: 1px solid #1e40af;
+            margin-bottom: 10px;
+        }
+
+        .btn-add-row:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+        }
+
+        /* PRINTING RULES */
+        @media print {
+            @page {
+                size: landscape; /* FORCE LANDSCAPE */
+                margin: 5mm;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                background: white !important;
+            }
+
+            /* Hide buttons and standard headers during print */
+            .no-print,
+            button,
+            .header-container,
+            .toast,
+            #shareBtn,
+            #printBtn,
+            button[type="submit"],
+            .border-t.border-gray-100 { /* This hides the button container */
+                display: none !important;
+            }
+
+            /* Make the card fill the paper */
+            .modern-card {
+                box-shadow: none !important;
+                border: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #333;
+            color: white;
+            border-radius: 4px;
+            display: none;
+            z-index: 2000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Remove spinner arrows from number inputs in requested quantity column */
+        input[name="reqQty[]"]::-webkit-outer-spin-button,
+        input[name="reqQty[]"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[name="reqQty[]"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium">
+    <main>
+        <div class="container page-fade-in">
+            <section class="dashboard-section">
+                <div class="header-container header-fade-in">
+                    <button type="button" class="header-back-button">Back</button>
+                    <div class="header-title">Material Requisition Cum Issue Slip</div>
+                    <div class="company-logo">
+                        <img src="../assets/logo.png" alt="Company Logo">
+                    </div>
+                </div>
+
+<div class="max-w-7xl mx-auto mt-3">
+    
+    <form id="requisitionForm" class="modern-card">
+        
+        <div class="flex justify-between items-start mb-2 pb-2 border-b border-gray-100">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900">Material Requisition Cum Issue Slip</h1>
+                <div id="statusDisplay" class="status-badge mt-2 inline-block" style="display: none;">REQUESTED</div>
+            </div>
+            <div class="text-right">
+                <label class="block text-xs font-semibold text-gray-500 uppercase">Requisition No</label>
+                <input type="text" id="requisitionNo" class="text-right font-mono font-bold text-red-600 text-lg bg-transparent outline-none w-32" readonly value="Loading..." autocomplete="off">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Request Date</label>
+                <input type="date" id="requisitionDate" class="modern-input bg-white" autocomplete="off">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Required Before</label>
+                <input type="date" id="requiredBefore" class="modern-input bg-white" autocomplete="off">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Requested By</label>
+                <input type="text" id="requestedBy" class="modern-input" readonly autocomplete="off">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">REQUESTOR DEPT</label>
+                <input type="text" id="requesterDept" class="modern-input" readonly autocomplete="off">
+            </div>
+        </div>
+
+        <div class="mb-2 flex justify-between items-center">
+            <h3 class="text-base font-semibold text-gray-800">Items List</h3>
+            <div class="flex gap-2">
+                <button type="button" id="addRowBtn" class="text-xs bg-gray-900 text-white px-3 py-1.5 rounded hover:bg-gray-800 transition flex items-center gap-1">
+                    <i class="fas fa-plus"></i> Add Item
+                </button>
+                <button type="button" id="deleteRowBtn" class="text-xs bg-red-600 text-white px-3 py-1.5 rounded hover:bg-red-700 transition flex items-center gap-1">
+                    <i class="fas fa-trash"></i> Delete Row
+                </button>
+            </div>
+        </div>
+
+        <div class="overflow-hidden mb-4">
+            <table id="materialTable" class="modern-table">
+                <thead>
+                    <tr>
+                        <th class="w-16 text-center">Sr. No.</th>
+                        <th>Material Description</th>
+                        <th class="w-40">Lot No.</th>
+                        <th class="w-40">Requested Qty</th>
+                        <th class="w-40">Issued Qty</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    </tbody>
+            </table>
+            <div id="emptyTableMessage" class="text-center text-gray-500 py-4 text-sm font-medium" style="display: none;">
+                Add rows
+            </div>
+            <div id="warehouseSection" class="flex justify-end mt-2 hidden">
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-medium text-gray-700">Issued Date:</label>
+                        <input type="date" id="issuedDate" class="modern-input" readonly autocomplete="off">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-medium text-gray-700">Issued By:</label>
+                        <input type="text" id="issuedBy" class="modern-input" readonly autocomplete="off">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="formActions" class="flex items-center justify-between pt-3 border-t border-gray-100">
+            <div class="flex gap-4">
+                <button type="button" id="printBtn" class="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition">
+                    Print
+                </button>
+                
+                <button type="button" id="shareBtn" class="px-3 py-1.5 text-sm rounded bg-indigo-600 text-white font-medium hover:bg-indigo-700 shadow-sm transition flex items-center gap-2">
+                    <i class="fas fa-share-alt"></i> Share via Email
+                </button>
+
+                <button type="submit" class="px-4 py-1.5 text-sm rounded bg-blue-600 text-white font-medium hover:bg-blue-700 shadow-sm transition">
+                    Save Requisition
+                </button>
+            </div>
+        </div>
+
+    </form>
+</div>
+            </section>
+        </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script type="module" src="../js/material-requisition-form.js"></script>
+</body>
+</html>

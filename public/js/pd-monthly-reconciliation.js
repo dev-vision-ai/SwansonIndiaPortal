@@ -11,11 +11,15 @@ document.addEventListener('DOMContentLoaded', () => {
     fromDateInput.value = currentDate;
     toDateInput.value = currentDate;
 
+    // Initialize table headers
+    updateTableHeaders();
+
     // Load initial data
     generateReport();
 
     // Event Listeners
     document.getElementById('generateBtn').addEventListener('click', generateReport);
+    document.getElementById('materialCategory').addEventListener('change', updateTableHeaders);
     document.getElementById('printBtn').addEventListener('click', () => window.print());
 });
 
@@ -24,6 +28,7 @@ async function generateReport() {
 
     const fromDateVal = document.getElementById('fromDate').value;
     const toDateVal = document.getElementById('toDate').value;
+    const categoryVal = document.getElementById('materialCategory').value;
     const generateBtn = document.getElementById('generateBtn');
     
     if (!fromDateVal || !toDateVal) return alert('Please select both from and to dates.');
@@ -51,15 +56,16 @@ async function generateReport() {
         const startDate = fromDateVal;
         const endDate = toDateVal;
 
-        // Call the SQL Function
+        // Call the SQL Function with category filter
         const { data, error } = await supabase.rpc('get_material_reconciliation_report', {
             p_start_date: startDate,
-            p_end_date: endDate
+            p_end_date: endDate,
+            p_category: categoryVal
         });
 
         if (error) throw error;
 
-        renderTable(data);
+        renderTable(data, categoryVal);
 
     } catch (err) {
         console.error('Report Error:', err);
@@ -73,7 +79,7 @@ async function generateReport() {
     }
 }
 
-function renderTable(data) {
+function renderTable(data, category) {
     const tbody = document.getElementById('reportBody');
     const tfoot = document.getElementById('reportFooter');
     
@@ -124,16 +130,16 @@ function renderTable(data) {
         `;
     }).join('');
 
-    // Update Footer
+    // Update Footer with correct IDs matching your HTML
     tfoot.innerHTML = `
-        <tr>
+        <tr class="bg-gray-100 font-bold">
             <td class="text-right pr-3 py-2">TOTAL:</td>
-            <td class="font-bold">${formatNum(totals.tot_avail)}</td>
+            <td class="font-bold text-blue-900">${formatNum(totals.tot_avail)}</td>
             <td class="font-bold">${formatNum(totals.issue)}</td>
             <td class="font-bold">${formatNum(totals.mc1)}</td>
             <td class="font-bold">${formatNum(totals.mc2)}</td>
             <td class="font-bold">${formatNum(totals.mc3)}</td>
-            <td class="font-bold bg-yellow-100">${formatNum(totals.balance)}</td>
+            <td class="font-bold bg-yellow-100 text-yellow-900">${formatNum(totals.balance)}</td>
         </tr>
     `;
     
@@ -142,6 +148,34 @@ function renderTable(data) {
 
 function formatNum(val) {
     const num = parseFloat(val);
-    if (!num || num === 0) return '-';
-    return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    // If it's zero, show '0.00' in light gray instead of just a dash
+    if (isNaN(num) || num === 0) return `<span class="text-gray-300">0.00</span>`;
+    return num.toLocaleString('en-IN', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+    });
+}
+
+function updateTableHeaders() {
+    const category = document.getElementById('materialCategory').value;
+    const uom = category === 'packing' ? 'Nos' : 'Kgs';
+    
+    // Update table headers with correct UOM
+    const headers = document.querySelectorAll('#reconciliationTable thead th');
+    if (headers.length >= 7) {
+        headers[1].innerHTML = `Total Available (${uom})<br><span class="text-[9px] font-normal lowercase">(Opening + New Issues)</span>`;
+        headers[2].innerHTML = `Issued (${uom})<br><span class="text-[9px] font-normal lowercase">(Selected Date)</span>`;
+        headers[3].innerHTML = `Used M/C 1 (${uom})`;
+        headers[4].innerHTML = `Used M/C 2 (${uom})`;
+        headers[5].innerHTML = `Used M/C 3 (${uom})`;
+        headers[6].innerHTML = `Balance (Store) (${uom})`;
+    }
+    
+    // Update page title
+    const titleMap = {
+        'raw': 'Raw Materials Reconciliation Report',
+        'packing': 'Packing Materials Reconciliation Report', 
+        'printing': 'Printing Materials Reconciliation Report'
+    };
+    document.querySelector('.header-title').textContent = titleMap[category] || 'Material Reconciliation Report';
 }

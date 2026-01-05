@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Material Requisition Forms</title>
+    <link rel="icon" type="image/png" href="../assets/logo2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../css/common-header.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        /* Base font for the entire body */
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+        }
+
+        .page-fade-in {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium h-screen overflow-hidden">
+    <div class="header-container">
+        <button type="button" class="header-back-button" onclick="window.location.href='employee-dashboard.html';">Back</button>
+        <div class="header-title">Material Requisition Forms</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo">
+        </div>
+    </div>
+
+    <main class="flex-1 w-full overflow-y-auto pt-12">
+
+    <!-- Top actions: Create new requisition -->
+    <div class="w-full flex justify-center mt-6 mb-4">
+      <button id="createRequisitionBtn" type="button" class="bg-[#002E7D] hover:bg-blue-700 text-white font-semibold py-1.5 px-5 rounded-lg shadow text-sm transition-all duration-200">Create New Requisition</button>
+    </div>
+
+    <div id="filterSection" class="w-full flex justify-center mt-4 mb-3">
+      <div id="filterContainer" class="bg-white rounded-lg shadow-md p-2.5">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex-1"></div>
+          <h3 class="text-sm font-semibold text-gray-800 text-center flex-1">Find / Filter Forms</h3>
+          <div class="flex items-center space-x-1 flex-1 justify-end">
+            <span class="text-xs text-gray-600">Filter Status:</span>
+            <span id="filterStatus" class="px-1.5 py-0.5 text-xs font-semibold rounded-full bg-gray-200 text-gray-700">
+              Off
+            </span>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-end justify-center gap-1.5">
+          <!-- Date Range -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-medium text-gray-700 mb-0.5">From:</label>
+            <input type="date" id="filterDateFrom" class="w-20 h-6 px-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+          </div>
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-medium text-gray-700 mb-0.5">To:</label>
+            <input type="date" id="filterDateTo" class="w-20 h-6 px-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+          </div>
+          <!-- Department Filter -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-medium text-gray-700 mb-0.5">Department:</label>
+            <select id="filterDepartment" class="w-20 h-6 px-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+              <option value="">All</option>
+            </select>
+          </div>
+          <!-- Status Filter -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-medium text-gray-700 mb-0.5">Status:</label>
+            <select id="filterStatusSelect" class="w-16 h-6 px-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+              <option value="">All</option>
+              <option value="REQUESTED">Requested</option>
+              <option value="ISSUED">Issued</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </div>
+          <!-- Requested By Filter -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-medium text-gray-700 mb-0.5">Requested By:</label>
+            <select id="filterRequestedBy" class="w-20 h-6 px-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+              <option value="">All</option>
+            </select>
+          </div>
+          <!-- Filter Buttons -->
+          <div class="flex flex-col items-center">
+            <div class="h-2"></div> <!-- Spacer to align with inputs -->
+            <div class="flex">
+              <button id="clearFilters" class="w-12 h-6 bg-gray-500 text-white text-xs font-medium rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Material Requisition Forms Table -->
+    <div class="w-full mt-6">
+      <div class="w-full overflow-x-auto">
+        <table class="w-full bg-white shadow-md rounded table-fixed text-xs" style="table-layout: fixed; width: 100%; margin: 0;">
+          <thead>
+            <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center text-xs">
+              <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 4%;">Sr No</th>
+              <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 10%;">Requisition No</th>
+              <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 8%;">Request Date</th>
+              <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 8%;">Required Before</th>
+              <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 12%;">Requested By</th>
+              <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 10%;">Department</th>
+              <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 8%;">Status</th>
+              <th class="py-2 px-2 whitespace-normal break-words text-center" style="width: 15%;">Action Buttons</th>
+            </tr>
+          </thead>
+          <tbody id="requisitionsTableBody">
+            <tr class="loading-row">
+              <td colspan="8" class="text-center py-8">Loading material requisition forms...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+        </div>
+
+    <style>
+        /* Striped rows and hover for tbody */
+        table tbody tr {
+            background-color: #ffffff;
+            transition: background-color 0.2s ease;
+        }
+        table tbody tr:hover {
+            background-color: #f8fafc;
+            cursor: pointer;
+        }
+        table tbody tr {
+            border-bottom: 1px solid #d1d5db;
+        }
+        /* Enhanced separator lines */
+        table th {
+            border-right: 1px solid #d1d5db;
+            border-bottom: 1px solid #d1d5db;
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.75rem !important;
+            text-align: center !important;
+        }
+        table td {
+            border-right: 1px solid #d1d5db;
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.75rem !important;
+            text-align: center !important;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+            max-width: 100%;
+        }
+
+        /* Action buttons styling to match inline inspection form */
+        .action-icons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Status badges */
+        .status-requested {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+        .status-issued {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .status-rejected {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+    </style>
+    </main>
+
+    <script type="module" src="../js/material-requisition-form-list.js"></script>
+</body>
+</html>

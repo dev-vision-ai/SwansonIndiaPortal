@@ -7,6 +7,7 @@ let tempIdCounter = 0;
 let currentProductTgtWeight = 0;
 let isSaving = false; // Safety lock
 let isProcessing = false; // Global processing lock
+let activeStockMaterialIds = new Set(); // Stores IDs of materials currently in staging
 
 // Debounce utility function
 function debounce(func, wait) {
@@ -108,7 +109,7 @@ function formatDateToDDMMYYYY(dateString) {
   return `${day}/${month}/${year}`;
 }
 
-// Compute rejected values for a row: rejected = produced - accepted
+// NEW LOGIC: Calculate Produced Rolls = Accepted Rolls + Rejected Rolls
 // Also compute std weights: std_weight = rolls × target_weight
 function computeRejectedFromRow(row) {
   if (!row) return;
@@ -117,42 +118,48 @@ function computeRejectedFromRow(row) {
     return el ? String(el.textContent || '').trim() : '';
   };
 
-  const prodNosRaw = getRaw('[data-column="produced_rolls"]');
-  const prodActualRaw = getRaw('[data-column="produced_kgs_actual"]');
-
   const accNosRaw = getRaw('[data-column="accepted_rolls_nos"]');
   const accActualRaw = getRaw('[data-column="accepted_rolls_actual"]');
 
-  // Calculate std weights: rolls × target_weight
-  const prodNos = parseNum(prodNosRaw);
+  const rejNosRaw = getRaw('[data-column="rejected_rolls"]');
+  const rejActualRaw = getRaw('[data-column="rejected_kgs_actual"]');
+
+  // Get the accepted and rejected numbers
+  const accNos = parseNum(accNosRaw);
+  const rejNos = parseNum(rejNosRaw);
+
+  // AUTO-CALCULATE: produced = accepted + rejected
+  const prodNos = accNos + rejNos;
   const prodStd = prodNos * currentProductTgtWeight;
 
-  const accNos = parseNum(accNosRaw);
+  // Accepted std weight
   const accStd = accNos * currentProductTgtWeight;
 
-  // If all related inputs are empty, do not display 0 — leave rejected blank
-  if (!prodNosRaw && !prodActualRaw && !accNosRaw && !accActualRaw) {
+  // Rejected std weight
+  const rejStd = rejNos * currentProductTgtWeight;
+
+  // If all related inputs are empty, do not display anything
+  if (!accNosRaw && !accActualRaw && !rejNosRaw && !rejActualRaw) {
     const prodStdCell = row.querySelector('[data-column="produced_kgs_std"]');
+    const prodNosCell = row.querySelector('[data-column="produced_rolls"]');
+    const prodActualCell = row.querySelector('[data-column="produced_kgs_actual"]');
     const accStdCell = row.querySelector('[data-column="accepted_rolls_std"]');
-    const rejNosCell = row.querySelector('[data-column="rejected_rolls"]');
-    const rejActualCell = row.querySelector('[data-column="rejected_kgs_actual"]');
     const rejStdCell = row.querySelector('[data-column="rejected_kgs_std"]');
+    if (prodNosCell) prodNosCell.textContent = '';
+    if (prodActualCell) prodActualCell.textContent = '';
     if (prodStdCell) prodStdCell.textContent = '';
     if (accStdCell) accStdCell.textContent = '';
-    if (rejNosCell) rejNosCell.textContent = '';
-    if (rejActualCell) rejActualCell.textContent = '';
     if (rejStdCell) rejStdCell.textContent = '';
     return;
   }
 
-  const prodActual = parseNum(prodActualRaw);
   const accActual = parseNum(accActualRaw);
+  const rejActual = parseNum(rejActualRaw);
 
-  const rejNos = prodNos - accNos;
-  const rejActual = prodActual - accActual;
-  const rejStd = prodStd - accStd;
+  // AUTO-CALCULATE: produced_actual = accepted_actual + rejected_actual
+  const prodActual = accActual + rejActual;
 
-  // Update std weight cells
+  // Update all std weight cells
   const prodStdCell = row.querySelector('[data-column="produced_kgs_std"]');
   const accStdCell = row.querySelector('[data-column="accepted_rolls_std"]');
   const rejStdCell = row.querySelector('[data-column="rejected_kgs_std"]');
@@ -161,12 +168,12 @@ function computeRejectedFromRow(row) {
   if (accStdCell) accStdCell.textContent = isNaN(accStd) || accStd === 0 ? '' : accStd.toFixed(2);
   if (rejStdCell) rejStdCell.textContent = isNaN(rejStd) || rejStd === 0 ? '' : rejStd.toFixed(2);
 
-  // Update rejected nos and actual (keeping existing logic)
-  const rejNosCell = row.querySelector('[data-column="rejected_rolls"]');
-  const rejActualCell = row.querySelector('[data-column="rejected_kgs_actual"]');
+  // AUTO-UPDATE: produced_rolls and produced_kgs_actual (read-only display)
+  const prodNosCell = row.querySelector('[data-column="produced_rolls"]');
+  const prodActualCell = row.querySelector('[data-column="produced_kgs_actual"]');
 
-  if (rejNosCell) rejNosCell.textContent = isNaN(rejNos) || rejNos === 0 ? '' : String(Math.round(rejNos));
-  if (rejActualCell) rejActualCell.textContent = isNaN(rejActual) || rejActual === 0 ? '' : rejActual.toFixed(2);
+  if (prodNosCell) prodNosCell.textContent = isNaN(prodNos) || prodNos === 0 ? '' : String(Math.round(prodNos));
+  if (prodActualCell) prodActualCell.textContent = isNaN(prodActual) || prodActual === 0 ? '' : prodActual.toFixed(2);
 }
 
 function renderMaterialDataTable() {
@@ -175,8 +182,30 @@ function renderMaterialDataTable() {
   if (!mainBody || !totalsBody) return;
 
   mainBody.innerHTML = materialData.map((record, index) => {
-    const qtyAvail = parseFloat(record.qty_available) || 0; // This is Opening Balance
+    
+    // --- FIX START: SHOW TOTAL WAREHOUSE STOCK INSTEAD OF BATCH STOCK ---
+    
+    let qtyAvail = parseFloat(record.qty_available) || 0; // Default to DB value
     const qtyUsed = parseFloat(record.qty_used) || 0;
+
+    // If we have live stock data, calculate the 'Whole Available' view
+    if (record.material_id && globalStockMap[record.material_id] !== undefined) {
+         const currentTotalStockInWarehouse = globalStockMap[record.material_id];
+         
+         // Logic: The 'globalStockMap' is the Live Balance (After Consumption).
+         // To show the User what was available *before* they typed this number,
+         // we add the Used Qty back to the Current Total.
+         
+         if (record.id && !String(record.id).startsWith('temp')) {
+             // Saved Row: Add back the used amount to show the "Opening Total"
+             qtyAvail = currentTotalStockInWarehouse + qtyUsed;
+         } else {
+             // Temp Row: Usage not deducted yet, so Current Total is the Opening Total
+             qtyAvail = currentTotalStockInWarehouse; 
+         }
+    }
+    // --- FIX END ---
+
     const balance = qtyAvail - qtyUsed; // This is Instock
 
     // --- 1. COLOR CODING LOGIC (Traffic Light) ---
@@ -199,6 +228,13 @@ function renderMaterialDataTable() {
     // --- 2. BADGE LOGIC (For New Column) ---
     let alertBadge = '';
 
+    // --- 3. LOOKUP UOM (Needed for alerts too) ---
+    // We look for the material in the global catalog to get its UOM (Kgs/Nos)
+    const catalogItem = materialsCatalog.find(c => c.id === record.material_id);
+    // Default to 'KG' if not found. If 'Kgs' or 'KG', display 'KG'. If 'Nos', display 'NOS'.
+    const uomForAlerts = catalogItem && catalogItem.uom ? 
+        (catalogItem.uom.toLowerCase() === 'nos' ? 'NOS' : 'KG') : 'KG';
+
     // Show Badge if Empty (Red) OR Low (Orange < 50%)
     if ((balance <= 0.01 || percentLeft < 50) && record.id && !String(record.id).startsWith('temp')) {
         const factoryStock = globalStockMap[record.material_id] || 0;
@@ -206,20 +242,59 @@ function renderMaterialDataTable() {
         if (factoryStock > 0) {
           alertBadge = `
             <div class="inline-flex items-center h-6 px-2 py-0.5 leading-none text-xs font-semibold text-green-700">
-              <i class="fas fa-cubes mr-1 text-xs"></i> In-stock: ${factoryStock.toLocaleString()} KG
+              <i class="fas fa-cubes mr-1 text-xs"></i> In-stock: ${factoryStock.toLocaleString()} ${uomForAlerts}
             </div>`;
         } else {
            alertBadge = `
             <div class="inline-flex items-center h-6 px-2 py-0.5 leading-none text-xs font-semibold text-red-700">
-              <i class="fas fa-exclamation-triangle mr-1 text-xs"></i> In-stock: 0 KG
+              <i class="fas fa-exclamation-triangle mr-1 text-xs"></i> In-stock: 0 ${uomForAlerts}
             </div>`;
         }
     }
+
+    // --- 1. BUILD DROPDOWN OPTIONS ---
+    let lotOptionsHtml = '<option value="" data-balance="0">-- Select Lot --</option>';
+    let savedLotFoundInList = false;
+
+    // A. Add "Live" Available Lots from Staging
+    if (record.available_lots && record.available_lots.length > 0) {
+        record.available_lots.forEach(lot => {
+            // Check if this is the selected one
+            const isSelected = (record.track_id === lot.id);
+            if (isSelected) savedLotFoundInList = true;
+
+            lotOptionsHtml += `<option value="${lot.id}" data-balance="${lot.balance_qty}" ${isSelected ? 'selected' : ''}>
+                                    ${lot.lot_no} (${lot.balance_qty} kg)
+                               </option>`;
+        });
+    }
+
+    // B. CRITICAL FIX: If the saved lot is NOT in the "Available" list (e.g., it's fully consumed/0kg),
+    // we MUST add it manually so the user sees what they saved.
+    if (record.track_id && !savedLotFoundInList && record.lot_no) {
+        // We use the saved 'qty_available' as the historical balance snapshot
+        lotOptionsHtml += `<option value="${record.track_id}" data-balance="${record.qty_available}" selected>
+                                ${record.lot_no} (USED/EMPTY)
+                           </option>`;
+    }
+
+    // --- 3. LOOKUP UOM ---
+    // We look for the material in the global catalog to get its UOM (Kgs/Nos)
+    // Default to '-' if not found. If 'Kgs' or 'KG', display 'KGS'. If 'Nos', display 'NOS'.
+    const uomDisplay = catalogItem ? (catalogItem.uom || '-').toUpperCase() : '-';
 
     return `
       <tr data-index="${index}" data-id="${record.id || 'temp-' + index}">
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs font-semibold">${index + 1}</td>
         <td class="border border-gray-300 px-2 py-1.5 text-xs" contenteditable="true" data-column="material_name">${record.material_name || ''}</td>
+
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-white p-0">
+            <select class="w-full h-full text-xs bg-transparent outline-none text-blue-700 font-mono" 
+                    data-column="track_id_select"
+                    onchange="handleInternalLotSelection(this, ${index})">
+                ${lotOptionsHtml}
+            </select>
+        </td>
 
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-gray-50" contenteditable="false" data-column="qty_available">${qtyAvail.toFixed(2)}</td>
 
@@ -231,6 +306,10 @@ function renderMaterialDataTable() {
 
         <td class="border border-gray-300 px-2 py-1 text-center align-middle w-20 overflow-hidden whitespace-nowrap truncate">
           ${alertBadge}
+        </td>
+
+        <td class="border border-gray-300 px-2 py-1 text-center text-xs font-bold text-gray-600 bg-gray-50">
+           ${uomDisplay}
         </td>
       </tr>
     `;
@@ -249,14 +328,14 @@ function renderMaterialDataTable() {
 
     totalsHtml += `
       <tr data-index="${index}" data-id="${record.id || 'temp-' + index}">
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="produced_rolls">${record.produced_rolls || ''}</td>
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="produced_kgs_actual">${record.produced_kgs_actual || ''}</td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="produced_rolls">${record.produced_rolls || ''}</td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="produced_kgs_actual">${record.produced_kgs_actual || ''}</td>
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="produced_kgs_std">${record.produced_kgs_std || ''}</td>
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="accepted_rolls_nos">${record.accepted_rolls_nos || ''}</td>
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="accepted_rolls_actual">${record.accepted_rolls_actual || ''}</td>
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="accepted_rolls_std">${record.accepted_rolls_std || ''}</td>
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="rejected_rolls">${record.rejected_rolls || ''}</td>
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="rejected_kgs_actual">${record.rejected_kgs_actual || ''}</td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="rejected_rolls">${record.rejected_rolls || ''}</td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="rejected_kgs_actual">${record.rejected_kgs_actual || ''}</td>
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="rejected_kgs_std">${record.rejected_kgs_std || ''}</td>
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="total_scrap">${record.total_scrap || ''}</td>
       </tr>
@@ -267,14 +346,14 @@ function renderMaterialDataTable() {
     // Make placeholder editable and map to first data row (index 0) so edits are captured
     totalsBody.innerHTML = `
       <tr class="placeholder-row" data-index="0" data-id="placeholder-0">
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="produced_rolls"> </td>
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="produced_kgs_actual"> </td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="produced_rolls"> </td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="produced_kgs_actual"> </td>
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="produced_kgs_std"> </td>
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="accepted_rolls_nos"> </td>
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="accepted_rolls_actual"> </td>
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="accepted_rolls_std"> </td>
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="rejected_rolls"> </td>
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="rejected_kgs_actual"> </td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="rejected_rolls"> </td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="rejected_kgs_actual"> </td>
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="rejected_kgs_std"> </td>
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="total_scrap"> </td>
       </tr>
@@ -285,6 +364,9 @@ function renderMaterialDataTable() {
 
   // After render, compute rejected for each totals row so read-only cells show correct values
   Array.from(totalsBody.querySelectorAll('tr')).forEach(tr => computeRejectedFromRow(tr));
+
+  // AT THE VERY BOTTOM OF THIS FUNCTION, BEFORE CLOSING BRACE:
+  setupAllAutocomplete();
 }
 
 function setupTableListeners() {
@@ -348,8 +430,8 @@ function setupTableListeners() {
       }
     }
 
-    // If produced/accepted changed in totals table, recompute rejected and std weights for that totals row
-    if (['produced_rolls','produced_kgs_actual','accepted_rolls_nos','accepted_rolls_actual'].includes(columnType)) {
+    // If accepted or rejected changed in totals table, recompute produced and std weights for that totals row
+    if (['accepted_rolls_nos','accepted_rolls_actual','rejected_rolls','rejected_kgs_actual'].includes(columnType)) {
       const totalsRow = totalsBody.querySelector(`tr[data-index="${rowIndex}"]`);
       if (totalsRow) computeRejectedFromRow(totalsRow);
     }
@@ -357,6 +439,22 @@ function setupTableListeners() {
 
   mainBody.addEventListener('blur', onBlur, true);
   totalsBody.addEventListener('blur', onBlur, true);
+
+  // --- NEW: Handle Dropdown Changes Securely ---
+  mainBody.addEventListener('change', (e) => {
+    // Only run if the changed element is our Dropdown
+    if (e.target.dataset.column === 'track_id_select') {
+        const selectEl = e.target;
+        const row = selectEl.closest('tr');
+        if (!row) return;
+
+        // Get the row index safely from the HTML
+        const rowIndex = parseInt(row.dataset.index, 10);
+        
+        // Call the logic directly (No need for window.handleLotSelection anymore)
+        handleInternalLotSelection(selectEl, rowIndex);
+    }
+  });
 
   // Add Enter key navigation within each body: move to next row same column
   const onKeyDown = (e) => {
@@ -393,66 +491,109 @@ function setupTableListeners() {
 // Lookup material and populate TOTAL available quantity (Sum of all batches)
 async function lookupMaterialAndPopulateAvailable(materialName, row, rowIndex) {
   try {
-    // 1. Get Material ID
-    const { data: catalogData, error: catalogError } = await supabase
+    // 1. Get Material ID - REMOVED .single() to avoid 406 error
+    const { data: catalogArray, error: catalogError } = await supabase
       .from('pd_material_catalog')
       .select('id, material_name, material_category, uom')
       .eq('material_name', materialName)
       .eq('is_active', true)
-      .single();
+      .limit(1); // Use limit(1) instead of .single()
+
+    const catalogData = catalogArray && catalogArray.length > 0 ? catalogArray[0] : null;
 
     if (catalogError || !catalogData) {
-      console.warn('Material not found:', materialName);
-      updateRowCells(row, rowIndex, 0, null);
+      console.warn('Material not found in catalog:', materialName);
+      updateRowCells(row, rowIndex, 0, null, []);
       return;
     }
 
-    // 2. Get ALL Available Batches (Remove .limit(1))
+    // 2. Fetch ALL Available Batches for this specific ID
     const { data: stagingData, error: stagingError } = await supabase
       .from('pd_material_staging')
-      .select('id, balance_qty')
+      .select('id, lot_no, balance_qty')
       .eq('material_id', catalogData.id)
       .eq('status', 'Available')
-      .gt('balance_qty', 0);
+      .gt('balance_qty', 0)
+      .order('created_at', { ascending: true }); // FIFO
 
     if (stagingError) {
-      console.error('Staging error:', stagingError);
-      updateRowCells(row, rowIndex, 0, catalogData);
+      updateRowCells(row, rowIndex, 0, catalogData, []);
       return;
     }
 
-    // 3. SUM IT UP (The Magic Step)
-    // 100 (Old) + 350 (New) = 450
+    // 3. Calculate Total & Prepare List
     const totalAvailable = stagingData.reduce((sum, batch) => sum + (batch.balance_qty || 0), 0);
 
-    // 4. Update UI with the TOTAL
-    updateRowCells(row, rowIndex, totalAvailable, catalogData);
+    // 4. Update UI
+    updateRowCells(row, rowIndex, totalAvailable, catalogData, stagingData);
 
   } catch (err) {
     console.error('Error looking up material:', err);
-    updateRowCells(row, rowIndex, 0, null);
+    updateRowCells(row, rowIndex, 0, null, []);
   }
 }
 
-// Helper to update the screen
-function updateRowCells(row, rowIndex, qty, catalogData) {
+// Updated Helper to save the list to memory
+function updateRowCells(row, rowIndex, qty, catalogData, availableLots = []) {
   const qtyAvailCell = row.querySelector('[data-column="qty_available"]');
   const balanceCell = row.querySelector('[data-column="balance"]');
-
-  // Update Screen
-  if (qtyAvailCell) qtyAvailCell.textContent = qty.toFixed(2); // Shows 450.00
+  
+  if (qtyAvailCell) qtyAvailCell.textContent = qty.toFixed(2);
   if (balanceCell) balanceCell.textContent = qty.toFixed(2);
 
-  // Update Memory
   if (rowIndex !== -1 && materialData[rowIndex]) {
     materialData[rowIndex].qty_available = qty;
+    materialData[rowIndex].available_lots = availableLots; // <--- SAVE THE LIST HERE
     if (catalogData) {
       materialData[rowIndex].material_id = catalogData.id;
       materialData[rowIndex].material_type = catalogData.material_category;
-      // We don't save track_id here anymore because the "Smart Save" calculates it later
     }
+    // Refresh the table to show the new Dropdown options
+    renderMaterialDataTable();
   }
 }
+
+// Handle lot selection from dropdown
+// Make globally accessible for inline onchange handler
+window.handleInternalLotSelection = function(selectEl, rowIndex) {
+    if (!selectEl || !materialData[rowIndex]) return;
+
+    const selectedOption = selectEl.options[selectEl.selectedIndex];
+    const trackId = selectEl.value;
+    
+    // Safety check: ensure text exists before splitting
+    const lotText = selectedOption.text ? selectedOption.text.split(' (')[0] : ''; 
+    const specificBalance = parseFloat(selectedOption.getAttribute('data-balance')) || 0;
+
+    console.log(`Row ${rowIndex} Selected:`, { trackId, lotText, balance: specificBalance });
+    console.log(`BEFORE - materialData[${rowIndex}].lot_no:`, materialData[rowIndex].lot_no);
+
+    // 1. Update Memory (Critical for persistence)
+    materialData[rowIndex].track_id = trackId;
+    materialData[rowIndex].lot_no = lotText;
+    
+    console.log(`AFTER - materialData[${rowIndex}].lot_no:`, materialData[rowIndex].lot_no);
+    
+    // 2. Update UI - Balance Calculation
+    const row = selectEl.closest('tr');
+    const qtyAvailCell = row.querySelector('[data-column="qty_available"]');
+    const balanceCell = row.querySelector('[data-column="balance"]');
+    const usedInput = row.querySelector('[data-column="qty_used"]');
+    
+    if (qtyAvailCell && balanceCell && usedInput) {
+        // We use the TOTAL available (displayed in cell) for the calculation 
+        // to prevent the "jumping numbers" confusion
+        const totalAvailable = parseFloat(qtyAvailCell.textContent) || 0;
+        const currentUsed = parseFloat(usedInput.textContent || usedInput.value) || 0;
+        
+        // Update Balance
+        balanceCell.textContent = (totalAvailable - currentUsed).toFixed(2);
+        
+        // Visual Feedback
+        balanceCell.classList.add('bg-blue-50');
+        setTimeout(() => balanceCell.classList.remove('bg-blue-50'), 300);
+    }
+};
 
 async function saveRecordToDatabase(record) {
   try {
@@ -522,6 +663,7 @@ function addNewRows(count = 1) {
 }
 
 // Insert blank rows directly into database
+// Insert blank rows directly into database
 async function addNewRowsToDatabase(count = 1) {
   if (isProcessing) {
     alert('Please wait for current operation to complete');
@@ -560,7 +702,8 @@ async function addNewRowsToDatabase(count = 1) {
     const tempRowId = crypto.randomUUID(); // Frontend-only identifier
     
     const blankRow = {
-      temp_row_id: tempRowId, // Frontend-only, never sent to DB
+      id: `temp-${tempRowId}`, // <--- THIS WAS MISSING! FIX ADDED HERE.
+      temp_row_id: tempRowId,
       header_id: currentHeaderId,
       // material_id remains null until material is selected from catalog
       material_name: '',
@@ -645,29 +788,35 @@ async function saveSingleRow(rowIndex) {
       return;
     }
 
-    // B. FIFO LOOKUP: Find Oldest Available Stock in Staging
-    const { data: stagingData, error: stagingError } = await supabase
-      .from('pd_material_staging')
-      .select('id, balance_qty, consumed_qty, status')
-      .eq('material_id', catalogData.id)
-      .eq('status', 'Available')
-      .gt('balance_qty', 0)
-      .order('created_at', { ascending: true })
-      .limit(1);
-
-    if (stagingError || !stagingData || stagingData.length === 0) {
-      alert(`Row ${rowIndex + 1}: No available stock found for "${materialName}"`);
-      return;
+    // 2. VALIDATE SELECTION
+    // Instead of searching DB, we trust the Dropdown Selection (track_id)
+    console.log(`[SAVE DEBUG] Row ${rowIndex}: track_id=${row.track_id}, lot_no=${row.lot_no}`);
+    
+    if (!row.track_id || !row.lot_no) {
+        alert(`Row ${rowIndex + 1}: Please select a Lot Number from the dropdown.`);
+        return;
     }
 
-    const stagingUUID = stagingData[0].id;
-    const screenBalance = stagingData[0].balance_qty;
-    const currentConsumed = stagingData[0].consumed_qty || 0;
+    // 3. FETCH THAT SPECIFIC BATCH
+    const { data: stagingData, error: stagingError } = await supabase
+        .from('pd_material_staging')
+        .select('id, balance_qty, consumed_qty, status, issued_qty') // <--- ADD issued_qty
+        .eq('id', row.track_id)
+        .single();
 
-    // C. Validate Quantity
+    if (stagingError || !stagingData) {
+        alert(`Row ${rowIndex + 1}: Selected Lot not found in system (it might be finished).`);
+        return;
+    }
+
+    // 4. CHECK BALANCE & SAVE
+    const screenBalance = stagingData.balance_qty;
+    const currentConsumed = stagingData.consumed_qty || 0;
+
     if (qtyUsed > screenBalance) {
-      alert(`Row ${rowIndex + 1}: Qty Used (${qtyUsed}) exceeds Batch Balance (${screenBalance})`);
-      return;
+        // BLOCK THEM if they try to use more than the bag has
+        alert(`Row ${rowIndex + 1}: Error! You entered ${qtyUsed} KG, but this specific bag (Lot ${row.lot_no}) only has ${screenBalance} KG.`);
+        return;
     }
 
     // D. Check if this is an existing row or new row
@@ -680,8 +829,9 @@ async function saveSingleRow(rowIndex) {
         material_id: catalogData.id,
         material_name: materialName,
         material_type: catalogData.material_category,
-        track_id: stagingUUID,
+        track_id: stagingData.id,
         traceability_code: row.traceability_code,
+        lot_no: row.lot_no, // <--- SAVE THE LOT NO
         qty_available: screenBalance,
         qty_used: qtyUsed,
         qty_balance: screenBalance - qtyUsed,
@@ -695,6 +845,7 @@ async function saveSingleRow(rowIndex) {
         rejected_kgs_std: parseNum(row.rejected_kgs_std),
         rejected_kgs_actual: parseNum(row.rejected_kgs_actual),
         total_scrap: parseNum(row.total_scrap),
+        row_index: rowIndex, // <--- Add this line
         updated_at: getISTTimestamp()
       };
 
@@ -711,15 +862,26 @@ async function saveSingleRow(rowIndex) {
         return;
       }
 
+      // CALCULATE SMART STATUS
+      const newBalance = screenBalance - qtyUsed;
+      const initialIssued = stagingData.issued_qty || 1; // prevent divide by zero
+      let newStatus = 'Available';
+
+      if (newBalance <= 0) {
+          newStatus = 'Out of Stock';
+      } else if (newBalance <= (initialIssued * 0.20)) {
+          newStatus = 'Low Stock'; // < 20%
+      }
+
       // Update staging balance
       const { error: stagingUpdateError } = await supabase
         .from('pd_material_staging')
         .update({
-          balance_qty: screenBalance - qtyUsed,
+          balance_qty: newBalance,
           consumed_qty: currentConsumed + qtyUsed,
-          status: (screenBalance - qtyUsed) <= 0 ? 'Consumed' : 'Available'
+          status: newStatus // <--- Saving Correct Status
         })
-        .eq('id', stagingUUID);
+        .eq('id', stagingData.id);
 
       if (stagingUpdateError) {
         console.error('Failed to update staging balance:', stagingUpdateError);
@@ -731,10 +893,11 @@ async function saveSingleRow(rowIndex) {
       // INSERT NEW ROW using RPC
       const rpcPayload = [{
         material_id: catalogData.id,
-        track_id: stagingUUID,
+        track_id: stagingData.id,
         material_name: materialName,
         material_type: catalogData.material_category,
         traceability_code: row.traceability_code,
+        lot_no: row.lot_no,
         qty_available: 0, // Server will calculate this
         qty_used: qtyUsed,
         qty_balance: 0,   // Server will calculate this
@@ -748,8 +911,11 @@ async function saveSingleRow(rowIndex) {
         rejected_rolls: parseNum(row.rejected_rolls),
         rejected_kgs_actual: parseNum(row.rejected_kgs_actual),
         rejected_kgs_std: parseNum(row.rejected_kgs_std),
-        total_scrap: parseNum(row.total_scrap)
+        total_scrap: parseNum(row.total_scrap),
+        row_index: rowIndex // <--- Add this line
       }];
+
+      console.log('[SAVE DEBUG] RPC Payload lot_no:', rpcPayload[0].lot_no);
 
       const { error } = await supabase.rpc('submit_consumption_batch', {
         p_header_id: currentHeaderId,
@@ -772,15 +938,12 @@ async function saveSingleRow(rowIndex) {
 }
 
 async function saveAllMaterialData() {
-  // 1. BLOCK DUPLICATE CLICKS AND CONCURRENT OPERATIONS
   if (isSaving || isProcessing) return;
-
   if (!currentHeaderId) return alert('No header selected');
 
   const saveBtn = document.getElementById('saveAllMaterialDataBtn');
 
   try {
-    // 2. LOCK THE BUTTON AND SET PROCESSING FLAG
     isSaving = true;
     isProcessing = true;
     if (saveBtn) {
@@ -789,85 +952,100 @@ async function saveAllMaterialData() {
       saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
     }
 
-    // 3. Get only the NEW rows that have data
-    const newRows = materialData.filter(r =>
-      (r.material_name && r.material_name.trim()) &&
-      Number(r.qty_used) > 0 &&
-      (!r.id || String(r.id).startsWith('temp'))
+    // --- SEPARATE ROWS INTO TWO LISTS ---
+    const rowsToInsert = materialData.filter(r => 
+      r.material_name && String(r.id).startsWith('temp') && Number(r.qty_used) > 0
     );
 
-    if (newRows.length === 0) {
-      return alert('No NEW data to save. Existing rows are already saved.');
+    const rowsToUpdate = materialData.filter(r => 
+      r.id && !String(r.id).startsWith('temp')
+    );
+
+    if (rowsToInsert.length === 0 && rowsToUpdate.length === 0) {
+      return alert('No data to save.');
     }
 
-    // --- SAFETY CHECK START: Group Totals First ---
-    const materialTotals = {};
-    for (const row of newRows) {
-      const name = row.material_name.trim();
-      const qty = parseFloat(row.qty_used) || 0;
-      if (!materialTotals[name]) materialTotals[name] = 0;
-      materialTotals[name] += qty;
+    // --- PROCESS 1: INSERT NEW ROWS ---
+    if (rowsToInsert.length > 0) {
+      const rpcPayload = [];
+      for (const row of rowsToInsert) {
+        if (!row.track_id || !row.lot_no) throw new Error(`Row "${row.material_name}" missing Lot No.`);
+        
+        const { data: catArray } = await supabase.from('pd_material_catalog')
+          .select('id, material_category').eq('material_name', row.material_name).limit(1);
+        
+        const cat = catArray && catArray.length > 0 ? catArray[0] : null;
+        if (!cat) throw new Error(`Material "${row.material_name}" not found in catalog.`);
+
+        // FIND THE VISUAL INDEX IN THE MAIN TABLE
+        const visualIndex = materialData.indexOf(row);
+
+        rpcPayload.push({
+          material_id: cat.id,
+          material_name: row.material_name,
+          material_type: cat.material_category,
+          track_id: row.track_id,
+          lot_no: row.lot_no,
+          traceability_code: row.traceability_code,
+          qty_used: parseFloat(row.qty_used),
+          produced_rolls: parseNum(row.produced_rolls),
+          produced_kgs_std: parseNum(row.produced_kgs_std),
+          produced_kgs_actual: parseNum(row.produced_kgs_actual),
+          accepted_rolls_nos: parseNum(row.accepted_rolls_nos),
+          accepted_rolls_actual: parseNum(row.accepted_rolls_actual),
+          accepted_rolls_std: parseNum(row.accepted_rolls_std),
+          rejected_rolls: parseNum(row.rejected_rolls),
+          rejected_kgs_actual: parseNum(row.rejected_kgs_actual),
+          rejected_kgs_std: parseNum(row.rejected_kgs_std),
+          total_scrap: parseNum(row.total_scrap),
+          row_index: visualIndex // <--- SEND VISUAL ORDER TO DB
+        });
+      }
+
+      const { error } = await supabase.rpc('submit_consumption_batch', {
+        p_header_id: currentHeaderId,
+        p_rows: rpcPayload
+      });
+      if (error) throw error;
     }
 
-    for (const [materialName, totalRequested] of Object.entries(materialTotals)) {
-      const { data: cat } = await supabase.from('pd_material_catalog')
-        .select('id').eq('material_name', materialName).single();
+    // --- PROCESS 2: UPDATE EXISTING ROWS ---
+    if (rowsToUpdate.length > 0) {
+      for (const row of rowsToUpdate) {
+        // FIND THE VISUAL INDEX IN THE MAIN TABLE
+        const visualIndex = materialData.indexOf(row);
 
-      if (!cat) throw new Error(`Material "${materialName}" not found.`);
+        const updatePayload = {
+          produced_rolls: parseNum(row.produced_rolls),
+          produced_kgs_std: parseNum(row.produced_kgs_std),
+          produced_kgs_actual: parseNum(row.produced_kgs_actual),
+          accepted_rolls_nos: parseNum(row.accepted_rolls_nos),
+          accepted_rolls_actual: parseNum(row.accepted_rolls_actual),
+          accepted_rolls_std: parseNum(row.accepted_rolls_std),
+          rejected_rolls: parseNum(row.rejected_rolls),
+          rejected_kgs_actual: parseNum(row.rejected_kgs_actual),
+          rejected_kgs_std: parseNum(row.rejected_kgs_std),
+          total_scrap: parseNum(row.total_scrap),
+          row_index: visualIndex, // <--- UPDATE INDEX FOR EXISTING ROWS TOO
+          updated_at: getISTTimestamp()
+        };
 
-      const { data: allBatches } = await supabase.from('pd_material_staging')
-        .select('balance_qty')
-        .eq('material_id', cat.id)
-        .eq('status', 'Available');
-
-      const liveStock = allBatches?.reduce((sum, b) => sum + (b.balance_qty || 0), 0) || 0;
-
-      if (totalRequested > liveStock) {
-        throw new Error(`🚫 STOP! OVER-CONSUMPTION ERROR\n\nMaterial: ${materialName}\nRequesting: ${totalRequested} KG\nAvailable: ${liveStock} KG`);
+        const { error } = await supabase
+          .from('pd_material_consumption_data')
+          .update(updatePayload)
+          .eq('id', row.id);
+          
+        if (error) console.error(`Failed to update row ${row.id}`, error);
       }
     }
-    // --- SAFETY CHECK END ---
 
-    const rpcPayload = [];
-    for (let i = 0; i < newRows.length; i++) {
-      const row = newRows[i];
-      const materialName = row.material_name.trim();
-      const { data: cat } = await supabase.from('pd_material_catalog')
-        .select('id, material_category').eq('material_name', materialName).single();
-
-      rpcPayload.push({
-        material_id: cat.id,
-        material_name: materialName,
-        material_type: cat.material_category,
-        traceability_code: row.traceability_code,
-        qty_used: parseFloat(row.qty_used),
-        produced_rolls: parseNum(row.produced_rolls),
-        produced_kgs_std: parseNum(row.produced_kgs_std),
-        produced_kgs_actual: parseNum(row.produced_kgs_actual),
-        accepted_rolls_nos: parseNum(row.accepted_rolls_nos),
-        accepted_rolls_actual: parseNum(row.accepted_rolls_actual),
-        accepted_rolls_std: parseNum(row.accepted_rolls_std),
-        rejected_rolls: parseNum(row.rejected_rolls),
-        rejected_kgs_actual: parseNum(row.rejected_kgs_actual),
-        rejected_kgs_std: parseNum(row.rejected_kgs_std),
-        total_scrap: parseNum(row.total_scrap)
-      });
-    }
-
-    const { error } = await supabase.rpc('submit_consumption_smart_fifo', {
-      p_header_id: currentHeaderId,
-      p_rows: rpcPayload
-    });
-
-    if (error) throw error;
-
-    alert('✅ Saved successfully! Stock updated correctly.');
+    alert('✅ All data saved successfully!');
     materialData = [];
     await loadMaterialData();
 
   } catch (err) {
     console.error(err);
-    alert(err.message);
+    alert('Error: ' + err.message);
   } finally {
     isSaving = false;
     isProcessing = false;
@@ -893,8 +1071,8 @@ async function deleteTopRow() {
   // Get the last row (top row in display order since we reverse the array)
   const lastRow = materialData[materialData.length - 1];
 
-  // If the row has an ID, it exists in the database - delete it from database too
-  if (lastRow.id) {
+  // If the row has a real ID (not temporary), it exists in the database - delete it from database too
+  if (lastRow.id && !lastRow.id.startsWith('temp-')) {
     try {
       const { error } = await supabase
         .from('pd_material_consumption_data')
@@ -1017,73 +1195,88 @@ async function loadMaterialsCatalog() {
   }
 }
 
+// Load IDs of all materials that actually have stock in Staging
+async function loadActiveStockMaterials() {
+    try {
+        const { data, error } = await supabase
+            .from('pd_material_staging')
+            .select('material_id')
+            .eq('status', 'Available')
+            .gt('balance_qty', 0);
+
+        if (data) {
+            // Create a fast lookup Set
+            activeStockMaterialIds = new Set(data.map(item => item.material_id));
+            console.log('Active Stock Materials loaded:', activeStockMaterialIds.size);
+        }
+    } catch (err) {
+        console.error('Error loading active stock:', err);
+    }
+}
+
 async function loadMaterialData() {
-  if (!currentHeaderId) {
-    console.warn('No currentHeaderId set; skipping material data load');
-    return;
-  }
+    if(isProcessing) return;
+    isProcessing = true;
 
-  // Prevent concurrent operations
-  if (isProcessing) {
-    console.warn('Load already in progress, skipping');
-    return;
-  }
+    try {
+        // 1. Fetch Consumption Data (The Saved Rows)
+        const { data, error } = await supabase
+            .from('pd_material_consumption_data')
+            .select('*')
+            .eq('header_id', currentHeaderId)
+            .order('row_index', {ascending: true}); // <--- CHANGED FROM 'created_at' TO 'row_index'
 
-  isProcessing = true;
+        if (error) throw error;
+        materialData = data || [];
+        
+        // 2. Extract Unique Material IDs to fetch their dropdown options
+        const materialIds = [...new Set(materialData.map(r => r.material_id).filter(Boolean))];
 
-  try {
-    // 1. Fetch consumption data
-    const { data: consumptionData, error: consumptionError } = await supabase
-      .from('pd_material_consumption_data')
-      .select('*')
-      .eq('header_id', currentHeaderId)
-      .order('created_at', { ascending: false });
+        if(materialIds.length > 0) {
+            // 3. Fetch Staging Data (The Dropdown Options)
+            const { data: stockData, error: stockError } = await supabase
+                .from('pd_material_staging')
+                .select('id, material_id, lot_no, balance_qty, status') // Fetch details needed for dropdown
+                .in('material_id', materialIds)
+                .gt('balance_qty', 0) // Only get batches with stock
+                .eq('status', 'Available')
+                .order('created_at', { ascending: true }); // FIFO order
 
-    if (consumptionError) {
-      console.error('Error loading consumption data:', consumptionError);
-      alert('Failed to load material consumption data: ' + (consumptionError.message || JSON.stringify(consumptionError)));
-      return;
+            if (!stockError && stockData) {
+                // 4. Map Stock to Global Map AND attach to rows
+                globalStockMap = {};
+                
+                // Group batches by Material ID
+                const batchesByMaterial = {};
+                stockData.forEach(batch => {
+                    // Update Global Total Stock Map
+                    if (!globalStockMap[batch.material_id]) globalStockMap[batch.material_id] = 0;
+                    globalStockMap[batch.material_id] += batch.balance_qty;
+
+                    // Group for Dropdowns
+                    if (!batchesByMaterial[batch.material_id]) batchesByMaterial[batch.material_id] = [];
+                    batchesByMaterial[batch.material_id].push(batch);
+                });
+
+                // 5. Attach "available_lots" to each row in memory
+                materialData.forEach(row => {
+                    if (row.material_id && batchesByMaterial[row.material_id]) {
+                        row.available_lots = batchesByMaterial[row.material_id];
+                    } else {
+                        row.available_lots = [];
+                    }
+                });
+            }
+        }
+        
+        // 6. Render the table (Now with dropdowns populated!)
+        renderMaterialDataTable();
+
+    } catch (err) {
+        console.error('Error loading data:', err);
+    } finally {
+        isProcessing = false;
     }
-
-    materialData = consumptionData || [];
-
-    // 2. Extract unique material_ids from the consumption data
-    const materialIds = [...new Set(materialData.map(r => r.material_id).filter(Boolean))];
-
-    // 3. If we have materials, fetch their stock balances immediately
-    if (materialIds.length > 0) {
-      const { data: stockData, error: stockError } = await supabase
-        .from('pd_material_staging')
-        .select('material_id, balance_qty')
-        .in('material_id', materialIds)
-        .eq('status', 'Available');
-
-      if (stockError) {
-        console.error('Error loading stock data:', stockError);
-        // Continue without stock data rather than failing completely
-        globalStockMap = {};
-      } else {
-        // 4. Create globalStockMap from the results
-        globalStockMap = {};
-        stockData.forEach(row => {
-          if (!globalStockMap[row.material_id]) globalStockMap[row.material_id] = 0;
-          globalStockMap[row.material_id] += (row.balance_qty || 0);
-        });
-      }
-    } else {
-      // No materials, empty stock map
-      globalStockMap = {};
-    }
-
-    // 5. Render table once with all data ready
-    renderMaterialDataTable();
-
-  } catch (err) {
-    console.error('Error loading material data:', err);
-    alert('Unexpected error loading material data: ' + err.message);
-  } finally {
-    isProcessing = false;
-  }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -1108,7 +1301,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     await Promise.all([
       loadHeaderInfo(),
       loadMaterialsCatalog(),
-      loadMaterialData()
+      loadMaterialData(),
+      loadActiveStockMaterials() // <--- ADD THIS
     ]);
 
     // Small delay to ensure DOM is fully ready on first load
@@ -1390,3 +1584,99 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- STOCK INDICATOR LOGIC (Now integrated into loadMaterialData) ---
 let globalStockMap = {};
+
+// --- AUTOCOMPLETE LOGIC ---
+
+// 1. Setup listeners on all Material Name inputs
+function setupAllAutocomplete() {
+    const inputs = document.querySelectorAll('td[data-column="material_name"]');
+    inputs.forEach(td => {
+        // Prevent duplicate listeners
+        if (td.dataset.autocompleteActive) return;
+        td.dataset.autocompleteActive = "true";
+
+        td.addEventListener('input', debounce(async (e) => {
+            const searchTerm = e.target.textContent.trim();
+            if (searchTerm.length < 1) {
+                closeAutocomplete();
+                return;
+            }
+
+            // A. Search Catalog for the name
+            const { data: catalogMatches } = await supabase
+                .from('pd_material_catalog')
+                .select('id, material_name')
+                .ilike('material_name', `%${searchTerm}%`)
+                .limit(20);
+
+            if (!catalogMatches) return;
+
+            // B. SMART FILTER: Only show items that exist in 'activeStockMaterialIds'
+            //    (Or items that allow negative stock if you have such a policy, but usually strict is better)
+            const validSuggestions = catalogMatches.filter(item => activeStockMaterialIds.has(item.id));
+
+            showAutocompleteSuggestions(td, validSuggestions);
+        }, 300));
+
+        // Close on blur (delayed to allow click)
+        td.addEventListener('blur', () => {
+            setTimeout(closeAutocomplete, 200);
+        });
+    });
+}
+
+// 2. Show the Dropdown
+function showAutocompleteSuggestions(targetTd, suggestions) {
+    closeAutocomplete(); // Close existing
+
+    if (suggestions.length === 0) return;
+
+    // Create Dropdown
+    const ul = document.createElement('ul');
+    ul.className = 'autocomplete-dropdown absolute bg-white border border-gray-300 shadow-lg z-50 max-h-48 overflow-y-auto rounded text-xs';
+    ul.id = 'material-autocomplete-list';
+    
+    // Position it
+    const rect = targetTd.getBoundingClientRect();
+    ul.style.top = (rect.bottom + window.scrollY) + 'px';
+    ul.style.left = (rect.left + window.scrollX) + 'px';
+    ul.style.width = rect.width + 'px';
+
+    suggestions.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'px-2 py-1.5 hover:bg-blue-50 cursor-pointer border-b border-gray-100 text-gray-700';
+        li.innerHTML = `<strong>${item.material_name}</strong> <span class="text-[10px] text-green-600 ml-1">(In Stock)</span>`;
+        
+        li.onmousedown = (e) => {
+            e.preventDefault(); // Stop the cell from closing
+            
+            // 1. SET THE FULL NAME (e.g., Change "204" to "2047G")
+            targetTd.textContent = item.material_name; 
+            
+            const row = targetTd.closest('tr');
+            const rowIndex = parseInt(row.dataset.index, 10);
+            
+            // 2. SAVE TO MEMORY
+            if (materialData[rowIndex]) {
+                materialData[rowIndex].material_name = item.material_name;
+            }
+
+            closeAutocomplete();
+            
+            // 3. FORCE THE LOOKUP (This fills the Qty and Lot No Dropdown)
+            lookupMaterialAndPopulateAvailable(item.material_name, row, rowIndex);
+            
+            // 4. MOVE CURSOR TO NEXT CELL (Optional but helpful)
+            const nextCell = row.querySelector('[data-column="qty_used"]');
+            if (nextCell) nextCell.focus();
+        };
+        ul.appendChild(li);
+    });
+
+    document.body.appendChild(ul);
+}
+
+function closeAutocomplete() {
+    const existing = document.getElementById('material-autocomplete-list');
+    if (existing) existing.remove();
+}

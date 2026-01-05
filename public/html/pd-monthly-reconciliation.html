@@ -42,6 +42,20 @@
             line-height: 1.1;
         }
         table { border-right: 1px solid #d1d5db; border-collapse: collapse; }
+        
+        /* Sticky Header for better scrolling */
+        #reconciliationTable thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Fix container height for internal scrolling */
+        .bg-white.rounded-md.shadow-sm.p-1.overflow-x-auto {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body class="bg-white text-gray-900 font-roboto-medium h-screen overflow-hidden">
@@ -67,6 +81,14 @@
                         <label class="text-[10px] text-gray-500 font-bold uppercase">To Date</label>
                         <input type="date" id="toDate" class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500">
                     </div>
+                    <div class="flex flex-col">
+                        <label class="text-[10px] text-gray-500 font-bold uppercase">Material Category</label>
+                        <select id="materialCategory" class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500">
+                            <option value="raw">Raw Materials (Kgs)</option>
+                            <option value="packing">Packing Materials (Nos)</option>
+                            <option value="printing">Printing Materials (Kgs)</option>
+                        </select>
+                    </div>
                     <button id="generateBtn" class="mt-3 px-3 py-1.5 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 flex items-center gap-2 shadow-sm">
                         <i class="fas fa-sync-alt"></i> Generate Report
                     </button>
@@ -86,7 +108,10 @@
                     <thead>
                         <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center">
                             <th class="py-2 px-2 border border-gray-300 w-64 text-left pl-3">Name of the Material</th>
-                            <th class="py-2 px-2 border border-gray-300 w-24 bg-blue-900">Total Issued (Kgs)<br><span class="text-[9px] font-normal lowercase">(Op. Stock + New)</span></th>
+                            <th class="py-2 px-2 border border-gray-300 w-24 bg-blue-900">
+                                Total Available (Kgs)<br>
+                                <span class="text-[9px] font-normal lowercase">(Opening + New Issues)</span>
+                            </th>
                             <th class="py-2 px-2 border border-gray-300 w-24">Issued (Kgs)<br><span class="text-[9px] font-normal lowercase">(Selected Date)</span></th>
                             <th class="py-2 px-2 border border-gray-300 w-24">Used M/C 1</th>
                             <th class="py-2 px-2 border border-gray-300 w-24">Used M/C 2</th>
@@ -100,14 +125,6 @@
                         </tr>
                     </tbody>
                     <tfoot id="reportFooter" class="hidden font-bold bg-gray-100">
-                        <tr>
-                            <td class="text-right pr-3">TOTAL:</td>
-                            <td id="totalIssue">0.00</td>
-                            <td id="totalMc1">0.00</td>
-                            <td id="totalMc2">0.00</td>
-                            <td id="totalMc3">0.00</td>
-                            <td id="totalBalance" class="bg-yellow-100">0.00</td>
-                        </tr>
                     </tfoot>
                 </table>
             </div>

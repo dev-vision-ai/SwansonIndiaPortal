@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Material Availability</title>
+    <title>Staging Area Inventory</title>
     <link rel="icon" type="image/png" href="../assets/logo2.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
@@ -12,243 +12,92 @@
     <link rel="stylesheet" href="../css/common-header.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
     <style>
-        /* Base font for the entire body */
-        body {
-            font-family: 'Roboto', sans-serif;
-            font-weight: 500;
-            background-color: #f3f4f6 !important;
-        }
-
-        .page-fade-in {
-            opacity: 1;
-        }
-
-        /* Striped rows and hover for tbody - matching film inspection list */
-        table tbody tr { 
-            background-color: #ffffff; 
-            transition: background-color 0.2s ease;
-            border-bottom: 1px solid #d1d5db; 
-        }
-        table tbody tr:hover { 
-            background-color: #f8fafc; 
-            cursor: pointer;
-        }
-        
-        /* Enhanced separator lines */
-        table th { 
-            border-right: 1px solid #d1d5db; 
-            border-bottom: 1px solid #d1d5db;
-        }
-        table td { 
-            border-right: 1px solid #d1d5db; 
-            padding: 0.375rem;
-            vertical-align: middle;
-            font-size: 0.75rem;
-            text-align: center;
-        }
-        table td:last-child, table th:last-child {
-            border-right: none;
-        }
-
-        /* Material suggestions dropdown - matching inline-inspection-form style */
-        .material-suggestions {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-            z-index: 50;
-        }
-
-            /* Modal dialog sizing: very compact for laptop and small screens */
-            .modal-dialog {
-                width: 240px; /* slightly narrower default compact width */
-                max-width: calc(100% - 40px);
-                padding: 6px; /* reduce inner spacing for very compact layout */
-                font-size: 12px; /* default small font inside modal */
-            }
-
-            /* Confirmation dialog styling */
-            .confirm-dialog { width: 320px; max-width: calc(100% - 48px); padding: 10px; }
-            @media (min-width: 1366px) {
-                .confirm-dialog { width: 360px; }
-            }
-
-            /* Grid layout for modal fields: 3 columns on wide screens */
-            .modal-grid {
-                display: grid;
-                grid-template-columns: 1fr;
-                gap: 6px;
-            }
-
-            .modal-grid .modal-field label { margin-bottom: 4px; }
-
-            @media (min-width: 900px) {
-                .modal-grid { grid-template-columns: repeat(3, 1fr); }
-            }
-
-            @media (min-width: 1366px) {
-                .modal-dialog {
-                    width: 480px; /* reduced width for more compact laptop layout */
-                }
-            }
+        body { font-family: 'Roboto', sans-serif; font-weight: 500; background-color: #f3f4f6 !important; }
+        .page-fade-in { opacity: 1; }
+        table { border: 1px solid #d1d5db; border-collapse: collapse; }
+        table tbody tr { background-color: #ffffff; transition: background-color 0.2s ease; border-bottom: 1px solid #d1d5db; }
+        table tbody tr:hover { background-color: #f8fafc; }
+        table th { border-right: 1px solid #d1d5db; border-bottom: 1px solid #d1d5db; }
+        table td { border-right: 1px solid #d1d5db; padding: 0.375rem; vertical-align: middle; font-size: 0.75rem; text-align: center; }
+        table td:last-child, table th:last-child { border-right: none; }
+        /* Read-only look for all inputs */
+        input[readonly] { background-color: #f9fafb; cursor: not-allowed; }
     </style>
 </head>
 <body class="bg-white text-gray-900 font-roboto-medium h-screen overflow-hidden">
     <div class="header-container">
         <button type="button" class="header-back-button">Back</button>
-        <div class="header-title">Material Availability</div>
+        <div class="header-title">Staging Area Inventory</div>
         <div class="company-logo">
             <img src="../assets/logo.png" alt="Company Logo">
         </div>
     </div>
-    <main class="flex-1 w-full h-full overflow-y-auto pt-16 md:pt-18 lg:pt-20 page-fade-in p-8">
-        <!-- Short description placed above filter -->
-        <p class="text-[12px] text-gray-600 mb-2 text-center">Real-time inventory status for production materials</p>
-                <!-- Filters and Search (copied from inline inspection form) -->
-                <div id="filterSection" class="w-full flex justify-center mt-2 mb-4">
-                    <div id="filterContainer" class="bg-white rounded-lg shadow-sm p-2">
-                            <div class="flex items-center justify-between gap-4">
-                                <div class="flex items-center gap-2">
-                                        <label for="dateFrom" class="sr-only">From</label>
-                                        <input type="date" id="dateFrom" class="border border-gray-300 px-2 py-1 rounded text-[10px] w-32" placeholder="From">
-                                        <label for="dateTo" class="sr-only">To</label>
-                                        <input type="date" id="dateTo" class="border border-gray-300 px-2 py-1 rounded text-[10px] w-32" placeholder="To">
-                                </div>
-
-                                <div class="flex items-center gap-2">
-                                        <label for="materialSearch" class="sr-only">Search</label>
-                                        <input type="text" id="materialSearch" class="border border-gray-300 px-2 py-1 rounded text-[10px] w-40" placeholder="Material code or name">
-                                </div>
-
-                                <div class="flex items-center gap-2">
-                                        <label for="statusFilter" class="sr-only">Status</label>
-                                        <select id="statusFilter" class="border border-gray-300 px-2 py-1 rounded text-[10px] w-36">
-                                        <option value="">All Status</option>
-                                        <option value="Available">Available</option>
-                                        <option value="Low Stock">Low Stock</option>
-                                        <option value="Out of Stock">Out of Stock</option>
-                                        <option value="Critical">Critical</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <button id="clearFilter" class="px-2 py-1 bg-gray-500 text-white text-[10px] font-medium rounded hover:bg-gray-600 focus:outline-none">Clear</button>
-                                </div>
-                            </div>
-
+    <main class="flex-1 w-full h-full overflow-y-auto pt-16 md:pt-18 lg:pt-20 page-fade-in py-8 px-0">
+        
+        <div id="filterSection" class="w-full flex justify-center mt-2 mb-4">
+            <div id="filterContainer" class="bg-white rounded-lg shadow-sm p-2">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-2">
+                        <input type="date" id="dateFrom" class="border border-gray-300 px-2 py-1 rounded text-[10px] w-32">
+                        <input type="date" id="dateTo" class="border border-gray-300 px-2 py-1 rounded text-[10px] w-32">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="materialSearch" class="border border-gray-300 px-2 py-1 rounded text-[10px] w-40" placeholder="Material code or name">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <select id="statusFilter" class="border border-gray-300 px-2 py-1 rounded text-[10px] w-36">
+                            <option value="">All Status</option>
+                            <option value="Available">Available</option>
+                            <option value="Low Stock">Low Stock</option>
+                            <option value="Out of Stock">Out of Stock</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button id="clearFilter" class="px-2 py-1 bg-gray-500 text-white text-[10px] font-medium rounded hover:bg-gray-600">Clear</button>
                     </div>
                 </div>
+            </div>
+        </div>
 
+        <div class="flex items-center justify-center mt-3 mb-6">
+            <div class="inline-flex items-center gap-2 bg-white border border-gray-200 rounded px-2 py-1">
+                <span class="text-[12px] text-gray-600 mr-2">Category:</span>
+                <button id="tabRM" class="tab-btn px-3 py-1 bg-blue-600 text-white rounded text-xs">🟦 Raw Material</button>
+                <button id="tabInk" class="tab-btn px-3 py-1 bg-white text-gray-700 rounded text-xs border border-gray-200">🟨 Printing Mat.</button>
+                <button id="tabPM" class="tab-btn px-3 py-1 bg-white text-gray-700 rounded text-xs border border-gray-200">🟩 Packing Material</button>
+            </div>
+        </div>
 
-                    <div class="flex items-center justify-center mt-3">
-                        <div class="inline-flex items-center gap-2 bg-white border border-gray-200 rounded px-2 py-1">
-                            <span class="text-[12px] text-gray-600 mr-2">Toggle :</span>
-                            <button id="tabRM" class="tab-btn px-3 py-1 bg-blue-600 text-white rounded text-xs" type="button">🟦 Raw Material</button>
-                            <button id="tabInk" class="tab-btn px-3 py-1 bg-white text-gray-700 rounded text-xs border border-gray-200" type="button">🟨 Ink</button>
-                            <button id="tabPM" class="tab-btn px-3 py-1 bg-white text-gray-700 rounded text-xs border border-gray-200" type="button">🟩 Packing Material</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add/Delete buttons aligned right of filters -->
-                <div class="w-full flex justify-end mb-4">
-                        <div class="flex items-center gap-2">
-                            <input type="date" id="addRowDate" class="border border-gray-300 px-2 py-1 rounded text-[10px] w-36 bg-white" title="Select date for new row">
-                            <button id="addRowBtn" class="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 flex items-center gap-1">
-                                <i class="fas fa-plus"></i> Add Row
-                            </button>
-                                <button id="deleteRowBtn" class="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex items-center gap-1">
-                                        <i class="fas fa-trash-alt"></i> Delete Row
-                                </button>
-                        </div>
-                </div>
-
-        <!-- Table placed on page background (full-bleed) -->
-        <div class="overflow-x-auto -mx-8">
-            <div class="w-screen max-w-none">
-                <table id="materialAvailabilityTable" class="min-w-full table-fixed text-xs">
+        <div class="overflow-x-auto">
+            <table id="materialAvailabilityTable" class="w-full table-fixed text-xs border border-gray-300">
                 <thead>
                     <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center text-xs">
-                        <th class="py-2 px-2 border-r border-gray-300 w-12 whitespace-normal break-words">Track ID</th>
-                        <th class="py-2 px-2 border-r border-gray-300 w-24 whitespace-normal break-words">issued date</th>
-                        <th class="py-2 px-2 border-r border-gray-300 w-48 whitespace-normal break-words">Material</th>
-                        <th class="py-2 px-2 border-r border-gray-300 w-16 whitespace-normal break-words">Bags</th>
-                        <th class="py-2 px-2 border-r border-gray-300 w-24 whitespace-normal break-words">Issued (KG)</th>
-                        <th class="py-2 px-2 border-r border-gray-300 w-24 whitespace-normal break-words">Consumed (KG)</th>
-                        <th class="py-2 px-2 border-r border-gray-300 w-24 whitespace-normal break-words">Balance (KG)</th>
-                        <th class="py-2 px-2 border-r border-gray-300 w-24 whitespace-normal break-words">Status</th>
-                        <th class="py-2 px-2 border-r border-gray-300 w-32 whitespace-normal break-words">Action</th>
-                    </tr>
+                        <th class="w-24 py-2 border-r border-gray-300">Track ID</th>
+                        
+                        <th class="w-24 py-2 border-r border-gray-300 font-bold">Requisition Date</th>
+                        
+                        <th class="w-24 py-2 border-r border-gray-300 font-bold">Issued Date</th>
+                        
+                        <th class="w-32 py-2 border-r border-gray-300 bg-yellow-600 text-black">Lot No</th>
+                        <th class="w-48 py-2 border-r border-gray-300">Material</th>
+                        <th class="w-16 py-2 border-r border-gray-300">Bags</th>
+                        <th class="w-24 py-2 border-r border-gray-300">Issued (KG)</th>
+                        <th class="w-24 py-2 border-r border-gray-300">Consumed</th>
+                        <th class="w-24 py-2 border-r border-gray-300">Balance</th>
+                        <th class="w-16 py-2 border-r border-gray-300 font-bold text-blue-300">UOM</th>
+                        <th class="w-24 py-2 border-r border-gray-300">Status</th>
+                        </tr>
                 </thead>
-                <tbody id="materialTableBody">
-                </tbody>
-                </table>
-            </div>
+                <tbody id="materialTableBody"></tbody>
+            </table>
         </div>
 
-        <!-- Empty state message -->
         <div id="emptyStateMessage" class="text-center py-8 text-gray-500 hidden">
-            <i class="fas fa-plus-circle text-4xl mb-4 text-gray-300"></i>
-            <p class="text-lg font-medium">No data available</p>
-            <p class="text-sm">Click "Add Row" to add data</p>
+            <i class="fas fa-box-open text-4xl mb-4 text-gray-300"></i>
+            <p class="text-lg font-medium">No stock available</p>
+            <p class="text-sm">Waiting for Warehouse Issue...</p>
         </div>
     </main>
-
-    <!-- Edit Modal -->
-    <div id="editModal" style="z-index:1100" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden flex items-center justify-center">
-        <div class="mx-auto p-2 border modal-dialog shadow-lg rounded-md bg-white">
-            <div class="mt-2">
-                <h3 class="text-[10px] font-semibold text-gray-900 mb-1.5">Edit Material Record</h3>
-                <div class="modal-grid">
-                    <div class="modal-field">
-                        <label class="block text-[11px] font-medium text-gray-700">Issued Date</label>
-                        <input type="date" id="editIssuedDate" class="w-full px-2 py-0.5 text-[11px] border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="modal-field">
-                        <label class="block text-[11px] font-medium text-gray-700">Material</label>
-                        <input type="text" id="editMaterial" class="w-full px-2 py-0.5 text-[11px] border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="modal-field">
-                        <label class="block text-[11px] font-medium text-gray-700">Bags</label>
-                        <input type="number" id="editBags" class="w-full px-2 py-0.5 text-[11px] border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" min="0">
-                    </div>
-                    <div class="modal-field">
-                        <label class="block text-[11px] font-medium text-gray-700">Issued (KG)</label>
-                        <input type="number" id="editIssuedQty" class="w-full px-2 py-0.5 text-[11px] border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" step="0.01" readonly>
-                    </div>
-                    <div class="modal-field">
-                        <label class="block text-[11px] font-medium text-gray-700">Consumed (KG)</label>
-                        <input type="number" id="editConsumedQty" class="w-full px-2 py-0.5 text-[11px] border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" step="0.01">
-                    </div>
-                    <div class="modal-field">
-                        <label class="block text-[11px] font-medium text-gray-700">Balance (KG)</label>
-                        <input type="number" id="editBalanceQty" class="w-full px-2 py-0.5 text-[11px] border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" step="0.01" readonly>
-                    </div>
-                </div>
-                <div class="flex justify-end space-x-2 mt-3">
-                    <button id="cancelEditBtn" class="px-2 py-0.5 text-[11px] bg-gray-300 text-gray-700 rounded hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                        Cancel
-                    </button>
-                    <button id="saveEditBtn" class="px-2 py-0.5 text-[11px] bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        Save
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- UI Confirmation Modal (Not Recommended warning) -->
-    <div id="confirmModal" style="z-index:1200" class="fixed inset-0 bg-black bg-opacity-40 hidden flex items-center justify-center">
-        <div class="mx-auto p-3 border confirm-dialog shadow-lg rounded-md bg-white">
-            <div class="mt-1">
-                <h4 class="text-[12px] font-semibold text-gray-900 mb-2">Warning</h4>
-                <p id="confirmModalText" class="text-[11px] text-gray-700 mb-3">Not Recommended. Proceed to edit?</p>
-                <div class="flex justify-end gap-2">
-                    <button id="confirmCancelBtn" class="px-3 py-1 text-[11px] bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Cancel</button>
-                    <button id="confirmOkBtn" class="px-3 py-1 text-[11px] bg-red-600 text-white rounded hover:bg-red-700">Proceed</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <script type="module" src="../js/pd-material-availability.js"></script>
 </body>
