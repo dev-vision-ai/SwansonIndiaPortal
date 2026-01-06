@@ -955,7 +955,7 @@ function handleSharePdf() {
             `A new Material Requisition has been generated with the following details:\n\n` +
             `------------------------------------------\n` +
             `Requisition No : ${reqNo}\n` +
-            `Request Date   : ${formattedDate}\n` +
+            `Requisition Date: ${formattedDate}\n` +
             `Requested By   : ${document.getElementById('requestedBy').value}\n` +
             `Department     : ${document.getElementById('requesterDept').value}\n` +
             `------------------------------------------\n\n` +

@@ -1,7 +1,9 @@
 import { supabase } from '../supabase-config.js';
 
-let currentSort = { column: 'request_date', direction: 'desc' };
+const ROWS_PER_PAGE = 8;
+let currentSort = { column: 'requisition_date', direction: 'desc' };
 let requisitionsData = []; // Store fetched records globally for sorting and filtering
+let currentPage = 1;
 let formSubmitAttached = false; // Flag to prevent duplicate form submit listeners
 let autocompleteAttached = false; // Flag to prevent duplicate autocomplete listeners
 let currentHeaderId = null; // Store the current header record ID for detail operations
@@ -24,37 +26,46 @@ function renderTable(data) {
   const tbody = document.getElementById('requisitionsTableBody');
   if (!tbody) return;
 
-  tbody.innerHTML = data.map((record, index) => {
+  // Calculate pagination
+  const totalRecords = data.length;
+  const totalPages = Math.ceil(totalRecords / ROWS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+  const endIndex = startIndex + ROWS_PER_PAGE;
+  const pageData = data.slice(startIndex, endIndex);
+
+  // Update pagination info
+  const pageStartRow = document.getElementById('pageStartRow');
+  const pageEndRow = document.getElementById('pageEndRow');
+  const totalRecordsSpan = document.getElementById('totalRecords');
+  const pageNumberSpan = document.getElementById('currentPage');
+  const totalPagesSpan = document.getElementById('totalPages');
+  const prevBtn = document.getElementById('prevPageBtn');
+  const nextBtn = document.getElementById('nextPageBtn');
+
+  if (pageStartRow) pageStartRow.textContent = totalRecords === 0 ? '0' : startIndex + 1;
+  if (pageEndRow) pageEndRow.textContent = Math.min(endIndex, totalRecords);
+  if (totalRecordsSpan) totalRecordsSpan.textContent = totalRecords;
+  if (pageNumberSpan) pageNumberSpan.textContent = totalRecords === 0 ? '0' : currentPage;
+  if (totalPagesSpan) totalPagesSpan.textContent = totalRecords === 0 ? '1' : totalPages;
+
+  if (prevBtn) prevBtn.disabled = currentPage <= 1;
+  if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+
+  tbody.innerHTML = pageData.map((record, index) => {
     // Validate record.id
     if (!record.id) {
       console.warn('Record missing ID:', record);
       return ''; // Skip rendering this row
     }
 
-    // Status badge styling
-    const statusClass = record.status ? `status-${record.status.toLowerCase()}` : 'status-requested';
-    const statusText = record.status || 'REQUESTED';
+    // Reverse Sr No: latest record gets Sr No 1
+    const reversedIndex = totalRecords - (startIndex + index);
     
-    // Hide edit and delete buttons for ISSUED status
-    const isIssued = record.status === 'ISSUED';
-    const editButtonHtml = isIssued ? '' : `
-          <button class="action-btn edit-btn p-1.5 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0" data-id="${record.id}" title="Edit Requisition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-            </svg>
-          </button>`;
-    const deleteButtonHtml = isIssued ? '' : `
-          <button class="action-btn delete-btn p-1.5 rounded-md bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition-all duration-200 border border-red-200 hover:border-red-300 flex-shrink-0" data-id="${record.id}" title="Delete Requisition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-            </svg>
-          </button>`;
-
     return `
     <tr data-id="${record.id}">
-      <td>${index + 1}</td>
+      <td>${reversedIndex}</td>
       <td class="font-mono font-bold text-red-600">${record.requisition_no || 'N/A'}</td>
-      <td>${formatDateToDDMMYYYY(record.request_date)}</td>
+      <td>${formatDateToDDMMYYYY(record.requisition_date)}</td>
       <td>${formatDateToDDMMYYYY(record.required_before)}</td>
       <td>${record.requested_by || 'N/A'}</td>
       <td>${record.requester_dept || 'N/A'}</td>
@@ -78,23 +89,34 @@ function sortData(column) {
   if (currentSort.column === column) {
     currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
   } else {
-    currentSort = { column, direction: 'asc' };
+    currentSort = { column, direction: 'desc' };
   }
 
+  // Always sort by date descending first (latest on top), then by selected column
   requisitionsData.sort((a, b) => {
-    const modifier = currentSort.direction === 'asc' ? 1 : -1;
-    const aValue = a[currentSort.column];
-    const bValue = b[currentSort.column];
+    // Primary sort: by requisition_date descending (latest first)
+    const dateA = new Date(a.requisition_date || 0);
+    const dateB = new Date(b.requisition_date || 0);
+    const dateDiff = dateB - dateA;
+    
+    if (dateDiff !== 0) return dateDiff; // If dates differ, use date sort
+    
+    // Secondary sort: by selected column if dates are same
+    if (currentSort.column !== 'requisition_date') {
+      const modifier = currentSort.direction === 'asc' ? 1 : -1;
+      const aValue = a[currentSort.column];
+      const bValue = b[currentSort.column];
 
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return aValue.localeCompare(bValue) * modifier;
-    } else if (typeof aValue === 'number' && typeof bValue === 'number') {
-      return (aValue - bValue) * modifier;
-    } else {
-      return 0;
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return aValue.localeCompare(bValue) * modifier;
+      } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return (aValue - bValue) * modifier;
+      }
     }
+    return 0;
   });
 
+  currentPage = 1; // Reset to first page after sorting
   renderTable(requisitionsData);
 }
 
@@ -117,6 +139,9 @@ async function applyFilters() {
 
   // Trigger a new Supabase query with filters
   await fetchRequisitions(filters);
+
+  // Reset to first page after filtering
+  currentPage = 1;
 
   // Update filter status
   const isFiltered = dateFromValue || dateToValue || departmentValue || statusValue || requestedByValue;
@@ -162,6 +187,27 @@ function setupEventListeners() {
 
   // Fetch records on page load
   fetchRequisitions();
+
+  // Setup pagination event listeners
+  const prevBtn = document.getElementById('prevPageBtn');
+  const nextBtn = document.getElementById('nextPageBtn');
+  
+  if (prevBtn) prevBtn.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderTable(requisitionsData);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  if (nextBtn) nextBtn.addEventListener('click', () => {
+    const totalPages = Math.ceil(requisitionsData.length / ROWS_PER_PAGE);
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderTable(requisitionsData);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
 
   // Setup filter event listeners
   const dateFromInput = document.getElementById('filterDateFrom');
@@ -333,7 +379,7 @@ async function fetchRequisitions(filters = null) {
     requisitionsData = (data || []).map(record => ({
       id: record.id,
       requisition_no: record.requisition_no,
-      request_date: record.requisition_date, // Map requisition_date to request_date for UI
+      requisition_date: record.requisition_date, // Database column name
       required_before: record.required_before,
       requested_by: record.requested_by,
       requester_dept: record.requester_dept,
@@ -341,6 +387,16 @@ async function fetchRequisitions(filters = null) {
       issued_by: record.issued_by,
       status: record.status
     }));
+
+    // Ensure latest added records are on top (sort by date descending)
+    requisitionsData.sort((a, b) => {
+      const dateA = new Date(a.requisition_date || 0);
+      const dateB = new Date(b.requisition_date || 0);
+      return dateB - dateA;
+    });
+
+    // Reset to first page after fetching
+    currentPage = 1;
 
     if (requisitionsData.length === 0) {
       const message = hasFilters

@@ -1,7 +1,9 @@
 import { supabase } from '../supabase-config.js';
 
+const PD_ROWS_PER_PAGE = 8;
 let currentSort = { column: 'date', direction: 'desc' };
 let jobCostRecordsData = []; // Store fetched records globally for sorting and filtering
+let pdCurrentPage = 1;
 let formSubmitAttached = false; // Flag to prevent duplicate form submit listeners
 let autocompleteAttached = false; // Flag to prevent duplicate autocomplete listeners
 let currentHeaderId = null; // Store the current header record ID for detail operations
@@ -24,16 +26,44 @@ function renderTable(data) {
   const tbody = document.getElementById('jobCostRecordsTableBody');
   if (!tbody) return;
 
-  tbody.innerHTML = data.map((record, index) => {
+  // Calculate pagination
+  const totalRecords = data.length;
+  const totalPages = Math.ceil(totalRecords / PD_ROWS_PER_PAGE);
+  const startIndex = (pdCurrentPage - 1) * PD_ROWS_PER_PAGE;
+  const endIndex = startIndex + PD_ROWS_PER_PAGE;
+  const pageData = data.slice(startIndex, endIndex);
+
+  // Update pagination info
+  const pageStartRow = document.getElementById('pdPageStartRow');
+  const pageEndRow = document.getElementById('pdPageEndRow');
+  const totalRecordsSpan = document.getElementById('pdTotalRecords');
+  const pageNumberSpan = document.getElementById('pdCurrentPage');
+  const totalPagesSpan = document.getElementById('pdTotalPages');
+  const prevBtn = document.getElementById('pdPrevPageBtn');
+  const nextBtn = document.getElementById('pdNextPageBtn');
+
+  if (pageStartRow) pageStartRow.textContent = totalRecords === 0 ? '0' : startIndex + 1;
+  if (pageEndRow) pageEndRow.textContent = Math.min(endIndex, totalRecords);
+  if (totalRecordsSpan) totalRecordsSpan.textContent = totalRecords;
+  if (pageNumberSpan) pageNumberSpan.textContent = totalRecords === 0 ? '0' : pdCurrentPage;
+  if (totalPagesSpan) totalPagesSpan.textContent = totalRecords === 0 ? '1' : totalPages;
+
+  if (prevBtn) prevBtn.disabled = pdCurrentPage <= 1;
+  if (nextBtn) nextBtn.disabled = pdCurrentPage >= totalPages;
+
+  tbody.innerHTML = pageData.map((record, index) => {
     // Validate record.id
     if (!record.id) {
       console.warn('Record missing ID:', record);
       return ''; // Skip rendering this row
     }
+
+    // Reverse Sr No: latest record gets Sr No 1
+    const reversedIndex = totalRecords - (startIndex + index);
     
     return `
     <tr data-id="${record.id}">
-      <td>${index + 1}</td>
+      <td>${reversedIndex}</td>
       <td>${formatDateToDDMMYYYY(record.date)}</td>
       <td>${record.shift || 'N/A'}</td>
       <td>${record.machine || 'N/A'}</td>
@@ -76,23 +106,34 @@ function sortData(column) {
   if (currentSort.column === column) {
     currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
   } else {
-    currentSort = { column, direction: 'asc' };
+    currentSort = { column, direction: 'desc' };
   }
 
+  // Always sort by date descending first (latest on top), then by selected column
   jobCostRecordsData.sort((a, b) => {
-    const modifier = currentSort.direction === 'asc' ? 1 : -1;
-    const aValue = a[currentSort.column];
-    const bValue = b[currentSort.column];
+    // Primary sort: by date descending (latest first)
+    const dateA = new Date(a.date || 0);
+    const dateB = new Date(b.date || 0);
+    const dateDiff = dateB - dateA;
+    
+    if (dateDiff !== 0) return dateDiff; // If dates differ, use date sort
+    
+    // Secondary sort: by selected column if dates are same
+    if (currentSort.column !== 'date') {
+      const modifier = currentSort.direction === 'asc' ? 1 : -1;
+      const aValue = a[currentSort.column];
+      const bValue = b[currentSort.column];
 
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return aValue.localeCompare(bValue) * modifier;
-    } else if (typeof aValue === 'number' && typeof bValue === 'number') {
-      return (aValue - bValue) * modifier;
-    } else {
-      return 0;
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return aValue.localeCompare(bValue) * modifier;
+      } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return (aValue - bValue) * modifier;
+      }
     }
+    return 0;
   });
 
+  pdCurrentPage = 1; // Reset to first page after sorting
   renderTable(jobCostRecordsData);
 }
 
@@ -117,6 +158,9 @@ async function applyFilters() {
 
   // Trigger a new Supabase query with filters
   await fetchJobCostRecords(filters);
+
+  // Reset to first page after filtering
+  pdCurrentPage = 1;
 
   // Update filter status
   const isFiltered = dateFromValue || dateToValue || machineValue || productValue || shiftValue || customerValue;
@@ -156,6 +200,27 @@ async function clearFilters() {
 function setupEventListeners() {
   // Fetch records on page load
   fetchJobCostRecords();
+
+  // Setup pagination event listeners
+  const prevBtn = document.getElementById('pdPrevPageBtn');
+  const nextBtn = document.getElementById('pdNextPageBtn');
+  
+  if (prevBtn) prevBtn.addEventListener('click', () => {
+    if (pdCurrentPage > 1) {
+      pdCurrentPage--;
+      renderTable(jobCostRecordsData);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  if (nextBtn) nextBtn.addEventListener('click', () => {
+    const totalPages = Math.ceil(jobCostRecordsData.length / PD_ROWS_PER_PAGE);
+    if (pdCurrentPage < totalPages) {
+      pdCurrentPage++;
+      renderTable(jobCostRecordsData);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
 
   // Setup filter event listeners
   const dateFromInput = document.getElementById('filterDateFrom');
@@ -379,6 +444,16 @@ async function fetchJobCostRecords(filters = null) {
       specification: record.specification
     }));
 
+    // Ensure latest records are shown first (sort by date descending)
+    jobCostRecordsData.sort((a, b) => {
+      const dateA = new Date(a.date || 0);
+      const dateB = new Date(b.date || 0);
+      return dateB - dateA;
+    });
+
+    // Reset to first page after fetching
+    pdCurrentPage = 1;
+
     if (jobCostRecordsData.length === 0) {
       showMessage(hasFilters ? 'No records found matching the filters.' : 'No production material consumption records found. Create your first record.');
     } else {
@@ -512,6 +587,8 @@ document.addEventListener('DOMContentLoaded', () => {
     showDailyStockOverlay();
     // Setup product autocomplete when modal opens
     setupProductCodeAutocomplete();
+    // Setup operator and supervisor autocomplete
+    setupOperatorSupervisorAutocomplete();
   });
 
   if (closeBtn) closeBtn.addEventListener('click', (e) => { e.preventDefault(); closeDailyStockOverlay(); });
@@ -848,6 +925,117 @@ async function setupProductCodeAutocomplete() {
 
   // Remove dropdown on blur
   prodCodeInput.addEventListener('blur', function() {
+    setTimeout(() => {
+      if (dropdown) {
+        dropdown.remove();
+        dropdown = null;
+      }
+    }, 150);
+  });
+}
+
+// Setup operator and supervisor autocomplete with real-time suggestions
+async function setupOperatorSupervisorAutocomplete() {
+  try {
+    // Fetch all production staff once
+    const { data: prodUsers, error } = await supabase
+      .from('users')
+      .select('full_name')
+      .eq('department', 'Production')
+      .order('full_name');
+
+    if (error) {
+      console.error('Error fetching production users:', error);
+      return;
+    }
+
+    if (!prodUsers || prodUsers.length === 0) {
+      console.warn('No users found in Production department');
+      return;
+    }
+
+    // Extract unique full names
+    const allNames = [...new Set(prodUsers.map(u => u.full_name).filter(Boolean))];
+    console.log('✅ Loaded', allNames.length, 'production staff names');
+
+    // Setup autocomplete for operator field
+    const operatorInput = document.getElementById('ds_operator');
+    if (operatorInput) {
+      setupNameAutocomplete(operatorInput, allNames, 'operator');
+    }
+
+    // Setup autocomplete for supervisor field
+    const supervisorInput = document.getElementById('ds_supervisor');
+    if (supervisorInput) {
+      setupNameAutocomplete(supervisorInput, allNames, 'supervisor');
+    }
+
+  } catch (err) {
+    console.error('Error setting up operator/supervisor autocomplete:', err);
+  }
+}
+
+// Helper function to setup autocomplete for a name input field
+function setupNameAutocomplete(inputElement, allNames, fieldType) {
+  let dropdown = null;
+
+  inputElement.addEventListener('input', function() {
+    const value = this.value.trim().toLowerCase();
+
+    // Remove existing dropdown
+    if (dropdown) {
+      dropdown.remove();
+      dropdown = null;
+    }
+
+    if (value.length < 1) return;
+
+    // Filter names matching input
+    const matches = allNames.filter(name => name.toLowerCase().includes(value));
+
+    if (matches.length === 0) return;
+
+    // Create dropdown
+    dropdown = document.createElement('div');
+    dropdown.className = 'absolute z-50 border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto';
+    dropdown.style.background = '#eaf4fb';
+
+    matches.forEach(name => {
+      const item = document.createElement('div');
+      item.className = 'px-3 py-2 hover:bg-blue-200 cursor-pointer text-sm';
+      item.textContent = name;
+
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        inputElement.value = name;
+        if (dropdown) {
+          dropdown.remove();
+          dropdown = null;
+        }
+      });
+
+      dropdown.appendChild(item);
+    });
+
+    // Position dropdown absolutely relative to viewport
+    document.body.appendChild(dropdown);
+    const rect = inputElement.getBoundingClientRect();
+    dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
+    dropdown.style.left = rect.left + 'px';
+    dropdown.style.width = rect.width + 'px';
+  });
+
+  // Remove dropdown when clicking outside
+  document.addEventListener('click', function(e) {
+    if (dropdown && !inputElement.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.remove();
+      dropdown = null;
+    }
+  });
+
+  // Remove dropdown on blur
+  inputElement.addEventListener('blur', function() {
     setTimeout(() => {
       if (dropdown) {
         dropdown.remove();

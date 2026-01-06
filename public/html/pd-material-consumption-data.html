@@ -65,8 +65,8 @@
             background-color: rgba(255, 255, 255, 0.7) !important;
         }
 
-        /* Read-only fields with yellow background */
-        [contenteditable="false"] {
+        /* Read-only fields with yellow background, but allow traffic-light classes to override */
+        [contenteditable="false"]:not(.bg-red-100):not(.bg-orange-100):not(.bg-green-100) {
             cursor: default;
             user-select: none;
             -webkit-user-select: none;
@@ -210,14 +210,14 @@
 
         <!-- Add Material Rows Controls (aligned with centered containers) -->
         <div class="w-full max-w-6xl mx-auto flex justify-end mb-4">
-            <div class="flex items-center gap-1 bg-white border border-gray-200 rounded px-2 py-1">
-                <button id="addNewRowsBtn" class="px-2 py-0.5 bg-blue-600 text-white rounded text-[10px] hover:bg-blue-700 flex items-center gap-1">
+            <div class="flex items-center gap-2 bg-white border border-gray-200 rounded px-3 py-2">
+                <button id="addNewRowsBtn" class="px-2 py-0.5 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 flex items-center gap-1">
                     <i class="fas fa-plus fa-xs"></i> Add Row
                 </button>
-                <button id="deleteTopRowBtn" class="px-2 py-0.5 bg-red-600 text-white rounded text-[10px] hover:bg-red-700 flex items-center gap-1" title="Delete top row">
+                <button id="deleteTopRowBtn" class="px-2 py-0.5 bg-red-600 text-white rounded text-xs hover:bg-red-700 flex items-center gap-1" title="Delete top row">
                     <i class="fas fa-trash-alt fa-xs"></i> Delete Row
                 </button>
-                <button id="saveAllMaterialDataBtn" class="px-2 py-0.5 bg-green-600 text-white rounded text-[10px] hover:bg-green-700 flex items-center gap-1 ml-3">
+                <button id="saveAllMaterialDataBtn" class="px-2 py-0.5 bg-green-600 text-white rounded text-xs hover:bg-green-700 flex items-center gap-1 ml-3">
                     <i class="fas fa-save fa-xs"></i> Save All
                 </button>
             </div>
@@ -235,9 +235,9 @@
                                 <th class="py-2 px-2 border border-gray-300 w-12">Sr No</th>
                                 <th class="py-2 px-2 border border-gray-300 w-36">Material</th>
                                 <th class="py-2 px-2 border border-gray-300 w-28 text-yellow-600 bg-yellow-50">Lot No</th> 
-                                <th class="py-2 px-2 border border-gray-300 w-28">Qty. Available</th>
+                                <th class="py-2 px-2 border border-gray-300 w-28">Opening Qty</th>
                                 <th class="py-2 px-2 border border-gray-300 w-28">Qty. Used</th>
-                                <th class="py-2 px-2 border border-gray-300 w-28">Balance Qty.</th>
+                                <th class="py-2 px-2 border border-gray-300 w-28">Closing Qty</th>
                                 <th class="py-2 px-2 border border-gray-300 w-20">STOCK ALERTS</th>
                                 <th class="py-2 px-2 border border-gray-300 w-16">UOM</th> 
                             </tr>
@@ -252,10 +252,10 @@
                     <table id="materialTotalsTable" class="min-w-full text-xs border-collapse">
                         <thead>
                             <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center">
-                                <th colspan="3" class="py-2 px-2 border border-gray-300">Total Produced Rolls</th>
                                 <th colspan="3" class="py-2 px-2 border border-gray-300">Total Accepted Rolls</th>
                                 <th colspan="3" class="py-2 px-2 border border-gray-300">Total Rejected Rolls</th>
-                                <th rowspan="2" class="py-2 px-2 border border-gray-300 w-20">Total scrap (Kgs)</th>
+                                <th colspan="3" class="py-2 px-2 border border-gray-300">Total Produced Rolls</th>
+                                <th rowspan="2" class="py-2 px-2 border border-gray-300 w-20">Scrap</th>
                             </tr>
                             <tr class="bg-gray-200 text-gray-800 font-semibold text-center">
                                 <th class="py-2 px-2 border border-gray-300 w-20">(Nos.)</th>

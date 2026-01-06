@@ -107,10 +107,10 @@
             <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center text-xs">
               <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 4%;">Sr No</th>
               <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 10%;">Requisition No</th>
-              <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 8%;">Request Date</th>
+              <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 8%;">Requisition Date</th>
               <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 8%;">Required Before</th>
               <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 12%;">Requested By</th>
-              <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 10%;">Department</th>
+              <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 10%;">Requestor Dept.</th>
               <th class="py-2 px-2 border-r border-gray-300 whitespace-normal break-words text-center" style="width: 8%;">Status</th>
               <th class="py-2 px-2 whitespace-normal break-words text-center" style="width: 15%;">Action Buttons</th>
             </tr>
@@ -121,6 +121,24 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="flex items-center justify-between mt-4 px-4">
+        <div class="text-sm text-gray-600">
+          Showing <span id="pageStartRow">0</span> - <span id="pageEndRow">0</span> of <span id="totalRecords">0</span> records
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="prevPageBtn" class="px-3 py-1.5 bg-gray-300 text-gray-700 rounded-md text-xs font-medium hover:bg-gray-400 disabled:opacity-50" disabled>
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          <div class="text-sm text-gray-600 px-2">
+            Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
+          </div>
+          <button id="nextPageBtn" class="px-3 py-1.5 bg-gray-300 text-gray-700 rounded-md text-xs font-medium hover:bg-gray-400 disabled:opacity-50" disabled>
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
       </div>
     </div>
         </div>

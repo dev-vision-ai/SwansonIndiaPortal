@@ -567,6 +567,22 @@ function setBarcodeCanvasStyle(id) {
             return;
         }
 
+        // Validate sequence number is exactly 9 digits
+        const sequenceNumber = form.elements['sequence_number'].value.trim();
+        if (sequenceNumber.length !== 9 || !/^\d{9}$/.test(sequenceNumber)) {
+            hasErrors = true;
+            const sequenceField = form.elements['sequence_number'];
+            if (sequenceField) {
+                sequenceField.classList.add('field-error-border');
+                // Create and insert error message
+                const errorMsg = document.createElement('span');
+                errorMsg.className = 'field-error-message';
+                errorMsg.textContent = 'Sequence number must be exactly 9 digits';
+                sequenceField.parentNode.appendChild(errorMsg);
+            }
+            return;
+        }
+
         // Show loading animation
         if (submitBtn) {
             submitBtn.innerHTML = `
