@@ -6,8 +6,10 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
-// Load environment variables from .env file
-require('dotenv').config();
+// Load environment variables from .env file (only in development)
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+}
 
 // Adobe PDF Services SDK
 const {
