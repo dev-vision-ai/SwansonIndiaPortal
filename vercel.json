@@ -16,11 +16,23 @@
       "dest": "backend/server.js"
     },
     {
-      "src": "/convert-to-pdf",
+      "src": "/convert-to-pdf(.*)",
       "dest": "backend/server.js"
     },
     {
       "src": "/export(.*)",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/ping(.*)",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/keep-alive(.*)",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/health(.*)",
       "dest": "backend/server.js"
     },
     {
