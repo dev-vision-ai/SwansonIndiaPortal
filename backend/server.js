@@ -6,6 +6,9 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
+// Load environment variables from .env file
+require('dotenv').config();
+
 // Adobe PDF Services SDK
 const {
     ServicePrincipalCredentials,
@@ -81,25 +84,18 @@ app.post('/convert-to-pdf', upload.single('file'), async (req, res) => {
 
     let readStream;
     try {
-        // Load Adobe credentials - use env vars in production, file in development
-        let credentials;
-        
-        if (process.env.ADOBE_CLIENT_ID && process.env.ADOBE_CLIENT_SECRET) {
-            // Production: Use environment variables
-            credentials = new ServicePrincipalCredentials({
-                clientId: process.env.ADOBE_CLIENT_ID,
-                clientSecret: process.env.ADOBE_CLIENT_SECRET
-            });
-        } else {
-            // Development: Load from JSON file (in adobe-dc-pdf-services-sdk-node folder)
-            const credentialsPath = path.join(__dirname, 'adobe-dc-pdf-services-sdk-node', 'pdfservices-api-credentials.json');
-            const credentialsData = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
-            
-            credentials = new ServicePrincipalCredentials({
-                clientId: credentialsData.client_credentials.client_id,
-                clientSecret: credentialsData.client_credentials.client_secret
+        // Load Adobe credentials from environment variables (required for both dev and prod)
+        if (!process.env.ADOBE_CLIENT_ID || !process.env.ADOBE_CLIENT_SECRET) {
+            return res.status(500).json({
+                error: 'Adobe PDF Services configuration missing',
+                details: 'ADOBE_CLIENT_ID and ADOBE_CLIENT_SECRET environment variables are required'
             });
         }
+
+        const credentials = new ServicePrincipalCredentials({
+            clientId: process.env.ADOBE_CLIENT_ID,
+            clientSecret: process.env.ADOBE_CLIENT_SECRET
+        });
 
         // Create PDF Services instance
         const pdfServices = new PDFServices({ credentials });
