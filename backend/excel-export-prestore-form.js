@@ -243,6 +243,20 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
         worksheet.getCell('V3').value = data.prestore_ref_no || 'N/A';
       };
 
+      // Handle verified_by and approved_by fields from the film inspection form
+      if (data.verified_by !== undefined) {
+        worksheet.getCell('B33').value = data.verified_by || 'N/A';
+      }
+
+      if (data.approved_by !== undefined) {
+        worksheet.getCell('E33').value = data.approved_by || 'N/A';
+      }
+
+      // Put check mark in D24 if approved
+      if (data.approved_by && data.approved_by.trim() !== '' && data.approved_by !== 'N/A') {
+        worksheet.getCell('D24').value = '✔';
+      }
+
       // 5. Set response headers for file download
       let productCode = data.product_code || 'UNKNOWN';
       // Clean product code for filename (remove "(Jeddah)" part)

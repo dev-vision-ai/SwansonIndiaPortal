@@ -259,6 +259,11 @@ async function uploadDocumentForDCN(dcnNo) {
         // Reset modal state
         fileInput.value = '';
         confirmBtn.disabled = true;
+        
+        // Hide word options by default
+        const wordOptions = document.getElementById('wordFileOptions');
+        if (wordOptions) wordOptions.style.display = 'none';
+
         // Clear status message
         document.getElementById('uploadStatusMessage').style.display = 'none';
         fileInfo.innerHTML = `
@@ -278,6 +283,17 @@ async function uploadDocumentForDCN(dcnNo) {
             if (file.size > maxSize) {
                 showToast('File size exceeds 10MB limit.', 'error');
                 return;
+            }
+
+            // Check if it's a word file to show options
+            const isWord = file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.docx');
+            const wordOptions = document.getElementById('wordFileOptions');
+            if (wordOptions) {
+                wordOptions.style.display = isWord ? 'block' : 'none';
+                if (isWord) {
+                    const wordRadio = wordOptions.querySelector('input[value="word"]');
+                    if (wordRadio) wordRadio.checked = true;
+                }
             }
 
             // Show selected file info
@@ -352,8 +368,49 @@ async function confirmUploadDocument() {
     }
 
     try {
+        // Determine backend URL
+        const BACKEND_URL = window.BACKEND_URL || (['127.0.0.1', 'localhost'].includes(window.location.hostname)
+            ? `${window.location.protocol}//${window.location.hostname}:3000`
+            : `${window.location.protocol}//${window.location.hostname}`);
+
+        // Check if conversion is requested for Word files
+        const wordOptions = document.getElementById('wordFileOptions');
+        const uploadFormat = wordOptions?.style.display === 'block' 
+            ? wordOptions.querySelector('input[name="uploadFormat"]:checked')?.value 
+            : 'word';
+        
+        let fileToUpload = file;
+        let fileNameToUse = file.name;
+
+        if (uploadFormat === 'pdf') {
+            showUploadStatus('Converting Word to PDF (high fidelity) ...', false);
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            // Call backend for conversion
+            const response = await fetch(`${BACKEND_URL}/convert-to-pdf`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error || `Conversion failed (${response.status})`);
+            }
+            
+            // Get the PDF blob
+            const pdfBlob = await response.blob();
+            // Create a new file object for the PDF
+            const newFileName = file.name.replace(/\.(docx?)$/i, '.pdf');
+            fileToUpload = new File([pdfBlob], newFileName, { type: 'application/pdf' });
+            fileNameToUse = newFileName;
+            
+            showUploadStatus('Conversion successful! Starting upload...', false);
+        }
+
         // Show initial uploading status
-        showUploadStatus(`Uploading Document ....... 0%`, false);
+        showUploadStatus(`Uploading ${uploadFormat === 'pdf' ? 'PDF' : 'Document'} ....... 0%`, false);
 
         // Check if user is HR/Admin - they can upload even if bucket is empty
         const isHRorAdmin = currentUserIsAdmin || /Human Resource(s)?/i.test(currentUserDept) || /Administration/i.test(currentUserDept);
@@ -382,9 +439,9 @@ async function confirmUploadDocument() {
             }
         }
 
-        // Upload new file with timestamp
+        // Upload new file (might be converted PDF) with timestamp
         const timestamp = Date.now();
-        const uploadFilename = `${decodeURIComponent(dcnNo)}_${timestamp}_${file.name}`;
+        const uploadFilename = `${decodeURIComponent(dcnNo)}_${timestamp}_${fileNameToUse}`;
 
         // Get signed URL for upload with real progress tracking
         const { data: uploadData, error: signedUrlError } = await supabase.storage
@@ -421,8 +478,8 @@ async function confirmUploadDocument() {
             });
 
             xhr.open('PUT', uploadData.signedUrl);
-            xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-            xhr.send(file);
+            xhr.setRequestHeader('Content-Type', fileToUpload.type || 'application/octet-stream');
+            xhr.send(fileToUpload);
         });
 
         // Show success after a brief delay
@@ -433,17 +490,14 @@ async function confirmUploadDocument() {
         // Close modal after a short delay to show success message
         setTimeout(() => {
             document.getElementById('uploadDocModal').style.display = 'none';
+            // Hide word options for next time
+            if (wordOptions) wordOptions.style.display = 'none';
             delete window.selectedUploadFile;
             delete window.currentUploadDCN;
         }, 2500);
 
     } catch (err) {
         console.error('Error uploading document:', err);
-        // Clear any running progress interval
-        if (window.uploadProgressInterval) {
-            clearInterval(window.uploadProgressInterval);
-            delete window.uploadProgressInterval;
-        }
         showUploadStatus('Failed to upload: ' + err.message, false);
     }
 }
@@ -872,7 +926,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (uploadConfirmBtn) {
-        uploadConfirmBtn.addEventListener('click', confirmUploadDocument);
+        uploadConfirmBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            confirmUploadDocument();
+        });
     }
 
     if (uploadModal) {

@@ -1,15 +1,37 @@
 const express = require('express');
 const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const os = require('os');
+
+// Adobe PDF Services SDK
+const {
+    ServicePrincipalCredentials,
+    PDFServices,
+    MimeType,
+    CreatePDFJob,
+    CreatePDFResult
+} = require("@adobe/pdfservices-node-sdk");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Configure multer for conversion uploads - use system temp dir to avoid triggering dev tool refreshes
+const uploadDir = path.join(os.tmpdir(), 'swanson-uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+const upload = multer({ dest: uploadDir });
 
 // CORS configuration for frontend - production URLs and local development
 app.use(cors({
   origin: [
     'http://127.0.0.1:5500',
     'http://localhost:5500',
+    'http://127.0.0.1:5501',
+    'http://localhost:5501',
     'http://localhost:3000',
     'https://swanson-india-portal.vercel.app',
     'https://swanson-india-portal-9achzdpnx.vercel.app',
@@ -50,6 +72,142 @@ function createAuthenticatedSupabaseClient(req) {
     }
   );
 }
+
+// Endpoint to convert Word to PDF using Adobe PDF Services API
+app.post('/convert-to-pdf', upload.single('file'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    let readStream;
+    try {
+        // Load Adobe credentials - use env vars in production, file in development
+        let credentials;
+        
+        if (process.env.ADOBE_CLIENT_ID && process.env.ADOBE_CLIENT_SECRET) {
+            // Production: Use environment variables
+            credentials = new ServicePrincipalCredentials({
+                clientId: process.env.ADOBE_CLIENT_ID,
+                clientSecret: process.env.ADOBE_CLIENT_SECRET
+            });
+        } else {
+            // Development: Load from JSON file (in adobe-dc-pdf-services-sdk-node folder)
+            const credentialsPath = path.join(__dirname, 'adobe-dc-pdf-services-sdk-node', 'pdfservices-api-credentials.json');
+            const credentialsData = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+            
+            credentials = new ServicePrincipalCredentials({
+                clientId: credentialsData.client_credentials.client_id,
+                clientSecret: credentialsData.client_credentials.client_secret
+            });
+        }
+
+        // Create PDF Services instance
+        const pdfServices = new PDFServices({ credentials });
+
+        // Read the uploaded Word file
+        readStream = fs.createReadStream(req.file.path);
+        
+        // Upload file to Adobe
+        const inputAsset = await pdfServices.upload({
+            readStream,
+            mimeType: MimeType.DOCX
+        });
+
+        // Create a new CreatePDF job
+        const job = new CreatePDFJob({ inputAsset });
+
+        // Submit the job and get polling URL
+        const pollingURL = await pdfServices.submit({ job });
+        
+        // Get the job result
+        const pdfServicesResponse = await pdfServices.getJobResult({
+            pollingURL,
+            resultType: CreatePDFResult
+        });
+
+        // Get the resulting PDF asset
+        const resultAsset = pdfServicesResponse.result.asset;
+        
+        // Download the PDF from Adobe
+        const outputPath = `${req.file.path}.pdf`;
+        const streamAsset = await pdfServices.getContent({ asset: resultAsset });
+        
+        // The streamAsset has a readStream property (Adobe SDK pattern)
+        console.log('Starting PDF file write from Adobe StreamAsset');
+        
+        return new Promise((resolve, reject) => {
+            const outputStream = fs.createWriteStream(outputPath);
+            
+            // Pipe the Adobe stream asset to the output file
+            streamAsset.readStream.pipe(outputStream);
+            
+            outputStream.on('finish', () => {
+                console.log('Adobe PDF conversion completed successfully');
+                
+                // Send the converted PDF file
+                res.sendFile(path.resolve(outputPath), (err) => {
+                    if (err) {
+                        console.error('Error sending file:', err);
+                        reject(err);
+                    }
+                    // Cleanup: delete both input and output files
+                    try {
+                        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+                        if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
+                    } catch (cleanupError) {
+                        console.warn('Cleanup error:', cleanupError);
+                    }
+                    resolve();
+                });
+            });
+            
+            outputStream.on('error', (err) => {
+                console.error('Write stream error:', err);
+                res.status(500).json({
+                    error: 'PDF conversion failed',
+                    details: err.message
+                });
+                // Cleanup
+                try {
+                    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+                } catch (cleanupError) {
+                    console.warn('Cleanup error:', cleanupError);
+                }
+                reject(err);
+            });
+            
+            streamAsset.readStream.on('error', (err) => {
+                console.error('Source stream error:', err);
+                res.status(500).json({
+                    error: 'PDF conversion failed',
+                    details: err.message
+                });
+                try {
+                    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+                } catch (cleanupError) {
+                    console.warn('Cleanup error:', cleanupError);
+                }
+                reject(err);
+            });
+        });
+
+    } catch (err) {
+        console.error('Adobe PDF conversion error:', err);
+        
+        // Cleanup on error
+        try {
+            if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+            if (readStream) readStream.destroy();
+        } catch (cleanupError) {
+            console.warn('Cleanup error:', cleanupError);
+        }
+
+        res.status(500).json({
+            error: 'PDF conversion failed',
+            details: err.message || 'Unknown error occurred'
+        });
+    }
+});
 
 // Keep-alive system to prevent cold starts
 setInterval(() => {
