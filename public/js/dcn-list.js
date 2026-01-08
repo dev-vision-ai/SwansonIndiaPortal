@@ -389,7 +389,7 @@ async function confirmUploadDocument() {
             formData.append('file', file);
             
             // Call backend for conversion
-            const response = await fetch(`${BACKEND_URL}/convert-to-pdf`, {
+            const response = await fetch(`${BACKEND_URL}/api/convert-to-pdf`, {
                 method: 'POST',
                 body: formData
             });

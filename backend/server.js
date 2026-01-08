@@ -79,7 +79,7 @@ function createAuthenticatedSupabaseClient(req) {
 }
 
 // Endpoint to convert Word to PDF using Adobe PDF Services API
-app.post('/convert-to-pdf', upload.single('file'), async (req, res) => {
+app.post('/api/convert-to-pdf', upload.single('file'), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
     }
