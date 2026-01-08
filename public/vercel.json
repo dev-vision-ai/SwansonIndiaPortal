@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "../backend/server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "../backend/server.js"
+    },
+    {
+      "src": "/ping",
+      "dest": "../backend/server.js"
+    },
+    {
+      "src": "/keep-alive",
+      "dest": "../backend/server.js"
+    },
+    {
+      "src": "/health",
+      "dest": "../backend/server.js"
+    },
+    {
+      "src": "/export(.*)",
+      "dest": "../backend/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+} 
