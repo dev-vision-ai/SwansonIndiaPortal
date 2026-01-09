@@ -368,10 +368,10 @@ async function confirmUploadDocument() {
     }
 
     try {
-        // Determine backend URL
-        const BACKEND_URL = window.BACKEND_URL || (['127.0.0.1', 'localhost'].includes(window.location.hostname)
-            ? `${window.location.protocol}//${window.location.hostname}:3000`
-            : `${window.location.protocol}//${window.location.hostname}`);
+        // Simple fix: Use relative path for production, full URL for local
+        const isLocalDev = window.location.hostname === 'localhost' || 
+                           window.location.hostname === '127.0.0.1';
+        const convertEndpoint = isLocalDev ? 'http://localhost:3000/convert-to-pdf' : '/convert-to-pdf';
 
         // Check if conversion is requested for Word files
         const wordOptions = document.getElementById('wordFileOptions');
@@ -388,8 +388,8 @@ async function confirmUploadDocument() {
             const formData = new FormData();
             formData.append('file', file);
             
-            // Call backend for conversion
-            const response = await fetch(`${BACKEND_URL}/api/convert-to-pdf`, {
+            // Call backend for conversion (use relative path in production, or backend URL in local dev)
+            const response = await fetch(convertEndpoint, {
                 method: 'POST',
                 body: formData
             });

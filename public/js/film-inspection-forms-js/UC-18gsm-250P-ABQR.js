@@ -2138,7 +2138,7 @@ function getHeaderFormData() {
         production_date: productionDateInput?.value || '',
         inspection_date: inspectionDateInput?.value || '',
         specification: specificationInput?.value || '',
-        purchase_order: poInput?.value || '',
+        purchase_order: 'N/A',
         quantity: quantityInput?.value ? parseInt(quantityInput.value) : null
     };
     

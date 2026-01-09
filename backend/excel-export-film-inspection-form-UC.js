@@ -188,11 +188,11 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
     // Inspection Date (B43) - format as DD/MM/YYYY
     page1Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
 
-    // Verified By (H42)
-    page1Worksheet.getCell('H42').value = data.verified_by || 'Not Verified';
+    // Verified By (J42)
+    page1Worksheet.getCell('J42').value = data.verified_by || 'Not Verified';
 
-    // Verified Date (H43) - format as DD/MM/YYYY
-    page1Worksheet.getCell('H43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+    // Verified Date (J43) - format as DD/MM/YYYY
+    page1Worksheet.getCell('J43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (K3)
     page1Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
@@ -623,6 +623,9 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
     // COA FORM DATA MAPPING - UC-18gsm-250P-ABQR COA Form sheet
     if (coaWorksheet) {
       console.log('COA Form sheet detected, mapping COA data');
+
+      // Lot No (B7)
+      coaWorksheet.getCell('B7').value = data.lot_no || '';
 
       // Inspected By (C41)
       coaWorksheet.getCell('C41').value = data.prepared_by || 'Unknown User';
@@ -1214,6 +1217,9 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
     if (coaWorksheet) {
       console.log('COA Form sheet detected, mapping COA data');
 
+      // Lot No (B7)
+      coaWorksheet.getCell('B7').value = data.lot_no || '';
+
       // Inspected By (C41)
       coaWorksheet.getCell('C41').value = data.prepared_by || 'Unknown User';
 
@@ -1802,6 +1808,9 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
     // COA FORM DATA MAPPING - UC-18gsm-290NP-ABQR COA Form sheet
     if (coaWorksheet) {
       console.log('COA Form sheet detected, mapping COA data');
+
+      // Lot No (B7)
+      coaWorksheet.getCell('B7').value = data.lot_no || '';
 
       // Inspected By (C41)
       coaWorksheet.getCell('C41').value = data.prepared_by || 'Unknown User';
@@ -2392,6 +2401,9 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
     if (coaWorksheet) {
       console.log('COA Form sheet detected, mapping COA data');
 
+      // Lot No (B7)
+      coaWorksheet.getCell('B7').value = data.lot_no || '';
+
       // Inspected By (C41)
       coaWorksheet.getCell('C41').value = data.prepared_by || 'Unknown User';
 
@@ -2975,6 +2987,9 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
     // COA FORM DATA MAPPING - UC-18gsm-210W-BFQR COA Form sheet
     if (coaWorksheet) {
       console.log('COA Form sheet detected, mapping COA data');
+
+      // Lot No (B7)
+      coaWorksheet.getCell('B7').value = data.lot_no || '';
 
       // Inspected By (C41)
       coaWorksheet.getCell('C41').value = data.prepared_by || 'Unknown User';
@@ -3591,6 +3606,9 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
     // COA FORM DATA MAPPING - UC-16gsm-165W COA Form sheet
     if (coaWorksheet) {
       console.log('COA Form sheet detected, mapping COA data');
+
+      // Lot No (B7)
+      coaWorksheet.getCell('B7').value = data.lot_no || '';
 
       // Inspected By (C33)
       coaWorksheet.getCell('C33').value = data.prepared_by || 'Unknown User';

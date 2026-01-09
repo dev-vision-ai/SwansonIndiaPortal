@@ -522,7 +522,7 @@
                         <div>
                             <label for="standard-packing-modal" class="block text-sm font-medium text-gray-700 mb-1">Standard Packing <span class="text-red-500">*</span></label>
                             <div class="flex rounded-md shadow-sm">
-                                <input id="standard-packing-modal" name="standard-packing" type="text" required class="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter number" style="appearance: textfield; -moz-appearance: textfield;" autocomplete="off" oninput="validateStandardPackingInput(this)">
+                                <input id="standard-packing-modal" name="standard-packing" type="text" required class="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter number or text" autocomplete="off">
                                 <select id="standard-packing-unit-modal" name="standard-packing-unit" class="px-3 py-2 border border-l-0 border-gray-300 bg-gray-200 text-gray-700 text-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] rounded-r-md" autocomplete="off">
                                     <option value="Rolls / Pallet" selected>Rolls / Pallet</option>
                                     <option value="Rolls / Box">Rolls / Box</option>
@@ -535,8 +535,12 @@
                         </div>
                     </div>
                     
-                    <!-- Row with 4 equal fields: Reference No, Film Inspection Form Ref No, Pre-store Inspection Done By, Empty -->
+                    <!-- Row with 4 equal fields: COA Lot No, Pre-Store Reference No, Film Inspection Form Ref No, Pre-store Inspection Done By -->
                     <div class="col-span-full grid grid-cols-4 gap-2">
+                        <div id="coa-lot-no-container" class="hidden">
+                            <label for="coa-lot-no-modal" class="block text-sm font-medium text-gray-700 mb-1">COA Lot No. <span class="text-red-500">*</span></label>
+                            <input id="coa-lot-no-modal" name="lot_no" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter COA Lot No" autocomplete="off">
+                        </div>
                         <div>
                             <label for="ref-no-modal" class="block text-sm font-medium text-gray-700 mb-1">Pre-Store Reference No:</label>
                             <input id="ref-no-modal" name="ref_no" type="text" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Enter Reference No" autocomplete="off">
@@ -549,12 +553,6 @@
                             <label for="prestore-done-by-modal" class="block text-sm font-medium text-gray-700 mb-1">Pre-store Inspection Done By: <span class="text-red-500">*</span></label>
                             <input id="prestore-done-by-modal" name="prestore_done_by" type="text" required class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50" placeholder="Type to search inspector name..." autocomplete="off">
                             <div id="prestoreDoneBySuggestions" class="absolute z-50 w-full border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden" style="background: #eaf4fb;"></div>
-                        </div>
-                        <div>
-                            <!-- Empty field for consistent grid layout -->
-                        </div>
-                        <div>
-                            <!-- Empty field for consistent grid layout -->
                         </div>
                     </div>
                     

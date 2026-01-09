@@ -12,7 +12,7 @@
   ],
   "routes": [
     {
-      "src": "/api/convert-to-pdf",
+      "src": "/convert-to-pdf",
       "dest": "backend/server.js"
     },
     {

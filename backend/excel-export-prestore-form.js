@@ -245,15 +245,15 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
 
       // Handle verified_by and approved_by fields from the film inspection form
       if (data.verified_by !== undefined) {
-        worksheet.getCell('B33').value = data.verified_by || 'N/A';
+        worksheet.getCell('B33').value = data.verified_by && data.verified_by.trim() !== '' && data.verified_by !== 'N/A' ? data.verified_by : 'Not Verified';
       }
 
       if (data.approved_by !== undefined) {
-        worksheet.getCell('E33').value = data.approved_by || 'N/A';
+        worksheet.getCell('E33').value = data.approved_by && data.approved_by.trim() !== '' && data.approved_by !== 'N/A' ? data.approved_by : 'Not Approved';
       }
 
       // Put check mark in D24 if approved
-      if (data.approved_by && data.approved_by.trim() !== '' && data.approved_by !== 'N/A') {
+      if (data.approved_by && data.approved_by.trim() !== '' && data.approved_by !== 'N/A' && data.approved_by !== 'Not Approved') {
         worksheet.getCell('D24').value = '✔';
       }
 

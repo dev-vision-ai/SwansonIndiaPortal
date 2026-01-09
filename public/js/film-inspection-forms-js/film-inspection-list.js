@@ -856,6 +856,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             'location': 'location-modal',
             'specification': 'specification-modal',
             'batch': 'batch-modal',
+            'lot_no': 'coa-lot-no-modal',
             'prestore_ref_no': 'ref-no-modal', // Only prestore_ref_no should map to ref-no-modal
             'film_insp_form_ref_no': 'film-insp-ref-no-modal', // Film Inspection Form Ref No
             'standard_packing': 'standard-packing-modal',
@@ -880,35 +881,54 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     if (data[key] && typeof data[key] === 'string') {
 
-                        // For standard packing, extract numbers for input field and unit for dropdown
-
-                        // Extract all numbers and separators (like "30 & 40")
-                        const numberPart = data[key].match(/[\d&\+\s]+/) ? data[key].match(/[\d&\+\s]+/)[0].trim() : '';
-
-                        // Extract unit part (like "Rolls / Pallet")
-                        const unitPart = data[key].replace(/[\d&\+\s]+/, '').trim();
-
-                        // Populate input field with just the number part
-                        input.value = numberPart;
-
-                        // Determine unit for dropdown
-                        let extractedUnit = 'Rolls / Pallet'; // default
-
-                        if (unitPart) {
-                            // Clean up the unit part
-                            const cleanUnit = unitPart.replace(/[\/]/g, ' / ').trim();
-
-                            // Check if it matches known units
-                            if (cleanUnit.toLowerCase().includes('pallet')) {
-                                extractedUnit = 'Rolls / Pallet';
-                            } else if (cleanUnit.toLowerCase().includes('box')) {
-                                extractedUnit = 'Rolls / Box';
-                            } else {
-                                extractedUnit = 'Rolls / Pallet'; // default
+                        // For standard packing, extract the text part (numbers or words) and unit separately
+                        const fullValue = data[key].trim();
+                        
+                        // Check if the value contains known unit patterns
+                        const unitPatterns = [
+                            /\brolls\s*\/\s*pallet\b/i,
+                            /\brolls\s*\/\s*box\b/i,
+                            /\brolls\s+per\s+pallet\b/i,
+                            /\brolls\s+per\s+box\b/i
+                        ];
+                        
+                        let textPart = fullValue;
+                        let unit = 'Rolls / Pallet'; // default
+                        
+                        // Try to match and extract unit
+                        for (const pattern of unitPatterns) {
+                            const match = fullValue.match(pattern);
+                            if (match) {
+                                // Extract the unit part
+                                const unitMatch = match[0];
+                                textPart = fullValue.replace(unitMatch, '').trim();
+                                
+                                // Determine the standardized unit
+                                if (unitMatch.toLowerCase().includes('box')) {
+                                    unit = 'Rolls / Box';
+                                } else {
+                                    unit = 'Rolls / Pallet';
+                                }
+                                break;
+                            }
+                        }
+                        
+                        // If no specific unit pattern found, try to extract from end of string
+                        if (textPart === fullValue) {
+                            const words = fullValue.split(/\s+/);
+                            const lastWords = words.slice(-3).join(' ').toLowerCase(); // Check last 3 words
+                            
+                            if (lastWords.includes('per pallet') || lastWords.includes('/ pallet')) {
+                                textPart = words.slice(0, -2).join(' '); // Remove last 2 words
+                                unit = 'Rolls / Pallet';
+                            } else if (lastWords.includes('per box') || lastWords.includes('/ box')) {
+                                textPart = words.slice(0, -2).join(' '); // Remove last 2 words
+                                unit = 'Rolls / Box';
                             }
                         }
 
-                        unit = extractedUnit;
+                        // Populate input field with the text part (could be numbers or words)
+                        input.value = textPart;
                     }
 
                     // Set the unit dropdown - handle different unit formats
@@ -1098,72 +1118,72 @@ document.addEventListener('DOMContentLoaded', async () => {
             const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc290pResult, uc290npResult, uc250wResult, uc210wResult, microWhite234Result, microWhite102Result, white168Result, uc165wResult] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
-                    .select('prestore_ref_no')
+                    .select('prestore_ref_no, lot_no')
                     .eq('form_id', formId)
                     .maybeSingle(),
                 supabase
                     .from('168_16c_white')
-                    .select('prestore_ref_no')
+                    .select('prestore_ref_no, lot_no')
                     .eq('form_id', formId)
                     .maybeSingle(),
                 supabase
                     .from('176_18cp_ww')
-                    .select('prestore_ref_no')
+                    .select('prestore_ref_no, lot_no')
                     .eq('form_id', formId)
                     .maybeSingle(),
                 supabase
                     .from('168_18c_white_jeddah')
-                    .select('prestore_ref_no')
+                    .select('prestore_ref_no, lot_no')
                     .eq('form_id', formId)
                     .maybeSingle(),
                 supabase
                     .from('214_18_micro_white')
-                    .select('prestore_ref_no')
+                    .select('prestore_ref_no, lot_no')
                     .eq('form_id', formId)
                     .maybeSingle(),
                 supabase
                     .from('uc-18gsm-250p-abqr')
-                    .select('prestore_ref_no')
+                    .select('prestore_ref_no, lot_no')
                     .eq('form_id', formId)
                     .maybeSingle(),
                 supabase
                     .from('uc-18gsm-290p-abqr')
-                    .select('prestore_ref_no')
+                    .select('prestore_ref_no, lot_no')
                     .eq('form_id', formId)
                     .maybeSingle(),
                 supabase
                     .from('uc-18gsm-290np-abqr')
-                    .select('prestore_ref_no')
+                    .select('prestore_ref_no, lot_no')
                     .eq('form_id', formId)
                     .maybeSingle(),
                 supabase
                     .from('uc-18gsm-250w-bfqr')
-                    .select('prestore_ref_no')
+                    .select('prestore_ref_no, lot_no')
                     .eq('form_id', formId)
                     .maybeSingle(),
                 supabase
                     .from('uc-18gsm-210w-bfqr')
-                    .select('prestore_ref_no')
+                    .select('prestore_ref_no, lot_no')
                     .eq('form_id', formId)
                     .maybeSingle(),
                 supabase
                     .from('234_18_micro_white')
-                    .select('prestore_ref_no')
+                    .select('prestore_ref_no, lot_no')
                     .eq('form_id', formId)
                     .maybeSingle(),
                 supabase
                     .from('102_18c_micro_white')
-                    .select('prestore_ref_no')
+                    .select('prestore_ref_no, lot_no')
                     .eq('form_id', formId)
                     .maybeSingle(),
                 supabase
                     .from('168_18c_white')
-                    .select('prestore_ref_no')
+                    .select('prestore_ref_no, lot_no')
                     .eq('form_id', formId)
                     .maybeSingle(),
                 supabase
                     .from('uc-16gsm-165w')
-                    .select('prestore_ref_no')
+                    .select('prestore_ref_no, lot_no')
                     .eq('form_id', formId)
                     .maybeSingle()
             ]);
@@ -1332,13 +1352,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                     
                     if (data) {
                         prePopulatePrestoreForm(data);
+                        // Handle COA Lot No. visibility based on customer
+                        handleCoaLotNoVisibility(data.customer);
                     } else if (!uc165wResult?.error && uc165wResult?.data) {
                         // Fallback: if data wasn't found in other tables, use uc-16gsm-165w result
                         prePopulatePrestoreForm(uc165wResult.data);
+                        // Handle COA Lot No. visibility based on customer
+                        handleCoaLotNoVisibility(uc165wResult.data.customer);
                     }
                 } catch (error) {
                     console.error('Error loading existing data:', error);
                 }
+            } else {
+                // For new forms, hide COA Lot No. by default
+                handleCoaLotNoVisibility('');
             }
         } catch (error) {
             console.error('Error in background setup:', error);
@@ -1395,6 +1422,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 location: formData.get('location'),
                 specification: formData.get('specification'),
                 batch: formData.get('batch'),
+                // Only set lot_no for Unicharm customer, NULL for others
+                lot_no: formData.get('customer') && formData.get('customer').toLowerCase().includes('unicharm') ? formData.get('lot_no') : null,
                 prestore_ref_no: formData.get('ref_no'),
                 film_insp_form_ref_no: formData.get('film_insp_form_ref_no'),
                 standard_packing: formData.get('standard-packing') ? `${formData.get('standard-packing')} ${formData.get('standard-packing-unit')}` : null,
@@ -1485,6 +1514,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Update existing record using form_id (DO NOT update prepared_by to preserve original author)
                 const updateData = { ...preStoreFormData };
                 delete updateData.prepared_by; // Remove prepared_by from update to preserve original author
+                
+                // IMPORTANT: Remove lot_no from update to avoid unique constraint violation
+                // The lot_no is set once on creation and should not be changed during updates
+                delete updateData.lot_no;
                 
                 const { error: updateError } = await supabase
                     .from(tableName)
@@ -3642,9 +3675,18 @@ window.deleteFilmForm = async function(formId) {
                 }
             }
             
+            // Always set purchase_order to "N/A" for new forms
+            data.purchase_order = 'N/A';
 
             // Validate required fields
             const requiredFields = ['product_code', 'customer', 'specification', 'production_date', 'inspection_date', 'machine_no'];
+            
+            // Add lot_no to required fields only if COA Lot No. field is visible (Unicharm customer)
+            const coaLotNoContainer = document.getElementById('coa-lot-no-container');
+            if (coaLotNoContainer && !coaLotNoContainer.classList.contains('hidden')) {
+                requiredFields.push('lot_no');
+            }
+            
             const missingFields = requiredFields.filter(field => !data[field]);
             
             if (missingFields.length > 0) {
@@ -3691,11 +3733,11 @@ window.deleteFilmForm = async function(formId) {
 
             // lot_no field removed - not present in HTML form
 
-            // Convert "N/A" values to null for database storage
+            // Convert "N/A" values to null for database storage (except purchase_order)
             Object.keys(data).forEach(key => {
                 const value = data[key];
-                if (value === 'N/A' || value === 'n/a' || value === 'na' || value === 'N/a' || 
-                    value === '' || value === ' ' || value === 'null' || value === 'undefined') {
+                if (key !== 'purchase_order' && (value === 'N/A' || value === 'n/a' || value === 'na' || value === 'N/a' || 
+                    value === '' || value === ' ' || value === 'null' || value === 'undefined')) {
                     data[key] = null;
                 }
             });
@@ -3942,6 +3984,24 @@ window.deleteFilmForm = async function(formId) {
         }
     }
 
+    // Function to handle COA Lot No. visibility based on customer
+    function handleCoaLotNoVisibility(customerValue) {
+        const coaLotNoContainer = document.getElementById('coa-lot-no-container');
+        const coaLotNoInput = document.getElementById('coa-lot-no-modal');
+        
+        if (!coaLotNoContainer || !coaLotNoInput) return;
+        
+        // Show COA Lot No. field only for Unicharm customer
+        if (customerValue && customerValue.toLowerCase().includes('unicharm')) {
+            coaLotNoContainer.classList.remove('hidden');
+            coaLotNoInput.required = true;
+        } else {
+            coaLotNoContainer.classList.add('hidden');
+            coaLotNoInput.required = false;
+            coaLotNoInput.value = ''; // Clear the value when hiding
+        }
+    }
+
     // Function to load customer for prestore modal
     async function loadCustomerForPrestore(selectedProduct) {
         const customerInput = document.getElementById('customer-modal');
@@ -3964,13 +4024,24 @@ window.deleteFilmForm = async function(formId) {
 
             if (product && product.customer) {
                 customerInput.value = product.customer;
+                // Handle COA Lot No. visibility when customer is loaded
+                handleCoaLotNoVisibility(product.customer);
             }
         } catch (error) {
             console.error('Error loading customer for prestore:', error);
         }
     }
 
-    // Function to load pallet sizes from fif_products_master table
+    // Add event listener to customer field for COA Lot No. visibility
+    const customerModalInput = document.getElementById('customer-modal');
+    if (customerModalInput) {
+        customerModalInput.addEventListener('input', function() {
+            handleCoaLotNoVisibility(this.value);
+        });
+        customerModalInput.addEventListener('change', function() {
+            handleCoaLotNoVisibility(this.value);
+        });
+    }
     async function loadPalletSizes() {
         try {
             const { data: products, error } = await supabase
@@ -4190,7 +4261,7 @@ window.deleteFilmForm = async function(formId) {
                 pallet_size: formData.get('pallet-size') || '',
                 machine_no: formData.get('machine_no') || '',
                 purchase_order: formData.get('purchase_order') || '',
-                // lot_no field removed - not present in HTML form
+                lot_no: formData.get('lot_no') || '',
                 pallet_list: formData.get('pallet-list') || '',
                 product_label: formData.get('product-label') || '',
                 wrapping: formData.get('wrapping') || '',

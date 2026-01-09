@@ -1220,7 +1220,7 @@ document.addEventListener('DOMContentLoaded', function() {
                    production_date: productionDateInput?.value || null,
                    inspection_date: inspectionDateInput?.value || null,
                    specification: specificationInput?.value || '',
-                   purchase_order: poInput?.value || '',
+                   purchase_order: 'N/A',
                    quantity: quantityInput?.value ? parseInt(quantityInput.value) : null,
                    lot_no: currentLotNo || null, // Only use existing lot_no, don't generate new ones
                    // Don't overwrite prestore_ref_no and prepared_by if updating existing form

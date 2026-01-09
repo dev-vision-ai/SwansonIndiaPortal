@@ -182,8 +182,8 @@ function validateFieldInput(text, field) {
             // Arm field: only allow A or B
             text = text.replace(/[^ABab]/g, '').toUpperCase();
         } else if (field === 'inspected_by') {
-            // Inspected By field: allow letters and spaces for names
-            text = text.replace(/[^A-Za-z\s]/g, '').toUpperCase();
+            // Inspected By field: allow letters and spaces for names (preserve case)
+            text = text.replace(/[^A-Za-z\s]/g, '');
         } else {
             // Other letter fields: allow A-Z
             text = text.replace(/[^A-Za-z]/g, '').toUpperCase();
