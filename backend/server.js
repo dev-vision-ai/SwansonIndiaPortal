@@ -79,13 +79,15 @@ function createAuthenticatedSupabaseClient(req) {
 }
 
 // Endpoint to convert Word to PDF using Adobe PDF Services API
-app.post('/api/convert-to-pdf', upload.single('file'), async (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded' });
-    }
+// Note: On Vercel, depending on routing/rewrites, the function may receive the path
+// with or without the `/api` prefix. We register both to avoid 404s in production.
+async function convertToPdfHandler(req, res) {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
 
-    let readStream;
-    try {
+  let readStream;
+  try {
         // Load Adobe credentials from environment variables (required for both dev and prod)
         if (!process.env.ADOBE_CLIENT_ID || !process.env.ADOBE_CLIENT_SECRET) {
             return res.status(500).json({
@@ -205,7 +207,10 @@ app.post('/api/convert-to-pdf', upload.single('file'), async (req, res) => {
             details: err.message || 'Unknown error occurred'
         });
     }
-});
+    }
+
+    app.post('/api/convert-to-pdf', upload.single('file'), convertToPdfHandler);
+    app.post('/convert-to-pdf', upload.single('file'), convertToPdfHandler);
 
 // Keep-alive system to prevent cold starts
 setInterval(() => {

@@ -131,7 +131,8 @@ const fieldValidationRules = {
     'prs': { type: 'xo', maxTotal: 1 },
     'roll_curve': { type: 'xo', maxTotal: 1 },
     'core_misalignment': { type: 'xo', maxTotal: 1 },
-    'others': { type: 'xo', maxTotal: 1 }
+    'others': { type: 'xo', maxTotal: 1 },
+    'inspected_by': { type: 'letters', maxTotal: 50 }  // Only letters allowed, max 50 characters
 };
 
 // Validate and format field input
@@ -180,6 +181,9 @@ function validateFieldInput(text, field) {
         if (field === 'arm') {
             // Arm field: only allow A or B
             text = text.replace(/[^ABab]/g, '').toUpperCase();
+        } else if (field === 'inspected_by') {
+            // Inspected By field: allow letters and spaces for names
+            text = text.replace(/[^A-Za-z\s]/g, '').toUpperCase();
         } else {
             // Other letter fields: allow A-Z
             text = text.replace(/[^A-Za-z]/g, '').toUpperCase();

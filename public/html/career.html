@@ -2,117 +2,134 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Careers - Swanson Plastics India Private Limited</title>
-    <link rel="icon" type="image/png" href="../assets/logo2.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Careers - Swanson Plastics India Pvt. Ltd.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../css/index.css">
     <link rel="stylesheet" href="../css/career.css">
-    <link rel="stylesheet" href="../css/common-header.css">
-    <link rel="stylesheet" href="../css/responsive.css">
-
+</head>
 <body>
-     <!-- DESKTOP Navigation Bar -->
-     <header id="desktop-header" class="navbar"> <!-- <<< Added id="desktop-header" -->
+
+    <nav class="navbar" id="main-nav">
         <div class="nav-container">
-            <div class="logo-container">
+            <div class="brand">
                 <img src="../assets/logo.png" alt="Swanson Logo" class="logo">
-                <div class="company-names">
-                    <span class="company-name">Swanson Plastics India Private Limited</span>
-                    <span class="company-name-translated">स्वानसन प्लास्टिक्स इंडिया प्रायवेट लिमिटेड</span>
+                <div class="brand-text">
+                    <span class="company-en">Swanson Plastics India Pvt. Ltd.</span>
+                    <span class="company-local">स्वानसन प्लास्टिक्स इंडिया प्रायवेट लिमिटेड</span>
                 </div>
             </div>
-            <nav class="nav-links">
-                <!-- Corrected paths for career.html -->
-                <a href="../index.html">Home</a> 
-                <a href="../html/aboutus.html">About Us</a> 
-                <a href="../html/products.html">Products</a> 
-                <a href="../html/contact.html">Contact</a> 
-                <a href="#careers">Career Opportunities</a> 
-            </nav>            
-        </div>
-    </header>
-    <!-- <<< PASTE MOBILE HEADER HERE >>> -->
-    <!-- MOBILE Navigation Bar -->
-    <header id="mobile-header" class="navbar-mobile">
-        <div class="nav-container-mobile">
-            <div class="logo-container-mobile">
-                <!-- Corrected paths for career.html -->
-                <img src="../assets/logo.png" alt="Swanson Logo" class="logo-mobile">
-                <div class="company-names-mobile">
-                    <span class="company-name">Swanson Plastics India Private Limited</span>
-                    <span class="company-name-translated">स्वानसन प्लास्टिक्स इंडिया प्रायवेट लिमिटेड</span>
-                </div>
-            </div>
-            <button class="menu-icon" id="menu-toggle" aria-label="Toggle menu">
-                <!-- Ensure this is empty inside -->
+
+            <ul class="nav-links" id="nav-links">
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="aboutus.html">About Us</a></li>
+                <li>
+                    <a href="#" class="nav-dropdown-toggle" aria-expanded="false">Gallery <i class="bi bi-chevron-down"></i></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="gallery-category.html?category=Life%20At%20Swanson">Life At Swanson</a></li>
+                        <li><a href="gallery-category.html?category=Our%20Achievements">Our Achievements</a></li>
+                        <li><a href="gallery-category.html?category=Machinery">Machinery</a></li>
+                        <li><a href="gallery-category.html?category=Infrastructure">Infrastructure</a></li>
+                        <li><a href="gallery-category.html?category=Testing%20%26%20Quality%20Labs">Testing &amp; Quality Labs</a></li>
+                        <li><a href="gallery-category.html?category=Corporate%20Events%20%26%20Visits">Corporate Events &amp; Visits</a></li>
+                        <li><a href="gallery-category.html?category=Environment%20%26%20Safety">Environment &amp; Safety</a></li>
+                    </ul>
+                </li>
+                <li><a href="products.html">Products</a></li>
+                <li class="active"><a href="career.html">Careers</a></li>
+                <li><a href="contact.html" class="btn-cta">Get Started</a></li>
+            </ul>
+
+            <button class="menu-toggle" id="menu-toggle">
+                <i class="bi bi-list"></i>
             </button>
         </div>
-        <nav id="mobile-nav-links" class="mobile-nav-links">
-            <!-- Corrected paths for career.html -->
-            <a href="../index.html">Home</a>
-            <a href="../html/aboutus.html">About Us</a> 
-            <a href="../html/products.html">Products</a>
-            <a href="../html/contact.html">Contact</a>
-            <a href="#careers">Career Opportunities</a>
-        </nav>
-    </header>
+    </nav>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <section class="career-section">
-            <h1>Career Opportunities</h1>
-            <p class="career-intro">Join our dynamic team at Swanson Plastics India and be part of our innovative journey.</p>
-            
-            <div id="job-listings" class="job-listings">
-                <!-- Job listings will be populated dynamically -->
-                <div class="no-jobs-message">
-                    <p>Currently, there are no open positions. Please check back later.</p>
+    <main>
+        <section class="hero-mini">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h1>Join Our <span class="highlight">Team</span></h1>
+                <p>Build the future of plastic innovation with us. Explore exciting career opportunities at Swanson.</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="reveal-up">Open Positions</h2>
+                    <p class="subtitle">Find your next role in precision manufacturing.</p>
+                </div>
+                
+                <div id="job-listings" class="job-listings reveal-up">
+                    <div class="modern-card">
+                        <div class="no-jobs-message">
+                            <i class="bi bi-briefcase" style="font-size: 3rem; color: var(--primary); opacity: 0.3;"></i>
+                            <p style="margin-top: 1rem;">Currently, there are no open positions. <br>Please check back later or send your CV to HR.</p>
+                            <a href="mailto:viraj.j@usig.com" class="btn-main" style="margin-top: 2rem; display: inline-block;">Send CV to HR</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
-    </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <!-- Map First -->
-            <div class="footer-map-section">
-                 <div class="map-container">
-                    <iframe 
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4729.814270724126!2d74.0697509543609!3d15.542818047035338!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bbfa2f48774e285%3A0x5909f5e875028f2!2sSwanson%20Plastics%20India%20Pvt%20Ltd!5e1!3m2!1sen!2sin!4v1744537737813!5m2!1sen!2sin" 
-                        width="100%" 
-                        height="220" /* Adjusted height */
-                        style="border:0;" 
-                        allowfullscreen 
-                        loading="lazy" 
-                        referrerpolicy="no-referrer-when-downgrade">
-                    </iframe>
+        <section class="section bg-light">
+            <div class="container">
+                <div class="grid-3">
+                    <div class="modern-card">
+                        <div class="card-icon"><i class="bi bi-heart-pulse"></i></div>
+                        <h3>Employee Wellbeing</h3>
+                        <p>Comprehensive health benefits and a supportive work environment for all team members.</p>
+                    </div>
+                    <div class="modern-card">
+                        <div class="card-icon"><i class="bi bi-ladder"></i></div>
+                        <h3>Career Growth</h3>
+                        <p>Continuous learning opportunities and clear paths for professional advancement.</p>
+                    </div>
+                    <div class="modern-card">
+                        <div class="card-icon"><i class="bi bi-people"></i></div>
+                        <h3>Diverse Culture</h3>
+                        <p>Join a multi-cultural team that values collaboration and innovative thinking.</p>
+                    </div>
                 </div>
             </div>
+        </section>
+    </main>
 
-            <!-- Contact Info Second -->
-            <div class="footer-contact-section">
-                <h4>Contact Us</h4>
-                <p>Plot No. 2, Goa Industrial Development Corporation<br>Onda, Bhuimpal, Sattari-Goa, 403530<br>Phone: +91 7262002306</p> <!-- Updated phone number -->
+    <footer class="modern-footer">
+        <div class="container footer-grid">
+            <div class="footer-info">
+                <img src="../assets/logo.png" alt="Logo" class="footer-logo">
+                <p>Leading the path in plastic innovation since inception, serving global hygiene markets with precision.</p>
+                <div class="footer-map-mini">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4729.814270724126!2d74.0697509543609!3d15.542818047035338!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bbfa2f48774e285%3A0x5909f5e875028f2!2sSwanson%20Plastics%20India%20Pvt%20Ltd!5e1!3m2!1sen!2sin!4v1744537737813!5m2!1sen!2sin" width="100%" height="120" style="border:0; border-radius: 12px;" allowfullscreen loading="lazy"></iframe>
+                </div>
             </div>
-
-            <!-- Quick Links Third -->
-            <div class="footer-links-section">
+            <div class="footer-links">
                 <h4>Quick Links</h4>
                 <a href="../index.html">Home</a>
-                <a href="../html/aboutus.html">About Us</a>
-                <a href="../html/products.html">Products</a>
-                <a href="../html/#contact.html">Contact</a>
-                <a href="#careers">Career Opportunities</a>
+                <a href="aboutus.html">About Us</a>
+                <a href="products.html">Products</a>
+                <a href="#">Careers</a>
+                <a href="contact.html">Contact</a>
+            </div>
+            <div class="footer-contact">
+                <h4>Contact Us</h4>
+                <p><i class="bi bi-geo-alt"></i> Plot No. 2, GIDC Onda, Bhuimpal, Sattari-Goa, 403530</p>
+                <p><i class="bi bi-telephone"></i> +91 7262002306</p>
+                <p><i class="bi bi-envelope"></i> viraj.j@usig.com</p>
             </div>
         </div>
-        <div class="footer-copyright">
-            <p>© 2025 Swanson Plastics India Pvt. Ltd. All rights reserved.</p>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Swanson Plastics India Pvt. Ltd. All rights reserved.</p>
         </div>
     </footer>
 
     <script type="module" src="../js/index.js"></script>
-    <script type="module" src="../supabase-config.js"></script> <!-- Ensure Supabase config is included -->
-    <script type="module" src="../js/career.js"></script> <!-- Add the script for career page logic -->
+    <script type="module" src="../supabase-config.js"></script>
 </body>
 </html>

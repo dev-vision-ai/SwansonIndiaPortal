@@ -1,9 +1,8 @@
-// Import the Supabase client instance (ensure this path is correct relative to js folder)
 import { supabase } from '../supabase-config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- 1. Mobile Menu Toggle ---
+    // 1. Mobile Menu Toggle
     const menuToggle = document.getElementById('menu-toggle');
     const navLinks = document.getElementById('nav-links');
 
@@ -21,140 +20,170 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Close menu when clicking a link
-        navLinks.querySelectorAll('a').forEach(link => {
+        // Dropdown toggle logic
+        const toggleDropdown = (e, toggle) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const li = toggle.parentElement;
+            const isOpen = li.classList.contains('open');
+            
+            // Close all other dropdowns first
+            document.querySelectorAll('.nav-links li.open').forEach(item => {
+                if (item !== li) {
+                    item.classList.remove('open');
+                    item.querySelector('.nav-dropdown-toggle')?.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            // Toggle current
+            if (isOpen) {
+                li.classList.remove('open');
+                toggle.setAttribute('aria-expanded', 'false');
+            } else {
+                li.classList.add('open');
+                toggle.setAttribute('aria-expanded', 'true');
+            }
+        };
+
+        // Click handler
+        navLinks.addEventListener('click', (e) => {
+            const toggle = e.target.closest('.nav-dropdown-toggle');
+            if (toggle) {
+                toggleDropdown(e, toggle);
+            }
+        });
+
+        // Keyboard handler
+        navLinks.addEventListener('keydown', (e) => {
+            const toggle = e.target.closest('.nav-dropdown-toggle');
+            if (toggle && (e.key === 'Enter' || e.key === ' ')) {
+                toggleDropdown(e, toggle);
+            }
+        });
+
+        // Close menu when clicking a non-toggle link
+        navLinks.querySelectorAll('a:not(.nav-dropdown-toggle)').forEach(link => {
             link.addEventListener('click', () => {
                 navLinks.classList.remove('active');
+                document.querySelectorAll('.nav-links li.open').forEach(li => li.classList.remove('open'));
                 menuToggle.querySelector('i').classList.add('bi-list');
                 menuToggle.querySelector('i').classList.remove('bi-x-lg');
             });
         });
-    }
 
-    // --- 2. Hero Background Slideshow ---
-    const heroSection = document.getElementById('hero-slideshow');
-    if (heroSection) {
-        const slides = [
-            './assets/factory-front-2.jpg',
-            './assets/slideshow/quality.jpg',
-            './assets/slideshow/solar.jpg',
-            './assets/slideshow/safety-first.jpg'
-        ];
-        
-        let currentIndex = 0;
-        
-        // Preload images to prevent flickering
-        slides.forEach(src => {
-            const img = new Image();
-            img.src = src;
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.nav-links')) {
+                document.querySelectorAll('.nav-links li.open').forEach(li => {
+                    li.classList.remove('open');
+                    li.querySelector('.nav-dropdown-toggle')?.setAttribute('aria-expanded', 'false');
+                });
+            }
         });
 
-        const changeHeroBackground = () => {
-            currentIndex = (currentIndex + 1) % slides.length;
-            // Apply gradient overlay + image
-            heroSection.style.backgroundImage = `linear-gradient(135deg, rgba(0, 46, 125, 0.9), rgba(0, 20, 60, 0.85)), url('${slides[currentIndex]}')`;
+        // Close dropdowns when selecting a dropdown link (also collapse mobile menu)
+        navLinks.querySelectorAll('.dropdown-menu a').forEach(a => {
+            a.addEventListener('click', () => {
+                document.querySelectorAll('.nav-links li.open').forEach(li => li.classList.remove('open'));
+                navLinks.classList.remove('active');
+                if (menuToggle) {
+                    menuToggle.querySelector('i').classList.add('bi-list');
+                    menuToggle.querySelector('i').classList.remove('bi-x-lg');
+                }
+            });
+        });
+    }
+
+    // 2. Scroll Effect for Navbar
+    const nav = document.querySelector('.navbar');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            nav.classList.add('scrolled');
+        } else {
+            nav.classList.remove('scrolled');
+        }
+    });
+
+    // 2. Reveal Animations on Scroll
+    const observerOptions = { threshold: 0.1 };
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.modern-card, .split-text-box, h2, .reveal-text, .reveal-up').forEach(el => {
+        observer.observe(el);
+    });
+
+    // 3. Dynamic Full-Width Slideshow (2 items at a time)
+    const track = document.getElementById('slideshow-track');
+    if (track) {
+        const images = [
+            { src: 'quality.jpg', title: 'Quality Excellence', desc: 'Rigorous testing and precision manufacturing ensure every product meets the highest standards.' },
+            { src: 'environment.jpg', title: 'Environmental Commitment', desc: 'Sustainable practices and eco-friendly processes for a greener tomorrow.' },
+            { src: 'safety-first.jpg', title: 'Safety First', desc: 'Comprehensive safety protocols protect our team and community every day.' },
+            { src: 'teamwork.jpg', title: 'Teamwork & Collaboration', desc: 'United workforce driving innovation through shared knowledge and expertise.' },
+            { src: 'solar.jpg', title: 'Sustainable Energy', desc: 'Harnessing renewable energy solutions for cleaner manufacturing processes.' },
+            { src: 'recycle.jpg', title: 'Recycling & Sustainability', desc: 'Circular economy principles guide our waste reduction and material reuse initiatives.' }
+        ];
+
+        // Determine path prefix
+        const isSubPage = window.location.pathname.includes('/html/');
+        const pathPrefix = isSubPage ? '../assets/slideshow/' : './assets/slideshow/';
+
+        // Render slides (double them for infinite feel)
+        const allSlides = [...images, ...images];
+        track.innerHTML = allSlides.map(img => `
+            <div class="slideshow-item">
+                <img src="${pathPrefix}${img.src}" alt="${img.title}">
+                <div class="slideshow-caption">
+                    <h4>${img.title}</h4>
+                    <p>${img.desc}</p>
+                </div>
+            </div>
+        `).join('');
+
+        let index = 0;
+        const totalImages = images.length;
+        
+        const moveSlideshow = () => {
+            index++;
+            track.style.transition = 'transform 1.2s cubic-bezier(0.2, 1, 0.3, 1)';
+            
+            // Move by 50% since each item is exactly 50% width with no gaps
+            track.style.transform = `translateX(-${index * 50}%)`;
+
+            // Reset loop without jump
+            if (index >= totalImages) {
+                setTimeout(() => {
+                    track.style.transition = 'none';
+                    index = 0;
+                    track.style.transform = `translateX(0)`;
+                }, 1200);
+            }
         };
 
-        // Set initial background
-        heroSection.style.backgroundImage = `linear-gradient(135deg, rgba(0, 46, 125, 0.9), rgba(0, 20, 60, 0.85)), url('${slides[0]}')`;
-        
-        // Rotate every 4 seconds
-        setInterval(changeHeroBackground, 4000);
+        setInterval(moveSlideshow, 4000);
     }
 
-    // --- 3. Featured Gallery (Supabase) ---
-    const slideshowInner = document.getElementById('slideshow-inner');
-    const slideDotsContainer = document.getElementById('slide-dots');
-    const featuredSection = document.getElementById('featured-slideshow-section');
-
-    if (featuredSection && slideshowInner) {
-        fetchFeaturedSlideshowImages();
+    // 4. Dynamic Hero Image Rotation - TEMPORARILY DISABLED
+    /*
+    const hero = document.getElementById('hero-slideshow');
+    if (hero) {
+        const pathPrefix = window.location.pathname.includes('/html/') ? '../' : './';
+        const images = [
+            `${pathPrefix}assets/factory-front-2.jpg`,
+            `${pathPrefix}assets/slideshow/quality.jpg`,
+            `${pathPrefix}assets/slideshow/solar.jpg`
+        ];
+        let i = 0;
+        setInterval(() => {
+            i = (i + 1) % images.length;
+            hero.style.backgroundImage = `url(${images[i]})`;
+        }, 5000);
     }
-
-    async function fetchFeaturedSlideshowImages() {
-        try {
-            const { data: featuredImages, error } = await supabase
-                .from('gallery_images')
-                .select('image_url, caption, album_id, gallery_albums(album_name)')
-                .eq('featured_on_homepage', true)
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-
-            if (!featuredImages || featuredImages.length === 0) {
-                featuredSection.style.display = 'none';
-                return;
-            }
-
-            renderSlides(featuredImages);
-            showSlides(1); // Start with slide 1
-
-        } catch (error) {
-            console.error('Error fetching gallery:', error);
-            featuredSection.style.display = 'none';
-        }
-    }
-
-    function renderSlides(images) {
-        slideshowInner.innerHTML = '';
-        slideDotsContainer.innerHTML = '';
-        
-        images.forEach((image, index) => {
-            // Get public URL
-            const { data: { publicUrl } } = supabase.storage.from('gallery-images').getPublicUrl(image.image_url);
-            const albumName = image.gallery_albums ? image.gallery_albums.album_name : '';
-            
-            // Create Slide
-            const slide = document.createElement('div');
-            slide.classList.add('slide');
-            slide.innerHTML = `
-                <img src="${publicUrl}" alt="${albumName}">
-                <div class="slide-caption">
-                    <h5>${albumName}</h5>
-                    <p>${image.caption || ''}</p>
-                </div>
-            `;
-            slideshowInner.appendChild(slide);
-
-            // Create Dot
-            const dot = document.createElement('span');
-            dot.classList.add('dot');
-            dot.onclick = () => currentSlide(index + 1);
-            slideDotsContainer.appendChild(dot);
-        });
-    }
+    */
 });
-
-// --- 4. Global Slideshow Controls (Window Scope) ---
-let slideIndex = 1;
-
-window.plusSlides = function(n) {
-    showSlides(slideIndex += n);
-}
-
-window.currentSlide = function(n) {
-    showSlides(slideIndex = n);
-}
-
-function showSlides(n) {
-    let i;
-    const slides = document.getElementsByClassName("slide");
-    const dots = document.getElementsByClassName("dot");
-    
-    if (!slides.length) return;
-
-    if (n > slides.length) { slideIndex = 1 }
-    if (n < 1) { slideIndex = slides.length }
-    
-    for (i = 0; i < slides.length; i++) {
-        slides[i].style.display = "none";
-    }
-    for (i = 0; i < dots.length; i++) {
-        dots[i].className = dots[i].className.replace(" active", "");
-    }
-    
-    slides[slideIndex - 1].style.display = "block";
-    if(dots.length > 0) {
-        dots[slideIndex - 1].className += " active";
-    }
-}

@@ -2,151 +2,101 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Title will be set dynamically by JavaScript -->
-    <title>Gallery - Swanson Plastics India</title>
-    <link rel="icon" type="image/png" href="../assets/logo2.png"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Gallery - Swanson Plastics India Pvt. Ltd.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Link to your main CSS and potentially a specific gallery CSS -->
-    <link rel="stylesheet" href="../css/responsive.css">
-    <link rel="stylesheet" href="../css/gallery-category.css">
-    <link rel="stylesheet" href="../css/common-header.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <!-- GLightbox CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/gallery-category.css">
 </head>
 <body>
-    <!-- You can reuse the navigation bar structure from index.html or aboutus.html -->
-    <!-- DESKTOP Navigation Bar (Copied from aboutus.html) -->
-    <header id="desktop-header" class="navbar"> 
-        <div class="nav-container">
-            <div class="logo-container">
-                <img src="../assets/logo.png" alt="Swanson Logo" class="logo">
-                <div class="company-names">
-                    <span class="company-name">Swanson Plastics India Private Limited</span>
-                    <span class="company-name-translated">स्वानसन प्लास्टिक्स इंडिया प्रायवेट लिमिटेड</span>
-                </div>
-            </div>
-            <nav class="nav-links">
-                <a href="../index.html">Home</a>
-                <!-- Link to aboutus.html page -->
-                <a href="./aboutus.html">About Us</a> 
-                <div class="dropdown">
-                     <!-- Link to gallery-category.html page, not #gallery -->
-                    <a href="gallery-category.html" class="dropdown-toggle">Gallery <i class="bi bi-caret-down-fill"></i></a>
-                    <div class="dropdown-menu">
-                        <a href="gallery-category.html?category=Life%20At%20Swanson">Life At Swanson</a>
-                        <a href="gallery-category.html?category=Our%20Achievements">Our Achievements</a>
-                        <a href="gallery-category.html?category=Machinery">Machinery</a>
-                        <a href="gallery-category.html?category=Infrastructure">Infrastructure</a>
-                        <a href="gallery-category.html?category=Testing%20%26%20Quality%20Labs">Testing & Quality Labs</a>
-                        <a href="gallery-category.html?category=Corporate%20Events%20%26%20Visits">Corporate Events & Visits</a>
-                        <a href="gallery-category.html?category=People%20%26%20Teams">People & Teams</a>
-                        <a href="gallery-category.html?category=Environment%20%26%20Safety">Environment & Safety</a>
-                    </div>
-                </div>
-                <!-- Links should point to index.html sections or specific pages -->
-                <a href="./products.html">Products</a> 
-                <a href="./contact.html">Contact</a> 
-                <a href="./career.html">Careers</a> <!-- Corrected path -->
-            </nav>
-            <!-- Removed the date-time div -->
-        </div>
-    </header>
 
-    <!-- MOBILE Navigation Bar (Copied from aboutus.html) -->
-    <header id="mobile-header" class="navbar-mobile">
-        <div class="nav-container-mobile">
-            <div class="logo-container-mobile">
-                <!-- Corrected paths for gallery_category.html -->
-                <img src="../assets/logo.png" alt="Swanson Logo" class="logo-mobile">
-                <div class="company-names-mobile">
-                    <span class="company-name">Swanson Plastics India Private Limited</span>
-                    <span class="company-name-translated">स्वानसन प्लास्टिक्स इंडिया प्रायवेट लिमिटेड</span>
+    <nav class="navbar" id="main-nav">
+        <div class="nav-container">
+            <div class="brand">
+                <img src="../assets/logo.png" alt="Swanson Logo" class="logo">
+                <div class="brand-text">
+                    <span class="company-en">Swanson Plastics India Pvt. Ltd.</span>
+                    <span class="company-local">स्वानसन प्लास्टिक्स इंडिया प्रायवेट लिमिटेड</span>
                 </div>
             </div>
-            <button class="menu-icon" id="menu-toggle" aria-label="Toggle menu">
-                <!-- Ensure this is empty inside -->
+
+            <ul class="nav-links" id="nav-links">
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="aboutus.html">About Us</a></li>
+                <li class="active">
+                    <a href="#" class="nav-dropdown-toggle" aria-expanded="false">Gallery <i class="bi bi-chevron-down"></i></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="gallery-category.html?category=Life%20At%20Swanson">Life At Swanson</a></li>
+                        <li><a href="gallery-category.html?category=Our%20Achievements">Our Achievements</a></li>
+                        <li><a href="gallery-category.html?category=Machinery">Machinery</a></li>
+                        <li><a href="gallery-category.html?category=Infrastructure">Infrastructure</a></li>
+                        <li><a href="gallery-category.html?category=Testing%20%26%20Quality%20Labs">Testing &amp; Quality Labs</a></li>
+                        <li><a href="gallery-category.html?category=Corporate%20Events%20%26%20Visits">Corporate Events &amp; Visits</a></li>
+                        <li><a href="gallery-category.html?category=Environment%20%26%20Safety">Environment &amp; Safety</a></li>
+                    </ul>
+                </li>
+                <li><a href="products.html">Products</a></li>
+                <li><a href="career.html">Careers</a></li>
+                <li><a href="contact.html" class="btn-cta">Get Started</a></li>
+            </ul>
+
+            <button class="menu-toggle" id="menu-toggle">
+                <i class="bi bi-list"></i>
             </button>
         </div>
-        <nav id="mobile-nav-links" class="mobile-nav-links">
-            <a href="../index.html">Home</a>
-            <a href="./aboutus.html">About Us</a>
-            <div class="mobile-dropdown">
-                <a href="#" class="mobile-dropdown-toggle">Gallery <i class="bi bi-caret-down-fill"></i></a>
-                <div class="mobile-dropdown-menu">
-                    <a href="gallery-category.html?category=Life%20At%20Swanson">Life At Swanson</a>
-                    <a href="gallery-category.html?category=Our%20Achievements">Our Achievements</a>
-                    <a href="gallery-category.html?category=Machinery">Machinery</a>
-                    <a href="gallery-category.html?category=Infrastructure">Infrastructure</a>
-                    <a href="gallery-category.html?category=Testing%20%26%20Quality%20Labs">Testing & Quality Labs</a>
-                    <a href="gallery-category.html?category=Corporate%20Events%20%26%20Visits">Corporate Events & Visits</a>
-                    <a href="gallery-category.html?category=People%20%26%20Teams">People & Teams</a>
-                    <a href="gallery-category.html?category=Environment%20%26%20Safety">Environment & Safety</a>
-                </div>
+    </nav>
+
+    <main>
+        <section class="hero-mini">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h1 id="category-title">Life At <span class="highlight">Swanson</span></h1>
+                <p id="category-subtitle">Capturing the moments, achievements, and excellence at Swanson Plastics India.</p>
             </div>
-            <a href="./products.html">Products</a>
-            <a href="./contact.html">Contact</a>
-            <a href="./career.html">Careers</a>
-        </nav>
-    </header>
+        </section>
 
-    <!-- Main Content Area -->
-    <main class="container section">
-
-        <h1 id="category-title">Gallery</h1> 
-    
-        <div id="album-list" class="album-grid"> 
-        </div>
+        <section class="section">
+            <div class="container">
+                <div id="album-list" class="album-grid"></div>
+            </div>
+        </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-content">
-            <!-- Map Section -->
-            <div class="footer-map-section">
-                 <div class="map-container">
-                    <iframe 
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4729.814270724126!2d74.0697509543609!3d15.542818047035338!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bbfa2f48774e285%3A0x5909f5e875028f2!2sSwanson%20Plastics%20India%20Pvt%20Ltd!5e1!3m2!1sen!2sin!4v1744537737813!5m2!1sen!2sin" 
-                        width="100%" 
-                        height="220" /* Adjusted height */
-                        style="border:0;"
-                        allowfullscreen 
-                        loading="lazy" 
-                        referrerpolicy="no-referrer-when-downgrade">
-                    </iframe>
+    <footer class="modern-footer">
+        <div class="container footer-grid">
+            <div class="footer-info">
+                <img src="../assets/logo.png" alt="Logo" class="footer-logo">
+                <p>Leading the path in plastic innovation since inception, serving global hygiene markets with precision.</p>
+                <div class="footer-map-mini">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4729.814270724126!2d74.0697509543609!3d15.542818047035338!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bbfa2f48774e285%3A0x5909f5e875028f2!2sSwanson%20Plastics%20India%20Pvt%20Ltd!5e1!3m2!1sen!2sin!4v1744537737813!5m2!1sen!2sin" width="100%" height="120" style="border:0; border-radius: 12px;" allowfullscreen loading="lazy"></iframe>
                 </div>
             </div>
-
-            <!-- Contact Info Section -->
-            <div class="footer-contact-section">
-                <h4>Contact Us</h4>
-                <p>Plot No. 2, Goa Industrial Development Corporation<br>Onda, Bhuimpal, Sattari-Goa, 403530<br>Phone: +91 7262002306</p>
-            </div>
-
-            <!-- Quick Links Section -->
-            <div class="footer-links-section">
+            <div class="footer-links">
                 <h4>Quick Links</h4>
                 <a href="../index.html">Home</a>
-                <a href="./aboutus.html">About Us</a>
-                <a href="./products.html">Products</a> <!-- Point to index.html section -->
-                <a href="./contact.html">Contact</a> <!-- Point to index.html section -->
-                <a href="./career.html">Careers</a>
-               
+                <a href="aboutus.html">About Us</a>
+                <a href="products.html">Products</a>
+                <a href="career.html">Careers</a>
+                <a href="contact.html">Contact</a>
+            </div>
+            <div class="footer-contact">
+                <h4>Contact Us</h4>
+                <p><i class="bi bi-geo-alt"></i> Plot No. 2, GIDC Onda, Bhuimpal, Sattari-Goa, 403530</p>
+                <p><i class="bi bi-telephone"></i> +91 7262002306</p>
+                <p><i class="bi bi-envelope"></i> viraj.j@usig.com</p>
             </div>
         </div>
-        <div class="footer-copyright">
-            <p>© 2025 Swanson Plastics India Pvt. Ltd. All rights reserved.</p>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Swanson Plastics India Pvt. Ltd. All rights reserved.</p>
         </div>
     </footer>
 
-    <!-- Link to Supabase client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Link to your Supabase config -->
-    <script type="module" src="../supabase-config.js"></script> <!-- <<< Added type="module" -->
-    <!-- Link to the NEW JavaScript file we will create -->
-    <script type="module" src="../js/gallery-category.js"></script> 
-    <!-- GLightbox JS -->
     <script src="https://cdn.jsdelivr.net/gh/mcstudios/glightbox/dist/js/glightbox.min.js"></script>
+    <script type="module" src="../js/index.js"></script>
+    <script type="module" src="../js/gallery-category.js"></script>
 </body>
 </html>

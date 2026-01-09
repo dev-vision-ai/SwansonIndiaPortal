@@ -395,8 +395,21 @@ async function confirmUploadDocument() {
             });
             
             if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error || `Conversion failed (${response.status})`);
+                let message = `Conversion failed (${response.status})`;
+                try {
+                    const contentType = response.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const errData = await response.json();
+                        message = errData?.error || errData?.details || message;
+                    } else {
+                        const text = await response.text();
+                        // Avoid dumping a full HTML page into the UI
+                        message = text && text.length < 200 ? text : message;
+                    }
+                } catch (parseErr) {
+                    // keep default message
+                }
+                throw new Error(message);
             }
             
             // Get the PDF blob

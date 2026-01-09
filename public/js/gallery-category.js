@@ -1,289 +1,241 @@
-// Import the Supabase client from the config file
+// Import the Supabase client
 import { supabase } from '../supabase-config.js';
 
-// Add this at the beginning of your existing JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    // Mobile menu toggle
-    const menuToggle = document.getElementById('menu-toggle');
-    const mobileNav = document.getElementById('mobile-nav-links');
-    
-    if (menuToggle && mobileNav) {
-        menuToggle.addEventListener('click', function() {
-            mobileNav.classList.toggle('active');
-            menuToggle.classList.toggle('active'); // ADDED for icon animation
-        });
-
-        // ADDED: Close mobile menu when a non-dropdown link is clicked
-        mobileNav.querySelectorAll('a').forEach(link => {
-            // Check if the link is NOT a dropdown toggle for the gallery
-            if (!link.classList.contains('mobile-dropdown-toggle')) {
-                link.addEventListener('click', () => {
-                    // Only close if the main mobile nav is active
-                    if (mobileNav.classList.contains('active')) {
-                        mobileNav.classList.remove('active');
-                        menuToggle.classList.remove('active');
-                    }
-                });
-            }
-        });
-    }
-    
-    // Mobile dropdown toggle
-    const mobileDropdownToggles = document.querySelectorAll('.mobile-dropdown-toggle');
-    mobileDropdownToggles.forEach(toggle => {
-        toggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            const menu = this.nextElementSibling; // Should be .mobile-dropdown-menu
-            // Toggle the .show class instead of .active to match CSS
-            if (menu && menu.classList.contains('mobile-dropdown-menu')) {
-                menu.classList.toggle('show');
-                // Optionally, rotate arrow if one exists
-                const arrow = this.querySelector('.fas.fa-caret-down');
-                if (arrow) {
-                    arrow.classList.toggle('rotated'); // Assumes a .rotated class for the arrow
-                }
-            }
-        });
-    });
-});
-
-const dropdownToggles = document.querySelectorAll('#desktop-header .dropdown-toggle'); // Target only desktop dropdown
-
-dropdownToggles.forEach(toggle => {
-    // Prevent default link behavior for dropdown toggles
-    toggle.addEventListener('click', (event) => {
-        event.preventDefault();
-    });
-});
-// --- End Desktop Dropdown Logic ---
-
-// --- Gallery Category/Album Specific Logic ---
+// DOM elements
 const categoryTitleElement = document.getElementById('category-title');
+const categorySubtitleElement = document.getElementById('category-subtitle');
 const albumListElement = document.getElementById('album-list');
 const urlParams = new URLSearchParams(window.location.search);
 
-// <<< START CHANGE: Check for albumId OR category >>>
+// Category data: titles and subtitles
+const categories = {
+    'Life At Swanson': {
+        title: 'Life At <span class="highlight">Swanson</span>',
+        subtitle: 'Where innovation meets passion. Explore the vibrant culture and shared moments of our Swanson family.'
+    },
+    'Our Achievements': {
+        title: 'Our <span class="highlight">Achievements</span>',
+        subtitle: 'Celebrating milestones of excellence. A tribute to our journey of innovation and global recognition.'
+    },
+    'Machinery': {
+        title: '<span class="highlight">Machinery</span>',
+        subtitle: 'The heartbeat of our production. Discover the precision technology driving our high-performance solutions.'
+    },
+    'Infrastructure': {
+        title: '<span class="highlight">Infrastructure</span>',
+        subtitle: 'Built for excellence. Step inside our world-class facilities designed for sustainable growth.'
+    },
+    'Testing & Quality Labs': {
+        title: 'Testing & <span class="highlight">Quality</span> Labs',
+        subtitle: 'The standard of perfection. Where every film is engineered to exceed global quality benchmarks.'
+    },
+    'Corporate Events & Visits': {
+        title: 'Corporate <span class="highlight">Events</span> & Visits',
+        subtitle: 'Connecting with the world. Highlights from our global partnerships and corporate milestones.'
+    },
+    'Environment & Safety': {
+        title: 'Environment & <span class="highlight">Safety</span>',
+        subtitle: 'Committed to a greener future. Our dedication to safety standards and environmental responsibility.'
+    }
+};
+
 const albumId = urlParams.get('albumId');
 const category = urlParams.get('category');
 
-if (albumId) {
-    // If albumId exists, load images for that album
-    console.log(`Loading images for album ID: ${albumId}`);
-    loadImagesByAlbum(albumId); 
-} else if (category) {
-    // If category exists (and albumId doesn't), load albums for that category
-    const decodedCategory = decodeURIComponent(category);
-    console.log(`Loading albums for category: ${decodedCategory}`);
-    // Update Page Title and Heading for Category View
-    document.title = `${decodedCategory} - Gallery - Swanson Plastics India`;
-    if (categoryTitleElement) {
-        categoryTitleElement.textContent = decodedCategory;
-    }
-    loadAlbumsByCategory(decodedCategory);
-} else {
-    // If neither albumId nor category exists, show an error
-    console.error('No category or album ID found in URL');
-    if (categoryTitleElement) categoryTitleElement.textContent = 'Error: Category/Album Not Specified';
-    if (albumListElement) albumListElement.innerHTML = '<p class="error-message">No category or album was specified in the URL.</p>';
+document.addEventListener('DOMContentLoaded', initGallery);
+
+// Escape HTML to prevent XSS
+function escapeHTML(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
-async function loadAlbumsByCategory(category) {
-    const albumListElement = document.getElementById('album-list');
-    if (!albumListElement) {
-        console.error('Album list element not found!');
-        return;
+async function initGallery() {
+    const hero = document.querySelector('.hero-mini');
+    
+    if (albumId) {
+        await loadImagesByAlbum(albumId);
+    } else if (category) {
+        if (hero) hero.classList.remove('album-view');
+        
+        const decodedCategory = decodeURIComponent(category);
+        document.title = `${decodedCategory} | Gallery | Swanson Plastics India`;
+        
+        if (categoryTitleElement) {
+            const categoryData = categories[decodedCategory];
+            categoryTitleElement.innerHTML = categoryData?.title || escapeHTML(decodedCategory);
+        }
+        
+        if (categorySubtitleElement && categories[decodedCategory]) {
+            categorySubtitleElement.textContent = categories[decodedCategory].subtitle;
+        }
+        
+        await loadAlbumsByCategory(decodedCategory);
+    } else {
+        if (categoryTitleElement) categoryTitleElement.textContent = 'Gallery';
+        showError('Discovery Needed', 'Please select a gallery category to explore our visual journey.');
     }
+}
 
-    albumListElement.innerHTML = '<p>Loading albums...</p>'; // Show loading message
-    albumListElement.classList.remove('album-grid'); // Ensure album-grid class is removed for album listing view
-
+async function loadAlbumsByCategory(categoryName) {
+    if (!albumListElement) return;
+    
+    showLoading('Discovering albums...');
+    
     try {
-        // Fetch albums for the category
-        const { data: albums, error: albumsError } = await supabase
+        const { data: albums, error } = await supabase
             .from('gallery_albums')
-            .select('id, album_name, album_description, category')
-            .eq('category', category)
+            .select('id, album_name, album_description, category, gallery_images(count)')
+            .eq('category', categoryName)
             .order('created_at', { ascending: false });
-
-        if (albumsError) {
-            throw albumsError;
-        }
-
-        albumListElement.innerHTML = ''; // Clear loading message
-
-        if (albums && albums.length > 0) {
-            // Use Promise.all to fetch thumbnails concurrently
-            const albumPromises = albums.map(async (album) => {
-                let thumbnailUrl = '../assets/logo.png'; // Default placeholder image
-
-                // Fetch the first image for this album to use as a thumbnail
-                const { data: images, error: imagesError } = await supabase
-                    .from('gallery_images')
-                    .select('image_url') // <<< Changed from 'image_path' to 'image_url'
-                    .eq('album_id', album.id)
-                    .order('created_at', { ascending: true })
-                    .limit(1); // Only need one image
-
-                if (imagesError) {
-                    console.error(`Error fetching thumbnail for album ${album.id}:`, imagesError.message);
-                } else if (images && images.length > 0) {
-                    // Get the public URL for the thumbnail
-                    const { data: urlData } = supabase
-                        .storage
-                        .from('gallery-images') // Make sure 'gallery-images' is your bucket name
-                        .getPublicUrl(images[0].image_url); // <<< Changed from 'image_path' to 'image_url'
-                    
-                    if (urlData && urlData.publicUrl) {
-                        thumbnailUrl = urlData.publicUrl;
-                    }
-                }
-
-                // Create the HTML element for the album
-                const albumElement = document.createElement('div');
-                albumElement.classList.add('album-item'); // Add a class for styling
-                
-                // <<< START CHANGE: Link back to gallery_category.html with albumId >>>
-                albumElement.innerHTML = `
-                    <a href="gallery-category.html?albumId=${album.id}" class="album-link">
-                        <img src="${escapeHTML(thumbnailUrl)}" alt="${escapeHTML(album.album_name)} Thumbnail" class="album-thumbnail">
-                        <h3>${escapeHTML(album.album_name)}</h3>
-                        ${album.album_description ? `<p>${escapeHTML(album.album_description)}</p>` : ''}
-                    </a>
-                `;
-                // <<< END CHANGE >>>
-                
-                return albumElement;
-            });
-
-            // Wait for all album elements (including thumbnail fetches) to be ready
-            const albumElements = await Promise.all(albumPromises);
-            // Append all elements to the list
-            albumElements.forEach(element => albumListElement.appendChild(element));
-
+        
+        if (error) throw error;
+        
+        albumListElement.innerHTML = '';
+        albumListElement.classList.remove('image-grid');
+        albumListElement.classList.add('album-grid');
+        
+        if (albums?.length > 0) {
+            const cards = await Promise.all(
+                albums.map(album => createAlbumCard(album))
+            );
+            cards.forEach(card => albumListElement.appendChild(card));
         } else {
-            albumListElement.innerHTML = '<p>No albums found in this category.</p>';
+            showError('No Albums Found', `We haven't added any albums to "${categoryName}" yet. Please check back later.`);
         }
-
     } catch (error) {
-        console.error('Error loading albums:', error.message);
-        if (albumListElement) {
-            albumListElement.innerHTML = `<p class="error-message">Error loading albums: ${error.message}</p>`;
-        }
+        console.error('Error loading albums:', error);
+        showError('Fetch Failed', 'We encountered an error while retrieving the gallery. Please try again.');
     }
 }
 
-// after the loadAlbumsByCategory function
-
-async function loadImagesByAlbum(albumId) {
-    const albumListElement = document.getElementById('album-list');
-    const categoryTitleElement = document.getElementById('category-title');
-
-    if (!albumListElement || !categoryTitleElement) {
-        console.error('Required elements (album-list or category-title) not found!');
-        return;
-    }
-
-    albumListElement.innerHTML = '<p>Loading images...</p>';
-    categoryTitleElement.textContent = 'Loading Album...';
-    albumListElement.classList.add('album-grid'); // Ensure album-grid class is added for image grid view
-
+async function createAlbumCard(album) {
+    let thumbnailUrl = '../assets/logo.png';
+    
     try {
-        // --- Step 1: Fetch Album Details --- 
-        const { data: albumData, error: albumError } = await supabase
-            .from('gallery_albums')
-            .select('album_name')
-            .eq('id', albumId)
-            .single(); // We expect only one album
-
-        if (albumError) {
-            throw new Error(`Could not fetch album details: ${albumError.message}`);
-        }
-        if (!albumData) {
-            throw new Error(`Album with ID ${albumId} not found.`);
-        }
-
-        const albumName = albumData.album_name;
-        // Update page title and heading
-        document.title = `${albumName} - Gallery - Swanson Plastics India`;
-        categoryTitleElement.textContent = albumName;
-
-        // --- Step 2: Fetch Image Records --- 
-        const { data: images, error: imagesError } = await supabase
+        const { data: images } = await supabase
             .from('gallery_images')
-            .select('image_url') // Assuming 'image_url' stores the path like 'albumId/filename.jpg'
-            .eq('album_id', albumId)
-            .order('created_at', { ascending: true });
-
-        if (imagesError) {
-            throw new Error(`Could not fetch images for album: ${imagesError.message}`);
-        }
-
-        albumListElement.innerHTML = ''; // Clear loading message
-        // The 'album-grid' class is already on #album-list in the HTML.
-
-        if (!images || images.length === 0) {
-            albumListElement.innerHTML = '<p>No images found in this album.</p>';
-            return;
-        }
-
-        // --- Step 3 & 4: Get URLs and Generate HTML --- 
-        images.forEach(image => {
+            .select('image_url')
+            .eq('album_id', album.id)
+            .order('created_at', { ascending: true })
+            .limit(1);
+        
+        if (images?.[0]) {
             const { data: urlData } = supabase
                 .storage
-                .from('gallery-images') // Your bucket name
-                .getPublicUrl(image.image_url);
-
-            if (urlData && urlData.publicUrl) {
-                const imageUrl = escapeHTML(urlData.publicUrl);
-                const albumNameEscaped = escapeHTML(albumName);
-
-                const imgContainer = document.createElement('figure'); // Changed div to figure
-                imgContainer.classList.add('gallery-item');
-                
-                // <<< START CHANGE: Use glightbox class >>>
-                // The 'glightbox' class triggers the library
-                // The 'data-gallery' attribute groups images
-                imgContainer.innerHTML = `
-                    <a href="${imageUrl}" class="glightbox" data-gallery="album-${albumId}">
-                        <img src="${imageUrl}" alt="Image from ${albumNameEscaped}" loading="lazy">
-                    </a>
-                `; // REMOVED: <figcaption>${albumNameEscaped}</figcaption>
-                // And added figcaption
-                // <<< END CHANGE >>>
-                
-                albumListElement.appendChild(imgContainer);
-            } else {
-                console.warn(`Could not get public URL for image: ${image.image_url}`);
-            }
-        });
-
-        // --- Step 5: Initialize GLightbox (AFTER images are added) --- 
-        // <<< START CHANGE: Initialize GLightbox >>>
-        if (typeof GLightbox !== 'undefined') {
-            const lightbox = GLightbox({
-                selector: '.glightbox', // Use the class we added to the links
-                gallery: `album-${albumId}` // Optional: Match the data-gallery attribute for clarity
-            });
-        } else {
-            console.warn('GLightbox is not defined. Make sure the script is included correctly.');
+                .from('gallery-images')
+                .getPublicUrl(images[0].image_url);
+            
+            if (urlData?.publicUrl) thumbnailUrl = urlData.publicUrl;
         }
-        // <<< END CHANGE >>>
-
     } catch (error) {
-        console.error('Error loading images for album:', error.message);
-        albumListElement.innerHTML = `<p class="error-message">Error loading images: ${error.message}</p>`;
-        categoryTitleElement.textContent = 'Error Loading Album';
-        // The 'album-grid' class from HTML should persist on error.
+        console.warn('Failed to load thumbnail:', error);
+    }
+    
+    const imageCount = album.gallery_images?.[0]?.count || 0;
+    const card = document.createElement('a');
+    card.href = `gallery-category.html?albumId=${album.id}`;
+    card.className = 'gallery-card';
+    card.innerHTML = `
+        <div class="card-img-wrapper">
+            <img src="${escapeHTML(thumbnailUrl)}" alt="${escapeHTML(album.album_name)}" loading="lazy">
+        </div>
+        <div class="card-content">
+            <div class="img-count"><i class="bi bi-images"></i> ${imageCount} Moments</div>
+            <h3>${escapeHTML(album.album_name)}</h3>
+            ${album.album_description ? `<p>${escapeHTML(album.album_description)}</p>` : ''}
+        </div>
+    `;
+    return card;
+}
+
+async function loadImagesByAlbum(id) {
+    if (!albumListElement || !categoryTitleElement) return;
+    
+    showLoading('Gathering moments...');
+    
+    const hero = document.querySelector('.hero-mini');
+    if (hero) hero.classList.add('album-view');
+    
+    try {
+        const { data: album, error } = await supabase
+            .from('gallery_albums')
+            .select('album_name, album_description, category')
+            .eq('id', id)
+            .single();
+        
+        if (error || !album) throw new Error('Album not found');
+        
+        document.title = `${album.album_name} | Gallery | Swanson Plastics India`;
+        categoryTitleElement.innerHTML = `${album.album_name.split(' ').slice(0, -1).join(' ')} <span class="highlight">${album.album_name.split(' ').slice(-1)[0]}</span>`;
+        
+        if (categorySubtitleElement) {
+            const desc = album.album_description?.trim() 
+                ? album.album_description 
+                : `A visual journey of ${album.album_name} at Swanson Plastics India.`;
+            categorySubtitleElement.textContent = desc;
+        }
+        
+        const { data: images, error: imagesError } = await supabase
+            .from('gallery_images')
+            .select('image_url')
+            .eq('album_id', id)
+            .order('created_at', { ascending: true });
+        
+        if (imagesError) throw imagesError;
+        
+        albumListElement.innerHTML = '';
+        albumListElement.classList.remove('album-grid');
+        albumListElement.classList.add('image-grid');
+        
+        if (images?.length > 0) {
+            images.forEach(image => {
+                const { data: urlData } = supabase
+                    .storage
+                    .from('gallery-images')
+                    .getPublicUrl(image.image_url);
+                
+                if (urlData?.publicUrl) {
+                    const item = document.createElement('div');
+                    item.className = 'gallery-item';
+                    item.innerHTML = `
+                        <a href="${urlData.publicUrl}" class="glightbox" data-gallery="album-${id}">
+                            <img src="${urlData.publicUrl}" alt="${album.album_name}" loading="lazy">
+                        </a>
+                    `;
+                    albumListElement.appendChild(item);
+                }
+            });
+            
+            if (typeof GLightbox !== 'undefined') {
+                GLightbox({ selector: '.glightbox' });
+            }
+        } else {
+            showError('Empty Album', 'This album currently contains no images.');
+        }
+    } catch (error) {
+        console.error('Error loading album:', error);
+        showError('Album Not Found', 'The requested gallery album could not be loaded.');
     }
 }
 
-// Simple HTML escaping function (reuse from gallery_admin.js or define here)
-function escapeHTML(str) {
-    if (str === null || str === undefined) return '';
-    return str.toString()
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+function showLoading(message) {
+    albumListElement.innerHTML = `
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>${message}</p>
+        </div>
+    `;
+}
+
+function showError(title, message) {
+    albumListElement.innerHTML = `
+        <div class="error-message">
+            <i class="bi bi-exclamation-circle"></i>
+            <h3>${title}</h3>
+            <p>${message}</p>
+            <a href="aboutus.html" class="btn-main" style="margin-top: 1.5rem; display: inline-block;">Return to Company</a>
+        </div>
+    `;
 }
