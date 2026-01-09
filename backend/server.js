@@ -212,6 +212,10 @@ async function convertToPdfHandler(req, res) {
 app.post('/api/convert-to-pdf', upload.single('file'), convertToPdfHandler);
 app.post('/convert-to-pdf', upload.single('file'), convertToPdfHandler);
 
+// Export handler for Vercel API routes
+module.exports.convertToPdfHandler = convertToPdfHandler;
+module.exports.upload = upload;
+
 // Keep-alive system to prevent cold starts
 setInterval(() => {
   try {

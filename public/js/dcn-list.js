@@ -371,7 +371,7 @@ async function confirmUploadDocument() {
         // Simple fix: Use relative path for production, full URL for local
         const isLocalDev = window.location.hostname === 'localhost' || 
                            window.location.hostname === '127.0.0.1';
-        const convertEndpoint = isLocalDev ? 'http://localhost:3000/convert-to-pdf' : '/convert-to-pdf';
+        const convertEndpoint = isLocalDev ? 'http://localhost:3000/api/convert-to-pdf' : '/api/convert-to-pdf';
 
         // Check if conversion is requested for Word files
         const wordOptions = document.getElementById('wordFileOptions');

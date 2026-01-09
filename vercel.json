@@ -12,13 +12,8 @@
   ],
   "routes": [
     {
-      "src": "/convert-to-pdf",
-      "dest": "backend/server.js",
-      "methods": ["POST"]
-    },
-    {
       "src": "/api/(.*)",
-      "dest": "backend/server.js"
+      "dest": "/api/$1"
     },
     {
       "src": "/export(.*)",
