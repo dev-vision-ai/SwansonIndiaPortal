@@ -293,6 +293,12 @@ prestoreExportModule(app, createAuthenticatedSupabaseClient);
 productionDefectsExportModule(app, createAuthenticatedSupabaseClient);
 controlDatapointsExportModule(app, createAuthenticatedSupabaseClient);
 
-app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-});
+// Export for Vercel serverless functions
+module.exports = app;
+
+// Only listen when running locally (not on Vercel)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`✅ Server running on port ${PORT}`);
+  });
+}

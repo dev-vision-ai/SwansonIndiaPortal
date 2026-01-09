@@ -12,6 +12,10 @@
   ],
   "routes": [
     {
+      "src": "/api/convert-to-pdf",
+      "dest": "backend/server.js"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "backend/server.js"
     },
