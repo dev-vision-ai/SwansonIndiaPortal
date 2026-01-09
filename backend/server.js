@@ -207,10 +207,10 @@ async function convertToPdfHandler(req, res) {
             details: err.message || 'Unknown error occurred'
         });
     }
-    }
+}
 
-    app.post('/api/convert-to-pdf', upload.single('file'), convertToPdfHandler);
-    app.post('/convert-to-pdf', upload.single('file'), convertToPdfHandler);
+app.post('/api/convert-to-pdf', upload.single('file'), convertToPdfHandler);
+app.post('/convert-to-pdf', upload.single('file'), convertToPdfHandler);
 
 // Keep-alive system to prevent cold starts
 setInterval(() => {
