@@ -2,7 +2,8 @@
 import { supabase } from '../supabase-config.js';
 import { showToast } from './toast.js';
 
-let dcnListData = []; // Global data store
+let dcnListData = []; // Global data store for displayed DCNs (excludes approved by default)
+let allDcnData = []; // Global data store for all DCNs (including approved for filtering)
 let currentSort = { column: 'dcn_no', direction: 'asc' };
 let currentUserDept = ''; // Store current user's department
 let currentUserIsAdmin = false; // Store current user's admin status
@@ -62,8 +63,24 @@ async function fetchDCNList() {
             return;
         }
 
-        dcnListData = data || [];
+        // Store all DCNs for filtering purposes
+        allDcnData = data || [];
+        
+        // Filter out approved DCNs from the main list for initial display
+        dcnListData = allDcnData.filter(dcn => (dcn.status || 'Draft') !== 'Approved');
+        
         renderDCNTable(dcnListData);
+        
+        // Show filter section only for HR/Admin users
+        const filterSection = document.getElementById('filterSection');
+        if (filterSection) {
+            filterSection.style.display = isHRorAdmin ? 'flex' : 'none';
+        }
+        
+        // Populate filter dropdowns if user is HR/Admin
+        if (isHRorAdmin) {
+            populateFilterDropdowns();
+        }
     } catch (err) {
         console.error('Exception in fetchDCNList:', err);
         showToast('An error occurred while loading DCNs.', 'error');
@@ -77,13 +94,27 @@ function renderDCNTable(data) {
         return;
     }
 
+    // Check if current user is HR/Admin (moved to top)
+    const isHRorAdmin = currentUserIsAdmin || /Human Resource(s)?/i.test(currentUserDept) || /Administration/i.test(currentUserDept);
+
     if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4">No DCNs found. <a href="dcn-form.html">Create a new DCN</a></td></tr>';
+        const statusFilter = document.getElementById('filterStatus').value;
+        let message = 'No DCNs found. <a href="dcn-form.html">Create a new DCN</a>';
+        
+        if (statusFilter) {
+            message = `No ${statusFilter} DCNs found.`;
+        }
+        
+        const colspan = isHRorAdmin ? 14 : 13; // 14 columns if admin/HR, 13 if regular user
+        tbody.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-4">${message}</td></tr>`;
         return;
     }
 
-    // Check if current user is HR/Admin
-    const isHRorAdmin = currentUserIsAdmin || /Human Resource(s)?/i.test(currentUserDept) || /Administration/i.test(currentUserDept);
+    // Show/hide Delete column header based on user role
+    const deleteColumnHeader = document.querySelector('.delete-column');
+    if (deleteColumnHeader) {
+        deleteColumnHeader.style.display = isHRorAdmin ? 'table-cell' : 'none';
+    }
 
     tbody.innerHTML = data.map((dcn, index) => {
         const issuedDate = dcn.issued_date ? new Date(dcn.issued_date).toLocaleDateString() : 'N/A';
@@ -99,47 +130,43 @@ function renderDCNTable(data) {
         // Only show edit button to requestor or HR/Admin
         const canEdit = isRequestor || isHRorAdmin;
 
-        // Action icons: view form (eye), edit form (pencil) for requestor/HR/Admin only, download documents (download arrow), upload document (upload arrow)
-        const viewHref = `dcn-form.html?id=${dcn.id}&action=view`;
-        let actionLinks = `
-            <div class="flex justify-center space-x-1 flex-nowrap max-w-full overflow-hidden">
-                <!-- Dark blue View button -->
-                <a href="${viewHref}" class="p-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-800 hover:text-blue-900 transition-all duration-200 border border-blue-200 hover:border-blue-300 flex-shrink-0" title="View DCN Form" aria-label="View DCN Form">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                    </svg>
-                </a>
-                ${canEdit ? `<a href="dcn-form.html?id=${dcn.id}&action=edit" class="p-1 rounded-md bg-purple-50 hover:bg-purple-100 text-purple-600 hover:text-purple-800 transition-all duration-200 border border-purple-200 hover:border-purple-300 flex-shrink-0" title="Edit DCN Form" aria-label="Edit DCN Form">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                    </svg>
-                </a>` : ''}
-                <!-- Indigo Download Document button -->
-                <button type="button" class="view-docs-btn p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" data-dcn-no="${encodeURIComponent(dcn.dcn_no || '')}" title="Download Document" aria-label="Download Document">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                    </svg>
-                </button>
-                <!-- Green Upload Document button -->
-                <button type="button" class="upload-doc-btn p-1 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0" data-dcn-no="${encodeURIComponent(dcn.dcn_no || '')}" title="Upload Document" aria-label="Upload Document">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                    </svg>
-                </button>
-                ${isRequestor ? `<!-- Orange Submit for Review button - requestor only -->
-                <button type="button" class="submit-review-btn p-1 rounded-md bg-orange-50 hover:bg-orange-100 text-orange-600 hover:text-orange-800 transition-all duration-200 border border-orange-200 hover:border-orange-300 flex-shrink-0" data-dcn-id="${dcn.id}" data-dcn-no="${encodeURIComponent(dcn.dcn_no || '')}" title="Submit for Review" aria-label="Submit for Review">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                    </svg>
-                </button>` : ''}
-                ${isHRorAdmin ? `<!-- Red Delete button -->
-                <button type="button" class="delete-btn p-1 rounded-md bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition-all duration-200 border border-red-200 hover:border-red-300 flex-shrink-0" data-dcn-id="${dcn.id}" data-dcn-no="${encodeURIComponent(dcn.dcn_no || '')}" title="Delete" aria-label="Delete">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                </button>` : ''}
-        `;
+        // Individual action buttons for separate columns
+        const viewButton = `<a href="dcn-form.html?id=${dcn.id}&action=view" class="p-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-800 hover:text-blue-900 transition-all duration-200 border border-blue-200 hover:border-blue-300 block w-full text-center" title="View DCN Form" aria-label="View DCN Form">
+            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+        </a>`;
+
+        const editButton = canEdit ? `<a href="dcn-form.html?id=${dcn.id}&action=edit" class="p-1 rounded-md bg-purple-50 hover:bg-purple-100 text-purple-600 hover:text-purple-800 transition-all duration-200 border border-purple-200 hover:border-purple-300 block w-full text-center" title="Edit DCN Form" aria-label="Edit DCN Form">
+            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+            </svg>
+        </a>` : '';
+
+        const downloadButton = `<button type="button" class="view-docs-btn p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 block w-full text-center" data-dcn-no="${encodeURIComponent(dcn.dcn_no || '')}" title="Download Document" aria-label="Download Document">
+            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+        </button>`;
+
+        const uploadButton = `<button type="button" class="upload-doc-btn p-1 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 block w-full text-center" data-dcn-no="${encodeURIComponent(dcn.dcn_no || '')}" title="Upload Document" aria-label="Upload Document">
+            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+            </svg>
+        </button>`;
+
+        const sendButton = isRequestor ? `<button type="button" class="submit-review-btn p-1 rounded-md bg-orange-50 hover:bg-orange-100 text-orange-600 hover:text-orange-800 transition-all duration-200 border border-orange-200 hover:border-orange-300 block w-full text-center" data-dcn-id="${dcn.id}" data-dcn-no="${encodeURIComponent(dcn.dcn_no || '')}" title="Submit for Review" aria-label="Submit for Review">
+            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            </svg>
+        </button>` : '';
+
+        const deleteButton = isHRorAdmin ? `<button type="button" class="delete-btn p-1 rounded-md bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition-all duration-200 border border-red-200 hover:border-red-300 block w-full text-center" data-dcn-id="${dcn.id}" data-dcn-no="${encodeURIComponent(dcn.dcn_no || '')}" title="Delete" aria-label="Delete">
+            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+        </button>` : '';
 
         return `
             <tr>
@@ -151,7 +178,12 @@ function renderDCNTable(data) {
                 <td>${documentTypes}</td>
                 <td>${currentRevision}</td>
                 <td style="color: ${statusColor}; font-weight: 600;">${status}</td>
-                <td>${actionLinks}</td>
+                <td>${viewButton}</td>
+                <td>${editButton}</td>
+                <td>${downloadButton}</td>
+                <td>${uploadButton}</td>
+                <td>${sendButton}</td>
+                ${isHRorAdmin ? `<td>${deleteButton}</td>` : ''}
             </tr>
         `;
     }).join('');
@@ -562,6 +594,129 @@ function clearFilters() {
     renderDCNTable(dcnListData);
 }
 
+// Filter functions
+function applyFilters() {
+    let filteredData = [...allDcnData]; // Use all DCNs for filtering (including approved)
+
+    // Date range filter
+    const fromDate = document.getElementById('filterFromDate').value;
+    const toDate = document.getElementById('filterToDate').value;
+    
+    if (fromDate || toDate) {
+        filteredData = filteredData.filter(dcn => {
+            const dcnDateStr = dcn.issued_date;
+            if (!dcnDateStr) return false; // Skip DCNs without dates if filtering by date
+            
+            const dcnDate = new Date(dcnDateStr);
+            if (isNaN(dcnDate.getTime())) return false; // Skip invalid dates
+            
+            const from = fromDate ? new Date(fromDate) : null;
+            const to = toDate ? new Date(toDate) : null;
+            
+            if (from && dcnDate < from) return false;
+            if (to && dcnDate > to) return false;
+            return true;
+        });
+    }
+
+    // Requestor department filter
+    const deptFilter = document.getElementById('filterRequestorDept').value;
+    if (deptFilter) {
+        filteredData = filteredData.filter(dcn => dcn.requestor_dept === deptFilter);
+    }
+
+    // Document type filter
+    const docTypeFilter = document.getElementById('filterDocumentType').value;
+    if (docTypeFilter) {
+        filteredData = filteredData.filter(dcn => {
+            const docTypes = dcn.document_types || [];
+            return docTypes.includes(docTypeFilter);
+        });
+    }
+
+    // Status filter
+    const statusFilter = document.getElementById('filterStatus').value;
+    if (statusFilter) {
+        filteredData = filteredData.filter(dcn => {
+            const dcnStatus = dcn.status || 'Draft'; // Default to 'Draft' if status is null/undefined
+            return dcnStatus === statusFilter;
+        });
+    }
+
+    // Requestor name filter
+    const nameFilter = document.getElementById('filterRequestorName').value;
+    if (nameFilter) {
+        filteredData = filteredData.filter(dcn => dcn.requestor_name === nameFilter);
+    }
+
+    renderDCNTable(filteredData);
+    updateFilterStatus();
+}
+
+function updateFilterStatus() {
+    const hasActiveFilters = 
+        document.getElementById('filterFromDate').value ||
+        document.getElementById('filterToDate').value ||
+        document.getElementById('filterRequestorDept').value ||
+        document.getElementById('filterDocumentType').value ||
+        document.getElementById('filterStatus').value ||
+        document.getElementById('filterRequestorName').value;
+
+    const indicator = document.getElementById('filterStatusIndicator');
+    if (indicator) {
+        indicator.textContent = hasActiveFilters ? 'On' : 'Off';
+        indicator.className = `px-2 py-1 text-sm font-semibold rounded-full ${
+            hasActiveFilters ? 'bg-green-200 text-green-700' : 'bg-gray-200 text-gray-700'
+        }`;
+    }
+}
+
+function populateFilterDropdowns() {
+    // Populate requestor department dropdown
+    const deptSelect = document.getElementById('filterRequestorDept');
+    const depts = [...new Set(allDcnData.map(dcn => dcn.requestor_dept).filter(Boolean))].sort();
+    deptSelect.innerHTML = '<option value="">All</option>';
+    depts.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept;
+        option.textContent = dept;
+        deptSelect.appendChild(option);
+    });
+
+    // Populate document type dropdown
+    const docTypeSelect = document.getElementById('filterDocumentType');
+    const docTypes = [...new Set(allDcnData.flatMap(dcn => dcn.document_types || []))].sort();
+    docTypeSelect.innerHTML = '<option value="">All</option>';
+    docTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type;
+        option.textContent = type;
+        docTypeSelect.appendChild(option);
+    });
+
+    // Populate requestor name dropdown
+    const nameSelect = document.getElementById('filterRequestorName');
+    const names = [...new Set(allDcnData.map(dcn => dcn.requestor_name).filter(Boolean))].sort();
+    nameSelect.innerHTML = '<option value="">All</option>';
+    names.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        nameSelect.appendChild(option);
+    });
+}
+
+function clearAllFilters() {
+    document.getElementById('filterFromDate').value = '';
+    document.getElementById('filterToDate').value = '';
+    document.getElementById('filterRequestorDept').value = '';
+    document.getElementById('filterDocumentType').value = '';
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('filterRequestorName').value = '';
+    renderDCNTable(dcnListData);
+    updateFilterStatus();
+}
+
 // Delete DCN or document function
 async function deleteDCNOrDocument(dcnId, dcnNo) {
     if (!dcnId || !dcnNo) {
@@ -729,6 +884,21 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('#dccListTableBody th[data-sort]').forEach(header => {
         header.addEventListener('click', () => sortData(header.dataset.sort));
     });
+
+    // Filter event listeners
+    const filterInputs = ['filterFromDate', 'filterToDate', 'filterRequestorDept', 'filterDocumentType', 'filterStatus', 'filterRequestorName'];
+    filterInputs.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('change', applyFilters);
+        }
+    });
+
+    // Clear filter button
+    const clearFilterBtn = document.getElementById('clearFilter');
+    if (clearFilterBtn) {
+        clearFilterBtn.addEventListener('click', clearAllFilters);
+    }
 });
 
 // Delegated handler for Submit for Review buttons

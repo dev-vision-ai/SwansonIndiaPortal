@@ -112,3 +112,38 @@
         top: -2rem;
     }
 }
+
+/* --- Mission & Vision --- */
+.mv-box {
+    padding: 2rem 0;
+}
+
+.mv-icon {
+    font-size: 4rem;
+    color: var(--primary);
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
+.mv-box h3 {
+    font-size: 2.2rem;
+    margin-bottom: 1.25rem;
+    color: var(--primary);
+    font-weight: 800;
+}
+
+.mv-box p {
+    font-size: 1.35rem;
+    line-height: 1.8;
+    color: var(--text);
+    max-width: 600px;
+}
+
+@media (max-width: 768px) {
+    .mv-box {
+        text-align: center;
+    }
+    .mv-box p {
+        margin: 0 auto;
+    }
+}

@@ -558,6 +558,8 @@
             background-color: transparent !important; /* Transparent background by default */
         }
     </style>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
     <div class="header-container">
@@ -859,6 +861,41 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Toggle Graphs Button -->
+                <div class="flex justify-center mt-6">
+                    <button id="toggleGraphsBtn" class="bg-blue-600 hover:bg-blue-700 text-white text-xs py-1.5 px-4 rounded transition-colors duration-200 flex items-center gap-1">
+                        <span id="toggleText">View Trend</span>
+                        <i id="toggleIcon" class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+
+                <div id="graphsSection" class="mt-6 border-t pt-6" style="display: none;">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 1 Quality Control Charts</h4>
+
+                    <!-- Charts Container -->
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Basis Weight Chart -->
+                        <div class="bg-white p-4 rounded-lg border border-black">
+                            <canvas id="basisWeightChart" width="400" height="300"></canvas>
+                        </div>
+
+                        <!-- Thickness Distribution Chart -->
+                        <div class="bg-white p-4 rounded-lg border border-black">
+                            <canvas id="thicknessChart" width="400" height="300"></canvas>
+                        </div>
+
+                        <!-- Opacity Chart -->
+                        <div class="bg-white p-4 rounded-lg border border-black">
+                            <canvas id="opacityChart" width="400" height="300"></canvas>
+                        </div>
+
+                        <!-- COF Chart -->
+                        <div class="bg-white p-4 rounded-lg border border-black">
+                            <canvas id="cofChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- Page 2 Section - Testing Parameters Table -->
@@ -932,6 +969,37 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Toggle Graphs Button for Page 2 -->
+                <div class="flex justify-center mt-6">
+                    <button id="toggleGraphsBtn2" class="bg-blue-600 hover:bg-blue-700 text-white text-xs py-1.5 px-4 rounded transition-colors duration-200 flex items-center gap-1">
+                        <span id="toggleText2">View Trend</span>
+                        <i id="toggleIcon2" class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+
+                <!-- Collapsible Graphs Section for Page 2 -->
+                <div id="graphsSection2" class="mt-6 border-t pt-6" style="display: none;">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 2 Quality Control Charts</h4>
+
+                    <!-- Charts Container for Page 2 -->
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Elongation MD Chart -->
+                        <div class="bg-white p-4 rounded-lg border border-black">
+                            <canvas id="elongationMDChart" width="400" height="300"></canvas>
+                        </div>
+
+                        <!-- Tensile Strength MD Chart -->
+                        <div class="bg-white p-4 rounded-lg border border-black">
+                            <canvas id="tensileStrengthMDChart" width="400" height="300"></canvas>
+                        </div>
+
+                        <!-- Tensile Strength 5% MD Chart -->
+                        <div class="bg-white p-4 rounded-lg border border-black">
+                            <canvas id="tensileStrength5MDChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -1007,6 +1075,37 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Toggle Graphs Button for Page 3 -->
+                <div class="flex justify-center mt-6">
+                    <button id="toggleGraphsBtn3" class="bg-blue-600 hover:bg-blue-700 text-white text-xs py-1.5 px-4 rounded transition-colors duration-200 flex items-center gap-1">
+                        <span id="toggleText3">View Trend</span>
+                        <i id="toggleIcon3" class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+
+                <!-- Collapsible Graphs Section for Page 3 -->
+                <div id="graphsSection3" class="mt-6 border-t pt-6" style="display: none;">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 3 Quality Control Charts</h4>
+
+                    <!-- Charts Container for Page 3 -->
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Elongation CD Chart -->
+                        <div class="bg-white p-4 rounded-lg border border-black">
+                            <canvas id="elongationCDChart" width="400" height="300"></canvas>
+                        </div>
+
+                        <!-- Tensile Strength CD Chart -->
+                        <div class="bg-white p-4 rounded-lg border border-black">
+                            <canvas id="tensileStrengthCDChart" width="400" height="300"></canvas>
+                        </div>
+
+                        <!-- Modulus Web Chart -->
+                        <div class="bg-white p-4 rounded-lg border border-black">
+                            <canvas id="modulusWebChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- Page 4 Section - Testing Parameters Table -->
@@ -1076,22 +1175,53 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Toggle Graphs Button for Page 4 -->
+                <div class="flex justify-center mt-6">
+                    <button id="toggleGraphsBtn4" class="bg-blue-600 hover:bg-blue-700 text-white text-xs py-1.5 px-4 rounded transition-colors duration-200 flex items-center gap-1">
+                        <span id="toggleText4">View Trend</span>
+                        <i id="toggleIcon4" class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+
+                <!-- Collapsible Graphs Section for Page 4 -->
+                <div id="graphsSection4" class="mt-6 border-t pt-6" style="display: none;">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 4 Quality Control Charts</h4>
+
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Color L Chart -->
+                        <div class="bg-white p-4 rounded-lg border border-black">
+                            <canvas id="colorLChart" width="400" height="300"></canvas>
+                        </div>
+
+                        <!-- Color A Chart -->
+                        <div class="bg-white p-4 rounded-lg border border-black">
+                            <canvas id="colorAChart" width="400" height="300"></canvas>
+                        </div>
+
+                        <!-- Color B Chart -->
+                        <div class="bg-white p-4 rounded-lg border border-black">
+                            <canvas id="colorBChart" width="400" height="300"></canvas>
+                        </div>
+
+                        <!-- Color Delta E Chart -->
+                        <div class="bg-white p-4 rounded-lg border border-black">
+                            <canvas id="colorDeltaEChart" width="400" height="300"></canvas>
+                        </div>
+
+                        <!-- Gloss Chart -->
+                        <div class="bg-white p-4 rounded-lg border border-black">
+                            <canvas id="glossChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- Page 5 Section - PG Quality System Requirements -->
             <section class="mb-8 border border-black rounded-lg p-6" style="background-color: #f0f9ff;">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Page 5 of 5</h3>
-                
-                <!-- Row Count Display -->
-                <div class="flex justify-between items-center mb-4">
-                    <div class="flex items-center gap-4">
-                        <span id="rowCountDisplay5" class="text-sm font-bold text-gray-700">Rows: 0</span>
-                    </div>
-                </div>
-                
-                <!-- PG Quality System Requirements Table -->
                 <div class="overflow-x-auto">
-                    <table class="w-full border-2 border-gray-800 testing-table page5-table" style="font-size: 13px;">
+                    <table class="w-full border-2 border-gray-800 bg-white testing-table page5-table" style="font-size: 13px;">
                         <thead>
                             <tr class="bg-gray-100">
                                 <th class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px; background-color: #f3f4f6 !important;">Sample No.</th>
@@ -1100,7 +1230,6 @@
                             </tr>
                         </thead>
                         <tbody id="testingTableBody5">
-                            <!-- Summary Statistics Rows -->
                             <tr class="average-row">
                                 <td class="border border-gray-800 px-3 py-2 text-center font-semibold" colspan="3" style="font-size: 13px;">Average</td>
                                 <td class="border border-gray-800 px-3 py-2 text-center" style="font-size: 13px;">-</td>
@@ -1119,9 +1248,6 @@
                         </tbody>
                     </table>
                 </div>
-            </section>
-
-            <!-- Verification and Approval Sections Side by Side -->
             <div id="verificationApprovalContainer" class="flex justify-center mt-4 gap-4">
                 <!-- Verified By Section -->
                 <section id="verificationSection" class="w-80 p-4 bg-gray-50 border border-gray-300 rounded">
@@ -1364,6 +1490,9 @@
             }, 1500);
         });
     </script>
+    <!-- Chart.js custom scripts -->
+    <script src="../../charts/chart-config.js"></script>
+    <script src="../../charts/chart-render-16-gsm-168-white.js"></script>
 </body>
 </html>
 

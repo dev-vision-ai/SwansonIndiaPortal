@@ -3574,14 +3574,14 @@ document.addEventListener('DOMContentLoaded', function() {
            if (tableBody.id === 'testingTableBody4') {
                // Page 4: Sample No (3 cols), Gloss (4 cols: 1,2,3,Ave), PG Quality (1 col)
                // Only one Ave column at position 6
-               calculateVerticalAveStats(dataRows, [6], tableBody);
-           } else {
+                calculateVerticalAveStats(dataRows, [6], tableBody);
+            } else {
                // Page 2 & 3: 3 Ave columns (positions 6, 10, 14)
                // Page 2: Sample No (3 cols), Elongation MD (4 cols: 1,2,3,Ave), Force MD (4 cols: 1,2,3,Ave), Force 5% MD (4 cols: 1,2,3,Ave)
                // Page 3: Sample No (3 cols), Elongation CD (4 cols: 1,2,3,Ave), Force CD (4 cols: 1,2,3,Ave), Modulus (4 cols: 1,2,3,Ave)
-           calculateVerticalAveStats(dataRows, [6, 10, 14], tableBody);
-           }
-       }
+                calculateVerticalAveStats(dataRows, [6, 10, 14], tableBody);
+            }
+        }
 
        // Function to calculate individual column statistics for Page 1
        function calculatePage1ColumnStats(tableBody, changedColumnIndex = null) {

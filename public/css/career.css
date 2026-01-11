@@ -39,6 +39,16 @@
     opacity: 0.8;
 }
 
+/* Ensure career page cards have same hover as index page */
+.modern-card:hover {
+    box-shadow: 0 20px 40px rgba(0, 46, 125, 0.12);
+    border-color: var(--accent);
+}
+
+.modern-card:hover .card-icon {
+    color: var(--accent);
+}
+
 /* Specific styling for job cards if they exist */
 .job-card {
     background: var(--white);
@@ -53,7 +63,8 @@
 }
 
 .job-card:hover {
-    box-shadow: 0 15px 40px rgba(0,46,125,0.1);
+    box-shadow: 0 20px 40px rgba(0, 46, 125, 0.12);
+    border-color: var(--accent);
 }
 
 .job-info h3 {

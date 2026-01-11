@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, observerOptions);
 
-    document.querySelectorAll('.modern-card, .split-text-box, h2, .reveal-text, .reveal-up').forEach(el => {
+    document.querySelectorAll('.modern-card, .split-text-box, h2, .reveal-text, .reveal-up, .page-card').forEach(el => {
         observer.observe(el);
     });
 

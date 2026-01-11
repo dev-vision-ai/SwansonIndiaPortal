@@ -107,20 +107,19 @@ async function convertToPdfHandler(req, res) {
         // Read the uploaded Word file
         readStream = fs.createReadStream(req.file.path);
         
-        // Validate file extension
+        // Validate file extension and set correct MIME type
         const fileExt = path.extname(req.file.originalname).toLowerCase();
-        if (!['.doc', '.docx'].includes(fileExt)) {
+        let mimeType;
+        if (fileExt === '.docx') {
+            mimeType = MimeType.DOCX;
+        } else if (fileExt === '.doc') {
+            mimeType = MimeType.DOC;  // Use DOC for .doc files
+        } else {
             return res.status(400).json({
                 error: 'Unsupported file type',
                 details: 'Only .doc and .docx files are supported for PDF conversion'
             });
         }
-        
-        // Upload file to Adobe (use DOCX for both .doc and .docx as Adobe can handle both)
-        const inputAsset = await pdfServices.upload({
-            readStream,
-            mimeType: MimeType.DOCX
-        });
 
         // Create a new CreatePDF job
         const job = new CreatePDFJob({ inputAsset });

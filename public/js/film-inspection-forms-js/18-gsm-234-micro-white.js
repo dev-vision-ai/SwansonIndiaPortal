@@ -1437,7 +1437,7 @@ function disableFormInputs() {
         const buttonClass = button.className;
         const buttonText = button.textContent.toLowerCase();
         
-        // Skip navigation buttons, verification buttons, and approval buttons
+        // Skip navigation buttons, verification buttons, approval buttons, and toggle buttons
         if (buttonId && (
             buttonId.includes('verification') || 
             buttonId.includes('approval') ||
@@ -1445,7 +1445,10 @@ function disableFormInputs() {
             buttonId.includes('navigation') ||
             buttonId.includes('nav') ||
             buttonId.includes('home') ||
-            buttonId.includes('return')
+            buttonId.includes('return') ||
+            buttonId.includes('toggle') ||
+            buttonId === 'toggleGraphsBtn' ||
+            buttonId === 'toggleGraphsBtn2'
         )) {
 
             return;

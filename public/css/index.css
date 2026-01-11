@@ -9,7 +9,7 @@
 
     /* Effects */
     --glass: rgba(255, 255, 255, 0.03);
-    --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    --transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* --- Reset & Base Styles --- */
@@ -231,6 +231,7 @@ p { font-size: clamp(1rem, 1.2vw, 1.25rem); }
 
 
 /* --- Hero Actions --- */
+.hero-actions {
     display: flex;
     gap: 1.5rem;
     margin-top: 2.5rem;
@@ -241,22 +242,31 @@ p { font-size: clamp(1rem, 1.2vw, 1.25rem); }
 /* --- Modern Card Design --- */
 .modern-card {
     background: var(--white);
-    padding: 3rem;
-    border-radius: 24px;
-    border: 1px solid #f0f0f0;
+    padding: 2.5rem 2rem;
+    border-radius: 16px;
+    border: 1px solid #e6eaf0;
     transition: var(--transition);
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
 .modern-card:hover {
-    box-shadow: 0 30px 60px rgba(0, 46, 125, 0.1);
+    box-shadow: 0 20px 40px rgba(0, 46, 125, 0.12);
     border-color: var(--accent);
+}
+
+.modern-card:hover .card-icon {
+    color: var(--accent);
 }
 
 .card-icon {
     font-size: 2.5rem;
     color: var(--primary);
     margin-bottom: 1.5rem;
+    transition: var(--transition);
 }
 
 /* --- Grid System --- */
@@ -270,6 +280,73 @@ p { font-size: clamp(1rem, 1.2vw, 1.25rem); }
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
+}
+
+.grid-4 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.grid-4 > .page-card { align-self: stretch; }
+
+/* --- Page Cards (Explore Our Pages) --- */
+.page-card {
+    background: var(--white);
+    padding: 2.5rem 2rem;
+    border-radius: 16px;
+    border: 1px solid #e6eaf0;
+    text-decoration: none;
+    color: var(--text);
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.page-card:hover {
+    box-shadow: 0 20px 40px rgba(0, 46, 125, 0.12);
+    border-color: var(--accent);
+}
+
+.page-card-icon {
+    font-size: 2.6rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    transition: var(--transition);
+}
+
+.page-card h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: var(--primary);
+}
+
+.page-card p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+    color: var(--text);
+    opacity: 0.9;
+}
+
+.page-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.page-card:hover .page-card-icon {
+    color: var(--accent);
 }
 
 /* --- Heroes --- */
@@ -780,6 +857,15 @@ p { font-size: clamp(1rem, 1.2vw, 1.25rem); }
     animation-delay: 3s;
 }
 
+/* --- Responsive rules for Explore Our Pages --- */
+@media (max-width: 1024px) {
+    .grid-4 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+}
+
+@media (max-width: 480px) {
+    .grid-4 { grid-template-columns: 1fr; }
+    .page-card { padding: 1.25rem; }
+}
 .circle-3 {
     width: 60px;
     height: 60px;
