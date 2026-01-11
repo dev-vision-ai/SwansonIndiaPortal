@@ -25,8 +25,13 @@ const PORT = process.env.PORT || 3000;
 
 // Configure multer for conversion uploads - use system temp dir to avoid triggering dev tool refreshes
 const uploadDir = path.join(os.tmpdir(), 'swanson-uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+try {
+    if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+        console.log('Created upload directory:', uploadDir);
+    }
+} catch (error) {
+    console.error('Failed to create upload directory:', error);
 }
 const upload = multer({ dest: uploadDir });
 
@@ -104,10 +109,7 @@ async function convertToPdfHandler(req, res) {
         // Create PDF Services instance
         const pdfServices = new PDFServices({ credentials });
 
-        // Read the uploaded Word file
-        readStream = fs.createReadStream(req.file.path);
-        
-        // Validate file extension and set correct MIME type
+        // Validate file extension and set correct MIME type first
         const fileExt = path.extname(req.file.originalname).toLowerCase();
         let mimeType;
         if (fileExt === '.docx') {
@@ -121,6 +123,18 @@ async function convertToPdfHandler(req, res) {
             });
         }
 
+        // Read the uploaded Word file
+        if (!fs.existsSync(req.file.path)) {
+            throw new Error(`Uploaded file not found: ${req.file.path}`);
+        }
+        readStream = fs.createReadStream(req.file.path);
+        
+        // Create an Asset from the read stream
+        const inputAsset = await pdfServices.upload({
+            readStream,
+            mimeType
+        });
+
         // Create a new CreatePDF job
         const job = new CreatePDFJob({ inputAsset });
 
@@ -132,6 +146,11 @@ async function convertToPdfHandler(req, res) {
             pollingURL,
             resultType: CreatePDFResult
         });
+
+        // Check if the job was successful
+        if (pdfServicesResponse.result === null) {
+            throw new Error('PDF conversion failed - no result returned from Adobe');
+        }
 
         // Get the resulting PDF asset
         const resultAsset = pdfServicesResponse.result.asset;

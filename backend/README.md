@@ -49,10 +49,14 @@ npm start
 - `SUPABASE_URL`: Your Supabase project URL
 - `SUPABASE_ANON_KEY`: Your Supabase anonymous key
 - `FRONTEND_URL`: Your Vercel frontend URL (e.g., https://your-app.vercel.app)
+- `ADOBE_CLIENT_ID`: Your Adobe PDF Services client ID (for PDF conversion)
+- `ADOBE_CLIENT_SECRET`: Your Adobe PDF Services client secret (for PDF conversion)
 
 ## API Endpoints
 
 - `GET /health` - Health check
+- `GET /ping` - Server status check
+- `POST /convert-to-pdf` - Convert Word documents to PDF
 - `GET /export?traceability_code=...&lot_letter=...` - Export Excel file
 
 ## File Structure
