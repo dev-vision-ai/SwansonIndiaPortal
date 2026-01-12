@@ -162,7 +162,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
     worksheet.getCell('M42').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (O3)
-    worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+    worksheet.getCell('O3').value = data.ref_no || '';
     
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
@@ -376,7 +376,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       page2Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
       // Film Inspection Form Ref No (O3)
-      page2Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page2Worksheet.getCell('O3').value = data.ref_no || '';
       
       // Equipment data for Page 2 (D6)
       if (data.equipment_used && data.equipment_used.page2) {
@@ -565,7 +565,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       page3Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
       // Film Inspection Form Ref No (O3)
-      page3Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page3Worksheet.getCell('O3').value = data.ref_no || '';
       
       // Equipment data for Page 3 (D6)
       if (data.equipment_used && data.equipment_used.page3) {
@@ -709,7 +709,7 @@ app.get('/export-168-16cp-kranti-form', async (req, res) => {
       page4Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
       // Film Inspection Form Ref No (O3)
-      page4Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page4Worksheet.getCell('O3').value = data.ref_no || '';
       
       // Equipment data for Page 4 (D6)
       if (data.equipment_used && data.equipment_used.page4) {
@@ -885,7 +885,7 @@ app.get('/export-168-16c-white-form', async (req, res) => {
     worksheet.getCell('L42').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (O3)
-    worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+    worksheet.getCell('O3').value = data.ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
@@ -1029,7 +1029,7 @@ app.get('/export-168-16c-white-form', async (req, res) => {
       page2Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page2Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
       page2Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page2Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page2Worksheet.getCell('O3').value = data.ref_no || '';
 
       // Equipment data for Page 2 (D6)
       if (data.equipment_used && data.equipment_used.page2) {
@@ -1208,7 +1208,7 @@ app.get('/export-168-16c-white-form', async (req, res) => {
       page3Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page3Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
       page3Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page3Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page3Worksheet.getCell('O3').value = data.ref_no || '';
 
       // Equipment data for Page 3 (D6)
       if (data.equipment_used && data.equipment_used.page3) {
@@ -1387,7 +1387,7 @@ app.get('/export-168-16c-white-form', async (req, res) => {
       page4Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page4Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
       page4Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page4Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page4Worksheet.getCell('O3').value = data.ref_no || '';
 
       // Equipment data for Page 4 (D6, L6)
       if (data.equipment_used && data.equipment_used.page4) {
@@ -1531,7 +1531,7 @@ app.get('/export-168-16c-white-form', async (req, res) => {
       page5Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page5Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
       page5Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page5Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page5Worksheet.getCell('O3').value = data.ref_no || '';
 
       // Equipment data for Page 5 (D6)
       if (data.equipment_used && data.equipment_used.page5) {
@@ -1743,7 +1743,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
     worksheet.getCell('L42').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (O3)
-    worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+    worksheet.getCell('O3').value = data.ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
@@ -2091,7 +2091,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
         page2Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
         page2Worksheet.getCell('L42').value = data.verified_by || 'Not Verified';
         page2Worksheet.getCell('L43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-        page2Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+        page2Worksheet.getCell('O3').value = data.ref_no || '';
       }
     }
 
@@ -2307,7 +2307,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
         page3Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
         page3Worksheet.getCell('L42').value = data.verified_by || 'Not Verified';
         page3Worksheet.getCell('L43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-        page3Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+        page3Worksheet.getCell('O3').value = data.ref_no || '';
       }
     }
 
@@ -2483,7 +2483,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
         page4Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
         page4Worksheet.getCell('L42').value = data.verified_by || 'Not Verified';
         page4Worksheet.getCell('L43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-        page4Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+        page4Worksheet.getCell('O3').value = data.ref_no || '';
       }
     }
 
@@ -2520,7 +2520,7 @@ app.get('/export-168-18c-white-jeddah-form', async (req, res) => {
       page5Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page5Worksheet.getCell('L42').value = data.verified_by || 'Not Verified';
       page5Worksheet.getCell('L43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page5Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page5Worksheet.getCell('O3').value = data.ref_no || '';
     }
 
     // 4. Generate filename and set response headers
@@ -2646,7 +2646,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
     worksheet.getCell('L42').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (O3)
-    worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+    worksheet.getCell('O3').value = data.ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
@@ -2993,7 +2993,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
       page2Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page2Worksheet.getCell('L42').value = data.verified_by || 'Not Verified';
       page2Worksheet.getCell('L43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page2Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page2Worksheet.getCell('O3').value = data.ref_no || '';
     }
 
     // PAGE 3 DATA MAPPING - APE-168(18)C White Page 3 data (Elongation & Force CD, Modulus)
@@ -3209,7 +3209,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
       page3Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page3Worksheet.getCell('L42').value = data.verified_by || 'Not Verified';
       page3Worksheet.getCell('L43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page3Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page3Worksheet.getCell('O3').value = data.ref_no || '';
     }
 
     // PAGE 4 DATA MAPPING - APE-168(18)C White Page 4 data (Color & Gloss)
@@ -3385,7 +3385,7 @@ app.get('/export-168-18c-white-form', async (req, res) => {
       page4Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page4Worksheet.getCell('L42').value = data.verified_by || 'Not Verified';
       page4Worksheet.getCell('L43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page4Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page4Worksheet.getCell('O3').value = data.ref_no || '';
     }
 
     // NOTE: Skipping Page 5 (PG Quality) as it doesn't exist for 18gsm 168 white form
@@ -3506,7 +3506,7 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
     worksheet.getCell('M42').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (O3)
-    worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+    worksheet.getCell('O3').value = data.ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
@@ -3707,7 +3707,7 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
       page2Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page2Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
       page2Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page2Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page2Worksheet.getCell('O3').value = data.ref_no || '';
 
       // Equipment data for Page 2 (D6)
       if (data.equipment_used && data.equipment_used.page2) {
@@ -3886,7 +3886,7 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
       page3Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page3Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
       page3Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page3Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page3Worksheet.getCell('O3').value = data.ref_no || '';
 
       // Equipment data for Page 3 (D6)
       if (data.equipment_used && data.equipment_used.page3) {
@@ -4065,7 +4065,7 @@ app.get('/export-176-18cp-ww-form', async (req, res) => {
       page4Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page4Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
       page4Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page4Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page4Worksheet.getCell('O3').value = data.ref_no || '';
 
       // Equipment data for Page 4 (D6)
       if (data.equipment_used && data.equipment_used.page4) {
@@ -4261,7 +4261,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
     worksheet.getCell('I43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (L3)
-    worksheet.getCell('L3').value = data.film_insp_form_ref_no || '';
+    worksheet.getCell('L3').value = data.ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
@@ -4939,7 +4939,7 @@ app.get('/export-234-18-micro-white-form', async (req, res) => {
       page2Worksheet.getCell('I42').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
       // Film Inspection Form Ref No (K3)
-      page2Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+      page2Worksheet.getCell('K3').value = data.ref_no || '';
 
       console.log('Page 2 headers mapped successfully');
     }
@@ -5097,7 +5097,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
     worksheet.getCell('I43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (L3)
-    worksheet.getCell('L3').value = data.film_insp_form_ref_no || '';
+    worksheet.getCell('L3').value = data.ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
@@ -5523,7 +5523,7 @@ app.get('/export-214-18-micro-white-form', async (req, res) => {
       page2Worksheet.getCell('I42').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
       // Film Inspection Form Ref No (K3)
-      page2Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+      page2Worksheet.getCell('K3').value = data.ref_no || '';
 
       console.log('Page 2 headers mapped successfully');
     }
@@ -5698,7 +5698,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
       page1Worksheet.getCell('L42').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
       // Film Inspection Form Ref No (O3)
-      page1Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page1Worksheet.getCell('O3').value = data.ref_no || '';
 
       // Map equipment data to Excel cells
       if (data.equipment_used && data.equipment_used.page1) {
@@ -5872,7 +5872,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
       page2Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page2Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
       page2Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page2Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page2Worksheet.getCell('O3').value = data.ref_no || '';
 
       // Equipment data for Page 2 (D6)
       if (data.equipment_used && data.equipment_used.page2) {
@@ -6069,7 +6069,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
       page3Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page3Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
       page3Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page3Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page3Worksheet.getCell('O3').value = data.ref_no || '';
 
       // Equipment data for Page 3 (D6)
       if (data.equipment_used && data.equipment_used.page3) {
@@ -6264,7 +6264,7 @@ app.get('/export-102-18c-white-form', async (req, res) => {
       page4Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page4Worksheet.getCell('M42').value = data.verified_by || 'Not Verified';
       page4Worksheet.getCell('M43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page4Worksheet.getCell('O3').value = data.film_insp_form_ref_no || '';
+      page4Worksheet.getCell('O3').value = data.ref_no || '';
 
       // Equipment data for Page 4 (D6, L6)
       if (data.equipment_used && data.equipment_used.page4) {
@@ -6467,4 +6467,5 @@ app.get('/export-102-18c-white-form', async (req, res) => {
   }
 });
 };
+
 

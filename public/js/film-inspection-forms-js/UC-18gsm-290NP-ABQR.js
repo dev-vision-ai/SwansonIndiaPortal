@@ -5720,9 +5720,9 @@ function loadTableDataFromDatabase(data) {
         if (element) element.textContent = data.batch;
     }
     
-    if (data.prestore_ref_no) {
+    if (data.ref_no) {
         const element = document.getElementById('view-ref-no');
-        if (element) element.textContent = data.prestore_ref_no;
+        if (element) element.textContent = data.ref_no;
     }
     
     if (data.prestore_done_by) {
@@ -6258,7 +6258,6 @@ function loadPreStoreData(data) {
         { dbField: 'inspection_date', viewId: 'view-inspection-date' },
         { dbField: 'standard_packing', viewId: 'view-standard-packing' },
         { dbField: 'batch', viewId: 'view-batch' },
-        { dbField: 'prestore_ref_no', viewId: 'view-ref-no' },
         { dbField: 'prestore_done_by', viewId: 'view-prestore-done-by' },
         { dbField: 'pallet_list', viewId: 'view-pallet-list' },
         { dbField: 'product_label', viewId: 'view-product-label' },

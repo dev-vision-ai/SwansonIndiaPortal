@@ -239,8 +239,8 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
         }
       }
 
-      if (data.prestore_ref_no !== undefined) {
-        worksheet.getCell('V3').value = data.prestore_ref_no || 'N/A';
+      if (data.ref_no !== undefined) {
+        worksheet.getCell('V3').value = data.ref_no || 'N/A';
       };
 
       // Handle verified_by and approved_by fields from the film inspection form

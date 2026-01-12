@@ -195,7 +195,7 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
     page1Worksheet.getCell('J43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (K3)
-    page1Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+    page1Worksheet.getCell('K3').value = data.ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
@@ -514,7 +514,7 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
       page2Worksheet.getCell('B45').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page2Worksheet.getCell('J44').value = data.verified_by || 'Not Verified';
       page2Worksheet.getCell('J45').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page2Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+      page2Worksheet.getCell('K3').value = data.ref_no || '';
     }
 
     // PAGE 3 DATA MAPPING - UC-18gsm-250P-ABQR Page 3 data (Color Measurements)
@@ -617,7 +617,7 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
       page3Worksheet.getCell('B44').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page3Worksheet.getCell('J43').value = data.verified_by || 'Not Verified';
       page3Worksheet.getCell('J44').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page3Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+      page3Worksheet.getCell('K3').value = data.ref_no || '';
     }
 
     // COA FORM DATA MAPPING - UC-18gsm-250P-ABQR COA Form sheet
@@ -639,7 +639,7 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
 
     // 4. Generate filename and set response headers
     const productCode = data.product_code || 'UC-18gsm-250P-ABQR';
-    const batchNo = data.film_insp_form_ref_no || form_id;
+    const batchNo = data.ref_no || form_id;
 
     const filename = `FIF-${productCode}-.xlsx`;
 
@@ -788,7 +788,7 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
     page1Worksheet.getCell('J43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (K3)
-    page1Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+    page1Worksheet.getCell('K3').value = data.ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
@@ -1107,7 +1107,7 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
       page2Worksheet.getCell('B45').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page2Worksheet.getCell('J44').value = data.verified_by || 'Not Verified';
       page2Worksheet.getCell('J45').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page2Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+      page2Worksheet.getCell('K3').value = data.ref_no || '';
     }
 
     // PAGE 3 DATA MAPPING - UC-18gsm-290P-ABQR Page 3 data (Color Measurements)
@@ -1210,7 +1210,7 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
       page3Worksheet.getCell('B44').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page3Worksheet.getCell('J43').value = data.verified_by || 'Not Verified';
       page3Worksheet.getCell('J44').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page3Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+      page3Worksheet.getCell('K3').value = data.ref_no || '';
     }
 
     // COA FORM DATA MAPPING - UC-18gsm-290P-ABQR COA Form sheet
@@ -1231,7 +1231,7 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
 
     // 4. Generate filename and set response headers
     const productCode = data.product_code || 'UC-18gsm-290P-ABQR';
-    const batchNo = data.film_insp_form_ref_no || form_id;
+    const batchNo = data.ref_no || form_id;
 
     const filename = `FIF-${productCode}-.xlsx`;
 
@@ -1380,7 +1380,7 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
     page1Worksheet.getCell('J43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (K3)
-    page1Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+    page1Worksheet.getCell('K3').value = data.ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
@@ -1699,7 +1699,7 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
       page2Worksheet.getCell('B45').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page2Worksheet.getCell('J44').value = data.verified_by || 'Not Verified';
       page2Worksheet.getCell('J45').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page2Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+      page2Worksheet.getCell('K3').value = data.ref_no || '';
     }
 
     // PAGE 3 DATA MAPPING - UC-18gsm-290NP-ABQR Page 3 data (Color Measurements)
@@ -1802,7 +1802,7 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
       page3Worksheet.getCell('B44').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page3Worksheet.getCell('J43').value = data.verified_by || 'Not Verified';
       page3Worksheet.getCell('J44').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page3Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+      page3Worksheet.getCell('K3').value = data.ref_no || '';
     }
 
     // COA FORM DATA MAPPING - UC-18gsm-290NP-ABQR COA Form sheet
@@ -1823,7 +1823,7 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
 
     // 4. Generate filename and set response headers
     const productCode = data.product_code || 'UC-18gsm-290NP-ABQR';
-    const batchNo = data.film_insp_form_ref_no || form_id;
+    const batchNo = data.ref_no || form_id;
 
     const filename = `FIF-${productCode}-.xlsx`;
 
@@ -1972,7 +1972,7 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
     page1Worksheet.getCell('J43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
 
     // Film Inspection Form Ref No (K3)
-    page1Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+    page1Worksheet.getCell('K3').value = data.ref_no || '';
 
     // Map equipment data to Excel cells
     if (data.equipment_used && data.equipment_used.page1) {
@@ -2291,7 +2291,7 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
       page2Worksheet.getCell('B45').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page2Worksheet.getCell('J44').value = data.verified_by || 'Not Verified';
       page2Worksheet.getCell('J45').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page2Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+      page2Worksheet.getCell('K3').value = data.ref_no || '';
     }
 
     // PAGE 3 DATA MAPPING - UC-18gsm-250W-BFQR Page 3 data (Color Measurements)
@@ -2394,7 +2394,7 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
       page3Worksheet.getCell('B44').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page3Worksheet.getCell('J43').value = data.verified_by || 'Not Verified';
       page3Worksheet.getCell('J44').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page3Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+      page3Worksheet.getCell('K3').value = data.ref_no || '';
     }
 
     // COA FORM DATA MAPPING - UC-18gsm-250W-BFQR COA Form sheet
@@ -2415,7 +2415,7 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
 
     // 4. Generate filename and set response headers
     const productCode = data.product_code || 'UC-18gsm-250W-BFQR';
-    const batchNo = data.film_insp_form_ref_no || form_id;
+    const batchNo = data.ref_no || form_id;
 
     const filename = `FIF-${productCode}-.xlsx`;
 
@@ -2747,7 +2747,7 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
       page1Worksheet.getCell('B43').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page1Worksheet.getCell('J42').value = data.verified_by || 'Not Verified';
       page1Worksheet.getCell('J43').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page1Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+      page1Worksheet.getCell('K3').value = data.ref_no || '';
     }
 
     // PAGE 2 DATA MAPPING - UC-18gsm-210W-BFQR Page 2 data (Mechanical Properties)
@@ -2878,7 +2878,7 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
       page2Worksheet.getCell('B45').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page2Worksheet.getCell('J44').value = data.verified_by || 'Not Verified';
       page2Worksheet.getCell('J45').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page2Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+      page2Worksheet.getCell('K3').value = data.ref_no || '';
     }
 
     // PAGE 3 DATA MAPPING - UC-18gsm-210W-BFQR Page 3 data (Color Measurements)
@@ -2981,7 +2981,7 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
       page3Worksheet.getCell('B44').value = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
       page3Worksheet.getCell('J43').value = data.verified_by || 'Not Verified';
       page3Worksheet.getCell('J44').value = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
-      page3Worksheet.getCell('K3').value = data.film_insp_form_ref_no || '';
+      page3Worksheet.getCell('K3').value = data.ref_no || '';
     }
 
     // COA FORM DATA MAPPING - UC-18gsm-210W-BFQR COA Form sheet
@@ -3002,7 +3002,7 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
 
     // 4. Generate filename and set response headers
     const productCode = data.product_code || 'UC-18gsm-210W-BFQR';
-    const batchNo = data.film_insp_form_ref_no || form_id;
+    const batchNo = data.ref_no || form_id;
 
     const filename = `FIF-${productCode}-.xlsx`;
 
@@ -3111,7 +3111,7 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
     page1Worksheet.getCell('B5').value = data.specification || '';
 
     // Film Inspection Form Ref No (I3)
-    page1Worksheet.getCell('I3').value = data.film_insp_form_ref_no || '';
+    page1Worksheet.getCell('I3').value = data.ref_no || '';
 
     // Purchase Order (E5)
   page1Worksheet.getCell('E5').value = data.purchase_order ? data.purchase_order : 'NA';
@@ -3621,7 +3621,7 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
 
     // 4. Generate filename and set response headers
     const productCode = data.product_code || 'UC-16gsm-165W';
-    const batchNo = data.film_insp_form_ref_no || form_id;
+    const batchNo = data.ref_no || form_id;
 
     const filename = `FIF-${productCode}-.xlsx`;
 

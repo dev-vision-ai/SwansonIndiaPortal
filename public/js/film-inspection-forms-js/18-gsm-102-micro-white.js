@@ -1223,9 +1223,8 @@ document.addEventListener('DOMContentLoaded', function() {
                    purchase_order: 'N/A',
                    quantity: quantityInput?.value ? parseInt(quantityInput.value) : null,
                    lot_no: currentLotNo || null, // Only use existing lot_no, don't generate new ones
-                   // Don't overwrite prestore_ref_no and prepared_by if updating existing form
+                   // Don't overwrite prepared_by if updating existing form
                    ...(currentFormId ? {} : {
-                       prestore_ref_no: generateRefNumber(),
                        prepared_by: 'User'
                    })
                };
@@ -2733,9 +2732,9 @@ document.addEventListener('DOMContentLoaded', function() {
                      if (element) element.textContent = dbData.batch;
                  }
                  
-                 if (dbData.prestore_ref_no) {
+                 if (dbData.ref_no) {
                      const element = document.getElementById('view-ref-no');
-                     if (element) element.textContent = dbData.prestore_ref_no;
+                     if (element) element.textContent = dbData.ref_no;
                  }
                  
                  if (dbData.prestore_done_by) {

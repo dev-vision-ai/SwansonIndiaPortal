@@ -104,59 +104,59 @@ document.addEventListener('DOMContentLoaded', async () => {
             const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc290pResult, uc290npResult, uc250wResult, uc210wResult, microWhite234Result, microWhite102Result, white168Result, uc165wResult] = await Promise.all([
                 supabase
                     .from('168_16cp_kranti')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('168_16c_white')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('176_18cp_ww')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('168_18c_white_jeddah')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('214_18_micro_white')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-250p-abqr')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-290p-abqr')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-290np-abqr')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-250w-bfqr')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-18gsm-210w-bfqr')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('234_18_micro_white')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('102_18c_micro_white')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('168_18c_white')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false }),
                 supabase
                     .from('uc-16gsm-165w')
-                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, film_insp_form_ref_no, lot_no, purchase_order, approved_by')
+                    .select('form_id, production_order, product_code, specification, machine_no, prepared_by, verified_by, production_date, inspection_date, created_at, customer, ref_no, lot_no, purchase_order, approved_by')
                     .order('created_at', { ascending: false })
             ]);
 
@@ -433,6 +433,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         const totalPages = Math.ceil(totalItems / itemsPerPage);
         updatePaginationControls(totalPages);
 
+        // Show/hide pagination controls based on filter status AND total filtered items
+        const paginationControls = document.getElementById('paginationControls');
+        if (paginationControls) {
+            if (hasActiveFilters && totalItems > itemsPerPage) {
+                paginationControls.classList.remove('hidden');
+            } else {
+                paginationControls.classList.add('hidden');
+            }
+        }
+
         displayCurrentPage();
     }
 
@@ -457,15 +467,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentPageData.forEach((formData, index) => {
             const row = tableBody.insertRow();
 
-            // Serial number based on overall position in filtered dataset: latest entry gets highest number
-            const serialNumber = totalItems - (startIndex + index);
+            // Reference number from the form data
+            const refNumber = formData.ref_no || '';
 
             const statusBadge = formData.approved_by ?
                 `<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Approved</span>` :
                 `<span class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium inline-block">Pending</span>`;
 
             row.innerHTML = `
-                <td class="py-2 px-4 border-b border-r text-center">${serialNumber}</td>
+                <td class="py-2 px-4 border-b border-r text-center">${formData.ref_no && formData.ref_no.trim() !== '' ? formData.ref_no : '<span class="text-red-600 font-medium">Not Alloted</span>'}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.production_date ? new Date(formData.production_date).toLocaleDateString('en-GB') : ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.gcas_irms || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.machine_no || ''}</td>
@@ -534,7 +544,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Store all form data in data attributes AFTER innerHTML assignment
             row.setAttribute('data-customer', formData.customer || '');
             row.setAttribute('data-production-order', formData.production_order || '');
-            row.setAttribute('data-film-insp-form-ref-no', formData.film_insp_form_ref_no || '');
+            row.setAttribute('data-ref-no', formData.ref_no || '');
             row.setAttribute('data-lot-no', formData.lot_no || '');
             row.setAttribute('data-specification', formData.specification || '');
             row.setAttribute('data-production-date', formData.production_date ? new Date(formData.production_date).toLocaleDateString('en-GB') : '');
@@ -649,8 +659,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Function to populate filter dropdowns
     async function populateFilterDropdowns() {
         try {
-            // Get unique products
-            const products = [...new Set(allData.map(form => form.product_code).filter(Boolean))];
+            // Get unique products and sort alphabetically
+            const products = [...new Set(allData.map(form => form.product_code).filter(Boolean))].sort();
             if (filterProduct) {
                 filterProduct.innerHTML = '<option value="">All</option>';
                 products.forEach(product => {
@@ -661,8 +671,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            // Get unique machines
-            const machines = [...new Set(allData.map(form => form.machine_no).filter(Boolean))];
+            // Get unique machines and sort numerically/alphabetically
+            const machines = [...new Set(allData.map(form => form.machine_no).filter(Boolean))].sort((a, b) => {
+                // Try to parse as numbers first, then fall back to string comparison
+                const numA = parseInt(a);
+                const numB = parseInt(b);
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    return numA - numB; // Numerical sort
+                }
+                return a.localeCompare(b); // Alphabetical sort
+            });
             if (filterMachine) {
                 filterMachine.innerHTML = '<option value="">All</option>';
                 machines.forEach(machine => {
@@ -673,8 +691,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            // Get unique prepared by users
-            const preparedByUsers = [...new Set(allData.map(form => form.prepared_by).filter(Boolean))];
+            // Get unique prepared by users and sort alphabetically
+            const preparedByUsers = [...new Set(allData.map(form => form.prepared_by).filter(Boolean))].sort();
             if (filterPreparedBy) {
                 filterPreparedBy.innerHTML = '<option value="">All</option>';
                 preparedByUsers.forEach(user => {
@@ -770,14 +788,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Store all form data in data attributes for instant access
             row.setAttribute('data-customer', formData.customer || '');
             row.setAttribute('data-production-order', formData.production_order || '');
-            row.setAttribute('data-film-insp-form-ref-no', formData.film_insp_form_ref_no || '');
+            row.setAttribute('data-ref-no', formData.ref_no || '');
             row.setAttribute('data-lot-no', formData.lot_no || '');
             row.setAttribute('data-specification', formData.specification || '');
 
-            // Serial number based on overall position in filtered dataset: latest entry gets highest number
-            const serialNumber = totalItems - (startIndex + index);
+            // Reference number from the form data
+            const refNumber = formData.ref_no || '';
             row.innerHTML = `
-                <td class="py-2 px-4 border-b border-r text-center">${serialNumber}</td>
+                <td class="py-2 px-4 border-b border-r text-center">${formData.ref_no && formData.ref_no.trim() !== '' ? formData.ref_no : '<span class="text-red-600 font-medium">Not Alloted</span>'}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.production_date ? new Date(formData.production_date).toLocaleDateString('en-GB') : ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.gcas_irms || ''}</td>
                 <td class="py-2 px-4 border-b border-r text-center">${formData.machine_no || ''}</td>
@@ -857,8 +875,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             'specification': 'specification-modal',
             'batch': 'batch-modal',
             'lot_no': 'coa-lot-no-modal',
-            'prestore_ref_no': 'ref-no-modal', // Only prestore_ref_no should map to ref-no-modal
-            'film_insp_form_ref_no': 'film-insp-ref-no-modal', // Film Inspection Form Ref No
+            'ref_no': 'common-ref-no-modal', // Reference No
             'standard_packing': 'standard-packing-modal',
             'production_date': 'production-date-modal',
             'inspection_date': 'inspection-date-modal',
@@ -1088,9 +1105,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
         sessionStorage.setItem('prestoreFormData', JSON.stringify(prestoreData));
         
-        // Fetch prestore_ref_no in background (non-blocking)
-        fetchPrestoreRefNo(formId);
-        
         // Store form_id globally for the modal to use
         window.currentPrestoreFormId = formId;
         preStoreFormId = formId; // Set the local variable for edit detection
@@ -1110,132 +1124,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             setupPrestoreModalInBackground(formId);
         }
     };
-    
-    // Function to fetch prestore_ref_no in background
-    async function fetchPrestoreRefNo(formId) {
-        try {
-            // Try to fetch from all tables using .maybeSingle() to avoid errors when no data found
-            const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc290pResult, uc290npResult, uc250wResult, uc210wResult, microWhite234Result, microWhite102Result, white168Result, uc165wResult] = await Promise.all([
-                supabase
-                    .from('168_16cp_kranti')
-                    .select('prestore_ref_no, lot_no')
-                    .eq('form_id', formId)
-                    .maybeSingle(),
-                supabase
-                    .from('168_16c_white')
-                    .select('prestore_ref_no, lot_no')
-                    .eq('form_id', formId)
-                    .maybeSingle(),
-                supabase
-                    .from('176_18cp_ww')
-                    .select('prestore_ref_no, lot_no')
-                    .eq('form_id', formId)
-                    .maybeSingle(),
-                supabase
-                    .from('168_18c_white_jeddah')
-                    .select('prestore_ref_no, lot_no')
-                    .eq('form_id', formId)
-                    .maybeSingle(),
-                supabase
-                    .from('214_18_micro_white')
-                    .select('prestore_ref_no, lot_no')
-                    .eq('form_id', formId)
-                    .maybeSingle(),
-                supabase
-                    .from('uc-18gsm-250p-abqr')
-                    .select('prestore_ref_no, lot_no')
-                    .eq('form_id', formId)
-                    .maybeSingle(),
-                supabase
-                    .from('uc-18gsm-290p-abqr')
-                    .select('prestore_ref_no, lot_no')
-                    .eq('form_id', formId)
-                    .maybeSingle(),
-                supabase
-                    .from('uc-18gsm-290np-abqr')
-                    .select('prestore_ref_no, lot_no')
-                    .eq('form_id', formId)
-                    .maybeSingle(),
-                supabase
-                    .from('uc-18gsm-250w-bfqr')
-                    .select('prestore_ref_no, lot_no')
-                    .eq('form_id', formId)
-                    .maybeSingle(),
-                supabase
-                    .from('uc-18gsm-210w-bfqr')
-                    .select('prestore_ref_no, lot_no')
-                    .eq('form_id', formId)
-                    .maybeSingle(),
-                supabase
-                    .from('234_18_micro_white')
-                    .select('prestore_ref_no, lot_no')
-                    .eq('form_id', formId)
-                    .maybeSingle(),
-                supabase
-                    .from('102_18c_micro_white')
-                    .select('prestore_ref_no, lot_no')
-                    .eq('form_id', formId)
-                    .maybeSingle(),
-                supabase
-                    .from('168_18c_white')
-                    .select('prestore_ref_no, lot_no')
-                    .eq('form_id', formId)
-                    .maybeSingle(),
-                supabase
-                    .from('uc-16gsm-165w')
-                    .select('prestore_ref_no, lot_no')
-                    .eq('form_id', formId)
-                    .maybeSingle()
-            ]);
-            
-            // Use the result that has data (not an error)
-            let formData = null;
-            if (!krantiResult.error && krantiResult.data) {
-                formData = krantiResult.data;
-            } else if (!whiteResult.error && whiteResult.data) {
-                formData = whiteResult.data;
-            } else if (!wwResult.error && wwResult.data) {
-                formData = wwResult.data;
-            } else if (!jeddahResult.error && jeddahResult.data) {
-                formData = jeddahResult.data;
-            } else if (!microWhite214Result.error && microWhite214Result.data) {
-                formData = microWhite214Result.data;
-            } else if (!uc250pResult.error && uc250pResult.data) {
-                formData = uc250pResult.data;
-            } else if (!uc290pResult.error && uc290pResult.data) {
-                formData = uc290pResult.data;
-            } else if (!uc290npResult.error && uc290npResult.data) {
-                formData = uc290npResult.data;
-            } else if (!uc250wResult.error && uc250wResult.data) {
-                formData = uc250wResult.data;
-            } else if (!uc210wResult.error && uc210wResult.data) {
-                formData = uc210wResult.data;
-            } else if (!microWhite234Result.error && microWhite234Result.data) {
-                formData = microWhite234Result.data;
-            } else if (!microWhite102Result.error && microWhite102Result.data) {
-                formData = microWhite102Result.data;
-            } else if (!white168Result.error && white168Result.data) {
-                formData = white168Result.data;
-            } else if (!uc165wResult.error && uc165wResult.data) {
-                formData = uc165wResult.data;
-            }
-            
-            if (!formData) {
-                return;
-            }
-            
-            // Update the reference number field if it exists
-            if (formData.prestore_ref_no) {
-                const refNoField = document.getElementById('ref-no-modal');
-                if (refNoField) {
-                    refNoField.value = formData.prestore_ref_no;
-                }
-            }
-            
-        } catch (error) {
-            console.error('Error fetching prestore_ref_no:', error);
-        }
-    }
     
     // Function to setup prestore modal in background (non-blocking)
     async function setupPrestoreModalInBackground(formId) {
@@ -1424,8 +1312,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 batch: formData.get('batch'),
                 // Only set lot_no for Unicharm customer, NULL for others
                 lot_no: formData.get('customer') && formData.get('customer').toLowerCase().includes('unicharm') ? formData.get('lot_no') : null,
-                prestore_ref_no: formData.get('ref_no'),
-                film_insp_form_ref_no: formData.get('film_insp_form_ref_no'),
+                ref_no: formData.get('ref_no'),
                 standard_packing: formData.get('standard-packing') ? `${formData.get('standard-packing')} ${formData.get('standard-packing-unit')}` : null,
                 production_date: formData.get('production-date'),
                 inspection_date: formData.get('inspection-date'),
@@ -1612,8 +1499,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (data.productionOrder) {
             form.querySelector('input[name="production_order"]').value = data.productionOrder;
         }
-        if (data.filmInspFormRefNo) {
-            form.querySelector('input[name="ref_no"]').value = data.filmInspFormRefNo;
+        if (data.refNo) {
+            form.querySelector('input[name="ref_no"]').value = data.refNo;
         }
         
         // Set form ID for update
@@ -1738,7 +1625,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Get additional data from data attributes (INSTANT!)
             const customer = row.getAttribute('data-customer') || '';
             const productionOrder = row.getAttribute('data-production-order') || '';
-            const filmInspFormRefNo = row.getAttribute('data-film-insp-form-ref-no') || '';
+            const refNo = row.getAttribute('data-ref-no') || '';
             const specification = row.getAttribute('data-specification') || '';
 
 
@@ -1754,7 +1641,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 preparedBy: preparedBy,
                 customer: customer,
                 productionOrder: productionOrder,
-                filmInspFormRefNo: filmInspFormRefNo
+                refNo: refNo
             });
         }
 
@@ -1869,156 +1756,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('Error deleting form: ' + error.message);
         }
     }
-
-    // TODO: Uncomment password verification after project completion
-    /*
-    // Check if password modal elements exist before adding event listeners
-    const passwordConfirmModal = document.getElementById('passwordConfirmModal');
-    const deletePasswordInput = document.getElementById('deletePasswordInput');
-    const confirmDeleteButton = document.getElementById('confirmDeleteButton');
-    const cancelDeleteButton = document.getElementById('cancelDeleteButton');
-    const togglePasswordVisibilityButton = document.getElementById('togglePasswordVisibility');
-
-    let currentDeleteFormId = null;
-
-    function showPasswordConfirmModal(formId) {
-        if (!passwordConfirmModal || !deletePasswordInput) {
-            console.warn('Password modal elements not found');
-            return;
-        }
-        currentDeleteFormId = formId;
-        deletePasswordInput.value = ''; // Clear any previous input
-        passwordConfirmModal.classList.remove('hidden');
-        // Reset password field to type 'password' and eye icon to 'fa-eye'
-        deletePasswordInput.type = 'password';
-        const toggleButton = document.getElementById('togglePasswordVisibility');
-        if (toggleButton) {
-            toggleButton.querySelector('i').classList.remove('fa-eye-slash');
-            toggleButton.querySelector('i').classList.add('fa-eye');
-        }
-    }
-
-    function hidePasswordConfirmModal() {
-        if (passwordConfirmModal) {
-            passwordConfirmModal.classList.add('hidden');
-        }
-        currentDeleteFormId = null;
-    }
-
-    // Only add event listeners if elements exist
-    if (cancelDeleteButton) {
-        cancelDeleteButton.addEventListener('click', () => {
-            hidePasswordConfirmModal();
-        });
-    }
-
-    if (togglePasswordVisibilityButton) {
-        togglePasswordVisibilityButton.addEventListener('click', () => {
-            if (!deletePasswordInput) return;
-            const type = deletePasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            deletePasswordInput.setAttribute('type', type);
-            // Toggle the eye icon
-            togglePasswordVisibilityButton.querySelector('i').classList.toggle('fa-eye');
-            togglePasswordVisibilityButton.querySelector('i').classList.toggle('fa-eye-slash');
-        });
-    }
-
-    if (confirmDeleteButton) {
-        confirmDeleteButton.addEventListener('click', async () => {
-            const password = deletePasswordInput.value;
-            if (!password) {
-                alert('Please enter your password.');
-                return;
-            }
-
-            // In a real application, you would send this password to a secure backend
-            // (e.g., a Supabase Function or an API endpoint) for verification.
-            // For this example, we'll simulate a check. You might compare it against
-            // the current user's password if you have access to it client-side (less secure)
-            // or a predefined admin password (also less secure).
-            // A more secure approach involves re-authenticating the user or using a server-side check.
-
-            // For demonstration purposes, let's assume a hardcoded password for now.
-            // REPLACE THIS WITH SECURE SERVER-SIDE VERIFICATION IN PRODUCTION!
-            const { data: { user: currentUser } } = await supabase.auth.getUser();
-            if (!currentUser) {
-                alert('User not logged in. Cannot verify password.');
-                hidePasswordConfirmModal();
-                return;
-            }
-
-            // This is a placeholder for actual password verification.
-            // You CANNOT directly verify a user's password against a hash client-side.
-            // You would typically call a server-side function that checks the password.
-            // For the sake of demonstrating the flow, we'll use a dummy check.
-            const isPasswordCorrect = password === 'Swanson@2010'; // DUMMY CHECK - REPLACE WITH REAL AUTHENTICATION
-
-            if (isPasswordCorrect) {
-                // Proceed with deletion from all five tables
-                const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, microWhite234Result, microWhite102Result, white168Result] = await Promise.all([
-                    supabase
-                        .from('168_16cp_kranti')
-                        .delete()
-                        .eq('form_id', currentDeleteFormId),
-                    supabase
-                        .from('168_16c_white')
-                        .delete()
-                        .eq('form_id', currentDeleteFormId),
-                    supabase
-                        .from('176_18cp_ww')
-                        .delete()
-                        .eq('form_id', currentDeleteFormId),
-                    supabase
-                        .from('168_18c_white_jeddah')
-                        .delete()
-                        .eq('form_id', currentDeleteFormId),
-                    supabase
-                        .from('214_18_micro_white')
-                        .delete()
-                        .eq('form_id', currentDeleteFormId),
-                    supabase
-                        .from('uc-18gsm-250p-abqr')
-                        .delete()
-                        .eq('form_id', currentDeleteFormId),
-                    supabase
-                        .from('234_18_micro_white')
-                        .delete()
-                        .eq('form_id', currentDeleteFormId),
-                    supabase
-                        .from('102_18c_micro_white')
-                        .delete()
-                        .eq('form_id', currentDeleteFormId),
-                    supabase
-                        .from('168_18c_white')
-                        .delete()
-                        .eq('form_id', currentDeleteFormId)
-                ]);
-
-                // Check if any deletion was successful
-                const krantiSuccess = !krantiResult.error;
-                const whiteSuccess = !whiteResult.error;
-                const wwSuccess = !wwResult.error;
-                const jeddahSuccess = !jeddahResult.error;
-                const microWhite214Success = !microWhite214Result.error;
-                const uc250pSuccess = !uc250pResult.error;
-                const microWhite234Success = !microWhite234Result.error;
-                const microWhite102Success = !microWhite102Result.error;
-                const white168Success = !white168Result.error;
-
-                if (krantiSuccess || whiteSuccess || wwSuccess || jeddahSuccess || microWhite214Success || uc250pSuccess || microWhite234Success || microWhite102Success || white168Success) {
-                    alert('Form deleted successfully!');
-                    fetchFilmInspectionForms(); // Refresh the list
-                } else {
-                    console.error('Error deleting form from all tables:', krantiResult.error, whiteResult.error, wwResult.error, jeddahResult.error, microWhite214Result.error, uc250pResult.error, microWhite234Result.error, microWhite102Result.error, white168Result.error);
-                    alert('Error deleting form: Form not found in any table');
-                }
-                hidePasswordConfirmModal();
-            } else {
-                alert('Incorrect password.');
-            }
-        });
-    }
-    */
 
     // Function to download Pre-Store Excel file
     window.downloadPrestoreExcel = async function(formId, buttonElement) {
@@ -3136,7 +2873,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         inspection_date: formData.get('inspection_date'),
                         machine_no: formData.get('machine_no'),
                         production_order: formData.get('production_order'),
-                        film_insp_form_ref_no: formData.get('ref_no')
+                        ref_no: formData.get('ref_no')
                         // prepared_by is intentionally excluded to preserve original author
                     };
 
@@ -3149,7 +2886,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         }
                     });
                     
-                    // Try to update in all tables with film_insp_form_ref_no for ALL tables
+                    // Try to update in all tables with ref_no for ALL tables
                     const [krantiResult, whiteResult, wwResult, jeddahResult, microWhite214Result, uc250pResult, uc250wResult, uc210wResult, microWhite234Result, microWhite102Result, white168Result, uc165wResult] = await Promise.all([
                         supabase
                             .from('168_16cp_kranti')
@@ -3776,13 +3513,6 @@ window.deleteFilmForm = async function(formId) {
                 }
             }
 
-            // Map ref_no to film_insp_form_ref_no for ALL tables
-            if (data.ref_no) {
-                data.film_insp_form_ref_no = data.ref_no;
-                delete data.ref_no; // Remove the original ref_no field
-            }
-            
-
             let dbOperation;
             // Check for uniqueness before submission (only for new entries and only if lot_no is provided)
             if (data.lot_no) {
@@ -4253,8 +3983,7 @@ window.deleteFilmForm = async function(formId) {
                 location: formData.get('location') || '',
                 specification: formData.get('specification') || '',
                 batch: formData.get('batch') || '',
-                prestore_ref_no: formData.get('ref_no') || '', // Map ref_no to prestore_ref_no (matches schema)
-                film_insp_form_ref_no: formData.get('film_insp_form_ref_no') || '',
+                ref_no: formData.get('ref_no') || '',
                 standard_packing: (formData.get('standard-packing') || '') + ' ' + (formData.get('standard-packing-unit') || ''),
                 production_date: formData.get('production-date') || '',
                 inspection_date: formData.get('inspection-date') || '',
