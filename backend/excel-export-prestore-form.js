@@ -378,7 +378,7 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
       
       try {
         // Download fixed signature from Supabase Storage
-        const { data: fixedSignatureData, error: fixedDownloadError } = await supabase
+        const { data: fixedSignatureData, error: fixedDownloadError } = await getSupabaseServiceRole()
           .storage
           .from('digital-signatures')
           .download(`${fixedUserId}.png`);
