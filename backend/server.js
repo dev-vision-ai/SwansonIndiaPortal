@@ -42,6 +42,8 @@ app.use(cors({
     'http://localhost:5500',
     'http://127.0.0.1:5501',
     'http://localhost:5501',
+    'http://127.0.0.1:5502',
+    'http://localhost:5502',
     'http://localhost:3000',
     'https://swanson-india-portal.vercel.app',
     'https://swanson-india-portal-9achzdpnx.vercel.app',

@@ -5,6 +5,7 @@ import { supabase } from '../supabase-config.js';
 // Global variables
 let allForms = [];
 let filteredForms = [];
+let currentFilterMode = 'basic'; // Track current filter mode
 let currentFilters = {
     fromDate: '',
     toDate: '',
@@ -12,6 +13,15 @@ let currentFilters = {
     machine: '',
     shift: '',
     productionType: ''
+};
+let advancedFilters = {
+    fromDate: '',
+    toDate: '',
+    productionType: '',
+    machines: [], // Array of selected machines
+    product: '',
+    shift: '',
+    defect: ''
 };
 
 // Initialize the page
@@ -205,10 +215,18 @@ function applySavedFilter(filterState) {
 
 // Check if filters are actually active (have meaningful values)
 function areFiltersActive() {
-    return currentFilters.fromDate &&
-           currentFilters.toDate &&
-           currentFilters.machine &&
-           currentFilters.machine !== 'all';
+    if (currentFilterMode === 'advance') {
+        // For advanced filter, check if advanced filters are active
+        return advancedFilters.fromDate &&
+               advancedFilters.toDate &&
+               advancedFilters.machines.length > 0;
+    } else {
+        // For basic filter, use existing logic
+        return currentFilters.fromDate &&
+               currentFilters.toDate &&
+               currentFilters.machine &&
+               currentFilters.machine !== 'all';
+    }
 }
 
 // Update filter status display
@@ -255,7 +273,364 @@ function initializeFilters() {
     // Clear button
     document.getElementById('clearFilter')?.addEventListener('click', clearAllFilters);
     
+    // Filter mode toggle buttons
+    document.getElementById('basicFilterBtn')?.addEventListener('click', () => toggleFilterMode('basic'));
+    document.getElementById('advanceFilterBtn')?.addEventListener('click', () => toggleFilterMode('advance'));
+    
+    // Advanced filter listeners
+    document.getElementById('advFilterProductionType')?.addEventListener('change', onAdvancedDateOrTypeChange);
+    document.getElementById('advFilterFromDate')?.addEventListener('change', onAdvancedDateOrTypeChange);
+    document.getElementById('advFilterToDate')?.addEventListener('change', onAdvancedDateOrTypeChange);
+    document.getElementById('advApplyFilter')?.addEventListener('click', applyAdvancedFilter);
+    document.getElementById('advClearFilter')?.addEventListener('click', clearAdvancedFilters);
+    
+    // Initialize with Basic Filter as default
+    toggleFilterMode('basic');
+    
     // Cascading filter functionality initialized
+}
+
+// Toggle between Basic and Advance filter modes
+function toggleFilterMode(mode) {
+    const basicBtn = document.getElementById('basicFilterBtn');
+    const advanceBtn = document.getElementById('advanceFilterBtn');
+    const basicContent = document.getElementById('basicFilterMode');
+    const advanceContent = document.getElementById('advanceFilterMode');
+    
+    if (mode === 'basic') {
+        currentFilterMode = 'basic';
+        basicBtn.classList.add('active');
+        advanceBtn.classList.remove('active');
+        basicContent.style.display = 'block';
+        advanceContent.style.display = 'none';
+        console.log('Switched to Basic Filter mode');
+    } else if (mode === 'advance') {
+        currentFilterMode = 'advance';
+        advanceBtn.classList.add('active');
+        basicBtn.classList.remove('active');
+        basicContent.style.display = 'none';
+        advanceContent.style.display = 'block';
+        // Populate advanced filter dropdowns
+        populateAdvancedFilterDropdowns();
+        console.log('Switched to Advance Filter mode');
+    }
+    
+    // Update download button visibility when switching modes
+    updateDownloadButtonVisibility();
+}
+
+// Populate dropdowns in advanced filter mode
+function populateAdvancedFilterDropdowns() {
+    // Populate machines as radio buttons
+    const machinesContainer = document.getElementById('advFilterMachinesContainer');
+    if (!machinesContainer) {
+        console.error('Machines container not found');
+        return;
+    }
+    
+    const machines = [...new Set(allForms.map(f => f.mc_no))].filter(m => m).sort();
+    
+    console.log('Machines available:', machines);
+    console.log('Total forms:', allForms.length);
+    
+    machinesContainer.innerHTML = '';
+    
+    if (machines.length === 0) {
+        machinesContainer.innerHTML = '<span class="text-xs text-gray-500">No machines found</span>';
+        return;
+    }
+    
+    machines.forEach(machine => {
+        const radioGroup = document.createElement('div');
+        radioGroup.className = 'machine-radio-group';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `machine-${machine}`;
+        checkbox.value = machine;
+        checkbox.addEventListener('change', updateSelectedMachinesDisplay);
+        
+        const label = document.createElement('label');
+        label.htmlFor = `machine-${machine}`;
+        label.textContent = machine;
+        
+        radioGroup.appendChild(checkbox);
+        radioGroup.appendChild(label);
+        machinesContainer.appendChild(radioGroup);
+    });
+
+    // Populate defects select
+    const defectSelect = document.getElementById('advFilterDefect');
+    if (defectSelect) {
+        defectSelect.innerHTML = '<option value="">All Defects</option>';
+        defectTypes.forEach(defect => {
+            const option = document.createElement('option');
+            option.value = defect;
+            option.textContent = defect;
+            defectSelect.appendChild(option);
+        });
+    }
+}
+
+// Update display of selected machines
+function updateSelectedMachinesDisplay() {
+    const container = document.getElementById('advFilterMachinesContainer');
+    if (!container) return;
+    
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    const selectedMachines = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+    
+    const display = document.getElementById('selectedMachinesDisplay');
+    if (display) {
+        if (selectedMachines.length === 0) {
+            display.textContent = 'No machines selected';
+        } else {
+            display.textContent = 'Selected: ' + selectedMachines.join(', ');
+        }
+    }
+    
+    // Update download button visibility when machine selection changes
+    updateDownloadButtonVisibility();
+}
+
+// Handle changes in advanced filter product/shift/defect (automatic filtering)
+function onAdvancedFilterChange() {
+    const fromDate = document.getElementById('advFilterFromDate').value;
+    const toDate = document.getElementById('advFilterToDate').value;
+    const container = document.getElementById('advFilterMachinesContainer');
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    const selectedMachines = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+    const product = document.getElementById('advFilterProduct').value;
+    const shift = document.getElementById('advFilterShift').value;
+    const defect = document.getElementById('advFilterDefect').value;
+    const productionType = document.getElementById('advFilterProductionType').value;
+    
+    // Only apply filter if we have minimum required criteria
+    if (selectedMachines.length > 0 && fromDate && toDate) {
+        // Update advanced filters object
+        advancedFilters = {
+            fromDate,
+            toDate,
+            productionType,
+            machines: selectedMachines,
+            product,
+            shift,
+            defect
+        };
+        
+        // Get filtered data for combined machines
+        getAdvancedFilteredData(fromDate, toDate, selectedMachines, product, shift, defect, productionType);
+        
+        // Update filter status
+        updateFilterStatus(true);
+        console.log('Advanced filter applied automatically:', advancedFilters);
+    } else {
+        // Clear results if criteria not met
+        clearSummaryTables();
+        updateFilterStatus(false);
+    }
+    
+    // Update download button visibility
+    updateDownloadButtonVisibility();
+}
+function onAdvancedDateOrTypeChange() {
+    const fromDate = document.getElementById('advFilterFromDate').value;
+    const toDate = document.getElementById('advFilterToDate').value;
+    const productionType = document.getElementById('advFilterProductionType').value;
+    
+    // Repopulate machines based on new date/production type
+    if (fromDate || toDate) {
+        const filteredData = allForms.filter(form => {
+            if (fromDate && form.production_date) {
+                const formDate = new Date(form.production_date);
+                const fromDateObj = new Date(fromDate);
+                if (formDate < fromDateObj) return false;
+            }
+            if (toDate && form.production_date) {
+                const formDate = new Date(form.production_date);
+                const toDateObj = new Date(toDate);
+                if (formDate > toDateObj) return false;
+            }
+            if (productionType) {
+                const formProductionType = form.production_type || 'Commercial';
+                if (String(formProductionType) !== String(productionType)) return false;
+            }
+            return form.mc_no;
+        });
+        
+        const machines = [...new Set(filteredData.map(f => f.mc_no))].filter(m => m).sort();
+        const machinesContainer = document.getElementById('advFilterMachinesContainer');
+        
+        if (machinesContainer) {
+            // Get currently selected checkboxes
+            const currentSelectedCheckboxes = Array.from(machinesContainer.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(cb => cb.value);
+            
+            // Repopulate checkboxes
+            machinesContainer.innerHTML = '';
+            machines.forEach(machine => {
+                const radioGroup = document.createElement('div');
+                radioGroup.className = 'machine-radio-group';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `machine-${machine}`;
+                checkbox.value = machine;
+                checkbox.addEventListener('change', updateSelectedMachinesDisplay);
+                
+                // Keep selection if machine was previously selected
+                if (currentSelectedCheckboxes.includes(machine)) {
+                    checkbox.checked = true;
+                }
+                
+                const label = document.createElement('label');
+                label.htmlFor = `machine-${machine}`;
+                label.textContent = machine;
+                
+                radioGroup.appendChild(checkbox);
+                radioGroup.appendChild(label);
+                machinesContainer.appendChild(radioGroup);
+            });
+        }
+    }
+    
+    // Update download button visibility
+    updateDownloadButtonVisibility();
+}
+
+// Apply advanced filter
+function applyAdvancedFilter() {
+    const fromDate = document.getElementById('advFilterFromDate').value;
+    const toDate = document.getElementById('advFilterToDate').value;
+    const container = document.getElementById('advFilterMachinesContainer');
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    const selectedMachines = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+    const product = document.getElementById('advFilterProduct').value;
+    const shift = document.getElementById('advFilterShift').value;
+    const defect = document.getElementById('advFilterDefect').value;
+    const productionType = document.getElementById('advFilterProductionType').value;
+    
+    if (selectedMachines.length === 0) {
+        alert('Please select at least one machine');
+        return;
+    }
+    
+    if (!fromDate || !toDate) {
+        alert('Please select both From Date and To Date');
+        return;
+    }
+    
+    // Update advanced filters object
+    advancedFilters = {
+        fromDate,
+        toDate,
+        productionType,
+        machines: selectedMachines,
+        product,
+        shift,
+        defect
+    };
+    
+    // Get filtered data for combined machines
+    getAdvancedFilteredData(fromDate, toDate, selectedMachines, product, shift, defect, productionType);
+    
+    // Update filter status
+    updateFilterStatus(true);
+    console.log('Advanced filter applied:', advancedFilters);
+}
+
+// Get data for combined machines in advanced filter
+function getAdvancedFilteredData(fromDate, toDate, machines, product, shift, defect, productionType) {
+    
+    // STEP 1: Find all records that match the filter criteria
+    const masterRecords = allForms.filter(form => {
+        if (fromDate && form.production_date) {
+            const formDate = new Date(form.production_date);
+            const fromDateObj = new Date(fromDate);
+            if (formDate < fromDateObj) return false;
+        }
+        if (toDate && form.production_date) {
+            const formDate = new Date(form.production_date);
+            const toDateObj = new Date(toDate);
+            if (formDate > toDateObj) return false;
+        }
+        // Multiple machines - check if form's machine is in selected machines array
+        if (!machines.includes(String(form.mc_no))) return false;
+        
+        if (product && form.prod_code !== product) return false;
+        if (shift && String(form.shift) !== String(shift)) return false;
+        if (productionType) {
+            const formProductionType = form.production_type || 'Commercial';
+            if (String(formProductionType) !== String(productionType)) return false;
+        }
+        return true;
+    });
+    
+    // STEP 2: Get all traceability keys from master records
+    const traceabilityKeys = new Set(masterRecords.map(form => `${form.traceability_code}-${form.lot_letter}`));
+    
+    // STEP 3: Get all records (including lots) for these traceability keys
+    const combinedMachineData = allForms.filter(form => {
+        const traceabilityKey = `${form.traceability_code}-${form.lot_letter}`;
+        return traceabilityKeys.has(traceabilityKey);
+    });
+    
+    // If defect is selected, filter by defect
+    let finalData = combinedMachineData;
+    if (defect) {
+        finalData = combinedMachineData.filter(form => {
+            // Check if this record has the selected defect in defect_names object
+            if (form.defect_names && typeof form.defect_names === 'object') {
+                const defectValues = Object.values(form.defect_names);
+                return defectValues.some(d => d && String(d).trim() === String(defect).trim());
+            }
+            return false;
+        });
+    }
+    
+    // Update summary tables with combined data (skip statistics for advanced filter)
+    updateSummaryTablesWithData(finalData, true, defect);
+}
+
+// Clear advanced filters
+function clearAdvancedFilters() {
+    document.getElementById('advFilterFromDate').value = '';
+    document.getElementById('advFilterToDate').value = '';
+    document.getElementById('advFilterProduct').value = '';
+    document.getElementById('advFilterShift').value = '';
+    document.getElementById('advFilterDefect').value = '';
+    document.getElementById('advFilterProductionType').value = '';
+    
+    const container = document.getElementById('advFilterMachinesContainer');
+    if (container) {
+        const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => cb.checked = false);
+    }
+    
+    const displayElement = document.getElementById('selectedMachinesDisplay');
+    if (displayElement) {
+        displayElement.textContent = 'No machines selected';
+    }
+    
+    advancedFilters = {
+        fromDate: '',
+        toDate: '',
+        productionType: '',
+        machines: [],
+        product: '',
+        shift: '',
+        defect: ''
+    };
+    
+    clearSummaryTables();
+    updateFilterStatus(false);
+    console.log('Advanced filters cleared');
 }
 
 // Step 1: Date selection changes
@@ -844,7 +1219,7 @@ function getAllShiftsData(fromDate, toDate, product, machine) {
 }
 
 // Update summary tables with filtered shift data
-function updateSummaryTablesWithData(shiftData, skipStatistics = false) {
+function updateSummaryTablesWithData(shiftData, skipStatistics = false, filterDefect = null) {
     
     // Group records by traceability key to see all lots
     const groupedByTraceabilityKey = {};
@@ -927,7 +1302,7 @@ function updateSummaryTablesWithData(shiftData, skipStatistics = false) {
     }
     
     // Update other summary tables with aggregated data
-    updateDefectsSummaryTable(shiftData);
+    updateDefectsSummaryTable(shiftData, filterDefect);
     
     // Update defect tracking table
     updateDefectTrackingTable(shiftData);
@@ -936,13 +1311,13 @@ function updateSummaryTablesWithData(shiftData, skipStatistics = false) {
     if (!skipStatistics) {
         updateStatisticsTable(shiftData);
     } else {
-        // Clear statistics table when skipping (for "All Products" view)
+        // Clear statistics table when skipping (for advanced filter mode)
         const statsContainer = document.getElementById('statisticsTableContainer');
         if (statsContainer) {
             const tbody = statsContainer.querySelector('table tbody');
             tbody.innerHTML = `
                 <tr>
-                    <td class="parameter-cell" colspan="4">Statistics not available for combined products view</td>
+                    <td class="parameter-cell" colspan="4">Statistics not available in advanced filter mode</td>
                 </tr>
             `;
         }
@@ -951,7 +1326,7 @@ function updateSummaryTablesWithData(shiftData, skipStatistics = false) {
 }
 
 // Update Defects Summary Table
-function updateDefectsSummaryTable(shiftData) {
+function updateDefectsSummaryTable(shiftData, filterDefect = null) {
     const defectData = {};
     let totalProduced = 0;
     
@@ -976,6 +1351,11 @@ function updateDefectsSummaryTable(shiftData) {
                 const rollWeight = parseFloat(form.roll_weights[rollPosition]) || 0;
                 
                 if (defectName && defectName.trim() !== '' && rollWeight > 0) {
+                    // If filterDefect is specified, only count matching defects
+                    if (filterDefect && String(defectName).trim() !== String(filterDefect).trim()) {
+                        return; // Skip this defect
+                    }
+                    
                     if (!defectData[defectName]) {
                         defectData[defectName] = { count: 0, weight: 0 };
                     }
@@ -1392,12 +1772,26 @@ function updateDefectTrackingSummary(formsData) {
 // Build query string from currentFilters
 function buildExportQuery() {
     const params = new URLSearchParams();
-    if (currentFilters.fromDate) params.append('fromDate', currentFilters.fromDate);
-    if (currentFilters.toDate) params.append('toDate', currentFilters.toDate);
-    if (currentFilters.productionType) params.append('productionType', currentFilters.productionType);
-    if (currentFilters.machine) params.append('machine', currentFilters.machine);
-    if (currentFilters.product) params.append('product', currentFilters.product);
-    if (currentFilters.shift) params.append('shift', currentFilters.shift);
+
+    if (currentFilterMode === 'advance') {
+        // Use advanced filters
+        if (advancedFilters.fromDate) params.append('fromDate', advancedFilters.fromDate);
+        if (advancedFilters.toDate) params.append('toDate', advancedFilters.toDate);
+        if (advancedFilters.productionType) params.append('productionType', advancedFilters.productionType);
+        if (advancedFilters.machines.length > 0) params.append('machines', advancedFilters.machines.join(','));
+        if (advancedFilters.product) params.append('product', advancedFilters.product);
+        if (advancedFilters.shift) params.append('shift', advancedFilters.shift);
+        if (advancedFilters.defect) params.append('defect', advancedFilters.defect);
+    } else {
+        // Use basic filters
+        if (currentFilters.fromDate) params.append('fromDate', currentFilters.fromDate);
+        if (currentFilters.toDate) params.append('toDate', currentFilters.toDate);
+        if (currentFilters.productionType) params.append('productionType', currentFilters.productionType);
+        if (currentFilters.machine) params.append('machine', currentFilters.machine);
+        if (currentFilters.product) params.append('product', currentFilters.product);
+        if (currentFilters.shift) params.append('shift', currentFilters.shift);
+    }
+
     return params.toString();
 }
 

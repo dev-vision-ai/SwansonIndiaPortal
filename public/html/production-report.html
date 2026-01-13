@@ -250,6 +250,95 @@
             cursor: not-allowed;
         }
 
+        /* Filter mode toggle button styles */
+        .filter-mode-btn {
+            background-color: #6b7280; /* Default gray background */
+        }
+        .filter-mode-btn:hover {
+            background-color: #4b5563; /* Darker gray on hover */
+        }
+        .filter-mode-btn:focus {
+            box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.3);
+        }
+        .filter-mode-btn.active {
+            background-color: #002E7D; /* Active blue background */
+            box-shadow: 0 0 0 2px rgba(0, 46, 125, 0.3);
+        }
+        .filter-mode-btn.active:hover {
+            background-color: #001a4d; /* Darker blue on hover when active */
+        }
+        .filter-mode-btn.active:focus {
+            box-shadow: 0 0 0 2px rgba(0, 46, 125, 0.5);
+        }
+
+        /* Advanced Filter Styling */
+        .filter-mode-content {
+            transition: all 0.3s ease;
+        }
+
+        #advFilterMachines {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 6px;
+        }
+
+        #advFilterMachines:focus {
+            border-color: #002E7D;
+            box-shadow: 0 0 0 3px rgba(0, 46, 125, 0.1);
+            outline: none;
+        }
+
+        #advFilterMachines option {
+            padding: 4px 8px;
+            background: white;
+            color: #1f2937;
+        }
+
+        #advFilterMachines option:checked {
+            background: linear-gradient(#002E7D, #002E7D);
+            background-color: #002E7D !important;
+            color: white !important;
+        }
+
+        #selectedMachinesDisplay {
+            color: #002E7D;
+            font-weight: 500;
+        }
+
+        /* Radio Button Styling for Machines */
+        .machine-radio-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 2px 4px;
+            white-space: nowrap;
+        }
+
+        .machine-radio-group input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+            accent-color: #002E7D;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .machine-radio-group label {
+            font-size: 11px;
+            font-weight: 500;
+            color: #374151;
+            cursor: pointer;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        .machine-radio-group input[type="checkbox"]:checked + label {
+            color: #002E7D;
+            font-weight: 600;
+        }
+
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -481,57 +570,143 @@
                             </span>
                         </div>
                     </div>
-                    <div class="flex flex-wrap items-end justify-center gap-2">
-                        <!-- Date Range -->
-                        <div class="flex flex-col items-center">
-                            <label class="block text-xs font-semibold text-gray-700 mb-0.5">From Date:</label>
-                            <input type="date" id="filterFromDate" class="filter-input w-32 h-8 px-2 text-xs">
+                    <!-- Filter Mode Toggle Buttons -->
+                    <div class="flex justify-center mb-3">
+                        <div class="flex space-x-2">
+                            <button id="basicFilterBtn" class="filter-mode-btn active w-24 h-8 text-white text-xs font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200">
+                                Basic Filter
+                            </button>
+                            <button id="advanceFilterBtn" class="filter-mode-btn w-24 h-8 text-white text-xs font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200">
+                                Advance Filter
+                            </button>
                         </div>
-                        <div class="flex flex-col items-center">
-                            <label class="block text-xs font-semibold text-gray-700 mb-0.5">To Date:</label>
-                            <input type="date" id="filterToDate" class="filter-input w-32 h-8 px-2 text-xs">
+                    </div>
+                    <!-- BASIC FILTER MODE -->
+                    <div id="basicFilterMode" class="filter-mode-content">
+                        <div class="flex flex-wrap items-end justify-center gap-2">
+                            <!-- Date Range -->
+                            <div class="flex flex-col items-center">
+                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">From Date:</label>
+                                <input type="date" id="filterFromDate" class="filter-input w-32 h-8 px-2 text-xs">
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">To Date:</label>
+                                <input type="date" id="filterToDate" class="filter-input w-32 h-8 px-2 text-xs">
+                            </div>
+                            <!-- Production Type Filter -->
+                            <div class="flex flex-col items-center">
+                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">Production Type:</label>
+                                <select id="filterProductionType" class="filter-input w-32 h-8 px-2 text-xs bg-white">
+                                    <option value="">All</option>
+                                    <option value="Commercial">Commercial</option>
+                                    <option value="Trial">Trial</option>
+                                </select>
+                            </div>
+                            <!-- Machine Filter -->
+                            <div class="flex flex-col items-center">
+                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">M/C No:</label>
+                                <select id="filterMachine" class="filter-input w-28 h-8 px-2 text-xs bg-white">
+                                    <option value="">All</option>
+                                </select>
+                            </div>
+                            <!-- Product Filter -->
+                            <div class="flex flex-col items-center">
+                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">Product:</label>
+                                <select id="filterProduct" class="filter-input w-36 h-8 px-2 text-xs bg-white">
+                                    <option value="">All</option>
+                                </select>
+                            </div>
+                            <!-- Shift Filter -->
+                            <div class="flex flex-col items-center">
+                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">Shift:</label>
+                                <select id="filterShift" class="filter-input w-28 h-8 px-2 text-xs bg-white">
+                                    <option value="">All Shifts</option>
+                                    <option value="1">A</option>
+                                    <option value="2">B</option>
+                                    <option value="3">C</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Filter Buttons -->
+                            <div class="flex flex-col items-center">
+                                <div class="h-4"></div>
+                                <div class="flex space-x-2">
+                                    <button id="clearFilter" class="w-16 h-8 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                                        Clear
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <!-- Production Type Filter -->
-                        <div class="flex flex-col items-center">
-                            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Production Type:</label>
-                            <select id="filterProductionType" class="filter-input w-32 h-8 px-2 text-xs bg-white">
-                                <option value="">All</option>
-                                <option value="Commercial">Commercial</option>
-                                <option value="Trial">Trial</option>
-                            </select>
-                        </div>
-                        <!-- Machine Filter -->
-                        <div class="flex flex-col items-center">
-                            <label class="block text-xs font-semibold text-gray-700 mb-0.5">M/C No:</label>
-                            <select id="filterMachine" class="filter-input w-28 h-8 px-2 text-xs bg-white">
-                                <option value="">All</option>
-                            </select>
-                        </div>
-                        <!-- Product Filter -->
-                        <div class="flex flex-col items-center">
-                            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Product:</label>
-                            <select id="filterProduct" class="filter-input w-36 h-8 px-2 text-xs bg-white">
-                                <option value="">All</option>
-                            </select>
-                        </div>
-                        <!-- Shift Filter -->
-                        <div class="flex flex-col items-center">
-                            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Shift:</label>
-                            <select id="filterShift" class="filter-input w-28 h-8 px-2 text-xs bg-white">
-                                <option value="">All Shifts</option>
-                                <option value="1">A</option>
-                                <option value="2">B</option>
-                                <option value="3">C</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Filter Buttons -->
-                        <div class="flex flex-col items-center">
-                            <div class="h-4"></div> <!-- Spacer to align with inputs -->
-                            <div class="flex space-x-2">
-                                <button id="clearFilter" class="w-16 h-8 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
-                                    Clear
-                                </button>
+                    </div>
+
+                    <!-- ADVANCE FILTER MODE -->
+                    <div id="advanceFilterMode" class="filter-mode-content" style="display: none;">
+                        <div class="flex flex-wrap items-end justify-center gap-2">
+                            <!-- Row 1: Date Range -->
+                            <div class="flex flex-col items-center">
+                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">From Date:</label>
+                                <input type="date" id="advFilterFromDate" class="filter-input w-32 h-8 px-2 text-xs">
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">To Date:</label>
+                                <input type="date" id="advFilterToDate" class="filter-input w-32 h-8 px-2 text-xs">
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">Production Type:</label>
+                                <select id="advFilterProductionType" class="filter-input w-32 h-8 px-2 text-xs bg-white">
+                                    <option value="">All</option>
+                                    <option value="Commercial">Commercial</option>
+                                    <option value="Trial">Trial</option>
+                                </select>
+                            </div>
+
+                            <!-- Machines Checkboxes -->
+                            <div class="flex flex-col items-center">
+                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">M/C No:</label>
+                                <div id="advFilterMachinesContainer" class="flex gap-1 flex-wrap justify-center bg-white border-2 border-gray-300 rounded-lg p-1" style="width: auto; max-width: 200px; min-height: 32px;">
+                                    <!-- Checkboxes will be populated by JavaScript -->
+                                    <span class="text-xs text-gray-500">Loading...</span>
+                                </div>
+                            </div>
+
+                            <!-- Product Filter -->
+                            <div class="flex flex-col items-center">
+                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">Product:</label>
+                                <select id="advFilterProduct" class="filter-input w-40 h-8 px-2 text-xs bg-white">
+                                    <option value="">All Products</option>
+                                </select>
+                            </div>
+
+                            <!-- Shift Filter -->
+                            <div class="flex flex-col items-center">
+                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">Shift:</label>
+                                <select id="advFilterShift" class="filter-input w-28 h-8 px-2 text-xs bg-white">
+                                    <option value="">All Shifts</option>
+                                    <option value="1">A</option>
+                                    <option value="2">B</option>
+                                    <option value="3">C</option>
+                                </select>
+                            </div>
+
+                            <!-- Defect Filter -->
+                            <div class="flex flex-col items-center">
+                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">Defect:</label>
+                                <select id="advFilterDefect" class="filter-input w-40 h-8 px-2 text-xs bg-white">
+                                    <option value="">All Defects</option>
+                                </select>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex flex-col items-center">
+                                <div class="h-4"></div>
+                                <div class="flex space-x-2">
+                                    <button id="advApplyFilter" class="w-16 h-8 bg-green-600 text-white text-xs font-semibold rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                                        Apply
+                                    </button>
+                                    <button id="advClearFilter" class="w-16 h-8 bg-gray-500 text-white text-xs font-semibold rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                                        Clear
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

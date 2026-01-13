@@ -1,6 +1,101 @@
 const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
+const { createClient } = require('@supabase/supabase-js');
+
+// Create service role Supabase client for accessing private buckets
+const supabaseServiceRole = createClient(
+  process.env.SUPABASE_URL || 'https://ufczydnvscaicygwlmhz.supabase.co',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3p5ZG52c2NhaWN5Z3dsbWh6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NDIxODk0NiwiZXhwIjoyMDU5Nzk0OTQ2fQ.sBcPr-5sHkLxflG9Kkwi4mf4M0VrPdHmk8QzWkSzJi4'
+);
+
+// Helper function to format date to DD/MM/YYYY
+function formatDateToDDMMYYYY(dateString) {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return 'N/A';
+
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+// Helper function to insert signature image into cell
+async function insertSignatureInCell(worksheet, cellRef, userName, supabase) {
+  if (!userName) return;
+  
+  try {
+    // Fetch user ID from users table using full_name (case-insensitive match)
+    const { data: allUsers, error: userError } = await supabase
+      .from('users')
+      .select('id, full_name');
+
+    if (userError || !allUsers) {
+      console.warn(`Error fetching users from database:`, userError?.message);
+      return;
+    }
+
+    // Find matching user (case-insensitive)
+    const userRecord = allUsers.find(u => 
+      u.full_name && u.full_name.trim().toLowerCase() === userName.trim().toLowerCase()
+    );
+
+    if (!userRecord) {
+      console.warn(`User ID not found for name: ${userName}. Available users: ${allUsers.map(u => u.full_name).join(', ')}`);
+      return;
+    }
+
+    const userId = userRecord.id;
+    const signatureFileName = `${userId}.png`;
+    
+    console.log(`Attempting to download signature for user ${userName} (ID: ${userId}) as file ${signatureFileName}`);
+    
+    // Download signature from Supabase Storage (digital-signatures bucket) using service role
+    const { data: signatureData, error: downloadError } = await supabaseServiceRole
+      .storage
+      .from('digital-signatures')
+      .download(signatureFileName);
+
+    if (downloadError) {
+      console.error(`❌ Download error for ${signatureFileName}:`, JSON.stringify(downloadError));
+      return;
+    }
+    
+    if (!signatureData) {
+      console.warn(`⚠️ No data returned for ${signatureFileName}`);
+      return;
+    }
+    
+    console.log(`✅ Successfully downloaded signature for user ${userName}`);
+
+    // Convert blob to buffer
+    const arrayBuffer = await signatureData.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Add image to workbook using buffer
+    const imageId = worksheet.workbook.addImage({
+      buffer: buffer,
+      extension: 'png',
+    });
+
+    // Insert image into the cell with proper positioning
+    // Parse cell reference (e.g., C30)
+    const col = cellRef.charCodeAt(0) - 65; // A=0, B=1, C=2, etc.
+    const row = parseInt(cellRef.substring(1), 10);
+
+    // Center square (1:1 ratio) image in the cell
+    // 95x95 image centered in cell
+    worksheet.addImage(imageId, {
+      tl: { col: col + 0.15, row: row - 1 + 0.15 }, // Center the 95px image in middle
+      ext: { width: 95, height: 95 } // Perfect square 1:1 ratio
+    });
+
+    console.log(`Successfully inserted signature for user ${userName} (ID: ${userId}) in cell ${cellRef}`);
+  } catch (error) {
+    console.error(`Error inserting signature for user ${userName}:`, error.message);
+  }
+}
 
 module.exports = function(app, createAuthenticatedSupabaseClient) {
   // Pre-Store Form Excel Export Endpoint
@@ -245,11 +340,63 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
 
       // Handle verified_by and approved_by fields from the film inspection form
       if (data.verified_by !== undefined) {
-        worksheet.getCell('B33').value = data.verified_by && data.verified_by.trim() !== '' && data.verified_by !== 'N/A' ? data.verified_by : 'Not Verified';
+        // Insert verified by signature in C30
+        if (data.verified_by && data.verified_by.trim() !== '' && data.verified_by !== 'N/A') {
+          await insertSignatureInCell(worksheet, 'C30', data.verified_by, supabase);
+        }
+        // B33: verified_by name text (date on top-dd/mm/yyyy, below username)
+        const verifiedDate = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+        const verifiedByName = data.verified_by && data.verified_by.trim() !== '' && data.verified_by !== 'N/A' ? data.verified_by : 'Not Verified';
+        worksheet.getCell('B33').value = `(${verifiedDate})\n${verifiedByName}`;
       }
 
       if (data.approved_by !== undefined) {
-        worksheet.getCell('E33').value = data.approved_by && data.approved_by.trim() !== '' && data.approved_by !== 'N/A' ? data.approved_by : 'Not Approved';
+        // Insert approved by signature in F30
+        if (data.approved_by && data.approved_by.trim() !== '' && data.approved_by !== 'N/A') {
+          await insertSignatureInCell(worksheet, 'F30', data.approved_by, supabase);
+        }
+        // E33: approved_by name text (date on top-dd/mm/yyyy, below username)
+        const approvedDate = data.approved_date ? formatDateToDDMMYYYY(data.approved_date) : '';
+        const approvedByName = data.approved_by && data.approved_by.trim() !== '' && data.approved_by !== 'N/A' ? data.approved_by : 'Not Approved';
+        worksheet.getCell('E33').value = `(${approvedDate})\n${approvedByName}`;
+        
+        // I33: put user name as Bhushan Dessai (date on top-dd/mm/yyyy, below username)
+        worksheet.getCell('I33').value = `(${approvedDate})\nBhushan Dessai`;
+      }
+
+      // Always insert signature for user ID c084b422-118e-4fcd-9149-d9d29e621800 in J30
+      const fixedUserId = 'c084b422-118e-4fcd-9149-d9d29e621800';
+      
+      try {
+        // Download fixed signature from Supabase Storage
+        const { data: fixedSignatureData, error: fixedDownloadError } = await supabase
+          .storage
+          .from('digital-signatures')
+          .download(`${fixedUserId}.png`);
+        
+        if (fixedSignatureData && !fixedDownloadError) {
+          // Convert blob to buffer
+          const fixedArrayBuffer = await fixedSignatureData.arrayBuffer();
+          const fixedBuffer = Buffer.from(fixedArrayBuffer);
+
+          const imageId = worksheet.workbook.addImage({
+            buffer: fixedBuffer,
+            extension: 'png',
+          });
+          
+          // Insert fixed signature in J30
+          const col = 'J'.charCodeAt(0) - 65; // J=9
+          const row = 30;
+          worksheet.addImage(imageId, {
+            tl: { col: col + 0.15, row: row - 1 + 0.15 },
+            ext: { width: 95, height: 95 }
+          });
+          console.log(`Successfully inserted fixed signature for user ID ${fixedUserId} in cell J30`);
+        } else {
+          console.warn(`Fixed signature file not found for user ID ${fixedUserId}:`, fixedDownloadError?.message);
+        }
+      } catch (error) {
+        console.error(`Error inserting fixed signature for user ID ${fixedUserId}:`, error.message);
       }
 
       // Put check mark in D24 if approved

@@ -1,6 +1,13 @@
 const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
+const { createClient } = require('@supabase/supabase-js');
+
+// Create service role Supabase client for accessing private buckets
+const supabaseServiceRole = createClient(
+  process.env.SUPABASE_URL || 'https://ufczydnvscaicygwlmhz.supabase.co',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3p5ZG52c2NhaWN5Z3dsbWh6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NDIxODk0NiwiZXhwIjoyMDU5Nzk0OTQ2fQ.sBcPr-5sHkLxflG9Kkwi4mf4M0VrPdHmk8QzWkSzJi4'
+);
 
 // Helper function to format date to DD/MM/YYYY
 function formatDateToDDMMYYYY(dateString) {
@@ -23,11 +30,80 @@ function formatTimeToHHMM(timeString) {
   return timeString.split(':').slice(0, 2).join(':');
 }
 
-// Helper function to convert value to number for Excel
-function convertToNumber(value) {
-  if (value === '' || value === null || value === undefined) return '';
-  const numValue = parseFloat(value);
-  return !isNaN(numValue) ? numValue : value;
+// Helper function to insert signature image into cell
+async function insertSignatureInCell(worksheet, cellRef, userName, supabase) {
+  if (!userName) return;
+  
+  try {
+    // Fetch user ID from users table using full_name (case-insensitive match)
+    const { data: allUsers, error: userError } = await supabase
+      .from('users')
+      .select('id, full_name');
+
+    if (userError || !allUsers) {
+      console.warn(`Error fetching users from database:`, userError?.message);
+      return;
+    }
+
+    // Find matching user (case-insensitive)
+    const userRecord = allUsers.find(u => 
+      u.full_name && u.full_name.trim().toLowerCase() === userName.trim().toLowerCase()
+    );
+
+    if (!userRecord) {
+      console.warn(`User ID not found for name: ${userName}. Available users: ${allUsers.map(u => u.full_name).join(', ')}`);
+      return;
+    }
+
+    const userId = userRecord.id;
+    const signatureFileName = `${userId}.png`;
+    
+    console.log(`Attempting to download signature for user ${userName} (ID: ${userId}) as file ${signatureFileName}`);
+    
+    // Download signature from Supabase Storage (digital-signatures bucket) using service role
+    const { data: signatureData, error: downloadError } = await supabaseServiceRole
+      .storage
+      .from('digital-signatures')
+      .download(signatureFileName);
+
+    if (downloadError) {
+      console.error(`❌ Download error for ${signatureFileName}:`, JSON.stringify(downloadError));
+      return;
+    }
+    
+    if (!signatureData) {
+      console.warn(`⚠️ No data returned for ${signatureFileName}`);
+      return;
+    }
+    
+    console.log(`✅ Successfully downloaded signature for user ${userName}`);
+
+    // Convert blob to buffer
+    const arrayBuffer = await signatureData.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Add image to workbook using buffer
+    const imageId = worksheet.workbook.addImage({
+      buffer: buffer,
+      extension: 'png',
+    });
+
+    // Insert image into the cell with proper positioning
+    // Parse cell reference (e.g., C33)
+    const col = cellRef.charCodeAt(0) - 65; // A=0, B=1, C=2, etc.
+    const row = parseInt(cellRef.substring(1), 10);
+
+    // Center square (1:1 ratio) image in the cell
+    // Excel cells are ~64px wide - 95x95 image centered in middle
+    worksheet.addImage(imageId, {
+      tl: { col: col + 0.25, row: row - 1 + 0.35 }, // Center the 95px image in middle
+      ext: { width: 95, height: 95 } // Perfect square 1:1 ratio
+    });
+
+    console.log(`Successfully inserted signature for user ${userName} (ID: ${userId}) in cell ${cellRef}`);
+  } catch (error) {
+    console.error(`Error inserting signature for user ${userName}:`, error.message);
+  }
 }
 
 // Helper function to apply password protection using ExcelJS
@@ -627,14 +703,29 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
       // Lot No (B7)
       coaWorksheet.getCell('B7').value = data.lot_no || '';
 
-      // Inspected By (C41)
-      coaWorksheet.getCell('C41').value = data.prepared_by || 'Unknown User';
+      // Inspected By - Signature in D41, Date & Name in C42
+      const preparedBy = data.prepared_by || 'Unknown User';
+      const inspectionDate = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      
+      // Insert signature image in D41
+      if (data.prepared_by) {
+        await insertSignatureInCell(coaWorksheet, 'D41', data.prepared_by, supabase);
+      }
+      
+      // Date and name in C42
+      coaWorksheet.getCell('C42').value = `(${inspectionDate})\n${preparedBy}`;
 
-      // Approved By (F41)
-      coaWorksheet.getCell('F41').value = data.approved_by || 'Not Approved';
-
-      // Add other COA fields as needed
-      // You can add more COA-specific mappings here
+      // Approved By - Signature in G41, Date & Name in F42
+      const approvedBy = data.approved_by || 'Not Approved';
+      const approvedDate = data.approved_date ? formatDateToDDMMYYYY(data.approved_date) : '';
+      
+      // Insert signature image in G41
+      if (data.approved_by) {
+        await insertSignatureInCell(coaWorksheet, 'G41', data.approved_by, supabase);
+      }
+      
+      // Date and name in F42
+      coaWorksheet.getCell('F42').value = `(${approvedDate})\n${approvedBy}`;
     }
 
     // 4. Generate filename and set response headers
@@ -1220,13 +1311,29 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
       // Lot No (B7)
       coaWorksheet.getCell('B7').value = data.lot_no || '';
 
-      // Inspected By (C41)
-      coaWorksheet.getCell('C41').value = data.prepared_by || 'Unknown User';
+      // Inspected By - Signature in D41, Date & Name in C42
+      const preparedBy = data.prepared_by || 'Unknown User';
+      const inspectionDate = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      
+      // Insert signature image in D41
+      if (data.prepared_by) {
+        await insertSignatureInCell(coaWorksheet, 'D41', data.prepared_by, supabase);
+      }
+      
+      // Date and name in C42
+      coaWorksheet.getCell('C42').value = `(${inspectionDate})\n${preparedBy}`;
 
-      // Approved By (F41)
-      coaWorksheet.getCell('F41').value = data.approved_by || 'Not Approved';
-      // Add other COA fields as needed
-      // You can add more COA-specific mappings here
+      // Approved By - Signature in G41, Date & Name in F42
+      const approvedBy = data.approved_by || 'Not Approved';
+      const approvedDate = data.approved_date ? formatDateToDDMMYYYY(data.approved_date) : '';
+      
+      // Insert signature image in G41
+      if (data.approved_by) {
+        await insertSignatureInCell(coaWorksheet, 'G41', data.approved_by, supabase);
+      }
+      
+      // Date and name in F42
+      coaWorksheet.getCell('F42').value = `(${approvedDate})\n${approvedBy}`;
     }
 
     // 4. Generate filename and set response headers
@@ -1812,13 +1919,29 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
       // Lot No (B7)
       coaWorksheet.getCell('B7').value = data.lot_no || '';
 
-      // Inspected By (C41)
-      coaWorksheet.getCell('C41').value = data.prepared_by || 'Unknown User';
+      // Inspected By - Signature in D41, Date & Name in C42
+      const preparedBy = data.prepared_by || 'Unknown User';
+      const inspectionDate = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      
+      // Insert signature image in D41
+      if (data.prepared_by) {
+        await insertSignatureInCell(coaWorksheet, 'D41', data.prepared_by, supabase);
+      }
+      
+      // Date and name in C42
+      coaWorksheet.getCell('C42').value = `(${inspectionDate})\n${preparedBy}`;
 
-      // Approved By (F41)
-      coaWorksheet.getCell('F41').value = data.approved_by || 'Not Approved';
-      // Add other COA fields as needed
-      // You can add more COA-specific mappings here
+      // Approved By - Signature in G41, Date & Name in F42
+      const approvedBy = data.approved_by || 'Not Approved';
+      const approvedDate = data.approved_date ? formatDateToDDMMYYYY(data.approved_date) : '';
+      
+      // Insert signature image in G41
+      if (data.approved_by) {
+        await insertSignatureInCell(coaWorksheet, 'G41', data.approved_by, supabase);
+      }
+      
+      // Date and name in F42
+      coaWorksheet.getCell('F42').value = `(${approvedDate})\n${approvedBy}`;
     }
 
     // 4. Generate filename and set response headers
@@ -2404,13 +2527,29 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
       // Lot No (B7)
       coaWorksheet.getCell('B7').value = data.lot_no || '';
 
-      // Inspected By (C41)
-      coaWorksheet.getCell('C41').value = data.prepared_by || 'Unknown User';
+      // Inspected By - Signature in D41, Date & Name in C42
+      const preparedBy = data.prepared_by || 'Unknown User';
+      const inspectionDate = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      
+      // Insert signature image in D41
+      if (data.prepared_by) {
+        await insertSignatureInCell(coaWorksheet, 'D41', data.prepared_by, supabase);
+      }
+      
+      // Date and name in C42
+      coaWorksheet.getCell('C42').value = `(${inspectionDate})\n${preparedBy}`;
 
-      // Approved By (F41)
-      coaWorksheet.getCell('F41').value = data.approved_by || 'Not Approved';
-      // Add other COA fields as needed
-      // You can add more COA-specific mappings here
+      // Approved By - Signature in G41, Date & Name in F42
+      const approvedBy = data.approved_by || 'Not Approved';
+      const approvedDate = data.approved_date ? formatDateToDDMMYYYY(data.approved_date) : '';
+      
+      // Insert signature image in G41
+      if (data.approved_by) {
+        await insertSignatureInCell(coaWorksheet, 'G41', data.approved_by, supabase);
+      }
+      
+      // Date and name in F42
+      coaWorksheet.getCell('F42').value = `(${approvedDate})\n${approvedBy}`;
     }
 
     // 4. Generate filename and set response headers
@@ -2991,13 +3130,29 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
       // Lot No (B7)
       coaWorksheet.getCell('B7').value = data.lot_no || '';
 
-      // Inspected By (C41)
-      coaWorksheet.getCell('C41').value = data.prepared_by || 'Unknown User';
+      // Inspected By - Signature in D41, Date & Name in C42
+      const preparedBy = data.prepared_by || 'Unknown User';
+      const inspectionDate = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      
+      // Insert signature image in D41
+      if (data.prepared_by) {
+        await insertSignatureInCell(coaWorksheet, 'D41', data.prepared_by, supabase);
+      }
+      
+      // Date and name in C42
+      coaWorksheet.getCell('C42').value = `(${inspectionDate})\n${preparedBy}`;
 
-      // Approved By (F41)
-      coaWorksheet.getCell('F41').value = data.approved_by || 'Not Approved';
-      // Add other COA fields as needed
-      // You can add more COA-specific mappings here
+      // Approved By - Signature in G41, Date & Name in F42
+      const approvedBy = data.approved_by || 'Not Approved';
+      const approvedDate = data.approved_date ? formatDateToDDMMYYYY(data.approved_date) : '';
+      
+      // Insert signature image in G41
+      if (data.approved_by) {
+        await insertSignatureInCell(coaWorksheet, 'G41', data.approved_by, supabase);
+      }
+      
+      // Date and name in F42
+      coaWorksheet.getCell('F42').value = `(${approvedDate})\n${approvedBy}`;
     }
 
     // 4. Generate filename and set response headers
@@ -3610,13 +3765,29 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
       // Lot No (B7)
       coaWorksheet.getCell('B7').value = data.lot_no || '';
 
-      // Inspected By (C33)
-      coaWorksheet.getCell('C33').value = data.prepared_by || 'Unknown User';
+      // Inspected By - Signature in C33, Name & Date in C34
+      const preparedBy = data.prepared_by || 'Unknown User';
+      const inspectionDate = data.inspection_date ? formatDateToDDMMYYYY(data.inspection_date) : '';
+      
+      // Insert signature image in D33
+      if (data.prepared_by) {
+        await insertSignatureInCell(coaWorksheet, 'D33', data.prepared_by, supabase);
+      }
+      
+      // Date and name in C34
+      coaWorksheet.getCell('C34').value = `(${inspectionDate})\n${preparedBy}`;
 
-      // Approved By (F33) - UC-16gsm-165W uses a different COA layout
-      coaWorksheet.getCell('F33').value = data.approved_by || 'Not Approved';
-      // Add other COA fields as needed
-      // You can add more COA-specific mappings here
+      // Approved By - Signature in F33, Name & Date in F34
+      const approvedBy = data.approved_by || 'Not Approved';
+      const approvedDate = data.approved_date ? formatDateToDDMMYYYY(data.approved_date) : '';
+      
+      // Insert signature image in G33
+      if (data.approved_by) {
+        await insertSignatureInCell(coaWorksheet, 'G33', data.approved_by, supabase);
+      }
+      
+      // Date and name in F34
+      coaWorksheet.getCell('F34').value = `(${approvedDate})\n${approvedBy}`;
     }
 
     // 4. Generate filename and set response headers
@@ -3647,12 +3818,3 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
   }
 });
 };
-
-
-
-
-
-
-
-
-

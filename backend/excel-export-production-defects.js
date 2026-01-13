@@ -52,9 +52,11 @@ function parseFilters(query) {
     fromDate: query.fromDate || null,
     toDate: query.toDate || null,
     productionType: query.productionType || null,
-    machine: query.machine || null,
+    machine: query.machine || null, // Single machine for backward compatibility
+    machines: query.machines ? query.machines.split(',').map(m => m.trim()) : null, // Multiple machines
     product: query.product && query.product !== 'all' ? query.product : null,
-    shift: query.shift && query.shift !== '' ? query.shift : null
+    shift: query.shift && query.shift !== '' ? query.shift : null,
+    defect: query.defect || null // Specific defect type filter
   };
 }
 
@@ -74,7 +76,18 @@ async function fetchInspectionRecords(supabase, filters) {
 
       if (filters.fromDate) query = query.gte('production_date', filters.fromDate);
       if (filters.toDate) query = query.lte('production_date', filters.toDate);
-      if (filters.machine) query = query.eq('mc_no', filters.machine);
+
+      // Handle machine filtering - prefer multiple machines over single machine
+      if (filters.machines && filters.machines.length > 0) {
+        query = query.in('mc_no', filters.machines);
+      } else if (filters.machine) {
+        query = query.eq('mc_no', filters.machine);
+      }
+
+      // Apply additional filters
+      if (filters.product) query = query.eq('product', filters.product);
+      if (filters.shift) query = query.eq('shift', filters.shift);
+      if (filters.productionType) query = query.eq('production_type', filters.productionType);
 
       query = query.range(offset, offset + CONFIG.CHUNK_SIZE - 1);
 
@@ -156,7 +169,7 @@ async function fetchAllLotRecords(supabase, masterRecords) {
 /**
  * Aggregate defect data from inspection records
  */
-function aggregateDefects(records) {
+function aggregateDefects(records, defectFilter = null) {
   const defectMap = {};
 
   records.forEach(form => {
@@ -166,6 +179,9 @@ function aggregateDefects(records) {
       if (!defectName || !String(defectName).trim()) return;
 
       const normalizedName = String(defectName).trim();
+
+      // If defect filter is specified, only include matching defects
+      if (defectFilter && normalizedName !== defectFilter) return;
 
       if (!defectMap[normalizedName]) {
         defectMap[normalizedName] = {
@@ -271,7 +287,7 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
       const filteredData = await fetchAllLotRecords(supabase, masterRecords);
 
       // 5) Aggregate defects
-      const defectsWithData = aggregateDefects(filteredData);
+      const defectsWithData = aggregateDefects(filteredData, filters.defect);
 
       // 6) Compute totals (match frontend logic) and populate worksheet
       // Compute total produced rolls using same logic as front-end: accepted + rejected + rework + kiv
