@@ -3,11 +3,20 @@ const path = require('path');
 const fs = require('fs');
 const { createClient } = require('@supabase/supabase-js');
 
-// Create service role Supabase client for accessing private buckets
-const supabaseServiceRole = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// Lazy initialization of service role client
+let supabaseServiceRole = null;
+function getSupabaseServiceRole() {
+  if (!supabaseServiceRole) {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('Missing required environment variables: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+    }
+    supabaseServiceRole = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+  }
+  return supabaseServiceRole;
+}
 
 // Helper function to format date to DD/MM/YYYY
 function formatDateToDDMMYYYY(dateString) {
@@ -61,7 +70,7 @@ async function insertSignatureInCell(worksheet, cellRef, userName, supabase) {
     console.log(`Attempting to download signature for user ${userName} (ID: ${userId}) as file ${signatureFileName}`);
     
     // Download signature from Supabase Storage (digital-signatures bucket) using service role
-    const { data: signatureData, error: downloadError } = await supabaseServiceRole
+    const { data: signatureData, error: downloadError } = await getSupabaseServiceRole()
       .storage
       .from('digital-signatures')
       .download(signatureFileName);
