@@ -1813,7 +1813,10 @@ async function downloadDefectReport() {
         // Determine backend URL (local vs production) following existing project pattern
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
-        const url = `${backendUrl}/export-production-defects${qs ? ('?' + qs) : ''}`;
+        
+        // Choose export endpoint based on filter mode
+        const exportEndpoint = currentFilterMode === 'advance' ? '/export-production-defects-advanced' : '/export-production-defects';
+        const url = `${backendUrl}${exportEndpoint}${qs ? ('?' + qs) : ''}`;
 
         // Prepare abort & timeout
         const controller = new AbortController();

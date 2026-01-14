@@ -5775,9 +5775,9 @@ function loadFormHeaderData(data) {
         coaApprovedBy.textContent = data.approved_by;
     }
 
-    // Populate COA Remarks (if available)
+    // Populate COA Remarks (disabled - don't populate anything)
     const coaRemarks = document.getElementById('coa-remarks');
-    if (coaRemarks && data.remarks) coaRemarks.textContent = data.remarks;
+    // if (coaRemarks && data.remarks) coaRemarks.textContent = data.remarks;
 }
 
 // Load table data from database

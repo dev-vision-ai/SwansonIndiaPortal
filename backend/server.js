@@ -33,7 +33,12 @@ try {
 } catch (error) {
     console.error('Failed to create upload directory:', error);
 }
-const upload = multer({ dest: uploadDir });
+const upload = multer({ 
+    dest: uploadDir,
+    limits: {
+        fileSize: 30 * 1024 * 1024 // 30MB limit
+    }
+});
 
 // CORS configuration for frontend - production URLs and local development
 app.use(cors({

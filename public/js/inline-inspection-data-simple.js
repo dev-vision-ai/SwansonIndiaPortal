@@ -27,6 +27,28 @@ let addNewTableBtn = null;
 let ipqcUpdateTimeout = null;
 let qcInspectorsCache = [];
 
+// ────────────────────────────────────────────────────────────────
+// KEEP-ALIVE: Prevent session expiry during long form sessions
+// Runs every 25 min - forces silent token refresh
+// ────────────────────────────────────────────────────────────────
+setInterval(async () => {
+    try {
+        await supabase.auth.getSession();  // Triggers refresh if needed
+        console.log('Session ping: still active');  // Remove if you don't want logs
+    } catch (err) {
+        console.warn('Keep-alive failed:', err);
+        // Optional: alert('Session issue - save work and refresh');
+    }
+}, 25 * 60 * 1000);  // 25 minutes
+
+// Bonus: Listen for auth changes (add this too for better logout handling)
+supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT') {
+        alert('Session expired. Log in again.');
+        window.location.href = 'inline-inspection-forms-list.html';  // Or your login page
+    }
+});
+
 // ===== IST TIMESTAMP UTILITY =====
 function getISTTimestamp() {
     return new Date().toISOString(); 
@@ -552,6 +574,25 @@ function startSessionMonitoring() {
     
     intervals.add(sessionCheckInterval);
 }
+
+// Extra Safety: Session keep-alive to prevent edge cases with longer expiry
+// In your DOMContentLoaded or init function
+setInterval(async () => {
+    try {
+        await supabase.auth.getSession();  // Triggers silent refresh if needed
+        console.log('Session ping: still active');
+    } catch (err) {
+        console.warn('Session ping failed:', err);
+    }
+}, 25 * 60 * 1000);  // Every 25 minutes
+
+// Also add listener for better UX:
+supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT') {
+        alert('Your session has expired. Please log in again to continue.');
+        window.location.href = 'auth.html';  // Adjust to your login route
+    }
+});
 
 // Enhanced debounced save with memory management
 let saveTimeout = null;

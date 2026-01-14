@@ -52,11 +52,24 @@ function parseFilters(query) {
     fromDate: query.fromDate || null,
     toDate: query.toDate || null,
     productionType: query.productionType || null,
-    machine: query.machine || null, // Single machine for backward compatibility
-    machines: query.machines ? query.machines.split(',').map(m => m.trim()) : null, // Multiple machines
+    machine: query.machine || null,
+    product: query.product && query.product !== 'all' ? query.product : null,
+    shift: query.shift && query.shift !== '' ? query.shift : null
+  };
+}
+
+/**
+ * Extract filters from query parameters for advanced filter
+ */
+function parseAdvancedFilters(query) {
+  return {
+    fromDate: query.fromDate || null,
+    toDate: query.toDate || null,
+    productionType: query.productionType || null,
+    machines: query.machines ? query.machines.split(',').map(m => m.trim()) : [], // Array of machines
     product: query.product && query.product !== 'all' ? query.product : null,
     shift: query.shift && query.shift !== '' ? query.shift : null,
-    defect: query.defect || null // Specific defect type filter
+    defect: query.defect && query.defect !== '' ? query.defect : null
   };
 }
 
@@ -76,18 +89,47 @@ async function fetchInspectionRecords(supabase, filters) {
 
       if (filters.fromDate) query = query.gte('production_date', filters.fromDate);
       if (filters.toDate) query = query.lte('production_date', filters.toDate);
+      if (filters.machine) query = query.eq('mc_no', filters.machine);
 
-      // Handle machine filtering - prefer multiple machines over single machine
-      if (filters.machines && filters.machines.length > 0) {
-        query = query.in('mc_no', filters.machines);
-      } else if (filters.machine) {
-        query = query.eq('mc_no', filters.machine);
+      query = query.range(offset, offset + CONFIG.CHUNK_SIZE - 1);
+
+      const { data: rows, error: err } = await query;
+
+      if (err) {
+        // Error fetching records, continue to next table
+        hasMore = false;
+      } else if (rows?.length > 0) {
+        tableRowCount += rows.length;
+        rows.forEach(r => { r.table_name = table; });
+        allRecords = allRecords.concat(rows);
+        hasMore = rows.length === CONFIG.CHUNK_SIZE;
+        offset += CONFIG.CHUNK_SIZE;
+      } else {
+        hasMore = false;
       }
+    }
+  }
 
-      // Apply additional filters
-      if (filters.product) query = query.eq('product', filters.product);
-      if (filters.shift) query = query.eq('shift', filters.shift);
-      if (filters.productionType) query = query.eq('production_type', filters.productionType);
+  return allRecords;
+}
+
+/**
+ * Fetch inspection records from all master tables with date/machine filters (advanced - multiple machines)
+ */
+async function fetchInspectionRecordsAdvanced(supabase, filters) {
+  let allRecords = [];
+
+  for (const table of INSPECTION_TABLES) {
+    let offset = 0;
+    let hasMore = true;
+    let tableRowCount = 0;
+
+    while (hasMore) {
+      let query = supabase.from(table).select('*');
+
+      if (filters.fromDate) query = query.gte('production_date', filters.fromDate);
+      if (filters.toDate) query = query.lte('production_date', filters.toDate);
+      if (filters.machines.length > 0) query = query.in('mc_no', filters.machines); // Multiple machines
 
       query = query.range(offset, offset + CONFIG.CHUNK_SIZE - 1);
 
@@ -124,6 +166,33 @@ function filterRecordsByCriteria(records, filters) {
       if (String(formProductionType) !== String(filters.productionType)) return false;
     }
     if (filters.shift && String(form.shift) !== String(filters.shift)) return false;
+    return true;
+  });
+}
+
+/**
+ * Filter records by product, production type, shift, and defect (advanced filter)
+ */
+function filterRecordsByCriteriaAdvanced(records, filters) {
+  return records.filter(form => {
+    if (filters.product && String(form.prod_code) !== String(filters.product)) return false;
+    if (filters.machines.length > 0 && !filters.machines.includes(String(form.mc_no))) return false; // Multiple machines
+    if (filters.productionType) {
+      // Treat NULL as 'Commercial'
+      const formProductionType = form.production_type || 'Commercial';
+      if (String(formProductionType) !== String(filters.productionType)) return false;
+    }
+    if (filters.shift && String(form.shift) !== String(filters.shift)) return false;
+    if (filters.defect) {
+      // Check if this record has the selected defect in defect_names object
+      if (form.defect_names && typeof form.defect_names === 'object') {
+        const defectValues = Object.values(form.defect_names);
+        const hasDefect = defectValues.some(d => d && String(d).trim() === String(filters.defect).trim());
+        if (!hasDefect) return false;
+      } else {
+        return false; // No defect_names object, can't match defect filter
+      }
+    }
     return true;
   });
 }
@@ -169,7 +238,7 @@ async function fetchAllLotRecords(supabase, masterRecords) {
 /**
  * Aggregate defect data from inspection records
  */
-function aggregateDefects(records, defectFilter = null) {
+function aggregateDefects(records) {
   const defectMap = {};
 
   records.forEach(form => {
@@ -179,9 +248,6 @@ function aggregateDefects(records, defectFilter = null) {
       if (!defectName || !String(defectName).trim()) return;
 
       const normalizedName = String(defectName).trim();
-
-      // If defect filter is specified, only include matching defects
-      if (defectFilter && normalizedName !== defectFilter) return;
 
       if (!defectMap[normalizedName]) {
         defectMap[normalizedName] = {
@@ -287,7 +353,7 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
       const filteredData = await fetchAllLotRecords(supabase, masterRecords);
 
       // 5) Aggregate defects
-      const defectsWithData = aggregateDefects(filteredData, filters.defect);
+      const defectsWithData = aggregateDefects(filteredData);
 
       // 6) Compute totals (match frontend logic) and populate worksheet
       // Compute total produced rolls using same logic as front-end: accepted + rejected + rework + kiv
@@ -383,6 +449,194 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
 
     } catch (err) {
       console.error('❌ Unexpected error:', err);
+      return res.status(500).send('Internal server error');
+    }
+  });
+
+  // Advanced filter export route
+  app.get('/export-production-defects-advanced', async (req, res) => {
+    try {
+      const supabase = createAuthenticatedSupabaseClient?.(req);
+      if (!supabase) {
+        return res.status(500).send('Database client not available');
+      }
+
+      const filters = parseAdvancedFilters(req.query || {});
+
+      // 1) Load template
+      const templatePath = findTemplatePath();
+      if (!templatePath) {
+        console.error('Template not found. Checked:', CONFIG.TEMPLATE_PATHS);
+        return res.status(500).send('Excel template not found');
+      }
+
+      let workbook, worksheet;
+      try {
+        ({ workbook, worksheet } = await loadTemplate(templatePath));
+      } catch (err) {
+        console.error('Template load error:', err.message);
+        return res.status(500).send('Failed to load template');
+      }
+
+      // Write machine label into cell C1 for advanced filters (multiple machines)
+      try {
+        if (filters.machines.length > 0) {
+          if (filters.machines.length === 1) {
+            // Single machine - pad to two digits
+            const mcLabel = String(filters.machines[0]).padStart(2, '0');
+            let year = new Date().getFullYear();
+            if (filters.fromDate) {
+              try {
+                const d = new Date(filters.fromDate);
+                if (!isNaN(d.getTime())) year = d.getFullYear();
+              } catch (e) { /* ignore and use current year */ }
+            }
+            worksheet.getCell('C1').value = `MC#${mcLabel} - ${year}`;
+          } else {
+            // Multiple machines - show as MC#01 + MC#02 + MC#03 - {year} format
+            const sortedMachines = filters.machines.map(m => parseInt(m)).sort((a, b) => a - b);
+            const machineLabels = sortedMachines.map(m => `MC#${String(m).padStart(2, '0')}`);
+            let year = new Date().getFullYear();
+            if (filters.fromDate) {
+              try {
+                const d = new Date(filters.fromDate);
+                if (!isNaN(d.getTime())) year = d.getFullYear();
+              } catch (e) { /* ignore and use current year */ }
+            }
+            worksheet.getCell('C1').value = `${machineLabels.join(' + ')} - ${year}`;
+          }
+        } else {
+          // Clear cell if no machine filter
+          worksheet.getCell('C1').value = '';
+        }
+      } catch (err) {
+        // Ignore label write errors
+      }
+
+      // Write product label into cell C2: product name or 'All Products'
+      try {
+        const productLabel = filters.product ? String(filters.product).trim() : 'All Products';
+        worksheet.getCell('C2').value = productLabel;
+      } catch (err) {
+        // Ignore label write errors
+      }
+
+      // 2) Fetch inspection records (advanced - multiple machines)
+      const allRecords = await fetchInspectionRecordsAdvanced(supabase, filters);
+
+      // 3) Filter by product/shift/defect
+      const masterRecords = filterRecordsByCriteriaAdvanced(allRecords, filters);
+
+      // 4) Fetch ALL lot records for matching traceability pairs
+      const filteredData = await fetchAllLotRecords(supabase, masterRecords);
+
+      // 5) Aggregate defects
+      const defectsWithData = aggregateDefects(filteredData);
+
+      // 6) Compute totals (match frontend logic) and populate worksheet
+      // Compute total produced rolls using same logic as front-end: accepted + rejected + rework + kiv
+      let totalProduced = 0;
+      let totalRejected = 0;
+      filteredData.forEach(form => {
+        const acceptedRolls = parseInt(form.accepted_rolls) || 0;
+        const rejectedRolls = parseInt(form.rejected_rolls) || 0;
+        const reworkRolls = parseInt(form.rework_rolls) || 0;
+        const kivRolls = parseInt(form.kiv_rolls) || 0;
+
+        const formTotal = acceptedRolls + rejectedRolls + reworkRolls + kivRolls;
+        totalProduced += formTotal;
+        totalRejected += (rejectedRolls + reworkRolls + kivRolls);
+      });
+
+      try {
+        // write total produced rolls to cell B77 as requested
+        worksheet.getCell('B77').value = totalProduced;
+      } catch (err) {
+        // Ignore total write errors
+      }
+
+      // 7) Populate defects grid
+      populateDefectsInWorksheet(worksheet, defectsWithData);
+
+      // 8) Send response
+      const excelBuffer = await workbook.xlsx.writeBuffer();
+
+      // Build dynamic filename based on date range for advanced filters
+      const mcPart = filters.machines.length > 0
+        ? (filters.machines.length === 1
+           ? String(filters.machines[0]).padStart(2, '0')
+           : filters.machines.map(m => String(m).padStart(2, '0')).sort().join('-'))
+        : 'All';
+
+      // Helper function to format date as dd.mm.yyyy
+      const formatDateForFilename = (dateStr) => {
+        try {
+          const d = new Date(dateStr);
+          if (isNaN(d.getTime())) return null;
+          const day = String(d.getDate()).padStart(2, '0');
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const year = d.getFullYear();
+          return `${day}.${month}.${year}`;
+        } catch (e) {
+          return null;
+        }
+      };
+
+      // Determine year
+      let year = new Date().getFullYear();
+      if (filters.fromDate) {
+        try {
+          const d = new Date(filters.fromDate);
+          if (!isNaN(d.getTime())) year = d.getFullYear();
+        } catch (e) { /* ignore */ }
+      }
+
+      // Build date/month part of filename
+      let dateRangePart = '';
+      if (filters.fromDate && filters.toDate) {
+        const fromDate = new Date(filters.fromDate);
+        const toDate = new Date(filters.toDate);
+
+        // Check if it's a single month (both dates in same month and year)
+        if (fromDate.getFullYear() === toDate.getFullYear() &&
+            fromDate.getMonth() === toDate.getMonth()) {
+          // Single month format: {month name}
+          const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                             'July', 'August', 'September', 'October', 'November', 'December'];
+          dateRangePart = monthNames[fromDate.getMonth()];
+        } else {
+          // Date range format: dd.mm.yyyy to dd.mm.yyyy
+          const formattedFrom = formatDateForFilename(filters.fromDate);
+          const formattedTo = formatDateForFilename(filters.toDate);
+          if (formattedFrom && formattedTo) {
+            dateRangePart = `${formattedFrom} to ${formattedTo}`;
+          }
+        }
+      }
+
+      // Add defect info to filename if defect filter is applied
+      let defectPart = '';
+      if (filters.defect) {
+        defectPart = `-Defect_${filters.defect.replace(/[^a-zA-Z0-9]/g, '_')}`;
+      }
+
+      // Sanitize filename components to avoid illegal chars
+      const sanitize = s => s.replace(/[\\/:*?"<>|\n\r]/g, '-').trim();
+
+      // Build filename: {year}-Total Defects Analysis-MC#{machine}{defect}-{date/month}
+      const filenameBase = dateRangePart
+        ? `${year}-Total Defects Analysis-MC#${sanitize(mcPart)}${defectPart}-${sanitize(dateRangePart)}`
+        : `${year}-Total Defects Analysis-MC#${sanitize(mcPart)}${defectPart}`;
+      const filename = `${filenameBase}.xlsx`;
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      // Expose Content-Disposition so front-end fetch can read the filename
+      res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      return res.send(Buffer.from(excelBuffer));
+
+    } catch (err) {
+      console.error('❌ Unexpected error in advanced export:', err);
       return res.status(500).send('Internal server error');
     }
   });

@@ -721,8 +721,8 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
         await insertSignatureInCell(coaWorksheet, 'D41', data.prepared_by, supabase);
       }
       
-      // Date and name in C42
-      coaWorksheet.getCell('C42').value = `(${inspectionDate})\n${preparedBy}`;
+      // Date and name in C42 - client wants just name, no date
+      coaWorksheet.getCell('C42').value = preparedBy;
 
       // Approved By - Signature in G41, Date & Name in F42
       const approvedBy = data.approved_by || 'Not Approved';
@@ -733,8 +733,8 @@ app.get('/export-uc-18gsm-250p-abqr-form', async (req, res) => {
         await insertSignatureInCell(coaWorksheet, 'G41', data.approved_by, supabase);
       }
       
-      // Date and name in F42
-      coaWorksheet.getCell('F42').value = `(${approvedDate})\n${approvedBy}`;
+      // Date and name in F42 - client wants just name, no date
+      coaWorksheet.getCell('F42').value = approvedBy;
     }
 
     // 4. Generate filename and set response headers
@@ -1329,8 +1329,8 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
         await insertSignatureInCell(coaWorksheet, 'D41', data.prepared_by, supabase);
       }
       
-      // Date and name in C42
-      coaWorksheet.getCell('C42').value = `(${inspectionDate})\n${preparedBy}`;
+      // Date and name in C42 - client wants just name, no date
+      coaWorksheet.getCell('C42').value = preparedBy;
 
       // Approved By - Signature in G41, Date & Name in F42
       const approvedBy = data.approved_by || 'Not Approved';
@@ -1341,8 +1341,8 @@ app.get('/export-uc-18gsm-290p-abqr-form', async (req, res) => {
         await insertSignatureInCell(coaWorksheet, 'G41', data.approved_by, supabase);
       }
       
-      // Date and name in F42
-      coaWorksheet.getCell('F42').value = `(${approvedDate})\n${approvedBy}`;
+      // Date and name in F42 - client wants just name, no date
+      coaWorksheet.getCell('F42').value = approvedBy;
     }
 
     // 4. Generate filename and set response headers
@@ -1937,8 +1937,8 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
         await insertSignatureInCell(coaWorksheet, 'D41', data.prepared_by, supabase);
       }
       
-      // Date and name in C42
-      coaWorksheet.getCell('C42').value = `(${inspectionDate})\n${preparedBy}`;
+      // Date and name in C42 - client wants just name, no date
+      coaWorksheet.getCell('C42').value = preparedBy;
 
       // Approved By - Signature in G41, Date & Name in F42
       const approvedBy = data.approved_by || 'Not Approved';
@@ -1949,8 +1949,8 @@ app.get('/export-uc-18gsm-290np-abqr-form', async (req, res) => {
         await insertSignatureInCell(coaWorksheet, 'G41', data.approved_by, supabase);
       }
       
-      // Date and name in F42
-      coaWorksheet.getCell('F42').value = `(${approvedDate})\n${approvedBy}`;
+      // Date and name in F42 - client wants just name, no date
+      coaWorksheet.getCell('F42').value = approvedBy;
     }
 
     // 4. Generate filename and set response headers
@@ -2545,8 +2545,8 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
         await insertSignatureInCell(coaWorksheet, 'D41', data.prepared_by, supabase);
       }
       
-      // Date and name in C42
-      coaWorksheet.getCell('C42').value = `(${inspectionDate})\n${preparedBy}`;
+      // Date and name in C42 - client wants just name, no date
+      coaWorksheet.getCell('C42').value = preparedBy;
 
       // Approved By - Signature in G41, Date & Name in F42
       const approvedBy = data.approved_by || 'Not Approved';
@@ -2557,8 +2557,8 @@ app.get('/export-uc-18gsm-250w-bfqr-form', async (req, res) => {
         await insertSignatureInCell(coaWorksheet, 'G41', data.approved_by, supabase);
       }
       
-      // Date and name in F42
-      coaWorksheet.getCell('F42').value = `(${approvedDate})\n${approvedBy}`;
+      // Date and name in F42 - client wants just name, no date
+      coaWorksheet.getCell('F42').value = approvedBy;
     }
 
     // 4. Generate filename and set response headers
@@ -3148,8 +3148,8 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
         await insertSignatureInCell(coaWorksheet, 'D41', data.prepared_by, supabase);
       }
       
-      // Date and name in C42
-      coaWorksheet.getCell('C42').value = `(${inspectionDate})\n${preparedBy}`;
+      // Date and name in C42 - client wants just name, no date
+      coaWorksheet.getCell('C42').value = preparedBy;
 
       // Approved By - Signature in G41, Date & Name in F42
       const approvedBy = data.approved_by || 'Not Approved';
@@ -3160,8 +3160,8 @@ app.get('/export-uc-18gsm-210w-bfqr-form', async (req, res) => {
         await insertSignatureInCell(coaWorksheet, 'G41', data.approved_by, supabase);
       }
       
-      // Date and name in F42
-      coaWorksheet.getCell('F42').value = `(${approvedDate})\n${approvedBy}`;
+      // Date and name in F42 - client wants just name, no date
+      coaWorksheet.getCell('F42').value = approvedBy;
     }
 
     // 4. Generate filename and set response headers
@@ -3783,8 +3783,8 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         await insertSignatureInCell(coaWorksheet, 'D33', data.prepared_by, supabase);
       }
       
-      // Date and name in C34
-      coaWorksheet.getCell('C34').value = `(${inspectionDate})\n${preparedBy}`;
+      // Date and name in C34 - client wants just name, no date
+      coaWorksheet.getCell('C34').value = preparedBy;
 
       // Approved By - Signature in F33, Name & Date in F34
       const approvedBy = data.approved_by || 'Not Approved';
@@ -3795,8 +3795,8 @@ app.get('/export-uc-16gsm-165w-form', async (req, res) => {
         await insertSignatureInCell(coaWorksheet, 'G33', data.approved_by, supabase);
       }
       
-      // Date and name in F34
-      coaWorksheet.getCell('F34').value = `(${approvedDate})\n${approvedBy}`;
+      // Date and name in F34 - client wants just name, no date
+      coaWorksheet.getCell('F34').value = approvedBy;
     }
 
     // 4. Generate filename and set response headers

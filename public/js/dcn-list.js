@@ -303,17 +303,17 @@ async function uploadDocumentForDCN(dcnNo) {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
             <p style="font-weight:500; margin-bottom:0.25rem; font-size:0.85rem;">Choose a file or drag it here</p>
-            <p style="font-size:0.7rem;">Maximum file size: 10MB</p>
+            <p style="font-size:0.7rem;">Maximum file size: 30MB</p>
         `;
 
         // Handle file selection
         const handleFileSelect = (file) => {
             if (!file) return;
 
-            // Validate file size (max 10MB)
-            const maxSize = 10 * 1024 * 1024;
+            // Validate file size (max 30MB)
+            const maxSize = 30 * 1024 * 1024;
             if (file.size > maxSize) {
-                showToast('File size exceeds 10MB limit.', 'error');
+                showToast('File size exceeds 30MB limit.', 'error');
                 return;
             }
 
