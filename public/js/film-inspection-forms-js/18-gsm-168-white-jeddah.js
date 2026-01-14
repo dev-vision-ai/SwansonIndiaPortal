@@ -1,118 +1,3 @@
-// ===== DOM Element Configuration =====
-const DOMElements = {
-    // Tables
-    testingTableBody: 'testingTableBody',
-    testingTableBody2: 'testingTableBody2',
-    testingTableBody3: 'testingTableBody3',
-    testingTableBody4: 'testingTableBody4',
-    testingTableBody5: 'testingTableBody5',
-
-    // Row Counts
-    rowCountDisplay: 'rowCountDisplay',
-    rowCountDisplay2: 'rowCountDisplay2',
-    rowCountDisplay3: 'rowCountDisplay3',
-    rowCountDisplay4: 'rowCountDisplay4',
-
-    // Buttons
-    addRowsBtn: 'addNewRowsBtn',
-    deleteRowsBtn: 'deleteRowsBtn',
-    
-    // Inputs
-    numRowsInput: 'numRowsInput',
-
-    // Verification
-    verificationForm: 'verificationForm',
-    verificationStatus: 'verificationStatus',
-    verifiedByDisplay: 'verifiedByDisplay',
-    verifiedDateDisplay: 'verifiedDateDisplay',
-    verificationPassword: 'verificationPassword',
-    verificationDate: 'verificationDate',
-    verifyFormBtn: 'verifyFormBtn',
-    cancelVerificationBtn: 'cancelVerificationBtn',
-    toggleVerificationPassword: 'toggleVerificationPassword',
-    verificationConfirmPopup: 'verificationConfirmPopup',
-    confirmProductName: 'confirmProductName',
-    confirmProductionDate: 'confirmProductionDate',
-    confirmInspectionDate: 'confirmInspectionDate',
-    confirmVerifierName: 'confirmVerifierName',
-    confirmVerificationDate: 'confirmVerificationDate',
-    confirmVerificationBtn: 'confirmVerificationBtn',
-
-    // Approval
-    approvalSection: 'approvalSection',
-    approvalForm: 'approvalForm',
-    approvalStatus: 'approvalStatus',
-    approvedByDisplay: 'approvedByDisplay',
-    approvedDateDisplay: 'approvedDateDisplay',
-    approvalPassword: 'approvalPassword',
-    approvalDate: 'approvalDate',
-    approveFormBtn: 'approveFormBtn',
-    cancelApprovalBtn: 'cancelApprovalBtn',
-    toggleApprovalPassword: 'toggleApprovalPassword',
-    approvalConfirmPopup: 'approvalConfirmPopup',
-    confirmApprovalProductName: 'confirmApprovalProductName',
-    confirmApprovalProductionDate: 'confirmApprovalProductionDate',
-    confirmApprovalInspectionDate: 'confirmApprovalInspectionDate',
-    confirmApproverName: 'confirmApproverName',
-    confirmApprovalDate: 'confirmApprovalDate',
-    confirmApprovalBtn: 'confirmApprovalBtn',
-    cancelApprovalPopupBtn: 'cancelApprovalPopupBtn',
-
-    // Prestore
-    prestoreSection: 'prestore-section',
-
-    // Verification/Approval Container
-    verificationApprovalContainer: 'verificationApprovalContainer',
-
-    // QC Equipment
-    basicWeightEquipment: 'basic-weight-equipment',
-    thicknessEquipment: 'thickness-equipment',
-    opacityEquipment: 'opacity-equipment',
-    cofEquipment: 'cof-equipment',
-    cutWidthEquipment: 'cut-width-equipment',
-    colorUnprintedEquipment: 'color-unprinted-equipment',
-    colorPrintedEquipment: 'color-printed-equipment',
-    page2CommonEquipment: 'page2-common-equipment',
-    page3CommonEquipment: 'page3-common-equipment',
-    colorCommonEquipment: 'color-common-equipment',
-    glossEquipment: 'gloss-equipment',
-    page5CommonEquipment: 'page5-common-equipment',
-
-    // Header Fields (using query selectors, so storing selectors here)
-    productCodeInput: 'input[placeholder="Enter Product Code"]',
-    productionOrderInput: 'input[placeholder="Enter Prod. Order"]',
-    machineInput: 'input[placeholder="Enter Machine"]',
-    productionDateInput: 'input[type="date"]:nth-of-type(1)',
-    specificationInput: 'input[placeholder="Enter Specification"]',
-    poInput: 'input[placeholder="Enter PO"]',
-    quantityInput: 'input[placeholder="Enter Quantity"]',
-    inspectionDateInput: 'input[type="date"]:nth-of-type(2)',
-};
-
-// ===== DOM Helper Functions =====
-const getById = (id) => document.getElementById(id);
-const qs = (selector) => document.querySelector(selector);
-const qsa = (selector) => document.querySelectorAll(selector);
-
-/**
- * Sets up a button to toggle the visibility of a password input field.
- * @param {HTMLElement} toggleButton - The button that triggers the toggle.
- * @param {HTMLInputElement} passwordInput - The password input field.
- */
-function setupPasswordToggle(toggleButton, passwordInput) {
-    if (toggleButton && passwordInput) {
-        toggleButton.addEventListener('click', function() {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            const icon = toggleButton.querySelector('i');
-            if (icon) {
-                icon.classList.toggle('fa-eye');
-                icon.classList.toggle('fa-eye-slash');
-            }
-        });
-    }
-}
-
 // Supabase integration for auto-saving to database
 import { supabase } from '../../supabase-config.js';
 
@@ -173,20 +58,20 @@ function formatDateToDDMMYYYY(dateString) {
 function getFormDetailsForConfirmation() {
     try {
         // Get product code from form
-        const productCodeInput = qs('input[placeholder*="Product Code"]') || 
-                                qs('input[name="product_code"]') ||
-                                qs('#product-code') ||
-                                qs('input[value*="APE"]');
+        const productCodeInput = document.querySelector('input[placeholder*="Product Code"]') || 
+                                document.querySelector('input[name="product_code"]') ||
+                                document.querySelector('#product-code') ||
+                                document.querySelector('input[value*="APE"]');
         const productName = productCodeInput ? productCodeInput.value : 'N/A';
         
         // Get production date from form
-        const productionDateInput = qs('input[type="date"]') ||
-                                   qs('input[name="production_date"]') ||
-                                   qs('#production-date');
+        const productionDateInput = document.querySelector('input[type="date"]') ||
+                                   document.querySelector('input[name="production_date"]') ||
+                                   document.querySelector('#production-date');
         const productionDate = productionDateInput ? formatDateToDDMMYYYY(productionDateInput.value) : 'N/A';
         
         // Get inspection date from form (second date input)
-        const allDateInputs = qsa('input[type="date"]');
+        const allDateInputs = document.querySelectorAll('input[type="date"]');
         const inspectionDateInput = allDateInputs.length > 1 ? allDateInputs[1] : allDateInputs[0];
         const inspectionDate = inspectionDateInput ? formatDateToDDMMYYYY(inspectionDateInput.value) : 'N/A';
         
@@ -237,40 +122,74 @@ async function getCurrentUser() {
     }
 }
 
-async function updateFormStatusInDatabase(updateData, actionType) {
-    const formId = getCurrentFormId();
-    if (!formId) {
-        console.error('No form ID found');
-        alert('Error: Could not identify the form. Please refresh and try again.');
-        throw new Error('No form ID found');
-    }
-    
-    const { error } = await supabase
-        .from('168_18c_white_jeddah')
-        .update(updateData)
-        .eq('form_id', formId);
-        
-    if (error) {
-        console.error(`Error updating ${actionType}:`, error);
-        alert(`Error saving ${actionType} data. Please try again.`);
-        throw error;
-    }
-}
-
 async function updateVerificationInDatabase(verifierName, verificationDate) {
-    const updateData = {
-        verified_by: verifierName,
-        verified_date: verificationDate
-    };
-    await updateFormStatusInDatabase(updateData, 'verification');
+    try {
+        // Get the current form ID
+        const formId = getCurrentFormId();
+        if (!formId) {
+            console.error('No form ID found');
+            alert('Error: Could not identify the form. Please refresh and try again.');
+            return;
+        }
+        
+        // Update the database with verification data
+        const { data, error } = await supabase
+            .from('168_18c_white_jeddah')
+            .update({
+                verified_by: verifierName,
+                verified_date: verificationDate
+            })
+            .eq('form_id', formId)
+            .select();
+        
+        if (error) {
+            console.error('Error updating verification:', error);
+            alert('Error saving verification data. Please try again.');
+            return;
+        }
+        
+        // Verification data saved successfully (no need to check data length)
+        console.log('Verification data updated successfully');
+        
+    } catch (error) {
+        console.error('Error updating verification in database:', error);
+        alert('Error saving verification data. Please try again.');
+    }
 }
 
 async function updateApprovalInDatabase(approverName, approvalDate) {
-    const updateData = {
-        approved_by: approverName,
-        approved_date: approvalDate
-    };
-    await updateFormStatusInDatabase(updateData, 'approval');
+    try {
+        // Get the current form ID
+        const formId = getCurrentFormId();
+        if (!formId) {
+            console.error('No form ID found');
+            alert('Error: Could not identify the form. Please refresh and try again.');
+            return;
+        }
+        
+        // Update the database with approval data
+        const { data, error } = await supabase
+            .from('168_18c_white_jeddah')
+            .update({
+                approved_by: approverName,
+                approved_date: approvalDate
+            })
+            .eq('form_id', formId)
+            .select();
+        
+        if (error) {
+            console.error('Error updating approval:', error);
+            alert('Error saving approval data. Please try again.');
+            return;
+        }
+        
+        // Approval data saved successfully
+        console.log('Approval data updated successfully');
+        
+    } catch (error) {
+        console.error('Error updating approval in database:', error);
+        alert('Error saving approval data. Please try again.');
+    }
 }
 
 function getCurrentFormId() {
@@ -308,50 +227,12 @@ function getCurrentFormId() {
     return null;
 }
 
-function showConfirmationPopup(config) {
-    // config properties:
-    // - popupId, productNameId, productionDateId, inspectionDateId
-    // - userNameId, actionDateId, confirmBtnId, cancelBtnId
-    // - formDetails, currentUser, actionDate
-    // - onConfirm: async function to execute
-
-    // Populate the popup with data
-    getById(config.productNameId).textContent = config.formDetails.productName;
-    getById(config.productionDateId).textContent = config.formDetails.productionDate;
-    getById(config.inspectionDateId).textContent = config.formDetails.inspectionDate;
-    getById(config.userNameId).textContent = config.currentUser;
-    getById(config.actionDateId).textContent = formatDateToDDMMYYYY(config.actionDate);
-    
-    const popup = getById(config.popupId);
-    const confirmBtn = getById(config.confirmBtnId);
-    const cancelBtn = getById(config.cancelBtnId);
-
-    // Show the popup
-    popup.style.display = 'flex';
-    
-    // Enable buttons
-    confirmBtn.disabled = false;
-    cancelBtn.disabled = false;
-    
-    // Handle confirm button click
-    confirmBtn.onclick = async () => {
-        popup.style.display = 'none';
-        if (config.onConfirm) {
-            await config.onConfirm();
-        }
-    };
-    
-    // Handle cancel button click
-    cancelBtn.onclick = () => {
-        popup.style.display = 'none';
-    };
-}
-
 async function checkVerificationStatus() {
     try {
         // Get the current form ID
         const formId = getCurrentFormId();
         if (!formId) {
+            console.log('No form ID found, showing verification form');
             showVerificationForm();
             return;
         }
@@ -367,6 +248,7 @@ async function checkVerificationStatus() {
             console.error('Error checking verification status:', error);
             // If it's a PGRST116 error (no rows), that's expected for new forms
             if (error.code === 'PGRST116') {
+                console.log('No verification record found - this is normal for new forms');
                 showVerificationForm();
                 return;
             }
@@ -381,8 +263,8 @@ async function checkVerificationStatus() {
         }
         
         // If verified, update UI accordingly
-        getById(DOMElements.verifiedByDisplay).textContent = 'Verified by: ' + data.verified_by;
-        getById(DOMElements.verifiedDateDisplay).textContent = 'Date: ' + formatDateToDDMMYYYY(data.verified_date);
+        document.getElementById('verifiedByDisplay').textContent = 'Verified by: ' + data.verified_by;
+        document.getElementById('verifiedDateDisplay').textContent = 'Date: ' + formatDateToDDMMYYYY(data.verified_date);
         showVerificationStatus();
     } catch (catchError) {
         console.error('Unexpected error in checkVerificationStatus:', catchError);
@@ -391,17 +273,17 @@ async function checkVerificationStatus() {
 }
 
 function showVerificationForm() {
-    getById(DOMElements.verificationForm).style.display = 'block';
-    getById(DOMElements.verificationStatus).style.display = 'none';
+    document.getElementById('verificationForm').style.display = 'block';
+    document.getElementById('verificationStatus').style.display = 'none';
 }
 
 function hideVerificationForm() {
-    getById(DOMElements.verificationForm).style.display = 'none';
+    document.getElementById('verificationForm').style.display = 'none';
 }
 
 function showVerificationStatus() {
-    getById(DOMElements.verificationForm).style.display = 'none';
-    getById(DOMElements.verificationStatus).style.display = 'flex';
+    document.getElementById('verificationForm').style.display = 'none';
+    document.getElementById('verificationStatus').style.display = 'flex';
 }
 
 async function verifyForm(verificationDate) {
@@ -416,45 +298,51 @@ async function verifyForm(verificationDate) {
 }
 
 function showCustomConfirmationPopup(formDetails, currentUser, verificationDate) {
-    const config = {
-        popupId: DOMElements.verificationConfirmPopup,
-        productNameId: DOMElements.confirmProductName,
-        productionDateId: DOMElements.confirmProductionDate,
-        inspectionDateId: DOMElements.confirmInspectionDate,
-        userNameId: DOMElements.confirmVerifierName,
-        actionDateId: DOMElements.confirmVerificationDate,
-        confirmBtnId: DOMElements.confirmVerificationBtn,
-        cancelBtnId: DOMElements.cancelVerificationBtn,
-        formDetails,
-        currentUser,
-        actionDate: verificationDate,
-        onConfirm: async () => {
-            try {
-                // Hide popup
-                getById(DOMElements.verificationConfirmPopup).style.display = 'none';
-                
-                // Update database
-                await updateVerificationInDatabase(currentUser, verificationDate);
-                
-                // Show success message
-                alert('Form verified successfully!');
-                
-                // Update UI to show verification status
-                showVerificationStatus();
-                getById(DOMElements.verifiedByDisplay).textContent = 'Verified by: ' + currentUser;
-                const formattedDate = formatDateToDDMMYYYY(verificationDate);
-                getById(DOMElements.verifiedDateDisplay).textContent = 'Date: ' + formattedDate;
-                
-                // Check and show approval section immediately
-                await checkApprovalStatus();
-                
-            } catch (error) {
-                console.error('Error during verification:', error);
-                alert('Error during verification. Please try again.');
-            }
+    // Populate the popup with data
+    document.getElementById('confirmProductName').textContent = formDetails.productName;
+    document.getElementById('confirmProductionDate').textContent = formDetails.productionDate;
+    document.getElementById('confirmInspectionDate').textContent = formDetails.inspectionDate;
+    document.getElementById('confirmVerifierName').textContent = currentUser;
+    document.getElementById('confirmVerificationDate').textContent = formatDateToDDMMYYYY(verificationDate);
+    
+    // Show the popup
+    document.getElementById('verificationConfirmPopup').style.display = 'flex';
+    
+    // Enable buttons BEFORE attaching onclick handlers
+    document.getElementById('confirmVerificationBtn').disabled = false;
+    document.getElementById('cancelVerificationBtn').disabled = false;
+    
+    // Handle confirm button click
+    document.getElementById('confirmVerificationBtn').onclick = async () => {
+        try {
+            // Hide popup
+            document.getElementById('verificationConfirmPopup').style.display = 'none';
+            
+            // Update database
+            await updateVerificationInDatabase(currentUser, verificationDate);
+            
+            // Show success message
+            alert('Form verified successfully!');
+            
+            // Update UI to show verification status
+            showVerificationStatus();
+            document.getElementById('verifiedByDisplay').textContent = 'Verified by: ' + currentUser;
+            const formattedDate = formatDateToDDMMYYYY(verificationDate);
+            document.getElementById('verifiedDateDisplay').textContent = 'Date: ' + formattedDate;
+            
+            // Check and show approval section immediately
+            await checkApprovalStatus();
+            
+        } catch (error) {
+            console.error('Error during verification:', error);
+            alert('Error during verification. Please try again.');
         }
     };
-    showConfirmationPopup(config);
+    
+    // Handle cancel button click
+    document.getElementById('cancelVerificationBtn').onclick = () => {
+        document.getElementById('verificationConfirmPopup').style.display = 'none';
+    };
 }
 
 function initializeVerification() {
@@ -464,15 +352,15 @@ function initializeVerification() {
     }, 500);
     
     // Add event listeners for verification form
-    const verifyBtn = getById(DOMElements.verifyFormBtn);
-    const cancelBtn = getById(DOMElements.cancelVerificationBtn);
-    const passwordInput = getById(DOMElements.verificationPassword);
-    const togglePasswordBtn = getById(DOMElements.toggleVerificationPassword);
+    const verifyBtn = document.getElementById('verifyFormBtn');
+    const cancelBtn = document.getElementById('cancelVerificationBtn');
+    const passwordInput = document.getElementById('verificationPassword');
+    const togglePasswordBtn = document.getElementById('toggleVerificationPassword');
     
     if (verifyBtn) {
         verifyBtn.addEventListener('click', function() {
-            const password = getById(DOMElements.verificationPassword).value;
-            const verificationDate = getById(DOMElements.verificationDate).value;
+            const password = document.getElementById('verificationPassword').value;
+            const verificationDate = document.getElementById('verificationDate').value;
             
             if (!verificationDate) {
                 alert('Please select a verification date.');
@@ -489,19 +377,34 @@ function initializeVerification() {
     
     if (cancelBtn) {
         cancelBtn.addEventListener('click', function() {
-            getById(DOMElements.verificationPassword).value = '';
-            getById(DOMElements.verificationDate).value = '';
+            document.getElementById('verificationPassword').value = '';
+            document.getElementById('verificationDate').value = '';
         });
     }
     
-    setupPasswordToggle(togglePasswordBtn, passwordInput);
+    if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', function() {
+            const passwordInput = document.getElementById('verificationPassword');
+            const icon = togglePasswordBtn.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    }
     
     // Enable verification inputs even in view mode
     if (passwordInput) {
         passwordInput.disabled = false;
         passwordInput.readOnly = false;
     }
-    const verificationDateInput = getById(DOMElements.verificationDate);
+    const verificationDateInput = document.getElementById('verificationDate');
     if (verificationDateInput) {
         verificationDateInput.disabled = false;
         verificationDateInput.readOnly = false;
@@ -522,6 +425,7 @@ async function checkApprovalStatus() {
     try {
         const formId = getCurrentFormId();
         if (!formId) {
+            console.log('No form ID available yet for approval check');
             hideApprovalSection();
             return;
         }
@@ -546,8 +450,8 @@ async function checkApprovalStatus() {
             if (data.approved_by && data.approved_date) {
                 // Form is already approved
                 showApprovalStatus();
-                getById(DOMElements.approvedByDisplay).textContent = 'Approved by: ' + data.approved_by;
-                getById(DOMElements.approvedDateDisplay).textContent = 'Date: ' + formatDateToDDMMYYYY(data.approved_date);
+                document.getElementById('approvedByDisplay').textContent = 'Approved by: ' + data.approved_by;
+                document.getElementById('approvedDateDisplay').textContent = 'Date: ' + formatDateToDDMMYYYY(data.approved_date);
             } else {
                 // Form is verified but not approved yet
                 setApprovalFormState(true);
@@ -564,31 +468,25 @@ async function checkApprovalStatus() {
 }
 
 function showApprovalSection() {
-    const approvalSection = getById(DOMElements.approvalSection);
-    if (approvalSection) {
-        approvalSection.style.display = 'block';
-        approvalSection.style.opacity = '1';
-        approvalSection.style.pointerEvents = 'auto';
-    }
+    document.getElementById('approvalSection').style.display = 'block';
+    document.getElementById('approvalSection').style.opacity = '1';
+    document.getElementById('approvalSection').style.pointerEvents = 'auto';
 }
 
 function hideApprovalSection() {
-    const approvalSection = getById(DOMElements.approvalSection);
-    if (approvalSection) {
-        approvalSection.style.display = 'none';
-    }
+    document.getElementById('approvalSection').style.display = 'none';
 }
 
 function showApprovalForm() {
-    const approvalForm = getById(DOMElements.approvalForm);
-    const approvalStatus = getById(DOMElements.approvalStatus);
+    const approvalForm = document.getElementById('approvalForm');
+    const approvalStatus = document.getElementById('approvalStatus');
     if (approvalForm) approvalForm.style.display = 'block';
     if (approvalStatus) approvalStatus.style.display = 'none';
 }
 
 function showApprovalStatus() {
-    const approvalForm = getById(DOMElements.approvalForm);
-    const approvalStatus = getById(DOMElements.approvalStatus);
+    const approvalForm = document.getElementById('approvalForm');
+    const approvalStatus = document.getElementById('approvalStatus');
     
     if (approvalForm) approvalForm.style.display = 'none';
     if (approvalStatus) approvalStatus.style.display = 'flex';
@@ -604,16 +502,16 @@ function showApprovalStatus() {
         .maybeSingle()
         .then(({ data, error }) => {
             if (error || !data) return;
-            getById(DOMElements.approvedByDisplay).textContent = 'Approved by: ' + data.approved_by;
-            getById(DOMElements.approvedDateDisplay).textContent = 'Date: ' + formatDateToDDMMYYYY(data.approved_date);
+            document.getElementById('approvedByDisplay').textContent = 'Approved by: ' + data.approved_by;
+            document.getElementById('approvedDateDisplay').textContent = 'Date: ' + formatDateToDDMMYYYY(data.approved_date);
         });
 }
 
 function setApprovalFormState(isEnabled) {
-    const approvalPassword = getById(DOMElements.approvalPassword);
-    const approvalDate = getById(DOMElements.approvalDate);
-    const approveFormBtn = getById(DOMElements.approveFormBtn);
-    const cancelApprovalBtn = getById(DOMElements.cancelApprovalBtn);
+    const approvalPassword = document.getElementById('approvalPassword');
+    const approvalDate = document.getElementById('approvalDate');
+    const approveFormBtn = document.getElementById('approveFormBtn');
+    const cancelApprovalBtn = document.getElementById('cancelApprovalBtn');
     
     if (approvalPassword) {
         approvalPassword.disabled = !isEnabled;
@@ -639,43 +537,50 @@ async function approveForm(approvalDate) {
 }
 
 function showApprovalConfirmationPopup(formDetails, currentUser, approvalDate) {
-    const config = {
-        popupId: DOMElements.approvalConfirmPopup,
-        productNameId: DOMElements.confirmApprovalProductName,
-        productionDateId: DOMElements.confirmApprovalProductionDate,
-        inspectionDateId: DOMElements.confirmApprovalInspectionDate,
-        userNameId: DOMElements.confirmApproverName,
-        actionDateId: DOMElements.confirmApprovalDate,
-        confirmBtnId: DOMElements.confirmApprovalBtn,
-        cancelBtnId: DOMElements.cancelApprovalPopupBtn,
-        formDetails,
-        currentUser,
-        actionDate: approvalDate,
-        onConfirm: async () => {
-            try {
-                getById(DOMElements.approvalConfirmPopup).style.display = 'none';
-                await updateApprovalInDatabase(currentUser, approvalDate);
-                alert('Form approved successfully!');
-                showApprovalStatus();
-                
-                // Update display
-                getById(DOMElements.approvedByDisplay).textContent = 'Approved by: ' + currentUser;
-                getById(DOMElements.approvedDateDisplay).textContent = 'Date: ' + formatDateToDDMMYYYY(approvalDate);
-            } catch (error) {
-                console.error('Error during approval:', error);
-                alert('Error during approval. Please try again.');
-            }
+    // Populate popup with data
+    document.getElementById('confirmApprovalProductName').textContent = formDetails.productName;
+    document.getElementById('confirmApprovalProductionDate').textContent = formDetails.productionDate;
+    document.getElementById('confirmApprovalInspectionDate').textContent = formDetails.inspectionDate;
+    document.getElementById('confirmApproverName').textContent = currentUser;
+    document.getElementById('confirmApprovalDate').textContent = formatDateToDDMMYYYY(approvalDate);
+    
+    // Show popup
+    document.getElementById('approvalConfirmPopup').style.display = 'flex';
+    
+    // Enable buttons BEFORE attaching handlers
+    document.getElementById('confirmApprovalBtn').disabled = false;
+    document.getElementById('cancelApprovalPopupBtn').disabled = false;
+    
+    // Set up event listeners
+    document.getElementById('confirmApprovalBtn').onclick = async () => {
+        try {
+            document.getElementById('approvalConfirmPopup').style.display = 'none';
+            await updateApprovalInDatabase(currentUser, approvalDate);
+            alert('Form approved successfully!');
+            showApprovalStatus();
+            
+            // Update display
+            document.getElementById('approvedByDisplay').textContent = 'Approved by: ' + currentUser;
+            document.getElementById('approvedDateDisplay').textContent = 'Date: ' + formatDateToDDMMYYYY(approvalDate);
+        } catch (error) {
+            console.error('Error during approval:', error);
+            alert('Error during approval. Please try again.');
         }
     };
-    showConfirmationPopup(config);
+    
+    document.getElementById('cancelApprovalPopupBtn').onclick = () => {
+        document.getElementById('approvalConfirmPopup').style.display = 'none';
+    };
 }
 
 function initializeApproval() {
-    const approvalPasswordInput = getById(DOMElements.approvalPassword);
-    const approvalDateInput = getById(DOMElements.approvalDate);
-    const approveBtn = getById(DOMElements.approveFormBtn);
-    const cancelBtn = getById(DOMElements.cancelApprovalBtn);
-    const togglePasswordBtn = getById(DOMElements.toggleApprovalPassword);
+    const approvalForm = document.getElementById('approvalForm');
+    const approvalStatus = document.getElementById('approvalStatus');
+    const approvalPasswordInput = document.getElementById('approvalPassword');
+    const approvalDateInput = document.getElementById('approvalDate');
+    const approveBtn = document.getElementById('approveFormBtn');
+    const cancelBtn = document.getElementById('cancelApprovalBtn');
+    const togglePasswordBtn = document.getElementById('toggleApprovalPassword');
     
     // Hide approval section initially - will be shown by checkApprovalStatus() if verification exists
     hideApprovalSection();
@@ -699,7 +604,15 @@ function initializeApproval() {
     if (togglePasswordBtn) togglePasswordBtn.disabled = false;
     
     // Toggle password visibility
-    setupPasswordToggle(togglePasswordBtn, approvalPasswordInput);
+    if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', function() {
+            const type = approvalPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            approvalPasswordInput.setAttribute('type', type);
+            const icon = togglePasswordBtn.querySelector('i');
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        });
+    }
     
     // Approve button
     if (approveBtn) {
@@ -732,6 +645,10 @@ function initializeApproval() {
     }
 }
 
+function setupApprovalListeners() {
+    // This function can be used to set up additional approval-related listeners if needed
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // ===== VIEW MODE DETECTION =====
     // Get URL parameters first
@@ -758,20 +675,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // ===== VIEW MODE SETUP =====
-    const prestoreSection = getById(DOMElements.prestoreSection);
+    const prestoreSection = document.getElementById('prestore-section');
     if (prestoreSection) {
         prestoreSection.style.display = viewMode ? 'block' : 'none';
     }
 
     // Verified/Approved blocks should be visible ONLY in view mode
-    const verificationApprovalContainer = getById(DOMElements.verificationApprovalContainer);
+    const verificationApprovalContainer = document.getElementById('verificationApprovalContainer');
     if (verificationApprovalContainer) {
         verificationApprovalContainer.style.display = viewMode ? 'flex' : 'none';
     }
     
     // Show/hide verification sections based on mode
-    const verificationSection = getById(DOMElements.verificationSection);
-    const approvalSection = getById(DOMElements.approvalSection);
+    const verificationSection = document.getElementById('verificationSection');
+    const approvalSection = document.getElementById('approvalSection');
     
     if (verificationSection) {
         verificationSection.style.display = viewMode ? 'block' : 'none';
@@ -813,13 +730,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to show loading state
     function showEquipmentLoadingState() {
         const allDropdownIds = [
-            DOMElements.basicWeightEquipment, DOMElements.thicknessEquipment, DOMElements.opacityEquipment,
-            DOMElements.cofEquipment, DOMElements.page2CommonEquipment, DOMElements.page3CommonEquipment,
-            DOMElements.colorCommonEquipment, DOMElements.glossEquipment
+            'basic-weight-equipment', 'thickness-equipment', 'opacity-equipment',
+            'cof-equipment', 'page2-common-equipment', 'page3-common-equipment',
+            'color-common-equipment', 'gloss-equipment'
         ];
         
         allDropdownIds.forEach(dropdownId => {
-            const dropdown = getById(dropdownId);
+            const dropdown = document.getElementById(dropdownId);
             if (dropdown) {
                 dropdown.innerHTML = '<option value="">Loading equipment...</option>';
             }
@@ -839,12 +756,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Equipment type to dropdown mapping
         const equipmentMappings = {
-            'Weigh Scale': [DOMElements.basicWeightEquipment],
-            'Dial Gauge': [DOMElements.thicknessEquipment],
-            'X-RITE': [DOMElements.colorCommonEquipment],
-            'Spectrophotometer': [DOMElements.opacityEquipment, DOMElements.colorCommonEquipment],
-            'Instron': [DOMElements.cofEquipment, DOMElements.page2CommonEquipment, DOMElements.page3CommonEquipment],
-            'Glossmeter': [DOMElements.glossEquipment]
+            'Weigh Scale': ['basic-weight-equipment'],
+            'Dial Gauge': ['thickness-equipment'],
+            'X-RITE': ['color-common-equipment'],
+            'Spectrophotometer': ['opacity-equipment', 'color-common-equipment'],
+            'Instron': ['cof-equipment', 'page2-common-equipment', 'page3-common-equipment'],
+            'Glossmeter': ['gloss-equipment']
         };
         
         // Populate dropdowns
@@ -853,7 +770,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const equipmentIds = equipmentByType[equipmentType] || [];
             
             dropdownIds.forEach(dropdownId => {
-                const dropdown = getById(dropdownId);
+                const dropdown = document.getElementById(dropdownId);
                 if (dropdown) {
                     // Remove 'Loading equipment...' option if present
                     Array.from(dropdown.options).forEach(opt => {
@@ -900,13 +817,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function showEquipmentLoadingError() {
         // Set default options for all dropdowns
         const allDropdownIds = [
-            DOMElements.basicWeightEquipment, DOMElements.thicknessEquipment, DOMElements.opacityEquipment,
-            DOMElements.cofEquipment, DOMElements.page2CommonEquipment, DOMElements.page3CommonEquipment,
-            DOMElements.colorCommonEquipment, DOMElements.glossEquipment
+            'basic-weight-equipment', 'thickness-equipment', 'opacity-equipment',
+            'cof-equipment', 'page2-common-equipment', 'page3-common-equipment',
+            'color-common-equipment', 'gloss-equipment'
         ];
         
         allDropdownIds.forEach(dropdownId => {
-            const dropdown = getById(dropdownId);
+            const dropdown = document.getElementById(dropdownId);
             if (dropdown) {
                 dropdown.innerHTML = '<option value="">Equipment loading failed - Please refresh</option>';
             }
@@ -930,23 +847,23 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Page 1 elements
-    const addRowsBtn = getById(DOMElements.addRowsBtn);
-    const deleteRowsBtn = getById(DOMElements.deleteRowsBtn);
-    const numRowsInput = getById(DOMElements.numRowsInput);
-    const testingTableBody = getById(DOMElements.testingTableBody);
-    const rowCountDisplay = getById(DOMElements.rowCountDisplay);
+    const addRowsBtn = document.getElementById('addNewRowsBtn');
+    const deleteRowsBtn = document.getElementById('deleteRowsBtn');
+    const numRowsInput = document.getElementById('numRowsInput');
+    const testingTableBody = document.getElementById('testingTableBody');
+    const rowCountDisplay = document.getElementById('rowCountDisplay');
 
                // Page 2 elements
-           const testingTableBody2 = getById(DOMElements.testingTableBody2);
-           const rowCountDisplay2 = getById(DOMElements.rowCountDisplay2);
+           const testingTableBody2 = document.getElementById('testingTableBody2');
+           const rowCountDisplay2 = document.getElementById('rowCountDisplay2');
            
            // Page 3 elements
-           const testingTableBody3 = getById(DOMElements.testingTableBody3);
-           const rowCountDisplay3 = getById(DOMElements.rowCountDisplay3);
+           const testingTableBody3 = document.getElementById('testingTableBody3');
+           const rowCountDisplay3 = document.getElementById('rowCountDisplay3');
            
            // Page 4 elements
-           const testingTableBody4 = getById(DOMElements.testingTableBody4);
-           const rowCountDisplay4 = getById(DOMElements.rowCountDisplay4);
+           const testingTableBody4 = document.getElementById('testingTableBody4');
+           const rowCountDisplay4 = document.getElementById('rowCountDisplay4');
 
            if (!addRowsBtn || !deleteRowsBtn || !numRowsInput || !testingTableBody || !testingTableBody2 || !testingTableBody3 || !testingTableBody4) {
            return;
@@ -978,25 +895,25 @@ document.addEventListener('DOMContentLoaded', function() {
        };
        
        // Header form elements
-       const productCodeInput = qs(DOMElements.productCodeInput);
-       const productionOrderInput = qs(DOMElements.productionOrderInput);
-       const machineInput = qs(DOMElements.machineInput);
-       const productionDateInput = qs(DOMElements.productionDateInput);
-       const specificationInput = qs(DOMElements.specificationInput);
-       const poInput = qs(DOMElements.poInput);
-       const quantityInput = qs(DOMElements.quantityInput);
+       const productCodeInput = document.querySelector('input[placeholder="Enter Product Code"]');
+       const productionOrderInput = document.querySelector('input[placeholder="Enter Prod. Order"]');
+       const machineInput = document.querySelector('input[placeholder="Enter Machine"]');
+       const productionDateInput = document.querySelector('input[type="date"]:nth-of-type(1)');
+       const specificationInput = document.querySelector('input[placeholder="Enter Specification"]');
+       const poInput = document.querySelector('input[placeholder="Enter PO"]');
+       const quantityInput = document.querySelector('input[placeholder="Enter Quantity"]');
        
        // Try multiple selectors for inspection date
-       let inspectionDateInput = qs(DOMElements.inspectionDateInput);
+       let inspectionDateInput = document.querySelector('input[type="date"]:nth-of-type(2)');
        if (!inspectionDateInput) {
-           inspectionDateInput = qs('input[placeholder*="Inspection"]');
+           inspectionDateInput = document.querySelector('input[placeholder*="Inspection"]');
        }
        if (!inspectionDateInput) {
-           inspectionDateInput = qs('input[placeholder*="inspection"]');
+           inspectionDateInput = document.querySelector('input[placeholder*="inspection"]');
        }
        if (!inspectionDateInput) {
            // Try to find by looking for the second date input after production date
-           const allDateInputs = qsa('input[type="date"]');
+           const allDateInputs = document.querySelectorAll('input[type="date"]');
            inspectionDateInput = allDateInputs[1] || null;
        }
        
@@ -1015,6 +932,7 @@ document.addEventListener('DOMContentLoaded', function() {
        headerFields.forEach(field => {
            if (field) {
                field.readOnly = true;
+               // field.style.backgroundColor = '#f3f4f6'; // Light gray background - REMOVED for normal appearance
                field.style.cursor = 'default'; // Normal cursor instead of not-allowed
                field.style.fontSize = '16px'; // Bigger font size for better readability
                field.style.fontWeight = '500'; // Slightly bolder text
@@ -1032,23 +950,24 @@ document.addEventListener('DOMContentLoaded', function() {
            
            // Disable all input fields in tables and equipment dropdowns
            setTimeout(() => {
-               const allInputs = qsa('input, textarea, select');
+               const allInputs = document.querySelectorAll('input, textarea, select');
                allInputs.forEach(input => {
                    // Skip verification inputs - they should always be enabled
-                   if (input.id === DOMElements.verificationPassword || 
-                       input.id === DOMElements.verificationDate || 
-                       input.id === DOMElements.toggleVerificationPassword ||
-                       input.id === DOMElements.verifyFormBtn ||
-                       input.id === DOMElements.cancelVerificationBtn ||
-                       input.id === DOMElements.approvalPassword ||
-                       input.id === DOMElements.approvalDate ||
-                       input.id === DOMElements.approveFormBtn ||
-                       input.id === DOMElements.cancelApprovalBtn ||
-                       input.id === DOMElements.toggleApprovalPassword) {
+                   if (input.id === 'verificationPassword' || 
+                       input.id === 'verificationDate' || 
+                       input.id === 'toggleVerificationPassword' ||
+                       input.id === 'verifyFormBtn' ||
+                       input.id === 'cancelVerificationBtn' ||
+                       input.id === 'approvalPassword' ||
+                       input.id === 'approvalDate' ||
+                       input.id === 'approveFormBtn' ||
+                       input.id === 'cancelApprovalBtn' ||
+                       input.id === 'toggleApprovalPassword') {
                        return; // Skip disabling verification and approval inputs
                    }
                    input.readOnly = true;
                    input.disabled = true;
+                   // input.style.backgroundColor = '#f9fafb'; // REMOVED for normal appearance
                    input.style.cursor = 'default';
                    input.style.color = '#000000'; // Force black text color
                    input.style.opacity = '1'; // Force full opacity
@@ -1101,23 +1020,23 @@ document.addEventListener('DOMContentLoaded', function() {
        function getEquipmentSelections() {
            const equipmentData = {
                page1: {
-                   basic_weight: getById(DOMElements.basicWeightEquipment)?.value || '',
-                   thickness: getById(DOMElements.thicknessEquipment)?.value || '',
-                   opacity: getById(DOMElements.opacityEquipment)?.value || '',
-                   cof: getById(DOMElements.cofEquipment)?.value || ''
+                   basic_weight: document.getElementById('basic-weight-equipment')?.value || '',
+                   thickness: document.getElementById('thickness-equipment')?.value || '',
+                   opacity: document.getElementById('opacity-equipment')?.value || '',
+                   cof: document.getElementById('cof-equipment')?.value || ''
                },
                page2: {
-                   common: getById(DOMElements.page2CommonEquipment)?.value || ''
+                   common: document.getElementById('page2-common-equipment')?.value || ''
                },
                page3: {
-                   common: getById(DOMElements.page3CommonEquipment)?.value || ''
+                   common: document.getElementById('page3-common-equipment')?.value || ''
                },
                page4: {
-                   color_common: getById(DOMElements.colorCommonEquipment)?.value || '',
-                   gloss: getById(DOMElements.glossEquipment)?.value || ''
+                   color_common: document.getElementById('color-common-equipment')?.value || '',
+                   gloss: document.getElementById('gloss-equipment')?.value || ''
                },
                page5: {
-                   common: getById(DOMElements.page5CommonEquipment)?.value || ''
+                   common: document.getElementById('page5-common-equipment')?.value || ''
                }
            };
            
@@ -1137,55 +1056,55 @@ document.addEventListener('DOMContentLoaded', function() {
                // Load Page 1 equipment
                if (equipment.page1) {
                    if (equipment.page1.basic_weight) {
-                       const dropdown = getById(DOMElements.basicWeightEquipment);
+                       const dropdown = document.getElementById('basic-weight-equipment');
                        if (dropdown) dropdown.value = equipment.page1.basic_weight;
                    }
                    if (equipment.page1.thickness) {
-                       const dropdown = getById(DOMElements.thicknessEquipment);
+                       const dropdown = document.getElementById('thickness-equipment');
                        if (dropdown) dropdown.value = equipment.page1.thickness;
                    }
                    if (equipment.page1.opacity) {
-                       const dropdown = getById(DOMElements.opacityEquipment);
+                       const dropdown = document.getElementById('opacity-equipment');
                        if (dropdown) dropdown.value = equipment.page1.opacity;
                    }
                    if (equipment.page1.cof) {
-                       const dropdown = getById(DOMElements.cofEquipment);
+                       const dropdown = document.getElementById('cof-equipment');
                        if (dropdown) dropdown.value = equipment.page1.cof;
                    }
                    if (equipment.page1.cut_width) {
-                       const dropdown = getById(DOMElements.cutWidthEquipment);
+                       const dropdown = document.getElementById('cut-width-equipment');
                        if (dropdown) dropdown.value = equipment.page1.cut_width;
                    }
                    if (equipment.page1.color_unprinted) {
-                       const dropdown = getById(DOMElements.colorUnprintedEquipment);
+                       const dropdown = document.getElementById('color-unprinted-equipment');
                        if (dropdown) dropdown.value = equipment.page1.color_unprinted;
                    }
                    if (equipment.page1.color_printed) {
-                       const dropdown = getById(DOMElements.colorPrintedEquipment);
+                       const dropdown = document.getElementById('color-printed-equipment');
                        if (dropdown) dropdown.value = equipment.page1.color_printed;
                    }
                }
                
                // Load Page 2 equipment
                if (equipment.page2 && equipment.page2.common) {
-                   const dropdown = getById(DOMElements.page2CommonEquipment);
+                   const dropdown = document.getElementById('page2-common-equipment');
                    if (dropdown) dropdown.value = equipment.page2.common;
                }
                
                // Load Page 3 equipment
                if (equipment.page3 && equipment.page3.common) {
-                   const dropdown = getById(DOMElements.page3CommonEquipment);
+                   const dropdown = document.getElementById('page3-common-equipment');
                    if (dropdown) dropdown.value = equipment.page3.common;
                }
                
                // Load Page 4 equipment
                if (equipment.page4) {
                    if (equipment.page4.color_common) {
-                       const dropdown = getById(DOMElements.colorCommonEquipment);
+                       const dropdown = document.getElementById('color-common-equipment');
                        if (dropdown) dropdown.value = equipment.page4.color_common;
                    }
                    if (equipment.page4.gloss) {
-                       const dropdown = getById(DOMElements.glossEquipment);
+                       const dropdown = document.getElementById('gloss-equipment');
                        if (dropdown) dropdown.value = equipment.page4.gloss;
                    }
                }
@@ -1499,15 +1418,102 @@ document.addEventListener('DOMContentLoaded', function() {
                return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
            });
            
+
+           
            const jsonbObject = {};
            // Create JSONB object with all row numbers (1, 2, 3, 4, 5, 6, 7, etc.)
            for (let i = 1; i <= dataRows.length; i++) {
                const rowIndex = i - 1;
                const row = dataRows[rowIndex];
                
-               // Simplified input finding logic: inputs are strictly ordered in the DOM
-               const inputs = row.querySelectorAll('input');
-               const inputElement = inputs[columnIndex] || null;
+               // Find the input element for this specific column based on table type
+               let inputElement = null;
+               
+               if (tableBody.id === 'testingTableBody') {
+                   // Page 1: Basic structure with 3 sample columns + 7 data columns
+                   // DOM columns: 0(Sample1), 1(Sample2), 2(Sample3), 3(Basic Weight), 4(Thickness), 5(Opacity), 6(COF), 7(Cut Width), 8(Color Unprinted), 9(Color Printed)
+                   // Input indices: 0(Sample1), 1(Sample2), 2(Sample3), 3(Basic Weight), 4(Thickness), 5(Opacity), 6(COF), 7(Cut Width), 8(Color Unprinted), 9(Color Printed)
+                   if (columnIndex === 0) {
+                       // Sample Number column - find input in first column
+                       const inputs = row.querySelectorAll('input');
+                       inputElement = inputs[0] || null;
+                   } else if (columnIndex === 1) {
+                       // Lot Number column - find input in second column
+                       const inputs = row.querySelectorAll('input');
+                       inputElement = inputs[1] || null;
+                   } else if (columnIndex === 2) {
+                       // Roll Number column - find input in third column
+                       const inputs = row.querySelectorAll('input');
+                       inputElement = inputs[2] || null;
+                   } else {
+                       // Data columns - find input element (column index = input index)
+                       const inputs = row.querySelectorAll('input');
+                       inputElement = inputs[columnIndex] || null;
+                   }
+               } else if (tableBody.id === 'testingTableBody2' || tableBody.id === 'testingTableBody3') {
+                   // Page 2 & 3: 3 sample columns + 12 data columns
+                   // DOM columns: 0(Sample1), 1(Sample2), 2(Sample3), 3(Elongation1), 4(Elongation2), 5(Elongation3), 6(ElongationAve), 7(Force1), 8(Force2), 9(Force3), 10(ForceAve), 11(Force5%1), 12(Force5%2), 13(Force5%3), 14(Force5%Ave)
+                   // Input indices: 0(Sample1), 1(Sample2), 2(Sample3), 3(Elongation1), 4(Elongation2), 5(Elongation3), 6(ElongationAve), 7(Force1), 8(Force2), 9(Force3), 10(ForceAve), 11(Force5%1), 12(Force5%2), 13(Force5%3), 14(Force5%Ave)
+                   if (columnIndex === 0) {
+                       // Sample Number column - find input in first column
+                       const inputs = row.querySelectorAll('input');
+                       inputElement = inputs[0] || null;
+                   } else if (columnIndex === 1) {
+                       // Lot Number column - find input in second column
+                       const inputs = row.querySelectorAll('input');
+                       inputElement = inputs[1] || null;
+                   } else if (columnIndex === 2) {
+                       // Roll Number column - find input in third column
+                       const inputs = row.querySelectorAll('input');
+                       inputElement = inputs[2] || null;
+                   } else {
+                       // Data columns - find input element (column index = input index)
+                       const inputs = row.querySelectorAll('input');
+                       inputElement = inputs[columnIndex] || null;
+                   }
+               } else if (tableBody.id === 'testingTableBody5') {
+                   // Page 5: 3 sample columns + 1 data column (PG Quality)
+                   // DOM columns: 0(Sample1), 1(Sample2), 2(Sample3), 3(PG Quality)
+                   // Input indices: 0(Sample1), 1(Sample2), 2(Sample3), 3(PG Quality)
+                   if (columnIndex === 0) {
+                       // Sample Number column - find input in first column
+                       const inputs = row.querySelectorAll('input');
+                       inputElement = inputs[0] || null;
+                   } else if (columnIndex === 1) {
+                       // Lot Number column - find input in second column
+                       const inputs = row.querySelectorAll('input');
+                       inputElement = inputs[1] || null;
+                   } else if (columnIndex === 2) {
+                       // Roll Number column - find input in third column
+                       const inputs = row.querySelectorAll('input');
+                       inputElement = inputs[2] || null;
+                   } else if (columnIndex === 3) {
+                       // PG Quality column - find input in fourth column
+                       const inputs = row.querySelectorAll('input');
+                       inputElement = inputs[3] || null;
+                   }
+               } else if (tableBody.id === 'testingTableBody4') {
+                   // Page 4: 3 sample columns + 8 data columns
+                   // DOM columns: 0(Sample1), 1(Sample2), 2(Sample3), 3(Color L), 4(Color A), 5(Color B), 6(Color~Delta E), 7(Gloss1), 8(Gloss2), 9(Gloss3), 10(GlossAve)
+                   // Input indices: 0(Sample1), 1(Sample2), 2(Sample3), 3(Color L), 4(Color A), 5(Color B), 6(Color~Delta E), 7(Gloss1), 8(Gloss2), 9(Gloss3), 10(GlossAve)
+                   if (columnIndex === 0) {
+                       // Sample Number column - find input in first column
+                       const inputs = row.querySelectorAll('input');
+                       inputElement = inputs[0] || null;
+                   } else if (columnIndex === 1) {
+                       // Lot Number column - find input in second column
+                       const inputs = row.querySelectorAll('input');
+                       inputElement = inputs[1] || null;
+                   } else if (columnIndex === 2) {
+                       // Roll Number column - find input in third column
+                       const inputs = row.querySelectorAll('input');
+                       inputElement = inputs[2] || null;
+                   } else {
+                       // Data columns - find input element (column index = input index)
+                       const inputs = row.querySelectorAll('input');
+                       inputElement = inputs[columnIndex] || null;
+                   }
+               }
                
                if (inputElement && inputElement.value && inputElement.value.trim() !== '') {
                    // Apply formatting for specific Page 1 columns before saving to database
@@ -1696,6 +1702,13 @@ document.addEventListener('DOMContentLoaded', function() {
            
            // Return original value if no formatting applies
            return value;
+       }
+       
+       // Generate unique lot number
+       function generateLotNumber() {
+           const timestamp = new Date().getTime();
+           const random = Math.floor(Math.random() * 1000);
+           return `LOT_${timestamp}_${random}`;
        }
        
        // Generate unique reference number
@@ -2017,8 +2030,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update row count for a specific page
     function updateRowCountByPage(pageNumber) {
         const tableBody = getTableBodyByPage(pageNumber);
-        const rowCountDisplayId = `rowCountDisplay${pageNumber > 1 ? pageNumber : ''}`;
-        const rowCountDisplay = getById(DOMElements[rowCountDisplayId] || rowCountDisplayId);
+        const rowCountDisplay = document.getElementById(`rowCountDisplay${pageNumber > 1 ? pageNumber : ''}`);
         if (tableBody && rowCountDisplay) {
             const dataRows = getCurrentDataRowCount(tableBody);
             rowCountDisplay.textContent = `Rows: ${dataRows}`;
@@ -2100,6 +2112,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
                 // Search for previous form with matching criteria
+                console.log('Searching for historical data:', { productCode, machineNo, previousDateStr });
                 
                 const { data: historicalData, error } = await supabase
                     .from('168_18c_white_jeddah')
@@ -2117,6 +2130,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (error || !historicalData || historicalData.length === 0) {
                     
                     // If no data for previous date, find most recent form with same product + machine
+                    console.log('Searching for recent data:', { productCode, machineNo, productionDate });
                     
                     const { data: recentData, error: recentError } = await supabase
                         .from('168_18c_white_jeddah')
@@ -2132,6 +2146,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
 
                     if (recentError || !recentData || recentData.length === 0) {
+                        console.log('No historical data found for this product/machine combination');
                         return;
                     }
 
@@ -2261,58 +2276,164 @@ document.addEventListener('DOMContentLoaded', function() {
         function loadHistoricalRowData(row, historicalData, historicalRow) {
             if (!row || !historicalData) return;
 
-            // Configuration map for historical data keys based on table ID and input index
-            const HISTORICAL_KEY_MAP = {
-                'testingTableBody': {
-                    0: 'lot_and_roll', 1: 'roll_id', 2: 'lot_time',
-                    3: 'page1_basis_weight', 4: 'page1_thickness', 5: 'page1_opacity', 6: 'page1_cof_kinetic'
-                },
-                'testingTableBody2': {
-                    0: 'lot_and_roll', 1: 'roll_id', 2: 'lot_time',
-                    3: 'page2_elongation_md_1', 4: 'page2_elongation_md_2', 5: 'page2_elongation_md_3',
-                    7: 'page2_force_md_1', 8: 'page2_force_md_2', 9: 'page2_force_md_3',
-                    11: 'page2_force_5p_md_1', 12: 'page2_force_5p_md_2', 13: 'page2_force_5p_md_3'
-                },
-                'testingTableBody3': {
-                    0: 'lot_and_roll', 1: 'roll_id', 2: 'lot_time',
-                    3: 'page3_elongation_cd_1', 4: 'page3_elongation_cd_2', 5: 'page3_elongation_cd_3',
-                    7: 'page3_force_cd_1', 8: 'page3_force_cd_2', 9: 'page3_force_cd_3',
-                    11: 'page3_modulus_1', 12: 'page3_modulus_2', 13: 'page3_modulus_3'
-                },
-                'testingTableBody4': {
-                    0: 'lot_and_roll', 1: 'roll_id', 2: 'lot_time',
-                    3: 'page4_color_l', 4: 'page4_color_a', 5: 'page4_color_b', 6: 'page4_color_delta_e',
-                    7: 'page4_gloss_1', 8: 'page4_gloss_2', 9: 'page4_gloss_3'
-                },
-                'testingTableBody5': {
-                    0: 'lot_and_roll', 1: 'roll_id', 2: 'lot_time',
-                    3: 'page5_pg_quality'
-                }
-            };
-
             const inputs = row.querySelectorAll('input');
             const rowKey = String(historicalRow);
-            const tableBody = row.closest('tbody');
-            if (!tableBody) return;
-            
-            const mapping = HISTORICAL_KEY_MAP[tableBody.id];
-            if (!mapping) return;
 
-            // Iterate through the mapping and populate inputs
-            for (const [inputIndex, dataKey] of Object.entries(mapping)) {
-                const idx = parseInt(inputIndex);
-                if (inputs[idx] && historicalData[dataKey] && historicalData[dataKey][rowKey]) {
-                    inputs[idx].value = historicalData[dataKey][rowKey];
-                    
-                    // Apply conditional formatting if needed (Page 1 only for now based on original code)
-                    if (tableBody.id === 'testingTableBody') {
-                        const columnTypes = {
-                            3: 'basicWeight', 4: 'thickness', 5: 'opacity', 6: 'cof'
-                        };
-                        if (columnTypes[idx]) {
-                            applyColorFormatting(inputs[idx], columnTypes[idx]);
-                        }
+            // Load data based on table type
+            if (row.closest('#testingTableBody')) {
+                // Page 1 data
+                if (historicalData.lot_and_roll && historicalData.lot_and_roll[rowKey] && inputs[0]) {
+                    inputs[0].value = historicalData.lot_and_roll[rowKey];
+                }
+                if (historicalData.roll_id && historicalData.roll_id[rowKey] && inputs[1]) {
+                    inputs[1].value = historicalData.roll_id[rowKey];
+                }
+                if (historicalData.lot_time && historicalData.lot_time[rowKey] && inputs[2]) {
+                    inputs[2].value = historicalData.lot_time[rowKey];
+                }
+                // Load Page 1 data with conditional formatting
+                const page1Data = [
+                    { key: 'page1_basis_weight', inputIndex: 3, columnType: 'basicWeight' },
+                    { key: 'page1_thickness', inputIndex: 4, columnType: 'thickness' },
+                    { key: 'page1_opacity', inputIndex: 5, columnType: 'opacity' },
+                    { key: 'page1_cof_kinetic', inputIndex: 6, columnType: 'cof' }
+                ];
+                
+                page1Data.forEach(({ key, inputIndex, columnType }) => {
+                    if (historicalData[key] && historicalData[key][rowKey] && inputs[inputIndex]) {
+                        inputs[inputIndex].value = historicalData[key][rowKey];
+                        applyColorFormatting(inputs[inputIndex], columnType);
                     }
+                });
+            } else if (row.closest('#testingTableBody2')) {
+                // Page 2 data - Load lot_and_roll, roll_id, lot_time for all pages
+                if (historicalData.lot_and_roll && historicalData.lot_and_roll[rowKey] && inputs[0]) {
+                    inputs[0].value = historicalData.lot_and_roll[rowKey];
+                }
+                if (historicalData.roll_id && historicalData.roll_id[rowKey] && inputs[1]) {
+                    inputs[1].value = historicalData.roll_id[rowKey];
+                }
+                if (historicalData.lot_time && historicalData.lot_time[rowKey] && inputs[2]) {
+                    inputs[2].value = historicalData.lot_time[rowKey];
+                }
+                // Page 2 specific data - Correct input indices based on HTML structure
+                // HTML columns: 0(Sample No), 1(Roll ID), 2(Lot Time), 3(Elongation1), 4(Elongation2), 5(Elongation3), 6(ElongationAve), 7(Force1), 8(Force2), 9(Force3), 10(ForceAve), 11(Force5%1), 12(Force5%2), 13(Force5%3), 14(Force5%Ave)
+                if (historicalData.page2_elongation_md_1 && historicalData.page2_elongation_md_1[rowKey] && inputs[3]) {
+                    inputs[3].value = historicalData.page2_elongation_md_1[rowKey];
+                }
+                if (historicalData.page2_elongation_md_2 && historicalData.page2_elongation_md_2[rowKey] && inputs[4]) {
+                    inputs[4].value = historicalData.page2_elongation_md_2[rowKey];
+                }
+                if (historicalData.page2_elongation_md_3 && historicalData.page2_elongation_md_3[rowKey] && inputs[5]) {
+                    inputs[5].value = historicalData.page2_elongation_md_3[rowKey];
+                }
+                if (historicalData.page2_force_md_1 && historicalData.page2_force_md_1[rowKey] && inputs[7]) {
+                    inputs[7].value = historicalData.page2_force_md_1[rowKey];
+                }
+                if (historicalData.page2_force_md_2 && historicalData.page2_force_md_2[rowKey] && inputs[8]) {
+                    inputs[8].value = historicalData.page2_force_md_2[rowKey];
+                }
+                if (historicalData.page2_force_md_3 && historicalData.page2_force_md_3[rowKey] && inputs[9]) {
+                    inputs[9].value = historicalData.page2_force_md_3[rowKey];
+                }
+                if (historicalData.page2_force_5p_md_1 && historicalData.page2_force_5p_md_1[rowKey] && inputs[11]) {
+                    inputs[11].value = historicalData.page2_force_5p_md_1[rowKey];
+                }
+                if (historicalData.page2_force_5p_md_2 && historicalData.page2_force_5p_md_2[rowKey] && inputs[12]) {
+                    inputs[12].value = historicalData.page2_force_5p_md_2[rowKey];
+                }
+                if (historicalData.page2_force_5p_md_3 && historicalData.page2_force_5p_md_3[rowKey] && inputs[13]) {
+                    inputs[13].value = historicalData.page2_force_5p_md_3[rowKey];
+                }
+            } else if (row.closest('#testingTableBody3')) {
+                // Page 3 data - Load lot_and_roll, roll_id, lot_time for all pages
+                if (historicalData.lot_and_roll && historicalData.lot_and_roll[rowKey] && inputs[0]) {
+                    inputs[0].value = historicalData.lot_and_roll[rowKey];
+                }
+                if (historicalData.roll_id && historicalData.roll_id[rowKey] && inputs[1]) {
+                    inputs[1].value = historicalData.roll_id[rowKey];
+                }
+                if (historicalData.lot_time && historicalData.lot_time[rowKey] && inputs[2]) {
+                    inputs[2].value = historicalData.lot_time[rowKey];
+                }
+                // Page 3 specific data - Correct input indices based on HTML structure
+                // HTML columns: 0(Sample No), 1(Roll ID), 2(Lot Time), 3(Elongation1), 4(Elongation2), 5(Elongation3), 6(ElongationAve), 7(Force1), 8(Force2), 9(Force3), 10(ForceAve), 11(Modulus1), 12(Modulus2), 13(Modulus3), 14(ModulusAve)
+                if (historicalData.page3_elongation_cd_1 && historicalData.page3_elongation_cd_1[rowKey] && inputs[3]) {
+                    inputs[3].value = historicalData.page3_elongation_cd_1[rowKey];
+                }
+                if (historicalData.page3_elongation_cd_2 && historicalData.page3_elongation_cd_2[rowKey] && inputs[4]) {
+                    inputs[4].value = historicalData.page3_elongation_cd_2[rowKey];
+                }
+                if (historicalData.page3_elongation_cd_3 && historicalData.page3_elongation_cd_3[rowKey] && inputs[5]) {
+                    inputs[5].value = historicalData.page3_elongation_cd_3[rowKey];
+                }
+                if (historicalData.page3_force_cd_1 && historicalData.page3_force_cd_1[rowKey] && inputs[7]) {
+                    inputs[7].value = historicalData.page3_force_cd_1[rowKey];
+                }
+                if (historicalData.page3_force_cd_2 && historicalData.page3_force_cd_2[rowKey] && inputs[8]) {
+                    inputs[8].value = historicalData.page3_force_cd_2[rowKey];
+                }
+                if (historicalData.page3_force_cd_3 && historicalData.page3_force_cd_3[rowKey] && inputs[9]) {
+                    inputs[9].value = historicalData.page3_force_cd_3[rowKey];
+                }
+                if (historicalData.page3_modulus_1 && historicalData.page3_modulus_1[rowKey] && inputs[11]) {
+                    inputs[11].value = historicalData.page3_modulus_1[rowKey];
+                }
+                if (historicalData.page3_modulus_2 && historicalData.page3_modulus_2[rowKey] && inputs[12]) {
+                    inputs[12].value = historicalData.page3_modulus_2[rowKey];
+                }
+                if (historicalData.page3_modulus_3 && historicalData.page3_modulus_3[rowKey] && inputs[13]) {
+                    inputs[13].value = historicalData.page3_modulus_3[rowKey];
+                }
+            } else if (row.closest('#testingTableBody4')) {
+                // Page 4 data - Load lot_and_roll, roll_id, lot_time for all pages
+                if (historicalData.lot_and_roll && historicalData.lot_and_roll[rowKey] && inputs[0]) {
+                    inputs[0].value = historicalData.lot_and_roll[rowKey];
+                }
+                if (historicalData.roll_id && historicalData.roll_id[rowKey] && inputs[1]) {
+                    inputs[1].value = historicalData.roll_id[rowKey];
+                }
+                if (historicalData.lot_time && historicalData.lot_time[rowKey] && inputs[2]) {
+                    inputs[2].value = historicalData.lot_time[rowKey];
+                }
+                // Page 4 specific data - Correct input indices based on HTML structure
+                // HTML columns: 0(Sample No), 1(Roll ID), 2(Lot Time), 3(Color L), 4(Color A), 5(Color B), 6(Color Delta E), 7(Gloss1), 8(Gloss2), 9(Gloss3), 10(GlossAve)
+                if (historicalData.page4_color_l && historicalData.page4_color_l[rowKey] && inputs[3]) {
+                    inputs[3].value = historicalData.page4_color_l[rowKey];
+                }
+                if (historicalData.page4_color_a && historicalData.page4_color_a[rowKey] && inputs[4]) {
+                    inputs[4].value = historicalData.page4_color_a[rowKey];
+                }
+                if (historicalData.page4_color_b && historicalData.page4_color_b[rowKey] && inputs[5]) {
+                    inputs[5].value = historicalData.page4_color_b[rowKey];
+                }
+                if (historicalData.page4_color_delta_e && historicalData.page4_color_delta_e[rowKey] && inputs[6]) {
+                    inputs[6].value = historicalData.page4_color_delta_e[rowKey];
+                }
+                if (historicalData.page4_gloss_1 && historicalData.page4_gloss_1[rowKey] && inputs[7]) {
+                    inputs[7].value = historicalData.page4_gloss_1[rowKey];
+                }
+                if (historicalData.page4_gloss_2 && historicalData.page4_gloss_2[rowKey] && inputs[8]) {
+                    inputs[8].value = historicalData.page4_gloss_2[rowKey];
+                }
+                if (historicalData.page4_gloss_3 && historicalData.page4_gloss_3[rowKey] && inputs[9]) {
+                    inputs[9].value = historicalData.page4_gloss_3[rowKey];
+                }
+            } else if (row.closest('#testingTableBody5')) {
+                // Page 5 data - Load lot_and_roll, roll_id, lot_time for all pages
+                if (historicalData.lot_and_roll && historicalData.lot_and_roll[rowKey] && inputs[0]) {
+                    inputs[0].value = historicalData.lot_and_roll[rowKey];
+                }
+                if (historicalData.roll_id && historicalData.roll_id[rowKey] && inputs[1]) {
+                    inputs[1].value = historicalData.roll_id[rowKey];
+                }
+                if (historicalData.lot_time && historicalData.lot_time[rowKey] && inputs[2]) {
+                    inputs[2].value = historicalData.lot_time[rowKey];
+                }
+                // Page 5 specific data - Correct input indices based on HTML structure
+                // HTML columns: 0(Sample No), 1(Roll ID), 2(Lot Time), 3(PG Quality), 4(Blank)
+                if (historicalData.page5_pg_quality && historicalData.page5_pg_quality[rowKey] && inputs[3]) {
+                    inputs[3].value = historicalData.page5_pg_quality[rowKey];
                 }
             }
         }
@@ -2456,53 +2577,150 @@ document.addEventListener('DOMContentLoaded', function() {
 
          }
          
-         function setElementText(id, text, isDate = false) {
-            const element = getById(id);
-            if (element && text) {
-                if (isDate) {
-                    element.textContent = new Date(text).toLocaleDateString('en-GB');
-                } else {
-                    element.textContent = text;
-                }
-            }
-        }
-
-        function setStatusElement(id, text) {
-            const element = getById(id);
-            if (element && text) {
-                element.textContent = text;
-                applyStatusStyling(element, text);
-            }
-        }
-        
          // Load pre-store data into view fields
          function loadPreStoreData(dbData) {
              try {
-                setElementText('view-production-order', dbData.production_order);
-                setElementText('view-product-code', dbData.product_code);
-                setElementText('view-specification', dbData.specification);
-                setElementText('view-pallet-size', dbData.pallet_size);
-                setElementText('view-customer', dbData.customer);
-                setElementText('view-location', dbData.location);
-                setElementText('view-machine-no', dbData.machine_no);
-                setElementText('view-quantity', dbData.quantity);
-                setElementText('view-production-date', dbData.production_date, true);
-                setElementText('view-inspection-date', dbData.inspection_date, true);
-                setElementText('view-standard-packing', dbData.standard_packing);
-                setElementText('view-batch', dbData.batch);
-                setElementText('view-ref-no', dbData.ref_no);
-                setElementText('view-prestore-done-by', dbData.prestore_done_by);
-                
-                setStatusElement('view-pallet-list', dbData.pallet_list);
-                setStatusElement('view-product-label', dbData.product_label);
-                setStatusElement('view-wrapping', dbData.wrapping);
-                setStatusElement('view-layer-pad', dbData.layer_pad);
-                setStatusElement('view-contamination', dbData.contamination);
-                setStatusElement('view-kraft-paper', dbData.kraft_paper);
-                setStatusElement('view-no-damage', dbData.no_damage);
-                setStatusElement('view-pallet', dbData.pallet);
-
-                setElementText('view-remarks', dbData.remarks);
+                 // Load basic information fields
+                 if (dbData.production_order) {
+                     const element = document.getElementById('view-production-order');
+                     if (element) element.textContent = dbData.production_order;
+                 }
+                 
+                 if (dbData.product_code) {
+                     const element = document.getElementById('view-product-code');
+                     if (element) element.textContent = dbData.product_code;
+                 }
+                 
+                 if (dbData.specification) {
+                     const element = document.getElementById('view-specification');
+                     if (element) element.textContent = dbData.specification;
+                 }
+                 
+                 if (dbData.pallet_size) {
+                     const element = document.getElementById('view-pallet-size');
+                     if (element) element.textContent = dbData.pallet_size;
+                 }
+                 
+                 if (dbData.customer) {
+                     const element = document.getElementById('view-customer');
+                     if (element) element.textContent = dbData.customer;
+                 }
+                 
+                 if (dbData.location) {
+                     const element = document.getElementById('view-location');
+                     if (element) element.textContent = dbData.location;
+                 }
+                 
+                 if (dbData.machine_no) {
+                     const element = document.getElementById('view-machine-no');
+                     if (element) element.textContent = dbData.machine_no;
+                 }
+                 
+                 if (dbData.quantity) {
+                     const element = document.getElementById('view-quantity');
+                     if (element) element.textContent = dbData.quantity;
+                 }
+                 
+                 if (dbData.production_date) {
+                     const element = document.getElementById('view-production-date');
+                     if (element) element.textContent = new Date(dbData.production_date).toLocaleDateString('en-GB');
+                 }
+                 
+                 if (dbData.inspection_date) {
+                     const element = document.getElementById('view-inspection-date');
+                     if (element) element.textContent = new Date(dbData.inspection_date).toLocaleDateString('en-GB');
+                 }
+                 
+                 if (dbData.standard_packing) {
+                     const element = document.getElementById('view-standard-packing');
+                     if (element) element.textContent = dbData.standard_packing;
+                 }
+                 
+                 if (dbData.batch) {
+                     const element = document.getElementById('view-batch');
+                     if (element) element.textContent = dbData.batch;
+                 }
+                 
+                 if (dbData.ref_no) {
+                     const element = document.getElementById('view-ref-no');
+                     if (element) element.textContent = dbData.ref_no;
+                 }
+                 
+                 if (dbData.prestore_done_by) {
+                     const element = document.getElementById('view-prestore-done-by');
+                     if (element) element.textContent = dbData.prestore_done_by;
+                 }
+                 
+                 // Load palletized finished goods status
+                 if (dbData.pallet_list) {
+                     const element = document.getElementById('view-pallet-list');
+                     if (element) {
+                         element.textContent = dbData.pallet_list;
+                         applyStatusStyling(element, dbData.pallet_list);
+                     }
+                 }
+                 
+                 if (dbData.product_label) {
+                     const element = document.getElementById('view-product-label');
+                     if (element) {
+                         element.textContent = dbData.product_label;
+                         applyStatusStyling(element, dbData.product_label);
+                     }
+                 }
+                 
+                 if (dbData.wrapping) {
+                     const element = document.getElementById('view-wrapping');
+                     if (element) {
+                         element.textContent = dbData.wrapping;
+                         applyStatusStyling(element, dbData.wrapping);
+                     }
+                 }
+                 
+                 if (dbData.layer_pad) {
+                     const element = document.getElementById('view-layer-pad');
+                     if (element) {
+                         element.textContent = dbData.layer_pad;
+                         applyStatusStyling(element, dbData.layer_pad);
+                     }
+                 }
+                 
+                 if (dbData.contamination) {
+                     const element = document.getElementById('view-contamination');
+                     if (element) {
+                         element.textContent = dbData.contamination;
+                         applyStatusStyling(element, dbData.contamination);
+                     }
+                 }
+                 
+                 if (dbData.kraft_paper) {
+                     const element = document.getElementById('view-kraft-paper');
+                     if (element) {
+                         element.textContent = dbData.kraft_paper;
+                         applyStatusStyling(element, dbData.kraft_paper);
+                     }
+                 }
+                 
+                 if (dbData.no_damage) {
+                     const element = document.getElementById('view-no-damage');
+                     if (element) {
+                         element.textContent = dbData.no_damage;
+                         applyStatusStyling(element, dbData.no_damage);
+                     }
+                 }
+                 
+                 if (dbData.pallet) {
+                     const element = document.getElementById('view-pallet');
+                     if (element) {
+                         element.textContent = dbData.pallet;
+                         applyStatusStyling(element, dbData.pallet);
+                     }
+                 }
+                 
+                 // Load remarks
+                 if (dbData.remarks) {
+                     const element = document.getElementById('view-remarks');
+                     if (element) element.textContent = dbData.remarks;
+                 }
                  
              } catch (error) {
                  console.error('Error loading pre-store data:', error);
@@ -3135,7 +3353,7 @@ document.addEventListener('DOMContentLoaded', function() {
                        
                        td.appendChild(input);
                     } else {
-                        // Other columns: Input fields with generic setup
+                        // Other columns: Input fields
                         const input = document.createElement('input');
                         input.type = 'text';
                         input.className = 'testing-input';
@@ -3146,8 +3364,120 @@ document.addEventListener('DOMContentLoaded', function() {
                         input.disabled = false;
                         input.readOnly = false;
                         
-                        // Apply validation and formatting logic extracted to helper function
-                        applyColumnValidations(input, tableBody.id, j, td);
+                    
+                    // Apply validation and conditional formatting to Page 1 columns
+                    if (tableBody.id === 'testingTableBody') {
+                        if (j === 3) {
+                            applyValidationToInput(input, tableBody, j);
+                            applyConditionalFormatting(input, 'basicWeight');
+                        } else if (j === 4) {
+                            applyThicknessValidation(input);
+                            applyConditionalFormatting(input, 'thickness');
+                        } else if (j === 5) {
+                            applyOpacityValidation(input);
+                            applyConditionalFormatting(input, 'opacity');
+                        } else if (j === 6) {
+                            applyCOFValidation(input);
+                            applyConditionalFormatting(input, 'cof');
+                        }
+                    }
+                    
+                    // Page 2 validations and conditional formatting
+                    if (isPage2) {
+                        // Elongation MD columns (000 format)
+                        if (j === 3 || j === 4 || j === 5) {
+                            applyThreeDigitValidation(input);
+                            applyConditionalFormatting(input, 'elongationMD');
+                        }
+                        // Force MD columns (00.0 format)
+                        if (j === 7 || j === 8 || j === 9) {
+                            applyTwoDigitOneDecimalValidation(input);
+                            applyConditionalFormatting(input, 'forceMD');
+                        }
+                        // Force 5% MD columns (0.0 format)
+                        if (j === 11 || j === 12 || j === 13) {
+                            applyOneDigitOneDecimalValidation(input);
+                            applyConditionalFormatting(input, 'force5pMD');
+                        }
+                    }
+                    
+                    // Page 3 validations and conditional formatting
+                    // Elongation CD columns (000 format)
+                    if (tableBody.id === 'testingTableBody3' && (j === 3 || j === 4 || j === 5)) {
+                        applyThreeDigitValidation(input);
+                        applyConditionalFormatting(input, 'elongationCD');
+                    }
+                    // Force CD columns (00.0 format)
+                    if (tableBody.id === 'testingTableBody3' && (j === 7 || j === 8 || j === 9)) {
+                        applyTwoDigitOneDecimalValidation(input);
+                        applyConditionalFormatting(input, 'forceCD');
+                    }
+                    // Modulus columns (00.0 format)
+                    if (tableBody.id === 'testingTableBody3' && (j === 11 || j === 12 || j === 13)) {
+                        applyTwoDigitOneDecimalValidation(input);
+                        applyConditionalFormatting(input, 'modulus');
+                    }
+                    
+                    // Page 4 validations and conditional formatting
+                    // Color columns
+                    if (tableBody.id === 'testingTableBody4' && j === 3) {
+                        applyColorLValidation(input);
+                        applyConditionalFormatting(input, 'colorL');
+                    } else if (tableBody.id === 'testingTableBody4' && j === 4) {
+                        applyColorAValidation(input);
+                        applyConditionalFormatting(input, 'colorA');
+                    } else if (tableBody.id === 'testingTableBody4' && j === 5) {
+                        applyColorBValidation(input);
+                        applyConditionalFormatting(input, 'colorB');
+                    } else if (tableBody.id === 'testingTableBody4' && j === 6) {
+                        // Force Color Delta E input to be editable
+                        input.disabled = false;
+                        input.readOnly = false;
+                        input.style.pointerEvents = 'auto';
+                        input.style.backgroundColor = 'transparent';
+                        input.style.color = 'black';
+                        input.style.opacity = '1';
+                        input.style.visibility = 'visible';
+                        input.style.cursor = 'text';
+                        input.tabIndex = 0;
+                        
+                        applyColorDeltaEValidation(input);
+                        applyConditionalFormatting(input, 'colorDeltaE');
+                        
+                        // Add event listener to ensure it stays editable
+                        input.addEventListener('focus', function() {
+                            this.disabled = false;
+                            this.readOnly = false;
+                            this.style.pointerEvents = 'auto';
+                            this.style.backgroundColor = 'white';
+                            this.style.color = 'black';
+                        });
+                    }
+                    // Gloss columns (00.0 format)
+                    if (tableBody.id === 'testingTableBody4' && (j === 7 || j === 8 || j === 9)) {
+                        applyTwoDigitOneDecimalValidation(input);
+                        applyConditionalFormatting(input, 'gloss');
+                    }
+                    // Gloss Ave column (read-only, calculated)
+                    if (tableBody.id === 'testingTableBody4' && j === 10) {
+                        input.readOnly = true;
+                        input.style.backgroundColor = '#f0f0f0';
+                        input.style.color = '#666';
+                        input.placeholder = '';
+                        applyConditionalFormatting(input, 'gloss');
+                    }
+                    
+                    // Page 5 validations and conditional formatting
+                    // PG Quality System Requirements column (Pass=0, Fail=1)
+                    if (tableBody.id === 'testingTableBody5' && j === 3) {
+                        applyPGQualityValidation(input);
+                        applyConditionalFormatting(input, 'pgQuality');
+                    }
+                    // Page 5 blank column (5th column) - no input, just empty cell
+                    if (tableBody.id === 'testingTableBody5' && j === 4) {
+                        input.style.display = 'none'; // Hide input for blank column
+                        td.style.backgroundColor = 'transparent';
+                    }
                     
                     // Add event listener for automatic average calculation
                     // Skip validated columns as they have their own comprehensive event listeners
@@ -3227,55 +3557,6 @@ document.addEventListener('DOMContentLoaded', function() {
            
            // Save the updated table state to database after adding rows
            debouncedSave();
-       }
-
-       // Helper function to apply validations and formatting based on column configuration
-       function applyColumnValidations(input, tableBodyId, colIndex, td) {
-           // Page 1
-           if (tableBodyId === 'testingTableBody') {
-               if (colIndex === 3) { applyValidationToInput(input, testingTableBody, 3); applyConditionalFormatting(input, 'basicWeight'); }
-               else if (colIndex === 4) { applyThicknessValidation(input); applyConditionalFormatting(input, 'thickness'); }
-               else if (colIndex === 5) { applyOpacityValidation(input); applyConditionalFormatting(input, 'opacity'); }
-               else if (colIndex === 6) { applyCOFValidation(input); applyConditionalFormatting(input, 'cof'); }
-           }
-           // Page 2
-           else if (tableBodyId === 'testingTableBody2') {
-               if ([3, 4, 5].includes(colIndex)) { applyThreeDigitValidation(input); applyConditionalFormatting(input, 'elongationMD'); }
-               else if ([7, 8, 9].includes(colIndex)) { applyTwoDigitOneDecimalValidation(input); applyConditionalFormatting(input, 'forceMD'); }
-               else if ([11, 12, 13].includes(colIndex)) { applyOneDigitOneDecimalValidation(input); applyConditionalFormatting(input, 'force5pMD'); }
-           }
-           // Page 3
-           else if (tableBodyId === 'testingTableBody3') {
-               if ([3, 4, 5].includes(colIndex)) { applyThreeDigitValidation(input); applyConditionalFormatting(input, 'elongationCD'); }
-               else if ([7, 8, 9].includes(colIndex)) { applyTwoDigitOneDecimalValidation(input); applyConditionalFormatting(input, 'forceCD'); }
-               else if ([11, 12, 13].includes(colIndex)) { applyTwoDigitOneDecimalValidation(input); applyConditionalFormatting(input, 'modulus'); }
-           }
-           // Page 4
-           else if (tableBodyId === 'testingTableBody4') {
-               if (colIndex === 3) { applyColorLValidation(input); applyConditionalFormatting(input, 'colorL'); }
-               else if (colIndex === 4) { applyColorAValidation(input); applyConditionalFormatting(input, 'colorA'); }
-               else if (colIndex === 5) { applyColorBValidation(input); applyConditionalFormatting(input, 'colorB'); }
-               else if (colIndex === 6) {
-                   input.disabled = false; input.readOnly = false; input.style.pointerEvents = 'auto';
-                   input.style.backgroundColor = 'transparent'; input.style.color = 'black';
-                   input.style.opacity = '1'; input.style.visibility = 'visible'; input.style.cursor = 'text';
-                   applyColorDeltaEValidation(input); applyConditionalFormatting(input, 'colorDeltaE');
-                   input.addEventListener('focus', function() {
-                       this.disabled = false; this.readOnly = false; this.style.pointerEvents = 'auto';
-                       this.style.backgroundColor = 'white'; this.style.color = 'black';
-                   });
-               }
-               else if ([7, 8, 9].includes(colIndex)) { applyTwoDigitOneDecimalValidation(input); applyConditionalFormatting(input, 'gloss'); }
-               else if (colIndex === 10) {
-                   input.readOnly = true; input.style.backgroundColor = '#f0f0f0'; input.style.color = '#666';
-                   input.placeholder = ''; applyConditionalFormatting(input, 'gloss');
-               }
-           }
-           // Page 5
-           else if (tableBodyId === 'testingTableBody5') {
-               if (colIndex === 3) { applyPGQualityValidation(input); applyConditionalFormatting(input, 'pgQuality'); }
-               else if (colIndex === 4) { input.style.display = 'none'; td.style.backgroundColor = 'transparent'; }
-           }
        }
 
        // Function to update tab order for all rows in a table
@@ -4252,49 +4533,12 @@ document.addEventListener('DOMContentLoaded', function() {
        // Function to add rows to any table (like inline inspection form)
 
          // ===== CHARACTER VALIDATION FRAMEWORK =====
+         // This will be built step by step based on your requirements
          
-         // --- Generic Validation Helpers ---
-         function validateNumericInput(input, maxIntDigits, maxDecDigits, allowNegative = false) {
-             let value = input.value;
-             const regex = allowNegative ? /[^0-9.-]/g : /[^0-9.]/g;
-             value = value.replace(regex, '');
-             
-             // Handle negative sign
-             const hasNegative = allowNegative && value.startsWith('-');
-             if (hasNegative) value = value.substring(1);
-             
-             const parts = value.split('.');
-             if (parts.length > 2) {
-                 value = parts[0] + '.' + parts.slice(1).join('');
-             }
-             
-             if (parts.length > 0) {
-                 if (parts[0].length > maxIntDigits) parts[0] = parts[0].substring(0, maxIntDigits);
-             }
-             if (parts.length > 1) {
-                 if (parts[1].length > maxDecDigits) parts[1] = parts[1].substring(0, maxDecDigits);
-             }
-             
-             let finalVal = parts.join('.');
-             if (hasNegative) finalVal = '-' + finalVal;
-             input.value = finalVal;
-         }
-
-         function formatNumericOnEnter(input, decimals, min, max, scaleFactor = 1) {
-             let value = input.value.trim();
-             if (value === '') return;
-             let numValue = parseFloat(value);
-             if (isNaN(numValue)) { input.value = (0).toFixed(decimals); return; }
-             
-             if (scaleFactor !== 1 && Number.isInteger(numValue) && !value.includes('.')) {
-                 numValue = numValue / scaleFactor;
-             }
-             if (numValue < min) numValue = min;
-             if (numValue > max) numValue = max;
-             input.value = numValue.toFixed(decimals);
-         }
-
+         // Base validation function - will be enhanced as needed
          function applyValidationToInput(input, tableBody, columnIndex) {
+             // This function will be customized based on your specific validation needs
+             // We'll implement validations one by one as you request them
              
              // Basic Weight column validation (Page 1, column 3)
              if (tableBody.id === 'testingTableBody' && columnIndex === 3) {
@@ -4327,6 +4571,8 @@ document.addEventListener('DOMContentLoaded', function() {
              
              // For now, just add a basic input event listener for other columns
              input.addEventListener('input', function() {
+                 // Validation logic will be added here step by step
+                 
                  // Auto-save to database after each change (debounced)
                  debouncedSave();
              });
@@ -4334,12 +4580,56 @@ document.addEventListener('DOMContentLoaded', function() {
          
          // Basic Weight validation function - exactly 00.00 format
          function validateBasicWeight(input) {
-             validateNumericInput(input, 2, 2);
+             let value = input.value;
+             
+             // Remove any non-numeric characters except decimal point
+             value = value.replace(/[^0-9.]/g, '');
+             
+             // Ensure only one decimal point
+             const parts = value.split('.');
+             if (parts.length > 2) {
+                 value = parts[0] + '.' + parts.slice(1).join('');
+             }
+             
+             // Limit to 2 digits before decimal and 2 digits after
+             if (parts.length === 2) {
+                 // Before decimal: max 2 digits
+                 if (parts[0].length > 2) {
+                     parts[0] = parts[0].substring(0, 2);
+                 }
+                 // After decimal: max 2 digits
+                 if (parts[1].length > 2) {
+                     parts[1] = parts[1].substring(0, 2);
+                 }
+                 value = parts[0] + '.' + parts[1];
+             } else if (parts.length === 1) {
+                 // No decimal point yet, limit to 2 digits
+                 if (parts[0].length > 2) {
+                     parts[0] = parts[0].substring(0, 2);
+                     value = parts[0];
+                 }
+             }
+             
+             // Update input value with validated format
+             input.value = value;
          }
          
          // Function to format Basic Weight to 00.00 format on Enter key
          function formatBasicWeightOnEnter(input) {
-             formatNumericOnEnter(input, 2, 0, 99.99);
+             let value = input.value.trim();
+             
+             // If empty, do nothing
+             if (value === '') return;
+             
+             // Parse the number
+             const numValue = parseFloat(value);
+             if (isNaN(numValue)) return;
+             
+             // Format to exactly 2 decimal places
+             const formattedValue = numValue.toFixed(2);
+             
+             // Update input value with formatted result
+             input.value = formattedValue;
                  }
         
         // Thickness validation function - exactly 0.000 format
@@ -4397,12 +4687,84 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Thickness validation function - allow typing multiple digits, format on Enter
         function validateThickness(input) {
-            validateNumericInput(input, 2, 3);
+            let value = input.value;
+            
+            // Remove any non-numeric characters except decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // Allow up to 2 digits before decimal for typing (like 00, 30, 99, etc.)
+            // Only limit if there's a decimal point
+            if (parts.length === 2) {
+                // Before decimal: allow up to 2 digits (for values like 00, 30, 99)
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                }
+                // After decimal: max 3 digits
+                if (parts[1].length > 3) {
+                    parts[1] = parts[1].substring(0, 3);
+                }
+                value = parts[0] + '.' + parts[1];
+            } else if (parts.length === 1) {
+                // No decimal point yet, allow up to 2 digits for typing
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                    value = parts[0];
+                }
+            }
+            
+            // Update input value with validated format
+            input.value = value;
         }
         
         // Function to format Thickness to 0.000 format on Enter key
         function formatThicknessOnEnter(input) {
-            formatNumericOnEnter(input, 3, 0, 0.999, 1000);
+            let value = input.value.trim();
+            
+            // If empty, leave it empty (don't set default values)
+            if (value === '') {
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseFloat(value);
+            
+            // If not a valid number, set to 0.000
+            if (isNaN(numValue)) {
+                input.value = '0.000';
+                return;
+            }
+            
+            // Convert integer input to decimal format (e.g., 30 -> 0.030)
+            let finalValue;
+            if (Number.isInteger(numValue) && !value.includes('.')) {
+                // If it's an integer without decimal point, treat as thousandths
+                finalValue = numValue / 1000;
+            } else {
+                // If it already has decimal point, use as is
+                finalValue = numValue;
+            }
+            
+            // Ensure value is between 0 and 0.999 (since max input is 99)
+            if (finalValue < 0) {
+                input.value = '0.000';
+                return;
+            }
+            if (finalValue > 0.999) {
+                input.value = '0.999';
+                return;
+            }
+            
+            // Format to exactly 3 decimal places
+            const formattedValue = finalValue.toFixed(3);
+            
+            // Update input value with formatted result
+            input.value = formattedValue;
         }
         
         // Opacity validation function - exactly 00.0 format
@@ -4460,15 +4822,88 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Opacity validation function - allow typing up to 2 digits, format on Enter
         function validateOpacity(input) {
-            validateNumericInput(input, 2, 1);
+            let value = input.value;
+            
+            // Remove any non-numeric characters except decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // Allow up to 2 digits before decimal for typing (like 00, 30, 99, etc.)
+            // Only limit if there's a decimal point
+            if (parts.length === 2) {
+                // Before decimal: allow up to 2 digits (for values like 00, 30, 99)
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                }
+                // After decimal: max 1 digit
+                if (parts[1].length > 1) {
+                    parts[1] = parts[1].substring(0, 1);
+                }
+                value = parts[0] + '.' + parts[1];
+            } else if (parts.length === 1) {
+                // No decimal point yet, allow up to 2 digits for typing
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                    value = parts[0];
+                }
+            }
+            
+            // Update input value with validated format
+            input.value = value;
         }
         
         // Function to format Opacity to 00.0 format on Enter key
         function formatOpacityOnEnter(input) {
-            formatNumericOnEnter(input, 1, 0, 99.9);
-            // Custom padding logic for Opacity (e.g. 5.0 -> 05.0)
-            if (input.value.length === 3) {
-                input.value = '0' + input.value;
+            let value = input.value.trim();
+            
+            // If empty, leave it empty (don't set default values)
+            if (value === '') {
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseFloat(value);
+            
+            // If not a valid number, set to 00.0
+            if (isNaN(numValue)) {
+                input.value = '00.0';
+                return;
+            }
+            
+            // Convert integer input to decimal format (e.g., 30 -> 30.0)
+            let finalValue;
+            if (Number.isInteger(numValue) && !value.includes('.')) {
+                // If it's an integer without decimal point, treat as whole number with 1 decimal
+                finalValue = numValue;
+            } else {
+                // If it already has decimal point, use as is
+                finalValue = numValue;
+            }
+            
+            // Ensure value is between 0 and 99.9 (since max input is 99)
+            if (finalValue < 0) {
+                input.value = '00.0';
+                return;
+            }
+            if (finalValue > 99.9) {
+                input.value = '99.9';
+                return;
+            }
+            
+            // Format to exactly 1 decimal place with 2 digits before decimal
+            const formattedValue = finalValue.toFixed(1);
+            
+            // Pad with leading zero if needed (e.g., 5.0 -> 05.0)
+            if (formattedValue.length === 3) { // e.g., "5.0"
+                const paddedValue = '0' + formattedValue; // "05.0"
+                input.value = paddedValue;
+            } else {
+                input.value = formattedValue;
             }
         }
         
@@ -4529,12 +4964,84 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // COF Kinetic validation function - allow typing up to 2 digits, format on Enter
         function validateCOF(input) {
-            validateNumericInput(input, 2, 2);
+            let value = input.value;
+            
+            // Remove any non-numeric characters except decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // Allow up to 2 digits before decimal for typing (like 00, 30, 99, etc.)
+            // Only limit if there's a decimal point
+            if (parts.length === 2) {
+                // Before decimal: allow up to 2 digits (for values like 00, 30, 99)
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                }
+                // After decimal: max 2 digits
+                if (parts[1].length > 2) {
+                    parts[1] = parts[1].substring(0, 2);
+                }
+                value = parts[0] + '.' + parts[1];
+            } else if (parts.length === 1) {
+                // No decimal point yet, allow up to 2 digits for typing
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                    value = parts[0];
+                }
+            }
+            
+            // Update input value with validated format
+            input.value = value;
         }
         
         // Function to format COF Kinetic to 0.00 format on Enter key
         function formatCOFOnEnter(input) {
-            formatNumericOnEnter(input, 2, 0, 0.99, 100);
+            let value = input.value.trim();
+            
+            // If empty, leave it empty (don't set default values)
+            if (value === '') {
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseFloat(value);
+            
+            // If not a valid number, set to 0.00
+            if (isNaN(numValue)) {
+                input.value = '0.00';
+                return;
+            }
+            
+            // Convert integer values to decimal format (e.g., 42 -> 0.42, 0 -> 0.0)
+            let finalValue;
+            if (Number.isInteger(numValue)) {
+                // If it's an integer, convert to decimal by dividing by 100
+                finalValue = numValue / 100;
+            } else {
+                // If it already has decimal places, use as-is
+                finalValue = numValue;
+            }
+            
+            // Ensure value is between 0 and 0.99 (since we're dividing by 100)
+            if (finalValue < 0) {
+                input.value = '0.00';
+                return;
+            }
+            if (finalValue > 0.99) {
+                input.value = '0.99';
+                return;
+            }
+            
+            // Format to exactly 2 decimal places
+            const formattedValue = finalValue.toFixed(2);
+            
+            // Update input value with formatted result
+            input.value = formattedValue;
         }
         
             
@@ -4952,34 +5459,191 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Validation functions for different formats
         function validateThreeDigits(input) {
-            validateNumericInput(input, 3, 0);
+            let value = input.value;
+            
+            // Remove any non-numeric characters (no decimal point allowed)
+            value = value.replace(/[^0-9]/g, '');
+            
+            // Limit to 3 digits maximum
+            if (value.length > 3) {
+                value = value.substring(0, 3);
+            }
+            
+            // Update input value with validated format
+            input.value = value;
         }
         
         function validateTwoDigitOneDecimal(input) {
-            validateNumericInput(input, 2, 1);
+            let value = input.value;
+            
+            // Remove any non-numeric characters except decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // Allow up to 2 digits before decimal for typing
+            if (parts.length === 2) {
+                // Before decimal: allow up to 2 digits
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                }
+                // After decimal: max 1 digit
+                if (parts[1].length > 1) {
+                    parts[1] = parts[1].substring(0, 1);
+                }
+                value = parts[0] + '.' + parts[1];
+            } else if (parts.length === 1) {
+                // No decimal point yet, allow up to 2 digits for typing
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                    value = parts[0];
+                }
+            }
+            
+            // Update input value with validated format
+            input.value = value;
         }
         
         function validateOneDigitOneDecimal(input) {
-            validateNumericInput(input, 1, 1);
+            let value = input.value;
+            
+            // Remove any non-numeric characters except decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // Allow up to 1 digit before decimal for typing
+            if (parts.length === 2) {
+                // Before decimal: allow up to 1 digit
+                if (parts[0].length > 1) {
+                    parts[0] = parts[0].substring(0, 1);
+                }
+                // After decimal: max 1 digit
+                if (parts[1].length > 1) {
+                    parts[1] = parts[1].substring(0, 1);
+                }
+                value = parts[0] + '.' + parts[1];
+            } else if (parts.length === 1) {
+                // No decimal point yet, allow up to 1 digit for typing
+                if (parts[0].length > 1) {
+                    parts[0] = parts[0].substring(0, 1);
+                    value = parts[0];
+                }
+            }
+            
+            // Update input value with validated format
+            input.value = value;
         }
         
         // Format functions for different formats
         function formatThreeDigitsOnEnter(input) {
             let value = input.value.trim();
-            if (value === '') return;
-            let numValue = parseInt(value);
-            if (isNaN(numValue)) { input.value = '000'; return; }
-            if (numValue < 0) numValue = 0;
-            if (numValue > 999) numValue = 999;
-            input.value = numValue.toString().padStart(3, '0');
+            
+            // If empty, leave it empty (don't set default values)
+            if (value === '') {
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseInt(value);
+            
+            // If not a valid number, set to 000
+            if (isNaN(numValue)) {
+                input.value = '000';
+                return;
+            }
+            
+            // Ensure value is between 0 and 999
+            if (numValue < 0) {
+                input.value = '000';
+                return;
+            }
+            if (numValue > 999) {
+                input.value = '999';
+                return;
+            }
+            
+            // Format to exactly 3 digits with leading zeros
+            const formattedValue = numValue.toString().padStart(3, '0');
+            
+            // Update input value with formatted result
+            input.value = formattedValue;
         }
         
         function formatTwoDigitOneDecimalOnEnter(input) {
-            formatNumericOnEnter(input, 1, 0, 99.9);
+            let value = input.value.trim();
+            
+            // If empty, leave it empty (don't set default values)
+            if (value === '') {
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseFloat(value);
+            
+            // If not a valid number, set to 00.0
+            if (isNaN(numValue)) {
+                input.value = '00.0';
+                return;
+            }
+            
+            // Ensure value is between 0 and 99.9
+            if (numValue < 0) {
+                input.value = '00.0';
+                return;
+            }
+            if (numValue > 99.9) {
+                input.value = '99.9';
+                return;
+            }
+            
+            // Format to exactly 1 decimal place
+            const formattedValue = numValue.toFixed(1);
+            
+            // Don't add leading zeros - keep natural format (e.g., 9.9 stays 9.9, not 09.9)
+            input.value = formattedValue;
         }
         
         function formatOneDigitOneDecimalOnEnter(input) {
-            formatNumericOnEnter(input, 1, 0, 9.9);
+            let value = input.value.trim();
+            
+            // If empty, leave it empty (don't set default values)
+            if (value === '') {
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseFloat(value);
+            
+            // If not a valid number, set to 0.0
+            if (isNaN(numValue)) {
+                input.value = '0.0';
+                return;
+            }
+            
+            // Ensure value is between 0 and 9.9
+            if (numValue < 0) {
+                input.value = '0.0';
+                return;
+            }
+            if (numValue > 9.9) {
+                input.value = '9.9';
+                return;
+            }
+            
+            // Format to exactly 1 decimal place
+            const formattedValue = numValue.toFixed(1);
+            
+            // Update input value with formatted result
+            input.value = formattedValue;
         }
         
         // Apply validation to existing sample inputs (Page 1, columns 0, 1, 2)
@@ -5198,27 +5862,165 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Color L validation - allow decimal values
         function validateColorL(input) {
-            validateNumericInput(input, 2, 2, true);
+            let value = input.value;
+            
+            // Remove any non-numeric characters except decimal point and minus sign
+            value = value.replace(/[^0-9.-]/g, '');
+            
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // Allow up to 2 digits before decimal and 2 after
+            if (parts.length === 2) {
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                }
+                if (parts[1].length > 2) {
+                    parts[1] = parts[1].substring(0, 2);
+                }
+                value = parts[0] + '.' + parts[1];
+            } else if (parts.length === 1) {
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                    value = parts[0];
+                }
+            }
+            
+            input.value = value;
         }
         
         // Color A validation - allow decimal values
         function validateColorA(input) {
-            validateNumericInput(input, 2, 2, true);
+            let value = input.value;
+
+            // Remove any non-numeric characters except decimal point and minus sign
+            value = value.replace(/[^0-9.-]/g, '');
+
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+
+            // Allow up to 2 digits before decimal and 2 after
+            if (parts.length === 2) {
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                }
+                if (parts[1].length > 2) {
+                    parts[1] = parts[1].substring(0, 2);
+                }
+                value = parts[0] + '.' + parts[1];
+            } else if (parts.length === 1) {
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                    value = parts[0];
+                }
+            }
+
+            input.value = value;
         }
         
         // Color B validation - allow decimal values
         function validateColorB(input) {
-            validateNumericInput(input, 2, 2, true);
+            let value = input.value;
+
+            // Remove any non-numeric characters except decimal point and minus sign
+            value = value.replace(/[^0-9.-]/g, '');
+
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+
+            // Allow up to 2 digits before decimal and 2 after
+            if (parts.length === 2) {
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                }
+                if (parts[1].length > 2) {
+                    parts[1] = parts[1].substring(0, 2);
+                }
+                value = parts[0] + '.' + parts[1];
+            } else if (parts.length === 1) {
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                    value = parts[0];
+                }
+            }
+
+            input.value = value;
         }
         
         // Color Delta E validation - allow decimal values
         function validateColorDeltaE(input) {
-            validateNumericInput(input, 2, 2);
+            let value = input.value;
+            
+            // Remove any non-numeric characters except decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // Allow up to 2 digits before decimal and 2 after
+            if (parts.length === 2) {
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                }
+                if (parts[1].length > 2) {
+                    parts[1] = parts[1].substring(0, 2);
+                }
+                value = parts[0] + '.' + parts[1];
+            } else if (parts.length === 1) {
+                if (parts[0].length > 2) {
+                    parts[0] = parts[0].substring(0, 2);
+                    value = parts[0];
+                }
+            }
+            
+            input.value = value;
         }
         
         // Format Color Delta E to 0.00 format on Enter key
         function formatColorDeltaEOnEnter(input) {
-            formatNumericOnEnter(input, 2, 0, 99.99);
+            let value = input.value.trim();
+            
+            // If empty, leave it empty (don't set default values)
+            if (value === '') {
+                return;
+            }
+            
+            // Parse as number
+            const numValue = parseFloat(value);
+            
+            // If not a valid number, set to 0.00
+            if (isNaN(numValue)) {
+                input.value = '0.00';
+                return;
+            }
+            
+            // Ensure value is between 0 and 99.99
+            if (numValue < 0) {
+                input.value = '0.00';
+                return;
+            }
+            if (numValue > 99.99) {
+                input.value = '99.99';
+                return;
+            }
+            
+            // Format to exactly 2 decimal places (0.00 format)
+            const formattedValue = numValue.toFixed(2);
+            
+            // Update input value with formatted result
+            input.value = formattedValue;
         }
         
         
@@ -5378,7 +6180,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Format Color L, A, B, Delta E on Enter (2 decimal places)
         function formatDecimalOnEnter(input) {
-            formatNumericOnEnter(input, 2, -99.99, 99.99);
+            let value = input.value.trim();
+
+            // If empty, leave it empty (don't set default values)
+            if (value === '') {
+                return;
+            }
+
+            // Parse as number
+            const numValue = parseFloat(value);
+
+            // If not a valid number, set to 0.00
+            if (isNaN(numValue)) {
+                input.value = '0.00';
+                return;
+            }
+
+            // Format to exactly 2 decimal places (00.00 format)
+            const formattedValue = numValue.toFixed(2);
+
+            // Update input value with formatted result
+            input.value = formattedValue;
         }
 
         // Unified conditional formatting system
@@ -5538,6 +6360,13 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
+        // Placeholder for validation functions - will be implemented as needed
+         // validateNumericInput()
+         // validateDecimalInput() 
+         // validatePercentageInput()
+         // validateTimeInput()
+         // validateAlphanumericInput()
+         
     // Fix tab order for all existing rows on page load
     updateTabOrderForAllRows(testingTableBody);
     updateTabOrderForAllRows(testingTableBody2);
