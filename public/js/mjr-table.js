@@ -348,6 +348,7 @@ function setupButtonEventListeners() {
       e.preventDefault();
       e.stopPropagation(); // Prevent any parent event handlers
       const requisitionId = e.currentTarget.dataset.uuid;
+      const buttonEl = e.currentTarget; // use currentTarget to ensure the actual button element
 
       if (!requisitionId) {
         console.error('No requisition ID found in button data-uuid attribute');
@@ -355,16 +356,20 @@ function setupButtonEventListeners() {
         return;
       }
 
-      downloadRequisitionAsExcel(requisitionId);
+      // Pass the button element to the download function to safely control its UI
+      downloadRequisitionAsExcel(requisitionId, buttonEl);
     });
   });
 }
 
-async function downloadRequisitionAsExcel(requisitionId) {
+async function downloadRequisitionAsExcel(requisitionId, downloadBtn) {
   // Show loading state immediately
-  const downloadBtn = event.target;
+  // Use passed button element; if not provided, try to find it by data-uuid
   if (!downloadBtn) {
-    console.error('No download button found');
+    downloadBtn = document.querySelector(`button[data-uuid="${requisitionId}"][title="Download as Excel"], button[data-uuid="${requisitionId}"]`);
+  }
+  if (!downloadBtn) {
+    console.error('No download button found for requisition', requisitionId);
     return;
   }
 
