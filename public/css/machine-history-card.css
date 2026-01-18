@@ -33,8 +33,9 @@ body {
 
 /* Main Container */
 .history-container {
-    padding: 20px;
-    margin-top: 80px;
+    padding: 0px 0px 20px 0px;
+    margin-top: 60px;
+    width: 100%;
     max-width: 100%;
 }
 
@@ -87,8 +88,9 @@ body {
 .history-table-container {
     background: white;
     border-radius: 0px;
-    box-shadow: var(--shadow-md);
+    box-shadow: none;
     overflow: hidden;
+    width: 100%;
 }
 
 .table-header {
@@ -102,11 +104,12 @@ body {
 
 .table-header h2 {
     margin: 0;
-    font-size: 0.95rem;
+    font-size: 1.1rem;
     font-weight: 600;
 }
 
 .table-responsive {
+    width: 100%;
     overflow-x: auto;
     max-height: 70vh;
     overflow-y: auto;
@@ -128,10 +131,10 @@ body {
     .history-table th {
       background: #1e293b;
       color: white;
-      padding: 15px 8px;
+      padding: 10px 8px;
       text-align: center;
       font-weight: 600;
-      font-size: 0.62rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       border-bottom: 2px solid #374151;
@@ -145,13 +148,13 @@ body {
 }
 
     .history-table td {
-      padding: 12px 8px;
+      padding: 8px 6px;
       border-bottom: 1px solid #d1d5db;
       border-right: 1px solid #d1d5db;
       vertical-align: middle;
       word-wrap: break-word;
       max-width: 200px;
-      font-size: 0.62rem;
+      font-size: 0.72rem;
       text-align: center;
       position: relative;
     }
@@ -254,17 +257,17 @@ body {
 .export-btn {
     background-color: #ffe342;
     color: #000000;
-    padding: 4px 8px;
-    font-size: 0.7rem;
+    padding: 6px 12px;
+    font-size: 0.8rem;
     border: none;
-    border-radius: 3px;
+    border-radius: 4px;
     cursor: pointer;
-    font-weight: 500;
+    font-weight: 600;
     transition: var(--transition);
-    height: 28px;
+    height: 32px;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
 }
 
 .export-btn:hover {
@@ -272,80 +275,44 @@ body {
     color: #000000;
 }
 
-/* Pagination */
-.pagination-container {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 8px 12px;
-    background: white;
-    border-radius: 6px;
-    box-shadow: var(--shadow-md);
-    margin-top: 12px;
-    max-width: 300px;
-    margin-left: auto;
-    margin-right: 0;
+/* Pagination Controls */
+#paginationControls {
+    margin-top: 15px;
+    margin-bottom: 5px;
 }
 
-.pagination-info {
-    color: var(--text-dark);
-    font-weight: 500;
-    font-size: 0.7rem;
-    margin-right: 12px;
-}
-
-.pagination-controls {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-}
-
-.pagination-btn {
-    padding: 4px 8px;
-    background: var(--accent-color);
-    color: white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: var(--transition);
-    font-size: 0.7rem;
-}
-
-.pagination-btn:hover:not(:disabled) {
-    background: #001f4d;
-}
-
-.pagination-btn:disabled {
-    background: #6c757d;
-    cursor: not-allowed;
-}
-
-.current-page {
-    padding: 4px 8px;
-    background: var(--bg-color);
-    border-radius: 3px;
-    font-weight: 600;
-    color: var(--text-dark);
-    font-size: 0.7rem;
-}
-
-/* Status cell styling */
+/* Status styling for Machine History Cards */
 .status-pending {
-    background-color: #fef2f2 !important;
-    color: #dc2626 !important;
-    font-weight: 600;
+    background-color: #fef3c7;
+    color: #d97706;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.62rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
 }
 
 .status-completed {
-    background-color: #f0fdf4 !important;
-    color: #166534 !important;
-    font-weight: 600;
+    background-color: #d1fae5;
+    color: #059669;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.62rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
 }
 
 .status-default {
-    background-color: #f9fafb !important;
-    color: #374151 !important;
+    background-color: #f3f4f6;
+    color: #6b7280;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.62rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
 }
 
 /* Clear Button Styling */

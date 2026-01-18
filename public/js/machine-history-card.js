@@ -200,17 +200,16 @@ function renderTable() {
 // Update pagination information
 function updatePaginationInfo() {
   const totalItems = filteredData.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startItem = Math.min((currentPage - 1) * itemsPerPage + 1, totalItems);
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
 
-  document.getElementById('paginationInfo').textContent =
-    totalItems === 0 ? 'No entries' : `Showing ${startItem}-${endItem} of ${totalItems} entries`;
+  document.getElementById('paginationInfo').textContent = `Page ${currentPage} of ${totalPages}`;
 
   // Update pagination controls
-  document.getElementById('prevPage').disabled = currentPage === 1;
-  document.getElementById('nextPage').disabled = currentPage >= totalPages || totalPages === 0;
-  document.getElementById('currentPage').textContent = currentPage;
+  const prevBtn = document.getElementById('prevPage');
+  const nextBtn = document.getElementById('nextPage');
+  
+  if (prevBtn) prevBtn.disabled = currentPage === 1;
+  if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
 }
 
 // Pagination event listeners
@@ -427,14 +426,14 @@ function clearAllFilters() {
 
 // Update filter status indicator
 function updateFilterStatus() {
-  const statusElement = document.getElementById('filterStatus');
+  const statusElement = document.getElementById('filterStatusIndicator');
   if (!statusElement) return;
 
   const hasFilters = Object.values(currentFilters).some(value => value !== '');
   statusElement.textContent = hasFilters ? 'On' : 'Off';
   statusElement.className = hasFilters
-    ? 'px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700'
-    : 'px-2 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700';
+    ? 'px-2 py-1 text-sm font-semibold rounded-full bg-green-200 text-green-700'
+    : 'px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700';
 }
 
 

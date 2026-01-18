@@ -1,13 +1,32 @@
 import { supabase } from '../supabase-config.js';
 
+/**
+ * Generate a UUID v4 string
+ * Uses crypto.randomUUID() if available, otherwise fallback implementation
+ */
+function generateUUID() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 let currentHeaderId = null;
 let materialData = [];
+let dailyLogData = {}; // Separate object for rolls, scrap, etc.
 let materialsCatalog = [];
+let productsCatalog = [];
+let defectsCatalog = [];
 let tempIdCounter = 0;
 let currentProductTgtWeight = 0;
+let currentTraceabilityCode = '';
 let isSaving = false; // Safety lock
 let isProcessing = false; // Global processing lock
-let activeStockMaterialIds = new Set(); // Stores IDs of materials currently in staging
 
 // ===== UNIFIED NUMERIC UTILITIES =====
 const NumericUtils = {
@@ -28,7 +47,9 @@ const NumericUtils = {
   },
   
   validate: (value, columnName = 'Value') => {
-    const num = parseFloat(String(value).trim());
+    const trimmed = String(value).trim();
+    if (trimmed === '-') return true; // Allow placeholder dash
+    const num = parseFloat(trimmed);
     if (isNaN(num)) {
       console.warn(`Invalid input for ${columnName}: ${value}`);
       return false;
@@ -122,7 +143,12 @@ class ResourceManager {
 const resourceManager = new ResourceManager();
 const catalogCache = new MaterialCatalogCache();
 
-// Debounce utility function
+/**
+ * Debounce utility function - delays function execution until typing stops
+ * @param {Function} func - Function to debounce
+ * @param {number} wait - Delay in milliseconds
+ * @returns {Function} Debounced function
+ */
 function debounce(func, wait) {
   let timeout;
   return function executedFunction(...args) {
@@ -135,23 +161,15 @@ function debounce(func, wait) {
   };
 }
 
-// Debounced auto-save function for individual rows
-// Auto-save disabled: Use explicit "Save All" button instead
-// const debouncedSaveRow = debounce(async (rowElement) => { ... })
-
-// Deprecated: Use NumericUtils.parse() instead
-function parseNum(val) {
-  return NumericUtils.parse(val);
-}
-
-// Deprecated: Use NumericUtils.validate() instead
-function validateNumericInput(value, columnName) {
+// Direct aliases - eliminates wrapper function overhead
+const parseNum = (val) => NumericUtils.parse(val);
+const validateNumericInput = (value, columnName) => {
   if (!NumericUtils.validate(value, columnName)) {
     alert(`Invalid input for ${columnName}. Please enter a valid number.`);
     return false;
   }
   return true;
-}
+};
 
 function getISTTimestamp() {
   const now = new Date();
@@ -169,23 +187,25 @@ function formatDateToDDMMYYYY(dateString) {
   return `${day}/${month}/${year}`;
 }
 
-// NEW LOGIC: Calculate Produced Rolls = Accepted Rolls + Rejected Rolls
-// Also compute std weights: std_weight = rolls × target_weight
-// FIX #2: Read from materialData array instead of DOM to avoid race conditions
+/**
+ * Computes auto-calculated fields for production totals row
+ * AUTO-CALCULATION: produced_rolls = accepted_rolls + rejected_rolls
+ * AUTO-CALCULATION: std_weight = rolls × currentProductTgtWeight
+ * 
+ * IMPORTANT: Reads from dailyLogData object (not DOM) to prevent race conditions
+ * Updates read-only cells with computed values
+ * 
+ * @param {HTMLElement} row - The totals table row element to process
+ * DEBUG: If std weights don't update, check if currentProductTgtWeight is set in loadHeaderInfo()
+ */
 function computeRejectedFromRow(row) {
   if (!row) return;
   
-  // BUG FIX: Get row index from data attribute
-  const rowIndex = parseInt(row.dataset.index);
-  if (isNaN(rowIndex) || !materialData[rowIndex]) return;
-  
-  const rowData = materialData[rowIndex];
-  
-  // Read from memory data instead of DOM (prevents race conditions)
-  const accNos = NumericUtils.parse(rowData.accepted_rolls_nos);
-  const accActual = NumericUtils.parse(rowData.accepted_rolls_actual);
-  const rejNos = NumericUtils.parse(rowData.rejected_rolls);
-  const rejActual = NumericUtils.parse(rowData.rejected_kgs_actual);
+  // Read from dailyLogData (prevents race conditions)
+  const accNos = NumericUtils.parse(dailyLogData.accepted_rolls_nos);
+  const accActual = NumericUtils.parse(dailyLogData.accepted_rolls_actual);
+  const rejNos = NumericUtils.parse(dailyLogData.rejected_rolls);
+  const rejActual = NumericUtils.parse(dailyLogData.rejected_kgs_actual);
 
   // AUTO-CALCULATE: produced = accepted + rejected
   const prodNos = accNos + rejNos;
@@ -226,164 +246,129 @@ function computeRejectedFromRow(row) {
   });
 }
 
+/**
+ * Renders main material consumption table and totals summary row
+ * 
+ * LOGIC:
+ * - Maps materialData array to HTML rows with inline formatting
+ * - Determines material display name (includes "(Loose)" suffix if applicable)
+ * - Calculates available quantity display based on material type (Bags for RM, Nos for PM, etc.)
+ * - Renders totals row from dailyLogData with auto-calculated fields (yellow background)
+ * - Calls setupAllAutocomplete() at end to enable material lookup dropdown
+ * 
+ * DEBUG: If available qty shows wrong format, check material_type and is_loose flags
+ * DEBUG: If totals don't calculate, verify accepted/rejected values are in dailyLogData
+ */
 function renderMaterialDataTable() {
   const mainBody = document.getElementById('materialMainBody');
   const totalsBody = document.getElementById('materialTotalsBody');
   if (!mainBody || !totalsBody) return;
 
-  mainBody.innerHTML = materialData.map((record, index) => {
+    mainBody.innerHTML = materialData.map((record, index) => {
+    const qtyUsed = record.qty_used !== undefined && record.qty_used !== null ? record.qty_used : '';
+    const noOfBags = record.no_of_bags !== undefined && record.no_of_bags !== null ? record.no_of_bags : '';
+    const type = (record.material_type || '').toUpperCase();
+    const isRM = type === 'RM' || type.includes('RAW') || type.includes('RESIN');
+    const isLoose = record.is_loose === true;
     
-    // --- FIX: Use correct opening balance based on row type ---
-    
-    let qtyAvail = parseFloat(record.qty_available) || 0;
-    const qtyUsed = parseFloat(record.qty_used) || 0;
+    // Ensure we don't double-add (Loose) if it's already in the name string
+    const cleanName = (record.material_name || '').replace(/\s*\(Loose\)$/i, '');
+    const displayName = isLoose ? `${cleanName} (Loose)` : cleanName;
 
-    if (record.id && !String(record.id).startsWith('temp')) {
-      // SAVED ROW: Use database opening balance (already correct from save)
-      qtyAvail = parseFloat(record.qty_available) || 0;
-    } else if (record.track_id) {
-      // NEW ROW WITH LOT SELECTED: Use the SELECTED LOT's balance, not warehouse total
-      const selectedLot = record.available_lots?.find(lot => lot.id === record.track_id);
-      if (selectedLot) {
-        qtyAvail = parseFloat(selectedLot.balance_qty) || 0;
-      }
-    }
-    // If no lot selected yet, qtyAvail stays 0 (default)
+    // Display logic: show the bag count if it exists, otherwise show dash for non-RM or Loose materials
+    const skipBags = !isRM || isLoose;
+    const bagDisplay = (noOfBags !== '' && noOfBags !== null && !skipBags) ? noOfBags : ((record.material_name && skipBags) ? '-' : '');
+    const isBagEditable = isRM && !isLoose;
 
-    const balance = qtyAvail - qtyUsed; // This is Instock
-
-    // --- 1. COLOR CODING LOGIC (Traffic Light) - RANGE BASED ---
-    let cellClass = 'bg-green-100 text-green-800'; // Default: Healthy
-
-    // NO LOT SELECTED: Show warning color
-    if (!record.track_id) {
-        cellClass = 'bg-yellow-100 text-yellow-800 font-semibold'; // Yellow = no lot selected
-    } else if (balance <= 0.01) {
-        // RANGE: EMPTY (Red)
-        cellClass = 'bg-red-100 text-red-700 font-bold';
-    } else if (balance < 250) {
-        // RANGE: LOW STOCK (Orange) - Triggered because it's under 250kg
-        cellClass = 'bg-orange-100 text-orange-800 font-semibold';
-    }
-
-    // --- 2. BADGE LOGIC (Synced to the Range) ---
-    let alertBadge = '';
-
-    // --- 3. LOOKUP UOM (OPTIMIZED: O(1) cache lookup) ---
+    // --- 3. LOOKUP UOM & APPLY COLORS ---
     const catalogItem = catalogCache.get(record.material_id) ||
                        materialsCatalog.find(c => c.id === record.material_id);
-    const uomForAlerts = catalogItem && catalogItem.uom ?
-        (catalogItem.uom.toLowerCase() === 'nos' ? 'NOS' : 'KG') : 'KG';
+    const uomValue = catalogItem ? (catalogItem.uom || '-').toUpperCase() : '-';
+    
+    let uomClass = 'text-gray-600 bg-gray-50'; // Default
+    if (uomValue === 'KGS') uomClass = 'text-blue-700 bg-blue-50';
+    else if (uomValue === 'NOS') uomClass = 'text-purple-700 bg-purple-50';
+    else if (uomValue === 'MTR' || uomValue === 'MTRS') uomClass = 'text-green-700 bg-green-50';
+    else if (uomValue === 'RLS' || uomValue === 'ROLLS') uomClass = 'text-orange-700 bg-orange-50';
+    else if (uomValue === 'SET') uomClass = 'text-teal-700 bg-teal-50';
 
-    // Check if we are in the Low or Empty range
-    const isInAlertRange = (balance < 250);
+    const uomDisplay = uomValue;
 
-    // Show alert for BOTH Saved and Temp rows if they fall in the range
-    if (isInAlertRange && record.material_id) {
-        const factoryStock = globalStockMap[record.material_id] || 0;
+    const avail = parseNum(record.qty_available);
+    const typeLower = type.toLowerCase();
+    let availDisplay = '';
 
-        if (factoryStock > 0) {
-          alertBadge = `
-            <div class="inline-flex items-center h-6 px-2 py-0.5 leading-none text-xs font-semibold text-green-700">
-              <i class="fas fa-cubes mr-1 text-xs"></i> In-stock: ${factoryStock.toLocaleString()} ${uomForAlerts}
-            </div>`;
-        } else {
-           alertBadge = `
-            <div class="inline-flex items-center h-6 px-2 py-0.5 leading-none text-xs font-semibold text-red-700">
-              <i class="fas fa-exclamation-triangle mr-1 text-xs"></i> In-stock: 0 ${uomForAlerts}
-            </div>`;
-        }
+    if (avail > 0) {
+      if ((typeLower === 'rm' || typeLower.includes('raw') || typeLower.includes('resin')) && !isLoose) {
+        const availBags = Math.round(avail / 25);
+        availDisplay = `${availBags} <span class="text-[10px] text-blue-600 font-bold">(${avail} Kgs)</span>`;
+      } else if (typeLower === 'ink' || isLoose) {
+        availDisplay = `${avail} <span class="text-[10px] text-green-600 font-bold">(Kgs)</span>`;
+      } else if (typeLower === 'pm' || typeLower.includes('packing') || typeLower.includes('pack') || typeLower.includes('pallet') || typeLower.includes('core')) {
+        availDisplay = `${avail} <span class="text-[10px] text-purple-600 font-bold">(Nos)</span>`;
+      } else {
+        availDisplay = avail;
+      }
+    } else if (record.material_name) {
+      // Show 0 if material is selected but no stock found
+      availDisplay = `<span class="text-red-500 font-bold">0</span>`;
     }
-
-    // --- 1. BUILD DROPDOWN OPTIONS (OPTIMIZED WITH BATCH) ---
-    let lotOptionsHtml = '<option value="" data-balance="0">-- Select Lot --</option>';
-    let savedLotFoundInList = false;
-
-    // A. Add "Live" Available Lots from Staging
-    if (record.available_lots && record.available_lots.length > 0) {
-        const optionStrings = record.available_lots.map(lot => {
-            const isSelected = (record.track_id === lot.id);
-            if (isSelected) savedLotFoundInList = true;
-            return `<option value="${lot.id}" data-balance="${lot.balance_qty}" ${isSelected ? 'selected' : ''}>${lot.lot_no} (${lot.balance_qty} kg)</option>`;
-        });
-        lotOptionsHtml += optionStrings.join('');
-    }
-
-    // B. Add historical lot if not in current available list
-    if (record.track_id && !savedLotFoundInList && record.lot_no) {
-        lotOptionsHtml += `<option value="${record.track_id}" data-balance="${record.qty_available}" selected>${record.lot_no} (USED/EMPTY)</option>`;
-    }
-
-    // UOM already looked up via cache above
-    const uomDisplay = catalogItem ? (catalogItem.uom || '-').toUpperCase() : '-';
 
     return `
       <tr data-index="${index}" data-id="${record.id || 'temp-' + index}">
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs font-semibold">${index + 1}</td>
-        <td class="border border-gray-300 px-2 py-1.5 text-xs" contenteditable="true" data-column="material_name">${record.material_name || ''}</td>
+        
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs font-mono text-blue-600 font-bold bg-blue-50" 
+            style="display: none;"
+            contenteditable="true" data-column="track_id">${record.track_id || ''}</td>
 
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-white p-0">
-            <select class="w-full h-full text-xs bg-transparent outline-none text-blue-700 font-mono" 
-                    data-column="track_id_select"
-                    onchange="handleInternalLotSelection(this, ${index})">
-                ${lotOptionsHtml}
-            </select>
-        </td>
+        <td class="border border-gray-300 px-2 py-1.5 text-xs" contenteditable="true" data-column="material_name">${displayName}</td>
+        
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs font-medium" contenteditable="true" data-column="qty_available">${availDisplay || ''}</td>
 
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-gray-50" contenteditable="false" data-column="qty_available">${qtyAvail.toFixed(2)}</td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="lot_no">${record.lot_no || ''}</td>
 
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="qty_used">${qtyUsed || ''}</td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs ${!isBagEditable ? 'bg-gray-100 text-gray-500' : ''}" 
+            contenteditable="${isBagEditable}" data-column="no_of_bags">${bagDisplay}</td>
 
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs ${cellClass}" contenteditable="false" data-column="balance">
-            ${balance.toFixed(2)}
-        </td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="qty_used">${qtyUsed}</td>
 
-        <td class="border border-gray-300 px-2 py-1 text-center align-middle w-20 overflow-hidden whitespace-nowrap truncate">
-          ${alertBadge}
-        </td>
-
-        <td class="border border-gray-300 px-2 py-1 text-center text-xs font-bold text-gray-600 bg-gray-50">
+        <td class="border border-gray-300 px-2 py-1 text-center text-[10px] font-black ${uomClass}" data-column="uom_display">
            ${uomDisplay}
         </td>
       </tr>
     `;
   }).join('');
 
-  // Render totals table rows (remaining columns) only for rows that have totals data
+  // Render totals table rows (single row from dailyLogData)
   let totalsHtml = '';
-  materialData.forEach((record, index) => {
-    // Track if this is a saved record (has database ID)
-    // This allows re-edits to trigger UPDATE instead of INSERT
-    record.record_id = record.record_id || (record.id && !String(record.id).startsWith('temp') ? record.id : null);
-    
-    const hasTotals = (record.produced_rolls && String(record.produced_rolls).trim() !== '') ||
-                      (record.produced_kgs_actual && String(record.produced_kgs_actual).trim() !== '') ||
-                      (record.accepted_rolls_nos && String(record.accepted_rolls_nos).trim() !== '') ||
-                      (record.accepted_rolls_actual && String(record.accepted_rolls_actual).trim() !== '') ||
-                      (record.total_scrap && String(record.total_scrap).trim() !== '');
+  const hasTotals = (dailyLogData.produced_rolls && String(dailyLogData.produced_rolls).trim() !== '') ||
+                    (dailyLogData.produced_kgs_actual && String(dailyLogData.produced_kgs_actual).trim() !== '') ||
+                    (dailyLogData.accepted_rolls_nos && String(dailyLogData.accepted_rolls_nos).trim() !== '') ||
+                    (dailyLogData.accepted_rolls_actual && String(dailyLogData.accepted_rolls_actual).trim() !== '') ||
+                    (dailyLogData.total_scrap && String(dailyLogData.total_scrap).trim() !== '');
 
-    if (!hasTotals) return; // skip creating an empty totals row for this index
-
-    totalsHtml += `
-      <tr data-index="${index}" data-id="${record.id || 'temp-' + index}">
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="accepted_rolls_nos">${record.accepted_rolls_nos || ''}</td>
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="accepted_rolls_actual">${record.accepted_rolls_actual || ''}</td>
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="accepted_rolls_std">${record.accepted_rolls_std || ''}</td>
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="rejected_rolls">${record.rejected_rolls || ''}</td>
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="rejected_kgs_actual">${record.rejected_kgs_actual || ''}</td>
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="rejected_kgs_std">${record.rejected_kgs_std || ''}</td>
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="produced_rolls">${record.produced_rolls || ''}</td>
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="produced_kgs_actual">${record.produced_kgs_actual || ''}</td>
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="produced_kgs_std">${record.produced_kgs_std || ''}</td>
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="total_scrap">${record.total_scrap || ''}</td>
+  if (hasTotals) {
+    totalsHtml = `
+      <tr data-index="0" data-id="log-${currentHeaderId}" data-row-type="log">
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="accepted_rolls_nos">${dailyLogData.accepted_rolls_nos || ''}</td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="accepted_rolls_actual">${dailyLogData.accepted_rolls_actual || ''}</td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="accepted_rolls_std">${dailyLogData.accepted_rolls_std || ''}</td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="rejected_rolls">${dailyLogData.rejected_rolls || ''}</td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="rejected_kgs_actual">${dailyLogData.rejected_kgs_actual || ''}</td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="rejected_kgs_std">${dailyLogData.rejected_kgs_std || ''}</td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="produced_rolls">${dailyLogData.produced_rolls || ''}</td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="produced_kgs_actual">${dailyLogData.produced_kgs_actual || ''}</td>
+        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="produced_kgs_std">${dailyLogData.produced_kgs_std || ''}</td>
       </tr>
     `;
-  });
+  }
+
   // If there are no totals rows, show a single default placeholder row so the table isn't empty
   if (!totalsHtml || totalsHtml.trim() === '') {
     // Make placeholder editable and map to first data row (index 0) so edits are captured
     totalsBody.innerHTML = `
-      <tr class="placeholder-row" data-index="0" data-id="placeholder-0">
+      <tr class="placeholder-row" data-index="0" data-id="placeholder-0" data-row-type="log">
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="accepted_rolls_nos"> </td>
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="accepted_rolls_actual"> </td>
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="accepted_rolls_std"> </td>
@@ -393,7 +378,6 @@ function renderMaterialDataTable() {
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="produced_rolls"> </td>
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="produced_kgs_actual"> </td>
         <td class="border border-gray-300 px-2 py-1.5 text-center text-xs bg-yellow-100 font-semibold" contenteditable="false" data-column="produced_kgs_std"> </td>
-        <td class="border border-gray-300 px-2 py-1.5 text-center text-xs" contenteditable="true" data-column="total_scrap"> </td>
       </tr>
     `;
   } else {
@@ -407,12 +391,34 @@ function renderMaterialDataTable() {
   setupAllAutocomplete();
 }
 
+/**
+ * Sets up unified event listeners for both material and totals tables
+ * 
+ * LISTENERS:
+ * - blur: Commits cell edits to materialData/dailyLogData model
+ * - focus: Shows raw numeric values (e.g., bags instead of "5 (125 Kgs)")
+ * - input: Real-time calculations for bags→qty and live balance updates
+ * - keydown(Enter): Navigates between rows while committing changes
+ * 
+ * VALIDATION:
+ * - Numeric columns validated on blur
+ * - Material name lookup triggered on blur
+ * - Loose material detection from "(Loose)" suffix
+ * 
+ * AUTOMATIC CALCULATIONS:
+ * - no_of_bags (RM): qty_used = bags × 25
+ * - Accepted/Rejected changed: recomputes produced_rolls and std_weights
+ * - qty_used changed: refreshes live balances for all rows in same batch
+ * 
+ * DEBUG: If balance not updating, check if track_id and is_loose flags match
+ * DEBUG: If calculations not triggering, ensure row has proper data-index attribute
+ */
 function setupTableListeners() {
   const mainBody = document.getElementById('materialMainBody');
   const totalsBody = document.getElementById('materialTotalsBody');
   
   if (!mainBody || !totalsBody) {
-    console.warn('Table bodies not found. Retrying in 50ms...');
+    // Retry if DOM not ready - table elements must be present before binding listeners
     const timeoutId = setTimeout(() => setupTableListeners(), 50);
     resourceManager.addTimeout(timeoutId);
     return;
@@ -427,45 +433,131 @@ function setupTableListeners() {
 
     const columnType = cell.dataset.column;
     const rowIndex = parseInt(row.dataset.index, 10);
-    if (isNaN(rowIndex) || !materialData[rowIndex]) return;
+    const rowType = row.dataset.rowType;
+    
+    // Safety check: for material rows, ensure materialData[rowIndex] exists
+    if (rowType !== 'log' && (isNaN(rowIndex) || !materialData[rowIndex])) return;
 
-    const newValue = cell.textContent.trim();
-    materialData[rowIndex][columnType] = newValue;
+    let newValue = cell.textContent.trim();
+    
+    // Check if it's a log column or a material column
+    const isLogColumn = ['produced_rolls', 'produced_kgs_std', 'produced_kgs_actual', 'accepted_rolls_nos', 'accepted_rolls_std', 'accepted_rolls_actual', 'rejected_rolls', 'rejected_kgs_std', 'rejected_kgs_actual'].includes(columnType);
+
+    if (isLogColumn || rowType === 'log') {
+      dailyLogData[columnType] = newValue;
+    } else {
+      if (columnType === 'material_name') {
+        const isLooseTyped = newValue.toLowerCase().includes('(loose)');
+        if (isLooseTyped) {
+          newValue = newValue.replace(/\s*\(Loose\)$/i, '').trim();
+          materialData[rowIndex].is_loose = true;
+        } else {
+          materialData[rowIndex].is_loose = false;
+        }
+      }
+      materialData[rowIndex][columnType] = newValue;
+    }
 
     // Validate numeric columns
-    if (['qty_used', 'produced_rolls', 'produced_kgs_std', 'produced_kgs_actual', 'accepted_rolls_nos', 'accepted_rolls_std', 'accepted_rolls_actual', 'rejected_rolls', 'rejected_kgs_std', 'rejected_kgs_actual', 'total_scrap'].includes(columnType)) {
-      if (cell.textContent.trim() && !validateNumericInput(cell.textContent, columnType)) {
+    if (isLogColumn || rowType === 'log' || ['no_of_bags', 'qty_available', 'qty_used'].includes(columnType)) {
+      const val = cell.textContent.trim();
+      const displayColumnName = columnType === 'qty_available' ? 'Opening Qty' : columnType;
+      if (val && val !== '-' && !validateNumericInput(val, displayColumnName)) {
         cell.textContent = '';
+        if (isLogColumn || rowType === 'log') dailyLogData[columnType] = '';
+        else materialData[rowIndex][columnType] = '';
         return;
       }
     }
 
-    // If material name changed, lookup catalog and populate available qty (affects main row)
-    if (columnType === 'material_name') {
-      const materialName = newValue;
-      if (materialName) {
-        lookupMaterialAndPopulateAvailable(materialName, mainBody.querySelector(`tr[data-index="${rowIndex}"]`), rowIndex);
-      } else {
-        const mainRow = mainBody.querySelector(`tr[data-index="${rowIndex}"]`);
-        const qtyAvailCell = mainRow && mainRow.querySelector('[data-column="qty_available"]');
-        const balanceCell = mainRow && mainRow.querySelector('[data-column="balance"]');
-        if (qtyAvailCell) qtyAvailCell.textContent = '0';
-        if (balanceCell) balanceCell.textContent = '0.00';
-        materialData[rowIndex].qty_available = 0;
+    // If a log column changed, we might need to recompute other log fields
+    if (isLogColumn || rowType === 'log') {
+      computeRejectedFromRow(row);
+      // After computeRejectedFromRow updates the DOM, sync back to dailyLogData
+      const logCols = ['produced_rolls', 'produced_kgs_std', 'produced_kgs_actual', 'accepted_rolls_std', 'rejected_kgs_std'];
+      logCols.forEach(col => {
+        const c = row.querySelector(`[data-column="${col}"]`);
+        if (c) dailyLogData[col] = c.textContent.trim();
+      });
+      return;
+    }
+
+    // If Opening Qty or qty_used changed, update qty_balance in the model
+    if (columnType === 'qty_available' || columnType === 'qty_used') {
+      let val = parseNum(newValue);
+      const type = (materialData[rowIndex].material_type || '').toLowerCase();
+      const isLoose = materialData[rowIndex].is_loose === true;
+      
+      // Conversion logic for qty_available based on material type
+      if (columnType === 'qty_available') {
+        if (val > 0 && (type === 'rm' || type.includes('raw') || type.includes('resin')) && !isLoose) {
+          // Input is in Bags, convert to Kgs
+          val = val * 25;
+        }
+        // For ink (Kgs), PM (Nos), and Loose items (Kgs), val remains as is
+        materialData[rowIndex].qty_available = val;
+        materialData[rowIndex].qty_available_original = val; // Set original as well
+      }
+
+      const avail = parseNum(materialData[rowIndex].qty_available);
+      const used = parseNum(materialData[rowIndex].qty_used);
+      materialData[rowIndex].qty_balance = avail - used;
+      
+      // If qty_used changed, refresh live balances for other rows using the same batch
+      if (columnType === 'qty_used') {
+        refreshLiveBalances(true);
+      }
+      
+      // Update the current cell's visual helper without re-rendering the whole table if we didn't refresh all
+      if (columnType === 'qty_available') {
+        const typeLower = type.toLowerCase();
+        if ((typeLower === 'rm' || typeLower.includes('raw') || typeLower.includes('resin')) && !isLoose && avail > 0) {
+          const availBags = Math.round(avail / 25);
+          cell.innerHTML = `${availBags} <span class="text-[10px] text-blue-600 font-bold">(${avail} Kgs)</span>`;
+        } else if ((typeLower === 'ink' || isLoose) && avail > 0) {
+          cell.innerHTML = `${avail} <span class="text-[10px] text-green-600 font-bold">(Kgs)</span>`;
+        } else if ((typeLower === 'pm' || typeLower.includes('packing') || typeLower.includes('pack') || typeLower.includes('pallet') || typeLower.includes('core')) && avail > 0) {
+          cell.innerHTML = `${avail} <span class="text-[10px] text-purple-600 font-bold">(Nos)</span>`;
+        } else {
+          cell.textContent = avail || '';
+        }
       }
     }
 
-    // If qty_used changed in main table, update balance cell in main row
-    if (columnType === 'qty_used') {
-      const mainRow = mainBody.querySelector(`tr[data-index="${rowIndex}"]`);
-      const qtyAvailCell = mainRow && mainRow.querySelector('[data-column="qty_available"]');
-      const balanceCell = mainRow && mainRow.querySelector('[data-column="balance"]');
-      if (qtyAvailCell && balanceCell) {
-        const qtyAvail = parseNum(qtyAvailCell.textContent);
-        const qtyUsed = parseNum(newValue);
-        const balance = qtyAvail - qtyUsed;
-        balanceCell.textContent = balance.toFixed(2);
-        materialData[rowIndex].qty_balance = balance;
+    // If material name changed, lookup catalog and populate material details
+    if (columnType === 'material_name') {
+      const materialName = newValue;
+      if (materialName) {
+        // Pass the detected is_loose flag to the lookup function
+        lookupMaterialAndPopulateDetails(materialName, rowIndex, null, materialData[rowIndex].is_loose);
+      } else {
+        materialData[rowIndex].material_id = null;
+        materialData[rowIndex].material_type = '';
+        materialData[rowIndex].is_loose = false;
+        // Just clear the current cell instead of re-rendering everything
+        cell.textContent = '';
+      }
+    }
+
+    // If no_of_bags changed, calculate qty_used (ONLY FOR RM AND NOT LOOSE)
+    if (columnType === 'no_of_bags' && newValue) {
+      const record = materialData[rowIndex];
+      const type = (record.material_type || '').toUpperCase();
+      const isLoose = record.is_loose === true;
+      
+      // Only calculate for Raw Materials (RM) that are NOT loose
+      if ((type === 'RM' || type.includes('RAW') || type.includes('RESIN')) && !isLoose) {
+        const bags = NumericUtils.parse(newValue);
+        const calculatedQty = bags * 25;
+        materialData[rowIndex].qty_used = calculatedQty;
+        
+        // Refresh live balances for other rows using the same batch
+        refreshLiveBalances(true);
+        
+        // Update UI for qty_used cell
+        const mainRow = mainBody.querySelector(`tr[data-index="${rowIndex}"]`);
+        const qtyUsedCell = mainRow && mainRow.querySelector('[data-column="qty_used"]');
+        if (qtyUsedCell) qtyUsedCell.textContent = calculatedQty || '';
       }
     }
 
@@ -479,19 +571,87 @@ function setupTableListeners() {
   mainBody.addEventListener('blur', onBlur, true);
   totalsBody.addEventListener('blur', onBlur, true);
 
-  // --- NEW: Handle Dropdown Changes Securely ---
-  mainBody.addEventListener('change', (e) => {
-    // Only run if the changed element is our Dropdown
-    if (e.target.dataset.column === 'track_id_select') {
-        const selectEl = e.target;
-        const row = selectEl.closest('tr');
-        if (!row) return;
+  // Focus event to clear helpers and show raw input value
+  const onFocus = (e) => {
+    const cell = e.target;
+    const columnType = cell.dataset.column;
+    if (columnType !== 'qty_available') return;
 
-        // Get the row index safely from the HTML
-        const rowIndex = parseInt(row.dataset.index, 10);
+    const row = cell.closest('tr');
+    const rowIndex = parseInt(row.dataset.index, 10);
+    if (isNaN(rowIndex) || !materialData[rowIndex]) return;
+
+    const record = materialData[rowIndex];
+    const type = (record.material_type || '').toLowerCase();
+    const isRM = type === 'rm' || type.includes('raw') || type.includes('resin');
+    const isLoose = record.is_loose === true;
+    const isPM = type === 'pm' || type.includes('packing') || type.includes('pack') || type.includes('pallet') || type.includes('core');
+    const val = parseNum(record.qty_available);
+    
+    if (isRM && !isLoose && val > 0) {
+      cell.textContent = Math.round(val / 25);
+    } else if (val > 0) {
+      cell.textContent = val;
+    }
+    
+    // Select all text on focus for easier editing
+    setTimeout(() => {
+      const range = document.createRange();
+      range.selectNodeContents(cell);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }, 0);
+  };
+
+  mainBody.addEventListener('focus', onFocus, true);
+
+  // Real-time calculation for bags -> qty
+  mainBody.addEventListener('input', (e) => {
+    const col = e.target.dataset.column;
+    if (col !== 'no_of_bags' && col !== 'qty_available' && col !== 'qty_used') return;
+    
+    const cell = e.target;
+    const row = cell.closest('tr');
+    const rowIndex = parseInt(row.dataset.index, 10);
+    if (isNaN(rowIndex) || !materialData[rowIndex]) return;
+
+    const newValue = cell.textContent.trim();
+    const type = (materialData[rowIndex].material_type || '').toUpperCase();
+    const isLoose = materialData[rowIndex].is_loose === true;
+    const isRM = (type === 'RM' || type.includes('RAW') || type.includes('RESIN'));
+
+    if (col === 'no_of_bags') {
+      materialData[rowIndex].no_of_bags = newValue;
+      if (isRM && !isLoose) {
+        const bags = NumericUtils.parse(newValue);
+        const calculatedQty = bags * 25;
+        materialData[rowIndex].qty_used = calculatedQty;
         
-        // Call the logic directly (No need for window.handleLotSelection anymore)
-        handleInternalLotSelection(selectEl, rowIndex);
+        const qtyUsedCell = row.querySelector('[data-column="qty_used"]');
+        if (qtyUsedCell) qtyUsedCell.textContent = calculatedQty || '';
+        
+        // Dynamic live balance update
+        refreshLiveBalances(true);
+      }
+    } else if (col === 'qty_used') {
+      materialData[rowIndex].qty_used = newValue;
+      // Dynamic live balance update
+      refreshLiveBalances(true);
+    } else if (col === 'qty_available') {
+      let val = NumericUtils.parse(newValue);
+      const typeLower = type.toLowerCase();
+      
+      if ((typeLower === 'rm' || typeLower.includes('raw') || typeLower.includes('resin')) && !isLoose) {
+        // User is typing BAGS for RM, convert to KGS for storage/balance
+        val = val * 25;
+      }
+      
+      materialData[rowIndex].qty_available = val;
+      
+      // Update balance in model
+      const used = NumericUtils.parse(materialData[rowIndex].qty_used);
+      materialData[rowIndex].qty_balance = val - used;
     }
   });
 
@@ -500,11 +660,33 @@ function setupTableListeners() {
     if (e.key !== 'Enter' || e.target.contentEditable !== 'true') return;
     e.preventDefault();
     const currentCell = e.target;
-    const currentRow = currentCell.closest('tr');
+
+    // Commit current cell value before moving focus
     const columnType = currentCell.dataset.column;
-    if (!currentRow || !columnType) return;
+    const currentRow = currentCell.closest('tr');
     const rowIndex = parseInt(currentRow.dataset.index, 10);
-    if (isNaN(rowIndex)) return;
+    const rowType = currentRow.dataset.rowType;
+
+    if (rowType === 'log') {
+      dailyLogData[columnType] = currentCell.textContent.trim();
+    } else if (!isNaN(rowIndex) && materialData[rowIndex]) {
+      let val = currentCell.textContent.trim();
+      
+      // If it was material_name, trigger the lookup with (Loose) detection
+      if (columnType === 'material_name' && val) {
+        const isLooseTyped = val.toLowerCase().includes('(loose)');
+        const cleanVal = val.replace(/\s*\(Loose\)$/i, '').trim();
+        
+        materialData[rowIndex].material_name = cleanVal;
+        materialData[rowIndex].is_loose = isLooseTyped;
+        
+        lookupMaterialAndPopulateDetails(cleanVal, rowIndex, null, isLooseTyped);
+      } else {
+        materialData[rowIndex][columnType] = val;
+      }
+    }
+
+    if (!currentRow || !columnType || isNaN(rowIndex)) return;
 
     const nextIndex = rowIndex + 1;
     // Try focus next cell in same table (main or totals depending on where event came from)
@@ -513,12 +695,21 @@ function setupTableListeners() {
     if (nextRow) {
       const nextCell = nextRow.querySelector(`[data-column="${columnType}"]`);
       if (nextCell && nextCell.contentEditable === 'true') {
-        nextCell.focus();
-        const range = document.createRange();
-        range.selectNodeContents(nextCell);
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
+        try {
+          nextCell.focus();
+          // Small delay to ensure focus is stable and DOM hasn't shifted
+          setTimeout(() => {
+            if (document.contains(nextCell)) {
+              const range = document.createRange();
+              range.selectNodeContents(nextCell);
+              const selection = window.getSelection();
+              selection.removeAllRanges();
+              selection.addRange(range);
+            }
+          }, 0);
+        } catch (err) {
+          console.warn('Navigation focus error:', err);
+        }
       }
     }
   };
@@ -527,192 +718,305 @@ function setupTableListeners() {
   totalsBody.addEventListener('keydown', onKeyDown);
 }
 
-// Lookup material and populate TOTAL available quantity (Sum of all batches)
-async function lookupMaterialAndPopulateAvailable(materialName, row, rowIndex) {
+/**
+ * Material catalog lookup with deduplication and staged data fetching
+ * 
+ * LOGIC:
+ * 1. Checks if same lookup is already in progress (prevents duplicate Supabase calls)
+ * 2. Looks in local materialsCatalog first (O(1) if cache built)
+ * 3. Falls back to Supabase query only if not found locally
+ * 4. Attempts to carry forward from existing table rows (same batch)
+ * 5. If not in table, fetches from pd_material_staging (warehouse stock)
+ * 6. Auto-assigns track_id and qty_available from staging data
+ * 7. Inherits is_loose status from previous row if not explicitly specified
+ * 
+ * PARAMETERS:
+ * - materialName: Full name of material (e.g., "2047G" or "2047G (Loose)")
+ * - rowIndex: Index in materialData array (-1 means lookup only, don't update row)
+ * - catalogItem: (optional) Pre-fetched catalog record for speed
+ * - isLooseChoice: (optional) Explicitly set is_loose flag; if false, checks legacy NULL values
+ * 
+ * SIDE EFFECTS:
+ * - Updates materialData[rowIndex] with material_id, material_type, track_id, lot_no, qty_available
+ * - Clears qty_used if not already set
+ * - Calls renderMaterialDataTable() when done
+ * 
+ * DEBUG: If track_id not auto-assigned, check pd_material_staging has records with balance_qty > 0
+ * DEBUG: If qty_available shows as 0, verify is_loose flag matches staging records
+ */
+const lookupInProgress = new Set();
+async function lookupMaterialAndPopulateDetails(materialName, rowIndex, catalogItem = null, isLooseChoice = false) {
+  if (!materialName || rowIndex === -1) return;
+  
+  const lookupKey = `${materialName}-${rowIndex}`;
+  if (lookupInProgress.has(lookupKey)) return;
+  
   try {
-    // 1. Get Material ID - REMOVED .single() to avoid 406 error
-    const { data: catalogArray, error: catalogError } = await supabase
-      .from('pd_material_catalog')
-      .select('id, material_name, material_category, uom')
-      .eq('material_name', materialName)
-      .eq('is_active', true)
-      .limit(1); // Use limit(1) instead of .single()
-
-    const catalogData = catalogArray && catalogArray.length > 0 ? catalogArray[0] : null;
-
-    if (catalogError || !catalogData) {
-      console.warn('Material not found in catalog:', materialName);
-      updateRowCells(row, rowIndex, 0, null, []);
-      return;
+    lookupInProgress.add(lookupKey);
+    
+    // FASTER: Use provided catalogItem or find in local catalog first
+    let catalogData = catalogItem;
+    if (!catalogData) {
+      catalogData = materialsCatalog.find(m => m.material_name === materialName);
     }
 
-    // 2. Fetch ALL Available Batches for this specific ID
-    const { data: stagingData, error: stagingError } = await supabase
-      .from('pd_material_staging')
-      .select('id, lot_no, balance_qty')
-      .eq('material_id', catalogData.id)
-      .in('status', ['Available', 'Low Stock'])
-      .gt('balance_qty', 0)
-      .order('created_at', { ascending: true }); // FIFO
+    // If still not found locally, only then query Supabase
+    if (!catalogData) {
+      const { data: catalogArray, error: catalogError } = await supabase
+        .from('pd_material_catalog')
+        .select('id, material_name, material_category, uom, is_loose')
+        .eq('material_name', materialName)
+        .eq('is_active', true)
+        .limit(1);
 
-    if (stagingError) {
-      updateRowCells(row, rowIndex, 0, catalogData, []);
-      return;
+      catalogData = catalogArray && catalogArray.length > 0 ? catalogArray[0] : null;
+
+      if (catalogError || !catalogData) {
+        console.warn('Material not found in catalog:', materialName);
+        return;
+      }
     }
 
-    // 3. Calculate Total & Prepare List
-    const totalAvailable = stagingData.reduce((sum, batch) => sum + (batch.balance_qty || 0), 0);
+    if (rowIndex !== -1 && materialData[rowIndex]) {
+      // Clear track_id if material changed
+      if (materialData[rowIndex].material_id !== catalogData.id) {
+        materialData[rowIndex].track_id = '';
+        materialData[rowIndex].lot_no = '';
+      }
+      materialData[rowIndex].material_id = catalogData.id;
+      const type = catalogData.material_category || '';
+      materialData[rowIndex].material_type = type;
+      materialData[rowIndex].is_loose = isLooseChoice;
 
-    // 4. Update UI
-    updateRowCells(row, rowIndex, totalAvailable, catalogData, stagingData);
+      // Automatically fetch the latest available Track ID and Lot No
+      try {
+        const cleanMaterialName = catalogData.material_name.trim();
+        
+        // 1. Check if this material already exists in the current table (Carry Forward)
+        let existingRow = null;
+        // Search backwards from the current row to find the most recent entry of the same material
+        for (let i = rowIndex - 1; i >= 0; i--) {
+          const row = materialData[i];
+          if (!row || !row.material_name) continue;
+
+          const rowCleanName = row.material_name.replace(/\s*\(Loose\)$/i, '').trim();
+          if (rowCleanName === cleanMaterialName) {
+            const rowIsLoose = row.is_loose === true;
+            
+            // If the user didn't explicitly specify Loose, or if they did and it matches, carry forward
+            if (isLooseChoice === rowIsLoose) {
+              existingRow = row;
+              break;
+            } else if (!isLooseChoice && rowIsLoose) {
+              // User typed "2047G" but the previous entry was "2047G (Loose)".
+              // Carry forward the "Loose" status as well.
+          console.log(`Inheriting 'is_loose' status from previous row for ${cleanMaterialName}`);
+              materialData[rowIndex].is_loose = true;
+              existingRow = row;
+              break;
+            }
+          }
+        }
+
+        if (existingRow) {
+          // Carry forward from existing row in table
+          materialData[rowIndex].track_id = existingRow.track_id;
+          materialData[rowIndex].lot_no = existingRow.lot_no || '';
+          materialData[rowIndex].is_loose = existingRow.is_loose === true; // Explicitly carry forward boolean
+          
+          // The new row starts with whatever was left after the previous row's usage
+          const currentTableBalance = parseNum(existingRow.qty_available) - parseNum(existingRow.qty_used);
+          materialData[rowIndex].qty_available = Math.max(0, currentTableBalance);
+          materialData[rowIndex].qty_available_original = parseNum(existingRow.qty_available_original) || parseNum(existingRow.qty_available);
+          
+          console.log(`Carried forward balance and is_loose for ${cleanMaterialName} (${materialData[rowIndex].is_loose ? 'Loose' : 'Std'}) from Row ${materialData.indexOf(existingRow) + 1}`);
+          renderMaterialDataTable();
+          return; // Done
+        }
+
+        // 2. If not in table, fetch from staging (Warehouse)
+        // We prioritize an exact match on is_loose, falling back to NULL for legacy records
+        let stagingData = null;
+        let stagingError = null;
+
+        // Try exact match first
+        const { data: exactData, error: exactErr } = await supabase
+          .from('pd_material_staging')
+          .select('track_id, lot_no, balance_qty, is_loose')
+          .ilike('material_name', cleanMaterialName)
+          .eq('is_active', true)
+          .gt('balance_qty', 0)
+          .eq('is_loose', isLooseChoice)
+          .order('created_at', { ascending: true })
+          .limit(1);
+
+        if (exactData && exactData.length > 0) {
+          stagingData = exactData[0];
+        } else {
+          // If no exact match and looking for Std (false), check for NULL values (legacy)
+          if (!isLooseChoice) {
+            const { data: nullData, error: nullErr } = await supabase
+              .from('pd_material_staging')
+              .select('track_id, lot_no, balance_qty, is_loose')
+              .ilike('material_name', cleanMaterialName)
+              .eq('is_active', true)
+              .gt('balance_qty', 0)
+              .is('is_loose', null)
+              .order('created_at', { ascending: true })
+              .limit(1);
+            
+            if (nullData && nullData.length > 0) {
+              stagingData = nullData[0];
+            }
+            stagingError = nullErr;
+          } else {
+            stagingError = exactErr;
+          }
+        }
+
+        if (stagingData) {
+          materialData[rowIndex].track_id = stagingData.track_id;
+          materialData[rowIndex].lot_no = stagingData.lot_no || '';
+          materialData[rowIndex].qty_available = Math.max(0, parseNum(stagingData.balance_qty));
+          materialData[rowIndex].qty_available_original = parseNum(stagingData.balance_qty);
+          
+          // ONLY overwrite is_loose if the staging record explicitly says so (not null)
+          if (stagingData.is_loose !== null && stagingData.is_loose !== undefined) {
+            materialData[rowIndex].is_loose = stagingData.is_loose === true;
+          }
+
+          console.log(`Fetched ${cleanMaterialName} (${materialData[rowIndex].is_loose ? 'Loose' : 'Std'}) from Warehouse. Balance: ${stagingData.balance_qty}`);
+        } else {
+          console.log(`No active stock found in staging for: ${cleanMaterialName} (Loose: ${isLooseChoice})`);
+          materialData[rowIndex].track_id = materialData[rowIndex].track_id || generateUUID();
+          materialData[rowIndex].qty_available = 0;
+          materialData[rowIndex].qty_available_original = 0;
+        }
+      } catch (err) {
+        // Silently handle track_id generation errors - UUID fallback will be used on save
+      }
+
+      // If no_of_bags is already entered and it's RM, trigger calculation
+      const upperType = type.toUpperCase();
+      const isRM = (upperType === 'RM' || upperType.includes('RAW') || upperType.includes('RESIN'));
+      if (isRM && !isLooseChoice && materialData[rowIndex].no_of_bags) {
+        const bags = NumericUtils.parse(materialData[rowIndex].no_of_bags);
+        materialData[rowIndex].qty_used = bags * 25;
+      }
+
+      // Refresh the table to show the new UOM and calculated Qty
+      renderMaterialDataTable();
+    }
 
   } catch (err) {
-    console.error('Error looking up material:', err);
-    updateRowCells(row, rowIndex, 0, null, []);
+    console.error('Error looking up material details:', err);
+  } finally {
+    lookupInProgress.delete(lookupKey);
   }
 }
 
-// Updated Helper to save the list to memory
-function updateRowCells(row, rowIndex, qty, catalogData, availableLots = []) {
-  const qtyAvailCell = row.querySelector('[data-column="qty_available"]');
-  const balanceCell = row.querySelector('[data-column="balance"]');
-  
-  if (qtyAvailCell) qtyAvailCell.textContent = qty.toFixed(2);
-  if (balanceCell) balanceCell.textContent = qty.toFixed(2);
+/**
+ * Recalculates available quantities for all material rows by batch
+ * 
+ * LOGIC:
+ * 1. Groups rows by track_id + is_loose status (creates unique batch keys)
+ * 2. For each batch, tracks running available quantity as rows consume material
+ * 3. Updates qty_available for each row based on what previous rows used
+ * 4. Optionally updates DOM without full re-render (skipRender=true)
+ * 5. Prevents cursor jumping by not updating focused cells
+ * 
+ * EXAMPLE:
+ * If batch has 1000 Kgs, Row1 uses 250, then Row2 should show 750 available
+ * 
+ * @param {boolean} skipRender - If true, update DOM for non-focused cells only; if false, full re-render
+ * DEBUG: If balances incorrect, verify track_id and is_loose flags are consistent across rows
+ */
+function refreshLiveBalances(skipRender = false) {
+  const mainBody = document.getElementById('materialMainBody');
+  if (!mainBody) return;
 
-  if (rowIndex !== -1 && materialData[rowIndex]) {
-    materialData[rowIndex].qty_available = qty;
-    materialData[rowIndex].available_lots = availableLots; // <--- SAVE THE LIST HERE
-    if (catalogData) {
-      materialData[rowIndex].material_id = catalogData.id;
-      materialData[rowIndex].material_type = catalogData.material_category;
+  // 1. Group rows by track_id and is_loose status
+  const batches = {};
+  materialData.forEach((row, index) => {
+    if (row.track_id && row.material_name) {
+      const isLoose = row.is_loose === true;
+      const batchKey = `${row.track_id}_${isLoose}`;
+      
+      if (!batches[batchKey]) {
+        batches[batchKey] = {
+          original_avail: parseNum(row.qty_available_original) || parseNum(row.qty_available) || 0,
+          rows: []
+        };
+      }
+      batches[batchKey].rows.push({ data: row, index });
     }
-    // Refresh the table to show the new Dropdown options
+  });
+
+  // 2. Update each row's opening qty based on what previous rows in the same batch/status used
+  Object.keys(batches).forEach(batchKey => {
+    const batch = batches[batchKey];
+    let runningAvail = batch.original_avail;
+    
+    batch.rows.forEach(item => {
+      const rowData = item.data;
+      const rowIndex = item.index;
+      
+      rowData.qty_available = Math.max(0, runningAvail);
+      
+      // Update UI for this specific row if it's not the one currently being edited
+      if (skipRender) {
+        const tr = mainBody.querySelector(`tr[data-index="${rowIndex}"]`);
+        const availCell = tr ? tr.querySelector('[data-column="qty_available"]') : null;
+        
+        // Only update if it's NOT the focused element to avoid jumping cursors
+        if (availCell && document.activeElement !== availCell) {
+          const type = (rowData.material_type || '').toLowerCase();
+          const isLoose = rowData.is_loose === true;
+          const avail = rowData.qty_available;
+          
+          let display = '';
+          if (avail > 0) {
+            if ((type === 'rm' || type.includes('raw') || type.includes('resin')) && !isLoose) {
+              const availBags = Math.round(avail / 25);
+              display = `${availBags} <span class="text-[10px] text-blue-600 font-bold">(${avail} Kgs)</span>`;
+            } else if (type === 'ink' || isLoose) {
+              display = `${avail} <span class="text-[10px] text-green-600 font-bold">(Kgs)</span>`;
+            } else if (type === 'pm' || type.includes('packing') || type.includes('pack') || type.includes('pallet') || type.includes('core')) {
+              display = `${avail} <span class="text-[10px] text-purple-600 font-bold">(Nos)</span>`;
+            } else {
+              display = avail;
+            }
+          } else if (rowData.material_name) {
+            display = `<span class="text-red-500 font-bold">0</span>`;
+          }
+          availCell.innerHTML = display;
+        }
+      }
+
+      // Always subtract qty_used to get the balance for the NEXT row
+      runningAvail -= (parseNum(rowData.qty_used) || 0);
+    });
+  });
+
+  if (!skipRender) {
     renderMaterialDataTable();
   }
 }
 
-// Handle lot selection from dropdown
-// Make globally accessible for inline onchange handler
-window.handleInternalLotSelection = function(selectEl, rowIndex) {
-    if (!selectEl || !materialData[rowIndex]) return;
-
-    const selectedOption = selectEl.options[selectEl.selectedIndex];
-    const trackId = selectEl.value;
-    
-    // Safety check: ensure text exists before splitting
-    const lotText = selectedOption.text ? selectedOption.text.split(' (')[0] : ''; 
-    const specificBalance = parseFloat(selectedOption.getAttribute('data-balance')) || 0;
-
-    // 1. Update Memory (Critical for persistence)
-    materialData[rowIndex].track_id = trackId;
-    materialData[rowIndex].lot_no = lotText;
-    materialData[rowIndex].qty_available = specificBalance;  // <--- UPDATE THIS!
-    
-    // 2. Update UI - Balance Calculation
-    const row = selectEl.closest('tr');
-    if (!row) {
-        console.warn('Could not find parent row element');
-        return;
-    }
-    
-    const qtyAvailCell = row.querySelector('[data-column="qty_available"]');
-    const balanceCell = row.querySelector('[data-column="balance"]');
-    const usedInput = row.querySelector('[data-column="qty_used"]');
-    
-    if (qtyAvailCell && balanceCell && usedInput) {
-        // Use the SELECTED LOT's balance (not the old cell value!)
-        const totalAvailable = specificBalance;
-        const currentUsed = NumericUtils.parse(usedInput.textContent || usedInput.value);
-        
-        // Update the cell display to show new balance
-        qtyAvailCell.textContent = NumericUtils.format(totalAvailable);
-        
-        // BUG FIX #3: Validate before calculation to prevent NaN propagation
-        if (!NumericUtils.validate(totalAvailable, 'Total Available') || 
-            !NumericUtils.validate(currentUsed, 'Current Used')) {
-            balanceCell.textContent = '0.00';
-            return;
-        }
-        
-        // Update Balance
-        balanceCell.textContent = NumericUtils.format(totalAvailable - currentUsed);
-        
-        // Visual Feedback
-        balanceCell.classList.add('bg-blue-50');
-        setTimeout(() => balanceCell.classList.remove('bg-blue-50'), 300);
-    }
-};
-
-async function saveRecordToDatabase(record) {
-  try {
-    if (!currentHeaderId) {
-      alert('No header selected');
-      return;
-    }
-
-    record.header_id = currentHeaderId;
-    record.updated_at = getISTTimestamp();
-
-    let result;
-    if (record.id && !String(record.id).startsWith('temp')) {
-      result = await supabase
-        .from('pd_material_consumption_data')
-        .update(record)
-        .eq('id', record.id)
-        .select();
-    } else {
-      const { id, ...payload } = record;
-      result = await supabase
-        .from('pd_material_consumption_data')
-        .insert([payload])
-        .select();
-    }
-
-    const { data: saved, error } = result;
-    if (error) {
-      console.error('Save error:', error);
-      alert('Error saving row');
-      return;
-    }
-
-    if (saved && saved.length > 0) {
-      Object.assign(record, saved[0]);
-    }
-
-    alert('Row saved successfully!');
-  } catch (err) {
-    console.error('Save error:', err);
-    alert('Error saving row');
-  }
-}
-
-function addNewRows(count = 1) {
-  for (let i = 0; i < count; i++) {
-    materialData.push({
-      id: `temp-${tempIdCounter++}`,
-      material_id: null, // Will be resolved from catalog when material_name is entered
-      material_name: '',
-      material_type: '', // Will be resolved from catalog
-      qty_available: 0,
-      qty_used: '',
-      produced_rolls: '',
-      produced_kgs_std: '', // Will be calculated as rolls × target_weight
-      produced_kgs_actual: '',
-      accepted_rolls_nos: '',
-      accepted_rolls_std: '', // Will be calculated as rolls × target_weight
-      accepted_rolls_actual: '',
-      rejected_rolls: '',
-      rejected_kgs_std: '', // Will be calculated as (produced - accepted) × target_weight
-      rejected_kgs_actual: '',
-      total_scrap: ''
-    });
-  }
-  renderMaterialDataTable();
-}
-
-// Insert blank rows directly into database
-// Insert blank rows directly into database
+/**
+ * Adds blank material rows to frontend memory ONLY (no database operations)
+ * 
+ * LOGIC:
+ * - Creates temporary row objects with temp-{UUID} IDs
+ * - Rows remain in-memory until saveAllMaterialData() is called
+ * - Each row initialized with empty material_name and zero qty_used
+ * - Re-renders table to show new blank rows for user input
+ * 
+ * NOTE: Rows are NOT persisted to database until explicit "Save All" click
+ * 
+ * @param {number} count - Number of blank rows to add (default: 1)
+ * ERRORS: Alerts if no header_id selected or isProcessing flag is true
+ */
 async function addNewRowsToDatabase(count = 1) {
   if (isProcessing) {
     alert('Please wait for current operation to complete');
@@ -724,54 +1028,26 @@ async function addNewRowsToDatabase(count = 1) {
     return;
   }
 
-  // Get traceability_code from header
-  let headerTraceabilityCode = null;
-  try {
-    const { data: header, error } = await supabase
-      .from('pd_material_consumption_records')
-      .select('traceability_code')
-      .eq('id', currentHeaderId)
-      .single();
-
-    if (error) {
-      console.error('Error fetching header:', error);
-      alert('Error fetching header information: ' + error.message);
-      return;
-    }
-
-    headerTraceabilityCode = header.traceability_code;
-  } catch (err) {
-    console.error('Error fetching header:', err);
-    alert('Error fetching header information');
-    return;
-  }
-
   // Add blank rows ONLY to frontend memory - NO DATABASE OPERATIONS
   for (let i = 0; i < count; i++) {
-    const tempRowId = crypto.randomUUID(); // Frontend-only identifier
+    const tempRowId = generateUUID(); // Frontend-only identifier
     
     const blankRow = {
-      id: `temp-${tempRowId}`, // <--- THIS WAS MISSING! FIX ADDED HERE.
-      temp_row_id: tempRowId,
-      header_id: currentHeaderId,
-      // material_id remains null until material is selected from catalog
-      material_name: '',
-      material_type: '',
-      // track_id will be set when material is selected and FIFO lookup is performed
-      traceability_code: headerTraceabilityCode,
+        id: `temp-${tempRowId}`,
+        temp_row_id: tempRowId,
+        header_id: currentHeaderId,
+        row_index: materialData.length, // Set initial row_index for new rows
+        track_id: null,
       qty_available: 0,
+      material_name: '',
+      lot_no: '',
+      no_of_bags: '',
+      bags_used: 0,
+      traceability_code: currentTraceabilityCode,
       qty_used: 0,
-      qty_balance: 0,
-      produced_rolls: 0,
-      produced_kgs_std: 0,
-      produced_kgs_actual: 0,
-      accepted_rolls_nos: 0,
-      accepted_rolls_std: 0,
-      accepted_rolls_actual: 0,
-      rejected_rolls: 0,
-      rejected_kgs_std: 0,
-      rejected_kgs_actual: 0,
-      total_scrap: 0,
+      material_id: null,
+      material_type: '',
+      is_loose: false,
       created_at: getISTTimestamp(),
       updated_at: getISTTimestamp()
     };
@@ -782,13 +1058,20 @@ async function addNewRowsToDatabase(count = 1) {
 
   // Re-render table with new blank rows
   renderMaterialDataTable();
-
-  console.log(`Added ${count} blank row(s) to frontend memory`);
 }
 
+/**
+ * Forces recalculation of standard weights in totals row after target weight change
+ * Called after product change or target weight fetch from inline_products_master
+ * 
+ * LOGIC:
+ * - Waits for DOM render to settle (setTimeout)
+ * - Calls computeRejectedFromRow() on all rows in totalsBody
+ * - Recomputes std_weight = rolls × currentProductTgtWeight
+ * DEBUG: If std weights still show old values, check currentProductTgtWeight was updated
+ */
 function updateExistingRowsStdWeight() {
-  // Recalculate std weights for all existing rows based on current rolls × target weight
-  // This will be called after renderMaterialDataTable to update the DOM
+  // Waits one tick to ensure DOM render completed
   setTimeout(() => {
     const totalsBody = document.getElementById('materialTotalsBody');
     if (totalsBody) {
@@ -797,311 +1080,51 @@ function updateExistingRowsStdWeight() {
   }, 0);
 }
 
-async function saveSingleRow(rowIndex) {
-  if (!currentHeaderId) {
-    alert('No header selected');
-    return;
-  }
 
-  const row = materialData[rowIndex];
-  if (!row) {
-    alert('Row not found');
-    return;
-  }
-
-  // Validate the row
-  const materialName = row.material_name && row.material_name.trim();
-  const qtyUsed = parseNum(row.qty_used);
-
-  if (!materialName) {
-    alert(`Row ${rowIndex + 1}: Material name is required`);
-    return;
-  }
-
-  if (qtyUsed <= 0) {
-    alert(`Row ${rowIndex + 1}: Quantity used must be greater than 0`);
-    return;
-  }
-
-  try {
-    // A. Lookup Material ID from Catalog
-    const { data: catalogData, error: catalogError } = await supabase
-      .from('pd_material_catalog')
-      .select('id, material_name, material_category')
-      .eq('material_name', materialName)
-      .eq('is_active', true)
-      .single();
-
-    if (catalogError || !catalogData) {
-      alert(`Row ${rowIndex + 1}: Material "${materialName}" not found in catalog`);
-      return;
-    }
-
-    // 2. VALIDATE SELECTION
-    // Instead of searching DB, we trust the Dropdown Selection (track_id)
-    
-    if (!row.track_id || !row.lot_no) {
-        alert(`Row ${rowIndex + 1}: Please select a Lot Number from the dropdown.`);
-        return;
-    }
-
-    // 3. FETCH THAT SPECIFIC BATCH
-    const { data: stagingData, error: stagingError } = await supabase
-        .from('pd_material_staging')
-        .select('id, balance_qty, consumed_qty, status, issued_qty') // <--- ADD issued_qty
-        .eq('id', row.track_id)
-        .single();
-
-    if (stagingError || !stagingData) {
-        alert(`Row ${rowIndex + 1}: Selected Lot not found in system (it might be finished).`);
-        return;
-    }
-
-    // 4. CHECK BALANCE & VALIDATE BEFORE SAVE
-    const screenBalance = stagingData.balance_qty;
-    const currentConsumed = stagingData.consumed_qty || 0;
-    const previousQtyUsed = parseNum(row.qty_used) || 0;  // Get previous usage
-    const qtyUsedDelta = qtyUsed - previousQtyUsed;  // How much MORE are we using?
-    
-    // For NEW rows: check if qtyUsed > total available
-    // For EXISTING rows: check if ADDITIONAL usage > remaining balance
-    if (!row.id || row.id.startsWith('temp')) {
-        // NEW ROW: Can't use more than what's available
-        if (qtyUsed > screenBalance) {
-            alert(`Row ${rowIndex + 1}: Error! You entered ${qtyUsed} KG, but lot ${row.lot_no} only has ${screenBalance} KG available.`);
-            return;
-        }
-    } else {
-        // EXISTING ROW: Can't use MORE than what's left
-        if (qtyUsedDelta > screenBalance) {
-            alert(`Row ${rowIndex + 1}: Error! You want to use ${qtyUsedDelta} KG more, but lot ${row.lot_no} only has ${screenBalance} KG remaining. Previous: ${previousQtyUsed} KG, New: ${qtyUsed} KG`);
-            return;
-        }
-    }
-
-    // D. Check if this is an existing row or new row
-    const isExistingRow = row.id && !row.id.startsWith('temp');
-
-    if (isExistingRow) {
-      // UPDATE EXISTING ROW
-      // CRITICAL FIX: Use qtyUsedDelta calculated above
-      
-      const consumptionRow = {
-        header_id: currentHeaderId,
-        material_id: catalogData.id,
-        material_name: materialName,
-        material_type: catalogData.material_category,
-        track_id: stagingData.id,
-        traceability_code: row.traceability_code,
-        lot_no: row.lot_no,
-        qty_available: screenBalance,
-        qty_used: qtyUsed,
-        qty_balance: screenBalance - qtyUsed,
-        produced_rolls: parseNum(row.produced_rolls),
-        produced_kgs_std: parseNum(row.produced_kgs_std),
-        produced_kgs_actual: parseNum(row.produced_kgs_actual),
-        accepted_rolls_nos: parseNum(row.accepted_rolls_nos),
-        accepted_rolls_std: parseNum(row.accepted_rolls_std),
-        accepted_rolls_actual: parseNum(row.accepted_rolls_actual),
-        rejected_rolls: parseNum(row.rejected_rolls),
-        rejected_kgs_std: parseNum(row.rejected_kgs_std),
-        rejected_kgs_actual: parseNum(row.rejected_kgs_actual),
-        total_scrap: parseNum(row.total_scrap),
-        row_index: rowIndex,
-        updated_at: getISTTimestamp()
-      };
-
-      // Update existing row
-      const { data: updatedData, error: updateError } = await supabase
-        .from('pd_material_consumption_data')
-        .update(consumptionRow)
-        .eq('id', row.id)
-        .select()
-        .single();
-
-      if (updateError) {
-        alert(`Row ${rowIndex + 1}: Failed to update - ${updateError.message}`);
-        return;
-      }
-
-      // CALCULATE SMART STATUS
-      const newBalance = screenBalance - qtyUsed;
-      const initialIssued = stagingData.issued_qty || 1;
-      let newStatus = 'Available';
-
-      if (newBalance <= 0) {
-          newStatus = 'Out of Stock';
-      } else if (newBalance <= (initialIssued * 0.20)) {
-          newStatus = 'Low Stock';
-      }
-
-      // Update staging balance with DELTA only (not full amount again)
-      const { error: stagingUpdateError } = await supabase
-        .from('pd_material_staging')
-        .update({
-          balance_qty: screenBalance - qtyUsedDelta, // Adjust by difference
-          consumed_qty: currentConsumed + qtyUsedDelta, // Add only the delta
-          status: newStatus
-        })
-        .eq('id', stagingData.id);
-
-      if (stagingUpdateError) {
-        console.error('Failed to update staging balance:', stagingUpdateError);
-      }
-
-      alert(`Row ${rowIndex + 1} updated successfully!`);
-
-    } else if (!row.record_id) {
-      // INSERT NEW ROW using RPC (only if no record_id exists)
-      const rpcPayload = [{
-        material_id: catalogData.id,
-        track_id: stagingData.id,
-        material_name: materialName,
-        material_type: catalogData.material_category,
-        traceability_code: row.traceability_code,
-        lot_no: row.lot_no,
-        qty_available: 0, // Server will calculate this
-        qty_used: qtyUsed,
-        qty_balance: 0,   // Server will calculate this
-        // Stats - include totals data
-        produced_rolls: parseNum(row.produced_rolls),
-        produced_kgs_std: parseNum(row.produced_kgs_std),
-        produced_kgs_actual: parseNum(row.produced_kgs_actual),
-        accepted_rolls_nos: parseNum(row.accepted_rolls_nos),
-        accepted_rolls_actual: parseNum(row.accepted_rolls_actual),
-        accepted_rolls_std: parseNum(row.accepted_rolls_std),
-        rejected_rolls: parseNum(row.rejected_rolls),
-        rejected_kgs_actual: parseNum(row.rejected_kgs_actual),
-        rejected_kgs_std: parseNum(row.rejected_kgs_std),
-        total_scrap: parseNum(row.total_scrap),
-        row_index: rowIndex // <--- Add this line
-      }];
-
-      const { error, data: savedRecord } = await supabase.rpc('submit_consumption_batch', {
-        p_header_id: currentHeaderId,
-        p_rows: rpcPayload
-      });
-
-      if (error) throw error;
-
-      // CRITICAL: Store the returned record ID so next save knows to UPDATE, not INSERT
-      if (savedRecord && savedRecord.id) {
-        materialData[rowIndex].record_id = savedRecord.id;
-        console.log(`✓ Row ${rowIndex + 1} saved with ID:`, savedRecord.id);
-      }
-
-      alert(`Row ${rowIndex + 1} saved successfully!`);
-
-    } else {
-      // UPDATE EXISTING ROW using RPC (record_id exists from previous save)
-      const rpcPayload = [{
-        record_id: row.record_id, // Pass ID for UPDATE logic
-        material_id: catalogData.id,
-        track_id: stagingData.id,
-        material_name: materialName,
-        material_type: catalogData.material_category,
-        traceability_code: row.traceability_code,
-        lot_no: row.lot_no,
-        qty_available: 0,
-        qty_used: qtyUsed,
-        qty_balance: 0,
-        produced_rolls: parseNum(row.produced_rolls),
-        produced_kgs_std: parseNum(row.produced_kgs_std),
-        produced_kgs_actual: parseNum(row.produced_kgs_actual),
-        accepted_rolls_nos: parseNum(row.accepted_rolls_nos),
-        accepted_rolls_actual: parseNum(row.accepted_rolls_actual),
-        accepted_rolls_std: parseNum(row.accepted_rolls_std),
-        rejected_rolls: parseNum(row.rejected_rolls),
-        rejected_kgs_actual: parseNum(row.rejected_kgs_actual),
-        rejected_kgs_std: parseNum(row.rejected_kgs_std),
-        total_scrap: parseNum(row.total_scrap),
-        row_index: rowIndex
-      }];
-
-      const { error } = await supabase.rpc('submit_consumption_batch', {
-        p_header_id: currentHeaderId,
-        p_rows: rpcPayload
-      });
-
-      if (error) throw error;
-
-      alert(`Row ${rowIndex + 1} updated successfully! ✎`);
-    }
-
-    // Reload page data to reflect changes
-    materialData = [];
-    await loadMaterialData();
-
-  } catch (err) {
-    console.error('Save Error:', err);
-    alert('Error saving row: ' + err.message);
-  }
-}
-
+/**
+ * Master save function: validates, combines, and persists all consumption + log data
+ * 
+ * WORKFLOW:
+ * 1. Validates: Material names required if qty_used > 0
+ * 2. Separates: Rows into "insert new" vs "update existing" lists
+ * 3. Calls RPC: submit_consumption_batch() for all material rows
+ * 4. Saves: Daily log (production, rejects, downtime) via upsert
+ * 5. Clears: Frontend memory and reloads fresh data from database
+ * 6. Shows: Success alert and re-enables Save button
+ * 
+ * VALIDATIONS:
+ * - Material name required if qty_used > 0
+ * - Track ID generated if missing
+ * - No blanks rows saved (filters on material_name)
+ * - Reject/downtime rows filtered to exclude blanks
+ * 
+ * ERROR HANDLING:
+ * - Sets isSaving flag to prevent concurrent saves
+ * - Disables Save button with spinner during operation
+ * - Shows console.error on RPC or DB failures
+ * - Re-enables button on error or success
+ * 
+ * DEBUG: Check console for "Material RPC Error" or "Daily Log Error" details
+ * DEBUG: If save fails, verify Supabase RLS policies allow insert/update for current user
+ */
 async function saveAllMaterialData() {
   if (isSaving || isProcessing) return;
   if (!currentHeaderId) return alert('No header selected');
 
   try {
-    // --- BATCH FETCH ALL STAGING & EXISTING DATA BEFORE VALIDATING ---
-    const tracksToFetch = [];
-    const rowIdsToFetch = [];
-    
-    for (const row of materialData) {
-      if (!row.track_id || !row.qty_used) continue;
-      if (row.track_id && !tracksToFetch.includes(row.track_id)) tracksToFetch.push(row.track_id);
-      if (row.id && !String(row.id).startsWith('temp') && !rowIdsToFetch.includes(row.id)) rowIdsToFetch.push(row.id);
-    }
-    
-    // Fetch all staging data at once
-    let stagingMap = {};
-    if (tracksToFetch.length > 0) {
-      const { data: stagingRows } = await supabase
-        .from('pd_material_staging')
-        .select('id, balance_qty, consumed_qty, issued_qty')
-        .in('id', tracksToFetch);
-      stagingRows?.forEach(row => { stagingMap[row.id] = row; });
-    }
-    
-    // Fetch all existing consumption data at once
-    let consumptionMap = {};
-    if (rowIdsToFetch.length > 0) {
-      const { data: consumptionRows } = await supabase
-        .from('pd_material_consumption_data')
-        .select('id, qty_used')
-        .in('id', rowIdsToFetch);
-      consumptionRows?.forEach(row => { consumptionMap[row.id] = row; });
-    }
-    
-    // --- NOW VALIDATE ALL ROWS (no more DB queries) ---
+    // --- VALIDATION: CHECK IF MATERIAL NAME AND TRACK ID ARE PRESENT FOR ROWS WITH QUANTITY ---
     for (let i = 0; i < materialData.length; i++) {
       const row = materialData[i];
-      if (!row.track_id || !row.qty_used) continue;  // Skip empty rows
-      
-      const stagingData = stagingMap[row.track_id];
-      if (!stagingData) {
-        alert(`Row ${i + 1}: Lot not found in system`);
-        return;
-      }
-      
-      const screenBalance = stagingData.balance_qty;
       const qtyUsed = parseNum(row.qty_used);
-      
-      // NEW row: check total usage
-      if (!row.id || String(row.id).startsWith('temp')) {
-        if (qtyUsed > screenBalance) {
-          alert(`Row ${i + 1}: ERROR! You want to use ${qtyUsed} KG but lot ${row.lot_no} only has ${screenBalance} KG available.`);
+      if (qtyUsed > 0) {
+        if (!row.material_name) {
+          alert(`Row ${i + 1}: Material name is required if quantity is entered.`);
           return;
         }
-      } else {
-        // EXISTING row: use cached consumption data (no additional query)
-        const existingData = consumptionMap[row.id];
-        const previousQtyUsed = existingData ? parseNum(existingData.qty_used) : 0;
-        const qtyUsedDelta = qtyUsed - previousQtyUsed;
-        
-        if (qtyUsedDelta > 0 && qtyUsedDelta > screenBalance) {
-          alert(`Row ${i + 1}: ERROR! You want to use ${qtyUsedDelta} KG more but lot ${row.lot_no} only has ${screenBalance} KG remaining.`);
-          return;
+        // track_id is now auto-assigned or generated on the fly. 
+        // If it's still missing for some reason, generate one now to avoid database errors.
+        if (!row.track_id || row.track_id === 'MANUAL') {
+          row.track_id = generateUUID();
         }
       }
     }
@@ -1117,93 +1140,130 @@ async function saveAllMaterialData() {
     }
 
     // --- SEPARATE ROWS INTO TWO LISTS ---
-    const rowsToInsert = materialData.filter(r => 
-      r.material_name && String(r.id).startsWith('temp') && Number(r.qty_used) > 0
-    );
+    const rowsToInsert = materialData.filter(r => {
+      const hasMaterial = r.material_name && r.material_name.trim() !== '';
+      return hasMaterial && String(r.id).startsWith('temp');
+    });
 
     const rowsToUpdate = materialData.filter(r => 
       r.id && !String(r.id).startsWith('temp')
     );
 
-    if (rowsToInsert.length === 0 && rowsToUpdate.length === 0) {
+    // Also check if log data has changed
+    const hasLogData = (dailyLogData.produced_rolls && String(dailyLogData.produced_rolls).trim() !== '') ||
+                       (dailyLogData.produced_kgs_actual && String(dailyLogData.produced_kgs_actual).trim() !== '') ||
+                       (rejectTransferRows && rejectTransferRows.length > 0 && rejectTransferRows[0].product) ||
+                       (downtimeRows && downtimeRows.length > 0 && downtimeRows[0].from);
+
+    if (rowsToInsert.length === 0 && rowsToUpdate.length === 0 && !hasLogData) {
+      isSaving = false;
+      isProcessing = false;
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-save fa-xs"></i> Save All';
+        saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
       return alert('No data to save.');
     }
 
-    // --- PROCESS 1: INSERT NEW ROWS ---
-    if (rowsToInsert.length > 0) {
-      const rpcPayload = [];
-      for (const row of rowsToInsert) {
-        if (!row.track_id || !row.lot_no) throw new Error(`Row "${row.material_name}" missing Lot No.`);
-        
-        const { data: catArray } = await supabase.from('pd_material_catalog')
-          .select('id, material_category').eq('material_name', row.material_name).limit(1);
-        
-        const cat = catArray && catArray.length > 0 ? catArray[0] : null;
-        if (!cat) throw new Error(`Material "${row.material_name}" not found in catalog.`);
+    // --- CONSOLIDATED SAVE PROCESS (New & Existing Rows via RPC) ---
+    const materialPayload = [];
+    // Only send rows that have a material name (prevent blank rows in DB)
+    const validRows = materialData.filter(r => r.material_name && r.material_name.trim() !== '');
+    
+    for (const row of validRows) {
+      const cat = row.material_name ? materialsCatalog.find(c => c.material_name === row.material_name) : null;
+      const visualIndex = materialData.indexOf(row);
+      const isTemp = !row.id || String(row.id).startsWith('temp');
 
-        // FIND THE VISUAL INDEX IN THE MAIN TABLE
-        const visualIndex = materialData.indexOf(row);
-
-        rpcPayload.push({
-          material_id: cat.id,
-          material_name: row.material_name,
-          material_type: cat.material_category,
-          track_id: row.track_id,
-          lot_no: row.lot_no,
-          traceability_code: row.traceability_code,
-          qty_used: parseFloat(row.qty_used),
-          produced_rolls: parseNum(row.produced_rolls),
-          produced_kgs_std: parseNum(row.produced_kgs_std),
-          produced_kgs_actual: parseNum(row.produced_kgs_actual),
-          accepted_rolls_nos: parseNum(row.accepted_rolls_nos),
-          accepted_rolls_actual: parseNum(row.accepted_rolls_actual),
-          accepted_rolls_std: parseNum(row.accepted_rolls_std),
-          rejected_rolls: parseNum(row.rejected_rolls),
-          rejected_kgs_actual: parseNum(row.rejected_kgs_actual),
-          rejected_kgs_std: parseNum(row.rejected_kgs_std),
-          total_scrap: parseNum(row.total_scrap),
-          row_index: visualIndex // <--- SEND VISUAL ORDER TO DB
-        });
-      }
-
-      const { error } = await supabase.rpc('submit_consumption_batch', {
-        p_header_id: currentHeaderId,
-        p_rows: rpcPayload
+      materialPayload.push({
+        id: isTemp ? null : row.id, 
+        material_id: cat ? cat.id : (row.material_id || null),
+        material_name: row.material_name || '',
+        material_type: (cat ? cat.material_category : row.material_type) || '',
+        is_loose: row.is_loose || false,
+        track_id: row.track_id || generateUUID(), 
+        lot_no: row.lot_no || '',      
+        bags_used: parseNum(row.no_of_bags),
+        qty_available: parseNum(row.qty_available),
+        qty_used: parseNum(row.qty_used),
+        qty_balance: parseNum(row.qty_available) - parseNum(row.qty_used),
+        traceability_code: row.traceability_code || currentTraceabilityCode || 'MANUAL',
+        row_index: visualIndex
       });
-      if (error) throw error;
     }
 
-    // --- PROCESS 2: UPDATE EXISTING ROWS ---
-    if (rowsToUpdate.length > 0) {
-      for (const row of rowsToUpdate) {
-        const updatePayload = {
-          material_id: row.material_id,
-          track_id: row.track_id,
-          lot_no: row.lot_no,
-          material_name: row.material_name,
-          material_type: row.material_type,
-          qty_used: parseFloat(row.qty_used),
-          qty_available: parseNum(row.qty_available),
-          produced_rolls: parseNum(row.produced_rolls),
-          produced_kgs_std: parseNum(row.produced_kgs_std),
-          produced_kgs_actual: parseNum(row.produced_kgs_actual),
-          accepted_rolls_nos: parseNum(row.accepted_rolls_nos),
-          accepted_rolls_actual: parseNum(row.accepted_rolls_actual),
-          accepted_rolls_std: parseNum(row.accepted_rolls_std),
-          rejected_rolls: parseNum(row.rejected_rolls),
-          rejected_kgs_actual: parseNum(row.rejected_kgs_actual),
-          rejected_kgs_std: parseNum(row.rejected_kgs_std),
-          total_scrap: parseNum(row.total_scrap),
-          updated_at: getISTTimestamp()
-        };
-
-        const { error } = await supabase
-          .from('pd_material_consumption_data')
-          .update(updatePayload)
-          .eq('id', row.id);
-          
-        if (error) console.error(`Failed to update row ${row.id}`, error);
+    if (materialPayload.length > 0) {
+      const { error: materialError } = await supabase.rpc('submit_consumption_batch', {
+        p_header_id: currentHeaderId,
+        p_rows: materialPayload
+      });
+      if (materialError) {
+        console.error('Material RPC Error details:', materialError);
+        throw materialError;
       }
+    }
+
+    // --- SAVE DAILY LOG DATA (Production, Rejects, Downtime) ---
+    const processScrapVal = parseNum(document.getElementById('processScrap')?.value);
+    const resinScrapVal = parseNum(document.getElementById('resinScrap')?.value);
+    
+    // Filter out blank rows from JSONB data before saving
+    const validRejectTransfer = (rejectTransferRows || []).filter(r => 
+      (r.product && r.product.trim() !== '') || 
+      (r.defect && r.defect.trim() !== '') || 
+      (r.qty && String(r.qty).trim() !== '')
+    );
+    const validRejectIssued = (rejectIssuedRows || []).filter(r => 
+      (r.product && r.product.trim() !== '') || 
+      (r.defect && r.defect.trim() !== '') || 
+      (r.qty && String(r.qty).trim() !== '')
+    );
+    const validDowntime = (downtimeRows || []).filter(r => 
+      (r.from && r.from.trim() !== '') || 
+      (r.to && r.to.trim() !== '') || 
+      (r.description && r.description.trim() !== '')
+    );
+
+    const dailyLogPayload = {
+      header_id: currentHeaderId,
+      produced_rolls: parseNum(dailyLogData.produced_rolls),
+      produced_kgs_std: parseNum(dailyLogData.produced_kgs_std),
+      produced_kgs_actual: parseNum(dailyLogData.produced_kgs_actual),
+      accepted_rolls_nos: parseNum(dailyLogData.accepted_rolls_nos),
+      accepted_rolls_actual: parseNum(dailyLogData.accepted_rolls_actual),
+      accepted_rolls_std: parseNum(dailyLogData.accepted_rolls_std),
+      rejected_rolls: parseNum(dailyLogData.rejected_rolls),
+      rejected_kgs_actual: parseNum(dailyLogData.rejected_kgs_actual),
+      rejected_kgs_std: parseNum(dailyLogData.rejected_kgs_std),
+      total_scrap: {
+        process_scrap: processScrapVal,
+        resin_scrap: resinScrapVal
+      },
+      reject_transfer_data: validRejectTransfer,
+      reject_issued_data: validRejectIssued,
+      downtime_log_data: validDowntime,
+      downtime_description: document.getElementById('downtimeDescription')?.value || '',
+      updated_at: new Date().toISOString()
+    };
+
+    // If we already have a record ID, include it to ensure update instead of insert
+    if (dailyLogData.id) {
+      dailyLogPayload.id = dailyLogData.id;
+    }
+
+    const { data: logResult, error: logError } = await supabase
+      .from('pd_daily_log')
+      .upsert(dailyLogPayload, { onConflict: 'header_id' })
+      .select();
+
+    if (logError) {
+      console.error('Daily Log Error details:', logError);
+      throw logError;
+    }
+
+    if (logResult && logResult[0]) {
+      dailyLogData.id = logResult[0].id;
     }
 
     alert('✅ All data saved successfully!');
@@ -1225,6 +1285,17 @@ async function saveAllMaterialData() {
   }
 }
 
+/**
+ * Deletes the last (bottom) row from material table
+ * 
+ * LOGIC:
+ * 1. If row has temp ID (not yet saved): removes from frontend only
+ * 2. If row has real DB ID: deletes from database (trigger auto-refunds stock)
+ * 3. Re-renders table to show change
+ * 
+ * TRIGGER: Database trigger 'trg_refund_stock_on_delete' automatically updates staging balance
+ * ERRORS: Alerts if isProcessing flag is true or no rows to delete
+ */
 async function deleteTopRow() {
   if (isProcessing) {
     alert('Please wait for current operation to complete');
@@ -1253,8 +1324,6 @@ async function deleteTopRow() {
         alert('Failed to delete row from database');
         return;
       }
-
-      console.log('Deleted row from database. Stock refunded by trigger:', lastRow.id);
     } catch (err) {
       console.error('Error deleting row:', err);
       alert('Failed to delete row');
@@ -1265,13 +1334,21 @@ async function deleteTopRow() {
   // Remove from frontend memory
   materialData.pop();
   renderMaterialDataTable();
-
-  console.log('Deleted top row from frontend memory');
 }
 
+/**
+ * Loads production header info: date, product, machine, shift, spec, customer
+ * Also fetches target weight from inline_products_master and updates totals calculations
+ * 
+ * SIDE EFFECTS:
+ * - Populates DOM elements: headerDate, headerProduct, headerMachine, etc.
+ * - Sets currentProductTgtWeight for use in std weight calculations
+ * - Calls updateExistingRowsStdWeight() if product changed
+ * DEBUG: If target weight not found, check product code exists in inline_products_master
+ */
 async function loadHeaderInfo() {
   if (!currentHeaderId) {
-    console.error('loadHeaderInfo: currentHeaderId is undefined or empty');
+    // Silent return - currentHeaderId should always be set from URL parameter
     return;
   }
   
@@ -1288,6 +1365,7 @@ async function loadHeaderInfo() {
     }
 
     if (header) {
+      currentTraceabilityCode = header.traceability_code || '';
       document.getElementById('headerDate').textContent = formatDateToDDMMYYYY(header.production_date);
       document.getElementById('headerProduct').textContent = header.product_code || 'N/A';
       document.getElementById('headerMachine').textContent = header.machine_no || 'N/A';
@@ -1306,11 +1384,10 @@ async function loadHeaderInfo() {
             .single();
 
           if (productError) {
-            console.warn('Error fetching product target weight:', productError);
+            // Product not found - target weight defaults to 0, std weight calculations will show 0
             currentProductTgtWeight = 0;
           } else {
             currentProductTgtWeight = productData?.tgt_weight || 0;
-            console.log('Loaded target weight for product', header.product_code, ':', currentProductTgtWeight);
             // Update existing rows with the new target weight
             updateExistingRowsStdWeight();
           }
@@ -1322,22 +1399,8 @@ async function loadHeaderInfo() {
         currentProductTgtWeight = 0;
       }
 
-      // If header contains a precomputed downtime summary, split to header/details and show
-      const headerEl = document.getElementById('downtimeSummaryHeader');
-      const detailsEl = document.getElementById('downtimeSummaryDetails');
-      if (header.downtime_summary && (headerEl || detailsEl)) {
-        const raw = header.downtime_summary;
-        const parts = raw.split('\n');
-        const first = parts.shift() || '';
-        const rest = parts.join('\n') || '';
-        // If the stored header still contains 'Entries:', strip it for backward compatibility
-        const normalizedFirst = first.replace(/^Entries:\s*\d+;\s*/i, '').replace(/Total minutes:/i, 'Total downtime minutes:');
-        if (headerEl) headerEl.textContent = normalizedFirst;
-        if (detailsEl) {
-          detailsEl.value = rest;
-          autosizeSummaryDetails(detailsEl);
-        }
-      }
+      // Remove legacy downtime summary display from header - we now use pd_daily_log
+      // which is handled in loadMaterialData()
     }
   } catch (err) {
     console.error('Error loading header:', err);
@@ -1348,7 +1411,7 @@ async function loadMaterialsCatalog() {
   try {
     const { data, error } = await supabase
       .from('pd_material_catalog')
-      .select('id, material_name, material_category, uom')
+      .select('id, material_name, material_category, uom, is_loose')
       .eq('is_active', true)
       .order('material_name');
 
@@ -1363,85 +1426,158 @@ async function loadMaterialsCatalog() {
   }
 }
 
-// Load IDs of all materials that actually have stock in Staging
-async function loadActiveStockMaterials() {
-    try {
-        const { data, error } = await supabase
-            .from('pd_material_staging')
-            .select('material_id')
-            .in('status', ['Available', 'Low Stock'])
-            .gt('balance_qty', 0);
+async function loadProductsCatalog() {
+  try {
+    const { data, error } = await supabase
+      .from('inline_products_master')
+      .select('id, prod_code, customer, spec')
+      .eq('is_active', true)
+      .order('prod_code');
 
-        if (data) {
-            // Create a fast lookup Set
-            activeStockMaterialIds = new Set(data.map(item => item.material_id));
-            console.log('Active Stock Materials loaded:', activeStockMaterialIds.size);
-        }
-    } catch (err) {
-        console.error('Error loading active stock:', err);
+    if (error) {
+      console.error('Error loading products catalog:', error);
+      return;
     }
+
+    productsCatalog = data || [];
+  } catch (err) {
+    console.error('Error loading products catalog:', err);
+  }
 }
 
+async function loadDefectsCatalog() {
+  try {
+    const { data, error } = await supabase
+      .from('all_defects')
+      .select('defect_name')
+      .order('defect_name');
+
+    if (error) {
+      console.error('Error loading defects catalog:', error);
+      return;
+    }
+
+    defectsCatalog = (data || []).map(d => d.defect_name);
+  } catch (err) {
+    console.error('Error loading defects catalog:', err);
+  }
+}
+
+/**
+ * Master data loader: fetches consumption data, daily log, and populates all tables
+ * 
+ * WORKFLOW:
+ * 1. Fetches pd_material_consumption_data rows for current header
+ * 2. Fetches pd_daily_log record (null if not saved yet)
+ * 3. Maps consumption rows, ensuring no_of_bags/bags_used mapped correctly
+ * 4. Populates dailyLogData, rejectTransferRows, rejectIssuedRows, downtimeRows
+ * 5. Ensures at least one empty row in each table for user input
+ * 6. Calls all render functions: renderMaterialDataTable, renderRejectTransferTable, etc.
+ * 
+ * ERROR HANDLING:
+ * - Sets isProcessing flag during load (prevents concurrent operations)
+ * - Silently handles missing log data (common on first load)
+ * DEBUG: If tables empty, verify currentHeaderId is correct and rows exist in DB
+ */
 async function loadMaterialData() {
     if(isProcessing) return;
     isProcessing = true;
 
     try {
         // 1. Fetch Consumption Data (The Saved Rows)
-        const { data, error } = await supabase
+        const { data: consumptionData, error: consumptionError } = await supabase
             .from('pd_material_consumption_data')
             .select('*')
             .eq('header_id', currentHeaderId)
-            .order('row_index', {ascending: true}); // <--- CHANGED FROM 'created_at' TO 'row_index'
+            .order('row_index', {ascending: true});
 
-        if (error) throw error;
-        materialData = data || [];
-        
-        // 2. Extract Unique Material IDs to fetch their dropdown options
-        const materialIds = [...new Set(materialData.map(r => r.material_id).filter(Boolean))];
+        if (consumptionError) throw consumptionError;
 
-        if(materialIds.length > 0) {
-            // 3. Fetch Staging Data (The Dropdown Options)
-            const { data: stockData, error: stockError } = await supabase
-                .from('pd_material_staging')
-                .select('id, material_id, lot_no, balance_qty, status') // Fetch details needed for dropdown
-                .in('material_id', materialIds)
-                .gt('balance_qty', 0) // Only get batches with stock
-                .in('status', ['Available', 'Low Stock'])
-                .order('created_at', { ascending: true }); // FIFO order
+        // 2. Fetch Daily Log Data
+        const { data: logData, error: logError } = await supabase
+            .from('pd_daily_log')
+            .select('*')
+            .eq('header_id', currentHeaderId)
+            .maybeSingle();
 
-            if (!stockError && stockData) {
-                // 4. Map Stock to Global Map AND attach to rows
-                globalStockMap = {};
-                
-                // Group batches by Material ID
-                const batchesByMaterial = {};
-                stockData.forEach(batch => {
-                    // Update Global Total Stock Map
-                    if (!globalStockMap[batch.material_id]) globalStockMap[batch.material_id] = 0;
-                    globalStockMap[batch.material_id] += batch.balance_qty;
+        // It's okay if logData is null (no log saved yet) - log data optional on first load
+        if (logError) {
+            // Silent error - log data not critical on first load
+        }
 
-                    // Group for Dropdowns
-                    if (!batchesByMaterial[batch.material_id]) batchesByMaterial[batch.material_id] = [];
-                    batchesByMaterial[batch.material_id].push(batch);
-                });
+        materialData = (consumptionData || []).map(row => {
+           // Ensure we pick up the bag count from either column
+           const bags = (row.bags_used !== null && row.bags_used !== undefined) ? row.bags_used : row.no_of_bags;
+           const mappedRow = {
+             ...row,
+             no_of_bags: (bags !== null && bags !== undefined) ? bags : '',
+             is_loose: row.is_loose === true, // Ensure boolean
+             qty_available_original: row.qty_available_original || row.qty_available || 0,
+             qty_balance: row.qty_balance !== undefined ? row.qty_balance : (parseNum(row.qty_available) - parseNum(row.qty_used))
+           };
+           return mappedRow;
+         });
 
-                // 5. Attach "available_lots" to each row in memory
-                materialData.forEach(row => {
-                    if (row.material_id && batchesByMaterial[row.material_id]) {
-                        row.available_lots = batchesByMaterial[row.material_id];
-                    } else {
-                        row.available_lots = [];
-                    }
-                });
+        // 3. If log data exists, store it in dailyLogData
+        if (logData) {
+            dailyLogData = { ...logData };
+            
+            // Populate other logs
+            rejectTransferRows = logData.reject_transfer_data || [];
+            rejectIssuedRows = logData.reject_issued_data || [];
+            downtimeRows = logData.downtime_log_data || [];
+            
+            // Populate scrap inputs
+            const scrap = logData.total_scrap || {};
+            const processScrapInput = document.getElementById('processScrap');
+            if (processScrapInput) {
+                processScrapInput.value = scrap.process_scrap || '';
             }
+            const resinScrapInput = document.getElementById('resinScrap');
+            if (resinScrapInput) {
+                resinScrapInput.value = scrap.resin_scrap || '';
+            }
+
+            // Populate downtime description
+            const downtimeDescInput = document.getElementById('downtimeDescription');
+            if (downtimeDescInput) {
+                downtimeDescInput.value = logData.downtime_description || '';
+                // Trigger autosize
+                const event = new Event('input', { bubbles: true });
+                downtimeDescInput.dispatchEvent(event);
+            }
+
+            // Update downtime summary display if data exists
+            if (logData.downtime_log_data) {
+                updateDowntimeSummaryDisplay();
+            }
+        } else {
+            // Reset if no log data found
+            dailyLogData = {};
+            rejectTransferRows = [];
+            rejectIssuedRows = [];
+            downtimeRows = [];
         }
         
-        // 6. Render the table (Now with dropdowns populated!)
+        // Ensure at least one blank row for editing if empty
+        if (rejectTransferRows.length === 0) {
+            rejectTransferRows.push({ id: `rtemp-${rejectTransferTempCounter++}`, product: '', defect: '', qty: '' });
+        }
+        if (rejectIssuedRows.length === 0) {
+            rejectIssuedRows.push({ id: `ritemp-${rejectIssuedTempCounter++}`, product: '', defect: '', qty: '' });
+        }
+        if (downtimeRows.length === 0) {
+            downtimeRows.push({ id: `dtemp-${downtimeTempCounter++}`, from: '', to: '', minutes: '', description: '' });
+        }
+
+        // 4. Render the tables
         renderMaterialDataTable();
+        renderRejectTransferTable();
+        renderRejectIssuedTable();
+        renderDowntimeTable();
 
     } catch (err) {
-        console.error('Error loading data:', err);
+        // Errors logged; execution continues with partial or empty data
     } finally {
         isProcessing = false;
     }
@@ -1452,24 +1588,35 @@ window.addEventListener('beforeunload', () => {
   resourceManager.cleanup();
 });
 
+/**
+ * PAGE INITIALIZATION: Loads all catalogs, data, and sets up event listeners
+ * 
+ * SEQUENCE:
+ * 1. Validates header ID from URL parameter
+ * 2. Loads header info (product, machine, etc.)
+ * 3. Loads catalogs: materials, products, defects
+ * 4. Loads material data and daily log
+ * 5. Sets up all table listeners and autocomplete
+ * 6. Attaches button click handlers
+ */
 document.addEventListener('DOMContentLoaded', async () => {
   const urlParams = new URLSearchParams(window.location.search);
   currentHeaderId = urlParams.get('id');
 
   if (!currentHeaderId || currentHeaderId === 'undefined' || currentHeaderId.trim() === '') {
-    console.error('Invalid or missing header ID. Redirecting...');
+    // Missing header ID - redirect to list page
     alert('❌ Error: No production record ID provided. Please select a record from the list.');
     window.location.href = 'pd-material-consumption.html';
     return;
   }
 
   try {
-    await Promise.all([
-      loadHeaderInfo(),
-      loadMaterialsCatalog(),
-      loadMaterialData(),
-      loadActiveStockMaterials() // <--- ADD THIS
-    ]);
+    // Load catalogs before data so lookups work correctly
+    await loadHeaderInfo();
+    await loadMaterialsCatalog();
+    await loadProductsCatalog();
+    await loadDefectsCatalog();
+    await loadMaterialData();
 
     // Small delay to ensure DOM is fully ready on first load
     setTimeout(() => {
@@ -1521,40 +1668,50 @@ document.addEventListener('DOMContentLoaded', async () => {
       saveDowntimeBtn.addEventListener('click', async () => {
         const descEl = document.getElementById('downtimeDescription');
         const desc = descEl ? (descEl.value || '').trim() : null;
+          
+          // Filter out blank downtime rows
+          const validDowntime = (downtimeRows || []).filter(r => 
+            (r.from && r.from.trim() !== '') || 
+            (r.to && r.to.trim() !== '') || 
+            (r.description && r.description.trim() !== '')
+          );
 
-        // Build a summary object from the log rows
-        const { header: summaryHeader, details: summaryDetails } = buildDowntimeSummary();
-
-        // If there is no free-text and no rows, warn
-        if (desc === null && (!downtimeRows || downtimeRows.length === 0)) {
-          alert('No downtime description or log entries to save.');
-          return;
-        }
-
-        try {
-          if (!currentHeaderId) {
-            alert('No header selected to attach downtime');
+          // If there is no free-text and no valid rows, warn
+          if (desc === null && validDowntime.length === 0) {
+            alert('No downtime description or valid log entries to save.');
             return;
           }
 
-          // Save combined summary string (header + newline + details) for backward compatibility
-          const combinedSummary = summaryHeader + (summaryDetails ? '\n' + summaryDetails : '');
+          try {
+            if (!currentHeaderId) {
+              alert('No header selected to attach downtime');
+              return;
+            }
 
-          const payload = {
-            downtime_description: desc || null,
-            downtime_summary: combinedSummary || null,
-            updated_at: getISTTimestamp()
-          };
+            const payload = {
+              header_id: currentHeaderId,
+              downtime_description: desc || null,
+              downtime_log_data: validDowntime,
+              updated_at: new Date().toISOString()
+            };
 
-          const { data, error } = await supabase
-            .from('pd_material_consumption_records')
-            .update(payload)
-            .eq('id', currentHeaderId);
+          if (dailyLogData.id) {
+            payload.id = dailyLogData.id;
+          }
+
+          const { data: logResult, error } = await supabase
+            .from('pd_daily_log')
+            .upsert(payload, { onConflict: 'header_id' })
+            .select();
 
           if (error) {
             console.error('Error saving downtime:', error);
             alert('Error saving downtime');
             return;
+          }
+
+          if (logResult && logResult[0]) {
+            dailyLogData.id = logResult[0].id;
           }
 
           const msg = document.getElementById('downtimeSavedMsg');
@@ -1608,9 +1765,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (addDowntimeBtn) addDowntimeBtn.addEventListener('click', () => addDowntimeRow());
     if (deleteDowntimeBtn) deleteDowntimeBtn.addEventListener('click', () => deleteDowntimeRow());
 
-    // initial one downtime row and listeners
-    addDowntimeRow();
+    // initial one downtime row and listeners if empty
+    if (downtimeRows.length === 0) addDowntimeRow();
     setupDowntimeListeners();
+
+    // Reject Transfer buttons
+    const addRejectTransferBtn = document.getElementById('addRejectTransferRowBtn');
+    const deleteRejectTransferBtn = document.getElementById('deleteRejectTransferRowBtn');
+    if (addRejectTransferBtn) addRejectTransferBtn.addEventListener('click', () => addRejectTransferRow());
+    if (deleteRejectTransferBtn) deleteRejectTransferBtn.addEventListener('click', () => deleteRejectTransferRow());
+
+    // Reject Issued buttons
+    const addRejectIssuedBtn = document.getElementById('addRejectIssuedRowBtn');
+    const deleteRejectIssuedBtn = document.getElementById('deleteRejectIssuedRowBtn');
+    if (addRejectIssuedBtn) addRejectIssuedBtn.addEventListener('click', () => addRejectIssuedRow());
+    if (deleteRejectIssuedBtn) deleteRejectIssuedBtn.addEventListener('click', () => deleteRejectIssuedRow());
+
+    // Initialize reject tables with one empty row each if empty
+    if (rejectTransferRows.length === 0) addRejectTransferRow();
+    setupRejectTransferListeners();
+    if (rejectIssuedRows.length === 0) addRejectIssuedRow();
+    setupRejectIssuedListeners();
+
+    // Setup Scrap listeners
+    setupScrapListeners();
 
   } catch (err) {
     console.error('Fatal error during page initialization:', err);
@@ -1618,10 +1796,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// Downtime log client-side management
+/**
+ * CLIENT-SIDE DOWNTIME LOG MANAGEMENT
+ * Stores downtime rows in memory; persisted via saveDowntimeBtn or saveAllMaterialDataBtn
+ */
 let downtimeRows = [];
 let downtimeTempCounter = 0;
 
+/**
+ * Computes duration in minutes between two HH:MM times
+ * Handles day-wrap (e.g., 23:00 to 01:00 = 2 hours)
+ * @param {string} fromVal - Start time in HH:MM format
+ * @param {string} toVal - End time in HH:MM format
+ * @returns {string} Duration in minutes, or empty string if invalid
+ */
 function computeMinutes(fromVal, toVal) {
   if (!fromVal || !toVal) return '';
   // Expecting HH:MM (time input). Create Date objects for today
@@ -1637,6 +1825,10 @@ function computeMinutes(fromVal, toVal) {
   return String(mins);
 }
 
+/**
+ * Renders downtime table from downtimeRows array
+ * Calls updateDowntimeSummaryDisplay() after render
+ */
 function renderDowntimeTable() {
   const tbody = document.getElementById('downtimeTableBody');
   if (!tbody) return;
@@ -1654,18 +1846,32 @@ function renderDowntimeTable() {
   updateDowntimeSummaryDisplay();
 }
 
+/**
+ * Adds blank downtime row to memory and re-renders table
+ */
 function addDowntimeRow() {
   downtimeRows.push({ id: `dtemp-${downtimeTempCounter++}`, from: '', to: '', minutes: '', description: '' });
   renderDowntimeTable();
 }
 
+/**
+ * Deletes last downtime row and re-renders table
+ */
 function deleteDowntimeRow() {
   if (downtimeRows.length === 0) return;
   downtimeRows.pop();
   renderDowntimeTable();
 }
 
-// Setup downtime table listeners (delegation)
+/**
+ * Sets up event listeners for downtime table using event delegation
+ * 
+ * LISTENERS:
+ * - input: Tracks from/to time changes and recomputes minutes
+ * - blur: Commits description text to downtimeRows model
+ * 
+ * AUTO-CALCULATION: Minutes = computeMinutes(from, to)
+ */
 function setupDowntimeListeners() {
   const tbody = document.getElementById('downtimeTableBody');
   if (!tbody) return;
@@ -1705,7 +1911,10 @@ function setupDowntimeListeners() {
   }, true);
 }
 
-// Build a structured downtime summary: header and details
+/**
+ * Builds downtime summary text: total minutes header + line-by-line breakdown
+ * @returns {Object} { header: "Total downtime minutes: X;", details: "formatted" }
+ */
 function buildDowntimeSummary() {
   if (!downtimeRows || downtimeRows.length === 0) {
     return { header: `Total downtime minutes: 0;`, details: '' };
@@ -1724,6 +1933,10 @@ function buildDowntimeSummary() {
   return { header, details };
 }
 
+/**
+ * Updates downtime summary display and autosizes textarea
+ * Called after downtimeRows changes
+ */
 function updateDowntimeSummaryDisplay() {
   const headerEl = document.getElementById('downtimeSummaryHeader');
   const detailsEl = document.getElementById('downtimeSummaryDetails');
@@ -1731,10 +1944,12 @@ function updateDowntimeSummaryDisplay() {
   const { header, details } = buildDowntimeSummary();
   headerEl.textContent = header;
   detailsEl.value = details;
-  // autosize details textarea to fit content without scrollbar
   autosizeSummaryDetails(detailsEl);
 }
 
+/**
+ * Auto-grows textarea height to fit content without scrollbar
+ */
 function autosizeSummaryDetails(el) {
   if (!el) return;
   el.style.height = 'auto';
@@ -1742,108 +1957,471 @@ function autosizeSummaryDetails(el) {
   el.style.height = newH + 'px';
 }
 
-// Initialize downtime area with one empty row and listeners
-// (Initialization moved into main DOMContentLoaded handler to avoid double-init)
+/**
+ * CLIENT-SIDE REJECT TRANSFER & ISSUED LOG MANAGEMENT
+ * Stores rows in memory; persisted via saveAllMaterialDataBtn
+ */
+let rejectTransferRows = [];
+let rejectTransferTempCounter = 0;
+let rejectIssuedRows = [];
+let rejectIssuedTempCounter = 0;
 
-// --- STOCK INDICATOR LOGIC (Now integrated into loadMaterialData) ---
-let globalStockMap = {};
+/**
+ * CONSOLIDATED: Factory function eliminates duplicate render code for both reject tables
+ */
+function renderRejectTable(tableId, rowsArray) {
+  const tbody = document.getElementById(tableId);
+  if (!tbody) return;
+  tbody.innerHTML = rowsArray.map((r, idx) => `
+    <tr data-id="${r.id}">
+      <td class="border border-gray-200 px-2 py-1 text-xs" contenteditable="true" data-row="${idx}" data-col="product">${r.product || ''}</td>
+      <td class="border border-gray-200 px-2 py-1 text-xs" contenteditable="true" data-row="${idx}" data-col="defect">${r.defect || ''}</td>
+      <td class="border border-gray-200 px-2 py-1 text-xs text-center" contenteditable="true" data-row="${idx}" data-col="qty">${r.qty || ''}</td>
+    </tr>
+  `).join('');
+}
 
-// --- AUTOCOMPLETE LOGIC ---
+// Direct delegation to consolidated factory
+const renderRejectTransferTable = () => renderRejectTable('rejectTransferTableBody', rejectTransferRows);
+const renderRejectIssuedTable = () => renderRejectTable('rejectIssuedTableBody', rejectIssuedRows);
 
-// 1. Setup listeners on all Material Name inputs
+/**
+ * Adds blank reject transfer row and re-renders table
+ */
+function addRejectTransferRow() {
+  rejectTransferRows.push({ id: `rtemp-${rejectTransferTempCounter++}`, product: '', defect: '', qty: '' });
+  renderRejectTransferTable();
+}
+
+/**
+ * Deletes last reject transfer row and re-renders table
+ */
+function deleteRejectTransferRow() {
+  if (rejectTransferRows.length === 0) return;
+  rejectTransferRows.pop();
+  renderRejectTransferTable();
+}
+
+// Consolidated listeners - both transfer and issued use same event logic
+// See createRejectTableListeners() factory function below
+
+
+
+/**
+ * Adds blank reject issued row and re-renders table
+ */
+function addRejectIssuedRow() {
+  rejectIssuedRows.push({ id: `ritemp-${rejectIssuedTempCounter++}`, product: '', defect: '', qty: '' });
+  renderRejectIssuedTable();
+}
+
+/**
+ * Deletes last reject issued row and re-renders table
+ */
+function deleteRejectIssuedRow() {
+  if (rejectIssuedRows.length === 0) return;
+  rejectIssuedRows.pop();
+  renderRejectIssuedTable();
+}
+
+/**
+ * CONSOLIDATED: Factory consolidates identical logic for both reject table listeners
+ * Reduces 100+ lines of duplicate event binding code
+ */
+function createRejectTableListeners(tableId, rowsArray) {
+  const tbody = document.getElementById(tableId);
+  if (!tbody) return;
+
+  // Unified blur handler: update model and validate qty
+  tbody.addEventListener('blur', (e) => {
+    const target = e.target;
+    if (!target.hasAttribute('contenteditable') || !target.dataset?.row) return;
+    
+    const rowIdx = parseInt(target.dataset.row, 10);
+    const col = target.dataset.col;
+    if (isNaN(rowIdx) || !rowsArray[rowIdx]) return;
+
+    let val = target.textContent.trim();
+    if (col === 'qty' && val && isNaN(parseFloat(val))) {
+      alert('Please enter a valid number for Qty');
+      target.textContent = rowsArray[rowIdx][col] || '';
+      return;
+    }
+    rowsArray[rowIdx][col] = val;
+    setTimeout(closeAutocomplete, 200);
+  }, true);
+
+  // Unified input handler: trigger autocomplete for product and defect
+  tbody.addEventListener('input', (e) => {
+    const target = e.target;
+    if (!target.hasAttribute('contenteditable') || !target.dataset?.row) return;
+    
+    const col = target.dataset.col;
+    const searchTerm = target.textContent.trim().toLowerCase();
+    
+    if (!searchTerm) {
+      closeAutocomplete();
+      return;
+    }
+
+    if (col === 'product') {
+      const matches = productsCatalog.filter(p => 
+        p.prod_code.toLowerCase().includes(searchTerm) || 
+        p.customer?.toLowerCase().includes(searchTerm) ||
+        p.spec?.toLowerCase().includes(searchTerm)
+      ).slice(0, 20);
+      showAutocompleteSuggestions(target, matches, 'product');
+    } else if (col === 'defect') {
+      const matches = defectsCatalog.filter(d => 
+        d.toLowerCase().includes(searchTerm)
+      ).slice(0, 20);
+      showAutocompleteSuggestions(target, matches, 'defect');
+    }
+  });
+}
+
+function setupRejectTransferListeners() {
+  createRejectTableListeners('rejectTransferTableBody', rejectTransferRows);
+}
+function setupRejectIssuedListeners() {
+  createRejectTableListeners('rejectIssuedTableBody', rejectIssuedRows);
+}
+
+/**
+ * AUTOCOMPLETE FUNCTIONALITY
+ * Material name, product code, and defect lookup with local filtering
+ * No Supabase per keystroke - uses cached catalogs for performance
+ */
+
+/**
+ * Builds material catalog cache and attaches autocomplete listeners
+ * Called after renderMaterialDataTable() to set up new inputs
+ * 
+ * PERFORMANCE:
+ * - Uses cached materialsCatalog (no RPC per keystroke)
+ * - Filters locally and shows up to 20 matches
+ * - Rebuilds cache from materialsCatalog on each render
+ */
 function setupAllAutocomplete() {
   // Rebuild cache for O(1) lookups
   if (materialsCatalog.length > 0) {
     catalogCache.build(materialsCatalog);
   }
-    const inputs = document.querySelectorAll('td[data-column="material_name"]');
-    inputs.forEach(td => {
-        // Prevent duplicate listeners
-        if (td.dataset.autocompleteActive) return;
-        td.dataset.autocompleteActive = "true";
 
-        td.addEventListener('input', debounce(async (e) => {
-            const searchTerm = e.target.textContent.trim();
-            if (searchTerm.length < 1) {
-                closeAutocomplete();
-                return;
-            }
+  // 1. Material Name Autocomplete
+  const materialInputs = document.querySelectorAll('td[data-column="material_name"]');
+  materialInputs.forEach(td => {
+    if (td.dataset.autocompleteActive) return;
+    td.dataset.autocompleteActive = "true";
 
-            // A. Search Catalog for the name
-            const { data: catalogMatches } = await supabase
-                .from('pd_material_catalog')
-                .select('id, material_name')
-                .ilike('material_name', `%${searchTerm}%`)
-                .limit(20);
+    td.addEventListener('input', (e) => {
+      const searchTerm = e.target.textContent.trim().toLowerCase();
+      if (searchTerm.length < 1) {
+        closeAutocomplete();
+        return;
+      }
 
-            if (!catalogMatches) return;
+      // FASTER: Filter from local materialsCatalog instead of Supabase RPC
+      const matches = materialsCatalog
+        .filter(m => m.material_name.toLowerCase().includes(searchTerm))
+        .slice(0, 20);
 
-            // B. SMART FILTER: Only show items that exist in 'activeStockMaterialIds'
-            //    (Or items that allow negative stock if you have such a policy, but usually strict is better)
-            const validSuggestions = catalogMatches.filter(item => activeStockMaterialIds.has(item.id));
-
-            showAutocompleteSuggestions(td, validSuggestions);
-        }, 300));
-
-        // Close on blur (delayed to allow click)
-        td.addEventListener('blur', () => {
-            setTimeout(closeAutocomplete, 200);
-        });
+      showAutocompleteSuggestions(td, matches, 'material');
     });
+
+    td.addEventListener('blur', () => {
+      setTimeout(closeAutocomplete, 200);
+    });
+  });
 }
 
-// 2. Show the Dropdown
-function showAutocompleteSuggestions(targetTd, suggestions) {
+/**
+ * Shows autocomplete dropdown with suggestions
+ * Creates three types of suggestion items based on 'type' parameter
+ * 
+ * @param {HTMLElement} targetTd - Cell that triggered the autocomplete
+ * @param {Array} suggestions - Array of matching items
+ * @param {string} type - 'material' | 'product' | 'defect'
+ * 
+ * STYLING:
+ * - Light blue background for standard, orange for loose
+ * - Positioned absolutely below target cell
+ * - Hover effects for visual feedback
+ */
+function showAutocompleteSuggestions(targetTd, suggestions, type) {
     closeAutocomplete(); // Close existing
 
     if (suggestions.length === 0) return;
 
-    // Create Dropdown
-    const ul = document.createElement('ul');
-    ul.className = 'autocomplete-dropdown absolute bg-white border border-gray-300 shadow-lg z-50 max-h-48 overflow-y-auto rounded text-xs';
-    ul.id = 'material-autocomplete-list';
+    // Create Dropdown Container (Div instead of UL)
+    const container = document.createElement('div');
+    container.id = 'material-autocomplete-list';
+    container.className = 'autocomplete-dropdown';
+    container.style.cssText = `
+        position: absolute;
+        background: #eaf4fb;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+    `;
     
     // Position it
     const rect = targetTd.getBoundingClientRect();
-    ul.style.top = (rect.bottom + window.scrollY) + 'px';
-    ul.style.left = (rect.left + window.scrollX) + 'px';
-    ul.style.width = rect.width + 'px';
+    container.style.top = (rect.bottom + window.scrollY) + 'px';
+    container.style.left = (rect.left + window.scrollX) + 'px';
+    container.style.width = Math.max(rect.width, type === 'track_id' ? 250 : 200) + 'px';
 
     suggestions.forEach(item => {
-        const li = document.createElement('li');
-        li.className = 'px-2 py-1.5 hover:bg-blue-50 cursor-pointer border-b border-gray-100 text-gray-700';
-        li.innerHTML = `<strong>${item.material_name}</strong> <span class="text-[10px] text-green-600 ml-1">(In Stock)</span>`;
-        
-        li.onmousedown = (e) => {
-            e.preventDefault(); // Stop the cell from closing
+        if (type === 'material') {
+            // Option 1: Standard Material
+            createSuggestionItem(container, item, targetTd, false);
             
-            // 1. SET THE FULL NAME (e.g., Change "204" to "2047G")
-            targetTd.textContent = item.material_name; 
-            
-            const row = targetTd.closest('tr');
-            const rowIndex = parseInt(row.dataset.index, 10);
-            
-            // 2. SAVE TO MEMORY
-            if (materialData[rowIndex]) {
-                materialData[rowIndex].material_name = item.material_name;
+            // Option 2: Loose Material (if enabled in catalog)
+            if (item.is_loose) {
+                createSuggestionItem(container, item, targetTd, true);
             }
-
-            closeAutocomplete();
-            
-            // 3. FORCE THE LOOKUP (This fills the Qty and Lot No Dropdown)
-            lookupMaterialAndPopulateAvailable(item.material_name, row, rowIndex);
-            
-            // 4. MOVE CURSOR TO NEXT CELL (Optional but helpful)
-            const nextCell = row.querySelector('[data-column="qty_used"]');
-            if (nextCell) nextCell.focus();
-        };
-        ul.appendChild(li);
+        } else if (type === 'product') {
+            createProductSuggestionItem(container, item, targetTd);
+        } else if (type === 'defect') {
+            createDefectSuggestionItem(container, item, targetTd);
+        }
     });
 
-    document.body.appendChild(ul);
+    document.body.appendChild(container);
 }
 
+/**
+ * Creates a product suggestion item (prod_code, customer, spec)
+ * Used in reject transfer/issued tables
+ */
+function createProductSuggestionItem(container, item, targetTd) {
+    const suggestionItem = document.createElement('div');
+    suggestionItem.className = 'suggestion-item';
+    suggestionItem.style.cssText = `
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #d1e9f9;
+        font-size: 13px;
+        transition: background 0.2s;
+        background: #eaf4fb;
+    `;
+    
+    suggestionItem.innerHTML = `
+        <div style="font-weight: 500; color: #333;">${item.prod_code}</div>
+        <div style="font-size: 11px; color: #666; margin-top: 2px;">
+            ${item.customer || ''} • ${item.spec || ''}
+        </div>
+    `;
+    
+    suggestionItem.onmousedown = (e) => {
+        e.preventDefault();
+        targetTd.textContent = item.prod_code; 
+        
+        const rowIdx = parseInt(targetTd.dataset.row, 10);
+        const tbody = targetTd.closest('tbody');
+        if (tbody.id === 'rejectTransferTableBody') {
+            rejectTransferRows[rowIdx].product = item.prod_code;
+        } else if (tbody.id === 'rejectIssuedTableBody') {
+            rejectIssuedRows[rowIdx].product = item.prod_code;
+        }
+        
+        closeAutocomplete();
+    };
+
+    suggestionItem.addEventListener('mouseenter', () => {
+        suggestionItem.style.backgroundColor = '#bae6fd';
+    });
+    suggestionItem.addEventListener('mouseleave', () => {
+        suggestionItem.style.backgroundColor = '#eaf4fb';
+    });
+
+    container.appendChild(suggestionItem);
+}
+
+/**
+ * Creates a defect suggestion item (just the defect name)
+ * Used in reject transfer/issued tables
+ */
+function createDefectSuggestionItem(container, item, targetTd) {
+    const suggestionItem = document.createElement('div');
+    suggestionItem.className = 'suggestion-item';
+    suggestionItem.style.cssText = `
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #d1e9f9;
+        font-size: 13px;
+        transition: background 0.2s;
+        background: #eaf4fb;
+    `;
+    
+    suggestionItem.innerHTML = `
+        <div style="font-weight: 500; color: #333;">${item}</div>
+    `;
+    
+    suggestionItem.onmousedown = (e) => {
+        e.preventDefault();
+        targetTd.textContent = item; 
+        
+        const rowIdx = parseInt(targetTd.dataset.row, 10);
+        const tbody = targetTd.closest('tbody');
+        if (tbody.id === 'rejectTransferTableBody') {
+            rejectTransferRows[rowIdx].defect = item;
+        } else if (tbody.id === 'rejectIssuedTableBody') {
+            rejectIssuedRows[rowIdx].defect = item;
+        }
+        
+        closeAutocomplete();
+    };
+
+    suggestionItem.addEventListener('mouseenter', () => {
+        suggestionItem.style.backgroundColor = '#bae6fd';
+    });
+    suggestionItem.addEventListener('mouseleave', () => {
+        suggestionItem.style.backgroundColor = '#eaf4fb';
+    });
+
+    container.appendChild(suggestionItem);
+}
+
+/**
+ * Creates a material suggestion item with category and UOM
+ * Shows both standard and loose variants when available
+ * 
+ * ON SELECTION:
+ * 1. Sets materialData model with material_id, material_type, is_loose
+ * 2. Updates No of Bags cell (disable if not RM or if loose)
+ * 3. Updates UOM cell with color coding
+ * 4. Clears track_id (will be auto-assigned by lookup)
+ * 5. Calls lookupMaterialAndPopulateDetails() to fetch staging data
+ * 6. Auto-focuses next editable cell (bags or qty_used)
+ */
+function createSuggestionItem(container, item, targetTd, isLoose) {
+    const suggestionItem = document.createElement('div');
+    suggestionItem.className = 'suggestion-item';
+    suggestionItem.style.cssText = `
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #d1e9f9;
+        font-size: 13px;
+        transition: background 0.2s;
+        background: ${isLoose ? '#fff7ed' : '#eaf4fb'};
+    `;
+    
+    const displayName = isLoose ? `${item.material_name} (Loose)` : item.material_name;
+    const subText = `${item.material_category || 'No category'} • ${item.uom || 'No UOM'}`;
+    
+    suggestionItem.innerHTML = `
+        <div style="font-weight: 500; color: #333;">${displayName}</div>
+        <div style="font-size: 11px; color: #666; margin-top: 2px;">
+            ${subText}
+        </div>
+    `;
+    
+    suggestionItem.onmousedown = (e) => {
+        e.preventDefault();
+        targetTd.textContent = displayName; 
+        const row = targetTd.closest('tr');
+        const rowIndex = parseInt(row.dataset.index, 10);
+        
+        if (materialData[rowIndex]) {
+            materialData[rowIndex].material_name = item.material_name;
+            materialData[rowIndex].material_id = item.id;
+            materialData[rowIndex].material_type = item.material_category || '';
+            materialData[rowIndex].is_loose = isLoose;
+            
+            // --- IMMEDIATE UI UPDATE ---
+            const mType = (item.material_category || '').toUpperCase();
+            const isRM = mType === 'RM' || mType.includes('RAW') || mType.includes('RESIN');
+            
+            // Update No of Bags Used immediately
+            const bagCell = row.querySelector('[data-column="no_of_bags"]');
+            if (bagCell) {
+                // If it's loose, disable bags even if it's RM
+                const skipBags = !isRM || isLoose;
+                const bagDisplay = (item.material_name && skipBags) ? '-' : '';
+                bagCell.textContent = bagDisplay;
+                bagCell.contentEditable = !skipBags;
+                
+                if (skipBags) {
+                    bagCell.classList.add('bg-gray-100', 'text-gray-500');
+                    materialData[rowIndex].no_of_bags = '';
+                } else {
+                    bagCell.classList.remove('bg-gray-100', 'text-gray-500');
+                }
+            }
+            
+            // Update UOM immediately & apply colors
+            const uomCell = row.querySelector('[data-column="uom_display"]');
+            if (uomCell) {
+                const uomVal = (item.uom || '-').toUpperCase();
+                uomCell.textContent = uomVal;
+                
+                // Reset classes then add the specific one
+                uomCell.className = 'border border-gray-300 px-2 py-1 text-center text-[10px] font-black';
+                
+                if (uomVal === 'KGS') uomCell.classList.add('text-blue-700', 'bg-blue-50');
+                else if (uomVal === 'NOS') uomCell.classList.add('text-purple-700', 'bg-purple-50');
+                else if (uomVal === 'MTR' || uomVal === 'MTRS') uomCell.classList.add('text-green-700', 'bg-green-50');
+                else if (uomVal === 'RLS' || uomVal === 'ROLLS') uomCell.classList.add('text-orange-700', 'bg-orange-50');
+                else if (uomVal === 'SET') uomCell.classList.add('text-teal-700', 'bg-teal-50');
+                else uomCell.classList.add('text-gray-600', 'bg-gray-50');
+            }
+
+            // Clear Track ID when material changes
+            materialData[rowIndex].track_id = '';
+            const trackCell = row.querySelector('[data-column="track_id"]');
+            if (trackCell) trackCell.textContent = '';
+        }
+        
+        closeAutocomplete();
+        lookupMaterialAndPopulateDetails(item.material_name, rowIndex, item, isLoose);
+        
+        // Focus logic
+        const skipBagsFocus = !((item.material_category || '').toUpperCase().includes('RM')) || isLoose;
+        const nextCell = skipBagsFocus ? row.querySelector('[data-column="qty_used"]') : row.querySelector('[data-column="no_of_bags"]');
+        if (nextCell) nextCell.focus();
+    };
+
+    // Add hover effect
+    suggestionItem.addEventListener('mouseenter', () => {
+        suggestionItem.style.backgroundColor = isLoose ? '#ffedd5' : '#bae6fd';
+    });
+    suggestionItem.addEventListener('mouseleave', () => {
+        suggestionItem.style.backgroundColor = isLoose ? '#fff7ed' : '#eaf4fb';
+    });
+
+    container.appendChild(suggestionItem);
+}
+
+/**
+ * Removes autocomplete dropdown from DOM
+ */
 function closeAutocomplete() {
     const existing = document.getElementById('material-autocomplete-list');
     if (existing) existing.remove();
+}
+
+/**
+ * Sets up listeners for process scrap and resin scrap input fields
+ * Updates dailyLogData.total_scrap object when values change
+ */
+function setupScrapListeners() {
+    const processScrapInput = document.getElementById('processScrap');
+    const resinScrapInput = document.getElementById('resinScrap');
+
+    if (processScrapInput) {
+        processScrapInput.addEventListener('input', (e) => {
+            if (!dailyLogData.total_scrap) dailyLogData.total_scrap = {};
+            dailyLogData.total_scrap.process_scrap = e.target.value;
+        });
+    }
+    if (resinScrapInput) {
+        resinScrapInput.addEventListener('input', (e) => {
+            if (!dailyLogData.total_scrap) dailyLogData.total_scrap = {};
+            dailyLogData.total_scrap.resin_scrap = e.target.value;
+        });
+    }
 }

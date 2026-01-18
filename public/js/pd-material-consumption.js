@@ -6,7 +6,6 @@ let jobCostRecordsData = []; // Store fetched records globally for sorting and f
 let pdCurrentPage = 1;
 let formSubmitAttached = false; // Flag to prevent duplicate form submit listeners
 let autocompleteAttached = false; // Flag to prevent duplicate autocomplete listeners
-let currentHeaderId = null; // Store the current header record ID for detail operations
 let isProcessing = false; // Global safety lock to prevent double submissions
 
 function formatDateToDDMMYYYY(dateString) {
@@ -22,6 +21,10 @@ function formatDateToDDMMYYYY(dateString) {
   return `${day}/${month}/${year}`;
 }
 
+/**
+ * Render paginated table of job cost records with sorting and action buttons
+ * @param {Array} data - Array of job cost record objects to display
+ */
 function renderTable(data) {
   const tbody = document.getElementById('jobCostRecordsTableBody');
   if (!tbody) return;
@@ -145,8 +148,6 @@ async function applyFilters() {
   const shiftValue = document.getElementById('filterShift')?.value || '';
   const customerValue = document.getElementById('filterCustomer')?.value || '';
 
-  console.log(`Applying filters: DateFrom='${dateFromValue}', DateTo='${dateToValue}', Machine='${machineValue}', Product='${productValue}', Shift='${shiftValue}', Customer='${customerValue}'`);
-
   const filters = {
     dateFrom: dateFromValue,
     dateTo: dateToValue,
@@ -194,7 +195,6 @@ async function clearFilters() {
   }
 
   await applyFilters();
-  console.log('Filters cleared.');
 }
 
 function setupEventListeners() {
@@ -253,29 +253,19 @@ function handleButtonActions(e) {
       recordId = row ? row.dataset.id : null;
     }
 
-    console.log('Button clicked:', {
-      button_class: button.className,
-      data_id_from_button: button.dataset.id,
-      fallback_data_id: recordId,
-      e_target_tag: e.target.tagName
-    });
-
     if (button.classList.contains('view-btn')) {
-      console.log(`Viewing production material consumption record ${recordId}`);
       if (!recordId) {
         alert('❌ Error: Could not find record ID. Please refresh and try again.');
         return;
       }
       window.location.href = `pd_material_consumption_view.html?id=${recordId}&action=view`;
     } else if (button.classList.contains('edit-btn')) {
-      console.log(`Editing production material consumption record ${recordId}`);
       if (!recordId) {
         alert('❌ Error: Could not find record ID. Please refresh and try again.');
         return;
       }
       editRecordInModal(recordId);
     } else if (button.classList.contains('add-data-btn')) {
-      console.log(`Adding consumption data to record ${recordId}`);
       if (!recordId || recordId === 'undefined') {
         alert('❌ Error: Could not find record ID. Please try again.');
         console.error('Invalid recordId for add-data-btn:', recordId, 'Button:', button);
@@ -283,7 +273,6 @@ function handleButtonActions(e) {
       }
       window.location.href = `pd-material-consumption-data.html?id=${recordId}&action=add`;
     } else if (button.classList.contains('delete-btn')) {
-      console.log(`Deleting production material consumption record ${recordId}`);
       if (!recordId) {
         alert('❌ Error: Could not find record ID. Please refresh and try again.');
         return;
@@ -297,8 +286,6 @@ function handleButtonActions(e) {
 
 async function editRecordInModal(recordId) {
   try {
-    console.log(`Fetching record ${recordId} for editing...`);
-    
     const { data: record, error } = await supabase
       .from('pd_material_consumption_records')
       .select('*')
@@ -315,8 +302,6 @@ async function editRecordInModal(recordId) {
       alert('Record not found.');
       return;
     }
-
-    console.log('Record loaded for editing:', record);
 
     // Populate the modal form with existing data
     const dateInput = document.getElementById('ds_date');
@@ -365,7 +350,6 @@ async function deleteRecord(recordId) {
   
   try {
     isProcessing = true;
-    console.log(`Deleting record ${recordId}...`);
     
     const { error } = await supabase
       .from('pd_material_consumption_records')
@@ -378,7 +362,6 @@ async function deleteRecord(recordId) {
       return;
     }
 
-    console.log('Record deleted successfully');
     alert('Record deleted successfully!');
     
     // Refresh the table
@@ -392,6 +375,10 @@ async function deleteRecord(recordId) {
   }
 }
 
+/**
+ * Fetch job cost records from Supabase with optional filtering
+ * @param {Object} filters - Optional filter object with dateFrom, dateTo, machine, product, shift, customer properties
+ */
 async function fetchJobCostRecords(filters = null) {
   try {
     const tbody = document.getElementById('jobCostRecordsTableBody');
@@ -420,7 +407,6 @@ async function fetchJobCostRecords(filters = null) {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching pd_material_consumption_records:', error);
       if (error.code === 'PGRST116') {
         showMessage('Table does not exist. Ensure pd_material_consumption_records table is created in Supabase.');
       } else {
@@ -429,8 +415,6 @@ async function fetchJobCostRecords(filters = null) {
       return;
     }
 
-    console.log("Fetched Production Material Consumption Records:", data);
-    
     // Map database columns to UI format
     jobCostRecordsData = (data || []).map(record => ({
       id: record.id,
@@ -475,70 +459,147 @@ async function fetchJobCostRecords(filters = null) {
   }
 }
 
-function populateMachineFilter() {
-  const machineSelect = document.getElementById('filterMachine');
-  if (!machineSelect) return;
+/**
+ * Factory function to populate filter dropdowns with unique values from job cost records
+ * @param {string} elementId - The ID of the select element to populate
+ * @param {string} fieldName - The field name to extract unique values from records
+ * @param {string} label - The label for the "All" option
+ */
+function populateFilterDropdown(elementId, fieldName, label = 'All') {
+  const selectElement = document.getElementById(elementId);
+  if (!selectElement) return;
 
-  // Get unique machines from the data
-  const machines = [...new Set(jobCostRecordsData.map(record => record.machine).filter(Boolean))];
+  // Extract unique values from records, filtering out null/undefined/empty values
+  const uniqueValues = [...new Set(jobCostRecordsData.map(record => record[fieldName]).filter(Boolean))];
 
   // Clear existing options except the first one
-  machineSelect.innerHTML = '<option value="">All</option>';
+  selectElement.innerHTML = `<option value="">${label}</option>`;
 
-  // Add machine options
-  machines.forEach(machine => {
+  // Add unique value options
+  uniqueValues.forEach(value => {
     const option = document.createElement('option');
-    option.value = machine;
-    option.textContent = machine;
-    machineSelect.appendChild(option);
+    option.value = value;
+    option.textContent = value;
+    selectElement.appendChild(option);
   });
+}
+
+// Consolidated filter population functions using the factory
+function populateMachineFilter() {
+  populateFilterDropdown('filterMachine', 'machine');
 }
 
 function populateProductFilter() {
-  const productSelect = document.getElementById('filterProduct');
-  if (!productSelect) return;
-
-  // Get unique product codes from the data
-  const products = [...new Set(jobCostRecordsData.map(record => record.prod_code).filter(Boolean))];
-
-  // Clear existing options except the first one
-  productSelect.innerHTML = '<option value="">All</option>';
-
-  // Add product options
-  products.forEach(product => {
-    const option = document.createElement('option');
-    option.value = product;
-    option.textContent = product;
-    productSelect.appendChild(option);
-  });
+  populateFilterDropdown('filterProduct', 'prod_code');
 }
 
 function populateCustomerFilter() {
-  const customerSelect = document.getElementById('filterCustomer');
-  if (!customerSelect) return;
+  populateFilterDropdown('filterCustomer', 'customer');
+}
 
-  // Get unique customers from the data
-  const customers = [...new Set(jobCostRecordsData.map(record => record.customer).filter(Boolean))];
+/**
+ * Utility function to create and position autocomplete dropdown
+ * @param {HTMLElement} inputElement - The input element to attach dropdown to
+ * @param {Array} items - Array of items to display in dropdown
+ * @param {Function} onItemClick - Callback function when an item is clicked
+ * @param {string} dropdownId - Optional ID for the dropdown element
+ * @param {boolean} useAbsolutePositioning - Whether to use absolute positioning relative to viewport
+ * @returns {HTMLElement} The created dropdown element
+ */
+function createAutocompleteDropdown(inputElement, items, onItemClick, dropdownId = null, useAbsolutePositioning = false) {
+  // Remove any existing dropdown
+  const existingDropdown = dropdownId ? document.getElementById(dropdownId) : null;
+  if (existingDropdown) existingDropdown.remove();
 
-  // Clear existing options except the first one
-  customerSelect.innerHTML = '<option value="">All</option>';
+  if (!items || items.length === 0) return null;
 
-  // Add customer options
-  customers.forEach(customer => {
-    const option = document.createElement('option');
-    option.value = customer;
-    option.textContent = customer;
-    customerSelect.appendChild(option);
+  // Create dropdown container
+  const dropdown = document.createElement('div');
+  if (dropdownId) dropdown.id = dropdownId;
+  dropdown.className = 'absolute z-50 border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto';
+  dropdown.style.background = '#eaf4fb';
+
+  // Add items to dropdown
+  items.forEach(item => {
+    const itemElement = document.createElement('div');
+    itemElement.className = 'px-3 py-2 hover:bg-blue-200 cursor-pointer text-sm';
+    itemElement.textContent = typeof item === 'string' ? item : item.displayText || item;
+
+    itemElement.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      onItemClick(item, inputElement);
+      dropdown.remove();
+    });
+
+    dropdown.appendChild(itemElement);
+  });
+
+  // Position dropdown
+  if (useAbsolutePositioning) {
+    // Position relative to viewport (for name autocomplete)
+    document.body.appendChild(dropdown);
+    const rect = inputElement.getBoundingClientRect();
+    dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
+    dropdown.style.left = rect.left + 'px';
+    dropdown.style.width = rect.width + 'px';
+  } else {
+    // Position relative to parent (for product code autocomplete)
+    const parent = inputElement.parentNode;
+    parent.style.position = 'relative';
+    parent.appendChild(dropdown);
+    dropdown.style.top = '100%';
+    dropdown.style.left = '0';
+    dropdown.style.width = '100%';
+    dropdown.style.marginTop = '2px';
+  }
+
+  return dropdown;
+}
+
+/**
+ * Utility function to setup common autocomplete event listeners
+ * @param {HTMLElement} inputElement - The input element
+ * @param {Function} getDropdown - Function that returns the current dropdown element
+ * @param {Function} cleanup - Function to call when cleaning up dropdown
+ */
+function setupAutocompleteEventListeners(inputElement, getDropdown, cleanup = null) {
+  // Remove dropdown when clicking outside
+  document.addEventListener('click', function(e) {
+    const dropdown = getDropdown();
+    if (dropdown && !inputElement.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.remove();
+      if (cleanup) cleanup();
+    }
+  });
+
+  // Remove dropdown on blur with delay to allow clicks
+  inputElement.addEventListener('blur', function() {
+    setTimeout(() => {
+      const dropdown = getDropdown();
+      if (dropdown) {
+        dropdown.remove();
+        if (cleanup) cleanup();
+      }
+    }, 150);
   });
 }
 
+/**
+ * Display an inline error row in the job cost records table
+ * @param {string} message
+ */
 function showError(message) {
   const tbody = document.getElementById('jobCostRecordsTableBody');
   if (tbody) {
-    tbody.innerHTML = `<tr class="error-row"><td colspan="8" class="text-center py-8 text-red-600">${message}</td></tr>`;
+    tbody.innerHTML = `<tr class="error-row"><td colspan="10" class="text-center py-8 text-red-600">${message}</td></tr>`;
   }
 }
 
+/**
+ * Display an inline informational/empty-state row in the job cost records table
+ * @param {string} message
+ */
 function showMessage(message) {
   const tbody = document.getElementById('jobCostRecordsTableBody');
   if (tbody) {
@@ -637,16 +698,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       try {
         isProcessing = true;
-        // Log all form values for debugging
-        console.log('=== Form Submission Debug ===');
-        console.log('Date:', date);
-        console.log('Product Code:', prod_code);
-        console.log('Customer:', customer);
-        console.log('Specification:', specification);
-        console.log('Machine:', machine);
-        console.log('Shift:', shift);
-        console.log('Operator:', operator);
-        console.log('Supervisor:', supervisor);
 
         // Build traceability code (header-level identifier)
         const traceability_code = generateTraceabilityCode(date, machine, shift);
@@ -673,13 +724,10 @@ document.addEventListener('DOMContentLoaded', () => {
           created_by: created_by
         };
 
-        console.log('Insert payload:', payload);
-
         let result;
         if (form.dataset.isEdit === 'true') {
           // Update existing header record
           const recordId = form.dataset.editId;
-          console.log('Updating header record with ID:', recordId);
           result = await supabase
             .from('pd_material_consumption_records')
             .update(payload)
@@ -694,7 +742,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const { data: dbRecordArray, error } = result;
-        console.log('Operation response - data:', dbRecordArray, 'error:', error);
 
         if (error) {
           console.error('Error saving production material consumption header record:', error);
@@ -706,12 +753,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const dbRecord = dbRecordArray && dbRecordArray.length > 0 ? dbRecordArray[0] : null;
         
         if (!dbRecord) {
-          console.error('No record returned from database operation');
           alert('Error: Database did not return a record. Please try again.');
           return;
         }
-
-        console.log('Record from DB:', dbRecord);
 
         // Update UI based on operation type
         if (form.dataset.isEdit === 'true') {
@@ -763,7 +807,6 @@ document.addEventListener('DOMContentLoaded', () => {
         delete form.dataset.isEdit;
         delete form.dataset.editId;
 
-        console.log(`Record ${form.dataset.isEdit === 'true' ? 'updated' : 'created'} successfully`);
         alert(`Daily stock record ${form.dataset.isEdit === 'true' ? 'updated' : 'created'} successfully!`);
       } catch (err) {
         console.error('Error saving daily stock record:', err);
@@ -816,14 +859,15 @@ function generateUUID() {
   });
 }
 
-// Setup product code autocomplete for modal form
+/**
+ * Setup autocomplete for product code input with database-driven suggestions
+ * Fetches matching products from inline_products_master table and auto-fills related fields
+ */
 async function setupProductCodeAutocomplete() {
   const prodCodeInput = document.getElementById('ds_prod_code');
   if (!prodCodeInput || autocompleteAttached) return;
 
   autocompleteAttached = true;
-  console.log('Setting up server-side Product Code autocomplete...');
-
   let dropdown = null;
   let lastFetchId = 0;
 
@@ -857,81 +901,53 @@ async function setupProductCodeAutocomplete() {
       if (fetchId !== lastFetchId) return;
 
       if (error) {
+        // Database query failed - log for debugging but don't show to user
         console.error('Error fetching products for autocomplete:', error);
         return;
       }
 
       if (!matches || matches.length === 0) return;
 
-      console.log('Product Code matches for "' + value + '":', matches.length);
+      // Transform matches for dropdown display
+      const dropdownItems = matches.map(product => ({
+        ...product,
+        displayText: `${product.prod_code} (${product.customer})`
+      }));
 
-      // Create dropdown
-      dropdown = document.createElement('div');
-      dropdown.id = 'prod-code-dropdown';
-      dropdown.className = 'absolute z-50 w-full border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto';
-      dropdown.style.top = '100%';
-      dropdown.style.left = '0';
-      dropdown.style.background = '#eaf4fb';
-      dropdown.style.marginTop = '2px';
-
-      matches.forEach(product => {
-        const item = document.createElement('div');
-        item.className = 'px-2 py-1 hover:bg-blue-200 cursor-pointer text-xs';
-        item.textContent = `${product.prod_code} (${product.customer})`;
-
-        item.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-
-          prodCodeInput.value = product.prod_code;
+      // Create dropdown using utility function
+      dropdown = createAutocompleteDropdown(
+        prodCodeInput,
+        dropdownItems,
+        (selectedProduct) => {
+          // Set product code
+          prodCodeInput.value = selectedProduct.prod_code;
 
           // Auto-fill customer and specification from inline_products_master
           const customerInput = document.getElementById('ds_customer');
           const specInput = document.getElementById('ds_specification');
 
-          if (customerInput) customerInput.value = product.customer;
-          if (specInput) specInput.value = product.spec || '';
+          if (customerInput) customerInput.value = selectedProduct.customer;
+          if (specInput) specInput.value = selectedProduct.spec || '';
 
-          console.log('Selected product code:', product.prod_code, 'from inline_products_master');
-
-          if (dropdown) {
-            dropdown.remove();
-            dropdown = null;
-          }
           // Increment lastFetchId to ignore any pending fetches
           lastFetchId++;
-        });
-
-        dropdown.appendChild(item);
-      });
-
-      // Position dropdown
-      const parent = prodCodeInput.parentNode;
-      parent.style.position = 'relative';
-      parent.appendChild(dropdown);
+        },
+        'prod-code-dropdown',
+        false // Use relative positioning
+      );
 
     } catch (err) {
+      // Unexpected error during autocomplete setup
       console.error('Autocomplete error:', err);
     }
   });
 
-  // Remove dropdown when clicking outside
-  document.addEventListener('click', function(e) {
-    if (dropdown && !prodCodeInput.contains(e.target) && !dropdown.contains(e.target)) {
-      dropdown.remove();
-      dropdown = null;
-    }
-  });
-
-  // Remove dropdown on blur
-  prodCodeInput.addEventListener('blur', function() {
-    setTimeout(() => {
-      if (dropdown) {
-        dropdown.remove();
-        dropdown = null;
-      }
-    }, 150);
-  });
+  // Setup common event listeners for cleanup
+  setupAutocompleteEventListeners(
+    prodCodeInput,
+    () => dropdown,
+    () => { dropdown = null; }
+  );
 }
 
 // Setup operator and supervisor autocomplete with real-time suggestions
@@ -956,7 +972,6 @@ async function setupOperatorSupervisorAutocomplete() {
 
     // Extract unique full names
     const allNames = [...new Set(prodUsers.map(u => u.full_name).filter(Boolean))];
-    console.log('✅ Loaded', allNames.length, 'production staff names');
 
     // Setup autocomplete for operator field
     const operatorInput = document.getElementById('ds_operator');
@@ -975,7 +990,12 @@ async function setupOperatorSupervisorAutocomplete() {
   }
 }
 
-// Helper function to setup autocomplete for a name input field
+/**
+ * Setup autocomplete for name input fields (operator/supervisor) with pre-loaded suggestions
+ * @param {HTMLElement} inputElement - The input element to attach autocomplete to
+ * @param {Array<string>} allNames - Array of all available names to filter from
+ * @param {string} fieldType - Type of field for debugging ('operator' or 'supervisor')
+ */
 function setupNameAutocomplete(inputElement, allNames, fieldType) {
   let dropdown = null;
 
@@ -990,60 +1010,28 @@ function setupNameAutocomplete(inputElement, allNames, fieldType) {
 
     if (value.length < 1) return;
 
-    // Filter names matching input
+    // Filter names matching input (case-insensitive)
     const matches = allNames.filter(name => name.toLowerCase().includes(value));
 
     if (matches.length === 0) return;
 
-    // Create dropdown
-    dropdown = document.createElement('div');
-    dropdown.className = 'absolute z-50 border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto';
-    dropdown.style.background = '#eaf4fb';
-
-    matches.forEach(name => {
-      const item = document.createElement('div');
-      item.className = 'px-3 py-2 hover:bg-blue-200 cursor-pointer text-sm';
-      item.textContent = name;
-
-      item.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        inputElement.value = name;
-        if (dropdown) {
-          dropdown.remove();
-          dropdown = null;
-        }
-      });
-
-      dropdown.appendChild(item);
-    });
-
-    // Position dropdown absolutely relative to viewport
-    document.body.appendChild(dropdown);
-    const rect = inputElement.getBoundingClientRect();
-    dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
-    dropdown.style.left = rect.left + 'px';
-    dropdown.style.width = rect.width + 'px';
+    // Create dropdown using utility function
+    dropdown = createAutocompleteDropdown(
+      inputElement,
+      matches,
+      (selectedName) => {
+        inputElement.value = selectedName;
+      },
+      null, // No specific ID needed
+      true // Use absolute positioning relative to viewport
+    );
   });
 
-  // Remove dropdown when clicking outside
-  document.addEventListener('click', function(e) {
-    if (dropdown && !inputElement.contains(e.target) && !dropdown.contains(e.target)) {
-      dropdown.remove();
-      dropdown = null;
-    }
-  });
-
-  // Remove dropdown on blur
-  inputElement.addEventListener('blur', function() {
-    setTimeout(() => {
-      if (dropdown) {
-        dropdown.remove();
-        dropdown = null;
-      }
-    }, 150);
-  });
+  // Setup common event listeners for cleanup
+  setupAutocompleteEventListeners(
+    inputElement,
+    () => dropdown,
+    () => { dropdown = null; }
+  );
 }
-
-// Setup material code autocomplete for modal form
 

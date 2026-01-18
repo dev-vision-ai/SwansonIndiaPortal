@@ -99,7 +99,7 @@
                         </div>
                     </div>
                     -->
-                    <div class="action-card js-hide" data-department="Production,PGM,Quality Assurance,Quality Control" data-user-level="1" onclick="location.href='../html/stock-report.html'">
+                    <div class="action-card js-hide" data-department="Production" data-user-level="1" onclick="location.href='../html/stock-report.html'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-cube"></i>
                         </div>
@@ -125,19 +125,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="action-card js-hide" data-department="All" onclick="location.href='../html/mjr-form.html'">
-                        <div class="action-card-icon-circle">
-                            <i class="fas fa-wrench"></i>
-                        </div>
-                        <div class="action-card-content">
-                            <div class="action-card-heading">
-                                <h3>Maintenance Job Requisition (MJR)</h3>
-                            </div>
-                            <div class="action-card-description">
-                                <p>Submit Maintenance Job Requests</p>
-                            </div>
-                        </div>
-                    </div>
+
                      <div class="action-card js-hide desktop-only" data-department="Quality Control,Quality Assurance,Production,PGM" onclick="location.href='../html/production-report.html'">
                         <div class="action-card-icon-circle">
                         <i class="fas fa-calendar-alt"></i>
@@ -192,7 +180,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="action-card js-hide" data-department="Production,Quality Assurance,Warehouse" onclick="location.href='../html/material-requisition-form-list.html'">
+                    <div class="action-card js-hide" data-department="Production" onclick="location.href='../html/material-requisition-form-list.html'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-file-invoice"></i>
                         </div>
@@ -205,32 +193,34 @@
                             </div>
                         </div>
                     </div>
-                    <div class="action-card js-hide" data-department="Maintenance" onclick="sessionStorage.setItem('mjrTableAccess','1'); sessionStorage.setItem('mjrTablePrevPage', window.location.href); location.href='../html/mjr-table.html'">
+                    <div class="action-card js-hide" data-department="Maintenance" onclick="location.href='../html/mjr-management.html'">
                         <div class="action-card-icon-circle">
                         <i class="fas fa-tools"></i>
                         </div>
                         <div class="action-card-content">
                             <div class="action-card-heading">
-                        <h3>MJR Management</h3>
+                        <h3>MJR & MT Machines Management</h3>
                             </div>
                             <div class="action-card-description">
-                        <p>View All Job Requisitions</p>
+                        <p>View & Manage All MJRs & Machines</p>
                             </div>
                         </div>
                     </div>
-                    <div class="action-card js-hide" data-department="Maintenance" data-user-level="1" onclick="location.href='../html/machine-history-card.html'">
+
+                    <div class="action-card js-hide" data-department="All" data-exclude-department="Maintenance" onclick="location.href='../html/mjr-form.html'">
                         <div class="action-card-icon-circle">
-                        <i class="fas fa-history"></i>
+                            <i class="fas fa-wrench"></i>
                         </div>
                         <div class="action-card-content">
                             <div class="action-card-heading">
-                        <h3>Machine History Card</h3>
+                                <h3>Maintenance Job Requisition (MJR)</h3>
                             </div>
                             <div class="action-card-description">
-                        <p>View Equipment Breakdown History</p>
+                                <p>Submit Maintenance Job Requests</p>
                             </div>
                         </div>
                     </div>
+
                     <div class="action-card js-hide desktop-only" data-department="Quality Control,Quality Assurance,PGM" onclick="location.href='../html/film-inspection-forms-html/film-inspection-forms-list.html'">
                         <div class="action-card-icon-circle">
                         <i class="fas fa-file-alt"></i>

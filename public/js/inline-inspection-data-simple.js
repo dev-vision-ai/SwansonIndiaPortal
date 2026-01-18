@@ -745,6 +745,18 @@ document.addEventListener('DOMContentLoaded', async function() {
     // ===== LOAD FORM DATA IF FORM ID PROVIDED =====
     const traceabilityCode = urlParams.get('traceability_code');
     const lotLetter = urlParams.get('lot_letter');
+
+    // Add process scrap tracking
+    let processScrapValue = '';
+    const scrapStorageKey = `scrap_${traceabilityCode}_${lotLetter}`;
+    
+    // Initial load from localStorage as fallback
+    const savedScrap = localStorage.getItem(scrapStorageKey);
+    if (savedScrap !== null && savedScrap !== '') {
+        processScrapValue = parseFloat(savedScrap).toFixed(2);
+    } else {
+        processScrapValue = '';
+    }
     // If in view mode, disable all editing functionality
     if (viewMode) {
         // Add view-only indicator immediately
@@ -796,8 +808,20 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
             
             if (allLots.length > 0) {
-                // Use the oldest lot for header section
-                const formData = allLots[0];
+                    // Use the oldest lot for header section
+                    const formData = allLots[0];
+                    
+                    // Update processScrapValue from DB if available
+                    if (formData.process_scrap !== undefined && formData.process_scrap !== null) {
+                        // Store as string with 2 decimals to preserve trailing zeros like .60
+                        processScrapValue = parseFloat(formData.process_scrap).toFixed(2);
+                        // Sync back to localStorage for consistency
+                        localStorage.setItem(scrapStorageKey, processScrapValue);
+                    } else {
+                        // If it's null or undefined, keep it blank
+                        processScrapValue = '';
+                        localStorage.setItem(scrapStorageKey, '');
+                    }
                 
                 document.getElementById('customer').textContent = formData.customer || '[Customer]';
                 // Show only production_no in the main Production No field
@@ -1516,9 +1540,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         const mcNo = mcNoElement ? mcNoElement.textContent.trim() : '';
         const tableName = getTableNameForMachine(mcNo);
         
-        // Debug: Log which table is being saved
+        // Determine table index for main row check
         const allTables = Array.from(document.querySelectorAll('#tablesContainer table'));
         const tableIndex = allTables.indexOf(table);
+        
         let sampleCell = '';
         try {
             sampleCell = table.querySelector('tbody tr td')?.textContent || '';
@@ -1696,6 +1721,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 remarks_data: remarksData,
                 inspected_by: inspectedBy,
                 arm: armValue,
+                // Only update process_scrap in the main row of the form (tableIndex 0)
+                // We use NULL if empty to distinguish from explicit 0
+                ...(tableIndex === 0 ? { process_scrap: processScrapValue === '' ? null : Number(processScrapValue) } : {}),
                 updated_at: getISTTimestamp(),
                 accepted_rolls: summary.accepted_rolls,
                 rejected_rolls: summary.rejected_rolls,
@@ -1711,9 +1739,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             .eq('traceability_code', traceabilityCode)
             .eq('lot_letter', lotLetter);
         if (error) {
+            console.error(`Error saving lot (Index: ${tableIndex}) to ${tableName}:`, error);
             alert('Error saving lot: ' + error.message);
-        } else {
-            // Lot saved to individual JSONB columns
         }
     }
     
@@ -2283,25 +2310,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // ===== SUMMARY TABLE LOGIC =====
-    // Add this function to render the summary table dynamically
-    function renderSummaryTable(summary) {
-        const container = document.getElementById('dynamicSummaryTableContainer');
-        if (!container) return;
-        container.innerHTML = `
-            <table class="min-w-[400px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white">
-                <tbody>
-                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">Accepted Rolls</td><td style="border: 1px solid #9ca3af;">${summary.acceptedCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.acceptedWeight} KG</td></tr>
-                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">Rejected Rolls</td><td style="border: 1px solid #9ca3af;">${summary.rejectedCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.rejectedWeight} KG</td></tr>
-                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">Rolls Rejected for Rework</td><td style="border: 1px solid #9ca3af;">${summary.reworkCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.reworkWeight} KG</td></tr>
-                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">KIV Rolls</td><td style="border: 1px solid #9ca3af;">${summary.kivCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.kivWeight} KG</td></tr>
-                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;"><b>Total Rolls</b></td><td style="border: 1px solid #9ca3af;">${summary.totalCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.totalWeight} KG</td></tr>
-                </tbody>
-            </table>
-        `;
-    }
-
-    // Update updateSummaryTable to use renderSummaryTable
-    function updateSummaryTable() {
+    // Add this function to calculate summary data
+    function calculateSummaryData() {
         // Indices for Accept/Reject and Roll Weight columns
         const ACCEPT_COL = 29; // Accept / Reject
         const WEIGHT_COL = 5;  // Roll Weight
@@ -2371,8 +2381,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Totals
         const totalCount = acceptedCount + rejectedCount + reworkCount + kivCount;
         const totalWeight = acceptedWeight + rejectedWeight + reworkWeight + kivWeight;
-        // Render the summary table dynamically
-        renderSummaryTable({
+
+        return {
             acceptedCount,
             acceptedWeight: acceptedWeight.toFixed(2),
             rejectedCount,
@@ -2383,7 +2393,104 @@ document.addEventListener('DOMContentLoaded', async function() {
             kivWeight: kivWeight.toFixed(2),
             totalCount,
             totalWeight: totalWeight.toFixed(2)
-        });
+        };
+    }
+
+    // Add this function to render the summary table dynamically
+    function renderSummaryTable(summary) {
+        const container = document.getElementById('dynamicSummaryTableContainer');
+        if (!container) return;
+
+        // Calculate Yield
+        const totalWeight = parseFloat(summary.totalWeight);
+        const acceptedWeight = parseFloat(summary.acceptedWeight);
+        const scrap = parseFloat(processScrapValue) || 0;
+        
+        const totalInputWeight = totalWeight + scrap;
+        const yieldPercent = totalInputWeight > 0 
+            ? ((acceptedWeight / totalInputWeight) * 100).toFixed(2) 
+            : '0.00';
+
+        container.innerHTML = `
+            <table class="min-w-[400px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white">
+                <tbody>
+                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">Accepted Rolls</td><td style="border: 1px solid #9ca3af;">${summary.acceptedCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.acceptedWeight} KG</td></tr>
+                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">Rejected Rolls</td><td style="border: 1px solid #9ca3af;">${summary.rejectedCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.rejectedWeight} KG</td></tr>
+                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">Rolls Rejected for Rework</td><td style="border: 1px solid #9ca3af;">${summary.reworkCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.reworkWeight} KG</td></tr>
+                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">KIV Rolls</td><td style="border: 1px solid #9ca3af;">${summary.kivCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.kivWeight} KG</td></tr>
+                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;"><b>Total Produced</b></td><td style="border: 1px solid #9ca3af;">${summary.totalCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.totalWeight} KG</td></tr>
+                    <tr style="height: 30px; background-color: #fefce8;"><td style="border: 1px solid #9ca3af;"><b>Process Scrap</b></td><td style="border: 1px solid #9ca3af;">-</td><td style="border: 1px solid #9ca3af; font-weight: bold;"><span id="processScrapInput" contenteditable="${!viewMode}" style="display: inline-block; min-width: 40px; outline: none;">${processScrapValue || ''}</span> <span contenteditable="false" style="color: black; margin-left: 4px;">KG</span></td></tr>
+                    <tr style="height: 30px; background-color: #f0fdf4; font-weight: bold;"><td style="border: 1px solid #9ca3af;">Production Yield</td><td colspan="2" style="border: 1px solid #9ca3af; color: #166534;" id="yieldDisplayCell">${yieldPercent}%</td></tr>
+                </tbody>
+            </table>
+        `;
+
+        // Add event listener to the scrap input
+        const scrapInput = document.getElementById('processScrapInput');
+        if (scrapInput && !viewMode) {
+            scrapInput.addEventListener('input', (e) => {
+                processScrapValue = e.target.textContent.trim();
+                
+                // Save to localStorage
+                if (scrapStorageKey) {
+                    localStorage.setItem(scrapStorageKey, processScrapValue);
+                }
+                // Update yield without full re-render to preserve focus
+                updateYieldInTable();
+            });
+
+            // Trigger DB save on blur
+            scrapInput.addEventListener('blur', async (e) => {
+                let numericValue = e.target.textContent.trim();
+                
+                if (numericValue !== '') {
+                    // Only format if there's a value (including 0)
+                    const formattedValue = parseFloat(numericValue).toFixed(2);
+                    e.target.textContent = formattedValue;
+                    processScrapValue = formattedValue;
+                } else {
+                    // Keep it blank if empty
+                    e.target.textContent = '';
+                    processScrapValue = '';
+                }
+                
+                const tables = Array.from(document.querySelectorAll('#tablesContainer table'));
+                if (tables.length > 0) {
+                    await saveLotToSupabase(tables[0]);
+                }
+            });
+
+            // Prevent new lines in contenteditable
+            scrapInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    scrapInput.blur();
+                }
+            });
+        }
+    }
+
+    function updateYieldInTable() {
+        const yieldDisplayCell = document.getElementById('yieldDisplayCell');
+        if (!yieldDisplayCell) return;
+        
+        const summary = calculateSummaryData();
+        const totalWeight = parseFloat(summary.totalWeight);
+        const acceptedWeight = parseFloat(summary.acceptedWeight);
+        const scrap = parseFloat(processScrapValue) || 0;
+        
+        const totalInputWeight = totalWeight + scrap;
+        const yieldPercent = totalInputWeight > 0 
+            ? ((acceptedWeight / totalInputWeight) * 100).toFixed(2) 
+            : '0.00';
+            
+        yieldDisplayCell.textContent = `${yieldPercent}%`;
+    }
+
+    // Update updateSummaryTable to use renderSummaryTable
+    function updateSummaryTable() {
+        const summary = calculateSummaryData();
+        renderSummaryTable(summary);
         
         // Update ALL summary tables
         renderDefectsSummaryTable();

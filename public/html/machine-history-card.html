@@ -6,73 +6,90 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Machine History Card</title>
     <link rel="icon" type="image/png" href="../assets/logo2.png">
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
   <link rel="stylesheet" href="../css/machine-history-card.css">
   <link rel="stylesheet" href="../css/common-header.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+  <style>
+    /* Base font for the entire body */
+    body {
+        font-family: 'Roboto', sans-serif;
+        font-weight: 500;
+    }
+  </style>
 </head>
-<body>
-  <div class="container page-fade-in">
-    <section class="dashboard-section">
-  <!-- Pasted Header -->
-  <div class="header-container bg-white shadow-md p-4 flex justify-between items-center">
-    <!-- Changed Back Button Action -->
-    <button type="button" class="header-back-button" onclick="window.location.href='employee-dashboard.html'">Back</button>
-
-    <div class="header-title text-2xl font-bold">Machine History Card</div>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium">
+  <div class="header-container">
+    <button type="button" class="header-back-button" onclick="if(sessionStorage.getItem('machineHistoryPrevPage')) { window.location.href = sessionStorage.getItem('machineHistoryPrevPage'); } else { window.location.href='mjr-management.html'; }">Back</button>
+    <div class="header-title">Machine History Card</div>
     <div class="company-logo">
-      <!-- Adjust logo path relative to this file's location -->
-      <img src="../assets/logo.png" class="auth-logo h-10" alt="Logo"/>
+      <img src="../assets/logo.png" alt="Company Logo"/>
     </div>
   </div>
-  <!-- End Pasted Header -->
 
-      <main class="history-container">
-        <!-- Filters Section -->
-        <div class="filters-section">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex-1"></div>
-            <h4 style="margin: 0; color: #002E7D; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Filter</h4>
-            <div class="flex items-center space-x-2 flex-1 justify-end">
-              <span style="font-size: 10px; color: #6b7280;">Filter Status:</span>
-              <span id="filterStatus" class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700">
-                Off
-              </span>
-            </div>
+  <main class="history-container">
+    <h2 class="text-xl font-semibold mb-2 text-center" style="text-align: center; width: 100%; margin-top: 0px;">All Machine History Cards</h2>
+
+    <!-- Filter Section -->
+    <div id="filterSection" class="w-full flex justify-center mt-2 mb-2">
+      <div id="filterContainer" class="bg-white rounded-lg shadow-md p-2">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex-1"></div>
+          <h3 class="text-xs font-semibold text-gray-800 text-center flex-1">Find / Filter History</h3>
+                    <div class="flex items-center space-x-2 flex-1 justify-end">
+                        <span class="text-sm text-gray-600">Filter Status:</span>
+                        <span id="filterStatusIndicator" class="px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700">
+                            Off
+                        </span>
+                    </div>
+        </div>
+        <div class="flex flex-wrap items-end justify-center gap-2">
+          <!-- Equipment Name Filter -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Equipment Name:</label>
+            <select id="equipmentNameFilter" class="w-36 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+              <option value="">All Equipment Names</option>
+            </select>
           </div>
-          <div style="display: grid; grid-template-columns: 2fr 2fr 1fr 1fr 1fr auto; gap: 6px; align-items: center; max-width: 700px; margin: 0 auto;">
-            <div class="form-group" style="margin-bottom: 0; position: relative;">
-              <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Equipment Name</div>
-              <select id="equipmentNameFilter" class="filter-input" style="width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; height: 28px;" title="Filter by Equipment Name">
-                <option value="">All Equipment Names</option>
-              </select>
-            </div>
-            <div class="form-group" style="margin-bottom: 0; position: relative;">
-              <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Equipment</div>
-              <select id="equipmentFilter" class="filter-input" style="width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; height: 28px;" title="Filter by Equipment">
-                <option value="">All Equipment</option>
-              </select>
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">From</div>
-              <input type="date" id="dateFromFilter" class="filter-input" style="width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; height: 28px;" title="Filter from date">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">To</div>
-              <input type="date" id="dateToFilter" class="filter-input" style="width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; height: 28px;" title="Filter to date">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <div style="font-size: 9px; color: #6b7280; margin-bottom: 2px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Status</div>
-              <select id="statusFilter" class="filter-input" style="width: 100%; padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 11px; height: 28px;" title="Filter by Status">
-                <option value="">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
-              </select>
-            </div>
-            <div style="display: flex; justify-content: center;">
-              <button id="clearFilters" class="clear-btn" title="Clear All Filters">Clear</button>
+          <!-- Equipment Filter -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Equipment:</label>
+            <select id="equipmentFilter" class="w-32 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+              <option value="">All Equipment</option>
+            </select>
+          </div>
+          <!-- From Date Filter -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-semibold text-gray-700 mb-0.5">From Date:</label>
+            <input type="date" id="dateFromFilter" class="w-32 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+          </div>
+          <!-- To Date Filter -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-semibold text-gray-700 mb-0.5">To Date:</label>
+            <input type="date" id="dateToFilter" class="w-32 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+          </div>
+          <!-- Status Filter -->
+          <div class="flex flex-col items-center">
+            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Status:</label>
+            <select id="statusFilter" class="w-28 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+          <!-- Filter Buttons -->
+          <div class="flex flex-col items-center">
+            <div class="h-4"></div> <!-- Spacer to align with inputs -->
+            <div class="flex space-x-2">
+              <button id="clearFilters" class="w-12 h-6 bg-gray-500 text-white text-xs font-semibold rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                Clear
+                </button>
             </div>
           </div>
         </div>
+      </div>
+    </div>
 
         <!-- History Table -->
         <div class="history-table-container">
@@ -114,20 +131,29 @@
           </div>
         </div>
 
-        <!-- Pagination -->
-        <div class="pagination-container">
-          <div class="pagination-info">
-            <span id="paginationInfo">Showing 0-0 of 0 entries</span>
-          </div>
-          <div class="pagination-controls">
-            <button id="prevPage" class="pagination-btn" disabled>Previous</button>
-            <span id="currentPage" class="current-page">1</span>
-            <button id="nextPage" class="pagination-btn" disabled>Next</button>
+        <!-- Pagination Controls -->
+        <div id="paginationControls" class="w-full flex justify-center mt-3 mb-1">
+          <div class="flex items-center space-x-3 bg-white rounded-md shadow-sm px-3 py-1.5 border border-gray-200">
+            <button id="prevPage" class="px-3 py-1 bg-[#002E7D] text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 12px; height: 12px;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" stroke="white"></path>
+              </svg>
+              <span>Prev</span>
+            </button>
+
+            <div class="flex items-center space-x-1">
+              <span id="paginationInfo" class="text-xs text-gray-600">Page 1 of 1</span>
+            </div>
+
+            <button id="nextPage" class="px-3 py-1 bg-[#002E7D] text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1">
+              <span>Next</span>
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 12px; height: 12px;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" stroke="white"></path>
+              </svg>
+            </button>
           </div>
         </div>
       </main>
-    </section>
-  </div>
 
   <script type="module" src="../js/machine-history-card.js"></script>
 </body>

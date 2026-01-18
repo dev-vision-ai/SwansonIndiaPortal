@@ -2,6 +2,7 @@ import { supabase } from '../supabase-config.js';
 
 let currentSort = { column: 'timestamp', direction: 'desc' };
 let requisitionsData = []; // Store fetched requisitions globally for sorting and filtering
+const filterStatusIndicator = document.getElementById('filterStatusIndicator');
 
 function formatDateToDDMMYYYY(dateString) {
   if (!dateString) return 'N/A';
@@ -35,6 +36,8 @@ function createIcon(iconType) {
 
 function renderTable(data) {
   const tbody = document.getElementById('alertsBody');
+  if (!tbody) return;
+
   tbody.innerHTML = data.map(requisition => `
     <tr>
       <td>${requisition.requisitionno || 'N/A'}</td>
@@ -46,15 +49,15 @@ function renderTable(data) {
       <td>${requisition.machineno || 'N/A'}</td>
       <td><span class="status-${requisition.status?.toLowerCase() || 'pending'}">${requisition.status || 'Pending'}</span></td>
       <td>
-        <!-- Action buttons with SVG icons (same as film inspection forms) -->
-        <div style="display: flex; justify-content: center; gap: 4px;">
-          <button style="padding: 4px; border-radius: 6px; background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px;" data-uuid="${requisition.id}" title="View Details" onmouseover="this.style.backgroundColor='#bfdbfe'; this.style.color='#1d4ed8'" onmouseout="this.style.backgroundColor='#dbeafe'; this.style.color='#1e40af'">
+        <!-- Action buttons using Tailwind (consistent with film inspection forms) -->
+        <div class="flex justify-center space-x-1">
+          <button class="p-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-800 hover:text-blue-900 transition-all duration-200 border border-blue-200 hover:border-blue-300 flex-shrink-0" data-uuid="${requisition.id}" title="View Details">
             ${createIcon('view')}
           </button>
-          <button style="padding: 4px; border-radius: 6px; background-color: #f3e8ff; color: #7c3aed; border: 1px solid #e9d5ff; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px;" data-uuid="${requisition.id}" title="Edit Record" onmouseover="this.style.backgroundColor='#e9d5ff'; this.style.color='#6d28d9'" onmouseout="this.style.backgroundColor='#f3e8ff'; this.style.color='#7c3aed'">
+          <button class="p-1 rounded-md bg-purple-50 hover:bg-purple-100 text-purple-600 hover:text-purple-800 transition-all duration-200 border border-purple-200 hover:border-purple-300 flex-shrink-0" data-uuid="${requisition.id}" title="Edit Record">
             ${createIcon('edit')}
           </button>
-          <button style="padding: 4px; border-radius: 6px; background-color: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px;" data-uuid="${requisition.id}" title="Download as Excel" onmouseover="this.style.backgroundColor='#c7d2fe'; this.style.color='#3730a3'" onmouseout="this.style.backgroundColor='#e0e7ff'; this.style.color='#4338ca'">
+          <button class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" data-uuid="${requisition.id}" title="Download as Excel">
             ${createIcon('download')}
           </button>
         </div>
@@ -107,6 +110,18 @@ function applyFilters(render = true) {
 
   if (equipmentValue) {
     filteredData = filteredData.filter(req => req.equipmentname && req.equipmentname.toLowerCase().includes(equipmentValue.toLowerCase()));
+  }
+
+  // Update filter status indicator (On/Off style like film inspection forms)
+  const hasActiveFilters = dateValue || deptValue || equipmentValue;
+  if (filterStatusIndicator) {
+    if (hasActiveFilters) {
+      filterStatusIndicator.textContent = 'On';
+      filterStatusIndicator.className = 'px-2 py-1 text-sm font-semibold rounded-full bg-green-200 text-green-700';
+    } else {
+      filterStatusIndicator.textContent = 'Off';
+      filterStatusIndicator.className = 'px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700';
+    }
   }
 
   if (render) {
@@ -214,14 +229,14 @@ function setupTableEventListeners() {
 function showError(message) {
   const tbody = document.getElementById('alertsBody');
   if (tbody) {
-    tbody.innerHTML = `<tr class="error-row"><td colspan="8">${message}</td></tr>`;
+    tbody.innerHTML = `<tr class="error-row"><td colspan="9">${message}</td></tr>`;
   }
 }
 
 function showMessage(message) {
   const tbody = document.getElementById('alertsBody');
   if (tbody) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">${message}</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="9">${message}</td></tr>`;
   }
 }
 
@@ -382,14 +397,25 @@ async function downloadRequisitionAsExcel(requisitionId) {
     // Call the Excel export API endpoint
     const endpoint = `${backendUrl}/api/export-mjr-record/${encodeURIComponent(requisitionId)}`;
 
+    // Get the current session to include JWT token
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add Authorization header if we have a token
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+
     const response = await fetch(endpoint, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: headers,
       signal: controller.signal
     });
 

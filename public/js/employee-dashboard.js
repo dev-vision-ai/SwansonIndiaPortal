@@ -516,7 +516,7 @@ async function loadUserProfile() {
     if (user) {
         const { data: profile, error: profileError } = await supabase
             .from('users')
-            .select('full_name, employee_code, department, user_level')
+            .select('full_name, employee_code, department, user_level, is_admin')
             .eq('id', user.id)
             .single();
 
@@ -534,7 +534,7 @@ async function loadUserProfile() {
             if (employeeNameElement) employeeNameElement.textContent = profile.full_name;
             if (employeeCodeElement) employeeCodeElement.textContent = (profile.employee_code || '').toUpperCase();
 
-            filterQuickActionsByDepartment(user, profile.department, profile.user_level);
+            filterQuickActionsByDepartment(user, profile.department, profile.user_level, profile.is_admin);
 
         } else if (profileError) {
             console.error("Error fetching profile:", profileError);
@@ -546,7 +546,7 @@ async function loadUserProfile() {
             if (employeeNameElement) employeeNameElement.textContent = user.email || 'Employee';
             if (employeeCodeElement) employeeCodeElement.textContent = user.id.substring(0, 8).toUpperCase();
 
-            filterQuickActionsByDepartment(user, null, null);
+            filterQuickActionsByDepartment(user, null, null, false);
         }
     } else {
         console.error("User not logged in.");
@@ -559,8 +559,9 @@ async function loadUserProfile() {
  * @param {Object} user - Authenticated user object
  * @param {string|null} userDepartment - User's department or null
  * @param {number|null} userLevel - User's level or null
+ * @param {boolean} isAdmin - Whether the user is an admin
  */
-async function filterQuickActionsByDepartment(user, userDepartment, userLevel) {
+async function filterQuickActionsByDepartment(user, userDepartment, userLevel, isAdmin) {
     if (!user) return;
 
     try {
@@ -572,7 +573,14 @@ async function filterQuickActionsByDepartment(user, userDepartment, userLevel) {
         const quickActionCards = document.querySelectorAll('.action-card');
 
         quickActionCards.forEach(card => {
+            // Admin bypass: Admins see everything
+            if (isAdmin) {
+                card.classList.remove('js-hide');
+                return;
+            }
+
             const cardDepartments = card.getAttribute('data-department');
+            const cardExcludeDepartments = card.getAttribute('data-exclude-department');
             const cardUserLevel = card.getAttribute('data-user-level');
             const cardRestrictedUser = card.getAttribute('data-restricted-user');
 
@@ -590,12 +598,22 @@ async function filterQuickActionsByDepartment(user, userDepartment, userLevel) {
             } else if (cardDepartments) {
                 // Normal department-based filtering
                 const departmentsArray = cardDepartments.split(',').map(dept => dept.trim());
+                const excludedArray = cardExcludeDepartments ? cardExcludeDepartments.split(',').map(dept => dept.trim()) : [];
 
                 if (departmentsArray.includes('All')) {
                     shouldDisplay = true;
                 } else if (userDepartment) {
                     const userDepartmentsArray = userDepartment.split(',').map(d => d.trim());
                     shouldDisplay = departmentsArray.some(cardDept => userDepartmentsArray.includes(cardDept));
+                }
+
+                // Apply exclusion if any
+                if (shouldDisplay && userDepartment && excludedArray.length > 0) {
+                    const userDepartmentsArray = userDepartment.split(',').map(d => d.trim());
+                    const isExcluded = excludedArray.some(exDept => userDepartmentsArray.includes(exDept));
+                    if (isExcluded) {
+                        shouldDisplay = false;
+                    }
                 }
             }
 

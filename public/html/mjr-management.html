@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>MJR & MT Machines Management</title>
+    <link rel="icon" type="image/png" href="../assets/logo2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="../css/mjr-table.css">
+    <link rel="stylesheet" href="../css/common-header.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        /* Base font for the entire body */
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            padding-top: 60px; /* Space for fixed header */
+        }
+        /* Center the grid and cards */
+        .quick-action-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center; /* Center horizontally */
+            align-items: center;
+            margin: 0 auto; /* No top margin */
+            padding: 10px; /* Minimal padding */
+            max-width: 1200px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium">
+    <div class="header-container">
+        <button type="button" class="header-back-button" onclick="window.location.href='employee-dashboard.html'">Back</button>
+        <div class="header-title">MJR & MT Machines Management</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo"/>
+        </div>
+    </div>
+
+    <div class="quick-action-grid">
+                    <!-- Maintenance Job Requisition (MJR) -->
+                    <div class="action-card js-hide" data-department="All" onclick="sessionStorage.setItem('mjrFormPrevPage', window.location.href); location.href='mjr-form.html'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-wrench"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>Maintenance Job Requisition (MJR)</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Submit Maintenance Job Requests</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- View MJR List -->
+                    <div class="action-card js-hide" data-department="Maintenance,All" onclick="sessionStorage.setItem('mjrTableAccess','1'); sessionStorage.setItem('mjrTablePrevPage', window.location.href); location.href='mjr-table.html'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-list-ul"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>MJR List</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>View & Manage All MJRs</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Machine History Card -->
+                    <div class="action-card js-hide" data-department="Maintenance,Production,Quality Control,Quality Assurance" onclick="sessionStorage.setItem('machineHistoryPrevPage', window.location.href); location.href='machine-history-card.html'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>Machine History Card</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>View Equipment Breakdown History</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Machines & Equipments Master -->
+                    <div class="action-card js-hide" data-department="Maintenance,Production,All" onclick="sessionStorage.setItem('machinesMasterPrevPage', window.location.href); location.href='machines-master.html'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>Machines & Equipments <br> Master</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Manage Equipment Master Data</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    
+    <script type="module" src="../js/mjr-management.js"></script>
+</body>
+</html>
