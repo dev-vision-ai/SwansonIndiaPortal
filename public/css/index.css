@@ -262,6 +262,18 @@ p { font-size: clamp(1rem, 1.2vw, 1.25rem); }
     color: var(--accent);
 }
 
+.square-card {
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.square-card p {
+    font-size: 1.2rem;
+    line-height: 1.4;
+}
+
 .card-icon {
     font-size: 2.5rem;
     color: var(--primary);

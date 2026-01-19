@@ -186,4 +186,140 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 5000);
     }
     */
+
+    // 5. Load Jobs if on Career Page
+    if (document.getElementById('job-listings')) {
+        loadJobs();
+    }
 });
+
+/**
+ * Career Page Logic
+ */
+async function loadJobs() {
+    const container = document.getElementById('job-listings');
+    if (!container) return;
+
+    try {
+        const { data: jobs, error } = await supabase
+            .from('job_postings')
+            .select('*')
+            .eq('status', 'active')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (!jobs || jobs.length === 0) {
+            renderNoJobs();
+            return;
+        }
+
+        renderJobs(jobs);
+    } catch (error) {
+        console.error('Error loading jobs:', error);
+        renderError();
+    }
+}
+
+function renderJobs(jobs) {
+    const container = document.getElementById('job-listings');
+    container.innerHTML = jobs.map(job => {
+        const descriptionText = (job.description || 'Detailed role responsibilities and expectations are shared here once published by HR.').trim();
+        const descriptionHtml = descriptionText.replace(/\n/g,'<br>');
+        const needsToggle = descriptionText.length > 220;
+        const employmentType = (job.employment_type || 'Full Time').trim();
+        const employmentModifier = employmentType.toLowerCase();
+        const employmentClass = employmentModifier.includes('contract')
+            ? 'contract'
+            : employmentModifier.includes('part')
+                ? 'part-time'
+                : 'full-time';
+        const metaEntries = [
+            { icon: 'bi bi-geo-alt', label: 'Location', value: job.location || 'Onda, Goa' },
+            { icon: 'bi bi-briefcase', label: 'Experience', value: job.experience_needed || 'Not specified' },
+            { icon: 'bi bi-mortarboard', label: 'Qualification', value: job.qualification || 'Not specified' },
+            { icon: 'bi bi-calendar-event', label: 'Apply Before', value: job.apply_before ? new Date(job.apply_before).toLocaleDateString('en-GB') : 'N/A' }
+        ];
+        const metaHtml = metaEntries.map(entry => `
+            <div class="job-meta-item">
+                <span class="meta-label">${entry.label}</span>
+                <div class="meta-value">
+                    <i class="${entry.icon}"></i>
+                    <span>${entry.value}</span>
+                </div>
+            </div>
+        `).join('');
+
+        return `
+        <div class="job-card modern-card reveal-up active" style="margin-bottom: 2rem;">
+            <div class="job-info" style="text-align: left; width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h3 style="margin-bottom: 0.25rem;">${job.title}</h3>
+                        <p style="color: var(--primary); font-weight: 600; font-size: 0.95rem; margin-bottom: 1rem;">${job.department || 'General'}</p>
+                    </div>
+                    <div class="employment-pill ${employmentClass}">
+                        ${employmentType}
+                    </div>
+                </div>
+                
+                <div class="job-meta" style="margin-bottom: 1.5rem;">
+                    ${metaHtml}
+                </div>
+
+                <div class="job-description ${needsToggle ? 'collapsed' : 'expanded'}">
+                    <p>${descriptionHtml}</p>
+                </div>
+                ${needsToggle ? '<button type="button" class="job-description-toggle" data-expanded="false">Read more</button>' : ''}
+
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 1.5rem;">
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        ${job.salary_range ? `<div style="font-weight: 600; color: var(--primary); font-size: 1rem;">Salary: ${job.salary_range}</div>` : ''}
+                        ${job.num_positions ? `<div style="color: var(--text); opacity: 0.7; font-size: 0.85rem;">${job.num_positions} position${job.num_positions > 1 ? 's' : ''} available</div>` : ''}
+                    </div>
+                    <a href="mailto:viraj.j@usig.com?subject=Application for ${job.title}" class="btn-main" style="text-decoration: none;">Apply Now</a>
+                </div>
+            </div>
+        </div>
+    `}).join('');
+    attachDescriptionToggles();
+}
+
+function attachDescriptionToggles() {
+    document.querySelectorAll('.job-description-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const desc = btn.previousElementSibling;
+            const expanded = btn.dataset.expanded === 'true';
+            desc.classList.toggle('expanded', !expanded);
+            desc.classList.toggle('collapsed', expanded);
+            btn.dataset.expanded = (!expanded).toString();
+            btn.textContent = expanded ? 'Read more' : 'Show less';
+        });
+    });
+}
+
+function renderNoJobs() {
+    const container = document.getElementById('job-listings');
+    container.innerHTML = `
+        <div class="modern-card">
+            <div class="no-jobs-message">
+                <i class="bi bi-briefcase" style="font-size: 3rem; color: var(--primary); opacity: 0.3;"></i>
+                <p style="margin-top: 1rem;">Currently, there are no open positions. <br>Please check back later or send your CV to HR.</p>
+                <a href="mailto:viraj.j@usig.com" class="btn-main" style="margin-top: 2rem; display: inline-block;">Send CV to HR</a>
+            </div>
+        </div>
+    `;
+}
+
+function renderError() {
+    const container = document.getElementById('job-listings');
+    container.innerHTML = `
+        <div class="modern-card">
+            <div class="no-jobs-message">
+                <i class="bi bi-exclamation-triangle" style="font-size: 3rem; color: #dc3545; opacity: 0.5;"></i>
+                <p style="margin-top: 1rem;">Unable to load job postings at this time. <br>Please try again later.</p>
+                <a href="mailto:viraj.j@usig.com" class="btn-main" style="margin-top: 2rem; display: inline-block;">Contact HR Directly</a>
+            </div>
+        </div>
+    `;
+}

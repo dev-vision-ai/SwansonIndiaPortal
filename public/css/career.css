@@ -67,17 +67,101 @@
     border-color: var(--accent);
 }
 
+.employment-pill {
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: #e7ecf7;
+    color: var(--primary);
+}
+
+.employment-pill.contract {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+}
+
+.employment-pill.part-time {
+    background: rgba(250, 204, 21, 0.12);
+    color: #c084fc;
+}
+
+.employment-pill.full-time {
+    background: rgba(34, 197, 94, 0.12);
+    color: #15803d;
+}
+
+.job-description {
+    margin-bottom: 1rem;
+}
+
+.job-description p {
+    color: var(--text);
+    opacity: 0.85;
+    line-height: 1.6;
+    max-height: 5.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    font-size: 0.95rem;
+}
+
+.job-description.collapsed p {
+    max-height: 5.5rem;
+}
+
+.job-description.expanded p {
+    max-height: none;
+    display: block;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+}
+
+.job-description-toggle {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+}
+
 .job-info h3 {
     margin-bottom: 0.5rem;
     color: var(--primary);
 }
 
 .job-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.25rem;
+}
+
+.job-meta-item {
     display: flex;
-    gap: 1.5rem;
-    font-size: 0.9rem;
+    flex-direction: column;
+}
+
+.meta-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 0.25rem;
+}
+
+.meta-value {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.95rem;
+    font-weight: 600;
     color: var(--text);
-    opacity: 0.7;
 }
 
 @media (max-width: 768px) {

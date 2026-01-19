@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../css/index.css">
     <link rel="stylesheet" href="../css/career.css">
+    <link rel="icon" type="image/png" href="../assets/logo2.png">
+    <link rel="shortcut icon" href="../assets/logo2.png">
 </head>
 <body>
 
@@ -68,12 +70,15 @@
                 <div id="job-listings" class="job-listings reveal-up">
                     <div class="modern-card">
                         <div class="no-jobs-message">
-                            <i class="bi bi-briefcase" style="font-size: 3rem; color: var(--primary); opacity: 0.3;"></i>
-                            <p style="margin-top: 1rem;">Currently, there are no open positions. <br>Please check back later or send your CV to HR.</p>
-                            <a href="mailto:viraj.j@usig.com" class="btn-main" style="margin-top: 2rem; display: inline-block;">Send CV to HR</a>
+                            <i class="bi bi-arrow-repeat" style="font-size: 3rem; color: var(--primary); opacity: 0.3; display: inline-block; animation: spin 2s linear infinite;"></i>
+                            <p style="margin-top: 1rem;">Loading current opportunities...</p>
                         </div>
                     </div>
                 </div>
+
+                <style>
+                    @keyframes spin { 100% { transform: rotate(360deg); } }
+                </style>
             </div>
         </section>
 
