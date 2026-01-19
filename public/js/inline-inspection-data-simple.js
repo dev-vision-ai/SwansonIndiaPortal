@@ -54,6 +54,25 @@ function getISTTimestamp() {
     return new Date().toISOString(); 
 }
 
+// ===== UPDATE SUMMARY HEADING WITH MACHINE NUMBER =====
+function updateSummaryHeadingWithMachine(mcNo) {
+    const summaryHeading = document.querySelector('section.mt-6 h2.text-lg.font-semibold');
+    if (summaryHeading && mcNo && mcNo !== '[M/C No.]') {
+        // Format machine number as MC#01, MC#02 etc.
+        let machineText = mcNo.toString().toUpperCase();
+        if (!machineText.includes('MC')) {
+            // If it's just a number, format it
+            let num = machineText.replace(/[^0-9]/g, '');
+            if (num.length === 1) num = '0' + num;
+            machineText = 'MC#' + num;
+        } else if (!machineText.includes('#')) {
+            // If it has MC but no #, add #
+            machineText = machineText.replace('MC', 'MC#');
+        }
+        summaryHeading.innerHTML = `Summary Tables <span style="color: red;">(${machineText})</span>`;
+    }
+}
+
 // ===== PRODUCT SPECIFICATIONS (OOS VALIDATION) =====
 let currentProductSpecs = null;
 
@@ -873,6 +892,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.getElementById('month').textContent = formData.month || '[Month]';
                 document.getElementById('date').textContent = formData.date || '[Date]';
                 document.getElementById('mc_no').textContent = formData.mc_no || '[M/C No.]';
+                
+                // Update Summary Tables heading with machine number
+                updateSummaryHeadingWithMachine(formData.mc_no);
+                
                 document.getElementById('shift').textContent = formData.shift || '[Shift]';
                 
                 // Populate team members data
@@ -2397,7 +2420,50 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // Add this function to render the summary table dynamically
+    // Helper to ensure summary table containers exist and are correctly structured
+    function ensureSummaryContainers() {
+        let mainContainer = document.getElementById('summaryTableContainerMain');
+        let topContainer = document.getElementById('summaryTableContainerTop');
+        let bottomContainer = document.getElementById('summaryTableContainerBottom');
+        
+        if (!mainContainer) {
+            const dynamicSummary = document.getElementById('dynamicSummaryTableContainer');
+            const parent = dynamicSummary?.parentNode;
+            
+            if (!parent) return null;
+            
+            mainContainer = document.createElement('div');
+            mainContainer.id = 'summaryTableContainerMain';
+            mainContainer.style.width = '100%';
+            mainContainer.style.margin = '32px auto 0 auto';
+            
+            topContainer = document.createElement('div');
+            topContainer.id = 'summaryTableContainerTop';
+            topContainer.style.display = 'flex';
+            topContainer.style.justifyContent = 'center';
+            topContainer.style.gap = '48px';
+            topContainer.style.marginBottom = '32px';
+            topContainer.style.flexWrap = 'wrap';
+            
+            bottomContainer = document.createElement('div');
+            bottomContainer.id = 'summaryTableContainerBottom';
+            bottomContainer.style.display = 'flex';
+            bottomContainer.style.justifyContent = 'center';
+            bottomContainer.style.gap = '48px';
+            bottomContainer.style.flexWrap = 'wrap';
+            
+            mainContainer.appendChild(topContainer);
+            mainContainer.appendChild(bottomContainer);
+            
+            parent.replaceChild(mainContainer, dynamicSummary);
+            topContainer.appendChild(dynamicSummary);
+        }
+        
+        return { top: topContainer, bottom: bottomContainer };
+    }
+
     function renderSummaryTable(summary) {
+        ensureSummaryContainers();
         const container = document.getElementById('dynamicSummaryTableContainer');
         if (!container) return;
 
@@ -2412,15 +2478,27 @@ document.addEventListener('DOMContentLoaded', async function() {
             : '0.00';
 
         container.innerHTML = `
-            <table class="min-w-[400px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white">
+            <table class="min-w-[550px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white">
+                <thead>
+                    <tr style="background-color: #f3f4f6; font-weight: bold; height: 30px;">
+                        <th style="border: 1px solid #9ca3af; width: 180px;">Category</th>
+                        <th style="border: 1px solid #9ca3af; width: 100px;">Rolls</th>
+                        <th style="border: 1px solid #9ca3af; width: 100px;">KGs</th>
+                        <th style="border: 1px solid #9ca3af; width: 120px;">Production Yield</th>
+                    </tr>
+                </thead>
                 <tbody>
-                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">Accepted Rolls</td><td style="border: 1px solid #9ca3af;">${summary.acceptedCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.acceptedWeight} KG</td></tr>
-                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">Rejected Rolls</td><td style="border: 1px solid #9ca3af;">${summary.rejectedCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.rejectedWeight} KG</td></tr>
-                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">Rolls Rejected for Rework</td><td style="border: 1px solid #9ca3af;">${summary.reworkCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.reworkWeight} KG</td></tr>
-                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">KIV Rolls</td><td style="border: 1px solid #9ca3af;">${summary.kivCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.kivWeight} KG</td></tr>
-                    <tr style="height: 30px;"><td style="border: 1px solid #9ca3af;"><b>Total Produced</b></td><td style="border: 1px solid #9ca3af;">${summary.totalCount} Rolls</td><td style="border: 1px solid #9ca3af;">${summary.totalWeight} KG</td></tr>
-                    <tr style="height: 30px; background-color: #fefce8;"><td style="border: 1px solid #9ca3af;"><b>Process Scrap</b></td><td style="border: 1px solid #9ca3af;">-</td><td style="border: 1px solid #9ca3af; font-weight: bold;"><span id="processScrapInput" contenteditable="${!viewMode}" style="display: inline-block; min-width: 40px; outline: none;">${processScrapValue || ''}</span> <span contenteditable="false" style="color: black; margin-left: 4px;">KG</span></td></tr>
-                    <tr style="height: 30px; background-color: #f0fdf4; font-weight: bold;"><td style="border: 1px solid #9ca3af;">Production Yield</td><td colspan="2" style="border: 1px solid #9ca3af; color: #166534;" id="yieldDisplayCell">${yieldPercent}%</td></tr>
+                    <tr style="height: 28px;">
+                        <td style="border: 1px solid #9ca3af;">Accepted Rolls</td>
+                        <td style="border: 1px solid #9ca3af;">${summary.acceptedCount}</td>
+                        <td style="border: 1px solid #9ca3af;">${summary.acceptedWeight}</td>
+                        <td rowspan="6" style="border: 1px solid #9ca3af; font-weight: bold; font-size: 14px; background-color: #f0fdf4; color: #166534;" id="yieldDisplayCell">${yieldPercent}%</td>
+                    </tr>
+                    <tr style="height: 28px;"><td style="border: 1px solid #9ca3af;">Rejected Rolls</td><td style="border: 1px solid #9ca3af;">${summary.rejectedCount}</td><td style="border: 1px solid #9ca3af;">${summary.rejectedWeight}</td></tr>
+                    <tr style="height: 28px;"><td style="border: 1px solid #9ca3af;">Rolls Rejected for Rework</td><td style="border: 1px solid #9ca3af;">${summary.reworkCount}</td><td style="border: 1px solid #9ca3af;">${summary.reworkWeight}</td></tr>
+                    <tr style="height: 28px;"><td style="border: 1px solid #9ca3af;">KIV Rolls</td><td style="border: 1px solid #9ca3af;">${summary.kivCount}</td><td style="border: 1px solid #9ca3af;">${summary.kivWeight}</td></tr>
+                    <tr style="height: 28px;"><td style="border: 1px solid #9ca3af;"><b>Total Produced</b></td><td style="border: 1px solid #9ca3af;">${summary.totalCount}</td><td style="border: 1px solid #9ca3af;">${summary.totalWeight}</td></tr>
+                    <tr style="height: 28px; background-color: #fefce8;"><td style="border: 1px solid #9ca3af;"><b>Total Shift Scrap</b></td><td style="border: 1px solid #9ca3af;">-</td><td style="border: 1px solid #9ca3af; font-weight: bold;"><span id="processScrapInput" contenteditable="${!viewMode}" style="display: inline-block; min-width: 40px; outline: none;">${processScrapValue || ''}</span></td></tr>
                 </tbody>
             </table>
         `;
@@ -4687,6 +4765,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     async function loadAllLots() {
         if (!traceabilityCode) return;
         
+        // Update summary heading with machine number if available
+        const mcNoElement = document.getElementById('mc_no');
+        if (mcNoElement) {
+            updateSummaryHeadingWithMachine(mcNoElement.textContent);
+        }
+        
         try {
             // Clear existing tables
             tablesContainer.innerHTML = '';
@@ -4846,102 +4930,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Update Add Rows button state after loading all tables
         updateAddRowsButtonState();
-        // After all lots are loaded and tables are rendered, show defects summary
-        // 1. Aggregate all rolls from all lots using JSONB data
-        let allRolls = [];
-        allLots.forEach(lot => {
-            // Reconstruct rolls from individual JSONB columns
-            const rollPositions = Object.keys(lot.accept_reject_status || {});
-            rollPositions.forEach(position => {
-                const roll = {
-                    roll_position: parseInt(position),
-                    roll_weight: lot.roll_weights?.[position] || '',
-                    roll_width_mm: lot.roll_widths?.[position] || '',
-                    film_weight_gsm: lot.film_weights_gsm?.[position] || '',
-                    thickness: lot.thickness_data?.[position] || '',
-                    roll_dia: lot.roll_diameters?.[position] || '',
-                    accept_reject: lot.accept_reject_status?.[position] || '',
-                    defect_name: lot.defect_names?.[position] || '',
-                    remarks: lot.remarks_data?.[position] || '',
-                    // Film appearance fields
-                    lines_strips: lot.film_appearance?.[position]?.lines_strips || '',
-                    glossy: lot.film_appearance?.[position]?.glossy || '',
-                    film_color: lot.film_appearance?.[position]?.film_color || '',
-                    pin_hole: lot.film_appearance?.[position]?.pin_hole || '',
-                    patch_mark: lot.film_appearance?.[position]?.patch_mark || '',
-                    odour: lot.film_appearance?.[position]?.odour || '',
-                    ct_appearance: lot.film_appearance?.[position]?.ct_appearance || '',
-                    // Printing quality fields
-                    print_color: lot.printing_quality?.[position]?.print_color || '',
-                    mis_print: lot.printing_quality?.[position]?.mis_print || '',
-                    dirty_print: lot.printing_quality?.[position]?.dirty_print || '',
-                    tape_test: lot.printing_quality?.[position]?.tape_test || '',
-                    centralization: lot.printing_quality?.[position]?.centralization || '',
-                    // Roll appearance fields
-                    wrinkles: lot.roll_appearance?.[position]?.wrinkles || '',
-                    prs: lot.roll_appearance?.[position]?.prs || '',
-                    roll_curve: lot.roll_appearance?.[position]?.roll_curve || '',
-                    core_misalignment: lot.roll_appearance?.[position]?.core_misalignment || '',
-                    others: lot.roll_appearance?.[position]?.others || '',
-                    // Paper core fields
-                    paper_core_dia_id: lot.paper_core_data?.[position]?.id || '',
-                    paper_core_dia_od: lot.paper_core_data?.[position]?.od || '',
-                    // Time fields
-                    hour: lot.time_data?.[position]?.hour || '',
-                    minute: lot.time_data?.[position]?.minute || ''
-                };
-                allRolls.push(roll);
-            });
-        });
-        // 2. Count occurrences of each unique defect_name (ignore empty/blank)
-        const defectCounts = {};
-        allRolls.forEach(roll => {
-            const defect = (roll.defect_name || '').trim();
-            if (defect) {
-                defectCounts[defect] = (defectCounts[defect] || 0) + 1;
-            }
-        });
-        // 3. Render the summary table beside the summary table, inside the same parent container
-        let summaryTable = document.getElementById('defectsSummaryTable');
-        let summaryTableContainer = document.getElementById('summaryTableContainer');
-        if (!summaryTableContainer) {
-            // Find the parent of the existing summary table (if any)
-            const existingSummary = document.querySelector('#dynamicSummaryTableContainer')?.parentNode;
-            summaryTableContainer = document.createElement('div');
-            summaryTableContainer.id = 'summaryTableContainer';
-            summaryTableContainer.style.display = 'flex';
-            summaryTableContainer.style.justifyContent = 'center';
-            summaryTableContainer.style.gap = '48px';
-            summaryTableContainer.style.margin = '32px auto 0 auto';
-            // Move the existing summary table into the container
-            const dynamicSummary = document.getElementById('dynamicSummaryTableContainer');
-            if (dynamicSummary && existingSummary) {
-                existingSummary.replaceChild(summaryTableContainer, dynamicSummary);
-                summaryTableContainer.appendChild(dynamicSummary);
-            } else {
-                document.body.appendChild(summaryTableContainer);
-            }
-        }
-        if (!summaryTable) {
-            summaryTable = document.createElement('table');
-            summaryTable.id = 'defectsSummaryTable';
-            summaryTable.className = 'min-w-[300px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white';
-        }
-        let html = '<thead><tr style="height: 30px;"><th style="border: 1px solid #9ca3af;">Total Defects</th><th style="border: 1px solid #9ca3af;">Count</th></tr></thead><tbody>';
-        if (Object.keys(defectCounts).length === 0) {
-            html += '<tr style="height: 30px;"><td colspan="2" style="border: 1px solid #9ca3af;">No defects found in this shift.</td></tr>';
-        } else {
-            Object.entries(defectCounts).forEach(([defect, count]) => {
-                html += `<tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">${defect}</td><td style="border: 1px solid #9ca3af;">${count}</td></tr>`;
-            });
-            }
-            html += '</tbody>';
-            summaryTable.innerHTML = html;
-            // Append the defects summary table to the container if not already present
-            if (!summaryTableContainer.contains(summaryTable)) {
-                summaryTableContainer.appendChild(summaryTable);
-            }
-        } catch (error) {
+        
+        // After all lots are loaded and tables are rendered, show summary tables
+        renderDefectsSummaryTable();
+        renderIPQCDefectsTable();
+        renderStatisticsTable();
+        renderProductionNoSummaryTable();
+        
+    } catch (error) {
             console.error('Error loading lots:', error);
         }
     }
@@ -4967,50 +4963,68 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
         // Count occurrences of each unique defect_name (ignore empty/blank)
         const defectCounts = {};
+        let totalDefects = 0;
         allRolls.forEach(roll => {
             const defect = (roll.defect_name || '').trim();
             if (defect) {
                 defectCounts[defect] = (defectCounts[defect] || 0) + 1;
+                totalDefects++;
             }
         });
+
+        // Calculate Defect %
+        const summary = calculateSummaryData();
+        const totalProduced = parseInt(summary.totalCount) || 0;
+        const defectPercent = totalProduced > 0 
+            ? ((totalDefects / totalProduced) * 100).toFixed(2) 
+            : '0.00';
+
         // Render the summary table beside the summary table, inside the same parent container
         let summaryTable = document.getElementById('defectsSummaryTable');
-        let summaryTableContainer = document.getElementById('summaryTableContainer');
-        if (!summaryTableContainer) {
-            // Find the parent of the existing summary table (if any)
-            const existingSummary = document.querySelector('#dynamicSummaryTableContainer')?.parentNode;
-            summaryTableContainer = document.createElement('div');
-            summaryTableContainer.id = 'summaryTableContainer';
-            summaryTableContainer.style.display = 'flex';
-            summaryTableContainer.style.justifyContent = 'center';
-            summaryTableContainer.style.gap = '48px';
-            summaryTableContainer.style.margin = '32px auto 0 auto';
-            // Move the existing summary table into the container
-            const dynamicSummary = document.getElementById('dynamicSummaryTableContainer');
-            if (dynamicSummary && existingSummary) {
-                existingSummary.replaceChild(summaryTableContainer, dynamicSummary);
-                summaryTableContainer.appendChild(dynamicSummary);
-            } else {
-                document.body.appendChild(summaryTableContainer);
-            }
-        }
+        const containers = ensureSummaryContainers();
+        if (!containers) return;
+        const topContainer = containers.top;
+
         if (!summaryTable) {
             summaryTable = document.createElement('table');
             summaryTable.id = 'defectsSummaryTable';
-            summaryTable.className = 'min-w-[300px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white';
+            summaryTable.className = 'min-w-[350px] w-auto text-xs text-center border-collapse border border-gray-700 bg-white';
         }
-        let html = '<thead><tr style="height: 30px;"><th style="border: 1px solid #9ca3af;">Total Defects</th><th style="border: 1px solid #9ca3af;">Count</th></tr></thead><tbody>';
-        if (Object.keys(defectCounts).length === 0) {
-            html += '<tr style="height: 30px;"><td colspan="2" style="border: 1px solid #9ca3af;">No defects found in this shift.</td></tr>';
+        
+        const defectEntries = Object.entries(defectCounts);
+        const rowCount = defectEntries.length || 1;
+        
+        let html = `
+            <thead>
+                <tr style="height: 30px;">
+                    <th style="border: 1px solid #9ca3af; width: 150px;">Total Defects</th>
+                    <th style="border: 1px solid #9ca3af; width: 80px;">Count</th>
+                    <th style="border: 1px solid #9ca3af; width: 100px;">Defect %</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+        if (defectEntries.length === 0) {
+            html += `
+                <tr style="height: 28px;">
+                    <td colspan="2" style="border: 1px solid #9ca3af;">No defects found in this shift.</td>
+                    <td style="border: 1px solid #9ca3af; font-weight: bold; background-color: #fffaf0; color: #9a3412;">${defectPercent}%</td>
+                </tr>
+            `;
         } else {
-            Object.entries(defectCounts).forEach(([defect, count]) => {
-                html += `<tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">${defect}</td><td style="border: 1px solid #9ca3af;">${count}</td></tr>`;
+            defectEntries.forEach(([defect, count], index) => {
+                html += `<tr style="height: 28px;"><td style="border: 1px solid #9ca3af;">${defect}</td><td style="border: 1px solid #9ca3af;">${count}</td>`;
+                if (index === 0) {
+                    html += `<td rowspan="${rowCount}" style="border: 1px solid #9ca3af; font-weight: bold; font-size: 14px; background-color: #fffaf0; color: #9a3412; vertical-align: middle;">${defectPercent}%</td>`;
+                }
+                html += '</tr>';
             });
         }
         html += '</tbody>';
         summaryTable.innerHTML = html;
-        if (!summaryTableContainer.contains(summaryTable)) {
-            summaryTableContainer.appendChild(summaryTable);
+        if (!topContainer.contains(summaryTable)) {
+            topContainer.appendChild(summaryTable);
         }
     }
 
@@ -5051,12 +5065,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             const firstRow = rows[0];
             const firstRowInspector = firstRow.querySelector('td[data-field="inspected_by"]')?.textContent.trim() || '';
             
-            // Table inspector check
-            
             // Only process this table's defects if first row inspector is from QC department
             if (firstRowInspector && qcInspectors.includes(firstRowInspector)) {
-                // Processing QC table // Debug log
-                
                 // Process all rows in this table
                 rows.forEach((row, rowIndex) => {
                     const rollData = {};
@@ -5074,16 +5084,14 @@ document.addEventListener('DOMContentLoaded', async function() {
                         ipqcDefectCounts[defect]++;
                     }
                 });
-            } else {
-                // Skipping non-QC table // Debug log
             }
         });
         
-        // IPQC Defect Counts
-        
         // Render the IPQC defects table
         let ipqcTable = document.getElementById('ipqcDefectsTable');
-        let summaryTableContainer = document.getElementById('summaryTableContainer');
+        const containers = ensureSummaryContainers();
+        if (!containers) return;
+        const bottomContainer = containers.bottom;
         
         if (!ipqcTable) {
             ipqcTable = document.createElement('table');
@@ -5093,40 +5101,18 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         let html = '<thead><tr style="height: 30px;"><th style="border: 1px solid #9ca3af;">IPQC Defects</th><th style="border: 1px solid #9ca3af;">Count</th></tr></thead><tbody>';
         if (Object.keys(ipqcDefectCounts).length === 0) {
-            html += '<tr style="height: 30px;"><td colspan="2" style="border: 1px solid #9ca3af;">No QC defects found in this shift.</td></tr>';
+            html += '<tr style="height: 28px;"><td colspan="2" style="border: 1px solid #9ca3af;">No QC defects found in this shift.</td></tr>';
         } else {
             Object.entries(ipqcDefectCounts).forEach(([defect, count]) => {
-                html += `<tr style="height: 30px;"><td style="border: 1px solid #9ca3af;">${defect}</td><td style="border: 1px solid #9ca3af;">${count}</td></tr>`;
+                html += `<tr style="height: 28px;"><td style="border: 1px solid #9ca3af;">${defect}</td><td style="border: 1px solid #9ca3af;">${count}</td></tr>`;
             });
         }
         html += '</tbody>';
         ipqcTable.innerHTML = html;
         
-        // Ensure summaryTableContainer exists
-        if (!summaryTableContainer) {
-            // Create summaryTableContainer if it doesn't exist
-            const existingSummary = document.querySelector('#dynamicSummaryTableContainer')?.parentNode;
-            summaryTableContainer = document.createElement('div');
-            summaryTableContainer.id = 'summaryTableContainer';
-            summaryTableContainer.style.display = 'flex';
-            summaryTableContainer.style.justifyContent = 'center';
-            summaryTableContainer.style.gap = '48px';
-            summaryTableContainer.style.margin = '32px auto 0 auto';
-            
-            if (existingSummary) {
-                const dynamicSummary = document.getElementById('dynamicSummaryTableContainer');
-                if (dynamicSummary) {
-                    existingSummary.replaceChild(summaryTableContainer, dynamicSummary);
-                    summaryTableContainer.appendChild(dynamicSummary);
-                }
-            } else {
-                document.body.appendChild(summaryTableContainer);
-            }
-        }
-        
-        // Add to the same container as the main defects table
-        if (summaryTableContainer && !summaryTableContainer.contains(ipqcTable)) {
-            summaryTableContainer.appendChild(ipqcTable);
+        // Add to the bottom container
+        if (bottomContainer && !bottomContainer.contains(ipqcTable)) {
+            bottomContainer.appendChild(ipqcTable);
         }
     }
     // Call this after loadAllLots
@@ -6037,7 +6023,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 <tr style="height: 30px;">
                     <th colspan="4" style="background-color: #f3f4f6; font-weight: bold; border: 1px solid #9ca3af;">Statistics</th>
                 </tr>
-                <tr style="height: 25px;">
+                <tr style="height: 30px;">
                     <th style="width: 80px; border: 1px solid #9ca3af;">Parameter</th>
                     <th style="width: 60px; border: 1px solid #9ca3af;">Min</th>
                     <th style="width: 60px; border: 1px solid #9ca3af;">Max</th>
@@ -6045,31 +6031,31 @@ document.addEventListener('DOMContentLoaded', async function() {
                 </tr>
             </thead>
             <tbody>
-                <tr style="height: 25px;">
+                <tr style="height: 28px;">
                     <td style="font-weight: bold; border: 1px solid #9ca3af;">Roll Weight</td>
                     <td style="border: 1px solid #9ca3af;">${stats.roll_weight.min.toFixed(2)}</td>
                     <td style="border: 1px solid #9ca3af;">${stats.roll_weight.max.toFixed(2)}</td>
                     <td style="border: 1px solid #9ca3af;">${stats.roll_weight.avg.toFixed(2)}</td>
                 </tr>
-                <tr style="height: 25px;">
+                <tr style="height: 28px;">
                     <td style="font-weight: bold; border: 1px solid #9ca3af;">Cut Width</td>
                     <td style="border: 1px solid #9ca3af;">${stats.cut_width.min.toFixed(0)}</td>
                     <td style="border: 1px solid #9ca3af;">${stats.cut_width.max.toFixed(0)}</td>
                     <td style="border: 1px solid #9ca3af;">${stats.cut_width.avg.toFixed(0)}</td>
                 </tr>
-                <tr style="height: 25px;">
+                <tr style="height: 28px;">
                     <td style="font-weight: bold; border: 1px solid #9ca3af;">GSM</td>
-                    <td style="border: 1px solid #9ca3af;">${stats.gsm.min.toFixed(2)}</td>
-                    <td style="border: 1px solid #9ca3af;">${stats.gsm.max.toFixed(2)}</td>
-                    <td style="border: 1px solid #9ca3af;">${stats.gsm.avg.toFixed(2)}</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.gsm.min.toFixed(1)}</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.gsm.max.toFixed(1)}</td>
+                    <td style="border: 1px solid #9ca3af;">${stats.gsm.avg.toFixed(1)}</td>
                 </tr>
-                <tr style="height: 25px;">
+                <tr style="height: 28px;">
                     <td style="font-weight: bold; border: 1px solid #9ca3af;">Roll θ</td>
                     <td style="border: 1px solid #9ca3af;">${stats.roll_dia.min.toFixed(0)}</td>
                     <td style="border: 1px solid #9ca3af;">${stats.roll_dia.max.toFixed(0)}</td>
                     <td style="border: 1px solid #9ca3af;">${stats.roll_dia.avg.toFixed(0)}</td>
                 </tr>
-                <tr style="height: 25px;">
+                <tr style="height: 28px;">
                     <td style="font-weight: bold; border: 1px solid #9ca3af;">Thickness</td>
                     <td style="border: 1px solid #9ca3af;">${stats.thickness.min.toFixed(0)}</td>
                     <td style="border: 1px solid #9ca3af;">${stats.thickness.max.toFixed(0)}</td>
@@ -6081,31 +6067,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         statsTable.innerHTML = html;
         
         // Add to summary table container
-        let summaryTableContainer = document.getElementById('summaryTableContainer');
-        if (!summaryTableContainer) {
-            // Create summaryTableContainer if it doesn't exist
-            const existingSummary = document.querySelector('#dynamicSummaryTableContainer')?.parentNode;
-            summaryTableContainer = document.createElement('div');
-            summaryTableContainer.id = 'summaryTableContainer';
-            summaryTableContainer.style.display = 'flex';
-            summaryTableContainer.style.justifyContent = 'center';
-            summaryTableContainer.style.gap = '48px';
-            summaryTableContainer.style.margin = '32px auto 0 auto';
-            
-            if (existingSummary) {
-                const dynamicSummary = document.getElementById('dynamicSummaryTableContainer');
-                if (dynamicSummary) {
-                    existingSummary.replaceChild(summaryTableContainer, dynamicSummary);
-                    summaryTableContainer.appendChild(dynamicSummary);
-                }
-            } else {
-                document.body.appendChild(summaryTableContainer);
-            }
-        }
+        const containers = ensureSummaryContainers();
+        if (!containers) return;
+        const bottomContainer = containers.bottom;
         
-        // Add statistics table at the end (right side)
-        if (summaryTableContainer && !summaryTableContainer.contains(statsTable)) {
-            summaryTableContainer.appendChild(statsTable);
+        // Add statistics table at the end of bottom container
+        if (bottomContainer && !bottomContainer.contains(statsTable)) {
+            bottomContainer.appendChild(statsTable);
         }
     }
 
@@ -6241,7 +6209,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Render the Production No summary table
         let productionNoTable = document.getElementById('productionNoSummaryTable');
-        let summaryTableContainer = document.getElementById('summaryTableContainer');
         
         if (!productionNoTable) {
             productionNoTable = document.createElement('table');
@@ -6254,7 +6221,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 <tr style="height: 30px;">
                     <th colspan="3" style="background-color: #f3f4f6; font-weight: bold; border: 1px solid #9ca3af;">Production No Summary</th>
                 </tr>
-                <tr style="height: 25px;">
+                <tr style="height: 30px;">
                     <th style="width: 120px; border: 1px solid #9ca3af;">Production No</th>
                     <th style="width: 60px; border: 1px solid #9ca3af;">Rolls</th>
                     <th style="width: 80px; border: 1px solid #9ca3af;">Total KG</th>
@@ -6264,11 +6231,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         `;
         
         if (Object.keys(productionNoData).length === 0) {
-            html += '<tr style="height: 25px;"><td colspan="3" style="border: 1px solid #9ca3af;">No Production No data found.</td></tr>';
+            html += '<tr style="height: 28px;"><td colspan="3" style="border: 1px solid #9ca3af;">No Production No data found.</td></tr>';
         } else {
             Object.entries(productionNoData).forEach(([productionNo, data]) => {
                 html += `
-                    <tr style="height: 25px;">
+                    <tr style="height: 28px;">
                         <td style="border: 1px solid #9ca3af;">${productionNo}</td>
                         <td style="border: 1px solid #9ca3af;">${data.rolls}</td>
                         <td style="border: 1px solid #9ca3af;">${data.totalKg.toFixed(2)}</td>
@@ -6281,8 +6248,18 @@ document.addEventListener('DOMContentLoaded', async function() {
         productionNoTable.innerHTML = html;
         
         // Add to summary table container
-        if (summaryTableContainer && !summaryTableContainer.contains(productionNoTable)) {
-            summaryTableContainer.appendChild(productionNoTable);
+        const containers = ensureSummaryContainers();
+        if (!containers) return;
+        const bottomContainer = containers.bottom;
+        
+        // Add to the bottom container (will appear before IPQC and Stats if they are already there)
+        if (bottomContainer && !bottomContainer.contains(productionNoTable)) {
+            // We want it as the first table in the bottom row
+            if (bottomContainer.firstChild) {
+                bottomContainer.insertBefore(productionNoTable, bottomContainer.firstChild);
+            } else {
+                bottomContainer.appendChild(productionNoTable);
+            }
         }
     }
 });
