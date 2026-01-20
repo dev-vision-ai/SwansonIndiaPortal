@@ -5,13 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Document Control Center</title>
     <link rel="icon" type="image/png" href="../assets/logo2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
     <link rel="stylesheet" href="../css/employee-dashboard.css">
     <link rel="stylesheet" href="../css/common-header.css">
     <link rel="stylesheet" href="../css/dcc.css">
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        /* Base font for the entire body */
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            padding-top: 60px; /* Space for fixed header */
+        }
+        /* Center the grid and cards */
+        .quick-action-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center; /* Center horizontally */
+            align-items: center;
+            margin: 0 auto; /* No top margin */
+            padding: 10px; /* Minimal padding */
+            max-width: 1200px;
+        }
+    </style>
 </head>
-<body>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium">
     <div class="header-container">
         <button type="button" class="header-back-button" onclick="window.location.href='employee-dashboard.html'">Back</button>
         <div class="header-title">Document Control Center (DCC)</div>
@@ -21,10 +41,7 @@
     </div>
 
     <!-- Main content area with background -->
-    <main class="w-full min-h-screen">
-        <div class="container">
-            <section class="dashboard-section">
-                <div class="quick-action-grid">
+    <div class="quick-action-grid">
                     <div class="action-card js-hide" data-department="All" onclick="location.href='../html/dcn-list.html'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-file-signature"></i>
@@ -60,14 +77,11 @@
                                 <h3>Document Review Form</h3>
                             </div>
                             <div class="action-card-description">
-                                <p>Document Control Center Review Form</p>
+                                <p>Document Control Center <br> Review Form</p>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section>
-        </div>
-    </main>
     
     <script type="module" src="../js/dcc.js"></script>
 </body>

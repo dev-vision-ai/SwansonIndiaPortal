@@ -18,16 +18,49 @@
             font-weight: 500;
             padding-top: 60px; /* Space for fixed header */
         }
-        /* Center the grid and cards */
+        /* Center the grid and cards (match DCC / My Forms) */
         .quick-action-grid {
             display: flex;
             flex-wrap: wrap;
             gap: 1.5rem;
-            justify-content: center; /* Center horizontally */
+            justify-content: center;
             align-items: center;
-            margin: 0 auto; /* No top margin */
-            padding: 10px; /* Minimal padding */
+            margin: 0 auto 1.5rem;
+            padding: 10px;
             max-width: 1200px;
+            width: 100%;
+        }
+
+        .action-card-heading {
+            font-size: 0.75rem !important;
+            font-weight: 400 !important;
+        }
+
+        .action-card-heading h3 {
+            font-weight: 600 !important;
+        }
+
+        .action-card-description {
+            font-size: 0.65rem !important;
+            font-weight: 500 !important;
+        }
+
+        @media (max-width: 768px) {
+            .action-card-heading,
+            .action-card-heading h3,
+            .action-card-description,
+            .action-card-description p {
+                font-size: 0.7rem !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .action-card-heading {
+                font-size: 0.65rem !important;
+            }
+            .action-card-description {
+                font-size: 0.6rem !important;
+            }
         }
     </style>
 </head>
@@ -51,7 +84,7 @@
                                 <h3>Maintenance Job Requisition (MJR)</h3>
                             </div>
                             <div class="action-card-description">
-                                <p>Submit Maintenance Job Requests</p>
+                                <p>Submit Maintenance Job <br> Requests</p>
                             </div>
                         </div>
                     </div>
@@ -81,7 +114,7 @@
                                 <h3>Machine History Card</h3>
                             </div>
                             <div class="action-card-description">
-                                <p>View Equipment Breakdown History</p>
+                                <p>View Equipment Breakdown <br> History</p>
                             </div>
                         </div>
                     </div>
@@ -96,7 +129,7 @@
                                 <h3>Machines & Equipments <br> Master</h3>
                             </div>
                             <div class="action-card-description">
-                                <p>Manage Equipment Master Data</p>
+                                <p>Manage Equipment <br> Master Data</p>
                             </div>
                         </div>
                     </div>

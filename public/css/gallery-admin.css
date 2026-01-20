@@ -1,6 +1,4 @@
-/* Base styles copied from admin_adhr.css for consistency */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
+/* Base styles for consistency with DCC/Job Posting */
 :root {
     --primary-gradient: linear-gradient(45deg, #002E7D, #0046C7);
     --accent-color: #002E7D;
@@ -14,17 +12,22 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
     margin: 0;
-    background-color: #eaf1fa;
-    background-image: url('data:image/svg+xml;utf8,<svg width="60" height="30" viewBox="0 0 60 30" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><circle cx="45" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><line x1="25" y1="15" x2="35" y2="15" stroke="%2399aabb" stroke-width="1" opacity="0.10"/></svg>');
-    background-size: 60px 30px;
-    background-repeat: repeat;
-    min-height: 100vh; 
-    color: #333;
-    padding-top: 70px; /* Match header height */
+    padding-top: 60px; /* Match header height */
+    min-height: 100vh;
 }
 
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 0.75rem 1rem;
+}
+
+.header-container {
+    margin-bottom: 0;
+}
 
 .user-info {
     display: flex; /* Ensure button and name are side-by-side */
@@ -36,8 +39,12 @@ body {
     margin-left: 10px; /* Space between button and name */
 }
 
-main {
-    padding: 20px;
+/* Page title styling matching Job Posting MGMT */
+h2 {
+    text-align: center;
+    font-size: 1.15rem; /* Slightly larger for gallery title */
+    margin: 1rem auto;
+    font-weight: 600;
 }
 
 .admin-form {
@@ -48,10 +55,10 @@ main {
 /* Styles for distinct sections */
 .content-section {
     background-color: var(--card-bg, #ffffff);
-    padding: 25px;
+    padding: 20px;
     border-radius: 8px;
     box-shadow: var(--shadow-md, 0 4px 10px rgba(0, 0, 0, 0.15));
-    margin-bottom: 30px; /* Space between sections */
+    margin-bottom: 20px; /* Space between sections */
     /* Default: full width */
     margin-left: 0;
     margin-right: 0;
@@ -59,11 +66,11 @@ main {
 
 .content-section h4 {
     margin-top: 0;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     color: var(--accent-color);
     border-bottom: 2px solid var(--accent-color);
-    padding-bottom: 10px;
-    font-size: 1.3rem; /* Slightly larger heading */
+    padding-bottom: 8px;
+    font-size: 1.15rem; /* Slightly smaller heading */
     font-weight: 600;
 }
 
@@ -102,8 +109,9 @@ hr {
 
 .form-group label {
     display: block;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.35rem;
     font-weight: 500;
+    font-size: 0.85rem;
     color: var(--text-dark, #2D3436);
 }
 
@@ -112,12 +120,12 @@ hr {
 .form-group textarea,
 .form-group select {
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.6rem;
     border: 1px solid var(--border-color, #ddd); 
     border-radius: 4px;
     box-sizing: border-box; 
     font-family: inherit; 
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     transition: border-color 0.2s ease-in-out;
 }
 
@@ -137,8 +145,8 @@ hr {
 
 .btn {
     display: inline-block;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.9rem;
     font-weight: 500;
     text-align: center;
     text-decoration: none;
@@ -147,7 +155,7 @@ hr {
     cursor: pointer;
     transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, opacity 0.2s ease-in-out;
     color: white;
-    line-height: 1.5; 
+    line-height: normal; 
 }
 
 .btn:hover {
@@ -204,8 +212,8 @@ hr {
 /* Styles for the album items */
 .album-item {
     border: 1px solid var(--border-color, #eee);
-    padding: 15px;
-    margin-bottom: 15px;
+    padding: 12px;
+    margin-bottom: 10px;
     border-radius: 6px;
     background-color: #fff;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
@@ -228,7 +236,7 @@ hr {
 .image-item {
     border: 1px solid var(--border-color, #eee);
     border-radius: 4px;
-    padding: 10px;
+    padding: 8px;
     text-align: center;
     background-color: #f9f9f9;
 }
@@ -273,17 +281,16 @@ hr {
 
 .modal-content {
     background-color: #fefefe;
-    margin: 10% auto; /* Adjust top margin (e.g., 5% or less) if you want it higher */
-    padding: 25px;
+    margin: 5% auto; /* Slightly higher */
+    padding: 20px;
     border: 1px solid #888;
     width: 90%; 
-    max-width: 920px; /* Your increased width */
-    min-height: 400px; /* Added: Minimum height - adjust as needed */
+    max-width: 800px; /* Scaled down from 920px */
     border-radius: 8px;
     position: relative; 
-    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
-    display: flex; /* Optional: Use flexbox for better internal layout */
-    flex-direction: column; /* Optional: Stack content vertically */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column; 
 }
 
 /* The Close Button */

@@ -23,28 +23,37 @@ function renderTable(data) {
     }
 
     if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">No incidents found for the current criteria.</td></tr>';
+        const colCount = 10; // Updated column count
+        tbody.innerHTML = `<tr><td colspan="${colCount}" class="text-center py-4">No incidents found for the current criteria.</td></tr>`;
         return;
     }
 
     tbody.innerHTML = data.map((incident, idx) => {
         const incidentDate = incident.incident_date ? new Date(incident.incident_date).toLocaleDateString() : 'N/A';
         const incidentNo = getIncidentNo(incident, idx);
+        
+        // Status badge styling
+        const statusClass = incident.status === 'Draft' 
+            ? 'bg-yellow-100 text-yellow-800' 
+            : 'bg-green-100 text-green-800';
+
         return `
             <tr>
                 <td>${incidentNo}</td>
                 <td>${incidentDate}</td>
                 <td>${incident.user_name || 'Unknown'}</td>
                 <td>${incident.users?.department || incident.user_department || 'N/A'}</td>
-                <td class="description-cell">${incident.description || 'No Description'}</td>
-                <td>${incident.department || incident.responsibledept || 'N/A'}</td>
                 <td>${incident.incident_type || 'N/A'}</td>
+                <td class="text-left">${incident.description || 'No Description'}</td>
+                <td>${incident.department || incident.responsibledept || 'N/A'}</td>
+                <td>${incident.severity || 'N/A'}</td>
+                <td><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${statusClass}">${incident.status || 'Submitted'}</span></td>
                 <td class="actions-cell">
                   ${incident.status === 'Draft' 
-                    ? `<a href="safety-incident.html?draft_id=${incident.id}" class="action-btn edit-btn">Edit Draft</a>`
+                    ? `<a href="safety-incident.html?draft_id=${incident.id}" class="action-btn-new edit-btn-new">Edit Draft</a>`
                     : `<div class="action-buttons-container">
-                         <a href="safety-incident-actions.html?id=${incident.id}&mode=view" class="action-btn view-btn">View</a>
-                         ${!isEmployeeTable ? `<a href="safety-incident-actions.html?id=${incident.id}&mode=edit" class="action-btn edit-btn">Edit</a>` : ''}
+                         <a href="safety-incident-actions.html?id=${incident.id}&mode=view" class="action-btn-new view-btn-new">View</a>
+                         ${!isEmployeeTable ? `<a href="safety-incident-actions.html?id=${incident.id}&mode=edit" class="action-btn-new edit-btn-new">Edit</a>` : ''}
                        </div>`
                   }
                 </td>
@@ -152,6 +161,7 @@ async function fetchDraftSafetyIncidents() {
         return data.map(draft => ({
             ...draft,
             user_name: draft.users ? draft.users.full_name : 'Unknown',
+            user_department: draft.users ? draft.users.department : 'N/A',
             status: 'Draft' // Add a status to differentiate drafts
         }));
 
@@ -202,6 +212,7 @@ async function fetchLatestIncidents() {
         const submittedIncidents = data.map(incident => ({
             ...incident,
             user_name: incident.users ? incident.users.full_name : 'Unknown',
+            user_department: incident.users ? incident.users.department : 'N/A',
             status: 'Submitted' // Add a status to differentiate submitted incidents
         }));
 

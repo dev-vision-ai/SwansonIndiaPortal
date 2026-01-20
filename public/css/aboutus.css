@@ -96,26 +96,38 @@
     .gm-message-content {
         flex-direction: column;
         text-align: center;
-        gap: 3rem;
+        gap: 2rem;
+        padding: 1rem 0;
     }
     .gm-img-wrapper {
         flex-basis: auto;
-        width: 280px;
+        width: 100%;
+        max-width: 320px;
         margin: 0 auto;
     }
     .message-text p {
         padding-left: 0;
+        font-size: 1.15rem;
     }
     .message-text p::before {
         left: 50%;
         transform: translateX(-50%);
-        top: -2rem;
+        top: -1.5rem;
+        font-size: 4rem;
+    }
+    .gm-signature {
+        margin-top: 2rem;
     }
 }
 
 /* --- Mission & Vision --- */
 .mv-box {
     padding: 2rem 0;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
 }
 
 .mv-icon {
@@ -137,13 +149,84 @@
     line-height: 1.8;
     color: var(--text);
     max-width: 600px;
+    margin: 0 auto;
 }
 
 @media (max-width: 768px) {
-    .mv-box {
-        text-align: center;
+    .hero-mini {
+        height: auto;
+        min-height: 350px;
+        padding: 120px 1.5rem 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
+    
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+
+    .gm-img-wrapper {
+        max-width: 260px;
+    }
+
+    .grid-3 {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem;
+    }
+
+    #journey .grid-2 {
+        text-align: center;
+        gap: 2rem;
+    }
+
+    .mv-box {
+        padding: 1.5rem 0;
+    }
+    
+    .mv-icon {
+        font-size: 2.8rem;
+    }
+
+    .mv-box h3 {
+        font-size: 1.75rem;
+    }
+
     .mv-box p {
-        margin: 0 auto;
+        font-size: 1.05rem;
+    }
+
+    .gm-signature h4 {
+        font-size: 1.4rem;
+    }
+
+    .section-header {
+        margin-bottom: 2.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-content h1 {
+        font-size: 2.2rem;
+    }
+    
+    .message-text p {
+        font-size: 1.05rem;
+    }
+
+    .gm-img-wrapper {
+        max-width: 220px;
+    }
+
+    h2 {
+        font-size: 1.8rem !important;
+    }
+
+    .gm-signature {
+        padding-top: 1.5rem;
+    }
+
+    .gm-signature h4 {
+        font-size: 1.3rem;
     }
 }

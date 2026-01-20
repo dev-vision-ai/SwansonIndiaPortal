@@ -50,21 +50,60 @@
 }
 
 /* Specific styling for job cards if they exist */
-.job-card {
-    background: var(--white);
-    padding: 2rem;
-    border-radius: 16px;
-    margin-bottom: 2rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: var(--transition);
+.job-card.modern-card {
+    text-align: left;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 2.5rem;
+    margin-bottom: 2.5rem;
+    height: auto;
 }
 
-.job-card:hover {
-    box-shadow: 0 20px 40px rgba(0, 46, 125, 0.12);
-    border-color: var(--accent);
+.job-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.job-title-area h3 {
+    margin-bottom: 0.25rem;
+    font-size: 1.75rem;
+    color: var(--primary);
+}
+
+.job-department {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+    opacity: 0.8;
+}
+
+.job-meta {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 1rem;
+    padding: 1.5rem 0;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+    align-items: flex-start;
+}
+
+.job-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex: 1;
+    min-width: 120px;
+    white-space: nowrap;
+}
+
+.job-description {
+    margin-bottom: 1rem;
+    flex: 1;
 }
 
 .employment-pill {
@@ -91,10 +130,6 @@
 .employment-pill.full-time {
     background: rgba(34, 197, 94, 0.12);
     color: #15803d;
-}
-
-.job-description {
-    margin-bottom: 1rem;
 }
 
 .job-description p {
@@ -131,20 +166,10 @@
     padding: 0;
 }
 
-.job-info h3 {
-    margin-bottom: 0.5rem;
-    color: var(--primary);
-}
-
-.job-meta {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1.25rem;
-}
-
 .job-meta-item {
     display: flex;
     flex-direction: column;
+    gap: 0.5rem;
 }
 
 .meta-label {
@@ -152,22 +177,134 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--primary);
-    margin-bottom: 0.25rem;
+    font-weight: 600;
+    margin-bottom: 0;
 }
 
 .meta-value {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.4rem;
     font-size: 0.95rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--text);
 }
 
+.job-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #eee;
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+    width: 100%;
+}
+
+.job-salary-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.salary-range {
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 1rem;
+}
+
+.positions-count {
+    color: var(--text);
+    opacity: 0.7;
+    font-size: 0.85rem;
+}
+
+.apply-btn {
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+@media (max-width: 992px) {
+    .job-meta {
+        flex-wrap: wrap;
+    }
+    .job-meta-item {
+        flex: 0 1 calc(50% - 0.5rem);
+        min-width: 140px;
+    }
+}
+
 @media (max-width: 768px) {
-    .job-card {
+    .hero-mini {
+        height: auto;
+        min-height: 350px;
+        padding: 120px 1.5rem 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+
+    .job-card.modern-card {
+        padding: 1.5rem;
+        margin-left: -1.0rem;
+        margin-right: -1.0rem;
+    }
+
+    .job-card-header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .job-meta {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .job-meta-item {
+        flex: 1 1 100%;
+        min-width: 100%;
+        white-space: normal;
+    }
+
+    .job-card-footer {
+        flex-direction: column;
+        align-items: stretch;
         gap: 1.5rem;
+    }
+
+    .apply-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .section-header {
+        margin-bottom: 2rem;
+    }
+
+    .grid-3 {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-content h1 {
+        font-size: 2.2rem;
+    }
+
+    .no-jobs-message {
+        padding: 2rem 1rem;
+    }
+
+    .job-info h3 {
+        font-size: 1.4rem;
+    }
+
+    .meta-value {
+        font-size: 0.85rem;
     }
 }

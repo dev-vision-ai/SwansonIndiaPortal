@@ -59,7 +59,14 @@ function renderTable(data) {
                 <td>${alert.responsibledept || 'N/A'}</td>
                 <td>${alert.abnormalitytype || 'N/A'}</td>
                 <td>${alert.status || 'N/A'}</td>
-                <td><a href="${alert.status === 'Draft' ? 'quality-alert.html' : 'quality-alerts-actions.html'}?id=${alert.id}&action=${alert.status === 'Draft' ? 'edit' : 'view'}&from=emp-quality-alerts-table" class="action-link">${alert.status === 'Draft' ? 'Edit Draft' : 'View Actions'}</a></td>
+                <td class="actions-cell">
+                    <div class="action-buttons-container">
+                        <a href="${alert.status === 'Draft' ? 'quality-alert.html' : 'quality-alerts-actions.html'}?id=${alert.id}&action=${alert.status === 'Draft' ? 'edit' : 'view'}&from=emp-quality-alerts-table" 
+                           class="action-btn-new ${alert.status === 'Draft' ? 'edit-btn-new' : 'view-btn-new'}">
+                            ${alert.status === 'Draft' ? 'Edit' : 'View'}
+                        </a>
+                    </div>
+                </td>
             </tr>
         `;
     }).join('');

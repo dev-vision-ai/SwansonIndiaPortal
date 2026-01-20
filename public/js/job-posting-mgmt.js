@@ -28,7 +28,7 @@ async function loadJobPostings() {
     // Set loading state in tbody if it exists
     const tbody = jobListTableContainer.querySelector('tbody');
     if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="13" style="text-align: center; padding: 20px; color: #777; font-style: italic;">Loading jobs...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="14" style="text-align: center; padding: 20px; color: #777; font-style: italic;">Loading jobs...</td></tr>';
     } else {
         jobListTableContainer.innerHTML = '<p>Loading jobs...</p>';
     }
@@ -49,7 +49,7 @@ async function loadJobPostings() {
         console.error('Error fetching job postings:', error);
         const errorMsg = `<p style="color: red;">Error loading jobs: ${error.message}</p>`;
         if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="13" style="text-align: center; padding: 20px; color: red;">Error loading jobs: ${error.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="14" style="text-align: center; padding: 20px; color: red;">Error loading jobs: ${error.message}</td></tr>`;
         } else {
             jobListTableContainer.innerHTML = errorMsg;
         }
@@ -65,12 +65,13 @@ function renderJobTable(jobs) {
                 <thead>
                     <tr>
                         <th>Title</th>
+                        <th>Preferable</th>
                         <th>Location</th>
                         <th>Salary</th>
                         <th>Experience</th>
                         <th>Qualification</th>
                         <th>Vacant Positions</th>
-                        <th>Enrollment Type</th>
+                        <th>Employment Type</th>
                         <th>Department</th>
                         <th>Duration</th>
                         <th>Status</th>
@@ -99,6 +100,7 @@ function renderJobTable(jobs) {
             tableHTML += `
                 <tr data-id="${job.id}">
                     <td>${escapeHTML(job.title)}</td>
+                    <td>${escapeHTML(job.gender_preference || 'Any')}</td>
                     <td>${escapeHTML(job.location || '')}</td>
                     <td>${escapeHTML(job.salary_range || '')}</td>
                     <td>${escapeHTML(job.experience_needed || '')}</td>
@@ -111,8 +113,16 @@ function renderJobTable(jobs) {
                     <td>${applyBeforeDate}</td>
                     <td>${createdAtDate}</td>
                     <td>
-                        <button class="edit-btn btn btn-sm btn-warning" data-id="${job.id}">Edit</button>
-                        <button class="delete-btn btn btn-sm btn-danger" data-id="${job.id}">Delete</button>
+                        <button class="p-1 rounded-md bg-purple-50 hover:bg-purple-100 text-purple-600 hover:text-purple-800 transition-all duration-200 border border-purple-200 hover:border-purple-300 flex-shrink-0 edit-btn" data-id="${job.id}" title="Edit Job Posting">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                            </svg>
+                        </button>
+                        <button class="p-1 rounded-md bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition-all duration-200 border border-red-200 hover:border-red-300 flex-shrink-0 delete-btn" data-id="${job.id}" title="Delete Job Posting">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
                     </td>
                 </tr>
             `;
@@ -126,7 +136,7 @@ function renderJobTable(jobs) {
     // If tbody exists, just update the rows
     let tbodyHTML = '';
     if (jobs.length === 0) {
-        tbodyHTML = '<tr><td colspan="13" style="text-align: center; padding: 20px; color: #777; font-style: italic;">No job postings found.</td></tr>';
+        tbodyHTML = '<tr><td colspan="14" style="text-align: center; padding: 20px; color: #777; font-style: italic;">No job postings found.</td></tr>';
     } else {
         jobs.forEach(job => {
             // Format dates using 'en-GB' locale for DD/MM/YYYY
@@ -146,6 +156,7 @@ function renderJobTable(jobs) {
             tbodyHTML += `
                 <tr data-id="${job.id}">
                     <td>${escapeHTML(job.title)}</td>
+                    <td>${escapeHTML(job.gender_preference || 'Any')}</td>
                     <td>${escapeHTML(job.location || '')}</td>
                     <td>${escapeHTML(job.salary_range || '')}</td>
                     <td>${escapeHTML(job.experience_needed || '')}</td>
@@ -158,8 +169,16 @@ function renderJobTable(jobs) {
                     <td>${applyBeforeDate}</td>
                     <td>${createdAtDate}</td>
                     <td>
-                        <button class="edit-btn btn btn-sm btn-warning" data-id="${job.id}">Edit</button>
-                        <button class="delete-btn btn btn-sm btn-danger" data-id="${job.id}">Delete</button>
+                        <button class="p-1 rounded-md bg-purple-50 hover:bg-purple-100 text-purple-600 hover:text-purple-800 transition-all duration-200 border border-purple-200 hover:border-purple-300 flex-shrink-0 edit-btn" data-id="${job.id}" title="Edit Job Posting">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                            </svg>
+                        </button>
+                        <button class="p-1 rounded-md bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition-all duration-200 border border-red-200 hover:border-red-300 flex-shrink-0 delete-btn" data-id="${job.id}" title="Delete Job Posting">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
                     </td>
                 </tr>
             `;
@@ -186,6 +205,7 @@ function populateFormForEdit(job) {
     document.getElementById('job-qualification').value = job.qualification || ''; // <<< ADD THIS LINE >>>
     // --- ADD NEW FIELDS --- 
     document.getElementById('num-positions').value = job.num_positions || '';
+    document.getElementById('gender-preference').value = job.gender_preference || 'Any';
     document.getElementById('employment-type').value = job.employment_type || 'Full-time'; // Default if null
     document.getElementById('department').value = job.department || '';
     document.getElementById('program-duration').value = job.program_duration || '';
@@ -220,6 +240,7 @@ function clearForm() {
     document.getElementById('employment-type').value = 'Full-time'; // Reset select to default
     document.getElementById('department').value = '';
     document.getElementById('program-duration').value = '';
+    document.getElementById('gender-preference').value = 'Any';
 
     // Reset editing state
     editingJobId = null;
@@ -243,6 +264,7 @@ async function handleFormSubmit(event) {
         qualification: document.getElementById('job-qualification').value, // <<< THIS LINE WAS MISSING >>>
         // --- ADD NEW FIELDS --- 
         num_positions: parseInt(document.getElementById('num-positions').value) || null, 
+        gender_preference: document.getElementById('gender-preference').value,
         employment_type: document.getElementById('employment-type').value,
         department: document.getElementById('department').value,
         program_duration: document.getElementById('program-duration').value,
@@ -368,9 +390,11 @@ function setupEventListeners() {
     if (jobListTableContainer) {
         jobListTableContainer.addEventListener('click', async (event) => {
             const target = event.target;
+            const editBtn = target.closest('.edit-btn');
+            const deleteBtn = target.closest('.delete-btn');
             const jobId = target.closest('tr')?.dataset.id; // Get ID from parent row
 
-            if (target.classList.contains('edit-btn') && jobId) {
+            if (editBtn && jobId) {
                 // Fetch the specific job details for editing
                 try {
                     const { data: job, error } = await supabase
@@ -388,7 +412,7 @@ function setupEventListeners() {
                     console.error('Error fetching job details for edit:', error);
                     alert(`Error loading job details: ${error.message}`);
                 }
-            } else if (target.classList.contains('delete-btn') && jobId) {
+            } else if (deleteBtn && jobId) {
                 handleDeleteJob(jobId);
             }
         });

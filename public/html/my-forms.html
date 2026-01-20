@@ -6,29 +6,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>My Forms</title>
     <link rel="icon" type="image/png" href="../assets/logo2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
     <link rel="stylesheet" href="../css/employee-dashboard.css">
     <link rel="stylesheet" href="../css/common-header.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
     <style>
+        /* Base font for the entire body */
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            padding-top: 60px; /* Space for fixed header */
+        }
         .page-fade-in {
             opacity: 1;
         }
-        .my-forms-action-grid {
+
+        /* Override Tailwind's container class conflict and center layout */
+        .container {
+            max-width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .dashboard-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Center the grid and cards */
+        .quick-action-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 32px;
-            justify-content: flex-start;
-            margin-top: 32px;
-            margin-left: 20px;
+            gap: 1.5rem;
+            justify-content: center; /* Center horizontally */
+            align-items: center;
+            margin: 0 auto 1.5rem !important;
+            padding: 10px;
+            max-width: 1200px;
+            width: 100%;
         }
-        @media (max-width: 900px) {
-            .my-forms-action-grid {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 20px;
-                margin-left: 0;
+
+        /* Align card font sizes with DCC */
+        .action-card-heading {
+            font-size: 0.75rem !important;
+            font-weight: 400 !important;
+        }
+
+        .action-card-heading h3 {
+            font-weight: 600 !important;
+        }
+
+        .action-card-description {
+            font-size: 0.65rem !important;
+            font-weight: 500 !important;
+        }
+
+        /* Responsive tweaks to match DCC */
+        @media (max-width: 768px) {
+            .action-card-heading,
+            .action-card-heading h3,
+            .action-card-description,
+            .action-card-description p {
+                font-size: 0.7rem !important;
             }
         }
+
+        @media (max-width: 480px) {
+            .action-card-heading {
+                font-size: 0.65rem !important;
+            }
+            .action-card-description {
+                font-size: 0.6rem !important;
+            }
+        }
+
         .dynamic-table-container {
             display: none;
             width: 100%;
@@ -39,48 +97,47 @@
         }
     </style>
 </head>
-<body>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium">
+    <div class="header-container">
+        <button type="button" class="header-back-button" onclick="myFormsBack()">Back</button>
+        <div class="header-title">My Forms</div>
+        <div class="company-logo">
+            <a href="../index.html">
+                <img src="../assets/logo.png" alt="Company Logo" style="border: 1px solid white;">
+            </a>
+        </div>
+    </div>
+    <div class="quick-action-grid" id="myFormsQuickActions">
+        <a href="emp-safety-incidents-table.html" class="action-card" id="safetyQuickAction" style="text-decoration:none; color:inherit;">
+            <div class="action-card-icon-circle">
+                <i class="fas fa-hard-hat"></i>
+            </div>
+            <div class="action-card-content">
+                <div class="action-card-heading">
+                    <h3>Safety Incidents Forms</h3>
+                </div>
+                <div class="action-card-description">
+                    <p>View your safety incident <br> reports and drafts</p>
+                </div>
+            </div>
+        </a>
+        <a href="emp-quality-alerts-table.html" class="action-card" id="qualityQuickAction" style="text-decoration:none; color:inherit;">
+            <div class="action-card-icon-circle">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div class="action-card-content">
+                <div class="action-card-heading">
+                    <h3>Quality Alerts Forms</h3>
+                </div>
+                <div class="action-card-description">
+                    <p>View your quality alerts <br> and drafts</p>
+                </div>
+            </div>
+        </a>
+    </div>
     <main>
         <div class="container page-fade-in">
             <section class="dashboard-section">
-                <div class="header-container header-fade-in">
-                    <button type="button" class="header-back-button" onclick="myFormsBack()">Back</button>
-                    <div class="left-section" style="display: flex; align-items: center; gap: 16px;">
-                    </div>
-                    <div class="header-title">My Forms</div>
-                    <div class="company-logo">
-                        <img src="../assets/logo.png" alt="Company Logo" class="auth-logo">
-                    </div>
-                </div>
-                <!-- Quick Action Cards -->
-                <div class="quick-action-grid" id="myFormsQuickActions">
-                    <a href="emp-safety-incidents-table.html" class="action-card" id="safetyQuickAction" style="text-decoration:none; color:inherit;">
-                        <div class="action-card-icon-circle">
-                            <i class="fas fa-hard-hat"></i>
-                        </div>
-                        <div class="action-card-content">
-                            <div class="action-card-heading">
-                                <h3>Safety Incidents Forms</h3>
-                            </div>
-                            <div class="action-card-description">
-                                <p>View your safety incident reports and drafts</p>
-                            </div>
-                        </div>
-                    </a>
-                    <a href="emp-quality-alerts-table.html" class="action-card" id="qualityQuickAction" style="text-decoration:none; color:inherit;">
-                        <div class="action-card-icon-circle">
-                            <i class="fas fa-exclamation-circle"></i>
-                        </div>
-                        <div class="action-card-content">
-                            <div class="action-card-heading">
-                                <h3>Quality Alerts Forms</h3>
-                            </div>
-                            <div class="action-card-description">
-                                <p>View your quality alerts and drafts</p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
                 <!-- Dynamic Table Containers -->
                 <div id="safetyTableContainer" class="dynamic-table-container">
                     <div id="safetyTableContent"></div>
@@ -91,8 +148,9 @@
             </section>
         </div>
     </main>
-    <footer class="footer" style="position: fixed; bottom: 0; width: 100%; background-color: rgba(255, 255, 255, 0.0);">
+    <footer class="footer" style="position: fixed; bottom: 0; width: 100%; background-color: rgba(255, 255, 255, 0.05); backdrop-filter: blur(4px);">
         <div class="footer-content" style="text-align: center; padding: 6.5px;">
+            <p style="margin: 0; font-size: 0.75rem; color: #666;">&copy;2026-2027 Swanson Plastics India Pvt. Ltd. All rights reserved.</p>
         </div>
     </footer>
     <script type="module" src="../js/my-forms.js"></script>

@@ -6,55 +6,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Employee Quality Alerts Table</title>
     <link rel="icon" type="image/png" href="../assets/logo2.png">
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
   
   <link rel="stylesheet" href="../css/employee-dashboard.css">
   <link rel="stylesheet" href="../css/common-header.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
   <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
+      padding-top: 60px;
+      margin: 0;
+    }
+    .header-container {
+      margin-bottom: 0;
+    }
+    
     .page-fade-in {
       opacity: 1;
     }
     
-    
     /* Compact styling for smaller content */
-    .container {
-      padding-top: 1rem !important;
-    }
-    
     .quality-alerts-container {
-      padding: 1rem !important;
-      margin-top: 1.0rem !important;
+      padding: 0 1rem 1rem !important;
+      margin: 0 !important;
+      width: 100%;
+      max-width: none !important;
+      box-sizing: border-box;
     }
     
     .quality-alerts-container h2 {
       font-size: 1.1rem !important;
       margin-bottom: 0.75rem !important;
-    }
-    
-    .filter-controls {
-      margin-bottom: 0.75rem !important;
-      gap: 0.5rem !important;
-    }
-    
-    .filter-controls span {
-      font-size: 0.8rem !important;
-      margin-bottom: 0.25rem !important;
-    }
-    
-    .filter-input, .filter-select {
-      font-size: 0.8rem !important;
-      padding: 0.25rem 0.5rem !important;
-      height: 1.75rem !important;
-      min-width: 0 !important;
-      width: auto !important;
-      margin-bottom: 0.25rem !important;
-    }
-    
-    .filter-btn {
-      font-size: 0.8rem !important;
-      padding: 0.25rem 0.5rem !important;
-      height: 1.75rem !important;
-      margin-bottom: 0.25rem !important;
     }
     
     table {
@@ -76,58 +60,121 @@
     .quality-alerts-container table {
       border-radius: 0 !important;
     }
+
+    /* Scoped action buttons with unique classes to prevent conflicts */
+    .quality-alerts-container .action-btn-new {
+      padding: 6px 12px !important;
+      margin: 0 !important;
+      border: none !important;
+      border-radius: 4px !important;
+      cursor: pointer !important;
+      font-size: 0.75rem !important;
+      transition: 0.3s ease !important;
+      text-decoration: none !important;
+      display: inline-block !important;
+      min-width: 60px !important;
+      text-align: center !important;
+      white-space: nowrap !important;
+      box-sizing: border-box !important;
+      font-weight: 500 !important;
+      height: 26px !important;
+      line-height: 1.2 !important;
+    }
+
+    .quality-alerts-container .view-btn-new {
+      background-color: #002E7D !important;
+      color: white !important;
+    }
+
+    .quality-alerts-container .view-btn-new:hover {
+      background-color: #001f4d !important;
+      color: white !important;
+    }
+
+    .quality-alerts-container .edit-btn-new {
+      background-color: #28a745 !important;
+      color: white !important;
+    }
+
+    .quality-alerts-container .edit-btn-new:hover {
+      background-color: #218838 !important;
+      color: white !important;
+    }
+
+    .quality-alerts-container .action-buttons-container {
+      display: flex !important;
+      flex-direction: row !important;
+      justify-content: center !important;
+      align-items: center !important;
+      gap: 8px !important;
+      flex-wrap: wrap !important;
+    }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-900">
-  
-  <div class="header-container centered-layout">
+<body class="bg-gray-100 text-gray-900 font-roboto-medium">
+  <div class="header-container">
     <button type="button" class="header-back-button" onclick="window.location.href='my-forms.html';">Back</button>
     <div class="header-title">Quality Alerts Table</div>
     <div class="company-logo">
-        <img src="../assets/logo.png" class="auth-logo" alt="Logo"/>
+        <a href="../index.html">
+            <img src="../assets/logo.png" class="auth-logo" alt="Logo"/>
+        </a>
     </div>
   </div>
-
-  <div class="container page-fade-in">
-    <div class="quality-alerts-container p-4">
+  <div class="quality-alerts-container p-4">
       <h2 class="text-lg font-semibold mb-3 text-center">All Your Reported Quality Alerts</h2>
-      <!-- Filter Controls -->
-      <div class="filter-controls mb-3 flex justify-center space-x-3">
-        <span class="text-xs font-medium">Sort or Filter Alerts:</span>
-        <input type="date" id="filterDate" class="filter-input border rounded px-2 py-1" placeholder="Filter by Date">
-        <select id="filterDept" class="filter-select border rounded px-2 py-1">
-          <option value="">Filter by Responsible Dept.</option>
-          <option value="Production">Production</option>
-          <option value="Quality Control">Quality Control</option>
-          <option value="Administration">Administration</option>
-          <option value="Quality Assurance">Quality Assurance</option>
-          <option value="Sales">Sales</option>
-          <option value="Human Resource">Human Resource</option>
-          <option value="Warehouse">Warehouse</option>
-          <option value="Logistics">Logistics</option>
-          <option value="Purchase">Purchase</option>
-          <option value="Maintenance">Maintenance</option>
-        </select>
-        <select id="filterAbnormality" class="filter-select border rounded px-2 py-1">
-          <option value="">Filter by Type of Abnormality</option>
-          <option value="Safety">Safety</option>
-          <option value="Raw/Sub Material">Raw/Sub Material</option>
-          <option value="Documents/Records">Documents/Records</option>
-          <option value="SOP Deviation">SOP Deviation</option>
-          <option value="Packing Material">Packing Material</option>
-          <option value="Insects/Pests">Insects/Pests</option>
-          <option value="Machine/Equipment">Machine/Equipment</option>
-          <option value="Semi/Finished Goods">Semi/Finished Goods</option>
-          <option value="Environment/Facility">Environment/Facility</option>
-          <option value="Process">Process</option>
-          <option value="Labelling">Labelling</option>
-          <option value="Other">Other</option>
-        </select>
-        <button id="clearFilters" class="filter-btn bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-1 px-2 rounded transition-colors text-xs">
-          Clear Filters
-        </button>
+      <div class="flex justify-center mb-3">
+        <div class="w-auto bg-white rounded-lg shadow-md p-2">
+          <div class="flex flex-wrap items-end justify-center gap-2">
+            <div class="flex flex-col items-center">
+              <label class="block text-xs font-semibold text-gray-700 mb-0.5">Date:</label>
+              <input type="date" id="filterDate" class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+            </div>
+            <div class="flex flex-col items-center">
+              <label class="block text-xs font-semibold text-gray-700 mb-0.5">Responsible Dept.:</label>
+              <select id="filterDept" class="w-40 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                <option value="">All Departments</option>
+                <option value="Production">Production</option>
+                <option value="Quality Control">Quality Control</option>
+                <option value="Administration">Administration</option>
+                <option value="Quality Assurance">Quality Assurance</option>
+                <option value="Sales">Sales</option>
+                <option value="Human Resource">Human Resource</option>
+                <option value="Warehouse">Warehouse</option>
+                <option value="Logistics">Logistics</option>
+                <option value="Purchase">Purchase</option>
+                <option value="Maintenance">Maintenance</option>
+              </select>
+            </div>
+            <div class="flex flex-col items-center">
+              <label class="block text-xs font-semibold text-gray-700 mb-0.5">Type of Abnormality:</label>
+              <select id="filterAbnormality" class="w-40 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                <option value="">All Types</option>
+                <option value="Safety">Safety</option>
+                <option value="Raw/Sub Material">Raw/Sub Material</option>
+                <option value="Documents/Records">Documents/Records</option>
+                <option value="SOP Deviation">SOP Deviation</option>
+                <option value="Packing Material">Packing Material</option>
+                <option value="Insects/Pests">Insects/Pests</option>
+                <option value="Machine/Equipment">Machine/Equipment</option>
+                <option value="Semi/Finished Goods">Semi/Finished Goods</option>
+                <option value="Environment/Facility">Environment/Facility</option>
+                <option value="Process">Process</option>
+                <option value="Labelling">Labelling</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="h-4"></div>
+              <div class="flex space-x-2">
+                <button type="button" id="clearFilters" class="w-16 h-6 bg-gray-500 text-white text-xs font-semibold rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <!-- End Filter Controls -->
       <table class="min-w-full bg-white shadow-md rounded text-xs">
         <thead>
           <tr class="bg-gray-200 text-left">
@@ -149,7 +196,6 @@
             </tr>
         </tbody>
       </table>
-    </div>
   </div>
   <script type="module" src="../js/employee-dashboard.js"></script>
 </body>

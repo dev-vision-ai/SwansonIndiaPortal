@@ -29,10 +29,10 @@
             align-items: center !important;
         }
 
-        /* Slightly increase action card font sizes */
+        /* Align card font sizes with DCC */
         .action-card-heading {
-            font-size: 0.85rem !important;
-            font-weight: 600 !important;
+            font-size: 0.75rem !important;
+            font-weight: 400 !important;
         }
 
         .action-card-heading h3 {
@@ -42,6 +42,25 @@
         .action-card-description {
             font-size: 0.65rem !important;
             font-weight: 500 !important;
+        }
+
+        /* Responsive tweaks to match DCC */
+        @media (max-width: 768px) {
+            .action-card-heading,
+            .action-card-heading h3,
+            .action-card-description,
+            .action-card-description p {
+                font-size: 0.7rem !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .action-card-heading {
+                font-size: 0.65rem !important;
+            }
+            .action-card-description {
+                font-size: 0.6rem !important;
+            }
         }
     </style>
 </head>
@@ -66,7 +85,7 @@
                                 <h3>Staging Area Inventory</h3>
                             </div>
                             <div class="action-card-description">
-                                <p>View Staging Area Inventory Status</p>
+                                <p>View Staging Area <br> Inventory Status</p>
                             </div>
                         </div>
                     </div>
@@ -79,7 +98,7 @@
                                 <h3>Material Consumption</h3>
                             </div>
                             <div class="action-card-description">
-                                <p>View Material Consumption Records</p>
+                                <p>View Material <br> Consumption Records</p>
                             </div>
                         </div>
                     </div>
@@ -92,7 +111,7 @@
                                 <h3>Monthly Reconciliation</h3>
                             </div>
                             <div class="action-card-description">
-                                <p>View Monthly Material Reconciliation Report</p>
+                                <p>View Monthly Material <br> Reconciliation Report</p>
                             </div>
                         </div>
                     </div>

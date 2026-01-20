@@ -5,30 +5,99 @@
   <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>User Management</title>
-    <link rel="icon" type="image/png" href="../assets/logo2.png">
+  <link rel="icon" type="image/png" href="../assets/logo2.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="../css/style-1.css">
-  <link rel="stylesheet" href="../css/style-2.css">
+  <link rel="stylesheet" href="../css/employee-dashboard.css">
   <link rel="stylesheet" href="../css/common-header.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
+      padding-top: 60px;
+      margin: 0;
+    }
+    .header-container {
+      margin-bottom: 0;
+    }
+    .user-mgmt-container {
+      padding: 0 1rem 1rem;
+      margin: 0 auto;
+      width: 100%;
+      max-width: 1200px;
+    }
+    .user-form {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin: 0 auto 2rem;
+      max-width: 600px;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="password"],
+    .form-group select {
+      width: 100%;
+      padding: 0.4rem 0.6rem;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .form-group input[readonly] { background-color: #f3f4f6; cursor: not-allowed; }
+    .form-text { font-size: 0.75rem; color: #6b7280; margin-top: 0.15rem; display: block; }
+    .btn-primary {
+      background-color: #002E7D;
+      color: white;
+      padding: 0.5rem 1.25rem;
+      border-radius: 4px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.3s;
+    }
+    .btn-primary:hover { background-color: #001f4d; }
+    
+    .table-container {
+      background: white;
+      padding: 1rem;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #343a40; color: white; padding: 0.5rem; text-align: center; font-size: 0.85rem; border: 1px solid #dee2e6; }
+    td { padding: 0.5rem; border: 1px solid #dee2e6; text-align: center; font-size: 0.85rem; }
+    .btn-edit { background: #002E7D; color: white; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.75rem; margin-right: 4px; }
+    .btn-delete { background: #dc3545; color: white; padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.75rem; }
+  </style>
 </head>
-<body>
-  <div class="container page-fade-in">
-    <section class="dashboard-section">
-      <div class="header-container header-fade-in">
-        <!-- Back button first -->
-        <button type="button" class="header-back-button" onclick="window.location.href='employee-dashboard.html';">Back</button>
-        
-        <!-- Header title second -->
-        <div class="header-title">User Management</div> 
-        
-        <!-- Logo last -->
-        <div class="company-logo">
-          <img src="../assets/logo.png" class="auth-logo" alt="Logo"/>
-        </div>
+<body class="bg-gray-100 text-gray-900">
+  <div class="header-container">
+    <button type="button" class="header-back-button" onclick="window.location.href='employee-dashboard.html';">Back</button>
+    <div class="header-title">User Management</div>
+    <div class="company-logo">
+      <a href="../index.html">
+        <img src="../assets/logo.png" class="auth-logo" alt="Logo"/>
+      </a>
     </div>
+  </div>
 
-  <main class="user-mgmt-container"> <!-- Changed main container class -->
-    <h2>Create New User</h2>
+  <main class="user-mgmt-container page-fade-in">
+    <h2 class="text-xl font-bold mb-4 text-center">Create New User</h2>
     <form id="create-user-form" class="user-form">
       <div class="form-group">
         <label for="employee-code">Employee Code:</label>
@@ -97,178 +166,7 @@
     </div>
 
   </main>
-  </section>
-  <footer class="designer-watermark">
-    <i class="bi bi-gear-fill" style="margin-right:6px;"></i> Designed by <span>GGC</span>
-  </footer>
+
   <script type="module" src="../js/user-mgmt.js"></script>
 </body>
 </html>
-<head>
-  <!-- Compact styles for user management page -->
-  <style>
-    body {
-      font-family: 'Inter', 'DM Sans', 'Noto Sans TC', 'Noto Sans SC', sans-serif;
-      text-rendering: optimizeLegibility;
-      -webkit-font-smoothing: antialiased;
-      color: #2b2b2b;
-    }
-
-    .user-mgmt-container {
-      max-width: 1100px;
-      margin: 1.25rem auto;
-      padding: 0 0.75rem;
-    }
-
-    /* Headings: center the Create section title, keep the table title left */
-    .user-mgmt-container h2 {
-      font-size: 1.05rem;
-      margin: 0.5rem 0;
-      font-weight: 600;
-    }
-
-    /* Center the first heading so it sits above the compact form */
-    .user-mgmt-container h2:first-of-type {
-      text-align: center;
-      width: 640px;
-      margin: 0.5rem auto;
-    }
-
-    /* Keep the table heading left-aligned */
-    .user-mgmt-container h2:last-of-type {
-      text-align: left;
-      width: 100%;
-      margin-top: 1rem;
-    }
-
-    /* Compact form */
-    .user-form {
-      max-width: 640px;
-      margin: 0.5rem auto 1rem;
-      background: white;
-      padding: 0.75rem;
-      border-radius: 0 !important;
-      box-shadow: none;
-      border: 1px solid #eee;
-    }
-
-    .form-group {
-      margin-bottom: 0.6rem;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .form-group label {
-      margin-bottom: 0.25rem;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-
-    .form-group input,
-    .form-group select {
-      padding: 0.45rem 0.5rem;
-      border: 1px solid #e6e6e6;
-      border-radius: 2px;
-      font-size: 0.92rem;
-      margin-bottom: 0;
-    }
-
-    .form-group input[readonly] {
-      background-color: #fafafa;
-      cursor: not-allowed;
-    }
-
-    .form-text {
-      font-size: 0.78rem;
-      color: #6c757d;
-      margin-top: 0.25rem;
-    }
-
-    .form-group label > input[type="checkbox"] {
-      margin-right: 0.5rem;
-      width: auto;
-    }
-
-    /* Buttons - compact */
-    .btn-primary {
-      background: #002E7D;
-      color: white;
-      padding: 0.45rem 0.85rem;
-      border: none;
-      border-radius: 3px;
-      cursor: pointer;
-      transition: background 0.2s ease;
-      font-size: 0.9rem;
-    }
-
-    .btn-primary:hover { background: #0044a3; }
-
-    .btn-edit,
-    .btn-delete {
-      padding: 0.35rem 0.6rem;
-      font-size: 0.85rem;
-      border-radius: 3px;
-      border: none;
-      cursor: pointer;
-    }
-
-    .btn-edit { background: #002E7D; color: #fff; }
-    .btn-delete { background: #dc3545; color: #fff; }
-
-    /* Table container - compact, straight corners */
-    .table-container {
-      overflow-x: auto;
-      margin: 0.75rem auto 0;
-      border: 1px solid #eee;
-      border-radius: 0 !important;
-      box-shadow: none;
-      max-width: 100%;
-      background: #fff;
-    }
-
-    #users-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 0 !important;
-      overflow: hidden;
-    }
-
-    #users-table th {
-      background: #343a40;
-      color: #fff;
-      padding: 0.45rem 0.5rem;
-      border-bottom: 1px solid #e9ecef;
-      border-right: 1px solid #e9ecef;
-      font-weight: 600;
-      text-align: center;
-      font-size: 0.88rem;
-    }
-
-    #users-table td {
-      padding: 0.45rem 0.5rem;
-      border-bottom: 1px solid #f1f1f1;
-      border-right: 1px solid #f1f1f1;
-      color: #444;
-      text-align: center;
-      font-size: 0.9rem;
-      white-space: nowrap;
-    }
-
-    #users-table tbody tr:nth-child(even) { background-color: #fbfbfb; }
-    #users-table tbody tr:hover { background-color: #f5f5f5; }
-
-    /* Loading row */
-    .loading-row td { text-align: center; padding: 0.6rem; }
-
-    /* Status message styling (compact) */
-    #status-message { padding: 8px 14px; border-radius: 3px; font-size: 0.9rem; }
-
-    @media (max-width: 768px) {
-      .user-form { padding: 0.6rem; }
-      .user-mgmt-container { margin: 0.6rem auto; }
-      #users-table th, #users-table td { padding: 0.35rem 0.4rem; font-size: 0.82rem; }
-      .form-text { font-size: 0.72rem; }
-    }
-  </style>
-</head>

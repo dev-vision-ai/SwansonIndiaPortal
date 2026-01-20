@@ -1,290 +1,318 @@
-/* General Body and Layout */
+﻿:root {
+  --primary-gradient: linear-gradient(45deg, #002E7D, #0046C7);
+  --accent-color: #002E7D;
+  --bg-color: #f5f5f5;
+  --card-bg: #ffffff;
+  --text-dark: #2D3436;
+  --text-light: #666666;
+  --border-color: #eee;
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.15);
+  --transition: all 0.3s ease-in-out;
+}
 body {
-    font-family: 'Inter', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f7f6;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 500;
+  padding-top: 60px;
+  margin: 0;
 }
-
-.back-button {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    color: #333;
-    text-decoration: none;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
+.header-container {
+  margin-bottom: 0;
 }
-
-.back-button i {
-    margin-right: 5px;
-}
-
+/* Compact overrides for Job Posting Management */
+/* Constrain and center main content to a smaller width for compact layout */
 .main-content {
-    /* padding: 20px; /* REMOVE or comment out this line */
-    padding: 20px 15px; /* <<< Keep top/bottom, add 15px left/right padding */
-    /* max-width: 1200px; /* Still removed */
-    /* margin: 20px auto; /* Still removed */
-    margin: 20px 0; /* Keep top/bottom margin */
-    width: 100%; 
-    box-sizing: border-box; /* Important: ensures padding is included within the 100% width */
+  /* Increase main content to allow wider job listing container */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 0.75rem 1rem;
 }
 
-/* Section Styling */
-#add-job-section,
-#job-list-section {
-    padding: 20px;
-    margin-bottom: 20px; /* Keep bottom margin */
-    /* Remove margin-left/right auto if it was here */
-}/* Add this new rule specifically for the add job section */
+/* Ensure the page wrapper doesn't force a wider layout */
+.container.page-fade-in {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+/* Center add-job title above the compact form */
+#add-job-section h2 {
+  text-align: center;
+  font-size: 1.05rem;
+  margin: 0.5rem auto;
+  width: 950px;
+  max-width: 95%;
+  font-weight: 600;
+}
+
+/* Keep the job list heading centered and aligned with the form */
+#job-list-section h2 {
+  text-align: center;
+  margin: 1rem auto;
+  font-size: 1.02rem;
+  max-width: 950px;
+  width: 95%;
+}
+
+/* Separator between add form and job list */
 #add-job-section {
-    max-width: 700px; /* <<< Reduced from 900px to 700px for narrower container */
-    margin-left: auto;  /* <<< Center the section horizontally */
-    margin-right: auto; /* <<< Center the section horizontally */
+  border-bottom: 1px dotted #e0e0e0;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
 }
 
-h2 {
-    color: #333;
-    margin-top: 0;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-}
-
-/* Form Styling */
-.user-form, 
-#add-job-form { 
-    /* background-color is handled by #add-job-section */
-    padding: 25px; /* Keep padding if needed inside the section */
-    margin-top: 15px; 
+/* Compact form */
+.user-form {
+  max-width: 950px;
+  margin: 0.5rem auto 1rem;
+  padding: 1rem;
+  border-radius: 0 !important;
+  box-shadow: none;
+  border: 1px solid #eee;
+  background: #fff;
 }
 
 .form-group {
-    margin-bottom: 1rem; 
+  margin-bottom: 0.8rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-row {
+  display: flex;
+  gap: 1.25rem;
+  margin-bottom: 0.8rem;
+  align-items: flex-end; /* Ensures inputs align even if labels wrap */
+}
+
+.form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
 }
 
 .form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: var(--text-dark, #2D3436);
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
-.form-group input[type="text"],
-.form-group input[type="email"],
-.form-group input[type="password"],
-.form-group input[type="date"],
-.form-group input[type="number"], /* <<< ADD THIS LINE */
+.form-group input,
 .form-group textarea,
 .form-group select {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color, #ddd); 
-    border-radius: 4px;
-    box-sizing: border-box; 
-    font-family: inherit; 
-    font-size: 0.95rem;
-    transition: border-color 0.2s ease-in-out;
+  padding: 0.45rem 0.5rem;
+  border: 1px solid #e6e6e6;
+  border-radius: 2px;
+  font-size: 0.92rem;
+  margin-bottom: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-    border-color: var(--accent-color, #002E7D);
-    outline: none; 
-    box-shadow: 0 0 0 2px rgba(0, 46, 125, 0.2); 
-}
-
-.form-group textarea {
-    resize: vertical; 
-    min-height: 80px;
-}
-
-/* General Button Styles */
-.btn {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    font-weight: 500;
-    text-align: center;
-    text-decoration: none;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, opacity 0.2s ease-in-out;
-    color: white;
-    line-height: 1.5; /* Ensure consistent height */
-}
-
-.btn:hover {
-    opacity: 0.9;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-/* Primary Button (Includes form submit) */
-.btn-primary,
-#add-job-form button[type="submit"] { 
-    background-color: var(--accent-color, #002E7D);
-    color: white;
-}
-
-/* Secondary Button */
-.btn-secondary {
-    background-color: #6c757d; 
-    color: white;
-}
-
-/* Warning Button (Used for Edit in table) */
-.btn-warning {
-    background-color: #ffc107;
-    color: #212529; 
-}
-.btn-warning:hover {
-    background-color: #e0a800;
-}
-
-/* Danger Button (Used for Delete in table) */
-.btn-danger {
-    background-color: #dc3545;
-    color: white;
-}
-.btn-danger:hover {
-    background-color: #c82333;
-}
-
-/* Form Action Button Container */
 .form-actions {
-    margin-top: 20px; 
-    display: flex; 
-    gap: 10px; 
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f0f0f0;
 }
 
-/* Table Styling - Updated to match Quality Alerts Table */
+.btn {
+  padding: 0.45rem 1.1rem;
+  font-size: 0.85rem;
+  border-radius: 3px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.18s;
+  height: auto;
+  line-height: 1;
+}
+
+.btn-primary {
+  background-color: #002E7D;
+  color: white;
+  min-width: 120px;
+}
+
+.btn-primary:hover {
+  background-color: #001f4d;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  min-width: 100px;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+}
+
+.cancel-edit-btn {
+  background-color: #e53e3e;
+  color: white;
+  min-width: 110px;
+}
+
+.cancel-edit-btn:hover {
+  background-color: #c53030;
+}
+
+@media (max-width: 480px) {
+  .btn {
+    padding: 0.4rem 0.9rem;
+    font-size: 0.82rem;
+  }
+  .form-actions {
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+  }
+}
+
+/* JOB TABLE STYLING - RESTORED */
+.job-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: 0.88rem;
+}
+.job-table th {
+  background: #343a40;
+  color: #fff;
+  padding: 0.6rem 0.5rem;
+  border: 1px solid #dee2e6;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.job-table td {
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  text-align: center;
+  color: #333;
+}
+.job-table td:last-child {
+  padding: 6px 4px !important;
+  text-align: center !important;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+}
+.job-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+.edit-btn, .delete-btn {
+  margin: 4px auto !important;
+  display: block !important;
+  width: 32px !important;
+  height: 32px !important;
+  padding: 6px !important;
+  border-radius: 6px !important;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.edit-btn:hover {
+  background-color: #f3e8ff !important;
+  border-color: #d8b4fe !important;
+}
+
+.delete-btn:hover {
+  background-color: #fee2e2 !important;
+  border-color: #fecaca !important;
+}
+
+/* Table container default (when you want it constrained) */
 .table-container {
-    /* overflow-x: auto; */ /* <<< REMOVE this line */
-    padding: 0; 
-    margin-top: 20px;
+  overflow-x: auto; 
+  margin: 0.75rem auto 0;
+  border: 1px solid #eee;
+  border-radius: 0 !important;
+  width: 100%;
+  background: #fff;
+  box-sizing: border-box;
 }
 
-table.job-table { 
-    width: 100%; /* Back to 100% to avoid scrollbar */
-    border-collapse: collapse;
-    border: 1px solid #e5e7eb;
-    margin: 0; /* Remove auto margin, let container handle centering */
-    background: white; 
-    box-shadow: none;
-    table-layout: auto; /* Changed from fixed to auto for flexible column sizing */
+/* FULL SCREEN WIDTH TABLE FIX */
+#job-list-table-container {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  margin-left: 50% !important;
+  margin-right: 50% !important;
+  transform: translateX(-50%) !important;
+  padding: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-radius: 0 !important;
+  overflow-x: auto !important;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.job-table {
+  width: 100% !important;
+  min-width: 100% !important;
+  margin: 0 !important;
+  border-collapse: collapse !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+
+.job-table th:first-child, 
+.job-table td:first-child {
+  border-left: none !important;
+}
+
+.job-table th:last-child, 
+.job-table td:last-child {
+  border-right: none !important;
+}
+
+#job-list-table-container p { padding: 0.6rem; margin: 0; }
+
+@media (max-width: 768px) {
+  .user-form { padding: 0.6rem; }
+  .main-content { margin: 0.6rem auto; }
+  .form-group label { font-size: 0.82rem; }
+  .btn { padding: 0.35rem 0.6rem; font-size: 0.82rem; }
+  #job-list-table-container {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    padding: 0;
+  }
+}
+
+/* Responsive behavior for job list table */
+/* Tablet & Desktop: full-bleed container */
+@media (min-width: 768px) {
+  #job-list-table-container {
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    padding: 0; /* Touch screen both ends */
     box-sizing: border-box;
+    background: #fff;
+    border: none;
+  }
+  /* keep the actual table filling the container */
+  #job-list-table-container table.job-table {
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    border-radius: 0;
+  }
 }
 
-table.job-table th,
-table.job-table td {
-    padding: 0.75rem 1rem; 
-    text-align: left;
-    border-bottom: 1px solid #e5e7eb; 
-    border-right: 1px solid #e5e7eb;  
-    vertical-align: top; 
-    white-space: normal; 
-    word-break: break-word; 
-    font-size: 0.85rem; /* <<< Added/Adjusted font size */
+.page-fade-in {
+  opacity: 1;
 }
-
-/* --- START: Minimum Column Widths (for auto table layout) --- */
-table.job-table th:nth-child(1), table.job-table td:nth-child(1) { min-width: 150px; } /* Title */
-table.job-table th:nth-child(2), table.job-table td:nth-child(2) { min-width: 100px; } /* Location */
-table.job-table th:nth-child(3), table.job-table td:nth-child(3) { min-width: 120px; } /* Salary */
-table.job-table th:nth-child(4), table.job-table td:nth-child(4) { min-width: 140px; } /* Experience */
-table.job-table th:nth-child(5), table.job-table td:nth-child(5) { min-width: 180px; } /* Qualification */
-table.job-table th:nth-child(6), table.job-table td:nth-child(6) { min-width: 110px; } /* Vacant Positions */
-table.job-table th:nth-child(7), table.job-table td:nth-child(7) { min-width: 130px; } /* Enrollment Type */
-table.job-table th:nth-child(8), table.job-table td:nth-child(8) { min-width: 110px; } /* Department */
-table.job-table th:nth-child(9), table.job-table td:nth-child(9) { min-width: 100px; } /* Duration */
-table.job-table th:nth-child(10), table.job-table td:nth-child(10){ min-width: 80px; } /* Status */
-table.job-table th:nth-child(11), table.job-table td:nth-child(11){ min-width: 110px; } /* Apply Before */
-table.job-table th:nth-child(12), table.job-table td:nth-child(12){ min-width: 110px; } /* Created At */
-table.job-table th:nth-child(13), table.job-table td:nth-child(13){ min-width: 120px; } /* Actions */
-/* --- END: Minimum Column Widths --- */
-
-
-/* Remove right border from last column */
-table.job-table th:last-child,
-table.job-table td:last-child {
-    border-right: none;
+.header-fade-in {
+  opacity: 1;
 }
-
-/* Add left border to first column */
-table.job-table th:first-child,
-table.job-table td:first-child {
-    border-left: 1px solid #e5e7eb; /* Match QA border */
-}
-
-table.job-table th {
-    background-color: #1e293b; 
-    color: white;
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.75rem; /* <<< Further reduced header font size */
-    letter-spacing: 0.5px;
-    border-right-color: #374151; 
-    position: sticky;
-    top: 0; 
-    z-index: 2;
-    vertical-align: bottom; 
-}
-
-table.job-table tbody tr:nth-child(even) {
-    background-color: #f8fafc; /* Zebra striping (QA style) */
-}
-
-table.job-table tbody tr:hover td { /* Apply hover to td for consistency */
-    background-color: #f1f1f1; /* Slightly different hover, adjust if needed */
-}
-
-/* REMOVE these rules as wrapping is now default */
-/*
-table.job-table td.description-cell, 
-table.job-table td.qualification-cell { 
-    white-space: normal;
-}
-*/
-
-/* Specific styles for buttons inside table cells */
-table.job-table td .btn {
-    padding: 0.3rem 0.6rem; 
-    font-size: 0.85rem; 
-    margin-right: 5px;
-    /* white-space: nowrap; */ /* <<< REMOVE this if you want button text to wrap (unlikely) */
-}
-
-table.job-table td .btn:last-child {
-    margin-right: 0;
-}
-
-/* Loading/Empty States */
-#job-list-table-container p {
-    color: #777;
-    font-style: italic;
-    text-align: center;
-    padding: 20px;
-}
-
-/* REMOVED Redundant section/main styles from the end */
-
-/* --- Merged from admin-adhr-job-posting.css (job-posting specific styles) --- */
-/* Quick action grid for job posting cards */
-.quick-action-grid { display: flex !important; flex-wrap: wrap !important; gap: 1.5rem !important; justify-content: flex-start !important; margin: 20px 0 0 2.5rem !important; }
-
-.action-card { background: #fff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); border: 2px solid #e4c829; width: 200px; height: 80px; display:flex; align-items:center; position:relative; }
-
-.action-card-heading { background: linear-gradient(135deg, rgba(0,46,125,0.92) 60%, rgba(0,70,199,0.85) 100%); color: #fff; display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:600; }
-
-/* Buttons */
-.filter-btn { background-color: #ffe342; color: #000000; padding: 0.5rem 1rem; border-radius: 4px; border: 1px solid #ccc; }
-
-/* Mobile tweaks */
-@media (max-width:600px) { .quick-action-grid { flex-direction: column; align-items: center; } }
-
-/* --- End merged section --- */
-
-

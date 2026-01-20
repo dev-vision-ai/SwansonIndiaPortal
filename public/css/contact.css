@@ -69,6 +69,77 @@
 @media (max-width: 992px) {
     .split-container {
         grid-template-columns: 1fr;
-        gap: 3rem;
+        gap: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-mini {
+        height: auto;
+        min-height: 280px;
+        padding: 120px 1.5rem 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+
+    .section {
+        padding: 4rem 1.5rem;
+    }
+
+    .grid-3 {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .modern-card {
+        padding: 2.2rem 1.5rem;
+    }
+
+    .contact-detail {
+        margin-top: 1rem;
+    }
+
+    .grid-2 {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .split-container h2 {
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+
+    .split-container br {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-mini {
+        min-height: 250px;
+    }
+
+    .hero-content h1 {
+        font-size: 2.22rem;
+    }
+
+    .feature-list li {
+        font-size: 0.95rem;
+        gap: 0.8rem;
+    }
+
+    .contact-detail a {
+        font-size: 0.95rem;
+        word-break: break-all;
+    }
+
+    .map-wrapper iframe {
+        height: 300px !important;
     }
 }

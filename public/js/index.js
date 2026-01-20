@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (menuToggle && navLinks) {
         menuToggle.addEventListener('click', () => {
             navLinks.classList.toggle('active');
+            document.querySelector('.navbar').classList.toggle('menu-active');
             // Change icon
             const icon = menuToggle.querySelector('i');
             if (navLinks.classList.contains('active')) {
@@ -65,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         navLinks.querySelectorAll('a:not(.nav-dropdown-toggle)').forEach(link => {
             link.addEventListener('click', () => {
                 navLinks.classList.remove('active');
+                document.querySelector('.navbar').classList.remove('menu-active');
                 document.querySelectorAll('.nav-links li.open').forEach(li => li.classList.remove('open'));
                 menuToggle.querySelector('i').classList.add('bi-list');
                 menuToggle.querySelector('i').classList.remove('bi-x-lg');
@@ -86,6 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
             a.addEventListener('click', () => {
                 document.querySelectorAll('.nav-links li.open').forEach(li => li.classList.remove('open'));
                 navLinks.classList.remove('active');
+                document.querySelector('.navbar').classList.remove('menu-active');
                 if (menuToggle) {
                     menuToggle.querySelector('i').classList.add('bi-list');
                     menuToggle.querySelector('i').classList.remove('bi-x-lg');
@@ -148,16 +151,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let index = 0;
         const totalImages = images.length;
+        let autoSlideInterval;
         
-        const moveSlideshow = () => {
-            index++;
+        const moveSlideshow = (direction = 'next') => {
+            if (direction === 'next') {
+                index++;
+            } else if (direction === 'prev') {
+                index--;
+                if (index < 0) {
+                    index = totalImages - 1;
+                }
+            }
+            
             track.style.transition = 'transform 1.2s cubic-bezier(0.2, 1, 0.3, 1)';
             
-            // Move by 50% since each item is exactly 50% width with no gaps
-            track.style.transform = `translateX(-${index * 50}%)`;
+            // On screens smaller than 992px, each item is 100% width, otherwise 50%
+            const stepSize = window.innerWidth <= 992 ? 100 : 50;
+            track.style.transform = `translateX(-${index * stepSize}%)`;
 
-            // Reset loop without jump
-            if (index >= totalImages) {
+            // Reset loop without jump for forward movement
+            if (direction === 'next' && index >= totalImages) {
                 setTimeout(() => {
                     track.style.transition = 'none';
                     index = 0;
@@ -166,7 +179,39 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        setInterval(moveSlideshow, 4000);
+        // Auto slideshow
+        const startAutoSlide = () => {
+            autoSlideInterval = setInterval(() => moveSlideshow('next'), 4000);
+        };
+
+        const stopAutoSlide = () => {
+            if (autoSlideInterval) {
+                clearInterval(autoSlideInterval);
+            }
+        };
+
+        // Navigation button functionality
+        const prevBtn = document.getElementById('slideshow-prev');
+        const nextBtn = document.getElementById('slideshow-next');
+
+        if (prevBtn && nextBtn) {
+            prevBtn.addEventListener('click', () => {
+                stopAutoSlide();
+                moveSlideshow('prev');
+                // Restart auto slide after manual interaction
+                setTimeout(startAutoSlide, 8000);
+            });
+
+            nextBtn.addEventListener('click', () => {
+                stopAutoSlide();
+                moveSlideshow('next');
+                // Restart auto slide after manual interaction
+                setTimeout(startAutoSlide, 8000);
+            });
+        }
+
+        // Start auto slideshow
+        startAutoSlide();
     }
 
     // 4. Dynamic Hero Image Rotation - TEMPORARILY DISABLED
@@ -236,6 +281,7 @@ function renderJobs(jobs) {
                 : 'full-time';
         const metaEntries = [
             { icon: 'bi bi-geo-alt', label: 'Location', value: job.location || 'Onda, Goa' },
+            { icon: 'bi bi-person', label: 'Preferable', value: job.gender_preference || 'Any' },
             { icon: 'bi bi-briefcase', label: 'Experience', value: job.experience_needed || 'Not specified' },
             { icon: 'bi bi-mortarboard', label: 'Qualification', value: job.qualification || 'Not specified' },
             { icon: 'bi bi-calendar-event', label: 'Apply Before', value: job.apply_before ? new Date(job.apply_before).toLocaleDateString('en-GB') : 'N/A' }
@@ -251,34 +297,32 @@ function renderJobs(jobs) {
         `).join('');
 
         return `
-        <div class="job-card modern-card reveal-up active" style="margin-bottom: 2rem;">
-            <div class="job-info" style="text-align: left; width: 100%;">
-                <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
-                    <div>
-                        <h3 style="margin-bottom: 0.25rem;">${job.title}</h3>
-                        <p style="color: var(--primary); font-weight: 600; font-size: 0.95rem; margin-bottom: 1rem;">${job.department || 'General'}</p>
-                    </div>
-                    <div class="employment-pill ${employmentClass}">
-                        ${employmentType}
-                    </div>
+        <div class="job-card modern-card reveal-up active">
+            <div class="job-card-header">
+                <div class="job-title-area">
+                    <h3>${job.title}</h3>
+                    <p class="job-department">${job.department || 'General'}</p>
                 </div>
-                
-                <div class="job-meta" style="margin-bottom: 1.5rem;">
-                    ${metaHtml}
+                <div class="employment-pill ${employmentClass}">
+                    ${employmentType}
                 </div>
+            </div>
+            
+            <div class="job-meta">
+                ${metaHtml}
+            </div>
 
-                <div class="job-description ${needsToggle ? 'collapsed' : 'expanded'}">
-                    <p>${descriptionHtml}</p>
-                </div>
-                ${needsToggle ? '<button type="button" class="job-description-toggle" data-expanded="false">Read more</button>' : ''}
+            <div class="job-description ${needsToggle ? 'collapsed' : 'expanded'}">
+                <p>${descriptionHtml}</p>
+            </div>
+            ${needsToggle ? '<button type="button" class="job-description-toggle" data-expanded="false">Read more</button>' : ''}
 
-                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 1.5rem;">
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        ${job.salary_range ? `<div style="font-weight: 600; color: var(--primary); font-size: 1rem;">Salary: ${job.salary_range}</div>` : ''}
-                        ${job.num_positions ? `<div style="color: var(--text); opacity: 0.7; font-size: 0.85rem;">${job.num_positions} position${job.num_positions > 1 ? 's' : ''} available</div>` : ''}
-                    </div>
-                    <a href="mailto:viraj.j@usig.com?subject=Application for ${job.title}" class="btn-main" style="text-decoration: none;">Apply Now</a>
+            <div class="job-card-footer">
+                <div class="job-salary-info">
+                    ${job.salary_range ? `<div class="salary-range">Salary: ${job.salary_range}</div>` : ''}
+                    ${job.num_positions ? `<div class="positions-count">${job.num_positions} position${job.num_positions > 1 ? 's' : ''} available</div>` : ''}
                 </div>
+                <a href="mailto:viraj.j@usig.com?subject=Application for ${job.title}" class="btn-main apply-btn">Apply Now</a>
             </div>
         </div>
     `}).join('');
