@@ -44,9 +44,18 @@
         padding: 0 1rem 3rem;
       }
       table td {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
-        text-align: center;
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.75rem !important;
+        text-align: center !important;
+      }
+      table th {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.75rem !important;
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        text-align: center !important;
       }
       .filter-controls {
         margin-bottom: 0.5rem;
@@ -110,7 +119,7 @@
 
         <table class="min-w-full bg-white shadow-md rounded text-xs">
       <thead>
-        <tr class="bg-gray-200 text-left">
+        <tr class="text-left">
           <!-- Add data-sort attributes matching the keys in dashboard_qa.js -->
           <th class="py-1 px-2" data-sort="id">Alert No.</th>
           <th class="py-1 px-2" data-sort="incidentdate">Date</th>

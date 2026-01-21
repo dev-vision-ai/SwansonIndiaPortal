@@ -82,13 +82,12 @@
 
 .job-meta {
     display: flex;
-    flex-wrap: nowrap;
-    gap: 1rem;
+    flex-wrap: wrap;
+    gap: 1.5rem;
     padding: 1.5rem 0;
     border-top: 1px solid rgba(0,0,0,0.05);
     border-bottom: 1px solid rgba(0,0,0,0.05);
     margin-bottom: 1.5rem;
-    overflow-x: auto;
     align-items: flex-start;
 }
 
@@ -98,7 +97,8 @@
     gap: 0.35rem;
     flex: 1;
     min-width: 120px;
-    white-space: nowrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .job-description {
@@ -183,11 +183,21 @@
 
 .meta-value {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0.4rem;
     font-size: 0.95rem;
     font-weight: 500;
     color: var(--text);
+    line-height: 1.4;
+}
+
+.meta-value i {
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+}
+
+.meta-value span {
+    word-break: break-word;
 }
 
 .job-card-footer {
@@ -267,7 +277,8 @@
     .job-meta-item {
         flex: 1 1 100%;
         min-width: 100%;
-        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
     .job-card-footer {

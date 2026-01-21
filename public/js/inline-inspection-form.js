@@ -851,8 +851,8 @@ async function applyFilters() {
   // Update filter status
   updateFilterStatus();
 
-  // Check if date filters are applied
-  const hasDateFilters = fromDate || toDate;
+  // Check if any filters are applied
+  const hasAnyFilter = fromDate || toDate || product || machine || shift || operator || supervisor || qcInspector;
 
   // Show loading indicator in table (Optional but good UX)
   const tbody = document.querySelector('table tbody');
@@ -955,7 +955,7 @@ async function applyFilters() {
     });
 
     // Update UI
-    await updateFormsTable(filteredForms, hasDateFilters);
+    await updateFormsTable(filteredForms, hasAnyFilter);
 
   } catch (error) {
     console.error('Error in optimized filtering:', error);
@@ -1761,9 +1761,34 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
   const tbody = document.querySelector('table tbody');
   if (!tbody) return;
 
+  // Get user department and level once for all forms (not per row)
+  const userDepartment = await getCurrentUserDepartment();
+  const userLevel = await getCurrentUserLevel();
+  
+  // Action permissions: Who can EDIT/DELETE/ENTER DATA on submitted forms?
+  const isAuthorizedToEditSubmitted = (userDepartment === 'Quality Assurance' || userDepartment === 'Quality Control' || (userDepartment === 'Production' && userLevel === 1));
+
+  // Visibility permissions: Who can SEE submitted forms in the default list (without filters)?
+  // User request: "dont put userlevel logic from displaying" -> Production always hidden by default regardless of level
+  const isAuthorizedToSeeSubmittedByDefault = (userDepartment === 'Quality Assurance' || userDepartment === 'Quality Control');
+
+  // Pre-calculate button visibility once
+  const checkShowActionButtons = (status) => {
+    const isSubmitted = status === 'submit';
+    return !isSubmitted || (isSubmitted && isAuthorizedToEditSubmitted);
+  };
+
+  // Filter forms based on visibility permissions
+  // HOWEVER: if any filters are active (showAllForDateFilters is true), we show everything
+  const visibleForms = forms.filter(form => {
+    if (showAllForDateFilters) return true;
+    if (form.status === 'submit') return isAuthorizedToSeeSubmittedByDefault;
+    return true; // Drafts always visible
+  });
+
   tbody.innerHTML = '';
 
-  if (forms.length === 0) {
+  if (visibleForms.length === 0) {
     const isFiltered = filteredForms.length !== allForms.length;
     const message = isFiltered 
       ? 'No forms match the current filter criteria. Try adjusting your filters.'
@@ -1779,18 +1804,8 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
     return;
   }
 
-    // Limit to maximum entries (unless date filters are applied)
-  const limitedForms = showAllForDateFilters ? forms : forms.slice(0, MAX_FORMS_DISPLAY);
-
-  // Get user department and level once for all forms (not per row)
-  const userDepartment = await getCurrentUserDepartment();
-  const userLevel = await getCurrentUserLevel();
-  
-  // Pre-calculate permissions once
-  const checkShowAllButtons = (status) => {
-    const isSubmitted = status === 'submit';
-    return !isSubmitted || (isSubmitted && (userDepartment === 'Quality Assurance' || userDepartment === 'Quality Control' || (userDepartment === 'Production' && userLevel === 1)));
-  };
+  // Limit to maximum entries (unless date filters are applied)
+  const limitedForms = showAllForDateFilters ? visibleForms : visibleForms.slice(0, MAX_FORMS_DISPLAY);
 
   // Use DocumentFragment for better performance with multiple DOM inserts
   const fragment = document.createDocumentFragment();
@@ -1811,7 +1826,7 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
             // Shift conversion completed
     
     // Use pre-calculated permission checks
-    const shouldShowAllButtons = checkShowAllButtons(form.status);
+    const shouldShowActionButtons = checkShowActionButtons(form.status);
     
     // Format status for display
     const statusDisplay = form.status ? 
@@ -1832,7 +1847,7 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
     const row = document.createElement('tr');
     row.className = 'hover:bg-gray-50 transition-colors';
     row.innerHTML = `
-      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${forms.length - index}</td>
+      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${visibleForms.length - index}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${formatDate(form.production_date)}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">
         <div class="font-semibold">${form.prod_code || '-'}</div>
@@ -1853,14 +1868,14 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">
         <div class="flex flex-col justify-center items-center space-y-1 max-w-full overflow-hidden">
           <div class="flex space-x-3">
-            ${shouldShowAllButtons ? `
-              <!-- Sky blue Enter Data button - show if all buttons should display -->
+            ${shouldShowActionButtons ? `
+              <!-- Sky blue Enter Data button - show if authorized -->
               <button onclick="enterData('${form.traceability_code}', '${form.lot_letter}')" class="p-1.5 rounded-md bg-sky-50 hover:bg-sky-100 text-sky-600 hover:text-sky-800 transition-all duration-200 border border-sky-200 hover:border-sky-300 flex-shrink-0" title="Enter Inspection Data">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
               </button>
-              <!-- Green Edit button - show if all buttons should display -->
+              <!-- Green Edit button - show if authorized -->
               <button onclick="editForm('${form.traceability_code}', '${form.lot_letter}')" class="p-1.5 rounded-md bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-800 transition-all duration-200 border border-green-200 hover:border-green-300 flex-shrink-0" title="Edit Form">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -1877,8 +1892,8 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
               </svg>
             </button>
             
-            <!-- Red Delete button - show if all buttons should display -->
-            ${shouldShowAllButtons ? `
+            <!-- Red Delete button - show if authorized -->
+            ${shouldShowActionButtons ? `
               <button onclick="deleteForm('${form.traceability_code}', '${form.lot_letter}')" class="p-1.5 rounded-md bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-800 transition-all duration-200 border border-red-200 hover:border-red-300 flex-shrink-0" title="Delete Form">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -1914,17 +1929,28 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
   // Append all rows at once (single DOM operation)
   tbody.appendChild(fragment);
 
-  // Show message at bottom of table if there are more forms than the limit (only when not showing all for date filters)
-  if (!showAllForDateFilters && forms.length > MAX_FORMS_DISPLAY) {
-    const remainingCount = forms.length - MAX_FORMS_DISPLAY;
+  // Show message at bottom of table if there are more forms than the limit OR if some forms are hidden due to permissions
+  const isRestricted = visibleForms.length < forms.length;
+  if (isRestricted || (!showAllForDateFilters && visibleForms.length > MAX_FORMS_DISPLAY)) {
     const messageRow = document.createElement('tr');
+    
+    let messageContent = '';
+    if (!showAllForDateFilters && visibleForms.length > MAX_FORMS_DISPLAY) {
+      messageContent = `Showing ${MAX_FORMS_DISPLAY} of ${visibleForms.length} forms. Use filters above to find forms not listed here.`;
+    } else {
+      messageContent = `Showing all ${visibleForms.length} available forms.`;
+    }
+
+    // Add restriction message if applicable
+    const restrictionMsg = isRestricted ? '<span class="text-orange-600 font-bold ml-2">(Showing only non-submitted forms)</span>' : '';
+
     messageRow.innerHTML = `
       <td colspan="12" class="py-4 text-center text-sm text-gray-600 bg-gray-50 border-t border-gray-200">
         <div class="flex items-center justify-center space-x-2">
           <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
-          <span class="font-medium text-gray-700">Showing ${MAX_FORMS_DISPLAY} of ${forms.length} forms. Use filters above to find forms not listed here.</span>
+          <span class="font-medium text-gray-700">${messageContent}${restrictionMsg}</span>
         </div>
       </td>
     `;

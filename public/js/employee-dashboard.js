@@ -572,11 +572,6 @@ async function filterQuickActionsByDepartment(user, userDepartment, userLevel, i
     if (!user) return;
 
     try {
-        const quickActionGrid = document.querySelector('.quick-action-grid');
-        if (quickActionGrid) {
-            quickActionGrid.style.display = 'none';
-        }
-
         const quickActionCards = document.querySelectorAll('.action-card');
 
         quickActionCards.forEach(card => {
@@ -641,10 +636,6 @@ async function filterQuickActionsByDepartment(user, userDepartment, userLevel, i
                 card.classList.add('js-hide');
             }
         });
-
-        if (quickActionGrid) {
-            quickActionGrid.style.display = 'flex';
-        }
 
     } catch (error) {
         console.error('Unexpected error in filterQuickActionsByDepartment:', error);

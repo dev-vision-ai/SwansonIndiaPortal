@@ -339,6 +339,41 @@
             font-weight: 600;
         }
 
+        /* Scrap Caution Row Styling */
+        .scrap-caution-row {
+            background-color: #fffbeb !important; /* Light yellow background */
+            border: 1px solid #fcd34d !important;
+        }
+        
+        .scrap-caution-row td {
+            color: #92400e !important; /* Dark amber text */
+            font-weight: 600 !important;
+            text-align: center;
+        }
+        
+        .scrap-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .yield-row {
+            background-color: #f0fdf4 !important; /* Light green background */
+            border: 1px solid #bbf7d0 !important;
+        }
+        
+        .yield-row td {
+            color: #166534 !important; /* Dark green text */
+            font-weight: 700 !important;
+            text-align: center;
+        }
+        
+        .caution-icon {
+            color: #d97706;
+            font-weight: bold;
+        }
+
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -753,10 +788,23 @@
                                                 <td class="metric-value">0 Rolls</td>
                                                 <td class="metric-value">0.00 KG</td>
                                             </tr>
+                                            <tr id="initialScrapRow" class="scrap-caution-row">
+                                                <td class="metric-label">
+                                                    <div class="scrap-label">
+                                                        Total Shift Scrap
+                                                    </div>
+                                                </td>
+                                                <td class="metric-value">-</td>
+                                                <td class="metric-value">0.00 KG</td>
+                                            </tr>
                                             <tr class="highlight-row">
-                                                <td>Total Rolls</td>
+                                                <td>Total Produced</td>
                                                 <td>0 Rolls</td>
                                                 <td>0.00 KG</td>
+                                            </tr>
+                                            <tr class="yield-row">
+                                                <td class="metric-label" colspan="2">Production Yield</td>
+                                                <td class="metric-value" id="initialYieldValue">0.00%</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -778,7 +826,7 @@
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td colspan="4" class="metric-label">No defects found in this shift.</td>
+                                                <td colspan="4" class="metric-label" style="text-align: center;">No defects found in this shift.</td>
                                             </tr>
                                         </tbody>
                                     </table>

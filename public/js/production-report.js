@@ -888,10 +888,23 @@ function clearSummaryTables() {
                     <td class="metric-value">0 Rolls</td>
                     <td class="metric-value">0.00 KG</td>
                 </tr>
+                <tr class="scrap-caution-row">
+                    <td class="metric-label">
+                        <div class="scrap-label">
+                            Total Shift Scrap
+                        </div>
+                    </td>
+                    <td class="metric-value">-</td>
+                    <td class="metric-value">0.00 KG</td>
+                </tr>
                 <tr class="highlight-row">
-                    <td>Total Rolls</td>
+                    <td>Total Produced</td>
                     <td>0 Rolls</td>
                     <td>0.00 KG</td>
+                </tr>
+                <tr class="yield-row">
+                    <td class="metric-label" colspan="2">Production Yield</td>
+                    <td class="metric-value">0.00%</td>
                 </tr>
                 </tbody>
             `;
@@ -905,7 +918,7 @@ function clearSummaryTables() {
         if (tbody) {
             tbody.innerHTML = `
                 <tr>
-                    <td class="metric-label" colspan="3">No defects found in this shift.</td>
+                    <td class="metric-label" colspan="4" style="text-align: center;">No defects found in this shift.</td>
                 </tr>
             `;
         }
@@ -1234,6 +1247,7 @@ function updateSummaryTablesWithData(shiftData, skipStatistics = false, filterDe
     // Calculate totals by aggregating ALL lots/records for this shift
     let totalAccepted = 0, totalRejected = 0, totalRework = 0, totalKIV = 0;
     let totalAcceptedWeight = 0, totalRejectedWeight = 0, totalReworkWeight = 0, totalKIVWeight = 0;
+    let totalScrap = 0;
     let rollWeightSum = 0;
     let rollWeightCount = 0;
     
@@ -1251,6 +1265,9 @@ function updateSummaryTablesWithData(shiftData, skipStatistics = false, filterDe
         totalRejectedWeight += parseFloat(form.rejected_weight) || 0;
         totalReworkWeight += parseFloat(form.rework_weight) || 0;
         totalKIVWeight += parseFloat(form.kiv_weight) || 0;
+        
+        // Sum up process scrap (newly added field)
+        totalScrap += parseFloat(form.process_scrap) || 0;
         
         // Also calculate from roll_weights JSONB for comparison
         if (form.roll_weights && typeof form.roll_weights === 'object') {
@@ -1272,7 +1289,9 @@ function updateSummaryTablesWithData(shiftData, skipStatistics = false, filterDe
     const container = document.getElementById('dynamicSummaryTableContainer');
     if (container) {
         const table = container.querySelector('table tbody');
-        table.innerHTML = `
+        
+        // Build the basic rows
+        let rowsHtml = `
             <tr>
                 <td class="metric-label">Accepted Rolls</td>
                 <td class="metric-value">${totalAccepted} Rolls</td>
@@ -1293,12 +1312,44 @@ function updateSummaryTablesWithData(shiftData, skipStatistics = false, filterDe
                 <td class="metric-value">${totalKIV} Rolls</td>
                 <td class="metric-value">${totalKIVWeight.toFixed(2)} KG</td>
             </tr>
+        `;
+
+        // Add scrap row if there is any scrap
+        if (totalScrap > 0) {
+            rowsHtml += `
+                <tr class="scrap-caution-row">
+                    <td class="metric-label">
+                        <div class="scrap-label">
+                            Total Shift Scrap
+                        </div>
+                    </td>
+                    <td class="metric-value">-</td>
+                    <td class="metric-value">${totalScrap.toFixed(2)} KG</td>
+                </tr>
+            `;
+        }
+
+        // Add total row
+        rowsHtml += `
             <tr class="highlight-row">
-                <td>Total Rolls</td>
+                <td>Total Produced</td>
                 <td>${totalRolls} Rolls</td>
                 <td>${totalWeight.toFixed(2)} KG</td>
             </tr>
         `;
+
+        // Add yield row
+        const totalInputWeight = totalWeight + totalScrap;
+        const yieldPercent = totalInputWeight > 0 ? ((totalAcceptedWeight / totalInputWeight) * 100).toFixed(2) : '0.00';
+        
+        rowsHtml += `
+            <tr class="yield-row">
+                <td class="metric-label" colspan="2">Production Yield</td>
+                <td class="metric-value">${yieldPercent}%</td>
+            </tr>
+        `;
+
+        table.innerHTML = rowsHtml;
     }
     
     // Update other summary tables with aggregated data
@@ -1372,7 +1423,7 @@ function updateDefectsSummaryTable(shiftData, filterDefect = null) {
     if (container) {
         const tbody = container.querySelector('table tbody');
         if (Object.keys(defectData).length === 0) {
-            tbody.innerHTML = '<tr><td class="metric-label" colspan="4">No defects found in this shift.</td></tr>';
+            tbody.innerHTML = '<tr><td class="metric-label" colspan="4" style="text-align: center;">No defects found in this shift.</td></tr>';
         } else {
             // Calculate totals
             const totalCount = Object.values(defectData).reduce((sum, data) => sum + data.count, 0);

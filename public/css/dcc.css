@@ -24,10 +24,13 @@ body {
     line-height: 1.6;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 html, body {
-    overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
 }
 
 /* Container and Section - Match employee dashboard */
@@ -36,12 +39,13 @@ html, body {
     flex-direction: column;
     gap: 2rem;
     width: 100%;
-    min-height: 100vh;
+    min-height: auto;
     justify-content: flex-start;
     align-items: center;
     margin: 0;
     padding-top: 50px;
     padding-bottom: 2rem;
+    overflow-x: hidden;
 }
 
 .dashboard-section {
