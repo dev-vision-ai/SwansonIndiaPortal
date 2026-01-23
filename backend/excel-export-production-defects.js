@@ -201,36 +201,54 @@ function filterRecordsByCriteriaAdvanced(records, filters) {
  * Fetch all lot records matching the traceability pairs from master records
  */
 async function fetchAllLotRecords(supabase, masterRecords) {
+  // Extract unique traceability keys
   const traceabilityKeys = [...new Set(
-    masterRecords.map(f => `${f.traceability_code}-${f.lot_letter}`)
+    masterRecords.map(f => ({ tc: f.traceability_code, ll: f.lot_letter }))
   )];
 
-  let filteredData = [];
+  if (traceabilityKeys.length === 0) return [];
 
-  for (let batchStart = 0; batchStart < traceabilityKeys.length; batchStart += CONFIG.BATCH_SIZE) {
-    const batchKeys = traceabilityKeys.slice(batchStart, batchStart + CONFIG.BATCH_SIZE);
-    const batchNum = Math.ceil((batchStart + 1) / CONFIG.BATCH_SIZE);
+  console.time('Fetch via batch queries');
 
-    for (const table of INSPECTION_TABLES) {
-      const orConditions = batchKeys.map(key => {
-        const [tc, ll] = key.split('-');
-        return `and(traceability_code.eq.${tc},lot_letter.eq.${ll})`;
-      });
+  // Smaller batches to avoid massive .or() filter strings
+  const keyBatches = [];
+  for (let i = 0; i < traceabilityKeys.length; i += 10) {
+    keyBatches.push(traceabilityKeys.slice(i, i + 10));
+  }
 
-      if (orConditions.length === 0) continue;
+  console.log(`Processing ${keyBatches.length} batches of max 10 keys each`);
 
-      const { data: rows, error: err } = await supabase
+  // Process ALL batches in parallel instead of sequentially
+  const batchPromises = keyBatches.map(async (batch) => {
+    const tableQueries = INSPECTION_TABLES.map(async (table) => {
+      // Build .or() filter for this batch: match any traceability key pair
+      const orConditions = batch
+        .map(k => `and(traceability_code.eq.${k.tc},lot_letter.eq.${k.ll})`)
+        .join(',');
+
+      const { data, error } = await supabase
         .from(table)
         .select('*')
-        .or(orConditions.join(','));
+        .or(orConditions);
 
-      if (err) {
-        // Error fetching batch, skip silently
-      } else if (rows?.length > 0) {
-        filteredData = filteredData.concat(rows);
+      if (error) {
+        console.error(`Error querying ${table}:`, error.message);
+        return [];
       }
-    }
-  }
+      return data || [];
+    });
+
+    // Query all 3 tables for this batch in parallel
+    const batchResults = await Promise.all(tableQueries);
+    return batchResults.flat();
+  });
+
+  // Wait for ALL batches to complete in parallel
+  const allBatchResults = await Promise.all(batchPromises);
+  const filteredData = allBatchResults.flat();
+  
+  console.timeEnd('Fetch via batch queries');
+  console.log(`Total records from all tables: ${filteredData.length}`);
 
   return filteredData;
 }
@@ -291,12 +309,15 @@ function populateDefectsInWorksheet(worksheet, defectsWithData) {
 module.exports = function(app, createAuthenticatedSupabaseClient) {
   app.get('/export-production-defects', async (req, res) => {
     try {
+      console.time('⏱️ EXPORT TOTAL');
       const supabase = createAuthenticatedSupabaseClient?.(req);
       if (!supabase) {
         return res.status(500).send('Database client not available');
       }
 
+      console.time('Parse filters');
       const filters = parseFilters(req.query || {});
+      console.timeEnd('Parse filters');
 
       // 1) Load template
       const templatePath = findTemplatePath();
@@ -307,7 +328,9 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
 
       let workbook, worksheet;
       try {
+        console.time('Load template');
         ({ workbook, worksheet } = await loadTemplate(templatePath));
+        console.timeEnd('Load template');
       } catch (err) {
         console.error('Template load error:', err.message);
         return res.status(500).send('Failed to load template');
@@ -344,18 +367,28 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
       }
 
       // 2) Fetch inspection records
+      console.time('Fetch records');
       const allRecords = await fetchInspectionRecords(supabase, filters);
+      console.timeEnd('Fetch records');
 
       // 3) Filter by product/shift
+      console.time('Filter by criteria');
       const masterRecords = filterRecordsByCriteria(allRecords, filters);
+      console.timeEnd('Filter by criteria');
 
       // 4) Fetch ALL lot records for matching traceability pairs
+      console.time('Fetch all lot records');
       const filteredData = await fetchAllLotRecords(supabase, masterRecords);
+      console.timeEnd('Fetch all lot records');
+      console.log(`Records fetched: ${filteredData.length}`);
 
       // 5) Aggregate defects
+      console.time('Aggregate defects');
       const defectsWithData = aggregateDefects(filteredData);
+      console.timeEnd('Aggregate defects');
 
       // 6) Compute totals (match frontend logic) and populate worksheet
+      console.time('Compute totals');
       // Compute total produced rolls using same logic as front-end: accepted + rejected + rework + kiv
       let totalProduced = 0;
       let totalRejected = 0;
@@ -376,12 +409,18 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
       } catch (err) {
         // Ignore total write errors
       }
+      console.timeEnd('Compute totals');
 
       // 7) Populate defects grid
+      console.time('Populate defects worksheet');
       populateDefectsInWorksheet(worksheet, defectsWithData);
+      console.timeEnd('Populate defects worksheet');
 
       // 7) Send response
+      console.time('Write Excel buffer');
       const excelBuffer = await workbook.xlsx.writeBuffer();
+      console.timeEnd('Write Excel buffer');
+      console.timeEnd('⏱️ EXPORT TOTAL');
 
       // Build dynamic filename based on date range
       const mcPart = filters.machine ? String(filters.machine).padStart(2, '0') : 'All';

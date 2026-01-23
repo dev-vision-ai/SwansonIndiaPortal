@@ -3,14 +3,22 @@ import { supabase } from '../supabase-config.js';
 // ===== CONFIGURATION =====
 const MAX_FORMS_DISPLAY = 6; // Maximum number of forms to display
 
+let clockInterval = null;
+
 // ===== IST TIMESTAMP UTILITY =====
+/**
+ * Returns current timestamp in ISO format (UTC)
+ * Used for consistent timestamping across the application
+ */
 function getISTTimestamp() {
-    return new Date().toISOString(); 
+    return new Date().toISOString();
 }
 
 // ===== CLOCK FUNCTIONALITY =====
-let clockInterval = null;
-
+/**
+ * Updates the clock display in the header with current time
+ * Format: "Time: HH:MM:SS"
+ */
 function updateClock() {
     try {
         const now = new Date();
@@ -28,6 +36,10 @@ function updateClock() {
     }
 }
 
+/**
+ * Starts the live clock that updates every second
+ * Also handles cleanup of previous intervals
+ */
 function startClock() {
     try {
         // Clear existing interval if any
@@ -48,6 +60,9 @@ function startClock() {
     }
 }
 
+/**
+ * Stops the live clock and clears the interval
+ */
 function stopClock() {
     try {
         if (clockInterval) {
@@ -66,7 +81,11 @@ const intervals = new Set();
 const timeouts = new Set();
 const eventListeners = new Map();
 
-// Cleanup function to prevent memory leaks
+/**
+ * Cleans up all tracked intervals, timeouts, and event listeners
+ * Prevents memory leaks when navigating away from the page
+ * Called automatically on page unload and session cleanup
+ */
 function cleanupResources() {
     try {
         // Stop the clock
@@ -117,47 +136,54 @@ function cleanupResources() {
 let sessionCheckInterval = null;
 let lastSessionCheck = Date.now();
 
-// Session validation function
-    async function validateSession() {
-        try {
-            const { data: { user }, error } = await supabase.auth.getUser();
-            if (error || !user) {
-                // Try to refresh the session first
-                console.log('User not found, attempting session refresh...');
-                const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-                
-                if (refreshError || !refreshData.user) {
-                    console.log('Session refresh failed, redirecting to login');
-                    // Prevent multiple redirects
-                    if (!window.redirectingToAuth) {
-                        window.redirectingToAuth = true;
-                        window.location.replace('auth.html');
-                    }
-                    return false;
+/**
+ * Validates current user session and refreshes if needed
+ * Redirects to login page if session is invalid
+ * @returns {boolean} true if session is valid, false otherwise
+ */
+async function validateSession() {
+    try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) {
+            // Try to refresh the session first
+            console.log('User not found, attempting session refresh...');
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+            
+            if (refreshError || !refreshData.user) {
+                console.log('Session refresh failed, redirecting to login');
+                // Prevent multiple redirects
+                if (!window.redirectingToAuth) {
+                    window.redirectingToAuth = true;
+                    window.location.replace('auth.html');
                 }
-                
-                console.log('Session refreshed successfully');
-                lastSessionCheck = Date.now();
-                return true;
+                return false;
             }
+            
+            console.log('Session refreshed successfully');
             lastSessionCheck = Date.now();
             return true;
-        } catch (error) {
-            console.error('Session validation error:', error);
-            // Prevent multiple redirects
-            if (!window.redirectingToAuth) {
-                window.redirectingToAuth = true;
-                window.location.replace('auth.html');
-            }
-            return false;
         }
+        lastSessionCheck = Date.now();
+        return true;
+    } catch (error) {
+        console.error('Session validation error:', error);
+        // Prevent multiple redirects
+        if (!window.redirectingToAuth) {
+            window.redirectingToAuth = true;
+            window.location.replace('auth.html');
+        }
+        return false;
     }
+}
 
 // Enhanced cleanup function that's more robust
 // Cleanup function consolidated into cleanupResources - removed duplicate
 
 
-// Periodic session check
+/**
+ * Starts periodic session monitoring to check authentication status
+ * Automatically logs out user if session becomes invalid
+ */
 function startSessionMonitoring() {
     if (sessionCheckInterval) {
         clearInterval(sessionCheckInterval);
@@ -214,7 +240,10 @@ if (isProduction) {
   intervals.add(keepAliveInterval2);
 }
 
-// Back button and mutually exclusive checkboxes logic
+/**
+ * Main application initialization on DOM content loaded
+ * Sets up session monitoring, clock, authentication, form handlers, and data loading
+ */
 window.addEventListener('DOMContentLoaded', async function() {
   // Start session monitoring
   startSessionMonitoring();
@@ -357,6 +386,120 @@ let allForms = []; // Store all forms for filtering
 let filteredForms = []; // Store filtered forms
 let currentFilters = {}; // Store current filter state
 
+// Debounce helper to keep UI responsive when multiple filters change quickly
+function debounce(fn, waitMs = 150) {
+  let timeoutId;
+  return (...args) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeouts.delete(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      timeoutId = null;
+      fn(...args);
+    }, waitMs);
+    timeouts.add(timeoutId);
+  };
+}
+
+const scheduleApplyFilters = debounce(() => {
+  applyFilters();
+}, 120);
+
+let activeFormsLoadRequestId = 0;
+let lastLoadedExplicitFromDate = '';
+let lastLoadedExplicitToDate = '';
+
+async function fetchInlineInspectionFormsForDateRange(fromDate, toDate) {
+  // Query all three tables in parallel and merge results
+  const allFormsData = [];
+  const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+
+  const queryPromises = tables.map(table => {
+    let query = supabase
+      .from(table)
+      .select(`
+        id, traceability_code, lot_letter, customer, production_no, production_no_2, prod_code, spec,
+        production_date, emboss_type, production_type, printed, non_printed, ct, year, month, date,
+        mc_no, shift, supervisor, supervisor2,
+        operator, operator2, qc_inspector, qc_inspector2, status,
+        total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
+        created_at, updated_at
+      `);
+
+    if (fromDate) query = query.gte('production_date', fromDate);
+    if (toDate) query = query.lte('production_date', toDate);
+
+    return query
+      .order('production_date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .order('mc_no', { ascending: true });
+  });
+
+  const results = await Promise.all(queryPromises);
+  results.forEach((result, index) => {
+    const { data, error } = result;
+    if (error) {
+      console.error(`Error loading forms from ${tables[index]}:`, error);
+    } else if (data) {
+      allFormsData.push(...data);
+    }
+  });
+
+  // Only show forms with a non-null and non-empty customer value
+  const validForms = allFormsData.filter(form => form.customer !== null && form.customer !== '');
+
+  // Consistent sorting (production_date desc, created_at desc, mc asc)
+  return validForms.sort((a, b) => {
+    const aProdDate = new Date(a.production_date || 0);
+    const bProdDate = new Date(b.production_date || 0);
+    if (aProdDate.getTime() !== bProdDate.getTime()) return bProdDate.getTime() - aProdDate.getTime();
+
+    const aCreated = new Date(a.created_at || 0);
+    const bCreated = new Date(b.created_at || 0);
+    if (aCreated.getTime() !== bCreated.getTime()) return bCreated.getTime() - aCreated.getTime();
+
+    const aMachine = parseInt(a.mc_no) || 0;
+    const bMachine = parseInt(b.mc_no) || 0;
+    return aMachine - bMachine;
+  });
+}
+
+async function reloadFormsForDateRange(fromDate, toDate) {
+  // Avoid repeated fetches for the same explicit range
+  const normalizedFrom = fromDate || '';
+  const normalizedTo = toDate || '';
+  if (normalizedFrom === lastLoadedExplicitFromDate && normalizedTo === lastLoadedExplicitToDate) {
+    return;
+  }
+
+  const requestId = ++activeFormsLoadRequestId;
+  lastLoadedExplicitFromDate = normalizedFrom;
+  lastLoadedExplicitToDate = normalizedTo;
+
+  const tbody = document.querySelector('table tbody');
+  if (tbody) {
+    tbody.innerHTML = `<tr><td colspan="11" class="py-4 text-center text-gray-500">Loading data...</td></tr>`;
+  }
+
+  const forms = await fetchInlineInspectionFormsForDateRange(normalizedFrom, normalizedTo);
+
+  // Ignore stale results if a newer request started
+  if (requestId !== activeFormsLoadRequestId) {
+    return;
+  }
+
+  allForms = forms;
+  filteredForms = forms;
+
+  // Update filter options from the new dataset
+  refreshAllFilterOptions({ preserveSelections: true });
+}
+
+/**
+ * Sets up event listeners for all filter controls
+ * Includes clear filters button and cascading dropdown handlers
+ */
 function setupFilterHandlers() {
   const clearFilterBtn = document.getElementById('clearFilter');
   
@@ -379,7 +522,7 @@ function setupFilterHandlers() {
   nonCascadingFilters.forEach(inputId => {
     const input = document.getElementById(inputId);
     if (input) {
-      input.addEventListener('change', applyFilters);
+      input.addEventListener('change', scheduleApplyFilters);
     }
   });
 }
@@ -393,21 +536,36 @@ async function onDateChange() {
   currentFilters.fromDate = fromDate;
   currentFilters.toDate = toDate;
   
-  // Reset dependent dropdowns
-  resetDropdown('filterMachine');
-  resetDropdown('filterProduct');
-  resetDropdown('filterShift');
-  
-  if (fromDate || toDate) {
-    await populateMachineDropdown(fromDate, toDate);
-    await populateNonCascadingDropdowns(fromDate, toDate);
+  // If both dates are cleared, revert to default month view (avoids fetching huge unbounded history)
+  if (!fromDate && !toDate) {
+    // Reset dependent dropdowns + values
+    document.getElementById('filterMachine').value = '';
+    document.getElementById('filterProduct').value = '';
+    document.getElementById('filterShift').value = '';
+    currentFilters.machine = '';
+    currentFilters.product = '';
+    currentFilters.shift = '';
+    saveFilterState();
+    updateFilterStatus();
+    await loadFormsTable();
+    return;
   }
-  
-  // Save filter state
+
+  // Reset dependent dropdowns + values when date range changes
+  document.getElementById('filterMachine').value = '';
+  document.getElementById('filterProduct').value = '';
+  document.getElementById('filterShift').value = '';
+  currentFilters.machine = '';
+  currentFilters.product = '';
+  currentFilters.shift = '';
+
   saveFilterState();
-  
-  // Apply filters
-  applyFilters();
+  updateFilterStatus();
+
+  // Fetch once for the selected date range, then filter locally
+  await reloadFormsForDateRange(fromDate, toDate);
+  refreshAllFilterOptions({ preserveSelections: true });
+  scheduleApplyFilters();
 }
 
 async function onMachineChange() {
@@ -418,19 +576,19 @@ async function onMachineChange() {
   // Update current filters
   currentFilters.machine = machine;
   
-  // Reset dependent dropdowns
-  resetDropdown('filterProduct');
-  resetDropdown('filterShift');
-  
-  if (machine) {
-    await populateProductDropdown(fromDate, toDate, machine);
-  }
-  
-  // Save filter state
+  // Reset dependent dropdowns + values
+  document.getElementById('filterProduct').value = '';
+  document.getElementById('filterShift').value = '';
+  currentFilters.product = '';
+  currentFilters.shift = '';
+
+  // Refresh cascading options locally (no DB calls)
+  await populateProductDropdown(fromDate, toDate, machine);
+  await populateShiftDropdown(fromDate, toDate, machine, '');
+
   saveFilterState();
-  
-  // Apply filters
-  applyFilters();
+  updateFilterStatus();
+  scheduleApplyFilters();
 }
 
 async function onProductChange() {
@@ -442,18 +600,16 @@ async function onProductChange() {
   // Update current filters
   currentFilters.product = product;
   
-  // Reset dependent dropdowns
-  resetDropdown('filterShift');
-  
-  if (product) {
-    await populateShiftDropdown(fromDate, toDate, machine, product);
-  }
-  
-  // Save filter state
+  // Reset dependent dropdown + value
+  document.getElementById('filterShift').value = '';
+  currentFilters.shift = '';
+
+  // Refresh cascading options locally (no DB calls)
+  await populateShiftDropdown(fromDate, toDate, machine, product);
+
   saveFilterState();
-  
-  // Apply filters
-  applyFilters();
+  updateFilterStatus();
+  scheduleApplyFilters();
 }
 
 function onShiftChange() {
@@ -462,11 +618,9 @@ function onShiftChange() {
   // Update current filters
   currentFilters.shift = shift;
   
-  // Save filter state
   saveFilterState();
-  
-  // Apply filters
-  applyFilters();
+  updateFilterStatus();
+  scheduleApplyFilters();
 }
 
 // Reset dropdown to "All" option only
@@ -479,239 +633,99 @@ function resetDropdown(dropdownId) {
 
 // Populate machine dropdown based on date range
 async function populateMachineDropdown(fromDate, toDate) {
-  let dataToUse = allForms;
-  
-  // If date filters are applied, load historical data from database
-  if (fromDate || toDate) {
-    try {
-      // Query all three tables and combine results
-      const allHistoricalData = [];
-      const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
-      
-      for (const table of tables) {
-        let query = supabase
-          .from(table)
-          .select('mc_no, production_date')
-          .not('customer', 'is', null)
-          .neq('customer', '');
-        
-        if (fromDate) {
-          query = query.gte('production_date', fromDate);
-        }
-        if (toDate) {
-          query = query.lte('production_date', toDate);
-        }
-        
-        const { data, error } = await query;
-        
-        if (error) {
-          console.error(`Error loading historical data from ${table}:`, error);
-        } else if (data) {
-          allHistoricalData.push(...data);
-        }
-      }
-      
-      dataToUse = allHistoricalData || [];
-    } catch (error) {
-      console.error('Error in populateMachineDropdown:', error);
-      return;
-    }
-  }
-  
+  // NOTE: We intentionally do NOT query Supabase here.
+  // allForms is already loaded for the active date range.
+  const dataToUse = allForms;
   if (!dataToUse || dataToUse.length === 0) return;
-  
   const machines = [...new Set(dataToUse.map(form => form.mc_no).filter(Boolean))].sort();
   populateSelect('filterMachine', machines);
 }
 
 // Populate product dropdown based on date range and machine
 async function populateProductDropdown(fromDate, toDate, machine) {
+  // NOTE: No Supabase queries here. Use already-loaded allForms.
   let dataToUse = allForms;
-  
-  // If date filters are applied, load historical data from database
-  if (fromDate || toDate) {
-    try {
-      // Query all three tables and combine results
-      const allHistoricalData = [];
-      const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
-      
-      for (const table of tables) {
-        let query = supabase
-          .from(table)
-          .select('prod_code, mc_no, production_date')
-          .not('customer', 'is', null)
-          .neq('customer', '');
-        
-        if (fromDate) {
-          query = query.gte('production_date', fromDate);
-        }
-        if (toDate) {
-          query = query.lte('production_date', toDate);
-        }
-        
-        const { data, error } = await query;
-        
-        if (error) {
-          console.error(`Error loading historical data from ${table}:`, error);
-        } else if (data) {
-          allHistoricalData.push(...data);
-        }
-      }
-      
-      dataToUse = allHistoricalData || [];
-    } catch (error) {
-      console.error('Error in populateProductDropdown:', error);
-      return;
-    }
-  }
-  
   if (!dataToUse || dataToUse.length === 0) return;
-  
-  // Filter by machine if provided
-  if (machine) {
-    dataToUse = dataToUse.filter(form => form.mc_no === machine);
-  }
-  
+  if (machine) dataToUse = dataToUse.filter(form => form.mc_no === machine);
   const products = [...new Set(dataToUse.map(form => form.prod_code).filter(Boolean))].sort();
   populateSelect('filterProduct', products);
 }
 
 // Populate shift dropdown based on date range, machine, and product
 async function populateShiftDropdown(fromDate, toDate, machine, product) {
+  // NOTE: No Supabase queries here. Use already-loaded allForms.
   let dataToUse = allForms;
-  
-  // If date filters are applied, load historical data from database
-  if (fromDate || toDate) {
-    try {
-      // Query all three tables and combine results
-      const allHistoricalData = [];
-      const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
-      
-      for (const table of tables) {
-        let query = supabase
-          .from(table)
-          .select('shift, mc_no, prod_code, production_date')
-          .not('customer', 'is', null)
-          .neq('customer', '');
-        
-        if (fromDate) {
-          query = query.gte('production_date', fromDate);
-        }
-        if (toDate) {
-          query = query.lte('production_date', toDate);
-        }
-        
-        const { data, error } = await query;
-        
-        if (error) {
-          console.error(`Error loading historical data from ${table}:`, error);
-        } else if (data) {
-          allHistoricalData.push(...data);
-        }
-      }
-      
-      dataToUse = allHistoricalData || [];
-    } catch (error) {
-      console.error('Error in populateShiftDropdown:', error);
-      return;
-    }
-  }
-  
   if (!dataToUse || dataToUse.length === 0) return;
-  
-  // Filter by machine if provided
-  if (machine) {
-    dataToUse = dataToUse.filter(form => form.mc_no === machine);
-  }
-  
-  // Filter by product if provided
-  if (product) {
-    dataToUse = dataToUse.filter(form => form.prod_code === product);
-  }
-  
+  if (machine) dataToUse = dataToUse.filter(form => form.mc_no === machine);
+  if (product) dataToUse = dataToUse.filter(form => form.prod_code === product);
   const shifts = [...new Set(dataToUse.map(form => form.shift).filter(Boolean))].sort();
   populateSelect('filterShift', shifts);
 }
 
 // Populate filter dropdowns with unique values
-async function populateFilterDropdowns() {
+/**
+ * Refreshes all filter dropdown options based on current form data
+ * Extracts unique values for each filter type and populates dropdowns
+ * @param {Object} options - Configuration options
+ * @param {boolean} options.preserveSelections - Whether to maintain current filter selections
+ */
+function refreshAllFilterOptions({ preserveSelections = true } = {}) {
   if (!allForms || allForms.length === 0) return;
-  
-  // Get unique values for non-cascading filters from current data
+
+  const operatorEl = document.getElementById('filterOperator');
+  const supervisorEl = document.getElementById('filterSupervisor');
+  const qcInspectorEl = document.getElementById('filterQCInspector');
+  const machineEl = document.getElementById('filterMachine');
+  const productEl = document.getElementById('filterProduct');
+  const shiftEl = document.getElementById('filterShift');
+
+  const selectedOperator = preserveSelections ? (operatorEl?.value || '') : '';
+  const selectedSupervisor = preserveSelections ? (supervisorEl?.value || '') : '';
+  const selectedQc = preserveSelections ? (qcInspectorEl?.value || '') : '';
+  const selectedMachine = preserveSelections ? (machineEl?.value || '') : '';
+  const selectedProduct = preserveSelections ? (productEl?.value || '') : '';
+  const selectedShift = preserveSelections ? (shiftEl?.value || '') : '';
+
+  // Non-cascading options (based on currently loaded dataset)
   const operators = [...new Set(allForms.flatMap(form => [form.operator, form.operator2]).filter(Boolean))].sort();
   const supervisors = [...new Set(allForms.flatMap(form => [form.supervisor, form.supervisor2]).filter(Boolean))].sort();
   const qcInspectors = [...new Set(allForms.flatMap(form => [form.qc_inspector, form.qc_inspector2]).filter(Boolean))].sort();
-  
-  // Populate non-cascading dropdowns
+
   populateSelect('filterOperator', operators);
   populateSelect('filterSupervisor', supervisors);
   populateSelect('filterQCInspector', qcInspectors);
-  
-  // Initialize cascading dropdowns with all available values
+
+  if (operatorEl && operators.includes(selectedOperator)) operatorEl.value = selectedOperator;
+  if (supervisorEl && supervisors.includes(selectedSupervisor)) supervisorEl.value = selectedSupervisor;
+  if (qcInspectorEl && qcInspectors.includes(selectedQc)) qcInspectorEl.value = selectedQc;
+
+  // Cascading options
   const machines = [...new Set(allForms.map(form => form.mc_no).filter(Boolean))].sort();
-  const products = [...new Set(allForms.map(form => form.prod_code).filter(Boolean))].sort();
-  const shifts = [...new Set(allForms.map(form => form.shift).filter(Boolean))].sort();
-  
   populateSelect('filterMachine', machines);
-  populateSelect('filterProduct', products);
-  populateSelect('filterShift', shifts);
-  
-  // Restore previous filter state if exists
-  await restoreFilterState();
-}
+  if (machineEl && machines.includes(selectedMachine)) machineEl.value = selectedMachine;
 
-// Populate non-cascading filter dropdowns with historical data
-async function populateNonCascadingDropdowns(fromDate, toDate) {
-  if (!fromDate && !toDate) return;
-  
-  try {
-    // Query all three tables in parallel for better performance
-    const allHistoricalData = [];
-    const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
-    
-    const queryPromises = tables.map(table => {
-      let query = supabase
-        .from(table)
-        .select('operator, operator2, supervisor, supervisor2, qc_inspector, qc_inspector2')
-        .not('customer', 'is', null)
-        .neq('customer', '');
-      
-      if (fromDate) {
-        query = query.gte('production_date', fromDate);
-      }
-      if (toDate) {
-        query = query.lte('production_date', toDate);
-      }
-      
-      return query;
-    });
-
-    // Execute all queries in parallel
-    const results = await Promise.all(queryPromises);
-    results.forEach((result, index) => {
-      const { data, error } = result;
-      if (error) {
-        console.error(`Error loading historical data from ${tables[index]}:`, error);
-      } else if (data) {
-        allHistoricalData.push(...data);
-      }
-    });
-    
-    if (allHistoricalData && allHistoricalData.length > 0) {
-      // Get unique values for non-cascading filters from historical data
-      const operators = [...new Set(allHistoricalData.flatMap(form => [form.operator, form.operator2]).filter(Boolean))].sort();
-      const supervisors = [...new Set(allHistoricalData.flatMap(form => [form.supervisor, form.supervisor2]).filter(Boolean))].sort();
-      const qcInspectors = [...new Set(allHistoricalData.flatMap(form => [form.qc_inspector, form.qc_inspector2]).filter(Boolean))].sort();
-      
-      // Populate non-cascading dropdowns with historical data
-      populateSelect('filterOperator', operators);
-      populateSelect('filterSupervisor', supervisors);
-      populateSelect('filterQCInspector', qcInspectors);
-    }
-  } catch (error) {
-    console.error('Error in populateNonCascadingDropdowns:', error);
+  let productsBase = allForms;
+  if ((machineEl?.value || '') !== '') {
+    productsBase = productsBase.filter(form => form.mc_no === machineEl.value);
   }
+  const products = [...new Set(productsBase.map(form => form.prod_code).filter(Boolean))].sort();
+  populateSelect('filterProduct', products);
+  if (productEl && products.includes(selectedProduct)) productEl.value = selectedProduct;
+
+  let shiftsBase = productsBase;
+  if ((productEl?.value || '') !== '') {
+    shiftsBase = shiftsBase.filter(form => form.prod_code === productEl.value);
+  }
+  const shifts = [...new Set(shiftsBase.map(form => form.shift).filter(Boolean))].sort();
+  populateSelect('filterShift', shifts);
+  if (shiftEl && shifts.includes(selectedShift)) shiftEl.value = selectedShift;
 }
+
+async function populateFilterDropdowns() {
+  refreshAllFilterOptions({ preserveSelections: true });
+}
+
+// Historical dropdown fetching removed: we now populate dropdowns from the already-loaded dataset.
 
 // Unused populateDatalist function removed - replaced by populateSelect which does the same thing
 // Helper function to populate select dropdown
@@ -761,42 +775,30 @@ async function restoreFilterState() {
     document.getElementById('filterSupervisor').value = currentFilters.supervisor || '';
     document.getElementById('filterQCInspector').value = currentFilters.qcInspector || '';
     
-    // Restore cascading filters with proper population
+    // If a saved date range exists, ensure the dataset matches it (single fetch)
     if (currentFilters.fromDate || currentFilters.toDate) {
-      await populateMachineDropdown(currentFilters.fromDate, currentFilters.toDate);
-      
-      if (currentFilters.machine) {
-        document.getElementById('filterMachine').value = currentFilters.machine;
-        await populateProductDropdown(currentFilters.fromDate, currentFilters.toDate, currentFilters.machine);
-        
-        if (currentFilters.product) {
-          document.getElementById('filterProduct').value = currentFilters.product;
-          await populateShiftDropdown(currentFilters.fromDate, currentFilters.toDate, currentFilters.machine, currentFilters.product);
-          
-          if (currentFilters.shift !== undefined) {
-            document.getElementById('filterShift').value = currentFilters.shift;
-          }
-        }
-      }
-      
-      // Update filter status and apply filters
-      updateFilterStatus();
-      applyFilters();
-    } else {
-      // No date filters, restore directly
-      if (currentFilters.machine) {
-        document.getElementById('filterMachine').value = currentFilters.machine;
-      }
-      if (currentFilters.product) {
-        document.getElementById('filterProduct').value = currentFilters.product;
-      }
-      if (currentFilters.shift !== undefined) {
-        document.getElementById('filterShift').value = currentFilters.shift;
-      }
-      
-      updateFilterStatus();
-      applyFilters();
+      await reloadFormsForDateRange(currentFilters.fromDate || '', currentFilters.toDate || '');
     }
+
+    // Refresh dropdowns based on loaded data (preserve saved selections we just set)
+    refreshAllFilterOptions({ preserveSelections: true });
+
+    // Restore cascading selections with local option rebuilds
+    if (currentFilters.machine) document.getElementById('filterMachine').value = currentFilters.machine;
+    await populateProductDropdown(currentFilters.fromDate, currentFilters.toDate, currentFilters.machine || '');
+
+    if (currentFilters.product) document.getElementById('filterProduct').value = currentFilters.product;
+    await populateShiftDropdown(currentFilters.fromDate, currentFilters.toDate, currentFilters.machine || '', currentFilters.product || '');
+
+    if (currentFilters.shift !== undefined) document.getElementById('filterShift').value = currentFilters.shift;
+
+    // Re-apply non-cascading selections after dropdown refresh
+    if (currentFilters.operator) document.getElementById('filterOperator').value = currentFilters.operator;
+    if (currentFilters.supervisor) document.getElementById('filterSupervisor').value = currentFilters.supervisor;
+    if (currentFilters.qcInspector) document.getElementById('filterQCInspector').value = currentFilters.qcInspector;
+
+    updateFilterStatus();
+    scheduleApplyFilters();
   } else {
     // Update filter status to show Off if no saved filters
     updateFilterStatus();
@@ -833,8 +835,7 @@ function updateFilterStatus() {
   }
 }
 
-// ===== OPTIMIZED FILTER LOGIC =====
-// This replaces your slow applyFilters function
+// ===== FILTER LOGIC (LOCAL + INSTANT) =====
 async function applyFilters() {
   const fromDate = document.getElementById('filterFromDate').value;
   const toDate = document.getElementById('filterToDate').value;
@@ -851,116 +852,34 @@ async function applyFilters() {
   // Update filter status
   updateFilterStatus();
 
-  // Check if any filters are applied
   const hasAnyFilter = fromDate || toDate || product || machine || shift || operator || supervisor || qcInspector;
 
-  // Show loading indicator in table (Optional but good UX)
-  const tbody = document.querySelector('table tbody');
-  if (tbody) tbody.innerHTML = `<tr><td colspan="11" class="py-4 text-center text-gray-500">Loading filtered data...</td></tr>`;
+  // Filter in-memory for instant UX (allForms is already scoped to the active date range)
+  filteredForms = (allForms || []).filter(form => {
+    if (!form || form.customer === null || form.customer === '') return false;
 
-  try {
-    // 🚀 OPTIMIZATION 1: Determine which tables to query
-    // If a specific machine is selected, we ONLY query that machine's table.
-    // Otherwise, we must query all 3.
-    let tablesToQuery = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+    // Date filter (safe string compare for YYYY-MM-DD)
+    if (fromDate && form.production_date && String(form.production_date) < fromDate) return false;
+    if (toDate && form.production_date && String(form.production_date) > toDate) return false;
 
-    if (machine) {
-        // If Machine 1 is selected, we ONLY check table 1. This cuts load time by ~66%.
-        tablesToQuery = [getTableNameForMachine(machine)];
+    if (machine && String(form.mc_no ?? '') !== String(machine)) return false;
+    if (product && String(form.prod_code ?? '') !== String(product)) return false;
+    if (shift && String(form.shift ?? '') !== String(shift)) return false;
+
+    if (operator) {
+      if (form.operator !== operator && form.operator2 !== operator) return false;
+    }
+    if (supervisor) {
+      if (form.supervisor !== supervisor && form.supervisor2 !== supervisor) return false;
+    }
+    if (qcInspector) {
+      if (form.qc_inspector !== qcInspector && form.qc_inspector2 !== qcInspector) return false;
     }
 
-    const allHistoricalData = [];
+    return true;
+  });
 
-    // Run queries in parallel
-    const queryPromises = tablesToQuery.map(table => {
-      let query = supabase
-        .from(table)
-        .select(`
-          id, traceability_code, lot_letter, customer, production_no, production_no_2, prod_code, spec,
-          production_date, emboss_type, production_type, printed, non_printed, ct, year, month, date,
-          mc_no, shift, supervisor, supervisor2,
-          operator, operator2, qc_inspector, qc_inspector2, status,
-          total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
-          created_at, updated_at
-        `);
-
-      // 🚀 OPTIMIZATION 2: Apply filters IN THE DATABASE
-      // Instead of downloading everything and filtering in JS, we tell Supabase to only send what matches.
-
-      // Date Filters
-      if (fromDate) query = query.gte('production_date', fromDate);
-      if (toDate) query = query.lte('production_date', toDate);
-
-      // Server-Side Filters (These are fast!)
-      if (machine) query = query.eq('mc_no', machine);
-      if (product) query = query.eq('prod_code', product);
-      if (shift) query = query.eq('shift', shift);
-
-      // Note: We leave Operator/Supervisor filtering for the client-side below
-      // because they are split across two columns (operator1/operator2) which is complex for basic queries.
-      // But since we already filtered by Date + Machine + Product + Shift, the data size is tiny now.
-
-      return query
-        .order('production_date', { ascending: false })
-        .order('created_at', { ascending: false });
-    });
-
-    // Execute the optimized queries
-    const results = await Promise.all(queryPromises);
-
-    results.forEach((result, index) => {
-      const { data, error } = result;
-      if (error) {
-        console.error(`Error loading data from table:`, error);
-      } else if (data) {
-        allHistoricalData.push(...data);
-      }
-    });
-
-    // Filter valid forms
-    const validHistoricalForms = allHistoricalData.filter(form => form.customer !== null && form.customer !== '');
-
-    // 🧹 FINAL CLIENT-SIDE FILTERING (For complex text fields only)
-    filteredForms = validHistoricalForms.filter(form => {
-      // Operator filter (Checks both Operator 1 AND Operator 2)
-      if (operator && (form.operator || form.operator2)) {
-        if (form.operator !== operator && form.operator2 !== operator) return false;
-      }
-
-      // Supervisor filter
-      if (supervisor && (form.supervisor || form.supervisor2)) {
-        if (form.supervisor !== supervisor && form.supervisor2 !== supervisor) return false;
-      }
-
-      // QC Inspector filter
-      if (qcInspector && (form.qc_inspector || form.qc_inspector2)) {
-        if (form.qc_inspector !== qcInspector && form.qc_inspector2 !== qcInspector) return false;
-      }
-
-      return true;
-    });
-
-    // Sort combined results
-    filteredForms.sort((a, b) => {
-        // Sort by Production Date (Newest First)
-        const dateA = new Date(a.production_date);
-        const dateB = new Date(b.production_date);
-        if (dateA > dateB) return -1;
-        if (dateA < dateB) return 1;
-
-        // Then by Created At
-        const createdA = new Date(a.created_at);
-        const createdB = new Date(b.created_at);
-        return createdB - createdA;
-    });
-
-    // Update UI
-    await updateFormsTable(filteredForms, hasAnyFilter);
-
-  } catch (error) {
-    console.error('Error in optimized filtering:', error);
-    if (tbody) tbody.innerHTML = `<tr><td colspan="11" class="py-4 text-center text-red-500">Error loading data. Please try again.</td></tr>`;
-  }
+  await updateFormsTable(filteredForms, hasAnyFilter);
 }
 
 async function clearFilters() {
@@ -991,7 +910,11 @@ async function clearFilters() {
 
 // ===== STEP 1: FORM CREATION AND SAVING =====
 
-// Global function for form submission
+/**
+ * Handles form submission for creating or updating inline inspection forms
+ * Validates required fields, generates traceability code, and saves to database
+ * @param {Event} e - Form submit event
+ */
 async function handleFormSubmit(e) {
           // Form submission triggered
     e.preventDefault();
@@ -1025,17 +948,10 @@ async function handleFormSubmit(e) {
   const checkboxGroup = form.querySelector('.flex.flex-row.items-center.gap-10.border.border-gray-200.bg-gray-50.rounded-lg.px-4.py-3.w-fit.mb-2');
   
   // More robust checkbox validation
-  const isAnyCheckboxSelected = (printedCheckbox && printedCheckbox.checked) || 
-                               (nonPrintedCheckbox && nonPrintedCheckbox.checked) || 
+  const isAnyCheckboxSelected = (printedCheckbox && printedCheckbox.checked) ||
+                               (nonPrintedCheckbox && nonPrintedCheckbox.checked) ||
                                (ctCheckbox && ctCheckbox.checked);
-  
-  // console.log('Checkbox validation:', {
-  //   printed: printedCheckbox?.checked,
-  //   nonPrinted: nonPrintedCheckbox?.checked,
-  //   ct: ctCheckbox?.checked,
-  //   isAnySelected: isAnyCheckboxSelected
-  // });
-  
+
   const missingFields = [];
   
   // Clear previous validation styling
@@ -1427,7 +1343,6 @@ async function handleFormSubmit(e) {
   // Close button handler
   if (closeBtn) {
     closeBtn.addEventListener('click', function() {
-      // console.log('Close button clicked');
       overlay.style.display = 'none';
       overlay.classList.add('hidden');
       
@@ -1581,6 +1496,11 @@ async function handleFormSubmit(e) {
 // ===== LOAD FORMS TABLE =====
   async function loadFormsTable() {
     try {
+      const tbody = document.querySelector('table tbody');
+      if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="11" class="py-4 text-center text-gray-500">Loading forms...</td></tr>`;
+      }
+
       // Check if there are saved filters that should override default behavior
       const savedFilters = localStorage.getItem('inlineInspectionFilters');
       let hasDateFilters = false;
@@ -1632,85 +1552,30 @@ async function handleFormSubmit(e) {
       
       // Loading forms for target date range
       
-      // Query all three tables in parallel for better performance
-      const allFormsData = [];
-      const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
-      
-      const queryPromises = tables.map(table => {
-        let query = supabase
-          .from(table)
-          .select(`
-            id, traceability_code, lot_letter, customer, production_no, production_no_2, prod_code, spec,
-            production_date, emboss_type, production_type, printed, non_printed, ct, year, month, date,
-            mc_no, shift, supervisor, supervisor2,
-            operator, operator2, qc_inspector, qc_inspector2, status,
-            total_rolls, accepted_rolls, rejected_rolls, rework_rolls, kiv_rolls,
-            created_at, updated_at
-          `);
-        
-        // Apply date filters if they exist
-        if (startDate) {
-          query = query.gte('production_date', startDate);
-        }
-        if (endDate) {
-          query = query.lte('production_date', endDate);
-        }
-        
-        return query
-          .order('production_date', { ascending: false })
-          .order('created_at', { ascending: false })
-          .order('mc_no', { ascending: true });
-      });
+      // Fetch dataset once (scoped to month or saved date range)
+      const sortedForms = await fetchInlineInspectionFormsForDateRange(startDate || '', endDate || '');
+      allForms = sortedForms;
+      filteredForms = sortedForms;
 
-      // Execute all queries in parallel
-      const results = await Promise.all(queryPromises);
-      results.forEach((result, index) => {
-        const { data, error } = result;
-        if (error) {
-          console.error(`Error loading forms from ${tables[index]}:`, error);
-        } else if (data) {
-          allFormsData.push(...data);
-        }
-      });
-
-      // Only show forms with a non-null and non-empty customer value
-      const validForms = allFormsData.filter(form => form.customer !== null && form.customer !== '');
-    
-
-    
-            // Found forms for target month
-    
-    // Additional client-side sorting to ensure proper date ordering with machine alternation
-    const sortedForms = validForms.sort((a, b) => {
-      // Primary sort by production_date (newest first)
-      const aProdDate = new Date(a.production_date || 0);
-      const bProdDate = new Date(b.production_date || 0);
-      
-      if (aProdDate.getTime() !== bProdDate.getTime()) {
-        return bProdDate.getTime() - aProdDate.getTime();
+      // Track whether this load came from an explicit saved date-range
+      if (hasDateFilters) {
+        lastLoadedExplicitFromDate = startDate || '';
+        lastLoadedExplicitToDate = endDate || '';
+      } else {
+        lastLoadedExplicitFromDate = '';
+        lastLoadedExplicitToDate = '';
       }
-      
-      // Secondary sort by created_at (newest first)
-      const aCreated = new Date(a.created_at || 0);
-      const bCreated = new Date(b.created_at || 0);
-      
-      if (aCreated.getTime() !== bCreated.getTime()) {
-        return bCreated.getTime() - aCreated.getTime();
+
+      // Populate dropdowns from the loaded dataset
+      populateFilterDropdowns();
+
+      // Restore and apply saved filters (if any). If none, show default list.
+      const saved = localStorage.getItem('inlineInspectionFilters');
+      if (saved) {
+        await restoreFilterState();
+      } else {
+        await updateFormsTable(sortedForms, hasDateFilters);
       }
-      
-      // Tertiary sort by machine number (ascending) to create alternating pattern
-      const aMachine = parseInt(a.mc_no) || 0;
-      const bMachine = parseInt(b.mc_no) || 0;
-      
-      return aMachine - bMachine;
-    });
-    
-    allForms = sortedForms; // Store all forms for filtering
-    filteredForms = sortedForms; // Initialize filtered forms with all valid forms
-    await updateFormsTable(sortedForms, hasDateFilters); // Pass hasDateFilters to show all forms if date filters are applied
-    
-    // Populate dropdowns immediately for instant loading
-    await populateFilterDropdowns();
   } catch (error) {
     console.error('Error:', error);
   }
@@ -1755,15 +1620,65 @@ async function getCurrentUserLevel() {
   }
 }
 
+// Cache user context for smoother filtering UI (avoid querying `users` table on every re-render)
+let cachedUserContext = null;
+let cachedUserContextFetchedAt = 0;
+let cachedUserContextPromise = null;
+const USER_CONTEXT_TTL_MS = 5 * 60 * 1000;
+
+async function getUserContextCached() {
+  const now = Date.now();
+  if (cachedUserContext && (now - cachedUserContextFetchedAt) < USER_CONTEXT_TTL_MS) {
+    return cachedUserContext;
+  }
+  if (cachedUserContextPromise) {
+    return cachedUserContextPromise;
+  }
+
+  cachedUserContextPromise = (async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        cachedUserContext = { department: null, userLevel: null };
+        cachedUserContextFetchedAt = Date.now();
+        return cachedUserContext;
+      }
+
+      const { data: userProfile, error } = await supabase
+        .from('users')
+        .select('department, user_level')
+        .eq('id', user.id)
+        .single();
+
+      if (error || !userProfile) {
+        cachedUserContext = { department: null, userLevel: null };
+      } else {
+        cachedUserContext = { department: userProfile.department ?? null, userLevel: userProfile.user_level ?? null };
+      }
+      cachedUserContextFetchedAt = Date.now();
+      return cachedUserContext;
+    } finally {
+      cachedUserContextPromise = null;
+    }
+  })();
+
+  return cachedUserContextPromise;
+}
+
 // Unused hasEditDeletePermission function removed - logic duplicated inline in updateFormsTable
 // ===== UPDATE FORMS TABLE =====
+/**
+ * Updates the forms table with filtered data and handles permissions
+ * Renders forms in chunks for responsive UI, applies visibility filters based on user role
+ * @param {Array} forms - Array of form objects to display
+ * @param {boolean} showAllForDateFilters - Whether to show all forms (ignoring permission filters)
+ */
 async function updateFormsTable(forms, showAllForDateFilters = false) {
   const tbody = document.querySelector('table tbody');
   if (!tbody) return;
 
-  // Get user department and level once for all forms (not per row)
-  const userDepartment = await getCurrentUserDepartment();
-  const userLevel = await getCurrentUserLevel();
+  // Get user department and level once for all forms (cached for smoother filtering)
+  const { department: userDepartment, userLevel } = await getUserContextCached();
   
   // Action permissions: Who can EDIT/DELETE/ENTER DATA on submitted forms?
   const isAuthorizedToEditSubmitted = (userDepartment === 'Quality Assurance' || userDepartment === 'Quality Control' || (userDepartment === 'Production' && userLevel === 1));
@@ -1807,10 +1722,15 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
   // Limit to maximum entries (unless date filters are applied)
   const limitedForms = showAllForDateFilters ? visibleForms : visibleForms.slice(0, MAX_FORMS_DISPLAY);
 
-  // Use DocumentFragment for better performance with multiple DOM inserts
-  const fragment = document.createDocumentFragment();
+  // Render in chunks to keep UI responsive when many results are displayed
+  const CHUNK_SIZE = 50;
+  for (let startIndex = 0; startIndex < limitedForms.length; startIndex += CHUNK_SIZE) {
+    const fragment = document.createDocumentFragment();
+    const endIndex = Math.min(startIndex + CHUNK_SIZE, limitedForms.length);
 
-  limitedForms.forEach((form, index) => {
+    for (let index = startIndex; index < endIndex; index++) {
+      const form = limitedForms[index];
+      const srNo = visibleForms.length - index;
     // Combine names with '/'
     const supervisorDisplay = [form.supervisor, form.supervisor2].filter(Boolean).join(' / ');
     const operatorDisplay = [form.operator, form.operator2].filter(Boolean).join(' / ');
@@ -1847,7 +1767,7 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
     const row = document.createElement('tr');
     row.className = 'hover:bg-gray-50 transition-colors';
     row.innerHTML = `
-      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${visibleForms.length - index}</td>
+      <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${srNo}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">${formatDate(form.production_date)}</td>
       <td class="py-3 px-4 border-r border-gray-200 text-center whitespace-normal break-words">
         <div class="font-semibold">${form.prod_code || '-'}</div>
@@ -1924,10 +1844,15 @@ async function updateFormsTable(forms, showAllForDateFilters = false) {
       </td>
     `;
     fragment.appendChild(row);
-  });
+    }
 
-  // Append all rows at once (single DOM operation)
-  tbody.appendChild(fragment);
+    tbody.appendChild(fragment);
+
+    // Yield to browser between chunks for smoother UX
+    if (endIndex < limitedForms.length) {
+      await new Promise(requestAnimationFrame);
+    }
+  }
 
   // Show message at bottom of table if there are more forms than the limit OR if some forms are hidden due to permissions
   const isRestricted = visibleForms.length < forms.length;
@@ -2058,8 +1983,6 @@ function populateFormWithData(formData, form, submitButton) {
     if (fields.printed) fields.printed.checked = !!dataToUse.printed;
     if (fields.non_printed) fields.non_printed.checked = !!dataToUse.non_printed;
     if (fields.ct) fields.ct.checked = !!dataToUse.ct;
-    
-            // console.log('Form populated successfully for editing');
   } catch (error) {
     console.error('Error populating form fields:', error);
     alert('Error loading form data. Please try again.');
@@ -2082,9 +2005,13 @@ function populateFormWithData(formData, form, submitButton) {
   }
 }
 
+/**
+ * Loads an existing form for editing by traceability code and lot letter
+ * Fetches data from database and populates the form fields
+ * @param {string} traceability_code - The traceability code of the form to edit
+ * @param {string} lot_letter - The lot letter of the form to edit
+ */
 async function editForm(traceability_code, lot_letter) {
-      // console.log('EditForm called for:', { traceability_code, lot_letter });
-  
   // Show modal immediately for better UX
   const overlay = document.getElementById('inspectionFormOverlay');
   const form = document.getElementById('inlineInspectionEntryForm');
@@ -2187,6 +2114,12 @@ async function submitForm(traceability_code, lot_letter, buttonElement) {
   submitOverlay.style.display = 'flex';
 }
 
+/**
+ * Initiates form deletion process with captcha verification
+ * Stores form details and shows captcha overlay for security
+ * @param {string} traceability_code - The traceability code of the form to delete
+ * @param {string} lot_letter - The lot letter of the form to delete
+ */
 async function deleteForm(traceability_code, lot_letter) {
   // Store the form details for deletion
   window.pendingDeleteForm = { traceability_code, lot_letter };
@@ -2353,17 +2286,12 @@ async function confirmSubmit() {
     let tableName = null;
     const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
 
-    console.log('Looking for record with:', { traceability_code, lot_letter });
-
     for (const table of tables) {
-      console.log(`Checking table: ${table}`);
       const { data: records, error } = await supabase
         .from(table)
         .select('id, status, mc_no, shift, production_date')
         .eq('traceability_code', traceability_code)
         .eq('lot_letter', lot_letter);
-
-      console.log(`Table ${table} query result:`, { records, error });
 
       if (!error && records && records.length === 1) {
         tableName = table;
@@ -2522,7 +2450,13 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// Add a placeholder for the download function
+/**
+ * Downloads Excel export of a specific inline inspection form
+ * Calls backend API to generate and return Excel file with form data
+ * @param {string} traceability_code - The traceability code of the form to export
+ * @param {string} lot_letter - The lot letter of the form to export
+ * @param {HTMLElement} buttonElement - The button element that triggered the download (for loading state)
+ */
 window.downloadFormExcel = async function(traceability_code, lot_letter, buttonElement) {
   // Show loading state
   const downloadBtn = buttonElement || document.querySelector('[onclick*="downloadFormExcel"]');
@@ -2582,24 +2516,19 @@ window.downloadFormExcel = async function(traceability_code, lot_letter, buttonE
     // Get filename from Content-Disposition header if available
     const contentDisposition = response.headers.get('Content-Disposition');
     let filename = `inspection_form_${traceability_code}_${lot_letter}.xlsx`;
-    
-            // console.log('Content-Disposition header:', contentDisposition); // Debug log
-    
+
     if (contentDisposition) {
       const filenameMatch = contentDisposition.match(/filename="(.+)"/);
       if (filenameMatch && filenameMatch[1]) {
         filename = filenameMatch[1];
-        // console.log('Extracted filename:', filename); // Debug log
       }
     }
-    
+
     // Fallback: Create a simple filename if header is not available
     if (!contentDisposition || contentDisposition === 'null') {
       filename = `In-Line_Inspection_Form_${traceability_code}_${lot_letter}.xlsx`;
-              // console.log('Using fallback filename:', filename); // Debug log
     }
-    
-            // console.log('Final filename:', filename); // Debug log
+
     a.download = filename;
     document.body.appendChild(a);
     a.click();

@@ -75,8 +75,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Save filter state when page is about to be unloaded
     window.addEventListener('beforeunload', saveFilterState);
-    
-    // Production Report initialized
 });
 
 // Save current filter state to localStorage
@@ -94,14 +92,18 @@ function saveFilterState() {
     // Filter state saved
 }
 
+// Save advanced filter state to localStorage
+function saveAdvancedFilterState() {
+    localStorage.setItem('productionReportAdvancedFilters', JSON.stringify(advancedFilters));
+}
+
 // Load and apply saved filter state
 function loadFilterState() {
     const savedState = localStorage.getItem('productionReportFilters');
     if (savedState) {
         try {
             const filterState = JSON.parse(savedState);
-            console.log('🔄 Loading saved filter state:', filterState);
-            
+
             // Apply saved filters to form inputs and update currentFilters
             if (filterState.fromDate) {
                 document.getElementById('filterFromDate').value = filterState.fromDate;
@@ -111,61 +113,52 @@ function loadFilterState() {
                 document.getElementById('filterToDate').value = filterState.toDate;
                 currentFilters.toDate = filterState.toDate;
             }
-            if (filterState.machine) {
-                currentFilters.machine = filterState.machine;
-            }
-            if (filterState.product) {
-                currentFilters.product = filterState.product;
-            }
-            if (filterState.shift !== undefined) {
-                currentFilters.shift = filterState.shift;
-            }
             if (filterState.productionType) {
+                document.getElementById('filterProductionType').value = filterState.productionType;
                 currentFilters.productionType = filterState.productionType;
             }
-            
+
+            // Apply the saved filter immediately to load data
+            if (filterState.fromDate && filterState.toDate && filterState.machine) {
+                applySavedFilter(filterState);
+            }
+
             // Populate dropdowns and apply filters with improved timing
             if (filterState.fromDate || filterState.toDate) {
-                populateMachineDropdown(filterState.fromDate, filterState.toDate, filterState.productionType);
+                populateMachineDropdown(filterState.fromDate, filterState.toDate, filterState.productionType, filterState.machine);
                 
-                // Wait for dropdown population, then apply machine filter
+                // Wait for dropdown population, then continue with product
                 setTimeout(() => {
                     if (filterState.machine) {
-                        document.getElementById('filterMachine').value = filterState.machine;
                         currentFilters.machine = filterState.machine;
-                        populateProductDropdown(filterState.fromDate, filterState.toDate, filterState.machine, filterState.productionType);
+                        populateProductDropdown(filterState.fromDate, filterState.toDate, filterState.machine, filterState.productionType, filterState.product);
                         
-                        // Wait for product dropdown population
+                        // Wait for product dropdown population, then continue with shift
                         setTimeout(() => {
                             if (filterState.product) {
-                                document.getElementById('filterProduct').value = filterState.product;
                                 currentFilters.product = filterState.product;
-                                populateShiftDropdown(filterState.fromDate, filterState.toDate, filterState.machine, filterState.product, true);
+                                populateShiftDropdown(filterState.fromDate, filterState.toDate, filterState.machine, filterState.product, true, filterState.shift);
                                 
-                                // Wait for shift dropdown population and apply final filter
+                                // Wait for shift dropdown population, then set shift value
                                 setTimeout(() => {
                                     if (filterState.shift !== undefined) {
-                                        document.getElementById('filterShift').value = filterState.shift;
                                         currentFilters.shift = filterState.shift;
-                                        
-                                        // Apply the complete filter based on saved state
-                                        applySavedFilter(filterState);
                                     }
-                                }, 200);
+                                }, 300);
                             } else {
-                                // No product selected, but we still need to apply the filter
+                                // No product selected
                                 setTimeout(() => {
-                                    applySavedFilter(filterState);
-                                }, 200);
+                                    // Data already loaded above, just set currentFilters
+                                }, 300);
                             }
-                        }, 200);
+                        }, 300);
                     } else {
-                        // No machine selected, but we still need to apply the filter
+                        // No machine selected
                         setTimeout(() => {
-                            applySavedFilter(filterState);
-                        }, 200);
+                            // Data already loaded above
+                        }, 300);
                     }
-                }, 200);
+                }, 300);
             }
 
             // Only set filter status to "On" if filters actually have meaningful values
@@ -174,42 +167,85 @@ function loadFilterState() {
                                    filterState.machine &&
                                    filterState.machine !== 'all';
             updateFilterStatus(hasActiveFilters);
-            
+
         } catch (error) {
             console.error('❌ Error loading filter state:', error);
+        }
+    }
+
+    // Load advanced filter state
+    loadAdvancedFilterState();
+}
+
+// Load and apply saved advanced filter state
+function loadAdvancedFilterState() {
+    const savedAdvancedState = localStorage.getItem('productionReportAdvancedFilters');
+    if (savedAdvancedState) {
+        try {
+            const advancedState = JSON.parse(savedAdvancedState);
+
+            // Apply saved advanced filters to form inputs ONLY (don't auto-apply)
+            if (advancedState.fromDate) {
+                document.getElementById('advFilterFromDate').value = advancedState.fromDate;
+            }
+            if (advancedState.toDate) {
+                document.getElementById('advFilterToDate').value = advancedState.toDate;
+            }
+            if (advancedState.product) {
+                document.getElementById('advFilterProduct').value = advancedState.product;
+            }
+            if (advancedState.shift) {
+                document.getElementById('advFilterShift').value = advancedState.shift;
+            }
+            if (advancedState.defect) {
+                document.getElementById('advFilterDefect').value = advancedState.defect;
+            }
+            if (advancedState.productionType) {
+                document.getElementById('advFilterProductionType').value = advancedState.productionType;
+            }
+
+            // Apply machine checkboxes
+            if (advancedState.machines && advancedState.machines.length > 0) {
+                const container = document.getElementById('advFilterMachinesContainer');
+                if (container) {
+                    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+                    checkboxes.forEach(cb => {
+                        cb.checked = advancedState.machines.includes(cb.value);
+                    });
+                    updateSelectedMachinesDisplay();
+                }
+            }
+
+            // Update advancedFilters object but DON'T auto-apply the filter
+            advancedFilters = advancedState;
+
+            // Clear any existing advanced filter results on page load
+            clearSummaryTables();
+            updateFilterStatus(false);
+
+        } catch (error) {
+            console.error('❌ Error loading advanced filter state:', error);
         }
     }
 }
 
 // Apply the saved filter based on the complete filter state
 function applySavedFilter(filterState) {
-    console.log('🎯 Applying saved filter:', filterState);
-    
     // Set production type dropdown value if available
     if (filterState.productionType) {
         document.getElementById('filterProductionType').value = filterState.productionType;
     }
     
     if (filterState.fromDate && filterState.toDate && filterState.machine) {
-        if (filterState.product && filterState.product !== 'all') {
-            // Specific product selected
-            if (filterState.shift) {
-                // Single shift selected
-                getProductionShiftData(filterState.fromDate, filterState.toDate, filterState.product, filterState.machine, filterState.shift);
-            } else {
-                // All shifts selected
-                getAllShiftsData(filterState.fromDate, filterState.toDate, filterState.product, filterState.machine);
-            }
-        } else {
-            // All products selected - show combined data for all products
-            if (filterState.shift) {
-                // Single shift selected - get all products for this machine and shift
-                getAllProductsData(filterState.fromDate, filterState.toDate, filterState.machine, filterState.shift, filterState.productionType);
-            } else {
-                // All shifts selected - get all products for this machine
-                getAllProductsData(filterState.fromDate, filterState.toDate, filterState.machine, '', filterState.productionType);
-            }
-        }
+        const params = {
+            fromDate: filterState.fromDate,
+            toDate: filterState.toDate,
+            product: filterState.product || '',
+            machine: filterState.machine,
+            shift: filterState.shift || '',
+            productionType: filterState.productionType || ''
+        };
+        fetchAndRenderSummary(params);
     }
 }
 
@@ -286,12 +322,10 @@ function initializeFilters() {
     
     // Initialize with Basic Filter as default
     toggleFilterMode('basic');
-    
-    // Cascading filter functionality initialized
 }
 
 // Toggle between Basic and Advance filter modes
-function toggleFilterMode(mode) {
+async function toggleFilterMode(mode) {
     const basicBtn = document.getElementById('basicFilterBtn');
     const advanceBtn = document.getElementById('advanceFilterBtn');
     const basicContent = document.getElementById('basicFilterMode');
@@ -303,7 +337,6 @@ function toggleFilterMode(mode) {
         advanceBtn.classList.remove('active');
         basicContent.style.display = 'block';
         advanceContent.style.display = 'none';
-        console.log('Switched to Basic Filter mode');
     } else if (mode === 'advance') {
         currentFilterMode = 'advance';
         advanceBtn.classList.add('active');
@@ -311,8 +344,7 @@ function toggleFilterMode(mode) {
         basicContent.style.display = 'none';
         advanceContent.style.display = 'block';
         // Populate advanced filter dropdowns
-        populateAdvancedFilterDropdowns();
-        console.log('Switched to Advance Filter mode');
+        await populateAdvancedFilterDropdowns();
     }
     
     // Update download button visibility when switching modes
@@ -320,7 +352,7 @@ function toggleFilterMode(mode) {
 }
 
 // Populate dropdowns in advanced filter mode
-function populateAdvancedFilterDropdowns() {
+async function populateAdvancedFilterDropdowns() {
     // Populate machines as radio buttons
     const machinesContainer = document.getElementById('advFilterMachinesContainer');
     if (!machinesContainer) {
@@ -328,36 +360,46 @@ function populateAdvancedFilterDropdowns() {
         return;
     }
     
-    const machines = [...new Set(allForms.map(f => f.mc_no))].filter(m => m).sort();
-    
-    console.log('Machines available:', machines);
-    console.log('Total forms:', allForms.length);
-    
-    machinesContainer.innerHTML = '';
-    
-    if (machines.length === 0) {
-        machinesContainer.innerHTML = '<span class="text-xs text-gray-500">No machines found</span>';
-        return;
+    try {
+        const { data, error } = await supabase.rpc('get_production_filter_values', {
+            p_from_date: '',
+            p_to_date: '',
+            p_production_type: '',
+            p_target_column: 'mc_no'
+        });
+
+        if (error) throw error;
+
+        const machines = data.map(d => d.filter_value).filter(Boolean);
+        
+        machinesContainer.innerHTML = '';
+        
+        if (machines.length === 0) {
+            machinesContainer.innerHTML = '<span class="text-xs text-gray-500">No machines found</span>';
+            return;
+        }
+        
+        machines.forEach(machine => {
+            const radioGroup = document.createElement('div');
+            radioGroup.className = 'machine-radio-group';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `machine-${machine}`;
+            checkbox.value = machine;
+            checkbox.addEventListener('change', updateSelectedMachinesDisplay);
+            
+            const label = document.createElement('label');
+            label.htmlFor = `machine-${machine}`;
+            label.textContent = machine;
+            
+            radioGroup.appendChild(checkbox);
+            radioGroup.appendChild(label);
+            machinesContainer.appendChild(radioGroup);
+        });
+    } catch (error) {
+        console.error('❌ Error populating advanced filter machines:', error);
     }
-    
-    machines.forEach(machine => {
-        const radioGroup = document.createElement('div');
-        radioGroup.className = 'machine-radio-group';
-        
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = `machine-${machine}`;
-        checkbox.value = machine;
-        checkbox.addEventListener('change', updateSelectedMachinesDisplay);
-        
-        const label = document.createElement('label');
-        label.htmlFor = `machine-${machine}`;
-        label.textContent = machine;
-        
-        radioGroup.appendChild(checkbox);
-        radioGroup.appendChild(label);
-        machinesContainer.appendChild(radioGroup);
-    });
 
     // Populate defects select
     const defectSelect = document.getElementById('advFilterDefect');
@@ -396,7 +438,7 @@ function updateSelectedMachinesDisplay() {
 }
 
 // Handle changes in advanced filter product/shift/defect (automatic filtering)
-function onAdvancedFilterChange() {
+async function onAdvancedFilterChange() {
     const fromDate = document.getElementById('advFilterFromDate').value;
     const toDate = document.getElementById('advFilterToDate').value;
     const container = document.getElementById('advFilterMachinesContainer');
@@ -422,12 +464,13 @@ function onAdvancedFilterChange() {
             defect
         };
         
-        // Get filtered data for combined machines
-        getAdvancedFilteredData(fromDate, toDate, selectedMachines, product, shift, defect, productionType);
+        // NOW USING V3 ENGINE (fetchAndRenderSummary)
+        await fetchAndRenderSummary(advancedFilters);
         
         // Update filter status
         updateFilterStatus(true);
-        console.log('Advanced filter applied automatically:', advancedFilters);
+        // Save advanced filter state to localStorage
+        saveAdvancedFilterState();
     } else {
         // Clear results if criteria not met
         clearSummaryTables();
@@ -437,64 +480,59 @@ function onAdvancedFilterChange() {
     // Update download button visibility
     updateDownloadButtonVisibility();
 }
-function onAdvancedDateOrTypeChange() {
+async function onAdvancedDateOrTypeChange() {
     const fromDate = document.getElementById('advFilterFromDate').value;
     const toDate = document.getElementById('advFilterToDate').value;
     const productionType = document.getElementById('advFilterProductionType').value;
     
     // Repopulate machines based on new date/production type
     if (fromDate || toDate) {
-        const filteredData = allForms.filter(form => {
-            if (fromDate && form.production_date) {
-                const formDate = new Date(form.production_date);
-                const fromDateObj = new Date(fromDate);
-                if (formDate < fromDateObj) return false;
-            }
-            if (toDate && form.production_date) {
-                const formDate = new Date(form.production_date);
-                const toDateObj = new Date(toDate);
-                if (formDate > toDateObj) return false;
-            }
-            if (productionType) {
-                const formProductionType = form.production_type || 'Commercial';
-                if (String(formProductionType) !== String(productionType)) return false;
-            }
-            return form.mc_no;
-        });
-        
-        const machines = [...new Set(filteredData.map(f => f.mc_no))].filter(m => m).sort();
-        const machinesContainer = document.getElementById('advFilterMachinesContainer');
-        
-        if (machinesContainer) {
-            // Get currently selected checkboxes
-            const currentSelectedCheckboxes = Array.from(machinesContainer.querySelectorAll('input[type="checkbox"]:checked'))
-                .map(cb => cb.value);
-            
-            // Repopulate checkboxes
-            machinesContainer.innerHTML = '';
-            machines.forEach(machine => {
-                const radioGroup = document.createElement('div');
-                radioGroup.className = 'machine-radio-group';
-                
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.id = `machine-${machine}`;
-                checkbox.value = machine;
-                checkbox.addEventListener('change', updateSelectedMachinesDisplay);
-                
-                // Keep selection if machine was previously selected
-                if (currentSelectedCheckboxes.includes(machine)) {
-                    checkbox.checked = true;
-                }
-                
-                const label = document.createElement('label');
-                label.htmlFor = `machine-${machine}`;
-                label.textContent = machine;
-                
-                radioGroup.appendChild(checkbox);
-                radioGroup.appendChild(label);
-                machinesContainer.appendChild(radioGroup);
+        try {
+            const { data, error } = await supabase.rpc('get_production_filter_values', {
+                p_from_date: fromDate || '',
+                p_to_date: toDate || '',
+                p_production_type: productionType || '',
+                p_target_column: 'mc_no'
             });
+
+            if (error) throw error;
+
+            const machines = data.map(d => d.filter_value).filter(Boolean);
+            const machinesContainer = document.getElementById('advFilterMachinesContainer');
+            
+            if (machinesContainer) {
+                // Get currently selected checkboxes
+                const currentSelectedCheckboxes = Array.from(machinesContainer.querySelectorAll('input[type="checkbox"]:checked'))
+                    .map(cb => cb.value);
+                
+                // Repopulate checkboxes
+                machinesContainer.innerHTML = '';
+                machines.forEach(machine => {
+                    const radioGroup = document.createElement('div');
+                    radioGroup.className = 'machine-radio-group';
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = `machine-${machine}`;
+                    checkbox.value = machine;
+                    checkbox.addEventListener('change', updateSelectedMachinesDisplay);
+                    
+                    // Keep selection if machine was previously selected
+                    if (currentSelectedCheckboxes.includes(machine)) {
+                        checkbox.checked = true;
+                    }
+                    
+                    const label = document.createElement('label');
+                    label.htmlFor = `machine-${machine}`;
+                    label.textContent = machine;
+                    
+                    radioGroup.appendChild(checkbox);
+                    radioGroup.appendChild(label);
+                    machinesContainer.appendChild(radioGroup);
+                });
+            }
+        } catch (error) {
+            console.error('❌ Error populating advanced machine checkboxes:', error);
         }
     }
     
@@ -503,7 +541,7 @@ function onAdvancedDateOrTypeChange() {
 }
 
 // Apply advanced filter
-function applyAdvancedFilter() {
+async function applyAdvancedFilter() {
     const fromDate = document.getElementById('advFilterFromDate').value;
     const toDate = document.getElementById('advFilterToDate').value;
     const container = document.getElementById('advFilterMachinesContainer');
@@ -537,66 +575,18 @@ function applyAdvancedFilter() {
         defect
     };
     
-    // Get filtered data for combined machines
-    getAdvancedFilteredData(fromDate, toDate, selectedMachines, product, shift, defect, productionType);
+    // NOW USING V3 ENGINE (fetchAndRenderSummary)
+    await fetchAndRenderSummary(advancedFilters);
     
     // Update filter status
     updateFilterStatus(true);
-    console.log('Advanced filter applied:', advancedFilters);
+
+    // Save advanced filter state to localStorage
+    saveAdvancedFilterState();
 }
 
 // Get data for combined machines in advanced filter
-function getAdvancedFilteredData(fromDate, toDate, machines, product, shift, defect, productionType) {
-    
-    // STEP 1: Find all records that match the filter criteria
-    const masterRecords = allForms.filter(form => {
-        if (fromDate && form.production_date) {
-            const formDate = new Date(form.production_date);
-            const fromDateObj = new Date(fromDate);
-            if (formDate < fromDateObj) return false;
-        }
-        if (toDate && form.production_date) {
-            const formDate = new Date(form.production_date);
-            const toDateObj = new Date(toDate);
-            if (formDate > toDateObj) return false;
-        }
-        // Multiple machines - check if form's machine is in selected machines array
-        if (!machines.includes(String(form.mc_no))) return false;
-        
-        if (product && form.prod_code !== product) return false;
-        if (shift && String(form.shift) !== String(shift)) return false;
-        if (productionType) {
-            const formProductionType = form.production_type || 'Commercial';
-            if (String(formProductionType) !== String(productionType)) return false;
-        }
-        return true;
-    });
-    
-    // STEP 2: Get all traceability keys from master records
-    const traceabilityKeys = new Set(masterRecords.map(form => `${form.traceability_code}-${form.lot_letter}`));
-    
-    // STEP 3: Get all records (including lots) for these traceability keys
-    const combinedMachineData = allForms.filter(form => {
-        const traceabilityKey = `${form.traceability_code}-${form.lot_letter}`;
-        return traceabilityKeys.has(traceabilityKey);
-    });
-    
-    // If defect is selected, filter by defect
-    let finalData = combinedMachineData;
-    if (defect) {
-        finalData = combinedMachineData.filter(form => {
-            // Check if this record has the selected defect in defect_names object
-            if (form.defect_names && typeof form.defect_names === 'object') {
-                const defectValues = Object.values(form.defect_names);
-                return defectValues.some(d => d && String(d).trim() === String(defect).trim());
-            }
-            return false;
-        });
-    }
-    
-    // Update summary tables with combined data (skip statistics for advanced filter)
-    updateSummaryTablesWithData(finalData, true, defect);
-}
+
 
 // Clear advanced filters
 function clearAdvancedFilters() {
@@ -628,13 +618,15 @@ function clearAdvancedFilters() {
         defect: ''
     };
     
+    // Clear advanced filter state from localStorage
+    localStorage.removeItem('productionReportAdvancedFilters');
+    
     clearSummaryTables();
     updateFilterStatus(false);
-    console.log('Advanced filters cleared');
 }
 
 // Step 1: Date selection changes
-function onDateChange() {
+async function onDateChange() {
     const fromDate = document.getElementById('filterFromDate').value;
     const toDate = document.getElementById('filterToDate').value;
     
@@ -651,19 +643,18 @@ function onDateChange() {
     resetDropdown('filterShift');
     
     if (fromDate || toDate) {
-        populateMachineDropdown(fromDate, toDate, '');
+        const productionType = document.getElementById('filterProductionType').value;
+        await populateMachineDropdown(fromDate, toDate, productionType);
         // Also populate product dropdown with ALL products from date range
-        populateProductDropdown(fromDate, toDate, '', '');
+        await populateProductDropdown(fromDate, toDate, '', productionType);
     }
     
     // Save filter state
     saveFilterState();
-    
-    // Date changed
 }
 
 // Step 2: Machine selection changes
-function onMachineChange() {
+async function onMachineChange() {
     const fromDate = document.getElementById('filterFromDate').value;
     const toDate = document.getElementById('filterToDate').value;
     const machine = document.getElementById('filterMachine').value;
@@ -680,16 +671,14 @@ function onMachineChange() {
     
     // Always populate product dropdown - if machine is selected, filter by it; if not, show all products
     const productionType = document.getElementById('filterProductionType').value;
-    populateProductDropdown(fromDate, toDate, machine, productionType);
+    await populateProductDropdown(fromDate, toDate, machine, productionType);
     
     // Save filter state
     saveFilterState();
-    
-    // Machine changed
 }
 
 // Step 3: Product selection changes  
-function onProductChange() {
+async function onProductChange() {
     const fromDate = document.getElementById('filterFromDate').value;
     const toDate = document.getElementById('filterToDate').value;
     const machine = document.getElementById('filterMachine').value;
@@ -705,17 +694,15 @@ function onProductChange() {
     resetDropdown('filterShift');
     
     if (product) {
-        populateShiftDropdown(fromDate, toDate, machine, product);
+        await populateShiftDropdown(fromDate, toDate, machine, product);
     }
     
     // Save filter state
     saveFilterState();
-    
-    // Product changed
 }
 
 // Step 4: Shift selection changes - GET PRODUCTION SHIFT DATA
-function onShiftChange() {
+async function onShiftChange() {
     const fromDate = document.getElementById('filterFromDate').value;
     const toDate = document.getElementById('filterToDate').value;
     const product = document.getElementById('filterProduct').value;
@@ -727,28 +714,16 @@ function onShiftChange() {
     currentFilters.shift = shift;
     currentFilters.productionType = productionType;
     
-    // Shift changed
-    
     if (fromDate && toDate && machine) {
-        if (product && product !== 'all') {
-            // Specific product selected
-            if (shift) {
-                // Single shift selected
-                getProductionShiftData(fromDate, toDate, product, machine, shift);
-            } else {
-                // All shifts selected
-                getAllShiftsData(fromDate, toDate, product, machine);
-            }
-        } else {
-            // All products selected - show combined data for all products
-            if (shift) {
-                // Single shift selected - get all products for this machine and shift
-                getAllProductsData(fromDate, toDate, machine, shift, productionType);
-            } else {
-                // All shifts selected - get all products for this machine
-                getAllProductsData(fromDate, toDate, machine, '', productionType);
-            }
-        }
+        const params = {
+            fromDate: fromDate,
+            toDate: toDate,
+            product: product || '',
+            machine: machine,
+            shift: shift || '',
+            productionType: productionType || ''
+        };
+        await fetchAndRenderSummary(params);
         
         // Save filter state and update status
         saveFilterState();
@@ -759,7 +734,7 @@ function onShiftChange() {
 }
 
 // Step 5: Production Type selection changes - RELOAD DATA WITH NEW FILTER
-function onProductionTypeChange() {
+async function onProductionTypeChange() {
     const fromDate = document.getElementById('filterFromDate').value;
     const toDate = document.getElementById('filterToDate').value;
     const product = document.getElementById('filterProduct').value;
@@ -777,7 +752,7 @@ function onProductionTypeChange() {
     
     // Re-populate machine dropdown with production type filter applied
     if (fromDate || toDate) {
-        populateMachineDropdown(fromDate, toDate, productionType);
+        await populateMachineDropdown(fromDate, toDate, productionType);
     }
     
     // Save filter state and update status
@@ -823,6 +798,7 @@ function clearAllFilters() {
     
     // Clear saved filter state
     localStorage.removeItem('productionReportFilters');
+    localStorage.removeItem('productionReportAdvancedFilters');
     
     // Clear summary tables
     clearSummaryTables();
@@ -970,328 +946,425 @@ function clearSummaryTables() {
     // Summary tables cleared
 }
 
-// Load forms data from database
+// Load initial data and filter options
 async function loadFormsData() {
-    // Define a helper function to fetch one table completely
-    const fetchTableData = async (tableName) => {
-        let tableData = [];
-        let hasMore = true;
-        let offset = 0;
-        const chunkSize = 1000;
-
-        while (hasMore) {
-            const { data, error } = await supabase
-                .from(tableName)
-                .select('*')
-                .neq('status', 'deleted') // Don't forget our previous fix!
-                // .order('production_date', { ascending: false }) // Optional: sorting here matters less if we sort combined data later
-                .range(offset, offset + chunkSize - 1);
-
-            if (error) {
-                console.error(`❌ Error ${tableName}:`, error);
-                throw error;
-            }
-
-            if (data && data.length > 0) {
-                data.forEach(record => {
-                    record.table_name = tableName;
-                    // BONUS: Parse date ONCE here so we don't do it 1000 times in filters
-                    record._parsedDate = record.production_date ? new Date(record.production_date) : null; 
-                });
-                tableData = [...tableData, ...data];
-                offset += chunkSize;
-                if (data.length < chunkSize) hasMore = false;
-            } else {
-                hasMore = false;
-            }
-        }
-        return tableData;
-    };
-
-    // NOW: Run all 3 fetches at the exact same time
     try {
-        const tables = ['inline_inspection_form_master_1', 'inline_inspection_form_master_2', 'inline_inspection_form_master_3'];
+        // Populate initial machine and product dropdowns
+        await Promise.all([
+            populateMachineDropdown('', '', ''),
+            populateProductDropdown('', '', '', '')
+        ]);
         
-        // This runs them in parallel! 🚀
-        const results = await Promise.all(tables.map(table => fetchTableData(table)));
-        
-        // Combine the results
-        allForms = results.flat();
-        
-        // OPTIONAL: Sort the combined big list once
-        allForms.sort((a, b) => new Date(b.production_date) - new Date(a.production_date));
-
-        console.log(`✅ Total records loaded: ${allForms.length}`);
+        // Load saved state if any
         loadFilterState();
 
     } catch (error) {
-        console.error('❌ Error loading forms:', error);
+        console.error('❌ Error loading initial data:', error);
     }
 }
 
 // Populate Machine dropdown based on date range
-function populateMachineDropdown(fromDate, toDate, productionType) {
-    
-    const filteredData = allForms.filter(form => {
-        let includeRecord = true;
-        
-        if (fromDate && form.production_date) {
-            const formDate = new Date(form.production_date);
-            const fromDateObj = new Date(fromDate);
-            if (formDate < fromDateObj) {
-                includeRecord = false;
-            }
-        }
-        if (toDate && form.production_date) {
-            const formDate = new Date(form.production_date);
-            const toDateObj = new Date(toDate);
-            if (formDate > toDateObj) {
-                includeRecord = false;
-            }
-        }
-        
-        // Filter by production type if specified
-        if (productionType) {
-            const formProductionType = form.production_type || 'Commercial'; // Treat NULL as Commercial
-            if (String(formProductionType) !== String(productionType)) {
-                includeRecord = false;
-            }
-        }
-        
-        if (includeRecord && form.mc_no) {
-            return true;
-        }
-        
-        return false; // Only include records with mc_no
-    });
-    
-    const machines = [...new Set(filteredData.map(form => form.mc_no))];
-    const dropdown = document.getElementById('filterMachine');
-    
+async function populateMachineDropdown(fromDate, toDate, productionType, selectedValue = null) {
+    try {
+        const { data, error } = await supabase.rpc('get_production_filter_values', {
+            p_from_date: fromDate || '',
+            p_to_date: toDate || '',
+            p_production_type: productionType || '',
+            p_target_column: 'mc_no'
+        });
 
-    
-    dropdown.innerHTML = '<option value="">Select Machine</option>';
-    machines.sort().forEach(machine => {
-        const option = document.createElement('option');
-        option.value = machine;
-        option.textContent = machine;
-        dropdown.appendChild(option);
-    });
-    
-    // Found machines for date range
+        if (error) throw error;
+
+        const machines = data.map(d => d.filter_value).filter(Boolean);
+        const dropdown = document.getElementById('filterMachine');
+        
+        if (dropdown) {
+            dropdown.innerHTML = '<option value="">Select Machine</option>';
+            machines.forEach(machine => {
+                const option = document.createElement('option');
+                option.value = machine;
+                option.textContent = machine;
+                dropdown.appendChild(option);
+            });
+            
+            // Set selected value if provided
+            if (selectedValue) {
+                dropdown.value = selectedValue;
+            }
+        }
+    } catch (error) {
+        console.error('❌ Error populating machine dropdown:', error);
+    }
 }
 
 // Populate Product dropdown based on date + machine  
-function populateProductDropdown(fromDate, toDate, machine, productionType) {
-    const filteredData = allForms.filter(form => {
-        if (fromDate && form.production_date) {
-            const formDate = new Date(form.production_date);
-            const fromDateObj = new Date(fromDate);
-            if (formDate < fromDateObj) return false;
-        }
-        if (toDate && form.production_date) {
-            const formDate = new Date(form.production_date);
-            const toDateObj = new Date(toDate);
-            if (formDate > toDateObj) return false;
-        }
-        // Only filter by machine if one is selected
-        if (machine && String(form.mc_no) !== String(machine)) return false;
-        
-        // Filter by production type if specified
-        if (productionType) {
-            const formProductionType = form.production_type || 'Commercial'; // Treat NULL as Commercial
-            if (String(formProductionType) !== String(productionType)) return false;
-        }
-        
-        return form.prod_code; // Only include records with prod_code
-    });
-    
-    const products = [...new Set(filteredData.map(form => form.prod_code))];
-    const dropdown = document.getElementById('filterProduct');
-    
+async function populateProductDropdown(fromDate, toDate, machine, productionType, selectedValue = null) {
+    try {
+        const { data, error } = await supabase.rpc('get_production_filter_values', {
+            p_from_date: fromDate || '',
+            p_to_date: toDate || '',
+            p_mc_no: machine || '',
+            p_production_type: productionType || '',
+            p_target_column: 'prod_code'
+        });
 
-    
-    dropdown.innerHTML = '<option value="">Select Product</option><option value="all">All Products</option>';
-    products.sort().forEach(product => {
-        const option = document.createElement('option');
-        option.value = product;
-        option.textContent = product;
-        dropdown.appendChild(option);
-    });
-    
-    // Found products for machine
+        if (error) throw error;
+
+        const products = data.map(d => d.filter_value).filter(Boolean);
+        const dropdown = document.getElementById('filterProduct');
+        
+        if (dropdown) {
+            dropdown.innerHTML = '<option value="">Select Product</option><option value="all">All Products</option>';
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product;
+                option.textContent = product;
+                dropdown.appendChild(option);
+            });
+            
+            // Set selected value if provided
+            if (selectedValue) {
+                dropdown.value = selectedValue;
+            }
+        }
+    } catch (error) {
+        console.error('❌ Error populating product dropdown:', error);
+    }
 }
 
 // Populate Shift dropdown based on date + machine + product
-function populateShiftDropdown(fromDate, toDate, machine, product, skipAutoTrigger = false) {
-    const filteredData = allForms.filter(form => {
-        if (fromDate && form.production_date) {
-            const formDate = new Date(form.production_date);
-            const fromDateObj = new Date(fromDate);
-            if (formDate < fromDateObj) return false;
+async function populateShiftDropdown(fromDate, toDate, machine, product, skipAutoTrigger = false, selectedValue = null) {
+    try {
+        const productionType = document.getElementById('filterProductionType').value;
+        const { data, error } = await supabase.rpc('get_production_filter_values', {
+            p_from_date: fromDate || '',
+            p_to_date: toDate || '',
+            p_mc_no: machine || '',
+            p_prod_code: product === 'all' ? '' : (product || ''),
+            p_production_type: productionType || '',
+            p_target_column: 'shift'
+        });
+
+        if (error) throw error;
+
+        const shifts = data.map(d => d.filter_value).filter(Boolean);
+        const dropdown = document.getElementById('filterShift');
+        
+        if (dropdown) {
+            dropdown.innerHTML = '<option value="">All Shifts</option>';
+            shifts.forEach(shift => {
+                const option = document.createElement('option');
+                option.value = shift;
+                option.textContent = shift === '1' ? 'A' : shift === '2' ? 'B' : shift === '3' ? 'C' : shift;
+                dropdown.appendChild(option);
+            });
+            
+            // Set selected value if provided
+            if (selectedValue !== null && selectedValue !== undefined) {
+                dropdown.value = selectedValue;
+            }
+            
+            if (shifts.length > 0 && !skipAutoTrigger) {
+                onShiftChange();
+            }
         }
-        if (toDate && form.production_date) {
-            const formDate = new Date(form.production_date);
-            const toDateObj = new Date(toDate);
-            if (formDate > toDateObj) return false;
-        }
-        if (String(form.mc_no) !== String(machine)) return false;
-        // Only filter by product if it's not "all"
-        if (product && product !== 'all' && form.prod_code !== product) return false;
-        return form.shift; // Only include records with shift
-    });
-    
-    const shifts = [...new Set(filteredData.map(form => form.shift))];
-    const dropdown = document.getElementById('filterShift');
-    
-    // Always include "All Shifts" option first
-    dropdown.innerHTML = '<option value="">All Shifts</option>';
-    
-    // Add individual shift options
-    shifts.sort().forEach(shift => {
-        const option = document.createElement('option');
-        option.value = shift;
-        option.textContent = shift === '1' ? 'A' : shift === '2' ? 'B' : shift === '3' ? 'C' : shift;
-        dropdown.appendChild(option);
-    });
-    
-    // Found shifts for product
-    
-    // Only trigger shift change if not loading saved state
-    if (shifts.length > 0 && !skipAutoTrigger) {
-        // Trigger shift change to get data (either single shift or all shifts)
-        onShiftChange();
+    } catch (error) {
+        console.error('❌ Error populating shift dropdown:', error);
     }
 }
 
 // GET PRODUCTION SHIFT DATA - Final step
-function getProductionShiftData(fromDate, toDate, product, machine, shift) {
-    
-    // STEP 1: Find records that match the filter criteria (these have complete data)
-    const masterRecords = allForms.filter(form => {
-        if (fromDate && form.production_date) {
-            const formDate = new Date(form.production_date);
-            const fromDateObj = new Date(fromDate);
-            if (formDate < fromDateObj) return false;
+async function getProductionShiftData(fromDate, toDate, product, machine, shift, productionType) {
+    try {
+        const { data, error } = await supabase.rpc('get_production_report_data', {
+            p_from_date: fromDate || '',
+            p_to_date: toDate || '',
+            p_prod_code: product || '',
+            p_mc_nos: machine ? [machine] : [],
+            p_shift: shift || '',
+            p_production_type: productionType || ''
+        });
+
+        if (error) throw error;
+
+        // Update summary tables with the returned data
+        updateSummaryTablesWithData(data || []);
+    } catch (error) {
+        console.error('❌ Error fetching production shift data:', error);
+    }
+}
+
+// ========== V3 FUNCTIONS (Server-Side Summary) ==========
+
+async function fetchAndRenderSummary(params) {
+    try {
+        console.time("Fetch Summary V3");
+        
+        // Prepare correct parameters for SQL
+        const rpcParams = {
+            p_from_date: params.fromDate || '',
+            p_to_date: params.toDate || '',
+            // Handle Multiple Machines vs Single Machine
+            p_mc_nos: (params.machines && params.machines.length > 0) ? params.machines : (params.machine ? [params.machine] : []),
+            p_prod_code: (params.product === 'all' || !params.product) ? '' : params.product,
+            p_shift: params.shift || '',
+            p_production_type: params.productionType || '',
+            // NEW: Pass the defect filter
+            p_defect: params.defect || '' 
+        };
+
+        const { data, error } = await supabase.rpc('get_production_summary_v3', rpcParams);
+
+        if (error) throw error;
+        console.timeEnd("Fetch Summary V3");
+
+        renderAllTables(data, params.product);
+
+    } catch (error) {
+        console.error('❌ Error fetching summary:', error);
+    }
+}
+
+function renderAllTables(data, selectedProduct) {
+    if (!data || !data.totals) return;
+
+    const t = data.totals;
+    const totalRolls = t.acc_r + t.rej_r + t.rew_r + t.kiv_r;
+    const totalWeight = t.acc_w + t.rej_w + t.rew_w + t.kiv_w;
+    const totalInput = totalWeight + t.scrap;
+    const yieldPercent = totalInput > 0 ? ((t.acc_w / totalInput) * 100).toFixed(2) : "0.00";
+
+    // 1. Production Summary
+    const summaryTbody = document.querySelector('#dynamicSummaryTableContainer table tbody');
+    if (summaryTbody) {
+        summaryTbody.innerHTML = `
+            <tr><td class="metric-label">Accepted Rolls</td><td class="metric-value">${t.acc_r} Rolls</td><td class="metric-value">${t.acc_w.toFixed(2)} KG</td></tr>
+            <tr><td class="metric-label">Rejected Rolls</td><td class="metric-value">${t.rej_r} Rolls</td><td class="metric-value">${t.rej_w.toFixed(2)} KG</td></tr>
+            <tr><td class="metric-label">Rolls Rejected for Rework</td><td class="metric-value">${t.rew_r} Rolls</td><td class="metric-value">${t.rew_w.toFixed(2)} KG</td></tr>
+            <tr><td class="metric-label">KIV Rolls</td><td class="metric-value">${t.kiv_r} Rolls</td><td class="metric-value">${t.kiv_w.toFixed(2)} KG</td></tr>
+            <tr class="scrap-caution-row"><td class="metric-label"><div class="scrap-label">Total Shift Scrap</div></td><td class="metric-value">-</td><td class="metric-value">${t.scrap.toFixed(2)} KG</td></tr>
+            <tr class="highlight-row"><td>Total Produced</td><td>${totalRolls} Rolls</td><td>${totalWeight.toFixed(2)} KG</td></tr>
+            <tr class="yield-row"><td class="metric-label" colspan="2">Production Yield</td><td class="metric-value">${yieldPercent}%</td></tr>
+        `;
+    }
+
+    // 2. Defects Summary (Small Table)
+    const defectSummaryBody = document.querySelector('#defectsSummaryTableContainer table tbody');
+    if (defectSummaryBody) {
+        if (!data.defect_summary || data.defect_summary.length === 0) {
+            defectSummaryBody.innerHTML = '<tr><td colspan="4" class="text-center">No defects found.</td></tr>';
+        } else {
+            const sorted = (data.defect_summary || []).sort((a, b) => b.count - a.count);
+            const totalCount = sorted.reduce((s, d) => s + d.count, 0);
+            const totalW = sorted.reduce((s, d) => s + d.weight, 0);
+            
+            let html = sorted.map(d => {
+                const pct = totalRolls > 0 ? ((d.count / totalRolls) * 100).toFixed(2) : "0.00";
+                return `<tr><td class="metric-label">${d.name}</td><td class="defect-count">${d.count}</td><td class="defect-percent">${pct}%</td><td class="metric-value">${d.weight.toFixed(2)}</td></tr>`;
+            }).join('');
+            
+            const totPct = totalRolls > 0 ? ((totalCount / totalRolls) * 100).toFixed(2) : "0.00";
+            html += `<tr class="highlight-row"><td class="metric-label">Total</td><td class="defect-count">${totalCount}</td><td class="defect-percent">${totPct}%</td><td class="metric-value">${totalW.toFixed(2)}</td></tr>`;
+            defectSummaryBody.innerHTML = html;
         }
-        if (toDate && form.production_date) {
-            const formDate = new Date(form.production_date);
-            const toDateObj = new Date(toDate);
-            if (formDate > toDateObj) return false;
+    }
+
+    // 3. Statistics
+    const statsBody = document.querySelector('#statisticsTableContainer table tbody');
+    if (statsBody) {
+        if (currentFilterMode === 'advance') {
+            // Show message when in advanced filter mode
+            statsBody.innerHTML = `<tr><td class="parameter-cell" colspan="4">Statistics not available in advanced filter mode</td></tr>`;
+        } else if (selectedProduct === 'all' || !selectedProduct) {
+            // Show message when "All Products" is selected
+            statsBody.innerHTML = `<tr><td class="parameter-cell" colspan="4">Statistics not available for multiple products</td></tr>`;
+        } else if (data.stats) {
+            // Show statistics in basic filter mode with specific product
+            const s = data.stats;
+            const renderRow = (lbl, obj, dec) => `<tr><td class="parameter-cell">${lbl}</td><td class="value-cell">${Number(obj?.min||0).toFixed(dec)}</td><td class="value-cell">${Number(obj?.max||0).toFixed(dec)}</td><td class="value-cell">${Number(obj?.avg||0).toFixed(dec)}</td></tr>`;
+            statsBody.innerHTML = `${renderRow('Roll Weight',s.weight,2)}${renderRow('Cut Width',s.width,0)}${renderRow('GSM',s.gsm,2)}${renderRow('Roll θ',s.theta,0)}${renderRow('Thickness',s.thick,2)}`;
         }
-        if (product && form.prod_code !== product) return false; // Only filter by product if one is selected
-        if (String(form.mc_no) !== String(machine)) return false;
-        if (String(form.shift) !== String(shift)) return false;
-        return true;
-    });
+    }
+
+    // 4. Defect Matrix
+    const matrixBody = document.getElementById('defectTrackingTableBody');
+    if (matrixBody) {
+        if (!data.defect_matrix || data.defect_matrix.length === 0) {
+            matrixBody.innerHTML = `<tr><td colspan="24" class="text-center py-4">No defects found.</td></tr>`;
+        } else {
+            const grouped = {};
+            data.defect_matrix.forEach(x => {
+                if(!grouped[x.name]) grouped[x.name] = {total:0, pos:{}};
+                grouped[x.name].total += x.count;
+                grouped[x.name].pos[x.pos] = x.count;
+            });
+            matrixBody.innerHTML = Object.entries(grouped).map(([name, d]) => {
+                const pct = totalRolls > 0 ? ((d.total/totalRolls)*100).toFixed(2) : "0.00";
+                let cells = "";
+                for(let i=1; i<=21; i++) cells += `<td class="${(d.pos[i]||0)>0?'defect-present':'defect-absent'}">${d.pos[i]||0}</td>`;
+                return `<tr><td class="defect-name">${name}</td><td class="defect-qty">${d.total}</td><td style="font-weight: 500;">${pct}%</td>${cells}</tr>`;
+            }).join('');
+        }
+    }
     
-    // STEP 2: Use a SET instead of an Array
-    const traceabilityKeys = new Set(masterRecords.map(form => `${form.traceability_code}-${form.lot_letter}`));
-    
-    // STEP 3: Use .has() instead of .includes()
-    const allShiftData = allForms.filter(form => {
-        const traceabilityKey = `${form.traceability_code}-${form.lot_letter}`;
-        return traceabilityKeys.has(traceabilityKey); // This is O(1) - Instant!
-    });
-    
-    // Update summary tables with ALL shift data (master + lots)
-    updateSummaryTablesWithData(allShiftData);
+    // 5. Update Footer
+    const totalRej = t.rej_r + t.rew_r + t.kiv_r;
+    if(document.getElementById('totalRejectedQty')) document.getElementById('totalRejectedQty').textContent = totalRej;
+    if(document.getElementById('totalProducedQty')) document.getElementById('totalProducedQty').textContent = totalRolls;
+    if(document.getElementById('totalRejectionPercent')) document.getElementById('totalRejectionPercent').textContent = totalRolls>0?((totalRej/totalRolls)*100).toFixed(1):"0.0";
 }
 
 // GET ALL SHIFTS DATA - For when "All Shifts" is selected
-function getAllShiftsData(fromDate, toDate, product, machine) {
-    
-    // STEP 1: Find records that match the filter criteria (these have complete data)
-    const masterRecords = allForms.filter(form => {
-        if (fromDate && form.production_date) {
-            const formDate = new Date(form.production_date);
-            const fromDateObj = new Date(fromDate);
-            if (formDate < fromDateObj) return false;
-        }
-        if (toDate && form.production_date) {
-            const formDate = new Date(form.production_date);
-            const toDateObj = new Date(toDate);
-            if (formDate > toDateObj) return false;
-        }
-        if (product && form.prod_code !== product) return false; // Only filter by product if one is selected
-        if (String(form.mc_no) !== String(machine)) return false;
-        return true; // Include all shifts
-    });
-    
-    // STEP 2: Use a SET instead of an Array
-    const traceabilityKeys = new Set(masterRecords.map(form => `${form.traceability_code}-${form.lot_letter}`));
-    
-    // STEP 3: Use .has() instead of .includes()
-    const allShiftsData = allForms.filter(form => {
-        const traceabilityKey = `${form.traceability_code}-${form.lot_letter}`;
-        return traceabilityKeys.has(traceabilityKey); // This is O(1) - Instant!
-    });
-    
-    // Update summary tables with ALL shifts data (master + lots)
-    updateSummaryTablesWithData(allShiftsData);
+async function getAllShiftsData(fromDate, toDate, product, machine, productionType) {
+    try {
+        const { data, error } = await supabase.rpc('get_production_report_data', {
+            p_from_date: fromDate || '',
+            p_to_date: toDate || '',
+            p_prod_code: product || '',
+            p_mc_nos: machine ? [machine] : [],
+            p_shift: '', // All shifts
+            p_production_type: productionType || ''
+        });
+
+        if (error) throw error;
+
+        // Update summary tables with the returned data
+        updateSummaryTablesWithData(data || []);
+    } catch (error) {
+        console.error('❌ Error fetching all shifts data:', error);
+    }
 }
 
 // Update summary tables with filtered shift data
 function updateSummaryTablesWithData(shiftData, skipStatistics = false, filterDefect = null) {
-    
-    // Group records by traceability key to see all lots
-    const groupedByTraceabilityKey = {};
-    shiftData.forEach(form => {
-        const key = `${form.traceability_code}-${form.lot_letter}`;
-        if (!groupedByTraceabilityKey[key]) {
-            groupedByTraceabilityKey[key] = [];
-        }
-        groupedByTraceabilityKey[key].push(form);
-    });
-    
-    // Calculate totals by aggregating ALL lots/records for this shift
+    if (!shiftData || shiftData.length === 0) {
+        clearSummaryTables();
+        return;
+    }
+
+    const startTime = performance.now();
+
+    // 1. Initialize all counters and structures
     let totalAccepted = 0, totalRejected = 0, totalRework = 0, totalKIV = 0;
     let totalAcceptedWeight = 0, totalRejectedWeight = 0, totalReworkWeight = 0, totalKIVWeight = 0;
     let totalScrap = 0;
-    let rollWeightSum = 0;
-    let rollWeightCount = 0;
     
-    // Aggregate data from all lots/records in this shift
+    // For defects summary table
+    const defectSummaryData = {};
+    
+    // For statistics table
+    const stats = {
+        rollWeight: [],
+        cutWidth: [],
+        gsm: [],
+        rollTheta: [],
+        thickness: []
+    };
+
+    // For defect tracking table (the big one)
+    const defectLookup = {};
+    if (defectTypes && defectTypes.length > 0) {
+        defectTypes.forEach(d => { defectLookup[d.toLowerCase()] = d; });
+    }
+    
+    const defectTrackingData = {};
+    if (defectTypes && defectTypes.length > 0) {
+        defectTypes.forEach(defect => {
+            defectTrackingData[defect] = {
+                totalQty: 0,
+                occurrences: Array(21).fill(0)
+            };
+        });
+    }
+
+    // 2. SINGLE PASS through all data for maximum performance
     shiftData.forEach(form => {
+        // A. Roll Totals
+        const aR = parseInt(form.accepted_rolls) || 0;
+        const rR = parseInt(form.rejected_rolls) || 0;
+        const rwR = parseInt(form.rework_rolls) || 0;
+        const kR = parseInt(form.kiv_rolls) || 0;
         
-        // Sum up rolls from each record
-        totalAccepted += parseInt(form.accepted_rolls) || 0;
-        totalRejected += parseInt(form.rejected_rolls) || 0;
-        totalRework += parseInt(form.rework_rolls) || 0;
-        totalKIV += parseInt(form.kiv_rolls) || 0;
-        
-        // Sum up weights from direct columns
+        totalAccepted += aR;
+        totalRejected += rR;
+        totalRework += rwR;
+        totalKIV += kR;
+
+        // B. Weights
         totalAcceptedWeight += parseFloat(form.accepted_weight) || 0;
         totalRejectedWeight += parseFloat(form.rejected_weight) || 0;
         totalReworkWeight += parseFloat(form.rework_weight) || 0;
         totalKIVWeight += parseFloat(form.kiv_weight) || 0;
-        
-        // Sum up process scrap (newly added field)
         totalScrap += parseFloat(form.process_scrap) || 0;
+
+        // C. Process JSONB fields once
+        const rollWeights = form.roll_weights && typeof form.roll_weights === 'object' ? form.roll_weights : {};
+        const defectNames = form.defect_names && typeof form.defect_names === 'object' ? form.defect_names : {};
         
-        // Also calculate from roll_weights JSONB for comparison
-        if (form.roll_weights && typeof form.roll_weights === 'object') {
-            const weights = Object.values(form.roll_weights);
-            weights.forEach(weight => {
-                const w = parseFloat(weight) || 0;
-                if (w > 0) {
-                    rollWeightSum += w;
-                    rollWeightCount++;
+        // Only extract these if needed for statistics
+        const rollWidths = !skipStatistics ? (form.roll_widths && typeof form.roll_widths === 'object' ? form.roll_widths : {}) : {};
+        const filmGsm = !skipStatistics ? (form.film_weights_gsm && typeof form.film_weights_gsm === 'object' ? form.film_weights_gsm : {}) : {};
+        const rollDiameters = !skipStatistics ? (form.roll_diameters && typeof form.roll_diameters === 'object' ? form.roll_diameters : {}) : {};
+        const thicknesses = !skipStatistics ? (form.thickness_data && typeof form.thickness_data === 'object' ? form.thickness_data : {}) : {};
+
+        // D. Loop through roll positions (max 21)
+        // Process weights and defects separately to ensure all data is captured
+        
+        // 1. Process Weights (for statistics)
+        Object.keys(rollWeights).forEach(pos => {
+            const weight = parseFloat(rollWeights[pos]);
+            if (!isNaN(weight) && weight > 0) {
+                if (!skipStatistics) stats.rollWeight.push(weight);
+            }
+        });
+
+        // 2. Process Defects (for summary and tracking)
+        Object.keys(defectNames).forEach(pos => {
+            const defectName = defectNames[pos];
+            if (defectName && defectName.trim() !== '') {
+                const weight = parseFloat(rollWeights[pos]) || 0;
+                
+                // Small Summary Table logic (usually needs weight for yield/loss)
+                if (!filterDefect || String(defectName).trim() === String(filterDefect).trim()) {
+                    if (!defectSummaryData[defectName]) {
+                        defectSummaryData[defectName] = { count: 0, weight: 0 };
+                    }
+                    defectSummaryData[defectName].count += 1;
+                    defectSummaryData[defectName].weight += weight;
                 }
-            });
+
+                // Large Tracking Table logic (shows occurrences by position)
+                const matchingDefect = defectLookup[defectName.toLowerCase()];
+                if (matchingDefect) {
+                    const rollPos = parseInt(pos);
+                    if (rollPos >= 1 && rollPos <= 21) {
+                        defectTrackingData[matchingDefect].totalQty += 1;
+                        defectTrackingData[matchingDefect].occurrences[rollPos - 1] += 1;
+                    }
+                }
+            }
+        });
+
+        // E. Other Statistics
+        if (!skipStatistics) {
+            Object.values(rollWidths).forEach(v => { const n = parseFloat(v); if (n > 0) stats.cutWidth.push(n); });
+            Object.values(filmGsm).forEach(v => { const n = parseFloat(v); if (n > 0) stats.gsm.push(n); });
+            Object.values(rollDiameters).forEach(v => { const n = parseFloat(v); if (n > 0) stats.rollTheta.push(n); });
+            Object.values(thicknesses).forEach(v => { const n = parseFloat(v); if (n > 0) stats.thickness.push(n); });
         }
     });
-    
+
     const totalRolls = totalAccepted + totalRejected + totalRework + totalKIV;
     const totalWeight = totalAcceptedWeight + totalRejectedWeight + totalReworkWeight + totalKIVWeight;
-    
-    // Update Rolls Summary Table
-    const container = document.getElementById('dynamicSummaryTableContainer');
-    if (container) {
-        const table = container.querySelector('table tbody');
+
+    // 3. Update Rolls Summary Table
+    const summaryContainer = document.getElementById('dynamicSummaryTableContainer');
+    if (summaryContainer) {
+        const tbody = summaryContainer.querySelector('table tbody');
+        const totalInputWeight = totalWeight + totalScrap;
+        const yieldPercent = totalInputWeight > 0 ? ((totalAcceptedWeight / totalInputWeight) * 100).toFixed(2) : '0.00';
         
-        // Build the basic rows
-        let rowsHtml = `
+        tbody.innerHTML = `
             <tr>
                 <td class="metric-label">Accepted Rolls</td>
                 <td class="metric-value">${totalAccepted} Rolls</td>
@@ -1312,278 +1385,153 @@ function updateSummaryTablesWithData(shiftData, skipStatistics = false, filterDe
                 <td class="metric-value">${totalKIV} Rolls</td>
                 <td class="metric-value">${totalKIVWeight.toFixed(2)} KG</td>
             </tr>
-        `;
-
-        // Add scrap row if there is any scrap
-        if (totalScrap > 0) {
-            rowsHtml += `
-                <tr class="scrap-caution-row">
-                    <td class="metric-label">
-                        <div class="scrap-label">
-                            Total Shift Scrap
-                        </div>
-                    </td>
-                    <td class="metric-value">-</td>
-                    <td class="metric-value">${totalScrap.toFixed(2)} KG</td>
-                </tr>
-            `;
-        }
-
-        // Add total row
-        rowsHtml += `
+            <tr class="scrap-caution-row">
+                <td class="metric-label">
+                    <div class="scrap-label">
+                        Total Shift Scrap
+                    </div>
+                </td>
+                <td class="metric-value">-</td>
+                <td class="metric-value">${totalScrap.toFixed(2)} KG</td>
+            </tr>
             <tr class="highlight-row">
                 <td>Total Produced</td>
                 <td>${totalRolls} Rolls</td>
                 <td>${totalWeight.toFixed(2)} KG</td>
             </tr>
-        `;
-
-        // Add yield row
-        const totalInputWeight = totalWeight + totalScrap;
-        const yieldPercent = totalInputWeight > 0 ? ((totalAcceptedWeight / totalInputWeight) * 100).toFixed(2) : '0.00';
-        
-        rowsHtml += `
             <tr class="yield-row">
                 <td class="metric-label" colspan="2">Production Yield</td>
                 <td class="metric-value">${yieldPercent}%</td>
             </tr>
         `;
-
-        table.innerHTML = rowsHtml;
     }
-    
-    // Update other summary tables with aggregated data
-    updateDefectsSummaryTable(shiftData, filterDefect);
-    
-    // Update defect tracking table
-    updateDefectTrackingTable(shiftData);
 
-    // Only update statistics table if not skipping
+    // 4. Update Defects Summary Table
+    const defectsContainer = document.getElementById('defectsSummaryTableContainer');
+    if (defectsContainer) {
+        const tbody = defectsContainer.querySelector('table tbody');
+        if (Object.keys(defectSummaryData).length === 0) {
+            tbody.innerHTML = '<tr><td class="metric-label" colspan="4" style="text-align: center;">No defects found in this shift.</td></tr>';
+        } else {
+            const totalDefectCount = Object.values(defectSummaryData).reduce((sum, d) => sum + d.count, 0);
+            const totalDefectWeight = Object.values(defectSummaryData).reduce((sum, d) => sum + d.weight, 0);
+            const totalDefectPercent = totalRolls > 0 ? ((totalDefectCount / totalRolls) * 100).toFixed(2) : '0.00';
+
+            tbody.innerHTML = Object.entries(defectSummaryData)
+                .sort(([,a], [,b]) => b.count - a.count)
+                .map(([defect, data]) => {
+                    const defectPercent = totalRolls > 0 ? ((data.count / totalRolls) * 100).toFixed(2) : '0.00';
+                    return `<tr><td class="metric-label">${defect}</td><td class="defect-count">${data.count}</td><td class="defect-percent">${defectPercent}%</td><td class="metric-value">${data.weight.toFixed(2)}</td></tr>`;
+                }).join('') + 
+                `<tr class="highlight-row"><td class="metric-label">Total</td><td class="defect-count">${totalDefectCount}</td><td class="defect-percent">${totalDefectPercent}%</td><td class="metric-value">${totalDefectWeight.toFixed(2)}</td></tr>`;
+        }
+    }
+
+    // 5. Update Statistics Table
     if (!skipStatistics) {
-        updateStatisticsTable(shiftData);
-    } else {
-        // Clear statistics table when skipping (for advanced filter mode)
         const statsContainer = document.getElementById('statisticsTableContainer');
         if (statsContainer) {
             const tbody = statsContainer.querySelector('table tbody');
+            const calculateRow = (label, values, decimalPlaces) => {
+                if (!values || values.length === 0) {
+                    return `<tr><td class="parameter-cell">${label}</td><td class="value-cell">0.00</td><td class="value-cell">0.00</td><td class="value-cell">0.00</td></tr>`;
+                }
+                const min = Math.min(...values).toFixed(decimalPlaces);
+                const max = Math.max(...values).toFixed(decimalPlaces);
+                const avg = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(decimalPlaces);
+                return `<tr><td class="parameter-cell">${label}</td><td class="value-cell">${min}</td><td class="value-cell">${max}</td><td class="value-cell">${avg}</td></tr>`;
+            };
+
             tbody.innerHTML = `
-                <tr>
-                    <td class="parameter-cell" colspan="4">Statistics not available in advanced filter mode</td>
-                </tr>
+                ${calculateRow('Roll Weight', stats.rollWeight, 2)}
+                ${calculateRow('Cut Width', stats.cutWidth, 0)}
+                ${calculateRow('GSM', stats.gsm, 2)}
+                ${calculateRow('Roll θ', stats.rollTheta, 0)}
+                ${calculateRow('Thickness', stats.thickness, 2)}
             `;
         }
     }
+
+    // 6. Update Defect Tracking Table (The big one)
+    renderDefectTrackingTable(defectTrackingData, totalRolls);
     
+    // 7. Update Defect Tracking Summary
+    renderDefectTrackingSummary(totalRolls, (totalRejected + totalRework + totalKIV));
 }
 
-// Update Defects Summary Table
-function updateDefectsSummaryTable(shiftData, filterDefect = null) {
-    const defectData = {};
-    let totalProduced = 0;
-    
-    // Calculate total produced rolls and defect data
-    shiftData.forEach(form => {
-        // Calculate total produced rolls for this form
-        const acceptedRolls = parseInt(form.accepted_rolls) || 0;
-        const rejectedRolls = parseInt(form.rejected_rolls) || 0;
-        const reworkRolls = parseInt(form.rework_rolls) || 0;
-        const kivRolls = parseInt(form.kiv_rolls) || 0;
-        totalProduced += acceptedRolls + rejectedRolls + reworkRolls + kivRolls;
-        
-        // Extract defect data
-        if (form.defect_names && typeof form.defect_names === 'object' && 
-            form.roll_weights && typeof form.roll_weights === 'object') {
-            
-            // Get roll positions that have defects
-            const defectPositions = Object.keys(form.defect_names);
-            
-            defectPositions.forEach(rollPosition => {
-                const defectName = form.defect_names[rollPosition];
-                const rollWeight = parseFloat(form.roll_weights[rollPosition]) || 0;
-                
-                if (defectName && defectName.trim() !== '' && rollWeight > 0) {
-                    // If filterDefect is specified, only count matching defects
-                    if (filterDefect && String(defectName).trim() !== String(filterDefect).trim()) {
-                        return; // Skip this defect
-                    }
-                    
-                    if (!defectData[defectName]) {
-                        defectData[defectName] = { count: 0, weight: 0 };
-                    }
-                    defectData[defectName].count += 1;
-                    
-                    // Add the ACTUAL roll weight for this specific defect
-                    defectData[defectName].weight += rollWeight;
-                }
-            });
-        }
-    });
-    
-    const container = document.getElementById('defectsSummaryTableContainer');
-    if (container) {
-        const tbody = container.querySelector('table tbody');
-        if (Object.keys(defectData).length === 0) {
-            tbody.innerHTML = '<tr><td class="metric-label" colspan="4" style="text-align: center;">No defects found in this shift.</td></tr>';
-        } else {
-            // Calculate totals
-            const totalCount = Object.values(defectData).reduce((sum, data) => sum + data.count, 0);
-            const totalWeight = Object.values(defectData).reduce((sum, data) => sum + data.weight, 0);
-            const totalDefectPercent = totalProduced > 0 ? ((totalCount / totalProduced) * 100).toFixed(2) : '0.00';
-            
-            tbody.innerHTML = Object.entries(defectData)
-                .sort(([,a], [,b]) => b.count - a.count) // Sort by count (highest to lowest)
-                .map(([defect, data]) => {
-                    const defectPercent = totalProduced > 0 ? ((data.count / totalProduced) * 100).toFixed(2) : '0.00';
-                    return `<tr><td class="metric-label">${defect}</td><td class="defect-count">${data.count}</td><td class="defect-percent">${defectPercent}%</td><td class="metric-value">${data.weight.toFixed(2)}</td></tr>`;
-                }).join('') + 
-                `<tr class="highlight-row"><td class="metric-label">Total</td><td class="defect-count">${totalCount}</td><td class="defect-percent">${totalDefectPercent}%</td><td class="metric-value">${totalWeight.toFixed(2)}</td></tr>`;
-        }
-    }
-}
+// Optimized renderer for Defect Tracking Table - accepts pre-calculated data
+function renderDefectTrackingTable(defectTrackingData, totalProduced) {
+    const tbody = document.getElementById('defectTrackingTableBody');
+    if (!tbody) return;
 
+    const defectsWithData = Object.entries(defectTrackingData).filter(([defect, data]) => data.totalQty > 0);
 
-
-// Update Statistics Table
-function updateStatisticsTable(shiftData) {
-    const stats = {
-        rollWeight: [],
-        cutWidth: [],
-        gsm: [],
-        rollTheta: [],
-        thickness: []
-    };
-    
-    shiftData.forEach(form => {
-        // Collect roll weights from JSONB
-        if (form.roll_weights && typeof form.roll_weights === 'object') {
-            Object.values(form.roll_weights).forEach(weight => {
-                const w = parseFloat(weight);
-                if (!isNaN(w) && w > 0) stats.rollWeight.push(w);
-            });
-        }
-        
-        // Collect other stats from JSONB fields
-        if (form.roll_widths && typeof form.roll_widths === 'object') {
-            Object.values(form.roll_widths).forEach(width => {
-                const w = parseFloat(width);
-                if (!isNaN(w) && w > 0) stats.cutWidth.push(w);
-            });
-        }
-        
-        if (form.film_weights_gsm && typeof form.film_weights_gsm === 'object') {
-            Object.values(form.film_weights_gsm).forEach(gsm => {
-                const g = parseFloat(gsm);
-                if (!isNaN(g) && g > 0) stats.gsm.push(g);
-            });
-        }
-        
-        if (form.roll_diameters && typeof form.roll_diameters === 'object') {
-            Object.values(form.roll_diameters).forEach(theta => {
-                const t = parseFloat(theta);
-                if (!isNaN(t) && t > 0) stats.rollTheta.push(t);
-            });
-        }
-        
-        if (form.thickness_data && typeof form.thickness_data === 'object') {
-            Object.values(form.thickness_data).forEach(thickness => {
-                const t = parseFloat(thickness);
-                if (!isNaN(t) && t > 0) stats.thickness.push(t);
-            });
-        }
-    });
-    
-    // Calculate min, max, avg for each parameter
-    const calculateStats = (arr) => {
-        if (arr.length === 0) return { min: 0, max: 0, avg: 0 };
-        const min = Math.min(...arr);
-        const max = Math.max(...arr);
-        const avg = arr.reduce((sum, val) => sum + val, 0) / arr.length;
-        return { min, max, avg };
-    };
-    
-    const rollWeightStats = calculateStats(stats.rollWeight);
-    const cutWidthStats = calculateStats(stats.cutWidth);
-    const gsmStats = calculateStats(stats.gsm);
-    const rollThetaStats = calculateStats(stats.rollTheta);
-    const thicknessStats = calculateStats(stats.thickness);
-    
-    const container = document.getElementById('statisticsTableContainer');
-    if (container) {
-        const tbody = container.querySelector('table tbody');
+    if (defectsWithData.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td class="parameter-cell">Roll Weight</td>
-                <td class="value-cell">${rollWeightStats.min.toFixed(2)}</td>
-                <td class="value-cell">${rollWeightStats.max.toFixed(2)}</td>
-                <td class="value-cell">${rollWeightStats.avg.toFixed(2)}</td>
-            </tr>
-            <tr>
-                <td class="parameter-cell">Cut Width</td>
-                <td class="value-cell">${cutWidthStats.min.toFixed(0)}</td>
-                <td class="value-cell">${cutWidthStats.max.toFixed(0)}</td>
-                <td class="value-cell">${cutWidthStats.avg.toFixed(0)}</td>
-            </tr>
-            <tr>
-                <td class="parameter-cell">GSM</td>
-                <td class="value-cell">${gsmStats.min.toFixed(2)}</td>
-                <td class="value-cell">${gsmStats.max.toFixed(2)}</td>
-                <td class="value-cell">${gsmStats.avg.toFixed(2)}</td>
-            </tr>
-            <tr>
-                <td class="parameter-cell">Roll θ</td>
-                <td class="value-cell">${rollThetaStats.min.toFixed(0)}</td>
-                <td class="value-cell">${rollThetaStats.max.toFixed(0)}</td>
-                <td class="value-cell">${rollThetaStats.avg.toFixed(0)}</td>
-            </tr>
-            <tr>
-                <td class="parameter-cell">Thickness</td>
-                <td class="value-cell">${thicknessStats.min.toFixed(2)}</td>
-                <td class="value-cell">${thicknessStats.max.toFixed(2)}</td>
-                <td class="value-cell">${thicknessStats.avg.toFixed(2)}</td>
+                <td colspan="24" class="text-center py-4" style="color: #6b7280; font-style: italic;">
+                    No defects found for the selected filters.
+                </td>
             </tr>
         `;
+    } else {
+        tbody.innerHTML = defectsWithData.map(([defect, data]) => {
+            const defectPercent = totalProduced > 0 ? ((data.totalQty / totalProduced) * 100).toFixed(2) : '0.00';
+            const cells = data.occurrences.map(occurrence => 
+                `<td class="${occurrence > 0 ? 'defect-present' : 'defect-absent'}">${occurrence}</td>`
+            ).join('');
+            
+            return `
+                <tr>
+                    <td class="defect-name">${defect}</td>
+                    <td class="defect-qty">${data.totalQty}</td>
+                    <td style="font-weight: 500; color: #1f2937;">${defectPercent}%</td>
+                    ${cells}
+                </tr>
+            `;
+        }).join('');
     }
 }
 
+// Optimized renderer for Defect Tracking Summary - accepts pre-calculated totals
+function renderDefectTrackingSummary(totalProduced, totalRejected) {
+    const rejectionPercent = totalProduced > 0 ? ((totalRejected / totalProduced) * 100).toFixed(1) : '0.0';
+    
+    const totalRejectedElem = document.getElementById('totalRejectedQty');
+    const totalProducedElem = document.getElementById('totalProducedQty');
+    const totalPercentElem = document.getElementById('totalRejectionPercent');
+    
+    if (totalRejectedElem) totalRejectedElem.textContent = totalRejected;
+    if (totalProducedElem) totalProducedElem.textContent = totalProduced;
+    if (totalPercentElem) totalPercentElem.textContent = rejectionPercent;
+}
+
+
+
+
+
+
+
 // GET ALL PRODUCTS DATA - Show combined data from all products for a machine
-function getAllProductsData(fromDate, toDate, machine, shift, productionType) {
-    
-            // getAllProductsData called
-    
-    // STEP 1: Find records that match the filter criteria (machine + date + shift + productionType, but NO product filter)
-    const masterRecords = allForms.filter(form => {
-        if (fromDate && form.production_date) {
-            const formDate = new Date(form.production_date);
-            const fromDateObj = new Date(fromDate);
-            if (formDate < fromDateObj) return false;
-        }
-        if (toDate && form.production_date) {
-            const formDate = new Date(form.production_date);
-            const toDateObj = new Date(toDate);
-            if (formDate > toDateObj) return false;
-        }
-        if (String(form.mc_no) !== String(machine)) return false;
-        if (shift && String(form.shift) !== String(shift)) return false;
-        if (productionType) {
-            const formProductionType = form.production_type || 'Commercial'; // Treat NULL as Commercial
-            if (String(formProductionType) !== String(productionType)) return false;
-        }
-        return true; // Include all products
-    });
-    
-    // STEP 2: Extract all traceability codes and lot letters from master records
-    const traceabilityKeys = [...new Set(masterRecords.map(form => `${form.traceability_code}-${form.lot_letter}`))];
-    
-    // STEP 3: Find ALL records (including all lots) that match these traceability keys
-    const allProductsData = allForms.filter(form => {
-        const traceabilityKey = `${form.traceability_code}-${form.lot_letter}`;
-        return traceabilityKeys.includes(traceabilityKey);
-    });
-    
-    // getAllProductsData results
-    
-    // Update summary tables with combined data from all products (skip statistics for all products)
-    updateSummaryTablesWithData(allProductsData, true); // true = skip statistics
+// GET ALL PRODUCTS DATA - For when "All Products" is selected
+async function getAllProductsData(fromDate, toDate, machine, shift, productionType) {
+    try {
+        const { data, error } = await supabase.rpc('get_production_report_data', {
+            p_from_date: fromDate || '',
+            p_to_date: toDate || '',
+            p_mc_nos: machine ? [machine] : [],
+            p_prod_code: '', // Explicitly set empty for all products
+            p_shift: shift || '',
+            p_production_type: productionType || ''
+        });
+
+        if (error) throw error;
+
+        // Update summary tables with combined data from all products (skip statistics for all products)
+        updateSummaryTablesWithData(data || [], true); // true = skip statistics
+    } catch (error) {
+        console.error('❌ Error fetching all products data:', error);
+    }
 }
 
 // Defect tracking functionality
@@ -1642,117 +1590,7 @@ function initializeDefectTrackingTable() {
     }).join('');
 }
 
-// Update defect tracking table with data
-function updateDefectTrackingTable(formsData) {
-    if (!formsData || formsData.length === 0) {
-        clearDefectTrackingTable();
-        return;
-    }
 
-    // Check if defect types are loaded
-    if (!defectTypes || defectTypes.length === 0) {
-        // Defect types not loaded yet, skipping update
-        return;
-    }
-
-    // Processing forms data for defect tracking
-
-    // 1. Create a "Lookup Map" for speed
-    // This turns ["Hole", "Wrinkle"] into { "hole": "Hole", "wrinkle": "Wrinkle" }
-    const defectLookup = {};
-    defectTypes.forEach(d => {
-        defectLookup[d.toLowerCase()] = d;
-    });
-
-    // Initialize defect tracking data structure
-    const defectData = {};
-    defectTypes.forEach(defect => {
-        defectData[defect] = {
-            totalQty: 0,
-            occurrences: Array(21).fill(0)  // Array with 21 elements for positions 1-21
-        };
-    });
-
-    // Process forms data to extract defect information
-    formsData.forEach((form) => {
-        // Processing form
-        
-        // Check for defects in the defect_names JSONB column
-        if (form.defect_names && typeof form.defect_names === 'object') {
-            Object.entries(form.defect_names).forEach(([rollPosition, defectName]) => {
-                if (defectName && defectName.trim() !== '') {
-                    const rollPos = parseInt(rollPosition);
-                    if (rollPos >= 1 && rollPos <= 21) {
-                        
-                        // OLD SLOW WAY:
-                        // const matchingDefect = defectTypes.find(defect => defect.toLowerCase() === defectName.toLowerCase());
-
-                        // NEW FAST WAY:
-                        const matchingDefect = defectLookup[defectName.toLowerCase()];
-                        
-                        if (matchingDefect) {
-                            defectData[matchingDefect].totalQty += 1;
-                            defectData[matchingDefect].occurrences[rollPos - 1] += 1; // rollPos - 1 because array is 0-indexed
-                            // Found defect at roll position
-                        } else {
-                            // Defect not found in defect types list
-                        }
-                    }
-                }
-            });
-        }
-    });
-
-    // Processed defect data
-
-    // Filter to show only defects that have data
-    const defectsWithData = Object.entries(defectData).filter(([defect, data]) => data.totalQty > 0);
-    
-    // Defects with data
-
-    // Calculate total produced for defect % calculation
-    let totalProduced = 0;
-    formsData.forEach(form => {
-        const acceptedRolls = parseInt(form.accepted_rolls) || 0;
-        const rejectedRolls = parseInt(form.rejected_rolls) || 0;
-        const reworkRolls = parseInt(form.rework_rolls) || 0;
-        const kivRolls = parseInt(form.kiv_rolls) || 0;
-        totalProduced += acceptedRolls + rejectedRolls + reworkRolls + kivRolls;
-    });
-
-    // Update the table - show only defects with data
-    const tbody = document.getElementById('defectTrackingTableBody');
-    if (tbody) {
-        if (defectsWithData.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="24" class="text-center py-4" style="color: #6b7280; font-style: italic;">
-                        No defects found for the selected filters.
-                    </td>
-                </tr>
-            `;
-        } else {
-            tbody.innerHTML = defectsWithData.map(([defect, data]) => {
-                const defectPercent = totalProduced > 0 ? ((data.totalQty / totalProduced) * 100).toFixed(2) : '0.00';
-                const cells = data.occurrences.map(occurrence => 
-                    `<td class="${occurrence > 0 ? 'defect-present' : 'defect-absent'}">${occurrence}</td>`
-                ).join('');
-                
-                return `
-                    <tr>
-                        <td class="defect-name">${defect}</td>
-                        <td class="defect-qty">${data.totalQty}</td>
-                        <td style="font-weight: 500; color: #1f2937;">${defectPercent}%</td>
-                        ${cells}
-                    </tr>
-                `;
-            }).join('');
-        }
-    }
-
-    // Update summary statistics
-    updateDefectTrackingSummary(formsData);
-}
 
 // Clear defect tracking table
 function clearDefectTrackingTable() {
@@ -1790,35 +1628,7 @@ function clearDefectTrackingTable() {
     document.getElementById('totalRejectionPercent').textContent = '0.0';
 }
 
-// Update defect tracking summary statistics
-function updateDefectTrackingSummary(formsData) {
-    let totalProduced = 0;
-    let totalRejected = 0;
-    
-    // Calculate total rolls produced and rejected using the same logic as production summary
-    formsData.forEach(form => {
-        // Use the same counting logic as the production summary table
-        const acceptedRolls = parseInt(form.accepted_rolls) || 0;
-        const rejectedRolls = parseInt(form.rejected_rolls) || 0;
-        const reworkRolls = parseInt(form.rework_rolls) || 0;
-        const kivRolls = parseInt(form.kiv_rolls) || 0;
-        
-        // Total rolls for this form
-        const formTotalRolls = acceptedRolls + rejectedRolls + reworkRolls + kivRolls;
-        totalProduced += formTotalRolls;
-        
-        // Count rejected rolls (including rework and KIV)
-        totalRejected += rejectedRolls + reworkRolls + kivRolls;
-    });
-    
-    const rejectionPercent = totalProduced > 0 ? ((totalRejected / totalProduced) * 100).toFixed(1) : '0.0';
 
-    // Defect tracking summary
-
-    document.getElementById('totalRejectedQty').textContent = totalRejected;
-    document.getElementById('totalProducedQty').textContent = totalProduced;
-    document.getElementById('totalRejectionPercent').textContent = rejectionPercent;
-}
 
 // Build query string from currentFilters
 function buildExportQuery() {
