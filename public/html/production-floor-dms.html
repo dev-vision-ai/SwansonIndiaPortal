@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Production Floor DMS</title>
+    <link rel="icon" type="image/png" href="../assets/logo2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../css/common-header.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        html {
+            scroll-padding-top: 70px;
+            overflow-x: hidden;
+            width: 100%;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            padding-top: 60px;
+            margin: 0;
+            background-color: #f3f4f6;
+            font-size: 0.75rem;
+        }
+
+        .inspection-form-container {
+            background: #fff;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            margin-top: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .inspection-form-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #002E7D;
+            height: 45px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .inspection-form-header h2 {
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .inspection-form-content {
+            padding: 2rem 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #2D3436;
+            margin-bottom: 0.25rem;
+        }
+
+        .inspection-table th {
+            background-color: #f8f9fa;
+            color: #2D3436;
+            font-weight: 600;
+            text-align: center;
+            vertical-align: middle;
+            text-transform: none;
+            font-size: 0.75rem;
+            border: 1px solid #dee2e6;
+            padding: 0.75rem;
+        }
+
+        .inspection-table td {
+            vertical-align: top;
+            padding: 0;
+            border: 1px solid #dee2e6;
+        }
+
+        .inspection-table input[type="text"],
+        .inspection-table input[type="date"],
+        .inspection-table input[type="time"],
+        .inspection-table textarea,
+        .form-group input {
+            width: 100%;
+            border: 1px solid #ced4da;
+            border-radius: 0.4rem;
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            background-color: #fff;
+            transition: all 0.2s;
+            min-height: 40px;
+        }
+
+        .inspection-table input:focus,
+        .inspection-table textarea:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #002E7D;
+            box-shadow: 0 0 0 3px rgba(0, 46, 125, 0.1);
+        }
+
+        .radio-group {
+            background: #f8f9fa;
+            padding: 0.4rem;
+            border-radius: 0.4rem;
+            border: 1px solid #e9ecef;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-bottom: 0.3rem;
+            color: #2D3436;
+            font-weight: 500;
+        }
+
+        .radio-group label:last-child {
+            margin-bottom: 0;
+        }
+
+        .radio-group input[type="radio"] {
+            width: 14px;
+            height: 14px;
+            accent-color: #002E7D;
+        }
+
+        .submit-btn {
+            background: linear-gradient(45deg, #002E7D, #0046C7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 0.4rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 46, 125, 0.15);
+        }
+
+        .submit-btn:hover {
+            box-shadow: 0 6px 15px rgba(0, 46, 125, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .cancel-btn {
+            background: #f8f9fa;
+            color: #495057;
+            padding: 8px 16px;
+            border-radius: 0.4rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .cancel-btn:hover {
+            background: #e9ecef;
+            color: #212529;
+        }
+
+        .inspection-table td[contenteditable="true"] {
+            outline: none;
+            padding: 4px 8px;
+            min-height: 45px;
+            cursor: text;
+            transition: all 0.2s;
+            font-size: 0.75rem;
+        }
+
+        .inspection-table td:not([contenteditable="true"]):not(.p-0) {
+            padding: 8px;
+        }
+
+        .inspection-table td[contenteditable="true"]:focus {
+            background-color: transparent;
+        }
+
+        .inspection-table tr:hover td {
+            background-color: transparent;
+        }
+
+        @media (max-width: 768px) {
+            .inspection-table {
+                font-size: 0.7rem;
+            }
+            .inspection-form-content {
+                padding: 1rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium">
+    <div class="header-container">
+        <button type="button" class="header-back-button" onclick="window.location.href='dms.html'">Back</button>
+        <div class="header-title">Daily Management System</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo"/>
+        </div>
+    </div>
+
+    <main class="w-full px-4">
+        <section id="inspection-form" class="inspection-form-container w-full max-w-[1800px] mx-auto">
+            <div class="inspection-form-header">
+                <h2>Production Floor DMS</h2>
+            </div>
+
+            <div class="inspection-form-content">
+                <form id="production-inspection-form">
+                    <div class="flex flex-wrap gap-4 mb-6">
+                        <div class="form-group" style="width: 150px;">
+                            <label>Inspection Date</label>
+                            <input type="date" name="inspection_date" required>
+                        </div>
+                        <div class="form-group" style="width: 120px;">
+                            <label>Inspection Time</label>
+                            <input type="time" name="inspection_time" required>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-lg">
+                        <table class="inspection-table w-full border-collapse">
+                            <thead>
+                                <tr>
+                                    <th class="w-12" rowspan="2">Sr. No.</th>
+                                    <th class="w-36" rowspan="2">Checkpoints</th>
+                                    <th class="w-26" rowspan="2">Applicability</th>
+                                    <th class="min-w-[300px]" rowspan="2">Observations</th>
+                                    <th class="min-w-[300px]" rowspan="2">Action Taken</th>
+                                    <th colspan="2">Responsible</th>
+                                    <th class="w-24" rowspan="2">Status</th>
+                                </tr>
+                                <tr>
+                                    <th class="w-24">Who</th>
+                                    <th class="w-24">When</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Row 1 -->
+                                <tr>
+                                    <td class="text-center font-bold text-gray-700">1</td>
+                                    <td class="font-medium text-gray-700">Trained & Qualified employees are working independently</td>
+                                    <td>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check1" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check1" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check1" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" data-name="obs1" data-placeholder="Enter observations..."></td>
+                                    <td contenteditable="true" data-name="action1" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" data-name="who1" data-placeholder="Name"></td>
+                                    <td contenteditable="true" data-name="when1" data-placeholder="Date"></td>
+                                    <td contenteditable="true" data-name="status1" data-placeholder="Status"></td>
+                                </tr>
+
+                                <!-- Row 2 -->
+                                <tr>
+                                    <td class="text-center font-bold text-gray-700" rowspan="2">2</td>
+                                    <td class="font-medium text-gray-700" rowspan="2">In-line Inspection Form</td>
+                                    <td>
+                                        <div class="text-[10px] font-bold text-[#002E7D] mb-1">MC#01</div>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check2_mc1" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check2_mc1" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check2_mc1" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" data-name="obs2_mc1" data-placeholder="MC#01 Observations..."></td>
+                                    <td contenteditable="true" data-name="action2_mc1" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" data-name="who2_mc1" data-placeholder="Name"></td>
+                                    <td contenteditable="true" data-name="when2_mc1" data-placeholder="Date"></td>
+                                    <td contenteditable="true" data-name="status2_mc1" data-placeholder="MC#01 Status"></td>
+                                </tr>
+                                <tr>
+                                    <td class="border-t border-gray-200">
+                                        <div class="text-[10px] font-bold text-[#002E7D] mb-1">MC#02</div>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check2_mc2" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check2_mc2" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check2_mc2" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="obs2_mc2" data-placeholder="MC#02 Observations..."></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="action2_mc2" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="who2_mc2" data-placeholder="Name"></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="when2_mc2" data-placeholder="Date"></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="status2_mc2" data-placeholder="MC#02 Status"></td>
+                                </tr>
+
+                                <!-- Row 3 -->
+                                <tr>
+                                    <td class="text-center font-bold text-gray-700">3</td>
+                                    <td class="font-medium text-gray-700">Safety & Hygiene standard is followed</td>
+                                    <td>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check3" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check3" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check3" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" data-name="obs3" data-placeholder="Enter observations..."></td>
+                                    <td contenteditable="true" data-name="action3" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" data-name="who3" data-placeholder="Name"></td>
+                                    <td contenteditable="true" data-name="when3" data-placeholder="Date"></td>
+                                    <td contenteditable="true" data-name="status3" data-placeholder="Status"></td>
+                                </tr>
+
+                                <!-- Row 4 -->
+                                <tr>
+                                    <td class="text-center font-bold text-gray-700" rowspan="2">4</td>
+                                    <td class="font-medium text-gray-700" rowspan="2">Raw Material stacking & Loading is correct</td>
+                                    <td>
+                                        <div class="text-[10px] font-bold text-[#002E7D] mb-1">MC#01</div>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check4_mc1" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check4_mc1" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check4_mc1" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" data-name="obs4_mc1" data-placeholder="MC#01 Observations..."></td>
+                                    <td contenteditable="true" data-name="action4_mc1" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" data-name="who4_mc1" data-placeholder="Name"></td>
+                                    <td contenteditable="true" data-name="when4_mc1" data-placeholder="Date"></td>
+                                    <td contenteditable="true" data-name="status4_mc1" data-placeholder="MC#01 Status"></td>
+                                </tr>
+                                <tr>
+                                    <td class="border-t border-gray-200">
+                                        <div class="text-[10px] font-bold text-[#002E7D] mb-1">MC#02</div>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check4_mc2" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check4_mc2" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check4_mc2" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="obs4_mc2" data-placeholder="MC#02 Observations..."></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="action4_mc2" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="who4_mc2" data-placeholder="Name"></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="when4_mc2" data-placeholder="Date"></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="status4_mc2" data-placeholder="MC#02 Status"></td>
+                                </tr>
+
+                                <!-- Row 5 -->
+                                <tr>
+                                    <td class="text-center font-bold text-gray-700" rowspan="2">5</td>
+                                    <td class="font-medium text-gray-700" rowspan="2">Machine Centerlines & Formulation is correct</td>
+                                    <td>
+                                        <div class="text-[10px] font-bold text-[#002E7D] mb-1">MC#01</div>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check5_mc1" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check5_mc1" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check5_mc1" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" data-name="obs5_mc1" data-placeholder="MC#01 Observations..."></td>
+                                    <td contenteditable="true" data-name="action5_mc1" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" data-name="who5_mc1" data-placeholder="Name"></td>
+                                    <td contenteditable="true" data-name="when5_mc1" data-placeholder="Date"></td>
+                                    <td contenteditable="true" data-name="status5_mc1" data-placeholder="MC#01 Status"></td>
+                                </tr>
+                                <tr>
+                                    <td class="border-t border-gray-200">
+                                        <div class="text-[10px] font-bold text-[#002E7D] mb-1">MC#02</div>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check5_mc2" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check5_mc2" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check5_mc2" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="obs5_mc2" data-placeholder="MC#02 Observations..."></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="action5_mc2" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="who5_mc2" data-placeholder="Name"></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="when5_mc2" data-placeholder="Date"></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="status5_mc2" data-placeholder="MC#02 Status"></td>
+                                </tr>
+
+                                <!-- Row 6 -->
+                                <tr>
+                                    <td class="text-center font-bold text-gray-700" rowspan="2">6</td>
+                                    <td class="font-medium text-gray-700" rowspan="2">Printing process & checklist are checked</td>
+                                    <td>
+                                        <div class="text-[10px] font-bold text-[#002E7D] mb-1">MC#01</div>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check6_mc1" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check6_mc1" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check6_mc1" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" data-name="obs6_mc1" data-placeholder="MC#01 Observations..."></td>
+                                    <td contenteditable="true" data-name="action6_mc1" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" data-name="who6_mc1" data-placeholder="Name"></td>
+                                    <td contenteditable="true" data-name="when6_mc1" data-placeholder="Date"></td>
+                                    <td contenteditable="true" data-name="status6_mc1" data-placeholder="MC#01 Status"></td>
+                                </tr>
+                                <tr>
+                                    <td class="border-t border-gray-200">
+                                        <div class="text-[10px] font-bold text-[#002E7D] mb-1">MC#02</div>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check6_mc2" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check6_mc2" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check6_mc2" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="obs6_mc2" data-placeholder="MC#02 Observations..."></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="action6_mc2" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="who6_mc2" data-placeholder="Name"></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="when6_mc2" data-placeholder="Date"></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="status6_mc2" data-placeholder="MC#02 Status"></td>
+                                </tr>
+
+                                <!-- Row 7 -->
+                                <tr>
+                                    <td class="text-center font-bold text-gray-700" rowspan="2">7</td>
+                                    <td class="font-medium text-gray-700" rowspan="2">Autogauging unit & PDD/WDD is working properly</td>
+                                    <td>
+                                        <div class="text-[10px] font-bold text-[#002E7D] mb-1">MC#01</div>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check7_mc1" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check7_mc1" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check7_mc1" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" data-name="obs7_mc1" data-placeholder="MC#01 Observations..."></td>
+                                    <td contenteditable="true" data-name="action7_mc1" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" data-name="who7_mc1" data-placeholder="Name"></td>
+                                    <td contenteditable="true" data-name="when7_mc1" data-placeholder="Date"></td>
+                                    <td contenteditable="true" data-name="status7_mc1" data-placeholder="MC#01 Status"></td>
+                                </tr>
+                                <tr>
+                                    <td class="border-t border-gray-200">
+                                        <div class="text-[10px] font-bold text-[#002E7D] mb-1">MC#02</div>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check7_mc2" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check7_mc2" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check7_mc2" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="obs7_mc2" data-placeholder="MC#02 Observations..."></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="action7_mc2" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="who7_mc2" data-placeholder="Name"></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="when7_mc2" data-placeholder="Date"></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="status7_mc2" data-placeholder="MC#02 Status"></td>
+                                </tr>
+
+                                <!-- Row 8 -->
+                                <tr>
+                                    <td class="text-center font-bold text-gray-700" rowspan="2">8</td>
+                                    <td class="font-medium text-gray-700" rowspan="2">FG Roll inspection & Film appearance checking is carried out</td>
+                                    <td>
+                                        <div class="text-[10px] font-bold text-[#002E7D] mb-1">MC#01</div>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check8_mc1" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check8_mc1" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check8_mc1" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td class="p-0">
+                                        <div class="flex flex-col h-full">
+                                            <div class="border-b flex bg-gray-50/50">
+                                                <div class="w-[80%] p-1.5 flex gap-2 border-r border-gray-100 min-w-0">
+                                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap pt-1">Product:</span>
+                                                    <div contenteditable="true" class="flex-grow outline-none min-h-[1.5rem] bg-white border border-gray-200 rounded px-2 py-0.5 text-sm focus:border-[#002E7D] transition-colors overflow-hidden break-all" data-name="obs8_prod_mc1"></div>
+                                                </div>
+                                                <div class="w-[20%] p-1.5 flex gap-2 min-w-0">
+                                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap pt-1">Lot:</span>
+                                                    <div contenteditable="true" class="flex-grow outline-none min-h-[1.5rem] bg-white border border-gray-200 rounded px-2 py-0.5 text-sm focus:border-[#002E7D] transition-colors overflow-hidden break-all" data-name="obs8_lot_mc1"></div>
+                                                </div>
+                                            </div>
+                                            <div contenteditable="true" class="p-1.5 flex-grow outline-none min-h-[3rem]" data-name="obs8_mc1" data-placeholder="MC#01 Observations..."></div>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" data-name="action8_mc1" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" data-name="who8_mc1" data-placeholder="Name"></td>
+                                    <td contenteditable="true" data-name="when8_mc1" data-placeholder="Date"></td>
+                                    <td contenteditable="true" data-name="status8_mc1" data-placeholder="MC#01 Status"></td>
+                                </tr>
+                                <tr>
+                                    <td class="border-t border-gray-200">
+                                        <div class="text-[10px] font-bold text-[#002E7D] mb-1">MC#02</div>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check8_mc2" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check8_mc2" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check8_mc2" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td class="p-0 border-t border-gray-200">
+                                        <div class="flex flex-col h-full">
+                                            <div class="border-b flex bg-gray-50/50">
+                                                <div class="w-[80%] p-1.5 flex gap-2 border-r border-gray-100 min-w-0">
+                                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap pt-1">Product:</span>
+                                                    <div contenteditable="true" class="flex-grow outline-none min-h-[1.5rem] bg-white border border-gray-200 rounded px-2 py-0.5 text-sm focus:border-[#002E7D] transition-colors overflow-hidden break-all" data-name="obs8_prod_mc2"></div>
+                                                </div>
+                                                <div class="w-[20%] p-1.5 flex gap-2 min-w-0">
+                                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap pt-1">Lot:</span>
+                                                    <div contenteditable="true" class="flex-grow outline-none min-h-[1.5rem] bg-white border border-gray-200 rounded px-2 py-0.5 text-sm focus:border-[#002E7D] transition-colors overflow-hidden break-all" data-name="obs8_lot_mc2"></div>
+                                                </div>
+                                            </div>
+                                            <div contenteditable="true" class="p-1.5 flex-grow outline-none min-h-[3rem]" data-name="obs8_mc2" data-placeholder="MC#02 Observations..."></div>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="action8_mc2" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="who8_mc2" data-placeholder="Name"></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="when8_mc2" data-placeholder="Date"></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="status8_mc2" data-placeholder="MC#02 Status"></td>
+                                </tr>
+
+                                <!-- Row 9 -->
+                                <tr>
+                                    <td class="text-center font-bold text-gray-700" rowspan="2">9</td>
+                                    <td class="font-medium text-gray-700" rowspan="2">Labelling & Packing process is followed correctly</td>
+                                    <td>
+                                        <div class="text-[10px] font-bold text-[#002E7D] mb-1">MC#01</div>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check9_mc1" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check9_mc1" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check9_mc1" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" data-name="obs9_mc1" data-placeholder="MC#01 Observations..."></td>
+                                    <td contenteditable="true" data-name="action9_mc1" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" data-name="who9_mc1" data-placeholder="Name"></td>
+                                    <td contenteditable="true" data-name="when9_mc1" data-placeholder="Date"></td>
+                                    <td contenteditable="true" data-name="status9_mc1" data-placeholder="MC#01 Status"></td>
+                                </tr>
+                                <tr>
+                                    <td class="border-t border-gray-200">
+                                        <div class="text-[10px] font-bold text-[#002E7D] mb-1">MC#02</div>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check9_mc2" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check9_mc2" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check9_mc2" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="obs9_mc2" data-placeholder="MC#02 Observations..."></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="action9_mc2" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="who9_mc2" data-placeholder="Name"></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="when9_mc2" data-placeholder="Date"></td>
+                                    <td contenteditable="true" class="border-t border-gray-200" data-name="status9_mc2" data-placeholder="MC#02 Status"></td>
+                                </tr>
+
+                                <!-- Row 10 -->
+                                <tr>
+                                    <td class="text-center font-bold text-gray-700">10</td>
+                                    <td class="font-medium text-gray-700">Calibration status of testing & measuring equipment checked</td>
+                                    <td>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check10" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check10" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check10" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" data-name="obs10" data-placeholder="Enter observations..."></td>
+                                    <td contenteditable="true" data-name="action10" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" data-name="who10" data-placeholder="Name"></td>
+                                    <td contenteditable="true" data-name="when10" data-placeholder="Date"></td>
+                                    <td contenteditable="true" data-name="status10" data-placeholder="Status"></td>
+                                </tr>
+
+                                <!-- Row 11 -->
+                                <tr>
+                                    <td class="text-center font-bold text-gray-700">11</td>
+                                    <td class="font-medium text-gray-700">5S & housekeeping activities are carried out as per defined frequency</td>
+                                    <td>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check11" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check11" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check11" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" data-name="obs11" data-placeholder="Enter observations..."></td>
+                                    <td contenteditable="true" data-name="action11" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" data-name="who11" data-placeholder="Name"></td>
+                                    <td contenteditable="true" data-name="when11" data-placeholder="Date"></td>
+                                    <td contenteditable="true" data-name="status11" data-placeholder="Status"></td>
+                                </tr>
+
+                                <!-- Row 12 -->
+                                <tr>
+                                    <td class="text-center font-bold text-gray-700">12</td>
+                                    <td class="font-medium text-gray-700">Insect & Pest Control devices checked</td>
+                                    <td>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check12" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check12" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check12" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" data-name="obs12" data-placeholder="Enter observations..."></td>
+                                    <td contenteditable="true" data-name="action12" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" data-name="who12" data-placeholder="Name"></td>
+                                    <td contenteditable="true" data-name="when12" data-placeholder="Date"></td>
+                                    <td contenteditable="true" data-name="status12" data-placeholder="Status"></td>
+                                </tr>
+
+                                <!-- Row 13 -->
+                                <tr>
+                                    <td class="text-center font-bold text-gray-700">13</td>
+                                    <td class="font-medium text-gray-700">Unicharm and J&J rewinded slice rolls check for metal tape.</td>
+                                    <td>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check13" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check13" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check13" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" data-name="obs13" data-placeholder="Enter observations..."></td>
+                                    <td contenteditable="true" data-name="action13" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" data-name="who13" data-placeholder="Name"></td>
+                                    <td contenteditable="true" data-name="when13" data-placeholder="Date"></td>
+                                    <td contenteditable="true" data-name="status13" data-placeholder="Status"></td>
+                                </tr>
+
+                                <!-- Row 14 -->
+                                <tr>
+                                    <td class="text-center font-bold text-gray-700">14</td>
+                                    <td class="font-medium text-gray-700">Other Observations (Specify If any)</td>
+                                    <td>
+                                        <div class="radio-group">
+                                            <label><input type="radio" name="check14" value="OK" required> OK</label>
+                                            <label><input type="radio" name="check14" value="NOT OK"> NOT OK</label>
+                                            <label><input type="radio" name="check14" value="NA"> NA</label>
+                                        </div>
+                                    </td>
+                                    <td contenteditable="true" data-name="obs14" data-placeholder="Enter observations..."></td>
+                                    <td contenteditable="true" data-name="action14" data-placeholder="Action taken..."></td>
+                                    <td contenteditable="true" data-name="who14" data-placeholder="Name"></td>
+                                    <td contenteditable="true" data-name="when14" data-placeholder="Date"></td>
+                                    <td contenteditable="true" data-name="status14" data-placeholder="Status"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Footer Notes and Sign-off -->
+                    <div class="mt-4 px-2">
+                        <p class="text-xs text-gray-600 font-medium">NA: Not Applicable</p>
+                        <div class="flex justify-between mt-8 pt-4 border-t border-gray-200">
+                            <div class="text-sm font-bold text-gray-700">Checked By:</div>
+                            <div class="text-sm font-bold text-gray-700">Verified By:</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-center gap-4">
+                        <button type="button" onclick="window.location.href='dms.html'" class="cancel-btn">
+                            Discard
+                        </button>
+                        <button type="submit" class="submit-btn">
+                            Submit Inspection
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="../js/production-floor-dms.js"></script>
+</body>
+</html>

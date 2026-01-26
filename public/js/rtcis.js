@@ -1,8 +1,56 @@
 import { supabase } from '../supabase-config.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const form = document.getElementById('rtcisForm');
     if (!form) return;
+
+    // --- Visibility Logic for RTCIS Manager Button ---
+    async function checkManagerButtonVisibility() {
+        const managerBtn = document.getElementById('rtcisManagerButton');
+        if (!managerBtn) return;
+
+        const applyVisibility = (profile) => {
+            if (profile.is_admin) {
+                managerBtn.classList.remove('hidden');
+                return;
+            }
+            const allowedDepartments = ['Quality Assurance', 'Quality Control'];
+            const userDepts = profile.department ? profile.department.split(',').map(d => d.trim()) : [];
+            const hasDept = allowedDepartments.some(dept => userDepts.includes(dept));
+            const isLevel1 = profile.user_level === 1;
+            if (hasDept && isLevel1) {
+                managerBtn.classList.remove('hidden');
+            }
+        };
+
+        // Try cache first for instant results
+        const cached = sessionStorage.getItem('user_profile');
+        if (cached) {
+            applyVisibility(JSON.parse(cached));
+        }
+
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.user) return;
+
+            const { data: profile, error } = await supabase
+                .from('users')
+                .select('department, user_level, is_admin')
+                .eq('id', session.user.id)
+                .single();
+
+            if (error) throw error;
+
+            if (profile) {
+                sessionStorage.setItem('user_profile', JSON.stringify(profile));
+                applyVisibility(profile);
+            }
+        } catch (err) {
+            // Silently fail - button remains hidden if there's an auth error
+        }
+    }
+    
+    checkManagerButtonVisibility();
 
     // Disable autocomplete to prevent history pop-ups
     form.setAttribute('autocomplete', 'off');
@@ -56,26 +104,21 @@ try {
     height: 40,
     displayValue: false,
   });
-  // Move barcode up
-        const barcodeGcasSvg = document.getElementById('barcode-gcas');
-        if (barcodeGcasSvg) {
-            barcodeGcasSvg.style.marginBottom = '5px';
-            barcodeGcasSvg.style.marginTop = '-10px';
-            barcodeGcasSvg.style.background = '#fff';
-        }
-        document.getElementById('barcode-gcas-text').textContent = `(91) ${data.irms_gcas}(37)${netWeightClean}`;
-  // Human-readable text below
-  document.getElementById('barcode-gcas-text').textContent =
-    `(91) ${data.irms_gcas}(37)${data.net_weight}`;
+  const barcodeGcasSvg = document.getElementById('barcode-gcas');
+  if (barcodeGcasSvg) {
+    barcodeGcasSvg.style.marginBottom = '5px';
+    barcodeGcasSvg.style.marginTop = '-10px';
+    barcodeGcasSvg.style.background = '#fff';
+  }
+  document.getElementById('barcode-gcas-text').textContent = `(91) ${data.irms_gcas}(37)${data.net_weight}`;
 } catch (err) {
-  console.error('GCAS barcode generation failed:', err);
+  // Silently handle barcode generation errors
 }
 
     // Lot Number: encode ONLY AI (10) in the barcode so (90) is NOT part of the scanned data.
     // Keep (90) visible in the human-readable text (with a '~' shown to indicate the group separator).
     bwipjs.toCanvas('barcode-lot', {
       bcid: 'gs1-128',
-      // Only include the variable-length Lot (AI 10) in the machine data.
       text: `(10)${data.lot_number}`,
       scale: 5,
       height: 15,
@@ -84,12 +127,9 @@ try {
       paddingheight: 10
     });
 
-    // Human-readable: show the tilde (~) as a visual marker for the GS1 group separator
-    // and include the (90) value for users, but note (90) will NOT be encoded/scannable.
     document.getElementById('barcode-lot-text').textContent = `(10) ${data.lot_number}~(90)${data.pallet_type}`;
 
-        // SSCC / Unit Load ID (AI 00)
-        bwipjs.toCanvas('barcode-sscc', {
+    bwipjs.toCanvas('barcode-sscc', {
             bcid: 'gs1-128',
             text: `(00)${data.sscc}`,
             scale: 5,
@@ -101,14 +141,11 @@ try {
         const sscc = data.sscc;
         const hrSSCC = `(00) ${sscc[0]} ${sscc.slice(1,8)} ${sscc.slice(8,17)} ${sscc.slice(17)}`;
         document.getElementById('barcode-sscc-text').textContent = hrSSCC;
-        // --- If PNGs are needed for PDF export or similar: ---
-        // Return PNG data URLs for each barcode
         const barcodeGcasPng = document.getElementById('barcode-gcas').toDataURL('image/png');
         const barcodeLotPng = document.getElementById('barcode-lot').toDataURL('image/png');
         const barcodeSsccPng = document.getElementById('barcode-sscc').toDataURL('image/png');
         return { barcodeGcasPng, barcodeLotPng, barcodeSsccPng };
     } catch (err) {
-        console.error('Barcode generation failed:', err);
         alert('Barcode generation failed — check console.');
         return false;
     }
@@ -124,8 +161,6 @@ function calculateGS1Mod10(number) {
   }
   return (10 - (sum % 10)) % 10;
 }
-
-// --- Canvas spacing helper ---
 function setBarcodeCanvasStyle(id) {
   const c = document.getElementById(id);
   if (c) {
@@ -134,8 +169,7 @@ function setBarcodeCanvasStyle(id) {
       c.style.background = '#fff';
   }
 
-        // Also render to canvas for PDF export and return base64
-        function svgToCanvasBase64(svgSelector) {
+  function svgToCanvasBase64(svgSelector) {
             const svg = document.querySelector(svgSelector);
             if (!svg) return '';
             const xml = new XMLSerializer().serializeToString(svg);

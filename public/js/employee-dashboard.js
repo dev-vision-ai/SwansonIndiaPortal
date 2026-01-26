@@ -585,8 +585,16 @@ async function filterQuickActionsByDepartment(user, userDepartment, userLevel, i
             const cardExcludeDepartments = card.getAttribute('data-exclude-department');
             const cardUserLevel = card.getAttribute('data-user-level');
             const cardRestrictedUser = card.getAttribute('data-restricted-user');
+            const cardAdminOnly = card.getAttribute('data-admin-only');
 
             let shouldDisplay = false;
+
+            // Check if card is admin-only
+            if (cardAdminOnly === 'true' && !isAdmin) {
+                shouldDisplay = false;
+                card.classList.add('js-hide');
+                return;
+            }
 
             // Check if card is restricted to specific user
             if (cardRestrictedUser) {

@@ -349,64 +349,23 @@ module.exports = function(app, createAuthenticatedSupabaseClient) {
 
       // Handle verified_by and approved_by fields from the film inspection form
       if (data.verified_by !== undefined) {
-        // Insert verified by signature in C30
-        if (data.verified_by && data.verified_by.trim() !== '' && data.verified_by !== 'N/A') {
-          await insertSignatureInCell(worksheet, 'C30', data.verified_by, supabase);
-        }
-        // B33: verified_by name text (date on top-dd/mm/yyyy, below username)
-        const verifiedDate = data.verified_date ? formatDateToDDMMYYYY(data.verified_date) : '';
+        // B33: verified_by name text only (no date, no signature)
         const verifiedByName = data.verified_by && data.verified_by.trim() !== '' && data.verified_by !== 'N/A' ? data.verified_by : 'Not Verified';
-        worksheet.getCell('B33').value = `(${verifiedDate})\n${verifiedByName}`;
+        worksheet.getCell('B33').value = verifiedByName;
       }
 
       if (data.approved_by !== undefined) {
-        // Insert approved by signature in F30
-        if (data.approved_by && data.approved_by.trim() !== '' && data.approved_by !== 'N/A') {
-          await insertSignatureInCell(worksheet, 'F30', data.approved_by, supabase);
-        }
-        // E33: approved_by name text (date on top-dd/mm/yyyy, below username)
-        const approvedDate = data.approved_date ? formatDateToDDMMYYYY(data.approved_date) : '';
+        // E33: approved_by name text only (no date, no signature)
         const approvedByName = data.approved_by && data.approved_by.trim() !== '' && data.approved_by !== 'N/A' ? data.approved_by : 'Not Approved';
-        worksheet.getCell('E33').value = `(${approvedDate})\n${approvedByName}`;
+        worksheet.getCell('E33').value = approvedByName;
         
-        // I33: put user name as Bhushan Dessai (date on top-dd/mm/yyyy, below username)
-        worksheet.getCell('I33').value = `(${approvedDate})\nBhushan Dessai`;
-      }
-
-      // Always insert signature for user ID c084b422-118e-4fcd-9149-d9d29e621800 in J30
-      const fixedUserId = 'c084b422-118e-4fcd-9149-d9d29e621800';
-      
-      try {
-        // Download fixed signature from Supabase Storage
-        const { data: fixedSignatureData, error: fixedDownloadError } = await getSupabaseServiceRole()
-          .storage
-          .from('digital-signatures')
-          .download(`${fixedUserId}.png`);
-        
-        if (fixedSignatureData && !fixedDownloadError) {
-          // Convert blob to buffer
-          const fixedArrayBuffer = await fixedSignatureData.arrayBuffer();
-          const fixedBuffer = Buffer.from(fixedArrayBuffer);
-
-          const imageId = worksheet.workbook.addImage({
-            buffer: fixedBuffer,
-            extension: 'png',
-          });
-          
-          // Insert fixed signature in J30
-          const col = 'J'.charCodeAt(0) - 65; // J=9
-          const row = 30;
-          worksheet.addImage(imageId, {
-            tl: { col: col + 0.15, row: row - 1 + 0.15 },
-            ext: { width: 95, height: 95 }
-          });
-          console.log(`Successfully inserted fixed signature for user ID ${fixedUserId} in cell J30`);
-        } else {
-          console.warn(`Fixed signature file not found for user ID ${fixedUserId}:`, fixedDownloadError?.message);
+        // I33: put user name as Bhushan Dessai only when form is approved
+        if (data.approved_by && data.approved_by.trim() !== '' && data.approved_by !== 'N/A' && data.approved_by !== 'Not Approved') {
+          worksheet.getCell('I33').value = 'Bhushan Dessai';
         }
-      } catch (error) {
-        console.error(`Error inserting fixed signature for user ID ${fixedUserId}:`, error.message);
       }
+
+      // No fixed signature insertion needed
 
       // Put check mark in D24 if approved
       if (data.approved_by && data.approved_by.trim() !== '' && data.approved_by !== 'N/A' && data.approved_by !== 'Not Approved') {

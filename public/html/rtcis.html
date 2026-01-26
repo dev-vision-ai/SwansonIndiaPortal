@@ -81,7 +81,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-900 font-roboto-medium h-screen overflow-hidden">
+<body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
     <!-- This div will temporarily hold the label content before conversion to PDF -->
     <div id="staticLabelPrintContainer" style="position: absolute; left: -9999px;"></div>
     <div class="header-container">
@@ -92,22 +92,12 @@
         </div>
     </div>
 
-    <main class="flex-1 flex items-start justify-center p-2 w-full h-screen pt-16 md:pt-18 lg:pt-20 page-fade-in">
+    <main class="flex-1 flex flex-col items-center justify-center p-2 w-full min-h-screen overflow-auto page-fade-in">
         <div class="bg-white rounded-xl shadow-2xl flex max-w-4xl w-full overflow-hidden">
             <div class="w-1/6 bg-[#002E7D] p-4 flex flex-col items-center justify-center rounded-l-xl relative">
                 <div class="absolute inset-0 bg-pattern opacity-10"></div>
-                <div class="bg-white bg-opacity-20 rounded-full p-4 mb-4 shadow-2xl relative z-10 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <rect x="2" y="4" width="2" height="16" fill="currentColor"/>
-                    <rect x="6" y="4" width="1" height="16" fill="currentColor"/>
-                    <rect x="9" y="4" width="2" height="16" fill="currentColor"/>
-                    <rect x="13" y="4" width="1" height="16" fill="currentColor"/>
-                    <rect x="16" y="4" width="2" height="16" fill="currentColor"/>
-                    <rect x="20" y="4" width="1" height="16" fill="currentColor"/>
-                  </svg>
-                  <span class="absolute bottom-1 right-1 bg-[#002E7D] rounded-full p-1 flex items-center justify-center shadow-md">
-                    <i class="fas fa-print text-white text-sm"></i>
-                  </span>
+                <div class="bg-white rounded-full p-4 mb-4 shadow-2xl relative z-10 flex items-center justify-center">
+                  <img src="../assets/barcode.png" alt="Barcode" class="h-20 w-20 object-contain filter brightness-100" />
                 </div>
                 <h2 class="text-white text-lg font-extrabold text-center relative z-10">Label Print</h2>
             </div>
@@ -176,6 +166,15 @@
                     </div>
                 </form>
             </div>
+        </div>
+
+        <!-- Small Navigator for RTCIS Label Manager -->
+        <div id="rtcisManagerButton" class="mt-4 pb-4 hidden" 
+             data-department="Quality Assurance, Quality Control" 
+             data-user-level="1">
+            <a href="rtcis-manager.html" class="inline-flex items-center justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                <i class="fas fa-cog mr-2"></i>RTCIS Label Manager
+            </a>
         </div>
     </main>
 

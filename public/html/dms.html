@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Daily Management System</title>
+    <link rel="icon" type="image/png" href="../assets/logo2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../css/common-header.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        /* Base font for the entire body */
+        html {
+            scroll-padding-top: 70px;
+            overflow-x: hidden;
+            width: 100%;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            padding-top: 60px; /* Space for fixed header */
+            margin: 0;
+            overflow-x: hidden;
+            width: 100%;
+        }
+        /* Center the grid and cards */
+        .quick-action-grid {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 2.5rem 2rem !important;
+            justify-content: center !important;
+            align-items: center !important;
+            margin: 0 auto !important;
+            padding: 2.5rem !important;
+            max-width: 1600px !important;
+            width: 100% !important;
+        }
+
+        .action-card {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+
+        .container {
+            width: 100% !important;
+            max-width: none !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            overflow-x: hidden !important;
+        }
+
+        .dashboard-section {
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+        }
+
+        /* Mobile responsive - 2 cards per row */
+        @media (max-width: 768px) {
+            .quick-action-grid {
+                gap: 1.5rem 1rem !important;
+                padding: 1rem !important;
+                max-width: 100% !important;
+            }
+            
+            .action-card {
+                width: calc(50% - 0.5rem) !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .quick-action-grid {
+                gap: 1rem 0.75rem !important;
+                padding: 0.75rem !important;
+            }
+            
+            .action-card {
+                width: calc(50% - 0.375rem) !important;
+                padding: 0 !important;
+                height: 75px !important;
+                min-height: 75px !important;
+                max-height: 75px !important;
+            }
+            
+            .action-card-icon-circle {
+                width: 36px !important;
+                height: 36px !important;
+                left: -18px !important;
+            }
+        }
+
+        /* Standardized Quick Action Card Font Sizes */
+        .action-card-heading {
+            font-size: 0.75rem !important;
+            font-weight: 600 !important;
+        }
+
+        .action-card-description {
+            font-size: 0.70rem !important;
+            font-weight: 500 !important;
+        }
+
+        .js-hide {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-roboto-medium" style="padding-top: 25px !important; margin: 0 !important;">
+    <div class="header-container">
+        <button type="button" class="header-back-button" onclick="window.location.href='employee-dashboard.html'">Back</button>
+        <div class="header-title">Daily Management System</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo"/>
+        </div>
+    </div>
+
+    <main>
+        <div class="container page-fade-in" style="padding-top: 25px !important;">
+            <section class="dashboard-section">
+                <div class="quick-action-grid">
+                    <!-- QC Laboratory DMS -->
+                    <div class="action-card js-hide" data-department="Quality Control,Quality Assurance" onclick="location.href='#'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-flask"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>QC Laboratory DMS</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Daily Management for <br> QC Lab activities</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pest Control DMS -->
+                    <div class="action-card js-hide" data-department="Quality Control,Quality Assurance" onclick="location.href='#'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-bug"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>Pest Control DMS</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Daily Management for <br> Pest Control activities</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Production Floor DMS -->
+                    <div class="action-card js-hide" data-department="Quality Control,Quality Assurance" onclick="showDmsList()">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-industry"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>Production Floor DMS</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Daily Management for <br> Production Floor activities</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DMS List Section (hidden by default) -->
+                <section id="dms-list-section" class="w-full max-w-[1200px] mx-auto js-hide mt-6">
+                    <!-- Create button matching film layout -->
+                    <div class="flex justify-center w-full mt-2 mb-1">
+                        <button id="createDMSBtn" type="button" class="bg-[#002E7D] hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow text-base transition-all duration-200">
+                            + Create DMS Report
+                        </button>
+                    </div>
+
+                    <!-- Filters (exact film filter layout) -->
+                    <div id="filterSection" class="w-full flex justify-center mt-4 mb-2">
+                                                    <div id="filterContainer" class="bg-white rounded-lg shadow-md p-2">
+                                                        <div class="flex items-center justify-between mb-3">
+                                                            <div class="flex-1"></div>
+                                                            <h3 class="text-xs font-semibold text-gray-800 text-center flex-1">Find / Filter Forms</h3>
+                                                            <div class="flex items-center space-x-2 flex-1 justify-end">
+                                                                <span class="text-sm text-gray-600">Filter Status:</span>
+                                                                <span id="filterStatusIndicator" class="px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700">Off</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex flex-wrap items-end justify-center gap-2">
+                                                            <div class="flex flex-col items-center">
+                                                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">From Date:</label>
+                                                                <input type="date" id="filterFromDate" class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                                            </div>
+                                                            <div class="flex flex-col items-center">
+                                                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">To Date:</label>
+                                                                <input type="date" id="filterToDate" class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                                            </div>
+                                                            <div class="flex flex-col items-center">
+                                                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">Product:</label>
+                                                                <select id="filterProduct" class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                                                                    <option value="">All</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="flex flex-col items-center">
+                                                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">Machine:</label>
+                                                                <select id="filterMachine" class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                                                                    <option value="">All</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="flex flex-col items-center">
+                                                                <label class="block text-xs font-semibold text-gray-700 mb-0.5">Checked By:</label>
+                                                                <select id="filterCheckedBy" class="w-28 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                                                                    <option value="">All</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="flex flex-col items-center">
+                                                                <div class="h-4"></div>
+                                                                <div class="flex space-x-2">
+                                                                    <button id="clearFilter" class="w-12 h-6 bg-gray-500 text-white text-xs font-semibold rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">Clear</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                    <!-- Pagination (film-inspection style) -->
+                    <div class="flex justify-center w-full mb-2">
+                      <div class="flex items-center space-x-3 bg-white rounded-md shadow-sm px-3 py-1.5 border border-gray-200">
+                          <button id="prevPageBtn" class="px-3 py-1 bg-[#002E7D] text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            <span>Prev</span>
+                          </button>
+
+                          <div class="flex items-center space-x-1">
+                            <span class="text-xs text-gray-600">Page</span>
+                            <span id="currentPageDisplay" class="font-semibold text-xs">1</span>
+                            <span class="text-xs text-gray-600">of</span>
+                            <span id="totalPagesDisplay" class="font-semibold text-xs">1</span>
+                          </div>
+
+                          <button id="nextPageBtn" class="px-3 py-1 bg-[#002E7D] text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1">
+                            <span>Next</span>
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                          </button>
+                        </div>
+                    </div>
+
+                        <!-- Film-style Table -->
+                        <div class="w-full overflow-x-auto" style="width: 100vw; margin-left: calc(-50vw + 50%);">
+                          <div class="w-full overflow-x-auto" style="width: 100vw;">
+                                                        <table class="w-full bg-white shadow-md rounded table-fixed text-xs" style="width: 100vw;">
+                                                            <thead>
+                                                                <tr class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center text-xs">
+                                                                    <th class="py-1 px-2 border-r border-gray-300" style="width:6%">Sr No</th>
+                                                                    <th class="py-1 px-2 border-r border-gray-300" style="width:16%">Date</th>
+                                                                    <th class="py-1 px-2 border-r border-gray-300 text-left" style="width:18%">Product</th>
+                                                                    <th class="py-1 px-2 border-r border-gray-300" style="width:8%">Machine</th>
+                                                                    <th class="py-1 px-2 border-r border-gray-300" style="width:16%">Checked By</th>
+                                                                    <th class="py-1 px-2 border-r border-gray-300" style="width:16%">Verified By</th>
+                                                                    <th class="py-1 px-2" style="width:20%">Actions</th>
+                                                                </tr>
+                                                            </thead>
+                              <tbody id="dmsListTableBody">
+                                <tr>
+                                  <td colspan="7" class="text-center py-8 text-gray-500">No records found yet.</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                        <style>
+                          /* Striped rows and hover - match inline/film list */
+                          table { 
+                            border-collapse: collapse;
+                            width: 100vw;
+                            table-layout: fixed;
+                          }
+                          table tbody tr { 
+                            background-color: #ffffff; 
+                            transition: background-color 0.2s ease;
+                            display: table;
+                            width: 100vw;
+                          }
+                          table tbody tr:hover { 
+                            background-color: #f8fafc; 
+                            cursor: pointer;
+                          }
+                          table tbody tr { 
+                            border-bottom: 1px solid #d1d5db; 
+                          }
+                          table th { 
+                            border-right: 1px solid #d1d5db; 
+                            border-bottom: 1px solid #d1d5db;
+                            padding: 0.5rem 0.5rem;
+                            background-color: #232f3e;
+                            color: white;
+                            text-align: center;
+                            word-wrap: break-word;
+                          }
+                          table td { 
+                            border-right: 1px solid #d1d5db; 
+                            padding: 0.5rem 0.5rem;
+                            font-size: 0.75rem;
+                            text-align: center;
+                            word-wrap: break-word;
+                          }
+                          table td:last-child, table th:last-child {
+                            border-right: none;
+                          }
+                        </style>
+                </section>
+            </section>
+        </div>
+    </main>
+
+    <script type="module" src="../js/dms.js"></script>
+</body>
+</html>

@@ -1207,6 +1207,13 @@ async function saveAllMaterialData() {
     // --- SAVE DAILY LOG DATA (Production, Rejects, Downtime) ---
     const processScrapVal = parseNum(document.getElementById('processScrap')?.value);
     const resinScrapVal = parseNum(document.getElementById('resinScrap')?.value);
+    const machineScrapVal = parseNum(document.getElementById('machineScrap')?.value);
+    const qcScrapVal = parseNum(document.getElementById('qcScrap')?.value);
+    const resinBagScrapDetailVal = parseNum(document.getElementById('resinBagScrapDetail')?.value);
+    const rewindedScrapVal = parseNum(document.getElementById('rewindedScrap')?.value);
+    const processWasteVal = parseNum(document.getElementById('processWaste')?.value);
+    const inHouseUseVal = parseNum(document.getElementById('inHouseUse')?.value);
+    const othersVal = parseNum(document.getElementById('others')?.value);
     
     // Filter out blank rows from JSONB data before saving
     const validRejectTransfer = (rejectTransferRows || []).filter(r => 
@@ -1238,7 +1245,14 @@ async function saveAllMaterialData() {
       rejected_kgs_std: parseNum(dailyLogData.rejected_kgs_std),
       total_scrap: {
         process_scrap: processScrapVal,
-        resin_scrap: resinScrapVal
+        resin_scrap: resinScrapVal,
+        machine_scrap: machineScrapVal,
+        qc_scrap: qcScrapVal,
+        resin_bag_scrap_detail: resinBagScrapDetailVal,
+        rewinded_scrap: rewindedScrapVal,
+        process_waste: processWasteVal,
+        in_house_use: inHouseUseVal,
+        others: othersVal
       },
       reject_transfer_data: validRejectTransfer,
       reject_issued_data: validRejectIssued,
@@ -1529,14 +1543,19 @@ async function loadMaterialData() {
             
             // Populate scrap inputs
             const scrap = logData.total_scrap || {};
-            const processScrapInput = document.getElementById('processScrap');
-            if (processScrapInput) {
-                processScrapInput.value = scrap.process_scrap || '';
-            }
             const resinScrapInput = document.getElementById('resinScrap');
             if (resinScrapInput) {
-                resinScrapInput.value = scrap.resin_scrap || '';
+                resinScrapInput.value = scrap.resin_scrap != null ? scrap.resin_scrap : '';
             }
+
+            // Populate additional scrap details
+            if (document.getElementById('machineScrap')) document.getElementById('machineScrap').value = scrap.machine_scrap != null ? scrap.machine_scrap : '';
+            if (document.getElementById('qcScrap')) document.getElementById('qcScrap').value = scrap.qc_scrap != null ? scrap.qc_scrap : '';
+            if (document.getElementById('resinBagScrapDetail')) document.getElementById('resinBagScrapDetail').value = scrap.resin_bag_scrap_detail != null ? scrap.resin_bag_scrap_detail : '';
+            if (document.getElementById('rewindedScrap')) document.getElementById('rewindedScrap').value = scrap.rewinded_scrap != null ? scrap.rewinded_scrap : '';
+            if (document.getElementById('processWaste')) document.getElementById('processWaste').value = scrap.process_waste != null ? scrap.process_waste : '';
+            if (document.getElementById('inHouseUse')) document.getElementById('inHouseUse').value = scrap.in_house_use != null ? scrap.in_house_use : '';
+            if (document.getElementById('others')) document.getElementById('others').value = scrap.others != null ? scrap.others : '';
 
             // Populate downtime description
             const downtimeDescInput = document.getElementById('downtimeDescription');
@@ -1660,74 +1679,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
-    // Downtime save/clear handlers (description + start/end)
-    const saveDowntimeBtn = document.getElementById('saveDowntimeBtn');
+    // Downtime clear handlers (description + start/end)
     const clearDowntimeBtn = document.getElementById('clearDowntimeBtn');
-
-    if (saveDowntimeBtn) {
-      saveDowntimeBtn.addEventListener('click', async () => {
-        const descEl = document.getElementById('downtimeDescription');
-        const desc = descEl ? (descEl.value || '').trim() : null;
-          
-          // Filter out blank downtime rows
-          const validDowntime = (downtimeRows || []).filter(r => 
-            (r.from && r.from.trim() !== '') || 
-            (r.to && r.to.trim() !== '') || 
-            (r.description && r.description.trim() !== '')
-          );
-
-          // If there is no free-text and no valid rows, warn
-          if (desc === null && validDowntime.length === 0) {
-            alert('No downtime description or valid log entries to save.');
-            return;
-          }
-
-          try {
-            if (!currentHeaderId) {
-              alert('No header selected to attach downtime');
-              return;
-            }
-
-            const payload = {
-              header_id: currentHeaderId,
-              downtime_description: desc || null,
-              downtime_log_data: validDowntime,
-              updated_at: new Date().toISOString()
-            };
-
-          if (dailyLogData.id) {
-            payload.id = dailyLogData.id;
-          }
-
-          const { data: logResult, error } = await supabase
-            .from('pd_daily_log')
-            .upsert(payload, { onConflict: 'header_id' })
-            .select();
-
-          if (error) {
-            console.error('Error saving downtime:', error);
-            alert('Error saving downtime');
-            return;
-          }
-
-          if (logResult && logResult[0]) {
-            dailyLogData.id = logResult[0].id;
-          }
-
-          const msg = document.getElementById('downtimeSavedMsg');
-          if (msg) {
-            msg.classList.remove('hidden');
-            setTimeout(() => msg.classList.add('hidden'), 2000);
-          }
-
-          // Ensure summary display is up-to-date
-          updateDowntimeSummaryDisplay();
-        } catch (err) {
-          console.error(err);
-          alert('Error saving downtime');
-        }
-      });
-    }
 
     if (clearDowntimeBtn) {
       clearDowntimeBtn.addEventListener('click', () => {
@@ -2409,19 +2362,20 @@ function closeAutocomplete() {
  * Updates dailyLogData.total_scrap object when values change
  */
 function setupScrapListeners() {
-    const processScrapInput = document.getElementById('processScrap');
-    const resinScrapInput = document.getElementById('resinScrap');
+    const fields = [
+        'resinScrap', 'machineScrap', 'qcScrap', 
+        'resinBagScrapDetail', 'rewindedScrap', 'processWaste', 'inHouseUse', 'others'
+    ];
 
-    if (processScrapInput) {
-        processScrapInput.addEventListener('input', (e) => {
-            if (!dailyLogData.total_scrap) dailyLogData.total_scrap = {};
-            dailyLogData.total_scrap.process_scrap = e.target.value;
-        });
-    }
-    if (resinScrapInput) {
-        resinScrapInput.addEventListener('input', (e) => {
-            if (!dailyLogData.total_scrap) dailyLogData.total_scrap = {};
-            dailyLogData.total_scrap.resin_scrap = e.target.value;
-        });
-    }
+    fields.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', (e) => {
+                if (!dailyLogData.total_scrap) dailyLogData.total_scrap = {};
+                // Map camelCase ID to snake_case key if needed
+                const key = id.replace(/([A-Z])/g, "_$1").toLowerCase();
+                dailyLogData.total_scrap[key] = e.target.value;
+            });
+        }
+    });
 }

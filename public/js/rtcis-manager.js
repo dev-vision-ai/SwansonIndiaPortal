@@ -42,9 +42,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (viewAllBtn && modal && closeModalBtn && tableBody) {
     viewAllBtn.addEventListener('click', async () => {
       modal.classList.remove('hidden');
-      // Fetch all labels from Supabase
+      // Fetch all labels from Supabase (ordered by MRMS No.)
       tableBody.innerHTML = '<tr><td colspan="9" class="text-center p-4">Loading...</td></tr>';
-      const { data, error } = await supabase.from('rtcis_master_data').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('rtcis_master_data').select('*').order('mrms_no', { ascending: true });
       if (error) {
         tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-red-600 p-4">Error: ${error.message}</td></tr>`;
         return;
@@ -53,6 +53,16 @@ document.addEventListener('DOMContentLoaded', () => {
         tableBody.innerHTML = '<tr><td colspan="9" class="text-center p-4">No labels found.</td></tr>';
         return;
       }
+
+      // Ensure numeric MRMS numbers sort numerically when values are numeric strings
+      data.sort((a, b) => {
+        const aVal = a.mrms_no ? a.mrms_no.toString().trim() : '';
+        const bVal = b.mrms_no ? b.mrms_no.toString().trim() : '';
+        const aNum = parseInt(aVal, 10);
+        const bNum = parseInt(bVal, 10);
+        if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
+        return aVal.localeCompare(bVal);
+      });
       tableBody.innerHTML = data.map(row => `
         <tr>
           <td class="border border-gray-400 px-2 py-1 text-center">${row.irms_gcas || ''}</td>
