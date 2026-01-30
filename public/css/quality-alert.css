@@ -10,8 +10,6 @@
     --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.15);
     --background-gradient: #f4f4f4; /* Light background */
     --form-bg: #fff;
-    --header-desktop-height: 45px; /* Adjust as needed */
-    --header-mobile-height: 40px; /* Adjust as needed */
     --form-element-spacing-desktop: 1.25rem;
     --form-element-spacing-mobile: 1rem;
 }
@@ -25,21 +23,17 @@
 }
 body {
     min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
     background-color: #eaf1fa;
     background-image: url('data:image/svg+xml;utf8,<svg width="60" height="30" viewBox="0 0 60 30" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><circle cx="45" cy="15" r="10" stroke="%2399aabb" stroke-width="1" fill="none" opacity="0.10"/><line x1="25" y1="15" x2="35" y2="15" stroke="%2399aabb" stroke-width="1" opacity="0.10"/></svg>');
     background-size: 60px 30px;
     background-repeat: repeat;
-    padding: 0.5rem;
-    padding-top: 5px;
     font-size: 0.8rem;
 }
 main {
     width: 100%;
     display: flex;
     justify-content: center;
+    padding: 0.5rem;
 }
 .incident-section {
     width: 100%;
@@ -47,36 +41,9 @@ main {
     background: var(--form-bg);
     border-radius: 0.5rem;
     padding: 1.5rem 1.0rem;
-    padding-top: calc(var(--header-desktop-height) + 1.5rem);
     margin-top: 0.7rem;
     box-shadow: var(--shadow-md);
     border: 1px solid rgba(0, 0, 0, 0.1);
-    position: relative;
-    margin-top: 0;
-}
-
-.header-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: var(--accent-color);
-    padding: 0 1rem;
-    border-radius: 0.5rem 0.5rem 0 0;
-    width: 100%;
-    box-sizing: border-box;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 10;
-    height: var(--header-desktop-height);
-}
-
-.header-title {
-    color: white;
-    font-size: 1.4rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    margin: 0;
 }
 
 
@@ -156,33 +123,36 @@ input[type="date"],
 input[type="time"],
 select,
 textarea {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ced4da;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    box-sizing: border-box;
-    min-height: 40px;
+    width: 100% !important;
+    padding: 0.5rem !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 5px !important;
+    font-size: 0.9rem !important;
+    box-sizing: border-box !important;
+    min-height: 40px !important;
     height: 40px;
-    line-height: 1.4;
+    line-height: 1.4 !important;
 }
+
+/* Placeholder styling */
+input::placeholder,
+textarea::placeholder {
+    color: #999999 !important;
+    opacity: 1 !important;
+}
+
 input:focus,
 select:focus,
 textarea:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none !important;
+    border-color: #007bff !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
 }
 .split-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 0.75rem;
     margin-bottom: 0.75rem;
-}
-textarea {
-    height: 40px;
-    resize: none;
-    overflow: hidden;
 }
 
 /* Auto-expand textarea for incident name */
@@ -243,30 +213,32 @@ textarea:not(#incidentTitle) {
 }
 
 .submit-btn, .draft-btn {
-    padding: 8px 16px;
-    border-radius: 0.4rem;
-    cursor: pointer;
-    font-size: 0.9rem;
-    text-align: center;
-    white-space: nowrap;
-    border: none;
+    padding: 8px 16px !important;
+    border-radius: 0.4rem !important;
+    cursor: pointer !important;
+    font-size: 0.9rem !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    border: none !important;
 }
 .submit-btn {
-    background: var(--primary-gradient);
-    color: white;
+    background: var(--primary-gradient) !important;
+    color: white !important;
 }
 .draft-btn {
-    background: #ccc;
-    color: #333;
+    background: #ccc !important;
+    color: #333 !important;
 }
 .submit-btn:hover,
 .draft-btn:hover,
 #imageUploadContainer label button:hover {
-    box-shadow: 0 5px 10px rgba(0, 46, 125, 0.2);
+    box-shadow: 0 5px 10px rgba(0, 46, 125, 0.2) !important;
 }
 .submit-btn:active,
 .draft-btn:active,
 #imageUploadContainer label button:active {
+    transform: translateY(1px) !important;
+    box-shadow: 0 2px 5px rgba(0, 46, 125, 0.3) !important;
 }
 
 .delete-draft-btn {
@@ -288,6 +260,8 @@ textarea:not(#incidentTitle) {
 }
 
 .delete-draft-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
 }
 
 .delete-draft-btn:disabled {
@@ -383,6 +357,12 @@ textarea:not(#incidentTitle) {
         padding: 7px 8px !important;
         min-height: 34px !important;
         line-height: 1.2 !important;
+    }
+    
+    input::placeholder,
+    textarea::placeholder {
+        color: #999999 !important;
+        opacity: 1 !important;
     }
     textarea {
         min-height: 70px !important;

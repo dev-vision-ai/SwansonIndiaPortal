@@ -185,8 +185,22 @@ hr {
 }
 
 .edit-album-btn:hover {
-    background-color: #fffacd; /* Slightly darker yellow on hover (Lemon Chiffon) */
+    background-color: #e0b800; /* Stronger yellow on hover for better contrast */
+    color: #000000; /* Ensure text stays dark for readability */
     opacity: 1; /* Override general button hover if needed */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* Ensure Manage Images button keeps readable colors */
+.manage-images-btn {
+    background-color: var(--accent-color, #002E7D);
+    color: white;
+}
+
+.manage-images-btn:hover {
+    background-color: #003a9e; /* Slightly darker blue */
+    color: white; /* Keep text white on blue background */
+    opacity: 0.95;
 }
 
 /* Style for the Back to Albums button */

@@ -1,5 +1,5 @@
 import { supabase } from '../supabase-config.js';
-import { showToast } from './toast.js';
+import { showToast, storePendingToast } from './toast.js';
 
 /**
  * DCC Review Form Logic (form-only)
@@ -493,7 +493,7 @@ async function collectDCCReviewFormData() {
     try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-            alert('You must be logged in to submit a DCC review.');
+            showToast('You must be logged in to submit a DCC review.', 'error');
             window.location.href = '../html/auth.html';
             return null;
         }
@@ -614,7 +614,7 @@ async function collectDCCReviewFormData() {
         return formData;
     } catch (err) {
         console.error('Error collecting DCC review form data:', err);
-        alert('Error preparing form data. Please check console.');
+        showToast('Error preparing form data. Please check console.', 'error');
         return null;
     }
 }
@@ -709,7 +709,7 @@ async function loadDCCReviewData(dcnId, isViewOnly = false) {
 
         if (error || !data) {
             console.error('Error loading DCN:', error);
-            alert('Could not load DCN. Please try again.');
+            showToast('Could not load DCN. Please try again.', 'error');
             return;
         }
 
@@ -784,7 +784,7 @@ async function loadDCCReviewData(dcnId, isViewOnly = false) {
 
     } catch (err) {
         console.error('Error in loadDCCReviewData:', err);
-        alert('Error loading DCN data.');
+        showToast('Error loading DCN data.', 'error');
     }
 }
 

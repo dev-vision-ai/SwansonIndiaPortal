@@ -1,4 +1,5 @@
 import { supabase } from '../supabase-config.js';
+import { showToast, storePendingToast } from './toast.js';
 
 // Global variables
 let allInspections = [];
@@ -270,7 +271,7 @@ async function loadFireExtinguisherInspections() {
         updateStatistics();
     } catch (error) {
         console.error('Error loading fire extinguisher inspections:', error);
-        showErrorMessage('Error loading inspections. Please try again.');
+        showToast('Error loading inspections. Please try again.', 'error');
     }
 }
 
@@ -516,41 +517,39 @@ async function handleInspectionSubmit(event) {
 
     // Validate extinguisher number format
     if (!inspectionData.extinguisher_no || !inspectionData.extinguisher_no.trim()) {
-        showErrorMessage('Please enter a Fire Extinguisher number.');
+        showToast('Please enter a Fire Extinguisher number.', 'warning');
         return;
     }
     
     // Check if extinguisher number format is valid (numeric)
     const extinguisherPattern = /^\d+$/;
     if (!extinguisherPattern.test(inspectionData.extinguisher_no.trim())) {
-        showErrorMessage('Please enter a valid Fire Extinguisher number (numeric).');
+        showToast('Please enter a valid Fire Extinguisher number (numeric).', 'warning');
         return;
     }
     
     // Check if number is positive
     const extinguisherNum = parseInt(inspectionData.extinguisher_no.trim());
     if (extinguisherNum < 0) {
-        showErrorMessage('Fire Extinguisher number must be positive.');
+        showToast('Fire Extinguisher number must be positive.', 'warning');
         return;
     }
 
     // Validate type
     if (!inspectionData.type || !inspectionData.type.trim()) {
-        showErrorMessage('Please select a Fire Extinguisher type.');
+        showToast('Please select a fire extinguisher.', 'warning');
         return;
     }
 
     // Validate location
     if (!inspectionData.location || !inspectionData.location.trim()) {
-        showErrorMessage('Please enter a location.');
+        showToast('Please enter a location.', 'warning');
         return;
     }
 
-
-
     // Validate expiry date
     if (!inspectionData.expiry_date) {
-        showErrorMessage('Please select an expiry date.');
+        showToast('Please select an expiry date.', 'warning');
         return;
     }
 
@@ -560,7 +559,7 @@ async function handleInspectionSubmit(event) {
         const dueDate = new Date(inspectionData.next_due_date);
         
         if (dueDate <= inspDate) {
-            showErrorMessage('Next Due Date must be after the Inspection Date.');
+            showToast('Next Due Date must be after the Inspection Date.', 'warning');
             return;
         }
     }
@@ -571,20 +570,20 @@ async function handleInspectionSubmit(event) {
         const expiry = new Date(inspectionData.expiry_date);
         
         if (expiry <= refill) {
-            showErrorMessage('Expiry Date must be after the Refilled Date.');
+            showToast('Expiry Date must be after the Refilled Date.', 'warning');
             return;
         }
     }
 
     // Validate capacity
     if (!inspectionData.capacity || inspectionData.capacity <= 0) {
-        showErrorMessage('Please enter a valid capacity.');
+        showToast('Please enter a valid capacity.', 'warning');
         return;
     }
 
     // Validate inspector
     if (!inspectionData.inspector || !inspectionData.inspector.trim()) {
-        showErrorMessage('Please enter the name of the inspector.');
+        showToast('Please enter the name of the inspector.', 'warning');
         return;
     }
 
@@ -594,10 +593,10 @@ async function handleInspectionSubmit(event) {
         
         closeInspectionModal();
         await loadFireExtinguisherInspections(); // Reload data
-        showSuccessMessage('Inspection record added successfully!');
+        showToast('Inspection record added successfully!', 'success');
     } catch (error) {
         console.error('Error saving inspection:', error);
-        showErrorMessage('Error saving inspection. Please try again.');
+        showToast('Error saving inspection. Please try again.', 'error');
     }
 }
 
@@ -787,13 +786,13 @@ function openDeleteSelectionModal(extinguisherId, extinguisherNo) {
     // Find the extinguisher data
     const extinguisher = allExtinguishers.find(e => String(e.id) === String(extinguisherId));
     if (!extinguisher || !extinguisher.inspection_data || !extinguisher.inspection_data.inspections) {
-        showErrorMessage('No inspection records found for this Fire Extinguisher.');
+        showToast('No inspection records found for this Fire Extinguisher.', 'warning');
         return;
     }
     
     const inspections = extinguisher.inspection_data.inspections;
     if (inspections.length === 0) {
-        showErrorMessage('No inspection records found for this Fire Extinguisher.');
+        showToast('No inspection records found for this Fire Extinguisher.', 'warning');
         return;
     }
     
@@ -898,7 +897,7 @@ function closeDeleteSelectionModal() {
 async function confirmDeleteSelected() {
     
     if (selectedInspectionsToDelete.length === 0) {
-        showErrorMessage('Please select at least one inspection record to delete.');
+        showToast('Please select at least one inspection record to delete.', 'warning');
         return;
     }
     
@@ -960,12 +959,12 @@ async function confirmDeleteSelected() {
             const successMessage = deletedCount === 1 
                 ? '1 inspection record deleted successfully!'
                 : `${deletedCount} inspection records deleted successfully!`;
-            showSuccessMessage(successMessage);
+            showToast(successMessage, 'success');
         }
         
     } catch (error) {
         console.error('Error deleting inspections:', error);
-        showErrorMessage('Error deleting inspection records. Please try again.');
+        showToast('Error deleting inspection records. Please try again.', 'error');
     }
 }
 
@@ -976,7 +975,7 @@ async function deleteInspectionRecord(inspectionId, extinguisherNo) {
 
             const inspection = allInspections.find(i => String(i.id) === String(inspectionId));
             if (!inspection) {
-                showErrorMessage('Inspection record not found.');
+                showToast('Inspection record not found.', 'error');
                 return;
             }
 
@@ -1013,7 +1012,7 @@ async function deleteInspectionRecord(inspectionId, extinguisherNo) {
             if (inspectionIndex !== -1) {
                 updatedInspectionData.inspections.splice(inspectionIndex, 1);
             } else {
-                showErrorMessage('Inspection record not found in database.');
+                showToast('Inspection record not found in database.', 'error');
                 return;
             }
 
@@ -1033,26 +1032,16 @@ async function deleteInspectionRecord(inspectionId, extinguisherNo) {
 
             // Reload the data and show success message
             await loadFireExtinguisherInspections();
-            showSuccessMessage(`Inspection record for ${extinguisherNo} deleted successfully!`);
+            showToast(`Inspection record for ${extinguisherNo} deleted successfully!`, 'success');
         } catch (error) {
             console.error('Error deleting inspection:', error);
-            showErrorMessage('Error deleting inspection record. Please try again.');
+            showToast('Error deleting inspection record. Please try again.', 'error');
         }
     }
 }
 
 // Make function globally available for onclick handlers
 window.deleteInspectionRecord = deleteInspectionRecord;
-
-// Show success message
-function showSuccessMessage(message) {
-    alert(message); // You can replace this with a better notification system
-}
-
-// Show error message
-function showErrorMessage(message) {
-    alert(message);
-}
 
 // Update extinguisher help text based on available extinguishers
 function updateExtinguisherHelpText() {
@@ -1100,7 +1089,7 @@ function editFireExtinguisher(extinguisherId, extinguisherNo) {
     // Find the extinguisher data
     const extinguisher = allExtinguishers.find(e => String(e.id) === String(extinguisherId));
     if (!extinguisher) {
-        showErrorMessage('Fire extinguisher not found.');
+        showToast('Fire extinguisher not found.', 'error');
         return;
     }
     
@@ -1160,15 +1149,15 @@ async function handleEditExtinguisherSubmit(event) {
 
     // Basic validation
     if (!formData.extinguisher_no) {
-        showErrorMessage('Fire Extinguisher number is required.');
+        showToast('Fire Extinguisher number is required.', 'warning');
         return;
     }
     if (!formData.type_of_extinguisher) {
-        showErrorMessage('Type is required.');
+        showToast('Type is required.', 'warning');
         return;
     }
     if (!formData.location) {
-        showErrorMessage('Location is required.');
+        showToast('Location is required.', 'warning');
         return;
     }
     
@@ -1189,11 +1178,11 @@ async function handleEditExtinguisherSubmit(event) {
         // Close modal and reload data
         closeEditExtinguisherModal();
         await loadFireExtinguisherInspections();
-        showSuccessMessage('Fire extinguisher updated successfully!');
+        showToast('Fire extinguisher updated successfully!', 'success');
         
     } catch (error) {
         console.error('Error updating fire extinguisher:', error);
-        showErrorMessage('Error updating fire extinguisher. Please try again.');
+        showToast('Error updating fire extinguisher. Please try again.', 'error');
     }
 }
 
@@ -1223,7 +1212,7 @@ async function handleAddNewExtinguisherSubmit(event) {
     
     let rawNo = document.getElementById('newExtinguisherNo').value.trim();
     if (!rawNo) {
-        showErrorMessage('Fire Extinguisher number is required.');
+        showToast('Fire Extinguisher number is required.', 'warning');
         return;
     }
 
@@ -1243,11 +1232,11 @@ async function handleAddNewExtinguisherSubmit(event) {
     };
 
     if (!formData.type_of_extinguisher) {
-        showErrorMessage('Type is required.');
+        showToast('Type is required.', 'warning');
         return;
     }
     if (!formData.location) {
-        showErrorMessage('Location is required.');
+        showToast('Location is required.', 'warning');
         return;
     }
     
@@ -1268,11 +1257,11 @@ async function handleAddNewExtinguisherSubmit(event) {
         // Close modal and reload data
         closeAddNewExtinguisherModal();
         await loadFireExtinguisherInspections();
-        showSuccessMessage('New fire extinguisher added successfully!');
+        showToast('New fire extinguisher added successfully!', 'success');
         
     } catch (error) {
         console.error('Error adding new fire extinguisher:', error);
-        showErrorMessage('Error adding new fire extinguisher. Please try again.');
+        showToast('Error adding new fire extinguisher. Please try again.', 'error');
     }
 }
 
@@ -1341,11 +1330,11 @@ async function deleteEntireExtinguisher() {
         
         closeDeleteOptionsModal();
         await loadFireExtinguisherInspections();
-        showSuccessMessage(`Fire extinguisher ${currentDeleteOptionsExtinguisherNo} deleted successfully!`);
+        showToast(`Fire extinguisher ${currentDeleteOptionsExtinguisherNo} deleted successfully!`, 'success');
         
     } catch (error) {
         console.error('Error deleting fire extinguisher:', error);
-        showErrorMessage('Error deleting fire extinguisher. Please try again.');
+        showToast('Error deleting fire extinguisher. Please try again.', 'error');
     }
 };
 
@@ -1362,12 +1351,12 @@ function openClearInspectionDataModal() {
         .then(({ data: extinguisher, error }) => {
             if (error) {
                 console.error('Error fetching extinguisher data:', error);
-                showErrorMessage('Error loading inspection data.');
+                showToast('Error loading inspection data.', 'error');
                 return;
             }
             
             if (!extinguisher || !extinguisher.inspection_data || !extinguisher.inspection_data.inspections || extinguisher.inspection_data.inspections.length === 0) {
-                showErrorMessage('No inspection data found for this extinguisher.');
+                showToast('No inspection data found for this extinguisher.', 'warning');
                 return;
             }
 
@@ -1417,7 +1406,7 @@ function openClearInspectionDataModal() {
         })
         .catch(error => {
             console.error('Error in openClearInspectionDataModal:', error);
-            showErrorMessage('Error loading inspection data.');
+            showToast('Error loading inspection data.', 'error');
         });
 }
 
@@ -1467,7 +1456,7 @@ function toggleInspectionSelection(index) {
 
 async function confirmClearSelectedInspections() {
     if (!currentDeleteOptionsExtinguisherId || selectedInspectionsToClear.length === 0) {
-        showErrorMessage('Please select at least one inspection record to clear.');
+        showToast('Please select at least one inspection record to clear.', 'warning');
         return;
     }
 
@@ -1532,18 +1521,18 @@ async function confirmClearSelectedInspections() {
         
         closeClearInspectionDataModal();
         await loadFireExtinguisherInspections();
-        showSuccessMessage(`${finalClearedCount} inspection record(s) cleared successfully!`);
+        showToast(`${finalClearedCount} inspection record(s) cleared successfully!`, 'success');
         
     } catch (error) {
         console.error('Error clearing inspection data:', error);
-        showErrorMessage('Error clearing inspection data. Please try again.');
+        showToast('Error clearing inspection data. Please try again.', 'error');
     }
 };
 
 // Download QR Code function
 window.downloadQRCodes = async function() {
     if (!currentDeleteOptionsExtinguisherId || !currentDeleteOptionsExtinguisherNo) {
-        showErrorMessage('No extinguisher selected for QR code generation.');
+        showToast('No extinguisher selected for QR code generation.', 'warning');
         return;
     }
 
@@ -1650,9 +1639,31 @@ window.downloadQRCodes = async function() {
         ctx.font = 'bold 24px Arial'; // Increased from 20px
         ctx.fillText(`No. ${formattedExtinguisherNo}`, canvas.width / 2, qrY + qrSize + 75);
 
-        // Add location
+        // Add location with word wrap
         ctx.font = 'bold 20px Arial'; // Increased from 16px
-        ctx.fillText(`Location: ${location}`, canvas.width / 2, qrY + qrSize + 110);
+        const maxWidth = canvas.width - 40; // 40px margins
+        const lineHeight = 25;
+        const locationY = qrY + qrSize + 110;
+        
+        // Wrap location text
+        const words = location.split(' ');
+        let line = '';
+        let y = locationY;
+        
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            const testWidth = metrics.width;
+            
+            if (testWidth > maxWidth && n > 0) {
+                ctx.fillText(line, canvas.width / 2, y);
+                line = words[n] + ' ';
+                y += lineHeight;
+            } else {
+                line = testLine;
+            }
+        }
+        ctx.fillText(line, canvas.width / 2, y);
 
         // Convert canvas to blob and download
         canvas.toBlob(function(blob) {
@@ -1675,7 +1686,7 @@ window.downloadQRCodes = async function() {
 
     // Handle QR code loading error
     qrImage.onerror = function() {
-        showErrorMessage('Error generating QR code. Please try again.');
+        showToast('Error generating QR code. Please try again.', 'error');
         
         // Restore button state
         if (qrButton) {
@@ -1716,7 +1727,7 @@ window.downloadAllQRCodes = async function() {
 
         if (error) throw error;
         if (!extinguishers || extinguishers.length === 0) {
-            showErrorMessage('No fire extinguishers found to generate QR codes.');
+            showToast('No fire extinguishers found to generate QR codes.', 'warning');
             return;
         }
 
@@ -1804,9 +1815,12 @@ window.downloadAllQRCodes = async function() {
 
         doc.save('All_Fire_Extinguisher_QR_Codes.pdf');
 
+        // Show success toast for PDF download
+        showToast('All Fire Extinguisher QR Codes downloaded successfully!', 'success');
+
     } catch (error) {
         console.error('Error generating PDF:', error);
-        showErrorMessage('Error generating PDF. Please try again.');
+        showToast('Error generating PDF. Please try again.', 'error');
     } finally {
         if (downloadBtn) {
             downloadBtn.innerHTML = originalContent;

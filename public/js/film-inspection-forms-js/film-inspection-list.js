@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase-config.js';
+import { showToast, storePendingToast } from '../toast.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const tableBody = document.querySelector('#filmInspectionListTableBody');
@@ -1390,7 +1391,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     console.error('Product code length:', preStoreFormData.product_code.length);
                     console.error('Product code char codes:', preStoreFormData.product_code.split('').map(c => c.charCodeAt(0)));
                     console.error('Available product codes:', Object.keys(productTableMap));
-                    alert(`Error: No table mapping found for product code "${preStoreFormData.product_code}". Please contact administrator.`);
+                    showToast(`Error: No table mapping found for product code "${preStoreFormData.product_code}". Please contact administrator.`, 'error');
                     return;
                 }
             }
@@ -1655,13 +1656,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (deleteButton) {
             const formId = deleteButton.dataset.id;
             
-            // TODO: Uncomment password verification after project completion
-            // showPasswordConfirmModal(formId);
-            
-            // Temporary direct deletion without password (for development)
-            if (confirm('Are you sure you want to delete this form? This action cannot be undone.')) {
-                deleteFormDirectly(formId);
-            }
+            // Call the UI dialog function instead of direct deletion
+            window.deleteFilmForm(formId);
         }
     });
 
@@ -1745,16 +1741,83 @@ document.addEventListener('DOMContentLoaded', async () => {
             const uc165wSuccess = !uc165wResult.error;
 
             if (krantiSuccess || whiteSuccess || wwSuccess || jeddahSuccess || microWhite214Success || uc250pSuccess || uc290pSuccess || uc290npSuccess || uc250wSuccess || uc210wSuccess || microWhite234Success || microWhite102Success || white168Success || uc165wSuccess) {
-                alert('Form deleted successfully!');
+                showToast('Film inspection form deleted successfully!', 'success');
                 fetchFilmInspectionForms(); // Refresh the list
             } else {
                 console.error('Error deleting form from all tables:', krantiResult.error, whiteResult.error, wwResult.error, jeddahResult.error, microWhite214Result.error, uc250pResult.error, uc290pResult.error, uc290npResult.error, uc250wResult.error, microWhite234Result.error, microWhite102Result.error, white168Result.error, uc165wResult.error);
-                alert('Error deleting form: Form not found in any table');
+                showToast('Error deleting form: Form not found in any table', 'error');
             }
         } catch (error) {
             console.error('Error deleting form:', error);
-            alert('Error deleting form: ' + error.message);
+            showToast('Error deleting form: ' + error.message, 'error');
         }
+    }
+
+    // Delete confirmation functions
+    window.confirmDelete = async function() {
+        // Hide first confirmation overlay
+        const deleteOverlay = document.getElementById('deleteConfirmationOverlay');
+        deleteOverlay.style.display = 'none';
+        
+        // Show final warning overlay
+        const finalWarningOverlay = document.getElementById('finalDeleteWarningOverlay');
+        finalWarningOverlay.style.display = 'flex';
+    };
+
+    window.cancelDelete = function() {
+        // Hide first confirmation overlay
+        const deleteOverlay = document.getElementById('deleteConfirmationOverlay');
+        deleteOverlay.style.display = 'none';
+        
+        // Clear pending delete data
+        window.pendingDeleteFormId = null;
+    };
+
+    window.confirmFinalDelete = async function() {
+        // Hide final warning overlay
+        const finalWarningOverlay = document.getElementById('finalDeleteWarningOverlay');
+        finalWarningOverlay.style.display = 'none';
+        
+        // Perform the actual deletion
+        if (window.pendingDeleteFormId) {
+            try {
+                await deleteFormDirectly(window.pendingDeleteFormId);
+            } catch (error) {
+                console.error('Error in confirmFinalDelete:', error);
+                showToast('Error deleting form: ' + error.message, 'error');
+            } finally {
+                // Clear pending delete data
+                window.pendingDeleteFormId = null;
+            }
+        }
+    };
+
+    window.cancelFinalDelete = function() {
+        // Hide final warning overlay
+        const finalWarningOverlay = document.getElementById('finalDeleteWarningOverlay');
+        finalWarningOverlay.style.display = 'none';
+        
+        // Clear pending delete data
+        window.pendingDeleteFormId = null;
+    };
+
+    // Add event listeners for delete confirmation overlays (after functions are defined)
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const cancelFinalDeleteBtn = document.getElementById('cancelFinalDeleteBtn');
+    const confirmFinalDeleteBtn = document.getElementById('confirmFinalDeleteBtn');
+
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener('click', cancelDelete);
+    }
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', confirmDelete);
+    }
+    if (cancelFinalDeleteBtn) {
+        cancelFinalDeleteBtn.addEventListener('click', cancelFinalDelete);
+    }
+    if (confirmFinalDeleteBtn) {
+        confirmFinalDeleteBtn.addEventListener('click', confirmFinalDelete);
     }
 
     // Function to download Pre-Store Excel file
@@ -1822,6 +1885,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
             
+            // Show success toast
+            showToast('Pre-Store Inspection Form Downloaded Successfully!', 'success');
+            
             // Show success state briefly
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
             downloadBtn.title = 'Downloaded!';
@@ -1835,6 +1901,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             
         } catch (error) {
             console.error('Error downloading prestore Excel:', error);
+            
+            // Show error toast
+            showToast('Failed to Download Pre-Store Inspection Form, Try Again!', 'error');
             
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -1907,6 +1976,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
 
+            // Show success toast
+            showToast('Film Inspection Form Downloaded Successfully!', 'success');
+
             // Show success state briefly
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
             downloadBtn.title = 'Downloaded!';
@@ -1920,6 +1992,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Error downloading 18 GSM 176 WW Excel:', error);
+
+            // Show error toast
+            showToast('Failed to Download Film Inspection Form, Try Again!', 'error');
 
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -1993,6 +2068,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.click();
             window.URL.revokeObjectURL(url);
 
+            // Show success toast
+            showToast('Film Inspection Form Downloaded Successfully!', 'success');
+
             // Show success state briefly
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
             downloadBtn.title = 'Downloaded!';
@@ -2006,6 +2084,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Error downloading 102 Micro White Excel:', error);
+
+            // Show error toast
+            showToast('Failed to Download Film Inspection Form, Try Again!', 'error');
 
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -2077,6 +2158,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
             
+            // Show success toast
+            showToast('Film Inspection Form Downloaded Successfully!', 'success');
+            
             // Show success state briefly
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
             downloadBtn.title = 'Downloaded!';
@@ -2090,6 +2174,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             
         } catch (error) {
             console.error('Error downloading film inspection Excel:', error);
+            
+            // Show error toast
+            showToast('Failed to Download Film Inspection Form, Try Again!', 'error');
             
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -2162,6 +2249,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
 
+            // Show success toast
+            showToast('Film Inspection Form Downloaded Successfully!', 'success');
+
             // Show success state briefly
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
             downloadBtn.title = 'Downloaded!';
@@ -2175,6 +2265,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Error downloading 16 GSM White Excel:', error);
+
+            // Show error toast
+            showToast('Failed to Download Film Inspection Form, Try Again!', 'error');
 
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -2264,7 +2357,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             downloadBtn.disabled = originalDisabled;
 
             // Show error message
-            alert('Error downloading Excel file. Please try again.');
+            showToast('Failed to Download Film Inspection Form, Try Again!', 'error');
         }
     };
 
@@ -2326,6 +2419,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
 
+            // Show success toast
+            showToast('Film Inspection Form Downloaded Successfully!', 'success');
+
             // Show success state briefly
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
             downloadBtn.title = 'Downloaded!';
@@ -2339,6 +2435,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Error downloading 168 White Jeddah Excel:', error);
+
+            // Show error toast
+            showToast('Failed to Download Film Inspection Form, Try Again!', 'error');
 
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -2361,8 +2460,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Call the appropriate download function with product code
             window[downloadFunctionName](formId, buttonElement, productCode);
         } else {
-            // Show alert for unsupported product types
-            alert('Download not available for this product type');
+            // Show toast for unsupported product types
+            showToast('Download not available for this product type', 'warning');
         }
     };
 
@@ -2459,6 +2558,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
 
+            // Show success toast
+            showToast('Film Inspection Form Downloaded Successfully!', 'success');
+
             // Show success state briefly
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
             downloadBtn.title = 'Downloaded!';
@@ -2472,6 +2574,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Error downloading 214 18 White Excel:', error);
+
+            // Show error toast
+            showToast('Failed to Download Film Inspection Form, Try Again!', 'error');
 
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -2544,6 +2649,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
 
+            // Show success toast
+            showToast('Film Inspection Form Downloaded Successfully!', 'success');
+
             // Show success state briefly
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
             downloadBtn.title = 'Downloaded!';
@@ -2557,6 +2665,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Error downloading 234 18 White Excel:', error);
+
+            // Show error toast
+            showToast('Failed to Download Film Inspection Form, Try Again!', 'error');
 
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -2633,6 +2744,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
 
+            // Show success toast
+            showToast('Film Inspection Form Downloaded Successfully!', 'success');
+
             // Show success state briefly
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
             downloadBtn.title = 'Downloaded!';
@@ -2646,6 +2760,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Error downloading UC-16gsm-165W Excel:', error);
+
+            // Show error toast
+            showToast('Failed to Download Film Inspection Form, Try Again!', 'error');
 
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -2854,7 +2971,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const submitButton = editForm.querySelector('button[type="submit"]');
                 
                 if (!formId) {
-                    alert('Form ID not found. Please try again.');
+                    showToast('Form ID not found. Please try again.', 'error');
                     return;
                 }
                 
@@ -2960,6 +3077,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     submitButton.textContent = 'Updated!';
                     submitButton.style.backgroundColor = '#10B981'; // Green
                     
+                    // Show success toast
+                    showToast('Film Inspection Form Updated Successfully!', 'success');
+                    
                     // Close modal and refresh the list after a short delay
                     setTimeout(async () => {
                         closeEditFilmInspectionModal();
@@ -2973,7 +3093,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     
                 } catch (error) {
                     console.error('Error updating form:', error);
-                    alert('Error updating form: ' + error.message);
+                    showToast('Error updating form: ' + error.message, 'error');
                     
                     // Reset button state
                     submitButton.textContent = originalButtonText;
@@ -3125,14 +3245,14 @@ window.enterData = function(formId) {
 
 // Global function to handle Delete button click
 window.deleteFilmForm = async function(formId) {
-    if (confirm('Are you sure you want to delete this film inspection form? This action cannot be undone.')) {
-        try {
-            await deleteFormDirectly(formId);
-        } catch (error) {
-            console.error('Error in deleteFilmForm:', error);
-            alert('Error deleting form: ' + error.message);
-        }
-    }
+    // Store the form ID for later use
+    window.pendingDeleteFormId = formId;
+    
+    // Show first confirmation overlay
+    const deleteOverlay = document.getElementById('deleteConfirmationOverlay');
+    const deleteMessage = document.getElementById('deleteConfirmationMessage');
+    deleteMessage.textContent = 'Are you sure you want to delete this film inspection form?';
+    deleteOverlay.style.display = 'flex';
 };
 
     // ============================================================================
@@ -3427,7 +3547,7 @@ window.deleteFilmForm = async function(formId) {
             const missingFields = requiredFields.filter(field => !data[field]);
             
             if (missingFields.length > 0) {
-                alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+                showToast(`Please fill in all required fields: ${missingFields.join(', ')}`, 'error');
                 return;
             }
 
@@ -3435,7 +3555,7 @@ window.deleteFilmForm = async function(formId) {
             const { data: { user }, error: userError } = await supabase.auth.getUser();
             if (userError) {
                 console.error('Error fetching user:', userError.message);
-                alert('Could not retrieve user information. Please try again.');
+                showToast('Could not retrieve user information. Please try again.', 'error');
                 return;
             }
             
@@ -3508,7 +3628,7 @@ window.deleteFilmForm = async function(formId) {
                     console.error('Product code length:', data.product_code.length);
                     console.error('Product code char codes:', data.product_code.split('').map(c => c.charCodeAt(0)));
                     console.error('Available product codes:', Object.keys(productTableMap));
-                    alert(`Error: No table mapping found for product code "${data.product_code}". Please contact administrator.`);
+                    showToast(`Error: No table mapping found for product code "${data.product_code}". Please contact administrator.`, 'error');
                     return;
                 }
             }
@@ -3524,7 +3644,7 @@ window.deleteFilmForm = async function(formId) {
 
                 if (checkError) {
                     console.error('Error checking LOT NO uniqueness:', checkError.message);
-                    alert('An error occurred while validating LOT NO. Please try again.');
+                    showToast('An error occurred while validating LOT NO. Please try again.', 'error');
                     return;
                 }
 
@@ -3558,6 +3678,9 @@ window.deleteFilmForm = async function(formId) {
                 sessionStorage.removeItem('filmInspectionData'); // Clear if no data was inserted
             }
             console.log(`Film Inspection Form submitted successfully!`);
+            
+            // Store toast to display after reload
+            storePendingToast('Film Inspection Form Created Successfully!', 'success');
             
             // Close modal and refresh the list
             closeFilmModal();
@@ -3951,7 +4074,7 @@ window.deleteFilmForm = async function(formId) {
 
             if (!data) {
                 console.error('Form data not found in any table');
-                alert('Error loading data for editing: Form not found');
+                showToast('Error loading data for editing: Form not found', 'error');
                 return;
             }
 
@@ -4020,7 +4143,7 @@ window.deleteFilmForm = async function(formId) {
                 const { data: { user }, error: userError } = await supabase.auth.getUser();
                 if (userError) {
                     console.error('Error fetching user:', userError.message);
-                    alert('Could not retrieve user information. Please try again.');
+                    showToast('Could not retrieve user information. Please try again.', 'error');
                     return;
                 }
                 
@@ -4091,7 +4214,7 @@ window.deleteFilmForm = async function(formId) {
                     console.error('Product code length:', finalData.product_code.length);
                     console.error('Product code char codes:', finalData.product_code.split('').map(c => c.charCodeAt(0)));
                     console.error('Available product codes:', Object.keys(productTableMap));
-                    alert(`Error: No table mapping found for product code "${finalData.product_code}". Please contact administrator.`);
+                    showToast(`Error: No table mapping found for product code "${finalData.product_code}". Please contact administrator.`, 'error');
                     return;
                 }
             }
@@ -4199,6 +4322,9 @@ window.deleteFilmForm = async function(formId) {
             a.click();
             window.URL.revokeObjectURL(url);
 
+            // Show success toast
+            showToast('Film Inspection Form Downloaded Successfully!', 'success');
+
             // Show success state briefly
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
             downloadBtn.title = 'Downloaded!';
@@ -4212,6 +4338,9 @@ window.deleteFilmForm = async function(formId) {
 
         } catch (error) {
             console.error('Error downloading UC-18gsm-250P-ABQR Excel:', error);
+
+            // Show error toast
+            showToast('Failed to Download Film Inspection Form, Try Again!', 'error');
 
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -4281,6 +4410,9 @@ window.deleteFilmForm = async function(formId) {
             a.click();
             window.URL.revokeObjectURL(url);
 
+            // Show success toast
+            showToast('Film Inspection Form Downloaded Successfully!', 'success');
+
             // Show success state briefly
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
             downloadBtn.title = 'Downloaded!';
@@ -4294,6 +4426,9 @@ window.deleteFilmForm = async function(formId) {
 
         } catch (error) {
             console.error('Error downloading UC-18gsm-250W-BFQR Excel:', error);
+
+            // Show error toast
+            showToast('Failed to Download Film Inspection Form, Try Again!', 'error');
 
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -4363,6 +4498,9 @@ window.deleteFilmForm = async function(formId) {
             a.click();
             window.URL.revokeObjectURL(url);
 
+            // Show success toast
+            showToast('Film Inspection Form Downloaded Successfully!', 'success');
+
             // Show success state briefly
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
             downloadBtn.title = 'Downloaded!';
@@ -4376,6 +4514,9 @@ window.deleteFilmForm = async function(formId) {
 
         } catch (error) {
             console.error('Error downloading UC-18gsm-290P-ABQR Excel:', error);
+
+            // Show error toast
+            showToast('Failed to Download Film Inspection Form, Try Again!', 'error');
 
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -4448,6 +4589,9 @@ window.deleteFilmForm = async function(formId) {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
 
+            // Show success toast
+            showToast('Film Inspection Form Downloaded Successfully!', 'success');
+
             // Show success state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
             downloadBtn.title = 'Downloaded successfully';
@@ -4462,6 +4606,9 @@ window.deleteFilmForm = async function(formId) {
             }, 3000);
         } catch (error) {
             console.error('Error downloading UC-18gsm-290NP-ABQR Excel:', error);
+
+            // Show error toast
+            showToast('Failed to Download Film Inspection Form, Try Again!', 'error');
 
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
@@ -4533,6 +4680,9 @@ window.deleteFilmForm = async function(formId) {
             a.click();
             window.URL.revokeObjectURL(url);
 
+            // Show success toast
+            showToast('Film Inspection Form Downloaded Successfully!', 'success');
+
             // Show success state briefly
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
             downloadBtn.title = 'Downloaded!';
@@ -4546,6 +4696,9 @@ window.deleteFilmForm = async function(formId) {
 
         } catch (error) {
             console.error('Error downloading UC-18gsm-210W-BFQR Excel:', error);
+
+            // Show error toast
+            showToast('Failed to Download Film Inspection Form, Try Again!', 'error');
 
             // Show error state
             downloadBtn.innerHTML = '<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';

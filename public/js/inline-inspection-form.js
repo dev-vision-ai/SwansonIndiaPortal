@@ -1,4 +1,5 @@
 import { supabase } from '../supabase-config.js';
+import { showToast, storePendingToast } from './toast.js';
 
 // ===== CONFIGURATION =====
 const MAX_FORMS_DISPLAY = 6; // Maximum number of forms to display
@@ -997,7 +998,7 @@ async function handleFormSubmit(e) {
   }
   
   if (missingFields.length > 0) {
-    alert(`Please fill in all required fields marked with *:\n\n${missingFields.join('\n')}`);
+    showToast(`Please fill in all required fields marked with *:\n\n${missingFields.join('\n')}`, 'warning');
     return;
   }
   
@@ -1050,7 +1051,7 @@ async function handleFormSubmit(e) {
         
         if (!foundRecord) {
           console.error('Record not found in any table for ID:', editRecordId);
-          alert('Error: Record not found for editing.');
+          showToast('Error: Record not found for editing.', 'error');
           return;
         }
         
@@ -1093,14 +1094,14 @@ async function handleFormSubmit(e) {
           
         if (error) {
           console.error('Error updating form:', error);
-          alert('Error updating form: ' + error.message);
+          showToast('Error updating form: ' + error.message, 'error');
           return;
         }
         
         // Update completed
         
         // Show success message
-        alert('✅ Form updated successfully!');
+        showToast('Form updated successfully!', 'success');
         
         // Clear cache for this form to ensure fresh data
         const cacheKey = `${traceability_code}_${lot_letter}`;
@@ -1194,7 +1195,7 @@ async function handleFormSubmit(e) {
           
       if (error) {
         console.error('Error saving form:', error);
-        alert('Error creating form: ' + error.message);
+        showToast('Error creating form: ' + error.message, 'error');
         return;
       }
         
@@ -1247,7 +1248,7 @@ async function handleFormSubmit(e) {
       loadFormsTable();
     } catch (error) {
       console.error('Error:', error);
-      alert('Error ' + (isEditMode ? 'updating' : 'creating') + ' form: ' + error.message);
+      showToast('Error ' + (isEditMode ? 'updating' : 'creating') + ' form: ' + error.message, 'error');
     } finally {
       const submitBtn = form.querySelector('button[type="submit"]');
       submitBtn.textContent = originalText;
@@ -1985,7 +1986,7 @@ function populateFormWithData(formData, form, submitButton) {
     if (fields.ct) fields.ct.checked = !!dataToUse.ct;
   } catch (error) {
     console.error('Error populating form fields:', error);
-    alert('Error loading form data. Please try again.');
+    showToast('Error loading form data. Please try again.', 'error');
     return;
   }
   
@@ -2075,11 +2076,10 @@ async function editForm(traceability_code, lot_letter) {
 
     if (!selectedFormData) {
       console.error('No form with data found for traceability_code and lot_letter:', traceability_code, lot_letter);
-      alert('No form data found for editing.');
+      showToast('No form data found for editing.', 'warning');
       // Reset button state
       if (submitButton) {
         submitButton.textContent = 'Update Inline Inspection Form';
-        submitButton.disabled = false;
       }
       return;
     }
@@ -2096,7 +2096,7 @@ async function editForm(traceability_code, lot_letter) {
 
   } catch (error) {
     console.error('Error in editForm function:', error);
-    alert('Error loading form for editing. Please try again.');
+    showToast('Error loading form for editing. Please try again.', 'error');
     // Reset button state on error
     if (submitButton) {
       submitButton.textContent = 'Update Inline Inspection Form';
@@ -2214,7 +2214,7 @@ async function confirmFinalDelete() {
     
     if (!tableName) {
       console.error('Record not found in any table for deletion:', traceability_code, lot_letter);
-      alert('Error: Record not found for deletion.');
+      showToast('Error: Record not found for deletion.', 'error');
       return;
     }
     
@@ -2226,7 +2226,7 @@ async function confirmFinalDelete() {
     
     if (error) {
       console.error('Error deleting form:', error);
-      alert('Error deleting form: ' + error.message);
+      showToast('Error deleting form: ' + error.message, 'error');
       return;
     }
     
@@ -2234,7 +2234,7 @@ async function confirmFinalDelete() {
     
   } catch (error) {
     console.error('Error:', error);
-    alert('Error deleting form: ' + error.message);
+    showToast('Error deleting form: ' + error.message, 'error');
   } finally {
     // Hide final warning overlay
     const finalWarningOverlay = document.getElementById('finalDeleteWarningOverlay');
@@ -2305,7 +2305,7 @@ async function confirmSubmit() {
 
     if (!tableName) {
       console.error('Record not found in any table for submission:', traceability_code, lot_letter);
-      alert('Error: Record not found for submission. Please refresh the page and try again.');
+      showToast('Error: Record not found for submission. Please refresh the page and try again.', 'error');
       return;
     }
 
@@ -2323,19 +2323,19 @@ async function confirmSubmit() {
 
     if (error) {
       console.error('Error submitting form:', error);
-      alert('Error submitting form: ' + error.message);
+      showToast('Error submitting form: ' + error.message, 'error');
       return;
     }
 
     // Success message
-    showSuccessMessage('Form submitted successfully!');
+    showToast('Form submitted successfully!', 'success');
 
     // Reload the table to reflect the status change
     loadFormsTable();
 
   } catch (error) {
     console.error('Error in confirmSubmit:', error);
-    alert('Error submitting form: ' + error.message);
+    showToast('Error submitting form: ' + error.message, 'error');
   } finally {
     // Reset button state
     const submitBtn = buttonElement;
@@ -2444,7 +2444,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.replace('auth.html');
       } catch (err) {
         console.error('Exception during logout:', err);
-        alert('An unexpected error occurred during logout.');
+        showToast('An unexpected error occurred during logout.', 'error');
       }
     });
   }
@@ -2536,15 +2536,15 @@ window.downloadFormExcel = async function(traceability_code, lot_letter, buttonE
     document.body.removeChild(a);
 
     // Success message
-    showSuccessMessage('Excel file downloaded successfully!');
+    showToast('Inline Inspection Form Downloaded Successfully!', 'success');
     
   } catch (error) {
     console.error('Download failed:', error);
     
     if (error.name === 'AbortError') {
-      showErrorMessage('Request timed out. Please try again or check your internet connection.');
+      showToast('Request timed out. Please try again or check your internet connection.', 'error');
     } else {
-      showErrorMessage('Failed to download Excel file. Please try again.');
+      showToast('Failed to download Excel file. Please try again.', 'error');
     }
   } finally {
     // Reset button state
@@ -2557,35 +2557,6 @@ window.downloadFormExcel = async function(traceability_code, lot_letter, buttonE
   }
 };
 
-
-function showSuccessMessage(message) {
-  showMessage(message, 'success');
-}
-
-function showErrorMessage(message) {
-  showMessage(message, 'error');
-}
-
-function showMessage(message, type) {
-  const messageDiv = document.createElement('div');
-  messageDiv.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 15px 20px;
-    border-radius: 5px;
-    color: white;
-    z-index: 10000;
-    font-weight: bold;
-    ${type === 'success' ? 'background: #28a745;' : 'background: #dc3545;'}
-  `;
-  messageDiv.textContent = message;
-  document.body.appendChild(messageDiv);
-  
-  setTimeout(() => {
-    messageDiv.remove();
-  }, 5000);
-}
 
 // ===== UTILITY FUNCTIONS =====
 function getTableNameForMachine(mcNo) {

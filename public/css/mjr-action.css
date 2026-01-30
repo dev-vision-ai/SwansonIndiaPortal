@@ -50,7 +50,7 @@ main {
 }
 
 /* Header */
-.header-container {
+/* .header-container {
     background: var(--primary-color);
     color: white;
     padding: 1rem 2rem;
@@ -66,15 +66,15 @@ main {
     display: flex;
     align-items: center;
     justify-content: center;
-}
+} */
 
-.header-title {
+/* .header-title {
     color: white;
     font-size: 1.4rem;
     font-weight: 600;
     letter-spacing: 0.5px;
     margin: 0;
-}
+} */
 
 /* Form Layout */
 form {
@@ -83,14 +83,12 @@ form {
     gap: 0.75rem;
 }
 
-/* Form Rows - Grid layout for responsive design */
 .form-row.grid-layout {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
 }
 
-/* Form row for side-by-side fields */
 .form-row {
     display: flex;
     gap: 1rem;
@@ -101,10 +99,9 @@ form {
 .form-row .form-group {
     flex: 1;
     margin-bottom: 0;
-    min-width: 0; /* Allow flex items to shrink */
+    min-width: 0;
 }
 
-/* Form Groups */
 .form-group {
     text-align: left;
     margin-bottom: 0.75rem;
@@ -173,16 +170,15 @@ textarea {
 }
 
 /* Form Sections - Consistent spacing */
+/* Form Sections - Consistent spacing */
 .form-section {
     margin-bottom: 1.5rem;
 }
 
-/* Dynamic Roller Fields - Consistent spacing */
 #rollerFields {
     margin-bottom: 1.5rem;
 }
 
-/* Ensure consistent spacing for all sections */
 .form-section:last-child,
 #rollerFields:last-child {
     margin-bottom: 0;
@@ -197,7 +193,6 @@ textarea {
     border-bottom: 1px solid #dee2e6;
 }
 
-/* Equipment Layout */
 .equipment-layout {
     display: flex;
     flex-direction: column;
@@ -222,8 +217,6 @@ textarea {
     gap: 1rem;
 }
 
-
-/* Time and Completion Row Layout */
 .time-completion-row {
     display: flex;
     gap: 1.5rem;
@@ -249,7 +242,6 @@ textarea {
     gap: 1rem;
 }
 
-/* Occur Time Layout */
 .occur-time-row {
     display: flex;
     gap: 1rem;
@@ -268,7 +260,6 @@ textarea {
     display: block;
 }
 
-/* Completion Date Layout */
 .completion-date-row {
     display: flex;
     gap: 1rem;
@@ -287,6 +278,7 @@ textarea {
     display: block;
 }
 
+/* Breakdown Codes */
 /* Breakdown Codes */
 .breakdown-header {
     display: flex;
@@ -347,7 +339,6 @@ textarea {
     color: var(--text-light);
 }
 
-/* Checkbox Items */
 .checkbox-item {
     display: flex;
     align-items: center;
@@ -367,7 +358,6 @@ textarea {
     margin: 0;
 }
 
-/* Power Section Styling */
 .power-section {
     margin-bottom: 1.5rem;
 }
@@ -434,7 +424,6 @@ textarea {
     text-align: center;
 }
 
-/* Handle By Section */
 .handle-by-container {
     width: 100%;
 }
@@ -521,34 +510,48 @@ textarea {
     background: var(--background-light);
     border: 1px solid var(--border-color);
     border-radius: 4px;
-    padding: 1rem;
+    padding: 0.5rem;
+    /* Reduced padding */
     min-width: 280px;
     transition: background-color 0.15s ease;
-    cursor: pointer;
-    height: 100px;
+    height: auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    /* Center vertically */
+    align-items: stretch;
+    /* Keep full width inputs */
+    text-align: center;
+    /* Center text */
 }
 
 .cost-incurred-section {
     background: var(--background-light);
     border: 1px solid var(--border-color);
     border-radius: 4px;
-    padding: 1rem;
+    padding: 0.5rem;
+    /* Reduced padding */
     min-width: 280px;
     transition: background-color 0.15s ease;
-    cursor: pointer;
-    height: 100px;
+    height: auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    /* Center vertically */
+    align-items: stretch;
+    /* Keep full width inputs */
+    text-align: center;
+    /* Center text */
 }
 
-.ots-bt-section:hover {
-    background: #e9ecef;
+/* Remove default margin for form groups inside these sections */
+.ots-bt-section .form-group,
+.cost-incurred-section .form-group {
+    margin-bottom: 0;
+    text-align: center;
 }
 
+.ots-bt-section:hover,
 .cost-incurred-section:hover {
     background: #e9ecef;
 }
@@ -558,10 +561,10 @@ textarea {
     font-weight: 600;
     color: var(--primary-color);
     display: block;
-    margin: 0.5rem 0 0.75rem 0;
+    margin: 0 0 0.5rem 0;
+    /* Reduced margins */
 }
 
-/* Remarks & Correction Section */
 .remarks-correction-container {
     display: flex;
     gap: 2rem;
@@ -603,12 +606,11 @@ textarea {
     background: white;
 }
 
-/* Root Cause Container */
 .root-cause-container {
     display: flex;
     gap: 2rem;
     align-items: flex-start;
-    margin-bottom: 1.5rem; /* Consistent spacing */
+    margin-bottom: 1.5rem;
 }
 
 .root-cause-box {
@@ -641,6 +643,7 @@ textarea {
     background: white;
 }
 
+/* Image Upload */
 /* Image Upload */
 #imageUploadContainer {
     text-align: center;
@@ -691,7 +694,8 @@ textarea {
     border-top: 1px solid #dee2e6;
 }
 
-.submit-btn, .draft-btn {
+.submit-btn,
+.draft-btn {
     padding: 0.75rem 2rem;
     border-radius: 4px;
     font-size: 14px;
@@ -790,9 +794,13 @@ textarea {
 /* Message Overlay (same as quality alert) */
 .submission-message-overlay {
     position: fixed !important;
-    top: 0; left: 0; right: 0; bottom: 0;
-    width: 100vw; height: 100vh;
-    background: rgba(0,0,0,0.25) !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.25) !important;
     backdrop-filter: blur(3px) !important;
     z-index: 9998 !important;
     display: none;
@@ -805,19 +813,22 @@ textarea {
 /* Centered message box */
 .submission-message {
     position: fixed !important;
-    top: 50%; left: 50%;
-    margin-left: -150px; margin-top: -50px;
+    top: 50%;
+    left: 50%;
+    margin-left: -150px;
+    margin-top: -50px;
     min-width: 300px;
     max-width: 90vw;
     padding: 24px 32px;
     border-radius: 8px;
-    background-color: #d4edda; /* Success */
+    background-color: #d4edda;
+    /* Success */
     color: #155724;
     font-weight: bold;
     font-size: 1.1rem;
     text-align: center;
     z-index: 9999;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
     display: none;
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -839,38 +850,79 @@ textarea {
 }
 
 /* Material Tracking Table */
+/* Material Tracking Table */
+/* Material Tracking Table */
 .material-tracking-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 1rem;
+    table-layout: fixed;
+    border: 1px solid #dee2e6;
 }
 
 .material-tracking-table th {
-    padding: 0.75rem;
-    text-align: center;
-    font-weight: 600;
-    font-size: 0.9rem;
+    background: #f8fafc;
     border: 1px solid #dee2e6;
-    background-color: #f8f9fa;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #002E7D;
+    text-align: center;
+    border-radius: 0;
 }
 
 .material-tracking-table td {
-    padding: 0.75rem;
+    padding: 0;
+    /* Let input fill the cell */
     text-align: center;
     border: 1px solid #dee2e6;
+    background: #fff;
+    border-radius: 0 !important;
 }
 
 .material-tracking-table input.material-input {
     width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
+    height: 100%;
+    padding: 0.4rem;
+    border: none;
+    /* No individual input border */
+    border-radius: 0 !important;
+    /* Flat layout override */
     font-size: 0.9rem;
+    background: transparent;
     box-sizing: border-box;
     text-align: center;
-    background: white;
 }
 
+.material-tracking-table input.material-input:focus {
+    outline: none;
+    background: white;
+    box-shadow: inset 0 0 0 2px var(--primary-color);
+    /* Highlight on focus */
+}
+
+/* Column Widths */
+.material-tracking-table th:nth-child(1),
+.material-tracking-table td:nth-child(1) {
+    width: 30%;
+}
+
+.material-tracking-table th:nth-child(2),
+.material-tracking-table td:nth-child(2) {
+    width: 30%;
+}
+
+.material-tracking-table th:nth-child(3),
+.material-tracking-table td:nth-child(3) {
+    width: 20%;
+}
+
+.material-tracking-table th:nth-child(4),
+.material-tracking-table td:nth-child(4) {
+    width: 20%;
+}
+
+/* Mobile Responsive */
 /* Mobile Responsive */
 @media (max-width: 768px) {
     body {
@@ -983,7 +1035,8 @@ textarea {
         align-items: center;
     }
 
-    .submit-btn, .draft-btn {
+    .submit-btn,
+    .draft-btn {
         width: 100%;
         max-width: 200px;
     }

@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="google" content="notranslate">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RTCIS Label</title>
     <link rel="icon" type="image/png" href="../assets/logo2.png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
     <link rel="stylesheet" href="../css/employee-dashboard.css">
     <link rel="stylesheet" href="../css/common-header.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
@@ -35,34 +36,47 @@
         /* Styles for elements when printed */
         @media print {
             @page {
-                size: auto; /* Let browser pick height */
-                margin: 2mm; /* Equal margin on all sides */
+                size: auto;
+                /* Let browser pick height */
+                margin: 2mm;
+                /* Equal margin on all sides */
             }
-            .print-label-size, .a4-sheet, .rtcis-label-table {
+
+            .print-label-size,
+            .a4-sheet,
+            .rtcis-label-table {
                 width: 185mm !important;
                 height: auto !important;
                 margin: 0 auto !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
+
             body {
                 background: #fff !important;
             }
+
             .print-label-size .font-bold {
-                font-size: 10pt; /* Approximate 3.5mm */
+                font-size: 10pt;
+                /* Approximate 3.5mm */
             }
+
             .print-label-size strong {
-                font-size: 14pt; /* Approximate 5mm */
+                font-size: 14pt;
+                /* Approximate 5mm */
             }
+
             /* This will make the container visible during print */
             /* #staticLabelPrintContainer {
                  display: block !important;
             } */
             /* Hide other page elements during print if desired */
-            main, .header-container {
+            main,
+            .header-container {
                 display: none;
             }
         }
+
         /* Style for the static label preview when displayed on screen */
         .rtcis-label-table {
             width: auto !important;
@@ -71,16 +85,20 @@
             padding: 0 !important;
             box-sizing: border-box !important;
         }
-        #label-print-area, .a4-sheet {
+
+        #label-print-area,
+        .a4-sheet {
             margin: 0 !important;
             padding: 0 !important;
             box-sizing: border-box !important;
         }
+
         .page-fade-in {
             opacity: 1;
         }
     </style>
 </head>
+
 <body class="bg-gray-100 text-gray-900 font-roboto-medium min-h-screen">
     <!-- This div will temporarily hold the label content before conversion to PDF -->
     <div id="staticLabelPrintContainer" style="position: absolute; left: -9999px;"></div>
@@ -97,7 +115,8 @@
             <div class="w-1/6 bg-[#002E7D] p-4 flex flex-col items-center justify-center rounded-l-xl relative">
                 <div class="absolute inset-0 bg-pattern opacity-10"></div>
                 <div class="bg-white rounded-full p-4 mb-4 shadow-2xl relative z-10 flex items-center justify-center">
-                  <img src="../assets/barcode.png" alt="Barcode" class="h-20 w-20 object-contain filter brightness-100" />
+                    <img src="../assets/barcode.png" alt="Barcode"
+                        class="h-20 w-20 object-contain filter brightness-100" />
                 </div>
                 <h2 class="text-white text-lg font-extrabold text-center relative z-10">Label Print</h2>
             </div>
@@ -109,58 +128,77 @@
 
                     <div>
                         <label for="irms_gcas" class="block text-sm font-semibold text-gray-700 mb-1">IRMS/GCAS:</label>
-                        <select id="irms_gcas" name="irms_gcas" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
-                          <option value="">Loading...</option>
+                        <select id="irms_gcas" name="irms_gcas"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <option value="">Loading...</option>
                         </select>
                     </div>
                     <div>
-                         <label for="production_date" class="block text-sm font-semibold text-gray-700 mb-1">Production Date:</label>
-                        <input type="date" id="production_date" name="production_date" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        <label for="production_date" class="block text-sm font-semibold text-gray-700 mb-1">Production
+                            Date:</label>
+                        <input type="date" id="production_date" name="production_date"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
                     <div>
                         <label for="lot_number" class="block text-sm font-semibold text-gray-700 mb-1">LOT No:</label>
-                        <input type="text" id="lot_number" name="lot_number" maxlength="8" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        <input type="text" id="lot_number" name="lot_number" maxlength="8"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
 
                     <div>
-                        <label for="quantity" class="block text-sm font-semibold text-gray-700 mb-1">No. of Rolls / Pallet:</label>
-                        <input type="text" id="quantity" name="quantity" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        <label for="quantity" class="block text-sm font-semibold text-gray-700 mb-1">No. of Rolls /
+                            Pallet:</label>
+                        <input type="text" id="quantity" name="quantity"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
                     <div>
-                        <label for="gross_weight" class="block text-sm font-semibold text-gray-700 mb-1">Gross Weight (Kgs):</label>
-                        <input type="text" id="gross_weight" name="gross_weight" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        <label for="gross_weight" class="block text-sm font-semibold text-gray-700 mb-1">Gross Weight
+                            (Kgs):</label>
+                        <input type="text" id="gross_weight" name="gross_weight"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
                     <div>
                         <label for="height" class="block text-sm font-semibold text-gray-700 mb-1">Height (mm):</label>
-                        <input type="text" id="height" name="height" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        <input type="text" id="height" name="height"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
 
                     <div>
-                        <label for="sequence_number" class="block text-sm font-semibold text-gray-700 mb-1">Sequence Number:</label>
-                        <input type="text" id="sequence_number" name="sequence_number" maxlength="9" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        <label for="sequence_number" class="block text-sm font-semibold text-gray-700 mb-1">Sequence
+                            Number:</label>
+                        <input type="text" id="sequence_number" name="sequence_number" maxlength="9"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
                     <div>
                         <label for="pi_number" class="block text-sm font-semibold text-gray-700 mb-1">PI Number:</label>
-                        <input type="text" id="pi_number" name="pi_number" maxlength="10" style="text-transform: uppercase;" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        <input type="text" id="pi_number" name="pi_number" maxlength="10"
+                            style="text-transform: uppercase;"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
                     <div>
-                        <label for="pallet_number" class="block text-sm font-semibold text-gray-700 mb-1">Pallet Number:</label>
-                        <input type="text" id="pallet_number" name="pallet_number" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                        <label for="pallet_number" class="block text-sm font-semibold text-gray-700 mb-1">Pallet
+                            Number:</label>
+                        <input type="text" id="pallet_number" name="pallet_number"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
                     </div>
 
                     <div>
-                        <label for="pallet_type" class="block text-sm font-semibold text-gray-700 mb-1">Pallet Type:</label>
-                        <select id="pallet_type" name="pallet_type" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
-                          <option value="NONE" selected>NONE</option>
-                          <option value="WOOD">WOOD</option>
-                          <option value="PLASTIC">PLASTIC</option>
+                        <label for="pallet_type" class="block text-sm font-semibold text-gray-700 mb-1">Pallet
+                            Type:</label>
+                        <select id="pallet_type" name="pallet_type"
+                            class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] sm:text-sm bg-gray-50">
+                            <option value="NONE" selected>NONE</option>
+                            <option value="WOOD">WOOD</option>
+                            <option value="PLASTIC">PLASTIC</option>
                         </select>
                     </div>
                     <div class="md:col-span-3 flex justify-end gap-3 mt-6">
-                        <button type="button" id="clearRTCISData" class="inline-flex justify-center py-3 px-6 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 hover:shadow-md">
+                        <button type="button" id="clearRTCISData"
+                            class="inline-flex justify-center py-3 px-6 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 hover:shadow-md">
                             <i class="fas fa-trash-alt mr-2"></i>Clear Data
                         </button>
-                        <button type="submit" class="inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                        <button type="submit"
+                            class="inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
                             Generate Label
                         </button>
                     </div>
@@ -169,11 +207,11 @@
         </div>
 
         <!-- Small Navigator for RTCIS Label Manager -->
-        <div id="rtcisManagerButton" class="mt-4 pb-4 hidden" 
-             data-department="Quality Assurance, Quality Control" 
-             data-user-level="1">
-            <a href="rtcis-manager.html" class="inline-flex items-center justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
-                <i class="fas fa-cog mr-2"></i>RTCIS Label Manager
+        <div id="rtcisManagerButton" class="mt-4 pb-4 hidden" data-department="Quality Assurance, Quality Control"
+            data-user-level="1">
+            <a href="rtcis-manager.html"
+                class="inline-flex items-center justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                <i class="fas fa-cog mr-2"></i>Manage RTCIS Labels
             </a>
         </div>
     </main>
@@ -191,41 +229,41 @@
 
     <script type="module" src="../js/rtcis.js"></script>
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const backBtn = document.querySelector('.header-back-button');
-        if (backBtn) {
-          backBtn.addEventListener('click', function() {
-            window.location.href = 'employee-dashboard.html';
-          });
-        }
-        // Disable future dates for production date input
-        const prodDateInput = document.getElementById('production_date');
-        if (prodDateInput) {
-          const today = new Date();
-          const yyyy = today.getFullYear();
-          const mm = String(today.getMonth() + 1).padStart(2, '0');
-          const dd = String(today.getDate()).padStart(2, '0');
-          const maxDate = `${yyyy}-${mm}-${dd}`;
-          prodDateInput.setAttribute('max', maxDate);
-        }
-        // Prevent Enter key from submitting the form
-        const form = document.getElementById('rtcisForm');
-        if (form) {
-          form.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
-              e.preventDefault();
-              // Move focus to next field
-              const focusable = Array.from(form.querySelectorAll('input, select, textarea, button'))
-                .filter(el => !el.disabled && el.type !== 'hidden' && el.offsetParent !== null);
-              const index = focusable.indexOf(e.target);
-              if (index > -1 && index < focusable.length - 1) {
-                focusable[index + 1].focus();
-              }
+        document.addEventListener('DOMContentLoaded', function () {
+            const backBtn = document.querySelector('.header-back-button');
+            if (backBtn) {
+                backBtn.addEventListener('click', function () {
+                    window.location.href = 'employee-dashboard.html';
+                });
             }
-          });
-        }
-      });
+            // Disable future dates for production date input
+            const prodDateInput = document.getElementById('production_date');
+            if (prodDateInput) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                const maxDate = `${yyyy}-${mm}-${dd}`;
+                prodDateInput.setAttribute('max', maxDate);
+            }
+            // Prevent Enter key from submitting the form
+            const form = document.getElementById('rtcisForm');
+            if (form) {
+                form.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                        e.preventDefault();
+                        // Move focus to next field
+                        const focusable = Array.from(form.querySelectorAll('input, select, textarea, button'))
+                            .filter(el => !el.disabled && el.type !== 'hidden' && el.offsetParent !== null);
+                        const index = focusable.indexOf(e.target);
+                        if (index > -1 && index < focusable.length - 1) {
+                            focusable[index + 1].focus();
+                        }
+                    }
+                });
+            }
+        });
     </script>
 </body>
-</html>
 
+</html>

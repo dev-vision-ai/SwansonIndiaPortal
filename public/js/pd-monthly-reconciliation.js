@@ -1,4 +1,5 @@
 import { supabase } from '../supabase-config.js';
+import { showToast, storePendingToast } from './toast.js';
 
 let isProcessing = false;
 
@@ -31,11 +32,11 @@ async function generateReport() {
     const categoryVal = document.getElementById('materialCategory').value;
     const generateBtn = document.getElementById('generateBtn');
     
-    if (!fromDateVal || !toDateVal) return alert('Please select both from and to dates.');
+    if (!fromDateVal || !toDateVal) return showToast('Please select both from and to dates.', 'warning');
     
     // Validate date range
     if (fromDateVal > toDateVal) {
-        return alert('From date cannot be later than to date.');
+        return showToast('From date cannot be later than to date.', 'warning');
     }
 
     const tbody = document.getElementById('reportBody');
@@ -69,6 +70,7 @@ async function generateReport() {
 
     } catch (err) {
         console.error('Report Error:', err);
+        showToast('Error loading report: ' + err.message, 'error');
         tbody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-red-500">Error loading report: ${err.message}</td></tr>`;
     } finally {
         isProcessing = false;

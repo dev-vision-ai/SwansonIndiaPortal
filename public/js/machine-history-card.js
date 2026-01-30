@@ -1,21 +1,17 @@
 import { supabase } from '../supabase-config.js';
+import { showToast } from './toast.js';
 
-// Global variables
-let historyData = [];
-let currentPage = 1;
-let itemsPerPage = 10; // Changed to 10 entries per page
-let filteredData = [];
-let currentSort = { column: 'breakdown_date', direction: 'desc' };
-let currentFilters = {
-  equipmentName: '',
-  equipment: '',
-  fromDate: '',
-  toDate: '',
-  status: ''
-};
-let currentTableConfig = 'standard'; // 'standard' or 'roller'
+// ==========================================
+// CONFIGURATION & CONSTANTS
+// ==========================================
 
-// Table configuration for different equipment types
+const itemsPerPage = 10;
+const facilityAreas = [
+  'Production Corridor', 'Warehouse Corridor', 'Dock Area', 'Building Surrounding',
+  'RM Warehouse #1', 'RM Warehouse #2', 'Utility Area', 'Terrace Area', 'Security Gate'
+];
+
+// Table configuration for different record types
 const tableConfigs = {
   standard: {
     title: "Machine History Card",
@@ -58,490 +54,448 @@ const tableConfigs = {
   }
 };
 
-// Equipment type detection
-function isRollerEquipment(equipmentName) {
-  if (!equipmentName) return false;
-  const rollerTypes = ['Rubber Roller', 'Emboss Roller', 'Rubber roller', 'Emboss roller'];
-  return rollerTypes.some(type => equipmentName.includes(type));
-}
+// ==========================================
+// STATE MANAGEMENT
+// ==========================================
 
-// Get table configuration based on equipment type
-function getTableConfig(equipmentName) {
-  return isRollerEquipment(equipmentName) ? tableConfigs.roller : tableConfigs.standard;
-}
-
-// Helper function to format date to DD/MM/YYYY
-function formatDateToDDMMYYYY(dateString, isOptional = false) {
-  if (!dateString) return 'N/A';
-
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return 'N/A';
-
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const year = date.getFullYear();
-
-  return `${day}/${month}/${year}`;
-}
-
-// Helper function to format time
-function formatTime(timeString) {
-  if (!timeString) return 'N/A';
-  return timeString;
-}
-
-// Helper function to get status CSS class
-function getStatusClass(status) {
-  if (!status || status === 'N/A' || status.toLowerCase() === 'pending') {
-    return 'status-pending';
-  }
-  if (status.toLowerCase() === 'completed') {
-    return 'status-completed';
-  }
-  return 'status-default';
-}
-
-// Helper function to calculate total breakdown time
-function calculateTotalBDTime(startTime, finishTime) {
-  if (!startTime || !finishTime) return 'N/A';
-
-  try {
-    const start = new Date(`1970-01-01T${startTime}:00`);
-    const finish = new Date(`1970-01-01T${finishTime}:00`);
-
-    if (isNaN(start.getTime()) || isNaN(finish.getTime())) return 'N/A';
-
-    let diffMs = finish.getTime() - start.getTime();
-
-    // If finish time is earlier than start time, assume it spans midnight (next day)
-    if (diffMs < 0) {
-      // Add 24 hours (in milliseconds) to handle next day scenario
-      diffMs += 24 * 60 * 60 * 1000;
-    }
-
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
-    if (diffHours > 0 && diffMinutes > 0) {
-      return `${diffHours}h ${diffMinutes}m`;
-    } else if (diffHours > 0) {
-      return `${diffHours}h`;
-    } else {
-      return `${diffMinutes}m`;
-    }
-  } catch (error) {
-    console.error('Error calculating total BD time:', error);
-    return 'N/A';
-  }
-}
-
-
-// Render table headers dynamically
-function renderTableHeaders() {
-  const table = document.getElementById('historyTable');
-  const thead = table.querySelector('thead tr');
-  const config = tableConfigs[currentTableConfig];
-
-  if (!thead) return;
-
-  // Add/remove table format class for CSS targeting
-  table.className = `history-table ${currentTableConfig}-format`;
-
-  thead.innerHTML = config.columns.map(col => `<th>${col.header}</th>`).join('');
-
-  // Update page title
-  const titleElement = document.querySelector('.table-header h2');
-  if (titleElement) {
-    titleElement.textContent = config.title;
-  }
-}
-
-// Render table with current page data
-function renderTable() {
-  const tbody = document.getElementById('historyTableBody');
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const pageData = filteredData.slice(startIndex, endIndex);
-  const config = tableConfigs[currentTableConfig];
-
-  if (pageData.length === 0) {
-    tbody.innerHTML = `<tr class="loading-row"><td colspan="${config.columns.length}">No records found</td></tr>`;
-    updatePaginationInfo();
-    return;
-  }
-
-  tbody.innerHTML = pageData.map(record => {
-    return `<tr>${config.columns.map(col => {
-      let value = record[col.field];
-
-      // Special formatting for different field types
-      if (col.field === 'breakdown_date' || col.field === 'equipment_installation_date') {
-        value = formatDateToDDMMYYYY(value);
-      } else if (col.field === 'recoatingdate' || col.field === 'regrindingdate') {
-        value = formatDateToDDMMYYYY(value, true); // Pass true for roller fields
-      } else if (col.field === 'start_time' || col.field === 'finish_time') {
-        value = formatTime(value);
-      } else if (col.field === 'total_bd_time') {
-        value = calculateTotalBDTime(record.start_time, record.finish_time);
-      } else if (col.field === 'status') {
-        value = `<span class="${getStatusClass(value)}">${value || 'N/A'}</span>`;
-      } else {
-        value = value || 'N/A';
-      }
-
-      return `<td>${value}</td>`;
-    }).join('')}</tr>`;
-  }).join('');
-
-  // Update pagination info after rendering
-  updatePaginationInfo();
-}
-
-// Update pagination information
-function updatePaginationInfo() {
-  const totalItems = filteredData.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-
-  document.getElementById('paginationInfo').textContent = `Page ${currentPage} of ${totalPages}`;
-
-  // Update pagination controls
-  const prevBtn = document.getElementById('prevPage');
-  const nextBtn = document.getElementById('nextPage');
-  
-  if (prevBtn) prevBtn.disabled = currentPage === 1;
-  if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
-}
-
-// Pagination event listeners
-function setupPaginationListeners() {
-  const prevBtn = document.getElementById('prevPage');
-  const nextBtn = document.getElementById('nextPage');
-
-  if (prevBtn) {
-    prevBtn.addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        renderTable();
-      }
-    });
-  }
-
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
-      const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-      if (currentPage < totalPages) {
-        currentPage++;
-        renderTable();
-      }
-    });
-  }
-}
-
-// Sort data
-function sortData(column) {
-  if (currentSort.column === column) {
-    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-  } else {
-    currentSort = { column, direction: 'asc' };
-  }
-
-  filteredData.sort((a, b) => {
-    const modifier = currentSort.direction === 'asc' ? 1 : -1;
-    let aValue = a[column];
-    let bValue = b[column];
-
-    // Handle date sorting
-    if (column.includes('date') && aValue && bValue) {
-      aValue = new Date(aValue);
-      bValue = new Date(bValue);
-      return (aValue - bValue) * modifier;
-    }
-
-    // Handle string sorting
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return aValue.localeCompare(bValue) * modifier;
-    }
-
-    // Handle numeric sorting
-    if (typeof aValue === 'number' && typeof bValue === 'number') {
-      return (aValue - bValue) * modifier;
-    }
-
-    return 0;
-  });
-
-  renderTable();
-}
-
-// Cascading filter logic
-function initializeCascadingFilters() {
-  // Step 1: Equipment Name selection
-  document.getElementById('equipmentNameFilter')?.addEventListener('change', function() {
-    const equipmentName = this.value;
-    currentFilters.equipmentName = equipmentName;
-
-    // Filter equipment IDs based on selected equipment name
-    updateEquipmentFilter();
-    applyCascadingFilters();
-  });
-
-  // Step 2: Equipment ID selection
-  document.getElementById('equipmentFilter')?.addEventListener('change', function() {
-    currentFilters.equipment = this.value;
-    applyCascadingFilters();
-  });
-
-  // Step 3: Date range selection
-  document.getElementById('dateFromFilter')?.addEventListener('change', function() {
-    currentFilters.fromDate = this.value;
-    applyCascadingFilters();
-  });
-
-  document.getElementById('dateToFilter')?.addEventListener('change', function() {
-    currentFilters.toDate = this.value;
-    applyCascadingFilters();
-  });
-
-  // Step 4: Status selection
-  document.getElementById('statusFilter')?.addEventListener('change', function() {
-    currentFilters.status = this.value;
-    applyCascadingFilters();
-  });
-
-  // Clear button
-  document.getElementById('clearFilters')?.addEventListener('click', clearAllFilters);
-}
-
-// Apply cascading filters
-function applyCascadingFilters() {
-  filteredData = historyData.filter(record => {
-    // Equipment Name filter (affects available equipment IDs)
-    if (currentFilters.equipmentName && record.equipment_name !== currentFilters.equipmentName) {
-      return false;
-    }
-
-    // Equipment filter
-    if (currentFilters.equipment && record.equipment_identification_no !== currentFilters.equipment) {
-      return false;
-    }
-
-    // Date range filter
-    if (currentFilters.fromDate && record.breakdown_date < currentFilters.fromDate) {
-      return false;
-    }
-    if (currentFilters.toDate && record.breakdown_date > currentFilters.toDate) {
-      return false;
-    }
-
-    // Status filter
-    if (currentFilters.status && record.status.toLowerCase() !== currentFilters.status.toLowerCase()) {
-      return false;
-    }
-
-    return true;
-  });
-
-  currentPage = 1;
-
-  // Update table configuration based on selected equipment
-  const selectedEquipmentName = currentFilters.equipmentName;
-  const newTableConfig = isRollerEquipment(selectedEquipmentName) ? 'roller' : 'standard';
-
-  if (newTableConfig !== currentTableConfig) {
-    currentTableConfig = newTableConfig;
-    renderTableHeaders();
-    updateExportButtonText(); // Update button text when config changes
-  }
-
-  renderTable();
-  updateFilterStatus();
-}
-
-// Update equipment filter based on selected equipment name
-function updateEquipmentFilter() {
-  const equipmentNameFilter = document.getElementById('equipmentNameFilter');
-  const equipmentFilter = document.getElementById('equipmentFilter');
-
-  if (!equipmentNameFilter || !equipmentFilter) return;
-
-  const selectedEquipmentName = equipmentNameFilter.value;
-  const currentEquipmentValue = equipmentFilter.value;
-
-  // Get available equipment IDs for selected equipment name
-  const availableEquipment = new Set();
-  historyData.forEach(record => {
-    if (!selectedEquipmentName || record.equipment_name === selectedEquipmentName) {
-      if (record.equipment_identification_no) {
-        availableEquipment.add(record.equipment_identification_no);
-      }
-    }
-  });
-
-  // Update equipment filter options
-  equipmentFilter.innerHTML = '<option value="">All Equipment</option>';
-  Array.from(availableEquipment).sort().forEach(equipment => {
-    const option = document.createElement('option');
-    option.value = equipment;
-    option.textContent = equipment;
-    equipmentFilter.appendChild(option);
-  });
-
-  // Reset equipment filter if current selection is not available
-  if (currentEquipmentValue && !availableEquipment.has(currentEquipmentValue)) {
-    equipmentFilter.value = '';
-    currentFilters.equipment = '';
-  }
-}
-
-// Clear all filters and reset
-function clearAllFilters() {
-  document.getElementById('equipmentNameFilter').value = '';
-  document.getElementById('equipmentFilter').value = '';
-  document.getElementById('dateFromFilter').value = '';
-  document.getElementById('dateToFilter').value = '';
-  document.getElementById('statusFilter').value = '';
-
-  // Reset current filters
-  currentFilters = {
+let state = {
+  data: [],        // Raw data from DB
+  filtered: [],    // Data after filters
+  currentPage: 1,
+  sort: { column: 'breakdown_date', direction: 'desc' },
+  tableConfig: 'standard',
+  filters: {
+    category: '',
     equipmentName: '',
     equipment: '',
     fromDate: '',
     toDate: '',
     status: ''
-  };
+  }
+};
 
-  // Reset table configuration to standard
-  currentTableConfig = 'standard';
-  renderTableHeaders();
-  updateExportButtonText(); // Update button text when resetting
+// ==========================================
+// UTILITY FUNCTIONS
+// ==========================================
 
-  // Repopulate equipment filter with all options
-  populateEquipmentFilter();
+const isRollerEquipment = name => name && ['Rubber Roller', 'Emboss Roller', 'Rubber roller', 'Emboss roller'].some(t => name.includes(t));
 
-  filteredData = [...historyData];
-  currentPage = 1;
-  renderTable();
-  updateFilterStatus();
-}
+const formatDateToDDMMYYYY = (dateString) => {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return 'N/A';
+  return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+};
 
-// Update filter status indicator
-function updateFilterStatus() {
-  const statusElement = document.getElementById('filterStatusIndicator');
-  if (!statusElement) return;
+const getStatusClass = (status) => {
+  if (!status || status === 'N/A') return 'status-pending';
+  const s = status.toLowerCase();
+  return s === 'completed' ? 'status-completed' : (s === 'pending' ? 'status-pending' : 'status-default');
+};
 
-  const hasFilters = Object.values(currentFilters).some(value => value !== '');
-  statusElement.textContent = hasFilters ? 'On' : 'Off';
-  statusElement.className = hasFilters
-    ? 'px-2 py-1 text-sm font-semibold rounded-full bg-green-200 text-green-700'
-    : 'px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700';
-}
+// Helper to combine Date and Time strings into a Date object
+const parseDateTime = (dateStr, timeStr) => {
+  if (!dateStr || !timeStr) return null;
+  const d = new Date(`${dateStr}T${timeStr}`);
+  return isNaN(d.getTime()) ? null : d;
+};
 
+// Updated implementation of breakdown time calculation
+// Uses full DateTime difference to support multi-day breakdowns
+const calculateTotalBDTime = (start, end) => {
+  if (!start || !end) return 'N/A';
 
+  const diffMs = end.getTime() - start.getTime();
+  if (diffMs < 0) return 'Error (Neg)';
 
-// Export table data to Excel using backend endpoint
-async function exportToExcel() {
-  // Determine which export endpoint to use based on equipment type (declare outside try block)
-  const selectedEquipmentName = document.getElementById('equipmentNameFilter')?.value || '';
-  const selectedEquipmentId = document.getElementById('equipmentFilter')?.value || '';
-  const isRollerExport = isRollerEquipment(selectedEquipmentName);
-  const exportEndpoint = isRollerExport ? '/api/export-roller-history-card' : '/api/export-machine-history-card';
-  const exportType = isRollerExport ? 'Roller' : 'Machine';
+  const d = Math.floor(diffMs / (24 * 3600000));
+  const h = Math.floor((diffMs % (24 * 3600000)) / 3600000);
+  const m = Math.floor((diffMs % 3600000) / 60000);
+
+  let result = [];
+  if (d > 0) result.push(`${d}d`);
+  if (h > 0) result.push(`${h}h`);
+  if (m > 0) result.push(`${m}m`);
+
+  return result.length > 0 ? result.join(' ') : '0m';
+};
+
+// DOM Helper to populate select options
+const populateSelect = (elementId, items, defaultText) => {
+  const select = document.getElementById(elementId);
+  if (!select) return;
+  select.innerHTML = `<option value="">${defaultText}</option>`;
+  [...new Set(items)].sort().forEach(item => {
+    const option = document.createElement('option');
+    option.value = item;
+    option.textContent = item;
+    select.appendChild(option);
+  });
+};
+
+// ==========================================
+// CORE LOGIC: MAPPING & FILTERING
+// ==========================================
+
+async function fetchMachineHistory() {
+  const tbody = document.getElementById('historyTableBody');
+  tbody.innerHTML = '<tr class="loading-row"><td colspan="16">Loading machine history data...</td></tr>';
 
   try {
-    // Show loading state
-    const exportBtn = document.getElementById('exportBtn');
-    const originalText = exportBtn.innerHTML;
-    exportBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Exporting ${exportType} History Card...`;
-    exportBtn.disabled = true;
+    const { data, error } = await supabase
+      .from('mt_job_requisition_master')
+      .select('*')
+      .order('occurdate', { ascending: false });
 
-    // Determine backend URL
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const backendUrl = isLocalhost ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+    if (error) throw error;
 
-    // Get the filtered data that's currently displayed in the table
-    console.log('📊 Exporting filtered table data:', filteredData.length, 'records');
+    // Map DB to App Logic
+    state.data = data.map(record => {
+      const category = (record.machineno && facilityAreas.includes(record.machineno)) ? 'Facility' : 'Machine';
+      const breakdownCodes = record.breakdowncodes;
 
-    // Prepare the filtered data for export
-    const exportData = filteredData.map(record => ({
-      occurdate: record.breakdown_date,
-      requisitionno: record.mjr_number,
-      breakdowncodes: record.bd_code,
-      equipmentno: record.equipment_identification_no,
-      equipmentname: record.equipment_name,
-      equipmentinstalldate: record.equipment_installation_date,
-      existingcondition: record.breakdown_description,
-      occurtime: record.start_time,
-      completiontime: record.finish_time,
-      rootcause: record.root_cause,
-      correction: record.corrective_action,
-      costincurred: record.cost_incurred ? record.cost_incurred.replace('₹', '') : '',
-      technicianname: record.done_by,
-      inspectioncheckedby: record.verified_by,
-      inspectionresult: record.status === 'Completed' ? 'Accepted' : 'Pending',
-      recoatingdate: record.recoatingdate,
-      regrindingdate: record.regrindingdate
-    }));
-
-    // Test if backend is reachable first
-    try {
-      const testResponse = await fetch(`${backendUrl}/api/test`);
-      if (!testResponse.ok) {
-        throw new Error(`Backend server not reachable at ${backendUrl}`);
+      let bdCodeDisplay = 'N/A';
+      if (breakdownCodes) {
+        if (typeof breakdownCodes === 'object' && !Array.isArray(breakdownCodes)) {
+          const keys = Object.keys(breakdownCodes).filter(k => breakdownCodes[k] === true);
+          if (keys.length) bdCodeDisplay = keys.join(', ');
+        } else if (Array.isArray(breakdownCodes)) {
+          bdCodeDisplay = breakdownCodes.join(', ');
+        } else {
+          bdCodeDisplay = breakdownCodes;
+        }
       }
-    } catch (testError) {
-      console.error('❌ Cannot reach backend server at', backendUrl);
-      throw new Error(`Cannot connect to backend server. Please ensure the backend is running on port 3000 for ${exportType} History Card export.`);
+
+      const status = (!record.inspectionresult) ? 'Pending' :
+        (record.inspectionresult.toLowerCase().includes('accepted') || record.inspectionresult.toLowerCase().includes('rejected')) ? 'Completed' :
+          record.inspectionresult;
+
+      // Construct full DateTime objects for calculation
+      const startDateTime = parseDateTime(record.occurdate, record.occurtime);
+      const endDateTime = parseDateTime(record.scheduleenddate, record.scheduleendtime);
+
+      return {
+        id: record.id,
+        category,
+        breakdown_date: record.occurdate,
+        mjr_number: record.requisitionno,
+        bd_code: bdCodeDisplay,
+        equipment_identification_no: record.equipmentno || 'N/A',
+        equipment_name: record.equipmentname || 'N/A',
+        equipment_installation_date: record.equipmentinstalldate || 'N/A',
+        status,
+        breakdown_description: record.existingcondition,
+        start_time: record.occurtime?.substring(0, 5) || 'N/A',
+        finish_time: record.scheduleendtime?.substring(0, 5) || 'N/A', // Using Schedule End Time as per Option 2
+        total_bd_time: calculateTotalBDTime(startDateTime, endDateTime),
+        root_cause: record.rootcause || 'N/A',
+        corrective_action: record.correction || 'N/A',
+        cost_incurred: record.costincurred ? `₹${record.costincurred}` : 'N/A',
+        done_by: record.technicianname || 'N/A',
+        verified_by: record.inspectioncheckedby || 'N/A',
+        recoatingdate: record.recoatingdate || 'N/A',
+        regrindingdate: record.regrindingdate || 'N/A',
+
+        // Keep raw values for filters if needed
+        raw_start_date: startDateTime,
+        raw_end_date: endDateTime
+      };
+    });
+
+    state.filtered = [...state.data];
+    populateFilters(true);
+    renderTable();
+
+  } catch (error) {
+    console.error('Error:', error);
+    tbody.innerHTML = `<tr class="loading-row"><td colspan="16">Error loading data: ${error.message}</td></tr>`;
+  }
+}
+
+function applyFilters() {
+  const { category, equipmentName, equipment, fromDate, toDate, status } = state.filters;
+
+  state.filtered = state.data.filter(rec => {
+    if (category && rec.category !== category) return false;
+    if (equipmentName && rec.equipment_name !== equipmentName) return false;
+    if (equipment && rec.equipment_identification_no !== equipment) return false;
+    if (fromDate && rec.breakdown_date < fromDate) return false;
+    if (toDate && rec.breakdown_date > toDate) return false;
+    if (status && rec.status.toLowerCase() !== status.toLowerCase()) return false;
+    return true;
+  });
+
+  state.currentPage = 1;
+
+  // Update Config based on selection
+  const newConfig = isRollerEquipment(equipmentName) ? 'roller' : 'standard';
+  if (newConfig !== state.tableConfig) {
+    state.tableConfig = newConfig;
+    renderTableHeaders();
+  }
+
+  renderTable();
+  updateFilterStatusUI();
+}
+
+function populateFilters(fullReset = false) {
+  // We filter dropdown options based on current Category logic
+  // If fullReset, we use all data. If just updating, we might want to respect category
+  // Implementation: Always respect current Category filter for Dropdowns
+
+  const relevantData = state.filters.category
+    ? state.data.filter(d => d.category === state.filters.category)
+    : state.data;
+
+  // 1. Available Equipment Names (filtered by Category)
+  const names = relevantData.map(d => d.equipment_name).filter(n => n && n !== 'N/A');
+
+  // 2. Available Equipment IDs (filtered by Category AND Selected Name if any)
+  // Logic: If name is selected, limit IDs to that name.
+  const relevantDataForIds = state.filters.equipmentName
+    ? relevantData.filter(d => d.equipment_name === state.filters.equipmentName)
+    : relevantData;
+
+  const ids = relevantDataForIds.map(d => d.equipment_identification_no).filter(id => id && id !== 'N/A');
+
+  // We only re-populate if we are not the ones triggering change?
+  // Strategy: Always re-populate compatible options.
+  // Note: re-populating 'Name' while 'Name' is selected might lose focus or value if not handled.
+  // We only repopulate if the value is likely invalid or during initialization.
+  // For 'UpdateEquipmentFilter' equivalent:
+
+  if (fullReset) {
+    populateSelect('equipmentNameFilter', names, 'All Equipment Names');
+    populateSelect('equipmentFilter', ids, 'All Equipment');
+  } else {
+    // Logic for cascaded updates
+    // Re-populate IDs when Name changes
+    populateSelect('equipmentFilter', ids, 'All Equipment');
+    // Don't nuke Name filter if it's the one that changed
+  }
+}
+
+// ==========================================
+// TABLE RENDERING
+// ==========================================
+
+function renderTableHeaders() {
+  const table = document.getElementById('historyTable');
+  const thead = table.querySelector('thead tr');
+  const config = tableConfigs[state.tableConfig];
+
+  table.className = `history-table ${state.tableConfig}-format`;
+  thead.innerHTML = config.columns.map(col => `<th>${col.header}</th>`).join('');
+
+  const titleEl = document.querySelector('.table-header h2');
+  if (titleEl) titleEl.textContent = config.title;
+
+  updateExportButtonUI();
+}
+
+function getFormattedCellValue(col, record) {
+  let value = record[col.field];
+
+  if (['breakdown_date', 'equipment_installation_date'].includes(col.field)) {
+    return formatDateToDDMMYYYY(value);
+  }
+  if (['recoatingdate', 'regrindingdate'].includes(col.field)) {
+    return formatDateToDDMMYYYY(value);
+  }
+  if (['start_time', 'finish_time'].includes(col.field)) {
+    return value || 'N/A';
+  }
+  if (col.field === 'total_bd_time') {
+    return value || 'N/A';
+  }
+  if (col.field === 'status') {
+    return `<span class="${getStatusClass(value)}">${value || 'N/A'}</span>`;
+  }
+  return value || 'N/A';
+}
+
+function renderTable() {
+  const tbody = document.getElementById('historyTableBody');
+  const start = (state.currentPage - 1) * itemsPerPage;
+  const pageData = state.filtered.slice(start, start + itemsPerPage);
+  const config = tableConfigs[state.tableConfig];
+
+  if (!pageData.length) {
+    tbody.innerHTML = `<tr class="loading-row"><td colspan="${config.columns.length}">No records found</td></tr>`;
+    updatePaginationUI();
+    return;
+  }
+
+  tbody.innerHTML = pageData.map(record => `
+    <tr>${config.columns.map(col => `<td>${getFormattedCellValue(col, record)}</td>`).join('')}</tr>
+  `).join('');
+
+  updatePaginationUI();
+}
+
+function updatePaginationUI() {
+  const total = state.filtered.length;
+  const pages = Math.ceil(total / itemsPerPage) || 1;
+
+  document.getElementById('paginationInfo').textContent = `Page ${state.currentPage} of ${pages}`;
+  document.getElementById('prevPage').disabled = state.currentPage === 1;
+  document.getElementById('nextPage').disabled = state.currentPage >= pages;
+}
+
+function updateFilterStatusUI() {
+  const statusEl = document.getElementById('filterStatusIndicator');
+  if (!statusEl) return;
+  const active = Object.values(state.filters).some(v => v !== '');
+  statusEl.textContent = active ? 'On' : 'Off';
+  statusEl.className = `px-2 py-1 text-sm font-semibold rounded-full ${active ? 'bg-green-200 text-green-700' : 'bg-gray-200 text-gray-700'}`;
+}
+
+function updateExportButtonUI() {
+  const btn = document.getElementById('exportBtn');
+  if (btn) {
+    const type = state.tableConfig === 'roller' ? 'Roller' : 'Machine';
+    btn.innerHTML = `<i class="fas fa-download"></i> ${type} History Card`;
+  }
+}
+
+// ==========================================
+// EVENT HANDLERS
+// ==========================================
+
+function setupEventListeners() {
+  // FILTERS
+  const ids = {
+    category: 'categoryFilter',
+    equipmentName: 'equipmentNameFilter',
+    equipment: 'equipmentFilter',
+    fromDate: 'dateFromFilter',
+    toDate: 'dateToFilter',
+    status: 'statusFilter'
+  };
+
+  Object.entries(ids).forEach(([key, id]) => {
+    document.getElementById(id)?.addEventListener('change', (e) => {
+      state.filters[key] = e.target.value;
+
+      // Special Logic for Cascading
+      if (key === 'category') {
+        // Reset sub-filters
+        state.filters.equipmentName = '';
+        state.filters.equipment = '';
+        document.getElementById(ids.equipmentName).value = '';
+        document.getElementById(ids.equipment).value = '';
+        populateFilters(true); // Re-populate based on new category
+      } else if (key === 'equipmentName') {
+        // Update ID list based on Name
+        populateFilters(false);
+      }
+
+      applyFilters();
+    });
+  });
+
+  document.getElementById('clearFilters')?.addEventListener('click', () => {
+    Object.keys(ids).forEach(k => {
+      state.filters[k] = '';
+      const el = document.getElementById(ids[k]);
+      if (el) el.value = '';
+    });
+    state.tableConfig = 'standard';
+    renderTableHeaders();
+    populateFilters(true); // Reset lists to full
+    applyFilters();
+  });
+
+  // PAGINATION
+  document.getElementById('prevPage')?.addEventListener('click', () => {
+    if (state.currentPage > 1) {
+      state.currentPage--;
+      renderTable();
+    }
+  });
+
+  document.getElementById('nextPage')?.addEventListener('click', () => {
+    const pages = Math.ceil(state.filtered.length / itemsPerPage);
+    if (state.currentPage < pages) {
+      state.currentPage++;
+      renderTable();
+    }
+  });
+
+  // EXPORT & NAV
+  document.getElementById('exportBtn')?.addEventListener('click', exportToExcel);
+  document.getElementById('backButton')?.addEventListener('click', () => window.location.href = '../html/employee-dashboard.html');
+}
+
+
+// ==========================================
+// EXPORT FUNCTIONALITY
+// ==========================================
+
+async function exportToExcel() {
+  const { equipmentName, equipment } = state.filters;
+  const isRoller = isRollerEquipment(equipmentName);
+  const type = isRoller ? 'Roller' : 'Machine';
+  const endpoint = isRoller ? '/api/export-roller-history-card' : '/api/export-machine-history-card';
+
+  try {
+    const btn = document.getElementById('exportBtn');
+    if (btn) {
+      btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Exporting...`;
+      btn.disabled = true;
     }
 
-    console.log(`🔄 Exporting as ${exportType} History Card to endpoint: ${exportEndpoint}`);
+    const exportData = state.filtered.map(r => ({
+      occurdate: r.breakdown_date,
+      requisitionno: r.mjr_number,
+      breakdowncodes: r.bd_code,
+      equipmentno: r.equipment_identification_no,
+      equipmentname: r.equipment_name,
+      equipmentinstalldate: r.equipment_installation_date,
+      existingcondition: r.breakdown_description,
+      occurtime: r.start_time,
+      completiontime: r.finish_time,
+      rootcause: r.root_cause,
+      correction: r.corrective_action,
+      costincurred: r.cost_incurred.replace('₹', ''),
+      technicianname: r.done_by,
+      inspectioncheckedby: r.verified_by,
+      inspectionresult: r.status === 'Completed' ? 'Accepted' : 'Pending',
+      recoatingdate: r.recoatingdate,
+      regrindingdate: r.regrindingdate
+    }));
 
-    // Send filtered data to backend for export
-    const response = await fetch(`${backendUrl}${exportEndpoint}`, {
+    const baseUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? 'http://localhost:3000' : 'https://swanson-backend.onrender.com';
+
+    // Test connectivity
+    try {
+      const testParam = await fetch(`${baseUrl}/api/test`);
+      if (!testParam.ok) throw new Error('Backend unreachable');
+    } catch {
+      throw new Error(`Cannot connect to backend for ${type} export.`);
+    }
+
+    const response = await fetch(`${baseUrl}${endpoint}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         data: exportData,
         filterSummary: {
-          totalRecords: filteredData.length,
-          appliedFilters: {
-            equipmentName: selectedEquipmentName,
-            equipment: selectedEquipmentId,
-            fromDate: document.getElementById('dateFromFilter')?.value || '',
-            toDate: document.getElementById('dateToFilter')?.value || '',
-            status: document.getElementById('statusFilter')?.value || ''
-          }
+          totalRecords: state.filtered.length,
+          appliedFilters: state.filters
         },
-        selectedEquipmentName: selectedEquipmentName,
-        selectedEquipmentId: selectedEquipmentId
-      }),
+        selectedEquipmentName: equipmentName,
+        selectedEquipmentId: equipment
+      })
     });
 
-    if (!response.ok) {
-      let errorMessage = 'Export failed';
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.error || errorMessage;
-      } catch (jsonError) {
-        // If response is not JSON (e.g., HTML error page), use response status text
-        errorMessage = `Server error (${response.status}): ${response.statusText}`;
-      }
-      throw new Error(errorMessage);
-    }
+    if (!response.ok) throw new Error('Export request failed');
 
-    // Get filename from response headers first (before reading the body)
-    const contentDisposition = response.headers.get('Content-Disposition');
-    let filename = `${exportType}-History-Card.xlsx`; // default filename
+    // Extract filename
+    const disposition = response.headers.get('Content-Disposition');
+    const filename = disposition?.match(/filename="(.+)"/)?.[1] || `${type}-History-Card.xlsx`;
 
-    if (contentDisposition) {
-      const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-      if (filenameMatch) {
-        filename = filenameMatch[1];
-      }
-    }
-
-    // Get the Excel file from response
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -549,193 +503,23 @@ async function exportToExcel() {
     link.download = filename;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
     window.URL.revokeObjectURL(url);
 
-    console.log(`✅ ${exportType} history card exported successfully`);
+    // Show success message
+    showToast(`${type} History Card exported successfully!`, 'success');
 
   } catch (error) {
-    console.error('❌ Export failed:', error);
-    alert('Export failed: ' + error.message);
+    showToast('Export failed: ' + error.message, 'error');
   } finally {
-    // Restore button state
-    const exportBtn = document.getElementById('exportBtn');
-    if (exportBtn) {
-      exportBtn.innerHTML = `<i class="fas fa-download"></i> ${exportType} History Card`;
-      exportBtn.disabled = false;
-    }
+    updateExportButtonUI();
+    const btn = document.getElementById('exportBtn');
+    if (btn) btn.disabled = false;
   }
 }
 
-// Fetch machine history data from Supabase
-async function fetchMachineHistory() {
-  try {
-    const tbody = document.getElementById('historyTableBody');
-    tbody.innerHTML = '<tr class="loading-row"><td colspan="16">Loading machine history data...</td></tr>';
-
-    // Fetch from mt_job_requisition_master table
-    const { data, error } = await supabase
-      .from('mt_job_requisition_master')
-      .select(`
-        id,
-        requisitionno,
-        occurdate,
-        occurtime,
-        requestorname,
-        reqdept,
-        equipmentname,
-        equipmentno,
-        equipmentinstalldate,
-        existingcondition,
-        technicianname,
-        rootcause,
-        correction,
-        costincurred,
-        inspectioncheckedby,
-        totalhours,
-        completiontime,
-        breakdowncodes,
-        inspectionresult,
-        recoatingdate,
-        regrindingdate
-      `)
-      .order('occurdate', { ascending: false });
-
-    if (error) {
-      console.error("Error fetching MT job requisitions:", error);
-      tbody.innerHTML = `<tr class="loading-row"><td colspan="16">Error loading data: ${error.message}</td></tr>`;
-      return;
-    }
-
-    // Map database fields to expected format
-    historyData = data.map(record => ({
-      id: record.id,
-      breakdown_date: record.occurdate,
-      mjr_number: record.requisitionno,
-      bd_code: (() => {
-        if (!record.breakdowncodes) return 'N/A';
-
-        // Handle JSON object format like {"A": false, "B": false, "J": true}
-        if (typeof record.breakdowncodes === 'object' && !Array.isArray(record.breakdowncodes)) {
-          const selectedCodes = Object.keys(record.breakdowncodes).filter(key => record.breakdowncodes[key] === true);
-          return selectedCodes.length > 0 ? selectedCodes.join(', ') : 'N/A';
-        }
-
-        // Handle array format (fallback)
-        if (Array.isArray(record.breakdowncodes)) {
-          return record.breakdowncodes.join(', ');
-        }
-
-        return record.breakdowncodes || 'N/A';
-      })(),
-      equipment_identification_no: record.equipmentno || 'N/A',
-      equipment_name: record.equipmentname || 'N/A',
-      equipment_installation_date: record.equipmentinstalldate || 'N/A', // Equipment installation date only
-      status: (() => {
-        const result = record.inspectionresult;
-        if (!result) return 'Pending';
-        if (result.toLowerCase().includes('accepted') || result.toLowerCase().includes('rejected')) {
-          return 'Completed';
-        }
-        return result || 'Pending';
-      })(),
-      breakdown_description: record.existingcondition,
-      maintenance_breakdown_time: record.totalhours || 'N/A',
-      start_time: record.occurtime ? record.occurtime.substring(0, 5) : 'N/A', // Format time as HH:MM
-      finish_time: record.completiontime ? record.completiontime.substring(0, 5) : 'N/A', // Format time as HH:MM
-      root_cause: record.rootcause || 'N/A',
-      corrective_action: record.correction || 'N/A', // Using correction field for corrective action
-      cost_incurred: record.costincurred ? `₹${record.costincurred}` : 'N/A',
-      done_by: record.technicianname || 'N/A',
-      verified_by: record.inspectioncheckedby || 'N/A',
-      recoatingdate: record.recoatingdate || 'N/A',
-      regrindingdate: record.regrindingdate || 'N/A'
-    }));
-
-    filteredData = [...historyData];
-
-    // Populate equipment filter dropdown
-    populateEquipmentFilter();
-
-    renderTable();
-
-  } catch (error) {
-    console.error('Error loading machine history:', error);
-    const tbody = document.getElementById('historyTableBody');
-    tbody.innerHTML = `<tr class="loading-row"><td colspan="16">Error loading data: ${error.message}</td></tr>`;
-  }
-}
-
-// Populate equipment filter dropdowns
-function populateEquipmentFilter() {
-  const equipmentIdSet = new Set();
-  const equipmentNameSet = new Set();
-
-  historyData.forEach(record => {
-    if (record.equipment_identification_no) {
-      equipmentIdSet.add(record.equipment_identification_no);
-    }
-    if (record.equipment_name) {
-      equipmentNameSet.add(record.equipment_name);
-    }
-  });
-
-  // Populate Equipment ID filter
-  const equipmentFilter = document.getElementById('equipmentFilter');
-  equipmentFilter.innerHTML = '<option value="">All Equipment</option>';
-  Array.from(equipmentIdSet).sort().forEach(equipment => {
-    const option = document.createElement('option');
-    option.value = equipment;
-    option.textContent = equipment;
-    equipmentFilter.appendChild(option);
-  });
-
-  // Populate Equipment Name filter
-  const equipmentNameFilter = document.getElementById('equipmentNameFilter');
-  equipmentNameFilter.innerHTML = '<option value="">All Equipment Names</option>';
-  Array.from(equipmentNameSet).sort().forEach(equipment => {
-    const option = document.createElement('option');
-    option.value = equipment;
-    option.textContent = equipment;
-    equipmentNameFilter.appendChild(option);
-  });
-}
-
-// Setup event listeners
-function setupEventListeners() {
-  document.addEventListener('DOMContentLoaded', async () => {
-    // Initialize cascading filter system
-    initializeCascadingFilters();
-
-    // Set up export button
-    document.getElementById('exportBtn')?.addEventListener('click', exportToExcel);
-
-    // Set up back button
-    document.getElementById('backButton')?.addEventListener('click', () => {
-      window.location.href = '../html/employee-dashboard.html';
-    });
-
-    // Update export button text based on current table config
-    updateExportButtonText();
-
-    // Logout functionality removed - this is a navigation page with only back button
-
-    // Load initial data
-    await fetchMachineHistory();
-
-    // Setup pagination listeners
-    setupPaginationListeners();
-  });
-}
-
-// Update export button text based on current table configuration
-function updateExportButtonText() {
-  const exportBtn = document.getElementById('exportBtn');
-  if (exportBtn) {
-    const exportType = currentTableConfig === 'roller' ? 'Roller' : 'Machine';
-    exportBtn.innerHTML = `<i class="fas fa-download"></i> ${exportType} History Card`;
-  }
-}
-
-// Initialize the page
-setupEventListeners();
+// INITIALIZATION
+document.addEventListener('DOMContentLoaded', () => {
+  setupEventListeners();
+  fetchMachineHistory();
+});

@@ -1,4 +1,5 @@
 import { supabase } from '../supabase-config.js';
+import { showToast } from './toast.js';
 
 let machinesData = [];
 let filteredData = [];
@@ -125,21 +126,20 @@ async function deleteMachine(id) {
             .eq('id', id);
 
         if (error) throw error;
-        
-        // Show success message (using simple alert for now, or toast if available)
-        alert('Equipment deleted successfully!');
-        
+
+        showToast('Equipment deleted successfully!', 'success');
+
         // Refresh data
         await fetchMachines();
     } catch (error) {
         console.error('Error deleting equipment:', error);
-        alert('Error deleting equipment: ' + error.message);
+        showToast('Error deleting equipment: ' + error.message, 'error');
     }
 }
 
 function openModal(machine = null) {
     if (!equipmentForm || !equipmentModal || !modalTitle || !equipmentIdInput) return;
-    
+
     equipmentForm.reset();
     if (machine) {
         modalTitle.textContent = 'Edit Equipment';
@@ -164,47 +164,63 @@ function closeModal() {
     equipmentForm?.reset();
 }
 
+/**
+ * Handles the equipment form submission for both adding new and updating existing equipment.
+ * Shows detailed error messages from Supabase if the operation fails.
+ */
 async function handleFormSubmit(e) {
     e.preventDefault();
-    
+
     const saveBtn = document.getElementById('saveEquipmentBtn');
     const originalBtnText = saveBtn ? saveBtn.textContent : 'Save';
+
+    // Disable button to prevent multiple submissions
     if (saveBtn) {
         saveBtn.disabled = true;
         saveBtn.textContent = 'Saving...';
     }
 
     const id = equipmentIdInput.value;
+    const installationDate = document.getElementById('modal_installation_date').value;
+
     const machineData = {
-        equipment_name: document.getElementById('modal_equipment_name').value,
-        equipment_identification_no: document.getElementById('modal_identification_no').value,
-        installation_area: document.getElementById('modal_installation_area').value,
-        equipment_installation_date: document.getElementById('modal_installation_date').value,
+        equipment_name: document.getElementById('modal_equipment_name').value.trim(),
+        equipment_identification_no: document.getElementById('modal_identification_no').value.trim(),
+        installation_area: document.getElementById('modal_installation_area').value.trim(),
+        equipment_installation_date: installationDate || null,
     };
 
     try {
+        let result;
         if (id) {
-            // Update
-            const { error } = await supabase
+            // Update existing record
+            result = await supabase
                 .from('mt_machines_and_equipments_masterdata')
                 .update(machineData)
                 .eq('id', id);
-            if (error) throw error;
-            alert('Equipment updated successfully!');
         } else {
-            // Add
-            const { error } = await supabase
+            // Insert new record
+            result = await supabase
                 .from('mt_machines_and_equipments_masterdata')
                 .insert([machineData]);
-            if (error) throw error;
-            alert('New equipment added successfully!');
         }
-        
+
+        const { error } = result;
+
+        if (error) {
+            // Check for specific unique constraint error
+            if (error.code === '23505') {
+                throw new Error(`This Identification No is already registered. If you need to allow duplicates, please remove the unique constraint in the database.`);
+            }
+            throw error;
+        }
+
+        showToast(id ? 'Equipment updated successfully!' : 'New equipment added successfully!', 'success');
         closeModal();
         await fetchMachines(); // Refresh data and table
     } catch (error) {
         console.error('Error saving equipment:', error);
-        alert('Error saving equipment: ' + error.message);
+        showToast('Action Failed: ' + (error.message || 'Unknown database error occurred.'), 'error');
     } finally {
         if (saveBtn) {
             saveBtn.disabled = false;
@@ -222,7 +238,7 @@ async function fetchMachines() {
 
         if (error) throw error;
         machinesData = data || [];
-        
+
         // Sort by Installation Date Descending (Latest first)
         machinesData.sort((a, b) => {
             const dateA = a.equipment_installation_date ? new Date(a.equipment_installation_date) : new Date(0);
@@ -231,14 +247,14 @@ async function fetchMachines() {
         });
 
         filteredData = [...machinesData];
-        
+
         // Populate area filter
         populateAreaFilter(machinesData);
-        
+
         renderTable();
     } catch (error) {
         console.error('Error fetching machines:', error);
-        alert('Failed to load machine data.');
+        showToast('Failed to load machine data.', 'error');
     }
 }
 
@@ -248,11 +264,11 @@ function populateAreaFilter(data) {
     const areaFilter = document.getElementById('areaFilter');
     const areaDropdownList = document.getElementById('areaDropdownList');
     const areaInput = document.getElementById('modal_installation_area');
-    
+
     if (!areaFilter && !areaDropdownList) return;
 
     const areas = [...new Set(data.map(m => m.installation_area).filter(Boolean))].sort();
-    
+
     // Update filter dropdown (top search bar)
     if (areaFilter) {
         areaFilter.innerHTML = '<option value="">All Areas</option>';
@@ -267,7 +283,7 @@ function populateAreaFilter(data) {
     // Update modal custom dropdown list
     if (areaDropdownList && areaInput) {
         updateCustomDropdownItems(areaInput, areaDropdownList, areas);
-        
+
         if (!isDropdownInitialized) {
             setupCustomDropdownListeners(areaInput, areaDropdownList);
             isDropdownInitialized = true;
@@ -402,7 +418,7 @@ function updatePaginationInfo() {
     // Update pagination controls
     const prevBtn = document.getElementById('prevPage');
     const nextBtn = document.getElementById('nextPage');
-    
+
     if (prevBtn) prevBtn.disabled = currentPage === 1;
     if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
 }
@@ -439,10 +455,10 @@ function filterTable() {
     const areaFilter = document.getElementById('areaFilter')?.value || '';
 
     filteredData = machinesData.filter(machine => {
-        const matchesSearch = 
+        const matchesSearch =
             (machine.equipment_name?.toLowerCase().includes(searchTerm)) ||
             (machine.equipment_identification_no?.toLowerCase().includes(searchTerm));
-        
+
         const matchesArea = areaFilter === '' || machine.installation_area === areaFilter;
 
         return matchesSearch && matchesArea;
@@ -464,10 +480,10 @@ function filterTable() {
 function clearFilters() {
     const searchInput = document.getElementById('searchInput');
     const areaFilter = document.getElementById('areaFilter');
-    
+
     if (searchInput) searchInput.value = '';
     if (areaFilter) areaFilter.value = '';
-    
+
     filterTable();
 }
 

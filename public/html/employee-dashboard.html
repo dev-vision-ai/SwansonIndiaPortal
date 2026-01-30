@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="google" content="notranslate">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <title>Dashboard Menu</title>
     <link rel="icon" type="image/png" href="../assets/logo2.png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
     <link rel="stylesheet" href="../css/employee-dashboard.css">
     <link rel="stylesheet" href="../css/common-header.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
@@ -21,32 +22,43 @@
             overflow-x: hidden;
             width: 100%;
         }
+
         body {
             font-family: 'Roboto', sans-serif;
             font-weight: 500;
-            padding-top: 60px; /* Space for fixed header */
+            padding-top: 60px;
+            /* Space for fixed header */
             margin: 0;
             overflow-x: hidden;
             width: 100%;
         }
+
         /* Center the grid and cards */
         .quick-action-grid {
             display: flex !important;
             flex-wrap: wrap !important;
-            gap: 2.5rem 2rem !important; /* vertical horizontal gaps */
-            justify-content: center !important; /* Center horizontally */
+            gap: 2.5rem 2rem !important;
+            /* vertical horizontal gaps */
+            justify-content: center !important;
+            /* Center horizontally */
             align-items: center !important;
-            margin: 0 auto !important; /* Center grid itself */
-            padding: 2.5rem !important; /* Space for edge icons */
-            max-width: 1600px !important; /* Allow more width on large screens */
+            margin: 0 auto !important;
+            /* Center grid itself */
+            padding: 2.5rem !important;
+            /* Space for edge icons */
+            max-width: 1600px !important;
+            /* Allow more width on large screens */
             width: 100% !important;
             position: relative !important;
             z-index: 1 !important;
         }
+
         .action-card {
-            margin-left: 0 !important; /* Remove asymmetric margin */
+            margin-left: 0 !important;
+            /* Remove asymmetric margin */
             margin-right: 0 !important;
         }
+
         .container {
             padding-top: 25px !important;
             gap: 1rem !important;
@@ -55,6 +67,7 @@
             position: relative !important;
             z-index: 10 !important;
         }
+
         .dashboard-section {
             width: 100% !important;
             position: relative !important;
@@ -68,18 +81,18 @@
                 padding: 1rem !important;
                 max-width: 100% !important;
             }
-            
+
             .action-card {
                 width: calc(50% - 0.5rem) !important;
             }
         }
-        
+
         @media (max-width: 480px) {
             .quick-action-grid {
                 gap: 1rem 0.75rem !important;
                 padding: 0.75rem !important;
             }
-            
+
             .action-card {
                 width: calc(50% - 0.375rem) !important;
                 padding: 0 !important;
@@ -87,7 +100,7 @@
                 min-height: 75px !important;
                 max-height: 75px !important;
             }
-            
+
             .action-card-icon-circle {
                 width: 36px !important;
                 height: 36px !important;
@@ -107,10 +120,12 @@
         }
 
         @media (max-width: 768px) {
+
             .action-card-heading,
             .action-card-heading h3 {
                 font-size: 0.75rem !important;
             }
+
             .action-card-description,
             .action-card-description p {
                 font-size: 0.70rem !important;
@@ -118,6 +133,7 @@
         }
 
         @media (max-width: 480px) {
+
             .action-card-heading,
             .action-card-heading h3 {
                 font-size: 0.75rem !important;
@@ -125,6 +141,7 @@
                 height: 45% !important;
                 line-height: 1.1 !important;
             }
+
             .action-card-description,
             .action-card-description p {
                 font-size: 0.70rem !important;
@@ -135,14 +152,15 @@
         }
     </style>
 </head>
+
 <body class="bg-gray-100 text-gray-900 font-roboto-medium" style="padding-top: 25px !important; margin: 0 !important;">
     <div class="header-container">
         <div class="left-section">
             <div class="user-info">
-                 <!-- Add Logout Button Here -->
-                 <button id="logoutButton" class="logout-button">Logout</button> 
-                 <!-- User Name -->
-                 <div class="user-name"></div> 
+                <!-- Add Logout Button Here -->
+                <button id="logoutButton" class="logout-button">Logout</button>
+                <!-- User Name -->
+                <div class="user-name"></div>
             </div>
         </div>
         <div class="header-title">Dashboard Menu</div>
@@ -154,33 +172,36 @@
         <div class="container page-fade-in">
             <section class="dashboard-section">
                 <div class="quick-action-grid">
-                     <div class="action-card js-hide" data-department="All" onclick="location.href='../html/quality-alert.html'">
+                    <div class="action-card js-hide" data-department="All"
+                        onclick="location.href='../html/quality-alert.html'">
                         <div class="action-card-icon-circle">
-                        <i class="fas fa-exclamation-circle"></i>
+                            <i class="fas fa-exclamation-circle"></i>
                         </div>
                         <div class="action-card-content">
                             <div class="action-card-heading">
-                        <h3>Quality Alert</h3>
+                                <h3>Quality Alert</h3>
                             </div>
                             <div class="action-card-description">
-                        <p>Report New Quality Alert</p>
+                                <p>Report New Quality Alert</p>
                             </div>
                         </div>
                     </div>
-                     <div class="action-card js-hide" data-department="All" onclick="location.href='../html/safety-incident.html'">
+                    <div class="action-card js-hide" data-department="All"
+                        onclick="location.href='../html/safety-incident.html'">
                         <div class="action-card-icon-circle">
-                        <i class="fas fa-hard-hat"></i>
+                            <i class="fas fa-hard-hat"></i>
                         </div>
                         <div class="action-card-content">
                             <div class="action-card-heading">
-                        <h3>Safety Incident</h3>
+                                <h3>Safety Incident</h3>
                             </div>
                             <div class="action-card-description">
-                        <p>Report a Safety Incident</p>
+                                <p>Report a Safety Incident</p>
                             </div>
                         </div>
                     </div>
-                    <div class="action-card js-hide" data-department="Quality Control, Quality Assurance" data-admin-only="true" onclick="location.href='../html/dms.html'">
+                    <div class="action-card js-hide" data-department="Quality Control, Quality Assurance"
+                        onclick="location.href='../html/dms.html'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-calendar-check"></i>
                         </div>
@@ -193,7 +214,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="action-card js-hide desktop-only" data-department="All" data-restricted-user="39b3feec-aa0e-43c5-b1c6-aef695599a61,24475774-7627-4e63-816a-62e0644b65de" onclick="location.href='../html/control-summary.html'">
+                    <div class="action-card js-hide desktop-only" data-department="All"
+                        data-restricted-user="39b3feec-aa0e-43c5-b1c6-aef695599a61,24475774-7627-4e63-816a-62e0644b65de"
+                        onclick="location.href='../html/control-summary.html'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-chart-line"></i>
                         </div>
@@ -206,7 +229,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="action-card js-hide desktop-only" data-department="All" data-user-level="1" onclick="location.href='../html/dcc.html'">
+                    <div class="action-card js-hide desktop-only" data-department="All" data-user-level="1"
+                        onclick="location.href='../html/dcc.html'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-folder-open"></i>
                         </div>
@@ -234,7 +258,8 @@
                         </div>
                     </div>
                     -->
-                    <div class="action-card js-hide desktop-only" data-department="Production" data-user-level="1" onclick="location.href='../html/stock-report.html'">
+                    <div class="action-card js-hide desktop-only" data-department="Production" data-user-level="1"
+                        onclick="location.href='../html/stock-report.html'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-cube"></i>
                         </div>
@@ -247,30 +272,33 @@
                             </div>
                         </div>
                     </div>
-                    <div class="action-card js-hide desktop-only" data-department="Quality Control,Quality Assurance" onclick="location.href='../html/rtcis.html'">
+                    <div class="action-card js-hide desktop-only" data-department="Quality Control,Quality Assurance"
+                        onclick="location.href='../html/rtcis.html'">
                         <div class="action-card-icon-circle">
-                        <i class="fas fa-print"></i>
+                            <i class="fas fa-print"></i>
                         </div>
                         <div class="action-card-content">
                             <div class="action-card-heading">
-                        <h3>RTCIS Labels</h3>
+                                <h3>RTCIS Labels</h3>
                             </div>
                             <div class="action-card-description">
-                        <p>Generate, Print & Manage <br> RTCIS Labels</p>
+                                <p>Generate, Print & Manage <br> RTCIS Labels</p>
                             </div>
                         </div>
                     </div>
 
-                     <div class="action-card js-hide desktop-only" data-department="Quality Control,Quality Assurance,Production,PGM" onclick="location.href='../html/production-report.html'">
+                    <div class="action-card js-hide desktop-only"
+                        data-department="Quality Control,Quality Assurance,Production,PGM"
+                        onclick="location.href='../html/production-report.html'">
                         <div class="action-card-icon-circle">
-                        <i class="fas fa-calendar-alt"></i>
+                            <i class="fas fa-calendar-alt"></i>
                         </div>
                         <div class="action-card-content">
                             <div class="action-card-heading">
-                        <h3>Production Reports</h3>
+                                <h3>Production Reports</h3>
                             </div>
                             <div class="action-card-description">
-                        <p>View Production Reports</p>
+                                <p>View Production Reports</p>
                             </div>
                         </div>
                     </div>
@@ -289,16 +317,17 @@
                         </div>
                     </div>
                     -->
-                    <div class="action-card js-hide" data-department="All" onclick="sessionStorage.setItem('myFormsJustArrived','1'); sessionStorage.setItem('myFormsPrevPage', window.location.href); location.href='../html/my-forms.html'">
+                    <div class="action-card js-hide" data-department="All"
+                        onclick="sessionStorage.setItem('myFormsJustArrived','1'); sessionStorage.setItem('myFormsPrevPage', window.location.href); location.href='../html/my-forms.html'">
                         <div class="action-card-icon-circle">
-                        <i class="fas fa-clipboard-list"></i>
+                            <i class="fas fa-clipboard-list"></i>
                         </div>
                         <div class="action-card-content">
                             <div class="action-card-heading">
-                        <h3>My Forms</h3>
+                                <h3>My Forms</h3>
                             </div>
                             <div class="action-card-description">
-                        <p>View Your Submitted Forms</p>
+                                <p>View Your Submitted Forms</p>
                             </div>
                         </div>
                     </div>
@@ -332,21 +361,23 @@
                         </div>
                     </div>
                     -->
-                    <div class="action-card js-hide desktop-only" data-department="Maintenance" onclick="location.href='../html/mjr-management.html'">
+                    <div class="action-card js-hide desktop-only" data-department="Maintenance"
+                        onclick="location.href='../html/mjr-management.html'">
                         <div class="action-card-icon-circle">
-                        <i class="fas fa-tools"></i>
+                            <i class="fas fa-tools"></i>
                         </div>
                         <div class="action-card-content">
                             <div class="action-card-heading">
-                        <h3>MJR & Maintenance <br> Machines Management</h3>
+                                <h3>MJR & Maintenance <br> Machines Management</h3>
                             </div>
                             <div class="action-card-description">
-                        <p>View & Manage All MJRs <br> & Machines</p>
+                                <p>View & Manage All MJRs <br> & Machines</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="action-card js-hide desktop-only" data-department="All" data-exclude-department="Maintenance" onclick="location.href='../html/mjr-form.html'">
+                    <div class="action-card js-hide desktop-only" data-department="All"
+                        data-exclude-department="Maintenance" onclick="location.href='../html/mjr-form.html'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-wrench"></i>
                         </div>
@@ -360,21 +391,25 @@
                         </div>
                     </div>
 
-                    <div class="action-card js-hide desktop-only" data-department="Quality Control,Quality Assurance,PGM" onclick="location.href='../html/film-inspection-forms-html/film-inspection-forms-list.html'">
+                    <div class="action-card js-hide desktop-only"
+                        data-department="Quality Control,Quality Assurance,PGM"
+                        onclick="location.href='../html/film-inspection-forms-html/film-inspection-forms-list.html'">
                         <div class="action-card-icon-circle">
-                        <i class="fas fa-file-alt"></i>
+                            <i class="fas fa-file-alt"></i>
                         </div>
                         <div class="action-card-content">
                             <div class="action-card-heading">
-                        <h3>Prestore & <br> Film Inspection Form</h3>
+                                <h3>Prestore & <br> Film Inspection Form</h3>
                             </div>
                             <div class="action-card-description">
-                        <p>Access Prestore & Film <br> Inspection Forms</p>
+                                <p>Access Prestore & Film <br> Inspection Forms</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="action-card js-hide desktop-only" data-department="Quality Assurance" data-user-level="1" onclick="location.href='../html/quality-alerts-table.html?from=employee-dashboard'">
+                    <div class="action-card js-hide desktop-only" data-department="Quality Assurance"
+                        data-user-level="1"
+                        onclick="location.href='../html/quality-alerts-table.html?from=employee-dashboard'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-exclamation-circle"></i>
                         </div>
@@ -388,7 +423,9 @@
                         </div>
                     </div>
 
-                    <div class="action-card js-hide desktop-only" data-department="Quality Control,Quality Assurance,Production,PGM" onclick="location.href='../html/inline-inspection-form.html'">
+                    <div class="action-card js-hide desktop-only"
+                        data-department="Quality Control,Quality Assurance,Production,PGM"
+                        onclick="location.href='../html/inline-inspection-form.html'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-search-plus"></i>
                         </div>
@@ -403,7 +440,8 @@
                     </div>
 
                     <!-- Admin & HR Cards - Only visible to Human Resources and Administration users with level 1 -->
-                    <div class="action-card js-hide desktop-only" data-department="Human Resources,Administration" data-user-level="1" onclick="location.href='../html/user-mgmt.html'">
+                    <div class="action-card js-hide desktop-only" data-department="Human Resources,Administration"
+                        data-user-level="1" onclick="location.href='../html/user-mgmt.html'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-users"></i>
                         </div>
@@ -416,7 +454,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="action-card js-hide desktop-only" data-department="Human Resources,Administration" data-user-level="1" onclick="location.href='../html/job-posting-mgmt.html'">
+                    <div class="action-card js-hide desktop-only" data-department="Human Resources,Administration"
+                        data-user-level="1" onclick="location.href='../html/job-posting-mgmt.html'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-briefcase"></i>
                         </div>
@@ -429,7 +468,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="action-card js-hide desktop-only" data-department="Human Resources,Administration" data-user-level="1" onclick="location.href='../html/gallery-admin.html'">
+                    <div class="action-card js-hide desktop-only" data-department="Human Resources,Administration"
+                        data-user-level="1" onclick="location.href='../html/gallery-admin.html'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-images"></i>
                         </div>
@@ -442,7 +482,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="action-card js-hide desktop-only" data-department="Human Resources,Administration" data-user-level="1" onclick="location.href='../html/safety-incidents-table.html'">
+                    <div class="action-card js-hide desktop-only" data-department="Human Resources,Administration"
+                        data-user-level="1" onclick="location.href='../html/safety-incidents-table.html'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-exclamation-triangle"></i>
                         </div>
@@ -455,7 +496,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="action-card js-hide desktop-only" data-department="Human Resources,Administration" data-user-level="1" onclick="location.href='../html/fire-extinguisher-mgmt.html'">
+                    <div class="action-card js-hide desktop-only" data-department="Human Resources,Administration"
+                        data-user-level="1" onclick="location.href='../html/fire-extinguisher-mgmt.html'">
                         <div class="action-card-icon-circle">
                             <i class="fas fa-fire"></i>
                         </div>
@@ -468,6 +510,20 @@
                             </div>
                         </div>
                     </div>
+                    <div class="action-card js-hide desktop-only" data-department="Quality Control, Quality Assurance"
+                        onclick="location.href='../html/qc-utilities.html'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>QC Utilities</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Manage Quality Control <br> Utilities & Tools</p>
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
 
@@ -476,10 +532,10 @@
 
             </section>
             <section class="incident-section">
-                </section>
+            </section>
         </div>
     </main>
-    
+
     <!-- Logout Confirmation Modal -->
     <div id="logoutModal" class="modal-overlay">
         <div class="modal-content">
@@ -522,4 +578,5 @@
 
     <script type="module" src="../js/employee-dashboard.js"></script>
 </body>
+
 </html>

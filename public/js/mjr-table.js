@@ -1,4 +1,5 @@
 import { supabase } from '../supabase-config.js';
+import { showToast, storePendingToast } from './toast.js';
 
 let currentSort = { column: 'timestamp', direction: 'desc' };
 let requisitionsData = []; // Store fetched requisitions globally for sorting and filtering
@@ -167,7 +168,7 @@ async function fetchMTJobRequisitions() {
 
     if (error) {
       console.error("Error fetching MT job requisitions:", error);
-      showError(`Error loading data: ${error.message}`);
+      showToast(`Error loading data: ${error.message}`, 'error');
       return;
     }
 
@@ -191,14 +192,14 @@ async function fetchMTJobRequisitions() {
     }));
 
     if (requisitionsData.length === 0) {
-      showMessage('No job requisitions found');
+      showToast('No job requisitions found', 'info');
     } else {
       renderTable(requisitionsData);
     }
 
   } catch (error) {
     console.error('Error loading MT job requisitions:', error);
-    showError(`Error: ${error.message}`);
+    showToast(`Error: ${error.message}`, 'error');
   } finally {
     const alertsBody = document.getElementById('alertsBody');
     if (alertsBody) alertsBody.classList.remove('loading');
@@ -226,21 +227,6 @@ function setupTableEventListeners() {
   fetchMTJobRequisitions();
 }
 
-function showError(message) {
-  const tbody = document.getElementById('alertsBody');
-  if (tbody) {
-    tbody.innerHTML = `<tr class="error-row"><td colspan="9">${message}</td></tr>`;
-  }
-}
-
-function showMessage(message) {
-  const tbody = document.getElementById('alertsBody');
-  if (tbody) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="9">${message}</td></tr>`;
-  }
-}
-
-
 // Enhanced setup function that includes table functionality
 function setupEventListeners() {
   document.addEventListener('DOMContentLoaded', async () => {
@@ -259,7 +245,7 @@ function setupEventListeners() {
           const { error } = await supabase.auth.signOut();
           if (error) {
             console.error('Error logging out:', error);
-            alert('Logout failed. Please try again.');
+            showToast('Logout failed. Please try again.', 'error');
           } else {
             localStorage.removeItem('supabase.auth.session');
             sessionStorage.removeItem('supabase.auth.session');
@@ -287,7 +273,7 @@ function setupEventListeners() {
           }
         } catch (err) {
           console.error('Exception during logout:', err);
-          alert('An unexpected error occurred during logout.');
+          showToast('An unexpected error occurred during logout.', 'error');
         }
         } else {
           // User cancelled logout
@@ -311,7 +297,7 @@ function setupButtonEventListeners() {
 
       if (!requisitionId) {
         console.error('No requisition ID found in button data-uuid attribute');
-        alert('Error: No requisition ID found');
+        showToast('Error: No requisition ID found', 'error');
         return;
       }
 
@@ -331,7 +317,7 @@ function setupButtonEventListeners() {
 
       if (!requisitionId) {
         console.error('No requisition ID found in button data-uuid attribute');
-        alert('Error: No requisition ID found');
+        showToast('Error: No requisition ID found', 'error');
         return;
       }
 
@@ -352,7 +338,7 @@ function setupButtonEventListeners() {
 
       if (!requisitionId) {
         console.error('No requisition ID found in button data-uuid attribute');
-        alert('Error: No requisition ID found');
+        showToast('Error: No requisition ID found', 'error');
         return;
       }
 
@@ -466,6 +452,9 @@ async function downloadRequisitionAsExcel(requisitionId, downloadBtn) {
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
 
+    // Show success toast
+    showToast('MJR Form Downloaded Successfully!', 'success');
+
     // Show success state briefly
     downloadBtn.innerHTML = '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
     downloadBtn.title = 'Downloaded!';
@@ -499,6 +488,6 @@ async function downloadRequisitionAsExcel(requisitionId, downloadBtn) {
       errorMessage = 'Cannot connect to server. Please check if the backend is running on port 3000.';
     }
 
-    alert(`Error downloading Excel file: ${errorMessage}\n\nCheck the browser console for more details.`);
+    showToast(`Error downloading Excel file: ${errorMessage}`, 'error');
   }
 } 

@@ -1,4 +1,5 @@
 import { supabase } from '../supabase-config.js';
+import { showToast, storePendingToast } from './toast.js';
 
 let currentCategory = 'RM';
 
@@ -102,7 +103,11 @@ async function loadExistingRecords() {
         .order('created_at', { ascending: false });
 
     const { data, error } = await query;
-    if (error) { console.error('Error:', error); return; }
+    if (error) { 
+        console.error('Error:', error); 
+        showToast('Error loading material data. Please try again.', 'error');
+        return; 
+    }
 
     const tbody = document.getElementById('materialTableBody');
     tbody.innerHTML = '';

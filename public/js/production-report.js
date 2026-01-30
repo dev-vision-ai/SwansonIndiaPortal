@@ -1,4 +1,5 @@
 import { supabase } from '../supabase-config.js';
+import { showToast, storePendingToast } from './toast.js';
 
 // Production Report - Fresh Start
 
@@ -399,6 +400,7 @@ async function populateAdvancedFilterDropdowns() {
         });
     } catch (error) {
         console.error('❌ Error populating advanced filter machines:', error);
+        showToast('Failed to load advanced filter machines', 'error');
     }
 
     // Populate defects select
@@ -533,6 +535,7 @@ async function onAdvancedDateOrTypeChange() {
             }
         } catch (error) {
             console.error('❌ Error populating advanced machine checkboxes:', error);
+            showToast('Failed to update machine options', 'error');
         }
     }
     
@@ -960,6 +963,7 @@ async function loadFormsData() {
 
     } catch (error) {
         console.error('❌ Error loading initial data:', error);
+        showToast('Failed to load initial data', 'error');
     }
 }
 
@@ -994,6 +998,7 @@ async function populateMachineDropdown(fromDate, toDate, productionType, selecte
         }
     } catch (error) {
         console.error('❌ Error populating machine dropdown:', error);
+        showToast('Failed to load machine options', 'error');
     }
 }
 
@@ -1029,6 +1034,7 @@ async function populateProductDropdown(fromDate, toDate, machine, productionType
         }
     } catch (error) {
         console.error('❌ Error populating product dropdown:', error);
+        showToast('Failed to load product options', 'error');
     }
 }
 
@@ -1070,6 +1076,7 @@ async function populateShiftDropdown(fromDate, toDate, machine, product, skipAut
         }
     } catch (error) {
         console.error('❌ Error populating shift dropdown:', error);
+        showToast('Failed to load shift options', 'error');
     }
 }
 
@@ -1091,6 +1098,7 @@ async function getProductionShiftData(fromDate, toDate, product, machine, shift,
         updateSummaryTablesWithData(data || []);
     } catch (error) {
         console.error('❌ Error fetching production shift data:', error);
+        showToast('Failed to fetch production shift data', 'error');
     }
 }
 
@@ -1122,11 +1130,16 @@ async function fetchAndRenderSummary(params) {
 
     } catch (error) {
         console.error('❌ Error fetching summary:', error);
+        showToast('Failed to load production data', 'error');
     }
 }
 
 function renderAllTables(data, selectedProduct) {
-    if (!data || !data.totals) return;
+    if (!data || !data.totals) {
+        showToast('No production data found for the selected filters', 'warning');
+        clearSummaryTables();
+        return;
+    }
 
     const t = data.totals;
     const totalRolls = t.acc_r + t.rej_r + t.rew_r + t.kiv_r;
@@ -1721,15 +1734,15 @@ async function downloadDefectReport() {
         window.URL.revokeObjectURL(urlObj);
 
         // Success message
-        showSuccessMessage('Production defects report downloaded successfully!');
+        showToast('Total Defect Analysis File Downloaded Successfully', 'success');
 
     } catch (err) {
         console.error('Download error:', err);
         
         if (err.name === 'AbortError') {
-            showErrorMessage('Request timed out. Please try again or check your internet connection.');
+            showToast('Request timed out. Please try again or check your internet connection.', 'error');
         } else {
-            showErrorMessage('Failed to download report. Please try again.');
+            showToast('Failed to download report. Please try again.', 'error');
         }
     } finally {
         const btn2 = document.getElementById('downloadDefectsBtn');
@@ -1751,34 +1764,4 @@ function bindDefectDownloadButton() {
         }
         downloadDefectReport();
     });
-}
-
-// Toast message functions (matching inline-inspection-form.js pattern)
-function showSuccessMessage(message) {
-    showMessage(message, 'success');
-}
-
-function showErrorMessage(message) {
-    showMessage(message, 'error');
-}
-
-function showMessage(message, type) {
-    const messageDiv = document.createElement('div');
-    messageDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        border-radius: 5px;
-        color: white;
-        z-index: 10000;
-        font-weight: bold;
-        ${type === 'success' ? 'background: #28a745;' : 'background: #dc3545;'}
-    `;
-    messageDiv.textContent = message;
-    document.body.appendChild(messageDiv);
-    
-    setTimeout(() => {
-        messageDiv.remove();
-    }, 5000);
 }

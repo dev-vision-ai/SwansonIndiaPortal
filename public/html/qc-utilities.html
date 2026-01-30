@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QC Utilities</title>
+    <link rel="icon" type="image/png" href="../assets/logo2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link rel="stylesheet" href="../css/employee-dashboard.css">
+    <link rel="stylesheet" href="../css/common-header.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+    <style>
+        /* Base font for the entire body */
+        html {
+            scroll-padding-top: 70px;
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            padding-top: 60px;
+            /* Space for fixed header */
+            margin: 0;
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        /* Hide number input spinners for LSL/TGT/USL fields */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        /* Center the grid and cards */
+        .quick-action-grid {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 2.5rem 2rem !important;
+            justify-content: center !important;
+            align-items: center !important;
+            margin: 0 auto !important;
+            padding: 2.5rem !important;
+            max-width: 1600px !important;
+            width: 100% !important;
+        }
+
+        .action-card {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+
+        .container {
+            width: 100% !important;
+            max-width: none !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            overflow-x: hidden !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+        .dashboard-section {
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            padding: 0 !important;
+        }
+
+        /* Mobile responsive - 2 cards per row */
+        @media (max-width: 768px) {
+            .quick-action-grid {
+                gap: 1.5rem 1rem !important;
+                padding: 1rem !important;
+                max-width: 100% !important;
+            }
+
+            .action-card {
+                width: calc(50% - 0.5rem) !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .quick-action-grid {
+                gap: 1rem 0.75rem !important;
+                padding: 0.75rem !important;
+            }
+
+            .action-card {
+                width: calc(50% - 0.375rem) !important;
+                padding: 0 !important;
+                height: 75px !important;
+                min-height: 75px !important;
+                max-height: 75px !important;
+            }
+
+            .action-card-icon-circle {
+                width: 36px !important;
+                height: 36px !important;
+                left: -18px !important;
+            }
+        }
+
+        /* Standardized Quick Action Card Font Sizes */
+        .action-card-heading {
+            font-size: 0.75rem !important;
+            font-weight: 600 !important;
+        }
+
+        .action-card-description {
+            font-size: 0.70rem !important;
+            font-weight: 500 !important;
+        }
+
+        .js-hide {
+            display: none !important;
+        }
+
+        /* Utility specific styles */
+        .utility-section {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .utility-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .utility-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .utility-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #002E7D;
+        }
+
+        .btn-primary {
+            background-color: #002E7D;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: #1e3a8a;
+        }
+
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #002E7D;
+            box-shadow: 0 0 0 3px rgba(0, 46, 125, 0.1);
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .status-inactive {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-900 font-roboto-medium" style="padding-top: 25px !important; margin: 0 !important;">
+    <div class="header-container">
+        <button type="button" class="header-back-button"
+            onclick="window.location.href='employee-dashboard.html'">Back</button>
+        <div class="header-title">QC Utilities</div>
+        <div class="company-logo">
+            <img src="../assets/logo.png" alt="Company Logo" />
+        </div>
+    </div>
+
+    <main>
+        <div class="container page-fade-in" style="padding-top: 25px !important;">
+            <section class="dashboard-section">
+                <div class="quick-action-grid">
+                    <!-- QC Equipment Management -->
+                    <div class="action-card js-hide" data-department="Quality Control,Quality Assurance"
+                        onclick="window.location.href='qc-utilities.html?view=equipment'">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>QC Equipment Management</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Manage QC Equipment <br> & Calibration</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Specification Management -->
+                    <div class="action-card js-hide" data-department="Quality Control,Quality Assurance"
+                        onclick="showProductPage()">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>Product & Specification</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>Manage Product & <br> Specifications</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Training Records -->
+                    <div class="action-card js-hide" data-department="Quality Control,Quality Assurance"
+                        onclick="showToast('Training section has been removed from the application.', 'info')">
+                        <div class="action-card-icon-circle">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div class="action-card-content">
+                            <div class="action-card-heading">
+                                <h3>Training Records</h3>
+                            </div>
+                            <div class="action-card-description">
+                                <p>QC Staff Training <br> & Certifications</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- QC Equipment Full Page Section (hidden by default) -->
+                <div id="equipment-full-page" class="w-full js-hide">
+                    <!-- Create Equipment Button -->
+                    <div class="flex justify-center w-full mt-4 mb-1">
+                        <button id="showEquipmentModal" type="button"
+                            class="bg-[#002E7D] hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow text-base transition-all duration-200">
+                            + Add Equipment
+                        </button>
+                    </div>
+
+                    <!-- Filter Section -->
+                    <div id="filterSection" class="w-full flex justify-center mt-4 mb-2">
+                        <div id="filterContainer" class="bg-white rounded-lg shadow-md p-2">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex-1"></div>
+                                <h3 class="text-xs font-semibold text-gray-800 text-center flex-1">Find / Filter
+                                    Equipment</h3>
+                                <div class="flex items-center space-x-2 flex-1 justify-end">
+                                    <span class="text-sm text-gray-600">Filter Status:</span>
+                                    <span id="filterStatusIndicator"
+                                        class="px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700">
+                                        Off
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-end justify-center gap-2">
+                                <!-- Date Range -->
+                                <div class="flex flex-col items-center">
+                                    <label class="block text-xs font-semibold text-gray-700 mb-0.5">From Date:</label>
+                                    <input type="date" id="filterFromDate"
+                                        class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <label class="block text-xs font-semibold text-gray-700 mb-0.5">To Date:</label>
+                                    <input type="date" id="filterToDate"
+                                        class="w-24 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                </div>
+                                <!-- Equipment Type Filter -->
+                                <div class="flex flex-col items-center">
+                                    <label class="block text-xs font-semibold text-gray-700 mb-0.5">Equipment
+                                        Type:</label>
+                                    <select id="filterEquipmentType"
+                                        class="w-32 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                                        <option value="">All</option>
+                                    </select>
+                                </div>
+                                <!-- Status Filter -->
+                                <div class="flex flex-col items-center">
+                                    <label class="block text-xs font-semibold text-gray-700 mb-0.5">Status:</label>
+                                    <select id="filterStatus"
+                                        class="w-28 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                                        <option value="">All</option>
+                                        <option value="Active">Active</option>
+                                        <option value="Inactive">Inactive</option>
+                                    </select>
+                                </div>
+                                <!-- Filter Buttons -->
+                                <div class="flex flex-col items-center">
+                                    <div class="h-4"></div> <!-- Spacer to align with inputs -->
+                                    <div class="flex space-x-2">
+                                        <button id="clearFilter"
+                                            class="w-12 h-6 bg-gray-500 text-white text-xs font-semibold rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                                            Clear
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination Controls -->
+                    <div id="paginationControls" class="w-full flex justify-center mt-3 mb-1 hidden">
+                        <div
+                            class="flex items-center space-x-3 bg-white rounded-md shadow-sm px-3 py-1.5 border border-gray-200">
+                            <button id="prevPageBtn"
+                                class="px-3 py-1 bg-[#002E7D] text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                                <span>Prev</span>
+                            </button>
+
+                            <div class="flex items-center space-x-1">
+                                <span class="text-xs text-gray-600">Page</span>
+                                <span id="currentPageDisplay" class="font-semibold text-xs">1</span>
+                                <span class="text-xs text-gray-600">of</span>
+                                <span id="totalPagesDisplay" class="font-semibold text-xs">1</span>
+                            </div>
+
+                            <button id="nextPageBtn"
+                                class="px-3 py-1 bg-[#002E7D] text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1">
+                                <span>Next</span>
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Equipment Table -->
+                    <div class="w-full">
+                        <div class="w-full overflow-x-auto">
+                            <table class="w-full bg-white table-fixed text-xs border-collapse">
+                                <thead>
+                                    <tr
+                                        class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center text-xs">
+                                        <th class="py-1 px-2 border border-gray-300 w-12 whitespace-normal break-words">
+                                            Sr No.</th>
+                                        <th class="py-1 px-2 border border-gray-300 w-32 whitespace-normal break-words">
+                                            Equipment Type</th>
+                                        <th class="py-1 px-2 border border-gray-300 w-32 whitespace-normal break-words">
+                                            Equipment ID</th>
+                                        <th class="py-1 px-2 border border-gray-300 w-28 whitespace-normal break-words">
+                                            Created Date</th>
+                                        <th class="py-1 px-2 border border-gray-300 w-24 whitespace-normal break-words">
+                                            Status</th>
+                                        <th class="py-1 px-2 border border-gray-300 w-32 whitespace-normal break-words">
+                                            Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="equipment-tbody">
+                                    <!-- Equipment records will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <style>
+                        /* Striped rows and hover for tbody - matching film inspection */
+                        #equipment-tbody tr {
+                            background-color: #ffffff;
+                            transition: background-color 0.2s ease;
+                        }
+
+                        #equipment-tbody tr:hover {
+                            background-color: #f8fafc;
+                            cursor: pointer;
+                        }
+
+                        #equipment-tbody tr {
+                            border-bottom: 1px solid #d1d5db;
+                        }
+
+                        /* Enhanced separator lines */
+                        #equipment-tbody th {
+                            border-right: 1px solid #d1d5db;
+                            border-bottom: 1px solid #d1d5db;
+                        }
+
+                        #equipment-tbody td {
+                            border-right: 1px solid #d1d5db;
+                            padding: 0.25rem 0.5rem;
+                            font-size: 0.75rem;
+                        }
+                    </style>
+                </div>
+
+                <!-- Product & Specification Full Page Section (hidden by default) -->
+                <div id="specifications-full-page" class="w-full js-hide">
+                    <!-- Create Product Button -->
+                    <div class="flex justify-center w-full mt-4 mb-1">
+                        <button id="showProductModal" type="button"
+                            class="bg-[#002E7D] hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow text-base transition-all duration-200">
+                            + Add Product & Spec
+                        </button>
+                    </div>
+
+                    <!-- Filter Section -->
+                    <div id="productFilterSection" class="w-full flex justify-center mt-4 mb-2">
+                        <div id="productFilterContainer" class="bg-white rounded-lg shadow-md p-2">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex-1"></div>
+                                <h3 class="text-xs font-semibold text-gray-800 text-center flex-1">Find / Filter
+                                    Products</h3>
+                                <div class="flex items-center space-x-2 flex-1 justify-end">
+                                    <span class="text-sm text-gray-600">Filter Status:</span>
+                                    <span id="productFilterStatusIndicator"
+                                        class="px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700">
+                                        Off
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-end justify-center gap-2">
+                                <!-- Customer Filter -->
+                                <div class="flex flex-col items-center">
+                                    <label class="block text-xs font-semibold text-gray-700 mb-0.5">Customer:</label>
+                                    <select id="filterCustomer"
+                                        class="w-32 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                                        <option value="">All</option>
+                                    </select>
+                                </div>
+                                <!-- Product Code Filter -->
+                                <div class="flex flex-col items-center">
+                                    <label class="block text-xs font-semibold text-gray-700 mb-0.5">Product
+                                        Code:</label>
+                                    <select id="filterProdCode"
+                                        class="w-56 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                                        <option value="">All</option>
+                                    </select>
+                                </div>
+                                <!-- GCAS No Filter -->
+                                <div class="flex flex-col items-center">
+                                    <label class="block text-xs font-semibold text-gray-700 mb-0.5">GCAS No:</label>
+                                    <select id="filterGcasNo"
+                                        class="w-32 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                                        <option value="">All</option>
+                                    </select>
+                                </div>
+                                <!-- Material Code Filter -->
+                                <div class="flex flex-col items-center">
+                                    <label class="block text-xs font-semibold text-gray-700 mb-0.5">Material
+                                        Code:</label>
+                                    <select id="filterMaterialCode"
+                                        class="w-32 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                                        <option value="">All</option>
+                                    </select>
+                                </div>
+                                <!-- Spec No Filter -->
+                                <div class="flex flex-col items-center">
+                                    <label class="block text-xs font-semibold text-gray-700 mb-0.5">Spec No:</label>
+                                    <select id="filterSpecNo"
+                                        class="w-32 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+                                        <option value="">All</option>
+                                    </select>
+                                </div>
+                                <!-- Filter Buttons -->
+                                <div class="flex flex-col items-center">
+                                    <div class="h-4"></div>
+                                    <div class="flex space-x-2">
+                                        <button id="clearProductFilter"
+                                            class="w-12 h-6 bg-gray-500 text-white text-xs font-semibold rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                                            Clear
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination Controls -->
+                    <div id="productPaginationControls" class="w-full flex justify-center mt-3 mb-1 hidden">
+                        <div
+                            class="flex items-center space-x-3 bg-white rounded-md shadow-sm px-3 py-1.5 border border-gray-200">
+                            <button id="prevProductPageBtn"
+                                class="px-3 py-1 bg-[#002E7D] text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1">
+                                <span>Prev</span>
+                            </button>
+                            <div class="flex items-center space-x-1">
+                                <span id="currentProductPageDisplay" class="font-semibold text-xs">1</span>
+                                <span class="text-xs text-gray-600">of</span>
+                                <span id="totalProductPagesDisplay" class="font-semibold text-xs">1</span>
+                            </div>
+                            <button id="nextProductPageBtn"
+                                class="px-3 py-1 bg-[#002E7D] text-white rounded text-xs hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1">
+                                <span>Next</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Product Table -->
+                    <div class="w-full">
+                        <div class="w-full overflow-x-auto">
+                            <table class="w-full bg-white table-fixed text-xs border-collapse">
+                                <thead>
+                                    <tr
+                                        class="bg-[#232f3e] text-white font-bold uppercase tracking-wider text-center text-xs">
+                                        <th class="py-1 px-2 border border-gray-300 w-12">Sr No.</th>
+                                        <th class="py-1 px-2 border border-gray-300 w-24">Customer</th>
+                                        <th class="py-1 px-2 border border-gray-300 w-24">Product Code</th>
+                                        <th class="py-1 px-2 border border-gray-300 w-24">Spec</th>
+                                        <th class="py-1 px-2 border border-gray-300 w-20">GCAS No</th>
+                                        <th class="py-1 px-2 border border-gray-300 w-20">Material Code</th>
+                                        <th class="py-1 px-2 border border-gray-300 w-20">Spec No</th>
+                                        <th class="py-1 px-2 border border-gray-300 w-24">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="products-tbody">
+                                    <!-- Product records will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <style>
+                        /* Striped rows and hover for tbody */
+                        #products-tbody tr {
+                            background-color: #ffffff;
+                            transition: background-color 0.2s ease;
+                        }
+
+                        #products-tbody tr:hover {
+                            background-color: #f8fafc;
+                            cursor: pointer;
+                        }
+
+                        #products-tbody tr {
+                            border-bottom: 1px solid #d1d5db;
+                        }
+
+                        #products-tbody td {
+                            border-right: 1px solid #d1d5db;
+                            padding: 0.25rem 0.5rem;
+                            font-size: 0.75rem;
+                        }
+                    </style>
+                </div>
+
+                <!-- Other Utility Sections (hidden by default) -->
+                <div id="utility-sections" class="utility-section js-hide">
+
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Equipment Modal -->
+    <div id="equipmentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden">
+        <div
+            class="w-full max-w-[24rem] bg-white rounded-xl shadow-2xl p-4 md:p-5 flex flex-col items-center max-h-fit overflow-visible relative">
+            <!-- Close button -->
+            <button id="closeModal"
+                class="absolute top-2.5 right-2.5 text-lg text-red-500 hover:text-red-700 font-bold bg-white rounded-full w-8 h-8 flex items-center justify-center shadow transition">&times;</button>
+
+            <div class="w-full p-1 md:p-1.5">
+                <h3 id="modalTitle" class="text-lg font-bold text-gray-800 mb-1 text-center">Add New Equipment</h3>
+                <div class="bg-[#002E7D] h-0.5 w-11 mx-auto rounded mb-4"></div>
+
+                <form id="equipmentForm" class="space-y-3.5">
+                    <input type="hidden" id="equipmentId">
+
+                    <div class="space-y-3.5 mb-2">
+                        <div>
+                            <label for="modal_equipment_type"
+                                class="block text-sm font-semibold text-gray-700 mb-1">Equipment Type <span
+                                    class="text-red-500">*</span></label>
+                            <input type="text" id="modal_equipment_type" required placeholder="e.g. Testing Equipment"
+                                class="mt-0.5 block w-full px-3 py-2 h-8.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
+                        </div>
+
+                        <div>
+                            <label for="modal_equipment_id"
+                                class="block text-sm font-semibold text-gray-700 mb-1">Equipment ID <span
+                                    class="text-red-500">*</span></label>
+                            <input type="text" id="modal_equipment_id" required placeholder="e.g. EQ-001-2024"
+                                class="mt-0.5 block w-full px-3 py-2 h-8.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
+                        </div>
+
+                        <div>
+                            <label for="modal_equipment_status"
+                                class="block text-sm font-semibold text-gray-700 mb-1">Status <span
+                                    class="text-red-500">*</span></label>
+                            <select id="modal_equipment_status" required
+                                class="mt-0.5 block w-full px-3 py-2 h-8.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50">
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                            </select>
+                        </div>
+
+                        <div class="flex justify-center gap-3 mt-5">
+                            <button type="button" id="cancelModal"
+                                class="px-5 py-1.5 text-sm font-semibold text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit" id="saveEquipmentBtn"
+                                class="px-5 py-1.5 text-sm font-semibold text-white bg-[#002E7D] rounded-md hover:bg-blue-800 focus:outline-none shadow-sm transition-colors">
+                                Save Equipment
+                            </button>
+                        </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999999; background-color: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center;">
+        <div
+            style="background: white; border-radius: 12px; padding: 20px; max-width: 300px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div
+                    style="width: 48px; height: 48px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                    <svg style="width: 24px; height: 24px; color: #dc2626;" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                        </path>
+                    </svg>
+                </div>
+                <h3 style="font-size: 18px; font-weight: bold; color: #1f2937; margin-bottom: 8px;">Delete Equipment?
+                </h3>
+                <p style="font-size: 14px; color: #6b7280;">Are you sure you want to delete <span
+                        id="deleteEquipmentName" style="font-weight: 600; color: #1f2937;"></span>?</p>
+            </div>
+
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button id="cancelDelete"
+                    style="flex: 1; padding: 8px 16px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; color: #374151; font-weight: 600; cursor: pointer;">Cancel</button>
+                <button id="confirmDelete"
+                    style="flex: 1; padding: 8px 16px; background: #dc2626; border: none; border-radius: 6px; color: white; font-weight: 600; cursor: pointer;">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="productModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden"
+        style="padding-top: 52px;">
+        <main
+            class="w-full max-w-4xl bg-white shadow-2xl p-3 md:p-4 flex flex-col items-center max-h-[90vh] overflow-y-auto relative z-50 rounded-xl">
+            <button id="closeProductModal"
+                class="absolute top-2 right-2 text-lg text-red-500 hover:text-red-700 font-bold bg-white rounded-full w-7 h-7 flex items-center justify-center shadow transition">&times;</button>
+            <div class="w-full p-2">
+                <h3 id="productModalTitle" class="text-lg font-bold text-gray-800 mb-2 text-center">Add New Product &
+                    Spec</h3>
+                <div class="bg-[#002E7D] h-1 w-16 mx-auto rounded mb-3"></div>
+                <form id="productForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-2 gap-y-1">
+                    <input type="hidden" id="productId">
+
+                    <!-- Row 1: Customer, Product Code, Spec -->
+                    <div class="col-span-full grid grid-cols-3 gap-2">
+                        <div>
+                            <label for="modal_customer" class="block text-sm font-medium text-gray-700 mb-1">Customer
+                                <span class="text-red-500">*</span></label>
+                            <input type="text" id="modal_customer" required
+                                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50"
+                                autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="modal_prod_code" class="block text-sm font-medium text-gray-700 mb-1">Product
+                                Code <span class="text-red-500">*</span></label>
+                            <input type="text" id="modal_prod_code" required
+                                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50"
+                                autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="modal_spec" class="block text-sm font-medium text-gray-700 mb-1">Spec <span
+                                    class="text-red-500">*</span></label>
+                            <input type="text" id="modal_spec" required
+                                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50"
+                                autocomplete="off">
+                        </div>
+                    </div>
+
+                    <!-- Row 2: GCAS, Material Code, Spec No, Location -->
+                    <div class="col-span-full grid grid-cols-4 gap-2">
+                        <div>
+                            <label for="modal_gcas_no" class="block text-sm font-medium text-gray-700 mb-1">GCAS
+                                No</label>
+                            <input type="text" id="modal_gcas_no"
+                                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50"
+                                autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="modal_material_code"
+                                class="block text-sm font-medium text-gray-700 mb-1">Material Code</label>
+                            <input type="text" id="modal_material_code"
+                                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50"
+                                autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="modal_spec_no" class="block text-sm font-medium text-gray-700 mb-1">Spec
+                                No</label>
+                            <input type="text" id="modal_spec_no"
+                                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50"
+                                autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="modal_location"
+                                class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                            <input type="text" id="modal_location"
+                                class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] text-sm bg-gray-50"
+                                autocomplete="off">
+                        </div>
+                    </div>
+
+                    <!-- Technical Specifications Section -->
+                    <div class="col-span-full mt-3 p-4 border border-gray-200 rounded-md shadow-sm">
+                        <h3 class="text-base font-medium leading-6 text-gray-900 mb-4">Technical Specifications</h3>
+                        <div
+                            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border border-gray-300 rounded-md overflow-hidden">
+                            <!-- Width -->
+                            <div class="flex flex-col gap-2 p-3 border-b border-r border-gray-300 bg-white">
+                                <label class="text-xs font-medium text-gray-700 text-center">Width (mm)</label>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <input type="number" step="0.01" id="modal_lsl_width" placeholder="LSL"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                    <input type="number" step="0.01" id="modal_tgt_width" placeholder="TGT"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center font-medium focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                    <input type="number" step="0.01" id="modal_usl_width" placeholder="USL"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                </div>
+                            </div>
+
+                            <!-- Weight -->
+                            <div class="flex flex-col gap-2 p-3 border-b border-r border-gray-300 bg-white">
+                                <label class="text-xs font-medium text-gray-700 text-center">Weight (kg)</label>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <input type="number" step="0.01" id="modal_lsl_weight" placeholder="LSL"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                    <input type="number" step="0.01" id="modal_tgt_weight" placeholder="TGT"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center font-medium focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                    <input type="number" step="0.01" id="modal_usl_weight" placeholder="USL"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                </div>
+                            </div>
+
+                            <!-- Roll Dia -->
+                            <div class="flex flex-col gap-2 p-3 border-b border-r border-gray-300 bg-white">
+                                <label class="text-xs font-medium text-gray-700 text-center">Roll Dia (mm)</label>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <input type="number" step="0.01" id="modal_lsl_roll_dia" placeholder="LSL"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                    <input type="number" step="0.01" id="modal_tgt_roll_dia" placeholder="TGT"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center font-medium focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                    <input type="number" step="0.01" id="modal_usl_roll_dia" placeholder="USL"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                </div>
+                            </div>
+
+                            <!-- GSM -->
+                            <div class="flex flex-col gap-2 p-3 border-b border-gray-300 bg-white">
+                                <label class="text-xs font-medium text-gray-700 text-center">GSM (g/m²)</label>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <input type="number" step="0.01" id="modal_lsl_gsm" placeholder="LSL"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                    <input type="number" step="0.01" id="modal_tgt_gsm" placeholder="TGT"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center font-medium focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                    <input type="number" step="0.01" id="modal_usl_gsm" placeholder="USL"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                </div>
+                            </div>
+
+                            <!-- Thickness -->
+                            <div class="flex flex-col gap-2 p-3 border-r border-gray-300 bg-white">
+                                <label class="text-xs font-medium text-gray-700 text-center">Thickness (μm)</label>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <input type="number" step="0.01" id="modal_lsl_thickness" placeholder="LSL"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                    <input type="number" step="0.01" id="modal_tgt_thickness" placeholder="TGT"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center font-medium focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                    <input type="number" step="0.01" id="modal_usl_thickness" placeholder="USL"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                </div>
+                            </div>
+
+                            <!-- CT -->
+                            <div class="flex flex-col gap-2 p-3 border-r border-gray-300 bg-white">
+                                <label class="text-xs font-medium text-gray-700 text-center">CT (mm)</label>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <input type="number" step="0.01" id="modal_lsl_ct" placeholder="LSL"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                    <input type="number" step="0.01" id="modal_tgt_ct" placeholder="TGT"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center font-medium focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                    <input type="number" step="0.01" id="modal_usl_ct" placeholder="USL"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                </div>
+                            </div>
+
+                            <!-- Core ID -->
+                            <div class="flex flex-col gap-2 p-3 border-r border-gray-300 bg-white">
+                                <label class="text-xs font-medium text-gray-700 text-center">Core ID (mm)</label>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <input type="number" step="0.01" id="modal_lsl_paper_core_id" placeholder="LSL"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                    <input type="number" step="0.01" id="modal_tgt_paper_core_id" placeholder="TGT"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center font-medium focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                    <input type="number" step="0.01" id="modal_usl_paper_core_id" placeholder="USL"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                </div>
+                            </div>
+
+                            <!-- Core OD -->
+                            <div class="flex flex-col gap-2 p-3 bg-white">
+                                <label class="text-xs font-medium text-gray-700 text-center">Core OD (mm)</label>
+                                <div class="grid grid-cols-3 gap-1">
+                                    <input type="number" step="0.01" id="modal_lsl_paper_core_od" placeholder="LSL"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                    <input type="number" step="0.01" id="modal_tgt_paper_core_od" placeholder="TGT"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center font-medium focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                    <input type="number" step="0.01" id="modal_usl_paper_core_od" placeholder="USL"
+                                        class="px-2 py-1 border border-gray-300 rounded text-sm text-center focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Actions -->
+                    <div class="col-span-full flex justify-end mt-4">
+                        <button type="button" id="cancelProductModal"
+                            class="mr-3 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            Cancel
+                        </button>
+                        <button type="submit" id="saveProductBtn"
+                            class="px-6 py-2 text-sm font-medium text-white bg-[#002E7D] rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#002E7D]">
+                            Save Product
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Product Delete Confirmation Modal -->
+    <div id="productDeleteModal"
+        class="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl p-5 max-w-xs w-[90%] shadow-2xl text-center">
+            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                    </path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mb-2">Delete Product?</h3>
+            <p class="text-sm text-gray-600 mb-5">Are you sure you want to delete <span id="deleteProductName"
+                    class="font-bold text-gray-800"></span>?</p>
+            <div class="flex gap-3">
+                <button id="cancelProductDelete"
+                    class="flex-1 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 font-semibold text-sm">Cancel</button>
+                <button id="confirmProductDelete"
+                    class="flex-1 py-2 bg-red-600 rounded-lg text-white font-semibold text-sm">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../js/toast.js"></script>
+    <script type="module" src="../js/qc-utilities.js"></script>
+</body>
+
+</html>

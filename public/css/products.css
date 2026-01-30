@@ -288,3 +288,21 @@
         font-size: 1.5rem;
     }
 }
+
+/* 1366p specific styling - single line display for technical specifications */
+@media (min-width: 1366px) and (max-width: 1366px) {
+    .spec-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2rem;
+    }
+    
+    .spec-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .spec-icon {
+        margin: 0 auto;
+    }
+}

@@ -1,4 +1,5 @@
 import { supabase } from '../supabase-config.js';
+import { showToast, storePendingToast } from './toast.js';
 
 /**
  * Generate a UUID v4 string
@@ -165,7 +166,7 @@ function debounce(func, wait) {
 const parseNum = (val) => NumericUtils.parse(val);
 const validateNumericInput = (value, columnName) => {
   if (!NumericUtils.validate(value, columnName)) {
-    alert(`Invalid input for ${columnName}. Please enter a valid number.`);
+    showToast(`Invalid input for ${columnName}. Please enter a valid number.`, 'warning');
     return false;
   }
   return true;
@@ -1019,12 +1020,12 @@ function refreshLiveBalances(skipRender = false) {
  */
 async function addNewRowsToDatabase(count = 1) {
   if (isProcessing) {
-    alert('Please wait for current operation to complete');
+    showToast('Please wait for current operation to complete', 'warning');
     return;
   }
 
   if (!currentHeaderId) {
-    alert('No header selected. Please create a production header first.');
+    showToast('No header selected. Please create a production header first.', 'warning');
     return;
   }
 
@@ -1109,7 +1110,10 @@ function updateExistingRowsStdWeight() {
  */
 async function saveAllMaterialData() {
   if (isSaving || isProcessing) return;
-  if (!currentHeaderId) return alert('No header selected');
+  if (!currentHeaderId) {
+    showToast('No header selected', 'warning');
+    return;
+  }
 
   try {
     // --- VALIDATION: CHECK IF MATERIAL NAME AND TRACK ID ARE PRESENT FOR ROWS WITH QUANTITY ---
@@ -1118,7 +1122,7 @@ async function saveAllMaterialData() {
       const qtyUsed = parseNum(row.qty_used);
       if (qtyUsed > 0) {
         if (!row.material_name) {
-          alert(`Row ${i + 1}: Material name is required if quantity is entered.`);
+          showToast(`Row ${i + 1}: Material name is required if quantity is entered.`, 'warning');
           return;
         }
         // track_id is now auto-assigned or generated on the fly. 
@@ -1163,7 +1167,7 @@ async function saveAllMaterialData() {
         saveBtn.innerHTML = '<i class="fas fa-save fa-xs"></i> Save All';
         saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
       }
-      return alert('No data to save.');
+      return showToast('No data to save.', 'info');
     }
 
     // --- CONSOLIDATED SAVE PROCESS (New & Existing Rows via RPC) ---
@@ -1280,13 +1284,13 @@ async function saveAllMaterialData() {
       dailyLogData.id = logResult[0].id;
     }
 
-    alert('✅ All data saved successfully!');
+    showToast('All data saved successfully!', 'success');
     materialData = [];
     await loadMaterialData();
 
   } catch (err) {
     console.error(err);
-    alert('Error: ' + err.message);
+    showToast('Error: ' + err.message, 'error');
   } finally {
     isSaving = false;
     isProcessing = false;
@@ -1312,12 +1316,12 @@ async function saveAllMaterialData() {
  */
 async function deleteTopRow() {
   if (isProcessing) {
-    alert('Please wait for current operation to complete');
+    showToast('Please wait for current operation to complete', 'warning');
     return;
   }
 
   if (materialData.length === 0) {
-    alert('No rows to delete');
+    showToast('No rows to delete', 'info');
     return;
   }
 
@@ -1335,12 +1339,12 @@ async function deleteTopRow() {
 
       if (error) {
         console.error('Error deleting from database:', error);
-        alert('Failed to delete row from database');
+        showToast('Failed to delete row from database', 'error');
         return;
       }
     } catch (err) {
       console.error('Error deleting row:', err);
-      alert('Failed to delete row');
+      showToast('Failed to delete row', 'error');
       return;
     }
   }
@@ -1624,7 +1628,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (!currentHeaderId || currentHeaderId === 'undefined' || currentHeaderId.trim() === '') {
     // Missing header ID - redirect to list page
-    alert('❌ Error: No production record ID provided. Please select a record from the list.');
+    showToast('Error: No production record ID provided. Please select a record from the list.', 'error');
     window.location.href = 'pd-material-consumption.html';
     return;
   }
@@ -1650,7 +1654,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (addRowsBtn) {
       addRowsBtn.addEventListener('click', () => {
         if (isProcessing) {
-          alert('Please wait for current operation to complete');
+          showToast('Please wait for current operation to complete', 'warning');
           return;
         }
         addNewRowsToDatabase(1);
@@ -1661,7 +1665,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (deleteTopBtn) {
       deleteTopBtn.addEventListener('click', () => {
         if (isProcessing) {
-          alert('Please wait for current operation to complete');
+          showToast('Please wait for current operation to complete', 'warning');
           return;
         }
         deleteTopRow();
@@ -1672,7 +1676,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (saveAllBtn) {
       saveAllBtn.addEventListener('click', () => {
         if (isProcessing) {
-          alert('Please wait for current operation to complete');
+          showToast('Please wait for current operation to complete', 'warning');
           return;
         }
         saveAllMaterialData();
@@ -1745,7 +1749,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   } catch (err) {
     console.error('Fatal error during page initialization:', err);
-    alert('❌ Failed to load page. Error: ' + (err.message || JSON.stringify(err)));
+    showToast('Failed to load page. Error: ' + (err.message || JSON.stringify(err)), 'error');
   }
 });
 
@@ -1996,7 +2000,7 @@ function createRejectTableListeners(tableId, rowsArray) {
 
     let val = target.textContent.trim();
     if (col === 'qty' && val && isNaN(parseFloat(val))) {
-      alert('Please enter a valid number for Qty');
+      showToast('Please enter a valid number for Qty', 'warning');
       target.textContent = rowsArray[rowIdx][col] || '';
       return;
     }

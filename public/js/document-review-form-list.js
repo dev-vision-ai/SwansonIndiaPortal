@@ -1,4 +1,5 @@
 import { supabase } from '../supabase-config.js';
+import { showToast, storePendingToast } from './toast.js';
 
 /**
  * DCC Review Form Logic (copy for list page)
@@ -11,7 +12,7 @@ async function fetchDCNsForReview() {
     try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-            console.error('User not logged in');
+            showToast('User not logged in. Please log in to continue.', 'error');
             return;
         }
 
@@ -27,6 +28,7 @@ async function fetchDCNsForReview() {
 
         if (error) {
             console.error('Error fetching DCNs:', error);
+            showToast('Error loading DCNs. Please try again.', 'error');
             return;
         }
 
@@ -61,6 +63,7 @@ async function fetchDCNsForReview() {
         renderDCNReviewTable(userAssignedDCNs);
     } catch (err) {
         console.error('Error in fetchDCNsForReview:', err);
+        showToast('Error loading DCNs. Please try again.', 'error');
     }
 }
 
@@ -273,7 +276,7 @@ async function viewDCN(dcnId, dcnNo, isViewOnly) {
         window.location.href = `../html/document-review-form.html?id=${dcnId}&action=view`;
     } catch (err) {
         console.error('Error viewing DCN:', err);
-        alert('Error opening DCN');
+        showToast('Error opening DCN. Please try again.', 'error');
     }
 }
 
@@ -319,7 +322,7 @@ async function approveDCN(dcnId, dcnNo) {
             .single();
 
         if (dcnError || !dcn) {
-            alert('Error: Could not verify DCN assignment');
+            showToast('Error: Could not verify DCN assignment', 'error');
             return;
         }
 
@@ -347,7 +350,7 @@ async function approveDCN(dcnId, dcnNo) {
         }
 
         if (!isAssigned) {
-            alert('Error: You are not assigned to review this DCN');
+            showToast('Error: You are not assigned to review this DCN', 'error');
             return;
         }
 
@@ -391,12 +394,12 @@ async function approveDCN(dcnId, dcnNo) {
         if (error) throw error;
 
         // Show success message in the compact modal instead of browser alert
-        await showModalMessage(`DCN ${dcnNo} approved successfully!`);
+        showToast(`DCN ${dcnNo} approved successfully!`, 'success');
         // Refresh the table
         fetchDCNsForReview();
     } catch (err) {
         console.error('Error approving DCN:', err);
-        alert(`Error approving DCN: ${err.message}`);
+        showToast(`Error approving DCN: ${err.message}`, 'error');
     }
 }
 
@@ -442,7 +445,7 @@ async function rejectDCN(dcnId, dcnNo) {
             .single();
 
         if (dcnError || !dcn) {
-            alert('Error: Could not verify DCN assignment');
+            showToast('Error: Could not verify DCN assignment', 'error');
             return;
         }
 
@@ -470,7 +473,7 @@ async function rejectDCN(dcnId, dcnNo) {
         }
 
         if (!isAssigned) {
-            alert('Error: You are not assigned to review this DCN');
+            showToast('Error: You are not assigned to review this DCN', 'error');
             return;
         }
 
@@ -513,71 +516,13 @@ async function rejectDCN(dcnId, dcnNo) {
 
         if (error) throw error;
 
-        await showModalMessage(`DCN ${dcnNo} rejected successfully!`);
+        showToast(`DCN ${dcnNo} rejected successfully!`, 'success');
         // Refresh the table
         fetchDCNsForReview();
     } catch (err) {
         console.error('Error rejecting DCN:', err);
-        alert(`Error rejecting DCN: ${err.message}`);
+        showToast(`Error rejecting DCN: ${err.message}`, 'error');
     }
-}
-
-// --- Form Data Collection ---
-// Form-related functionality removed for list-only page. The list page only renders the table
-// and handles approve/view/reject actions. If you need to reintroduce form submission
-// later, reuse `public/js/document-review-form.js` which contains the full form logic.
-
-/**
- * Show a simple message-only modal using the existing compact confirmation modal.
- * Returns a Promise that resolves when the user clicks OK.
- */
-function showModalMessage(message) {
-    return new Promise((resolve) => {
-        try {
-            const modal = document.getElementById('dcnConfirmationModal');
-            const messageEl = document.getElementById('dcnConfirmationMessage');
-            const confirmBtn = document.getElementById('dcnConfirmYes');
-            const cancelBtn = document.getElementById('dcnConfirmNo');
-
-            if (!modal || !messageEl || !confirmBtn || !cancelBtn) {
-                // Fallback to alert if modal elements are not available
-                alert(message);
-                resolve();
-                return;
-            }
-
-            // Save original states to restore later
-            const origCancelDisplay = cancelBtn.style.display || '';
-            const origConfirmText = confirmBtn.textContent || '';
-            const origConfirmMargin = confirmBtn.style.margin || '';
-
-            // Configure modal for message-only display
-            messageEl.textContent = message;
-            cancelBtn.style.display = 'none';
-            confirmBtn.textContent = 'OK';
-            confirmBtn.style.margin = '0 auto';
-
-            // Show modal
-            modal.style.display = 'flex';
-
-            const handleOk = () => {
-                // Hide modal and restore original button states
-                modal.style.display = 'none';
-                confirmBtn.removeEventListener('click', handleOk);
-                // restore
-                cancelBtn.style.display = origCancelDisplay;
-                confirmBtn.textContent = origConfirmText;
-                confirmBtn.style.margin = origConfirmMargin;
-                resolve();
-            };
-
-            confirmBtn.addEventListener('click', handleOk);
-        } catch (err) {
-            console.error('showModalMessage error:', err);
-            alert(message);
-            resolve();
-        }
-    });
 }
 
 // --- DOM Content Loaded ---

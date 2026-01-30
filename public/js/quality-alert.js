@@ -47,6 +47,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     setupFormEventListeners(userId);
 
+    // Add back button navigation
+    const backButton = document.querySelector('.header-back-button');
+    if (backButton) {
+        backButton.addEventListener('click', function() {
+            window.location.href = 'employee-dashboard.html';
+        });
+    }
+
     // Check if we are editing a draft
     const urlParams = new URLSearchParams(window.location.search);
     const draftId = urlParams.get('id');

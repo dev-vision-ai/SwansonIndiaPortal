@@ -814,8 +814,8 @@ function showModalMessage(message) {
             const cancelBtn = document.getElementById('dcnConfirmNo');
 
             if (!modal || !messageEl || !confirmBtn || !cancelBtn) {
-                // Fallback to alert if modal elements are not available
-                alert(message);
+                // Fallback to toast if modal elements are not available
+                showToast(message, 'info');
                 resolve();
                 return;
             }
@@ -862,7 +862,7 @@ function showModalMessage(message) {
             confirmBtn.addEventListener('click', handleOk);
         } catch (err) {
             console.error('showModalMessage error:', err);
-            alert(message);
+            showToast(message, 'info');
             resolve();
         }
     });

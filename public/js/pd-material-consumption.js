@@ -1,4 +1,5 @@
 import { supabase } from '../supabase-config.js';
+import { showToast, storePendingToast } from './toast.js';
 
 const PD_ROWS_PER_PAGE = 8;
 let currentSort = { column: 'date', direction: 'desc' };
@@ -255,26 +256,26 @@ function handleButtonActions(e) {
 
     if (button.classList.contains('view-btn')) {
       if (!recordId) {
-        alert('❌ Error: Could not find record ID. Please refresh and try again.');
+        showToast('Error: Could not find record ID. Please refresh and try again.', 'error');
         return;
       }
       window.location.href = `pd_material_consumption_view.html?id=${recordId}&action=view`;
     } else if (button.classList.contains('edit-btn')) {
       if (!recordId) {
-        alert('❌ Error: Could not find record ID. Please refresh and try again.');
+        showToast('Error: Could not find record ID. Please refresh and try again.', 'error');
         return;
       }
       editRecordInModal(recordId);
     } else if (button.classList.contains('add-data-btn')) {
       if (!recordId || recordId === 'undefined') {
-        alert('❌ Error: Could not find record ID. Please try again.');
+        showToast('Error: Could not find record ID. Please try again.', 'error');
         console.error('Invalid recordId for add-data-btn:', recordId, 'Button:', button);
         return;
       }
       window.location.href = `pd-material-consumption-data.html?id=${recordId}&action=add`;
     } else if (button.classList.contains('delete-btn')) {
       if (!recordId) {
-        alert('❌ Error: Could not find record ID. Please refresh and try again.');
+        showToast('Error: Could not find record ID. Please refresh and try again.', 'error');
         return;
       }
       if (confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
@@ -294,12 +295,12 @@ async function editRecordInModal(recordId) {
 
     if (error) {
       console.error('Error fetching record for editing:', error);
-      alert('Failed to load record for editing: ' + (error.message || JSON.stringify(error)));
+      showToast('Failed to load record for editing: ' + (error.message || JSON.stringify(error)), 'error');
       return;
     }
 
     if (!record) {
-      alert('Record not found.');
+      showToast('Record not found.', 'error');
       return;
     }
 
@@ -341,7 +342,7 @@ async function editRecordInModal(recordId) {
 
   } catch (err) {
     console.error('Error loading record for editing:', err);
-    alert('Failed to load record for editing. See console for details.');
+    showToast('Failed to load record for editing. See console for details.', 'error');
   }
 }
 
@@ -358,18 +359,18 @@ async function deleteRecord(recordId) {
 
     if (error) {
       console.error('Error deleting record:', error);
-      alert('Failed to delete record: ' + (error.message || JSON.stringify(error)));
+      showToast('Failed to delete record: ' + (error.message || JSON.stringify(error)), 'error');
       return;
     }
 
-    alert('Record deleted successfully!');
+    showToast('Record deleted successfully!', 'success');
     
     // Refresh the table
     await fetchJobCostRecords();
     
   } catch (err) {
     console.error('Error deleting record:', err);
-    alert('Failed to delete record. See console for details.');
+    showToast('Failed to delete record. See console for details.', 'error');
   } finally {
     isProcessing = false;
   }
@@ -408,9 +409,9 @@ async function fetchJobCostRecords(filters = null) {
 
     if (error) {
       if (error.code === 'PGRST116') {
-        showMessage('Table does not exist. Ensure pd_material_consumption_records table is created in Supabase.');
+        showToast('Table does not exist. Ensure pd_material_consumption_records table is created in Supabase.', 'error');
       } else {
-        showError('Failed to load production material consumption records.');
+        showToast('Failed to load production material consumption records.', 'error');
       }
       return;
     }
@@ -439,7 +440,7 @@ async function fetchJobCostRecords(filters = null) {
     pdCurrentPage = 1;
 
     if (jobCostRecordsData.length === 0) {
-      showMessage(hasFilters ? 'No records found matching the filters.' : 'No production material consumption records found. Create your first record.');
+      showToast(hasFilters ? 'No records found matching the filters.' : 'No production material consumption records found. Create your first record.', 'info');
     } else {
       renderTable(jobCostRecordsData);
       // Only populate filters on initial load (when no filters are active)
@@ -449,10 +450,12 @@ async function fetchJobCostRecords(filters = null) {
         populateCustomerFilter();
       }
     }
+    populateProductFilter();
+    populateCustomerFilter();
 
   } catch (error) {
     console.error('Error fetching production material consumption records:', error);
-    showError('Failed to load production material consumption records. Please try again.');
+    showToast('Failed to load production material consumption records. Please try again.', 'error');
   } finally {
     const tbody = document.getElementById('jobCostRecordsTableBody');
     if (tbody) tbody.classList.remove('loading');
@@ -585,28 +588,6 @@ function setupAutocompleteEventListeners(inputElement, getDropdown, cleanup = nu
   });
 }
 
-/**
- * Display an inline error row in the job cost records table
- * @param {string} message
- */
-function showError(message) {
-  const tbody = document.getElementById('jobCostRecordsTableBody');
-  if (tbody) {
-    tbody.innerHTML = `<tr class="error-row"><td colspan="10" class="text-center py-8 text-red-600">${message}</td></tr>`;
-  }
-}
-
-/**
- * Display an inline informational/empty-state row in the job cost records table
- * @param {string} message
- */
-function showMessage(message) {
-  const tbody = document.getElementById('jobCostRecordsTableBody');
-  if (tbody) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="10" class="text-center py-8 text-gray-500 w-full">${message}</td></tr>`;
-  }
-}
-
 setupEventListeners();
 
 // --- Daily Stock Overlay handlers ---
@@ -688,7 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Minimal validation
       if (!date) {
-        alert('Please select a date.');
+        showToast('Please select a date.', 'warning');
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.textContent = form.dataset.isEdit === 'true' ? 'Update' : 'Create';
@@ -745,15 +726,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (error) {
           console.error('Error saving production material consumption header record:', error);
-          alert(`Failed to ${form.dataset.isEdit === 'true' ? 'update' : 'create'} header record: ` + (error.message || JSON.stringify(error)));
+          showToast(`Failed to ${form.dataset.isEdit === 'true' ? 'update' : 'create'} header record: ` + (error.message || JSON.stringify(error)), 'error');
           return;
         }
 
-        // Extract the first record from the array (select() returns an array)
         const dbRecord = dbRecordArray && dbRecordArray.length > 0 ? dbRecordArray[0] : null;
         
         if (!dbRecord) {
-          alert('Error: Database did not return a record. Please try again.');
+          showToast('Error: Database did not return a record. Please try again.', 'error');
           return;
         }
 
@@ -807,10 +787,10 @@ document.addEventListener('DOMContentLoaded', () => {
         delete form.dataset.isEdit;
         delete form.dataset.editId;
 
-        alert(`Daily stock record ${form.dataset.isEdit === 'true' ? 'updated' : 'created'} successfully!`);
+        showToast(`Daily stock record ${form.dataset.isEdit === 'true' ? 'updated' : 'created'} successfully!`, 'success');
       } catch (err) {
         console.error('Error saving daily stock record:', err);
-        alert('Failed to save record. See console for details.');
+        showToast('Failed to save record. See console for details.', 'error');
       } finally {
         isProcessing = false;
         // Re-enable submit button
