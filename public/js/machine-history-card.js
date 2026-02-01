@@ -462,7 +462,8 @@ async function exportToExcel() {
       inspectioncheckedby: r.verified_by,
       inspectionresult: r.status === 'Completed' ? 'Accepted' : 'Pending',
       recoatingdate: r.recoatingdate,
-      regrindingdate: r.regrindingdate
+      regrindingdate: r.regrindingdate,
+      total_bd_time: r.total_bd_time
     }));
 
     const baseUrl = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')

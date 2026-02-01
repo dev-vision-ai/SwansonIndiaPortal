@@ -192,7 +192,14 @@
                             <option value="PLASTIC">PLASTIC</option>
                         </select>
                     </div>
-                    <div class="md:col-span-3 flex justify-end gap-3 mt-6">
+                    <div class="md:col-span-3 flex items-center justify-end gap-3 mt-6">
+                        <div id="rtcisManagerButton" class="hidden mr-auto"
+                            data-department="Quality Assurance, Quality Control" data-user-level="1">
+                            <a href="rtcis-manager.html"
+                                class="inline-flex items-center justify-center py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                                <i class="fas fa-cog mr-2"></i>Manage Labels Data
+                            </a>
+                        </div>
                         <button type="button" id="clearRTCISData"
                             class="inline-flex justify-center py-3 px-6 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 hover:shadow-md">
                             <i class="fas fa-trash-alt mr-2"></i>Clear Data
@@ -204,15 +211,6 @@
                     </div>
                 </form>
             </div>
-        </div>
-
-        <!-- Small Navigator for RTCIS Label Manager -->
-        <div id="rtcisManagerButton" class="mt-4 pb-4 hidden" data-department="Quality Assurance, Quality Control"
-            data-user-level="1">
-            <a href="rtcis-manager.html"
-                class="inline-flex items-center justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#002E7D] hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
-                <i class="fas fa-cog mr-2"></i>Manage RTCIS Labels
-            </a>
         </div>
     </main>
 

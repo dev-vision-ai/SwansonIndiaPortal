@@ -929,12 +929,10 @@ function validateForm() {
 // DATA COLLECTION HELPERS
 // ==========================================
 
+/** Collect checked values into an array */
 function collectCheckboxValues(name) {
-    const values = {};
-    document.querySelectorAll(`input[name="${name}"]`).forEach(cb => {
-        values[cb.id || cb.value] = cb.checked;
-    });
-    return values;
+    return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`))
+        .map(cb => (cb.value && cb.value !== 'on') ? cb.value : cb.id);
 }
 
 function collectMaterialsUsed() {

@@ -434,7 +434,8 @@ async function handleFormSubmit(e) {
         };
 
         // Arrays (Breakdown Codes & Materials)
-        formData.breakdowncodes = Array.from(document.querySelectorAll('input[name="breakdownCode"]:checked')).map(cb => cb.value);
+        formData.breakdowncodes = Array.from(document.querySelectorAll('input[name="breakdownCode"]:checked'))
+            .map(cb => (cb.value && cb.value !== 'on') ? cb.value : cb.id);
 
         const materials = [];
         for (let i = 1; i <= 8; i++) {

@@ -910,113 +910,146 @@ function synchronizeViewModeAcrossPages() {
 
 }
 
-// Function to apply input validation and formatting (like 16 GSM Kranti)
-function applyInputValidation(input, tableBodyId, columnIndex) {
+const SUMMARY_LABELS = ['Average', 'Minimum', 'Maximum'];
+const TABLE_PAGE_ORDER = ['testingTableBody', 'testingTableBody2', 'testingTableBody3'];
 
-    
-    // Apply specific validation for sample columns (like 16 GSM Kranti)
-    if (tableBodyId === 'testingTableBody') {
-        if (columnIndex === 0) {
-            // Lot & Roll column - apply 16 GSM Kranti validation
-            applyLotRollValidation(input);
-        } else if (columnIndex === 1) {
-            // Roll ID column - apply 16 GSM Kranti validation
-            applyRollIDValidation(input);
-        } else if (columnIndex === 2) {
-            // Lot Time column - apply 16 GSM Kranti validation
-            applyLotTimeValidation(input);
-        } else if (columnIndex > 2) {
-            // Data columns - apply numeric validation and OOS validation
-            let value = input.value;
-            value = value.replace(/[^0-9.-]/g, '');
-            input.value = value;
-            
-            // Apply OOS validation based on column index
-            let columnType = '';
-            if (columnIndex === 3) {
-                columnType = 'filmWeight'; // Film Weight column
-            } else if (columnIndex === 4) {
-                columnType = 'thickness'; // Thickness column
-            } else if (columnIndex === 5) {
-                columnType = 'wettability'; // Wettability column
-            } else if (columnIndex === 6) {
-                columnType = 'cofRR'; // COF (R-R) column
-            } else if (columnIndex === 7) {
-                columnType = 'cofCC'; // COF (C-C) column
-            } else if (columnIndex === 8) {
-                columnType = 'tensileBreak'; // Tensile Break column
-            } else if (columnIndex === 9) {
-                columnType = 'elongation'; // MD Elongation Break column
-            } else if (columnIndex === 10) {
-                columnType = 'modulus10'; // 10% Modulus column
-            }
-            
-            if (columnType) {
-                applyOOSValidation(input, columnType);
-                
-                // Add input event listener for real-time OOS validation
-                input.addEventListener('input', function() {
-                    applyOOSValidation(this, columnType);
-                });
-            }
-        }
-    } else if (tableBodyId === 'testingTableBody2') {
-        // Page 2 validation
-        if (columnIndex === 0) {
-            // Lot & Roll column - apply 16 GSM Kranti validation
-            applyLotRollValidation(input);
-        } else if (columnIndex === 1) {
-            // Roll ID column - apply 16 GSM Kranti validation
-            applyRollIDValidation(input);
-        } else if (columnIndex === 2) {
-            // Lot Time column - apply 16 GSM Kranti validation
-            applyLotTimeValidation(input);
-        } else if (columnIndex > 2) {
-            // Data columns - apply numeric validation and OOS validation
-            let value = input.value;
-            value = value.replace(/[^0-9.-]/g, '');
-            input.value = value;
-            
-            // Apply OOS validation based on column index
-            let columnType = '';
-            if (columnIndex === 3) {
-                columnType = 'tensileBreak'; // Tensile Break
-            } else if (columnIndex === 4) {
-                columnType = 'cdElongation'; // CD Elongation Break
-            } else if (columnIndex === 5) {
-                columnType = 'modulus10'; // 10% Modulus
-            } else if (columnIndex === 6) {
-                columnType = 'opacity'; // Opacity
-            } else if (columnIndex === 7) {
-                columnType = 'rollWidth'; // Roll Cut Width
-            } else if (columnIndex === 8) {
-                columnType = 'diameter'; // Diameter
-            }
-        } else if (tableBodyId === 'testingTableBody3') {
-            // Page 3 validation is handled in the main validation section (lines 652-686)
-            // Apply OOS validation for Page 3 columns
-            if (columnIndex > 2) {
-                let columnType = '';
-                if (columnIndex === 3) {
-                    columnType = 'colourL';
-                } else if (columnIndex === 4) {
-                    columnType = 'colourA';
-                } else if (columnIndex === 5) {
-                    columnType = 'colourB';
-                } else if (columnIndex === 6) {
-                    columnType = 'deltaE';
-                } else if (columnIndex === 7) {
-                    columnType = 'baseFilmPink';
-                }
+function isSummaryRow(row) {
+    const firstCell = row?.querySelector?.('td');
+    return !!firstCell && SUMMARY_LABELS.includes(firstCell.textContent.trim());
+}
 
-                if (columnType) {
-                    applyOOSValidation(input, columnType);
-                }
-            }
-        }
+const TABLE_CONFIGS = {
+    testingTableBody: {
+        id: 'testingTableBody',
+        columns: 11,
+        includeSampleInSave: true,
+        sampleColumns: [
+            { index: 0, key: 'lot_and_roll', type: 'lotRoll', editable: true },
+            { index: 1, key: 'roll_id', type: 'rollId', editable: true },
+            { index: 2, key: 'lot_time', type: 'lotTime', editable: true }
+        ],
+        dataColumns: [
+            { index: 3, key: 'page1_basis_weight', oos: 'filmWeight', validator: input => applyFlexibleTwoDecimalValidation(input, { maxBeforeDecimal: 2, maxAfterDecimal: 2 }) },
+            { index: 4, key: 'page1_thickness', oos: 'thickness', validator: applySimpleNumericValidation },
+            { index: 5, key: 'page1_wettability', oos: 'wettability', validator: null },
+            { index: 6, key: 'page1_cof_rr', oos: 'cofRR', validator: applyCOFValidation },
+            { index: 7, key: 'page1_cof_cc', oos: 'cofCC', validator: applyCOFValidation },
+            { index: 8, key: 'page1_tensile_break', oos: 'tensileBreak', validator: applyFourDigitValidation },
+            { index: 9, key: 'page1_elongation', oos: 'elongation', validator: applyThreeDigitValidation },
+            { index: 10, key: 'page1_modulus', oos: 'modulus10', validator: applyThreeDigitValidation }
+        ]
+    },
+    testingTableBody2: {
+        id: 'testingTableBody2',
+        columns: 9,
+        includeSampleInSave: false,
+        sampleColumns: [
+            { index: 0, key: 'lot_and_roll', type: 'lotRoll', editable: false },
+            { index: 1, key: 'roll_id', type: 'rollId', editable: false },
+            { index: 2, key: 'lot_time', type: 'lotTime', editable: false }
+        ],
+        dataColumns: [
+            { index: 3, key: 'page2_tensile_break', oos: 'tensileBreak', validator: applyFourDigitValidation },
+            { index: 4, key: 'page2_cd_elongation', oos: 'cdElongation', validator: applyThreeDigitValidation },
+            { index: 5, key: 'page2_modulus', oos: 'modulus10', validator: applyThreeDigitValidation },
+            { index: 6, key: 'page2_opacity', oos: 'opacity', validator: input => applyFlexibleTwoDecimalValidation(input, { maxBeforeDecimal: 2, maxAfterDecimal: 1 }) },
+            { index: 7, key: 'page2_roll_width', oos: 'rollWidth', validator: applyThreeDigitValidation },
+            { index: 8, key: 'page2_diameter', oos: 'diameter', validator: applyThreeDigitValidation }
+        ]
+    },
+    testingTableBody3: {
+        id: 'testingTableBody3',
+        columns: 8,
+        includeSampleInSave: false,
+        sampleColumns: [
+            { index: 0, key: 'lot_and_roll', type: 'autoRowNumber', editable: false },
+            { index: 1, key: 'roll_id', type: 'autoRowNumber', editable: false },
+            { index: 2, key: 'lot_time', type: 'autoRowNumber', editable: false }
+        ],
+        dataColumns: [
+            { index: 3, key: 'page3_colour_l', oos: 'colourL', validator: applyFlexibleTwoDecimalValidation },
+            { index: 4, key: 'page3_colour_a', oos: 'colourA', validator: applyFlexibleTwoDecimalValidation },
+            { index: 5, key: 'page3_colour_b', oos: 'colourB', validator: applyFlexibleTwoDecimalWithNegativeValidation },
+            { index: 6, key: 'page3_delta_e', oos: 'deltaE', validator: input => applyFlexibleTwoDecimalValidation(input, { maxBeforeDecimal: 1, maxAfterDecimal: 2 }) },
+            { index: 7, key: 'page3_base_film_pink', oos: 'baseFilmPink', validator: input => applyFlexibleTwoDecimalValidation(input, { maxBeforeDecimal: 1, maxAfterDecimal: 2 }) }
+        ]
     }
-    
+};
 
+const OOS_RULES = {
+    filmWeight: { min: 17, max: 20 },
+    thickness: { min: 18, max: 28 },
+    wettability: { min: 360, max: 400 },
+    cofRR: { min: 0.3, max: 0.6 },
+    cofCC: { min: 0.6, max: 1.4 },
+    tensileBreak: { page1: { min: 900, max: 1200 }, page2: { min: 700, max: 1000 } },
+    elongation: { min: 350 },
+    cdElongation: { min: 400 },
+    modulus10: { min: 300 },
+    opacity: { min: 45, max: 55 },
+    rollWidth: { min: 210, max: 213 },
+    diameter: { min: 410, max: 450 },
+    colourL: { min: 55, max: 65 },
+    colourA: { min: 45, max: 55 },
+    colourB: { min: -16, max: -6 },
+    deltaE: { max: 4 },
+    baseFilmPink: { max: 5 }
+};
+
+function getTableConfigById(tableBodyId) {
+    return TABLE_CONFIGS[tableBodyId] || null;
+}
+
+function getColumnConfig(tableBodyId, columnIndex) {
+    const config = getTableConfigById(tableBodyId);
+    if (!config) return null;
+    const sample = config.sampleColumns.find(col => col.index === columnIndex);
+    if (sample) return { kind: 'sample', ...sample };
+    const data = config.dataColumns.find(col => col.index === columnIndex);
+    if (data) return { kind: 'data', ...data };
+    return null;
+}
+
+function sanitizeNumericInput(input) {
+    if (!input) return;
+    input.value = input.value.replace(/[^0-9.-]/g, '');
+}
+
+function getStatsCallback(tableBodyId) {
+    if (tableBodyId === 'testingTableBody2' || tableBodyId === 'testingTableBody3') {
+        return function(el) {
+            const row = el.closest('tr');
+            if (!row) return;
+            const inputIndex = Array.from(row.querySelectorAll('input')).indexOf(el);
+            calculatePage2ColumnStats(document.getElementById(tableBodyId), inputIndex);
+        };
+    }
+    return null;
+}
+
+function ensureOosListener(input, columnType, onInput) {
+    if (!columnType) return;
+    applyOOSValidation(input, columnType);
+    if (!input.hasAttribute('data-oos-listener')) {
+        input.addEventListener('input', function() {
+            applyOOSValidation(this, columnType);
+            if (onInput) onInput(this);
+        });
+        input.setAttribute('data-oos-listener', 'true');
+    }
+}
+
+function applyInputValidation(input, tableBodyId, columnIndex) {
+    const columnConfig = getColumnConfig(tableBodyId, columnIndex);
+    if (!columnConfig) return;
+    if (columnConfig.kind === 'sample') {
+        if (columnConfig.type === 'lotRoll') applyLotRollValidation(input);
+        if (columnConfig.type === 'rollId') applyRollIDValidation(input);
+        if (columnConfig.type === 'lotTime') applyLotTimeValidation(input);
+        return;
+    }
+    sanitizeNumericInput(input);
+    ensureOosListener(input, columnConfig.oos, getStatsCallback(tableBodyId));
 }
 
 // Lot & Roll validation (00-00 format) - from 16 GSM Kranti
@@ -1727,38 +1760,30 @@ function getCurrentProductCode() {
     }
     
 // ===== TABLE OPERATIONS =====
-// Get all table bodies as an array for easier iteration
 function getAllTableBodies() {
-    const testingTableBody = document.getElementById('testingTableBody');
-           const testingTableBody2 = document.getElementById('testingTableBody2');
-           const testingTableBody3 = document.getElementById('testingTableBody3');
-    return [testingTableBody, testingTableBody2, testingTableBody3];
+    return TABLE_PAGE_ORDER.map(id => document.getElementById(id));
 }
 
-// Get table body by page number (1-3)
 function getTableBodyByPage(pageNumber) {
-           switch(pageNumber) {
-        case 1: return document.getElementById('testingTableBody');
-        case 2: return document.getElementById('testingTableBody2');
-        case 3: return document.getElementById('testingTableBody3');
-               default: return null;
-           }
-}
-       
-       // Get column count for a specific table
-function getTableColumnCount(tableBody) {
-           if (tableBody.id === 'testingTableBody') return 11;     // Page 1: 11 columns (3 Sample No + 8 parameters)
-           if (tableBody.id === 'testingTableBody2') return 9;     // Page 2: 9 columns (3 Sample No + 6 parameters)
-           if (tableBody.id === 'testingTableBody3') return 8;     // Page 3: 8 columns (3 Sample No + 5 parameters)
-           return 0;
+    const id = TABLE_PAGE_ORDER[pageNumber - 1];
+    return id ? document.getElementById(id) : null;
 }
 
-// Get columns per row for each table
+function getTableColumnCount(tableBody) {
+    return getTableConfigById(tableBody.id)?.columns || 0;
+}
+
 function getColumnsPerRow(tableBody) {
-    if (tableBody.id === 'testingTableBody') return 11;      // Page 1: 11 columns (3 Sample No + 8 parameters)
-    if (tableBody.id === 'testingTableBody2') return 9;      // Page 2: 9 columns (3 Sample No + 6 parameters)
-    if (tableBody.id === 'testingTableBody3') return 8;      // Page 3: 8 columns (3 Sample No + 5 parameters)
-    return 11; // Default fallback
+    return getTableConfigById(tableBody.id)?.columns || 0;
+}
+
+function getDataRows(tableBody) {
+    if (!tableBody) return [];
+    return Array.from(tableBody.querySelectorAll('tr')).filter(row => !isSummaryRow(row));
+}
+
+function getDataCells(tableBody) {
+    return getDataRows(tableBody).flatMap(row => Array.from(row.querySelectorAll('td')));
 }
 
 // ===== HISTORICAL DATA LOADING =====
@@ -1858,33 +1883,18 @@ function loadHistoricalDataIntoTopRows(historicalData, availableForHistorical) {
         historicalDataKeys: historicalData ? Object.keys(historicalData).slice(0, 5) : []
     }); */
 
-    const allTables = getAllTableBodies();
-    
-
-    allTables.forEach(tableBody => {
+    getAllTableBodies().forEach(tableBody => {
         if (!tableBody) return;
-        
         const rows = Array.from(tableBody.querySelectorAll('tr'));
         let currentRow = 1;
-        // Match 16 GSM Kranti: map top rows to the BOTTOM segment of previous form
         const totalHistoricalRows = getHistoricalTotalRows(historicalData);
         const historicalRowStart = Math.max(1, totalHistoricalRows - availableForHistorical + 1);
         let historicalRow = historicalRowStart;
-        
         const endRow = Math.min(availableForHistorical, rows.length);
-        
         for (let i = 0; i < rows.length && currentRow <= endRow; i++) {
             const row = rows[i];
-            const firstCell = row.querySelector('td');
-            
-            // Skip summary rows
-            if (firstCell && ['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
-                continue;
-            }
-
-            // Load historical data for this row
+            if (isSummaryRow(row)) continue;
             loadHistoricalRowData(row, historicalData, historicalRow);
-            
             currentRow++;
             historicalRow++;
         }
@@ -1900,82 +1910,19 @@ function loadHistoricalRowData(row, historicalData, historicalRow) {
         rowInnerHTML: row?.innerHTML?.substring(0, 100)
     }); */
 
-    if (!row || !historicalData) {
-        
-        return;
-    }
-
+    if (!row || !historicalData) return;
+    const tableBody = row.closest('tbody');
+    if (!tableBody) return;
+    const config = getTableConfigById(tableBody.id);
+    if (!config) return;
     const inputs = row.querySelectorAll('input');
-    
-    const rowKey = String(historicalRow);
-
-    // Load data based on table type
-    
-
-    if (row.closest('#testingTableBody')) {
-        
-        // Page 1 data
-        const lotAndRollVal = getHistoricalCellValue(historicalData, 'lot_and_roll', historicalRow);
-        if (inputs[0] && lotAndRollVal !== undefined && lotAndRollVal !== null && lotAndRollVal !== '') {
-            inputs[0].value = lotAndRollVal;
+    const columns = [...config.sampleColumns, ...config.dataColumns];
+    columns.forEach(col => {
+        const val = getHistoricalCellValue(historicalData, col.key, historicalRow);
+        if (inputs[col.index] && val !== undefined && val !== null && val !== '') {
+            inputs[col.index].value = val;
         }
-        const rollIdVal = getHistoricalCellValue(historicalData, 'roll_id', historicalRow);
-        if (inputs[1] && rollIdVal !== undefined && rollIdVal !== null && rollIdVal !== '') {
-            inputs[1].value = rollIdVal;
-        }
-        const lotTimeVal = getHistoricalCellValue(historicalData, 'lot_time', historicalRow);
-        if (inputs[2] && lotTimeVal !== undefined && lotTimeVal !== null && lotTimeVal !== '') {
-            inputs[2].value = lotTimeVal;
-        }
-        // Load Page 1 data - CORRECTED to match actual HTML structure (8 columns, not 9)
-        const page1Data = [
-            { key: 'page1_basis_weight', inputIndex: 3 }, // Film Weight
-            { key: 'page1_thickness', inputIndex: 4 }, // Thickness
-            { key: 'page1_wettability', inputIndex: 5 }, // Wettability
-            { key: 'page1_cof_rr', inputIndex: 6 }, // COF (R-R)
-            { key: 'page1_cof_cc', inputIndex: 7 }, // COF (C-C)
-            { key: 'page1_tensile_break', inputIndex: 8 }, // Tensile Break
-            { key: 'page1_elongation', inputIndex: 9 }, // MD Elongation Break
-            { key: 'page1_modulus', inputIndex: 10 } // 10% Modulus
-        ];
-        
-        page1Data.forEach(({ key, inputIndex }) => {
-            const val = getHistoricalCellValue(historicalData, key, historicalRow);
-            if (inputs[inputIndex] && val !== undefined && val !== null && val !== '') {
-                inputs[inputIndex].value = val;
-            }
-        });
-    } else if (row.closest('#testingTableBody2')) {
-        // Page 2 data - Load lot_and_roll, roll_id, lot_time for all pages
-        const lotAndRollVal2 = getHistoricalCellValue(historicalData, 'lot_and_roll', historicalRow);
-        if (inputs[0] && lotAndRollVal2 !== undefined && lotAndRollVal2 !== null && lotAndRollVal2 !== '') {
-            inputs[0].value = lotAndRollVal2;
-        }
-        const rollIdVal2 = getHistoricalCellValue(historicalData, 'roll_id', historicalRow);
-        if (inputs[1] && rollIdVal2 !== undefined && rollIdVal2 !== null && rollIdVal2 !== '') {
-            inputs[1].value = rollIdVal2;
-        }
-        const lotTimeVal2 = getHistoricalCellValue(historicalData, 'lot_time', historicalRow);
-        if (inputs[2] && lotTimeVal2 !== undefined && lotTimeVal2 !== null && lotTimeVal2 !== '') {
-            inputs[2].value = lotTimeVal2;
-        }
-        // Load Page 2 specific data
-        const page2Data = [
-            { key: 'page2_tensile_break', inputIndex: 3 },
-            { key: 'page2_cd_elongation', inputIndex: 4 },
-            { key: 'page2_modulus', inputIndex: 5 },
-            { key: 'page2_opacity', inputIndex: 6 },
-            { key: 'page2_roll_width', inputIndex: 7 },
-            { key: 'page2_diameter', inputIndex: 8 }
-        ];
-        
-        page2Data.forEach(({ key, inputIndex }) => {
-            const val = getHistoricalCellValue(historicalData, key, historicalRow);
-            if (inputs[inputIndex] && val !== undefined && val !== null && val !== '') {
-                inputs[inputIndex].value = val;
-            }
-        });
-    }
+    });
 }
 
 function setupHistoricalDataTrigger() {
@@ -2167,172 +2114,73 @@ function getHeaderFormData() {
 
 // Get table data from all tables
 function getTableDataFromAllTables() {
-
-    
     const tableData = {};
-    const allTables = getAllTableBodies();
-    
-    allTables.forEach(tableBody => {
+    getAllTableBodies().forEach(tableBody => {
         if (!tableBody) return;
-        
-        const tableId = tableBody.id;
-        const data = getTableData(tableBody);
-        
-        if (tableId === 'testingTableBody') {
-            // Page 1 data - Sample columns (Lot & Roll, Roll ID, Lot Time)
-            tableData.lot_and_roll = convertColumnToJSONB(tableBody, 0);
-            tableData.roll_id = convertColumnToJSONB(tableBody, 1);
-            tableData.lot_time = convertColumnToJSONB(tableBody, 2);
-            
-            // Page 1 data - CORRECTED to match actual HTML structure
-            tableData.page1_basis_weight = convertColumnToJSONB(tableBody, 3); // Film Weight
-            tableData.page1_thickness = convertColumnToJSONB(tableBody, 4); // Thickness
-            tableData.page1_wettability = convertColumnToJSONB(tableBody, 5); // Wettability
-            tableData.page1_cof_rr = convertColumnToJSONB(tableBody, 6); // COF (R-R)
-            tableData.page1_cof_cc = convertColumnToJSONB(tableBody, 7); // COF (C-C)
-            tableData.page1_tensile_break = convertColumnToJSONB(tableBody, 8); // Tensile Break
-            tableData.page1_elongation = convertColumnToJSONB(tableBody, 9); // MD Elongation Break
-            tableData.page1_modulus = convertColumnToJSONB(tableBody, 10); // 10% Modulus
-        } else if (tableId === 'testingTableBody2') {
-            // Page 2 data - 6 columns (Mechanical Properties)
-            tableData.page2_tensile_break = convertColumnToJSONB(tableBody, 3);
-            tableData.page2_cd_elongation = convertColumnToJSONB(tableBody, 4);
-            tableData.page2_modulus = convertColumnToJSONB(tableBody, 5);
-            tableData.page2_opacity = convertColumnToJSONB(tableBody, 6);
-            tableData.page2_roll_width = convertColumnToJSONB(tableBody, 7);
-            tableData.page2_diameter = convertColumnToJSONB(tableBody, 8);
-        } else if (tableId === 'testingTableBody3') {
-            // Page 3 data - 5 columns (Color Measurements)
-            tableData.page3_colour_l = convertColumnToJSONB(tableBody, 3);
-            tableData.page3_colour_a = convertColumnToJSONB(tableBody, 4);
-            tableData.page3_colour_b = convertColumnToJSONB(tableBody, 5);
-            tableData.page3_delta_e = convertColumnToJSONB(tableBody, 6);
-            tableData.page3_base_film_pink = convertColumnToJSONB(tableBody, 7);
-        }
+        const config = getTableConfigById(tableBody.id);
+        if (!config) return;
+        const columns = config.includeSampleInSave
+            ? [...config.sampleColumns, ...config.dataColumns]
+            : config.dataColumns;
+        columns.forEach(col => {
+            tableData[col.key] = convertColumnToJSONB(tableBody, col.index);
+        });
     });
-    
-
     return tableData;
-       }
-       
-       // Get table data (excluding summary rows)
-       function getTableData(tableBody) {
+}
 
-    
-           const rows = Array.from(tableBody.querySelectorAll('tr'));
-           const dataRows = rows.filter(row => {
-               const firstCell = row.querySelector('td');
-               return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
-           });
-           
-    const tableData = dataRows.map(row => {
-               const inputs = row.querySelectorAll('input');
-               return Array.from(inputs).map(input => input.value);
-           });
-    
+function getTableData(tableBody) {
+    const rows = Array.from(tableBody.querySelectorAll('tr')).filter(row => !isSummaryRow(row));
+    return rows.map(row => Array.from(row.querySelectorAll('input')).map(input => input.value));
+}
 
-    return tableData;
-       }
-       
-              // Load table data
-       function loadTableData(tableBody, data) {
+function loadTableData(tableBody, data) {
+    if (!data || data.length === 0) return;
+    const summaryRows = Array.from(tableBody.querySelectorAll('tr')).filter(row => isSummaryRow(row));
+    if (summaryRows.length === 0) return;
+    const firstSummaryRow = summaryRows[0];
+    data.forEach(rowData => {
+        const tr = document.createElement('tr');
+        tr.className = 'border border-gray-800 px-3 py-2 text-center';
+        rowData.forEach(cellValue => {
+            const td = document.createElement('td');
+            td.className = 'testing-table-cell';
+            td.style.fontSize = '13px';
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'testing-input';
+            input.value = cellValue;
+            input.addEventListener('input', function() {
+                if (!isViewMode()) debouncedSave();
+            });
+            td.appendChild(input);
+            tr.appendChild(td);
+        });
+        tableBody.insertBefore(tr, firstSummaryRow);
+    });
+}
 
-    
-    if (!data || data.length === 0) {
-
-        return;
-    }
-           
-           // Find the first summary row (Average row) to insert data rows before it
-           const summaryRows = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
-               const firstCell = row.querySelector('td');
-               return firstCell && ['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
-           });
-           
-    if (summaryRows.length === 0) {
-
-        return;
-    }
-           
-           const firstSummaryRow = summaryRows[0]; // Average row
-           
-           data.forEach(rowData => {
-               const tr = document.createElement('tr');
-               tr.className = 'border border-gray-800 px-3 py-2 text-center';
-               
-                               rowData.forEach(cellValue => {
-                    const td = document.createElement('td');
-                    td.className = 'testing-table-cell';
-                    td.style.fontSize = '13px';
-                   
-                   const input = document.createElement('input');
-                   input.type = 'text';
-                   input.className = 'testing-input';
-                   input.value = cellValue;
-                   
-            // Add event listener for auto-save
-                   input.addEventListener('input', function() {
-                if (!isViewMode()) {
-                       debouncedSave();
-                       }
-                   });
-                   
-                   td.appendChild(input);
-                   tr.appendChild(td);
-               });
-               
-        // Insert the row BEFORE the first summary row
-               tableBody.insertBefore(tr, firstSummaryRow);
-           });
-           
-
-       }
-       
-       // Clear data rows (excluding summary rows)
-       function clearDataRows(tableBody) {
-
-    
-           const rows = Array.from(tableBody.querySelectorAll('tr'));
-           rows.forEach(row => {
-               const firstCell = row.querySelector('td');
-               if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
-                   row.remove();
-               }
-           });
-    
-
+function clearDataRows(tableBody) {
+    Array.from(tableBody.querySelectorAll('tr')).forEach(row => {
+        if (!isSummaryRow(row)) row.remove();
+    });
 }
 
 // Helper function to add consolidated input event listener
 function addConsolidatedInputListener(input, tableBody, tr, columnIndex) {
-
-    
     input.addEventListener('input', function() {
-        // Block input in view mode
         if (isViewMode()) {
-
             return;
         }
-        
-
-            // Auto-save to database after each change (debounced)
-            debouncedSave();
-            
-            // Apply validation and formatting (like 16 GSM Kranti)
-            applyInputValidation(this, tableBody.id, columnIndex);
-            
-        // Real-time sync for Page 1 sample columns (like 16 GSM Kranti)
+        debouncedSave();
+        applyInputValidation(this, tableBody.id, columnIndex);
         if (tableBody.id === 'testingTableBody' && columnIndex <= 2) {
-            const rowIndex = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
-                const firstCell = row.querySelector('td');
-                return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
-            }).indexOf(tr);
+            const rowIndex = Array.from(tableBody.querySelectorAll('tr')).filter(row => !isSummaryRow(row)).indexOf(tr);
             if (rowIndex !== -1) {
-
                 syncSampleDataToOtherPages(rowIndex, columnIndex, this.value);
             }
         }
-        });
+    });
 }
 
 // Update equipment highlighting based on selections
@@ -2347,7 +2195,6 @@ function updateEquipmentHighlighting() {
     });
 }
 
-// Apply OOS validation and red text highlighting to input values
 function applyOOSValidation(input, columnType) {
     if (!input || !columnType) return;
     
@@ -2371,245 +2218,41 @@ function applyOOSValidation(input, columnType) {
     input.classList.remove('text-red-600');
     input.style.color = '';
     
-    // Apply red text formatting based on column type
-    let shouldHighlight = false;
-    
-    switch(columnType) {
-        // Page 1 parameters
-        case 'filmWeight':
-            // Film Weight: L-17.00 T-18.0 U-20.00 g/m2
-            shouldHighlight = value < 17.00 || value > 20.00;
-            break;
-        case 'thickness':
-            // Thickness: L-18 T-23 U-28 μm
-            shouldHighlight = value < 18 || value > 28;
-            break;
-        case 'wettability':
-            // Wettability: L-360 T-380 U-400 h/cm
-            shouldHighlight = value < 360 || value > 400;
-            break;
-        case 'cofRR':
-            // COF (R-R): L-0.30 T-0.45 U-0.60
-            shouldHighlight = value < 0.30 || value > 0.60;
-            break;
-        case 'cofCC':
-            // COF (C-C): L-0.60 T-0.80 U-1.40
-            shouldHighlight = value < 0.60 || value > 1.40;
-            break;
-        case 'tensileBreak':
-            // Check if this is Page 1 or Page 2 tensileBreak
-            // We need to determine the page based on the input element's context
-            const tableBody = input.closest('tbody');
-            if (tableBody && tableBody.id === 'testingTableBody') {
-                // Page 1: Tensile Break L-900 U-1200 g/25mm
-                shouldHighlight = value < 900 || value > 1200;
-            } else if (tableBody && tableBody.id === 'testingTableBody2') {
-                // Page 2: Tensile Break L-700 U-1000 g/25mm (both limits)
-                shouldHighlight = value < 700 || value > 1000;
-            } else {
-                // Default to Page 1 logic
-                shouldHighlight = value < 900 || value > 1200;
-            }
-            break;
-        case 'elongation':
-            // MD Elongation Break: L-350 %
-            shouldHighlight = value < 350;
-            break;
-        case 'cdElongation':
-            // CD Elongation Break: L-400 % (only lower limit)
-            shouldHighlight = value < 400;
-            break;
-        case 'modulus10':
-            // 10% Modulus: L-300 g/25mm (only lower limit)
-            shouldHighlight = value < 300;
-            break;
-        case 'opacity':
-            // Opacity: L-45.0 T-50.0 U-55.0 (full range)
-            shouldHighlight = value < 45.0 || value > 55.0;
-            break;
-        case 'rollWidth':
-            // Roll Cut Width: T-210 U-213 mm (target and upper limit)
-            shouldHighlight = value < 210 || value > 213;
-            break;
-        case 'diameter':
-            // Diameter: L-410 T-430 U-450 mm (full range)
-            shouldHighlight = value < 410 || value > 450;
-            break;
-        // Page 3 parameters
-        case 'colourL':
-            // Colour L: L-55.00 T-60.00 U-65.00 (Colour units-H)
-            shouldHighlight = value < 55.00 || value > 65.00;
-            break;
-        case 'colourA':
-            // Colour A: L-45.00 T-50.00 U-55.00 (Colour units-H)
-            shouldHighlight = value < 45.00 || value > 55.00;
-            break;
-        case 'colourB':
-            // Colour B: L-(-16.00) T-(-11.00) U-(-6.00) (Colour units-H)
-            shouldHighlight = value < -16.00 || value > -6.00;
-            break;
-        case 'deltaE':
-            // Delta E: T-0.00 U-4.00 (Colour Units-Delta E) - only upper limit
-            shouldHighlight = value > 4.00;
-            break;
-        case 'baseFilmPink':
-            // Base Film White: T-0.00 U-5.00 (Colour Units-Delta E) - only upper limit
-            shouldHighlight = value > 5.00;
-            break;
+    let rule = OOS_RULES[columnType];
+    if (columnType === 'tensileBreak') {
+        const tableBody = input.closest('tbody');
+        if (tableBody && tableBody.id === 'testingTableBody2') {
+            rule = OOS_RULES.tensileBreak.page2;
+        } else {
+            rule = OOS_RULES.tensileBreak.page1;
+        }
     }
+    if (!rule) return;
+    const min = typeof rule.min === 'number' ? rule.min : null;
+    const max = typeof rule.max === 'number' ? rule.max : null;
+    const shouldHighlight = (min !== null && value < min) || (max !== null && value > max);
     
     if (shouldHighlight) {
-        // Apply red text only
         input.classList.add('text-red-600');
     }
 }
 
-// Apply OOS validation to all existing inputs in Page 1, Page 2, and Page 3
 function applyOOSValidationToAllInputs() {
-    // Page 1 validation
-    const testingTableBody = document.getElementById('testingTableBody');
-    if (testingTableBody) {
-        const rows = testingTableBody.querySelectorAll('tr');
-
-        rows.forEach((row, rowIndex) => {
-            const firstCell = row.querySelector('td');
-            if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
-                const inputs = row.querySelectorAll('input');
-
-                inputs.forEach((input, columnIndex) => {
-                    if (columnIndex > 2) { // Data columns only
-                        let columnType = '';
-                        if (columnIndex === 3) {
-                            columnType = 'filmWeight';
-                        } else if (columnIndex === 4) {
-                            columnType = 'thickness';
-                        } else if (columnIndex === 5) {
-                            columnType = 'wettability';
-                        } else if (columnIndex === 6) {
-                            columnType = 'cofRR';
-                        } else if (columnIndex === 7) {
-                            columnType = 'cofCC';
-                        } else if (columnIndex === 8) {
-                            columnType = 'tensileBreak';
-                        } else if (columnIndex === 9) {
-                            columnType = 'elongation';
-                        } else if (columnIndex === 10) {
-                            columnType = 'modulus10';
-                        }
-
-                        if (columnType) {
-                            // Apply validation to current value
-                            applyOOSValidation(input, columnType);
-
-                            // Add real-time validation event listener (only if not already added)
-                            if (!input.hasAttribute('data-oos-listener')) {
-                                input.addEventListener('input', function() {
-                                    applyOOSValidation(this, columnType);
-                                });
-                                input.setAttribute('data-oos-listener', 'true');
-                            }
-                        }
-                    }
-                });
-            }
+    Object.values(TABLE_CONFIGS).forEach(config => {
+        const tableBody = document.getElementById(config.id);
+        if (!tableBody) return;
+        const rows = tableBody.querySelectorAll('tr');
+        const onInput = getStatsCallback(config.id);
+        rows.forEach(row => {
+            if (isSummaryRow(row)) return;
+            const inputs = row.querySelectorAll('input');
+            config.dataColumns.forEach(col => {
+                const input = inputs[col.index];
+                if (!input) return;
+                ensureOosListener(input, col.oos, onInput);
+            });
         });
-    }
-
-    // Page 2 validation
-    const testingTableBody2 = document.getElementById('testingTableBody2');
-    if (testingTableBody2) {
-        const rows = testingTableBody2.querySelectorAll('tr');
-
-        rows.forEach((row, rowIndex) => {
-            const firstCell = row.querySelector('td');
-            if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
-                const inputs = row.querySelectorAll('input');
-
-                inputs.forEach((input, columnIndex) => {
-                    if (columnIndex > 2) { // Data columns only
-                        let columnType = '';
-                        if (columnIndex === 3) {
-                            columnType = 'tensileBreak';
-                        } else if (columnIndex === 4) {
-                            columnType = 'cdElongation';
-                        } else if (columnIndex === 5) {
-                            columnType = 'modulus10';
-                        } else if (columnIndex === 6) {
-                            columnType = 'opacity';
-                        } else if (columnIndex === 7) {
-                            columnType = 'rollWidth';
-                        } else if (columnIndex === 8) {
-                            columnType = 'diameter';
-                        }
-                        if (columnType) {
-                            // Apply validation to current value
-                            applyOOSValidation(input, columnType);
-
-                            // Add real-time validation event listener
-                            input.addEventListener('input', function() {
-                                applyOOSValidation(this, columnType);
-
-                                // Trigger Page 2 calculation for real-time summary updates
-                                if (this.closest('#testingTableBody2')) {
-                                    const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
-                                    calculatePage2ColumnStats(document.getElementById('testingTableBody2'), inputIndex);
-                                }
-                            });
-                        }
-                    }
-                });
-            }
-        });
-    }
-
-    // Page 3 validation
-    const testingTableBody3 = document.getElementById('testingTableBody3');
-    if (testingTableBody3) {
-        const rows = testingTableBody3.querySelectorAll('tr');
-
-        rows.forEach((row, rowIndex) => {
-            const firstCell = row.querySelector('td');
-            if (firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim())) {
-                const inputs = row.querySelectorAll('input');
-
-                inputs.forEach((input, columnIndex) => {
-                    if (columnIndex > 2) { // Data columns only
-                        let columnType = '';
-                        if (columnIndex === 3) {
-                            columnType = 'colourL';
-                        } else if (columnIndex === 4) {
-                            columnType = 'colourA';
-                        } else if (columnIndex === 5) {
-                            columnType = 'colourB';
-                        } else if (columnIndex === 6) {
-                            columnType = 'deltaE';
-                        } else if (columnIndex === 7) {
-                            columnType = 'baseFilmPink';
-                        }
-
-                        if (columnType) {
-                            // Apply validation to current value
-                            applyOOSValidation(input, columnType);
-
-                            // Add real-time validation event listener (only if not already added)
-                            if (!input.hasAttribute('data-oos-listener')) {
-                                input.addEventListener('input', function() {
-                                    applyOOSValidation(this, columnType);
-
-                                    // Trigger Page 3 calculation for real-time summary updates
-                                    if (this.closest('#testingTableBody3')) {
-                                        const inputIndex = Array.from(this.closest('tr').querySelectorAll('input')).indexOf(this);
-                                        calculatePage2ColumnStats(document.getElementById('testingTableBody3'), inputIndex);
-                                    }
-                                });
-                                input.setAttribute('data-oos-listener', 'true');
-                            }
-                        }
-                    }
-                });
-            }
-        });
-    }
+    });
 }
 
 // Get equipment selections
@@ -2648,11 +2291,7 @@ function getEquipmentSelections() {
        function convertColumnToJSONB(tableBody, columnIndex) {
 
     
-           const rows = Array.from(tableBody.querySelectorAll('tr'));
-           const dataRows = rows.filter(row => {
-               const firstCell = row.querySelector('td');
-               return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
-           });
+           const dataRows = getDataRows(tableBody);
            
            const jsonbObject = {};
     
@@ -3893,48 +3532,26 @@ function applyValidationToExistingInputs() {
            allTables.forEach((tableBody, tableIndex) => {
 
         
-               const cells = tableBody.querySelectorAll('td');
-
-               
-               cells.forEach((cell, cellIndex) => {
-                   // Check if this cell is in a summary row (Average, Min, Max)
-                   const row = cell.closest('tr');
-                   const firstCellInRow = row.querySelector('td');
-                   const isSummaryRow = firstCellInRow && ['Average', 'Minimum', 'Maximum'].includes(firstCellInRow.textContent.trim());
-                   
-                   // Skip summary rows - no highlighting or events
-                   if (isSummaryRow) {
-
-                       return;
-                   }
-                   
-                   // Remove any existing event listeners
-                   cell.replaceWith(cell.cloneNode(true));
-                   
-                   // Get the fresh cell reference
-                   const freshCell = tableBody.querySelectorAll('td')[cellIndex];
-                   
-                   // Add click event
-                   freshCell.addEventListener('click', function(e) {
-
-                       e.preventDefault();
-                       highlightCell(this);
-                   });
-                   
-                   // Add keyboard navigation to inputs
-                   const input = freshCell.querySelector('input');
-                   if (input) {
-                       input.addEventListener('keydown', function(e) {
-
-                           // Block keyboard navigation in view mode
-                    if (isViewMode()) {
-
-                               return;
-                           }
-                           
-                           handleKeyboardNavigation(e, freshCell);
+               if (!tableBody) return;
+               const rows = getDataRows(tableBody);
+               rows.forEach(row => {
+                   Array.from(row.querySelectorAll('td')).forEach(cell => {
+                       const freshCell = cell.cloneNode(true);
+                       cell.replaceWith(freshCell);
+                       freshCell.addEventListener('click', function(e) {
+                           e.preventDefault();
+                           highlightCell(this);
                        });
-                   }
+                       const input = freshCell.querySelector('input');
+                       if (input) {
+                           input.addEventListener('keydown', function(e) {
+                               if (isViewMode()) {
+                                   return;
+                               }
+                               handleKeyboardNavigation(e, freshCell);
+                           });
+                       }
+                   });
                });
         
 
@@ -3947,33 +3564,13 @@ function applyValidationToExistingInputs() {
        function handleKeyboardNavigation(e, currentCell) {
 
     
-    const allTables = getAllTableBodies();
-           let allCells = [];
-           
-           // Collect all cells from all tables (excluding summary rows)
-           allTables.forEach(tableBody => {
-               const cells = Array.from(tableBody.querySelectorAll('td'));
-               // Filter out cells in summary rows
-               const dataCells = cells.filter(cell => {
-                   const row = cell.closest('tr');
-                   const firstCellInRow = row.querySelector('td');
-                   return !firstCellInRow || !['Average', 'Minimum', 'Maximum'].includes(firstCellInRow.textContent.trim());
-               });
-               allCells = allCells.concat(dataCells);
-           });
+    const allCells = getAllTableBodies()
+        .flatMap(tableBody => (tableBody ? getDataCells(tableBody) : []));
     
 
            
            const currentIndex = allCells.indexOf(currentCell);
            let nextCell = null;
-           
-           // Define columns per row for each table type
-           const getColumnsPerRow = (tableBody) => {
-               if (tableBody.id === 'testingTableBody') return 11;      // Page 1: 11 columns (3 Sample No + 8 parameters)
-               if (tableBody.id === 'testingTableBody2') return 9;      // Page 2: 9 columns (3 Sample No + 6 parameters)
-               if (tableBody.id === 'testingTableBody3') return 8;      // Page 3: 8 columns (3 Sample No + 5 parameters)
-               return 11; // Default fallback
-           };
            
            // Get the current table and its column count
            const currentTable = currentCell.closest('tbody');
@@ -3987,11 +3584,7 @@ function applyValidationToExistingInputs() {
                    e.preventDefault();
                    // Stay within current page for Tab navigation
                    const tabTable = currentCell.closest('tbody');
-                   const tabTableCells = Array.from(tabTable.querySelectorAll('td')).filter(cell => {
-                       const row = cell.closest('tr');
-                       const firstCellInRow = row.querySelector('td');
-                       return !firstCellInRow || !['Average', 'Minimum', 'Maximum'].includes(firstCellInRow.textContent.trim());
-                   });
+                   const tabTableCells = getDataCells(tabTable);
                    
                    const tabTableIndex = tabTableCells.indexOf(currentCell);
                    
@@ -4011,11 +3604,7 @@ function applyValidationToExistingInputs() {
                    e.preventDefault();
                    // Find cell above (move up by columns per row) but stay within current page
                    const upTable = currentCell.closest('tbody');
-                   const upTableCells = Array.from(upTable.querySelectorAll('td')).filter(cell => {
-                       const row = cell.closest('tr');
-                       const firstCellInRow = row.querySelector('td');
-                       return !firstCellInRow || !['Average', 'Minimum', 'Maximum'].includes(firstCellInRow.textContent.trim());
-                   });
+                   const upTableCells = getDataCells(upTable);
                    
                    const upTableIndex = upTableCells.indexOf(currentCell);
                    const upColumnsPerRow = getColumnsPerRow(upTable);
@@ -4037,11 +3626,7 @@ function applyValidationToExistingInputs() {
                    e.preventDefault();
                    // Find cell below (move down by columns per row) but stay within current page
                    const downTable = currentCell.closest('tbody');
-                   const downTableCells = Array.from(downTable.querySelectorAll('td')).filter(cell => {
-                       const row = cell.closest('tr');
-                       const firstCellInRow = row.querySelector('td');
-                       return !firstCellInRow || !['Average', 'Minimum', 'Maximum'].includes(firstCellInRow.textContent.trim());
-                   });
+                   const downTableCells = getDataCells(downTable);
                    
                    const downTableIndex = downTableCells.indexOf(currentCell);
                    const downColumnsPerRow = getColumnsPerRow(downTable);
@@ -4063,11 +3648,7 @@ function applyValidationToExistingInputs() {
                    e.preventDefault();
                    // Move to previous cell but stay within current page
                    const leftTable = currentCell.closest('tbody');
-                   const leftTableCells = Array.from(leftTable.querySelectorAll('td')).filter(cell => {
-                       const row = cell.closest('tr');
-                       const firstCellInRow = row.querySelector('td');
-                       return !firstCellInRow || !['Average', 'Minimum', 'Maximum'].includes(firstCellInRow.textContent.trim());
-                   });
+                   const leftTableCells = getDataCells(leftTable);
                    
                    const leftTableIndex = leftTableCells.indexOf(currentCell);
                    
@@ -4087,11 +3668,7 @@ function applyValidationToExistingInputs() {
                    e.preventDefault();
                    // Move to next cell but stay within current page
                    const rightTable = currentCell.closest('tbody');
-                   const rightTableCells = Array.from(rightTable.querySelectorAll('td')).filter(cell => {
-                       const row = cell.closest('tr');
-                       const firstCellInRow = row.querySelector('td');
-                       return !firstCellInRow || !['Average', 'Minimum', 'Maximum'].includes(firstCellInRow.textContent.trim());
-                   });
+                   const rightTableCells = getDataCells(rightTable);
                    
                    const rightTableIndex = rightTableCells.indexOf(currentCell);
                    
@@ -4111,11 +3688,7 @@ function applyValidationToExistingInputs() {
                    e.preventDefault();
                    // Move to cell below (next row) but stay within current page
                    const enterTable = currentCell.closest('tbody');
-                   const enterTableCells = Array.from(enterTable.querySelectorAll('td')).filter(cell => {
-                       const row = cell.closest('tr');
-                       const firstCellInRow = row.querySelector('td');
-                       return !firstCellInRow || !['Average', 'Minimum', 'Maximum'].includes(firstCellInRow.textContent.trim());
-                   });
+                   const enterTableCells = getDataCells(enterTable);
                    
                    const enterTableIndex = enterTableCells.indexOf(currentCell);
                    const enterColumnsPerRow = getColumnsPerRow(enterTable);
@@ -4143,12 +3716,7 @@ function applyValidationToExistingInputs() {
        function addHighlightingToRow(row) {
 
     
-           // Check if this row is a summary row (Average, Min, Max)
-           const firstCellInRow = row.querySelector('td');
-           const isSummaryRow = firstCellInRow && ['Average', 'Minimum', 'Maximum'].includes(firstCellInRow.textContent.trim());
-           
-           // Skip summary rows - no highlighting or events
-           if (isSummaryRow) {
+           if (isSummaryRow(row)) {
 
                return;
            }
