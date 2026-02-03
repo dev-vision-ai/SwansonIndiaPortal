@@ -1,0 +1,13 @@
+
+BEGIN
+    IF NEW.qty_balance > 0 THEN
+        UPDATE pd_material_consumption_data
+        SET qty_balance = 0
+        WHERE track_id = NEW.track_id
+          AND header_id = NEW.header_id  -- ONLY zero out rows in the SAME shift/header
+          AND id != NEW.id
+          AND qty_balance != 0
+          AND COALESCE(is_loose, false) = COALESCE(NEW.is_loose, false);
+    END IF;
+    RETURN NEW;
+END;

@@ -39,6 +39,9 @@ function renderTable(data) {
   const tbody = document.getElementById('alertsBody');
   if (!tbody) return;
 
+  // Determine if we are on the employee specific page to hide edit button
+  const isEmployeeView = window.location.pathname.includes('emp-mjr-table.html');
+
   tbody.innerHTML = data.map(requisition => `
     <tr>
       <td>${requisition.requisitionno || 'N/A'}</td>
@@ -55,9 +58,9 @@ function renderTable(data) {
           <button class="p-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-800 hover:text-blue-900 transition-all duration-200 border border-blue-200 hover:border-blue-300 flex-shrink-0" data-uuid="${requisition.id}" title="View Details">
             ${createIcon('view')}
           </button>
-          <button class="p-1 rounded-md bg-purple-50 hover:bg-purple-100 text-purple-600 hover:text-purple-800 transition-all duration-200 border border-purple-200 hover:border-purple-300 flex-shrink-0" data-uuid="${requisition.id}" title="Edit Record">
+          ${!isEmployeeView ? `<button class="p-1 rounded-md bg-purple-50 hover:bg-purple-100 text-purple-600 hover:text-purple-800 transition-all duration-200 border border-purple-200 hover:border-purple-300 flex-shrink-0" data-uuid="${requisition.id}" title="Edit Record">
             ${createIcon('edit')}
-          </button>
+          </button>` : ''}
           <button class="p-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition-all duration-200 border border-indigo-200 hover:border-indigo-300 flex-shrink-0" data-uuid="${requisition.id}" title="Download as Excel">
             ${createIcon('download')}
           </button>
@@ -150,8 +153,10 @@ async function fetchMTJobRequisitions() {
     const alertsBody = document.getElementById('alertsBody');
     if (alertsBody) alertsBody.classList.add('loading');
 
-    // Fetch from mt_job_requisition_master table as requested
-    const { data, error } = await supabase
+    // Determine if we are on the employee specific page
+    const isEmployeeView = window.location.pathname.includes('emp-mjr-table.html');
+
+    let query = supabase
       .from('mt_job_requisition_master')
       .select(`
         id,
@@ -165,6 +170,33 @@ async function fetchMTJobRequisitions() {
         inspectionresult
       `)
       .order('occurdate', { ascending: false });
+
+    // Apply user filter if on employee view
+    if (isEmployeeView) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Fetch user department from profile
+        const { data: profile } = await supabase
+          .from('users')
+          .select('department')
+          .eq('id', user.id)
+          .single();
+
+        if (profile && profile.department) {
+          // Filter by user's department
+          query = query.eq('reqdept', profile.department);
+        } else {
+          // Fallback to user_id if no department found
+          query = query.eq('user_id', user.id);
+        }
+      } else {
+        console.warn('User not logged in on employee view');
+        // Optional: redirect to login
+      }
+    }
+
+    // Execute query
+    const { data, error } = await query;
 
     if (error) {
       console.error("Error fetching MT job requisitions:", error);

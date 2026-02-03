@@ -62,9 +62,9 @@ function renderTable(data) {
       return ''; // Skip rendering this row
     }
 
-    // Reverse Sr No: latest record gets Sr No 1
-    const reversedIndex = totalRecords - (startIndex + index);
-    
+    // Sr No: latest record (row 1) shows the highest count
+    const reversedIndex = data.length > 0 ? jobCostRecordsData.length - (startIndex + index) : 0;
+
     return `
     <tr data-id="${record.id}">
       <td>${reversedIndex}</td>
@@ -107,37 +107,9 @@ function renderTable(data) {
 }
 
 function sortData(column) {
-  if (currentSort.column === column) {
-    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-  } else {
-    currentSort = { column, direction: 'desc' };
-  }
-
-  // Always sort by date descending first (latest on top), then by selected column
-  jobCostRecordsData.sort((a, b) => {
-    // Primary sort: by date descending (latest first)
-    const dateA = new Date(a.date || 0);
-    const dateB = new Date(b.date || 0);
-    const dateDiff = dateB - dateA;
-    
-    if (dateDiff !== 0) return dateDiff; // If dates differ, use date sort
-    
-    // Secondary sort: by selected column if dates are same
-    if (currentSort.column !== 'date') {
-      const modifier = currentSort.direction === 'asc' ? 1 : -1;
-      const aValue = a[currentSort.column];
-      const bValue = b[currentSort.column];
-
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return aValue.localeCompare(bValue) * modifier;
-      } else if (typeof aValue === 'number' && typeof bValue === 'number') {
-        return (aValue - bValue) * modifier;
-      }
-    }
-    return 0;
-  });
-
-  pdCurrentPage = 1; // Reset to first page after sorting
+  // Disabled: We now rely purely on database created_at ordering (latest created first)
+  // No client-side sorting to avoid shuffling records
+  pdCurrentPage = 1;
   renderTable(jobCostRecordsData);
 }
 
@@ -205,7 +177,7 @@ function setupEventListeners() {
   // Setup pagination event listeners
   const prevBtn = document.getElementById('pdPrevPageBtn');
   const nextBtn = document.getElementById('pdNextPageBtn');
-  
+
   if (prevBtn) prevBtn.addEventListener('click', () => {
     if (pdCurrentPage > 1) {
       pdCurrentPage--;
@@ -326,7 +298,7 @@ async function editRecordInModal(recordId) {
     // Change modal title and button text
     const modalTitle = document.querySelector('#dailyStockOverlay h3');
     const submitBtn = document.getElementById('ds_submit');
-    
+
     if (modalTitle) modalTitle.textContent = 'Edit Daily Stock Record';
     if (submitBtn) submitBtn.textContent = 'Update';
 
@@ -348,10 +320,10 @@ async function editRecordInModal(recordId) {
 
 async function deleteRecord(recordId) {
   if (isProcessing) return;
-  
+
   try {
     isProcessing = true;
-    
+
     const { error } = await supabase
       .from('pd_material_consumption_records')
       .delete()
@@ -364,10 +336,10 @@ async function deleteRecord(recordId) {
     }
 
     showToast('Record deleted successfully!', 'success');
-    
+
     // Refresh the table
     await fetchJobCostRecords();
-    
+
   } catch (err) {
     console.error('Error deleting record:', err);
     showToast('Failed to delete record. See console for details.', 'error');
@@ -385,15 +357,15 @@ async function fetchJobCostRecords(filters = null) {
     const tbody = document.getElementById('jobCostRecordsTableBody');
     if (tbody) tbody.classList.add('loading');
 
-    // Build query
+    // Build query - Sort by creation time (latest created first)
     let query = supabase
       .from('pd_material_consumption_records')
       .select('*')
-      .order('production_date', { ascending: false });
+      .order('created_at', { ascending: false });
 
     // Apply filters if provided, otherwise limit to 50
     const hasFilters = filters && Object.values(filters).some(v => v !== '');
-    
+
     if (hasFilters) {
       if (filters.dateFrom) query = query.gte('production_date', filters.dateFrom);
       if (filters.dateTo) query = query.lte('production_date', filters.dateTo);
@@ -429,12 +401,8 @@ async function fetchJobCostRecords(filters = null) {
       specification: record.specification
     }));
 
-    // Ensure latest records are shown first (sort by date descending)
-    jobCostRecordsData.sort((a, b) => {
-      const dateA = new Date(a.date || 0);
-      const dateB = new Date(b.date || 0);
-      return dateB - dateA;
-    });
+    // Trust the Database order (DESC by production_date and ID)
+    // No redundant client-side sort here as it was causing flipping issues
 
     // Reset to first page after fetching
     pdCurrentPage = 1;
@@ -528,7 +496,7 @@ function createAutocompleteDropdown(inputElement, items, onItemClick, dropdownId
     itemElement.className = 'px-3 py-2 hover:bg-blue-200 cursor-pointer text-sm';
     itemElement.textContent = typeof item === 'string' ? item : item.displayText || item;
 
-    itemElement.addEventListener('click', function(e) {
+    itemElement.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
       onItemClick(item, inputElement);
@@ -568,7 +536,7 @@ function createAutocompleteDropdown(inputElement, items, onItemClick, dropdownId
  */
 function setupAutocompleteEventListeners(inputElement, getDropdown, cleanup = null) {
   // Remove dropdown when clicking outside
-  document.addEventListener('click', function(e) {
+  document.addEventListener('click', function (e) {
     const dropdown = getDropdown();
     if (dropdown && !inputElement.contains(e.target) && !dropdown.contains(e.target)) {
       dropdown.remove();
@@ -577,7 +545,7 @@ function setupAutocompleteEventListeners(inputElement, getDropdown, cleanup = nu
   });
 
   // Remove dropdown on blur with delay to allow clicks
-  inputElement.addEventListener('blur', function() {
+  inputElement.addEventListener('blur', function () {
     setTimeout(() => {
       const dropdown = getDropdown();
       if (dropdown) {
@@ -599,7 +567,7 @@ function showDailyStockOverlay() {
 function closeDailyStockOverlay() {
   const ov = document.getElementById('dailyStockOverlay');
   if (ov) ov.classList.add('hidden');
-  
+
   // Clear all form fields
   const form = document.getElementById('dailyStockForm');
   if (form) {
@@ -648,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
     formSubmitAttached = true;
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      
+
       if (isProcessing) return;
 
       // Prevent double submission
@@ -657,7 +625,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Processing...';
       }
-      
+
       const date = document.getElementById('ds_date')?.value || '';
       const prod_code = document.getElementById('ds_prod_code')?.value.trim() || '';
       const customer = document.getElementById('ds_customer')?.value.trim() || '';
@@ -731,7 +699,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const dbRecord = dbRecordArray && dbRecordArray.length > 0 ? dbRecordArray[0] : null;
-        
+
         if (!dbRecord) {
           showToast('Error: Database did not return a record. Please try again.', 'error');
           return;
@@ -756,7 +724,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
           }
         } else {
-          // Add new record to the beginning
+          // Add new record to the array
           const uiRecord = {
             id: dbRecord.id,
             date: date,
@@ -768,10 +736,12 @@ document.addEventListener('DOMContentLoaded', () => {
             customer: customer,
             specification: specification
           };
-          jobCostRecordsData.unshift(uiRecord);
+          jobCostRecordsData.push(uiRecord);
         }
 
-        renderTable(jobCostRecordsData);
+        // Apply robust sorting immediately so the new/updated record goes to its correct home
+        sortData(currentSort.column);
+
         populateMachineFilter();
         populateProductFilter();
         populateCustomerFilter();
@@ -832,7 +802,7 @@ function generateTraceabilityCode(dateStr, machine, shift) {
 
 // Helper: generate a simple UUID v4
 function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0,
       v = c === 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
@@ -851,7 +821,7 @@ async function setupProductCodeAutocomplete() {
   let dropdown = null;
   let lastFetchId = 0;
 
-  prodCodeInput.addEventListener('input', async function() {
+  prodCodeInput.addEventListener('input', async function () {
     const value = this.value.trim();
     const fetchId = ++lastFetchId;
 
@@ -979,7 +949,7 @@ async function setupOperatorSupervisorAutocomplete() {
 function setupNameAutocomplete(inputElement, allNames, fieldType) {
   let dropdown = null;
 
-  inputElement.addEventListener('input', function() {
+  inputElement.addEventListener('input', function () {
     const value = this.value.trim().toLowerCase();
 
     // Remove existing dropdown

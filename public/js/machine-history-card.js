@@ -23,9 +23,9 @@ const tableConfigs = {
       { key: 'equipment_name', header: 'Equipment Name', field: 'equipment_name' },
       { key: 'equipment_installation_date', header: 'Equipment Installation Date', field: 'equipment_installation_date' },
       { key: 'breakdown_description', header: 'Breakdown Descr.', field: 'breakdown_description' },
-      { key: 'start_time', header: 'M/C BD Start Time', field: 'start_time' },
-      { key: 'finish_time', header: 'M/C BD Finish Time', field: 'finish_time' },
-      { key: 'total_bd_time', header: 'Total M/C BD Time', field: 'total_bd_time' },
+      { key: 'start_time', header: 'Start Time', field: 'start_time' },
+      { key: 'finish_time', header: 'Finish Time', field: 'finish_time' },
+      { key: 'total_bd_time', header: 'Total BD Time', field: 'total_bd_time' },
       { key: 'root_cause', header: 'Root Cause', field: 'root_cause' },
       { key: 'corrective_action', header: 'Corrective Action', field: 'corrective_action' },
       { key: 'cost_incurred', header: 'Cost Incurred', field: 'cost_incurred' },
@@ -170,8 +170,8 @@ async function fetchMachineHistory() {
         (record.inspectionresult.toLowerCase().includes('accepted') || record.inspectionresult.toLowerCase().includes('rejected')) ? 'Completed' :
           record.inspectionresult;
 
-      // Construct full DateTime objects for calculation
-      const startDateTime = parseDateTime(record.occurdate, record.occurtime);
+      // Construct full DateTime objects for calculation using schedule dates
+      const startDateTime = parseDateTime(record.schedulestartdate, record.schedulestarttime);
       const endDateTime = parseDateTime(record.scheduleenddate, record.scheduleendtime);
 
       return {
@@ -185,8 +185,8 @@ async function fetchMachineHistory() {
         equipment_installation_date: record.equipmentinstalldate || 'N/A',
         status,
         breakdown_description: record.existingcondition,
-        start_time: record.occurtime?.substring(0, 5) || 'N/A',
-        finish_time: record.scheduleendtime?.substring(0, 5) || 'N/A', // Using Schedule End Time as per Option 2
+        start_time: record.schedulestarttime?.substring(0, 5) || 'N/A', // Using Schedule Start Time
+        finish_time: record.scheduleendtime?.substring(0, 5) || 'N/A', // Using Schedule End Time
         total_bd_time: calculateTotalBDTime(startDateTime, endDateTime),
         root_cause: record.rootcause || 'N/A',
         corrective_action: record.correction || 'N/A',
@@ -198,7 +198,13 @@ async function fetchMachineHistory() {
 
         // Keep raw values for filters if needed
         raw_start_date: startDateTime,
-        raw_end_date: endDateTime
+        raw_end_date: endDateTime,
+        
+        // Raw schedule fields for export
+        schedulestartdate: record.schedulestartdate,
+        schedulestarttime: record.schedulestarttime,
+        scheduleenddate: record.scheduleenddate,
+        scheduleendtime: record.scheduleendtime
       };
     });
 
@@ -281,11 +287,33 @@ function populateFilters(fullReset = false) {
 
 function renderTableHeaders() {
   const table = document.getElementById('historyTable');
-  const thead = table.querySelector('thead tr');
+  const thead = table.querySelector('thead');
   const config = tableConfigs[state.tableConfig];
 
   table.className = `history-table ${state.tableConfig}-format`;
-  thead.innerHTML = config.columns.map(col => `<th>${col.header}</th>`).join('');
+
+  if (state.tableConfig === 'standard') {
+    const groupKeys = ['start_time', 'finish_time', 'total_bd_time'];
+    const firstRow = [];
+    const secondRow = [];
+    let groupAdded = false;
+
+    config.columns.forEach(col => {
+      if (groupKeys.includes(col.key)) {
+        if (!groupAdded) {
+          firstRow.push(`<th colspan="${groupKeys.length}">Maintenance Breakdown Time</th>`);
+          groupAdded = true;
+        }
+        secondRow.push(`<th>${col.header}</th>`);
+      } else {
+        firstRow.push(`<th rowspan="2">${col.header}</th>`);
+      }
+    });
+
+    thead.innerHTML = `<tr>${firstRow.join('')}</tr><tr>${secondRow.join('')}</tr>`;
+  } else {
+    thead.innerHTML = `<tr>${config.columns.map(col => `<th>${col.header}</th>`).join('')}</tr>`;
+  }
 
   const titleEl = document.querySelector('.table-header h2');
   if (titleEl) titleEl.textContent = config.title;
@@ -455,6 +483,11 @@ async function exportToExcel() {
       existingcondition: r.breakdown_description,
       occurtime: r.start_time,
       completiontime: r.finish_time,
+      // Add schedule fields for backend
+      schedulestartdate: r.schedulestartdate,
+      schedulestarttime: r.schedulestarttime,
+      scheduleenddate: r.scheduleenddate,
+      scheduleendtime: r.scheduleendtime,
       rootcause: r.root_cause,
       correction: r.corrective_action,
       costincurred: r.cost_incurred.replace('₹', ''),

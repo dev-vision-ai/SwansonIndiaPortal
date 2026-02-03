@@ -47,8 +47,7 @@
 
 <body class="bg-gray-100 text-gray-900 font-roboto-medium">
     <div class="header-container">
-        <button type="button" class="header-back-button"
-            onclick="if(sessionStorage.getItem('mjrFormPrevPage')) { window.location.href = sessionStorage.getItem('mjrFormPrevPage'); } else { window.location.href='employee-dashboard.html'; }">Back</button>
+        <button type="button" class="header-back-button" onclick="handleBackNavigation()">Back</button>
         <div class="header-title">MJR Action Form</div>
         <div class="company-logo">
             <img src="../assets/logo.png" alt="Company Logo" />
@@ -531,26 +530,36 @@
                                 <textarea id="inspectionRemarks" rows="2"></textarea>
                             </div>
 
-                            <!-- Inspection & Acceptance Options -->
-                            <div class="inspection-options">
-                                <label class="inspection-item">
-                                    <input type="checkbox" id="inspectionAccepted" name="inspectionResult"
-                                        value="Accepted">
-                                    <span class="inspection-label">Accepted</span>
-                                </label>
-                                <label class="inspection-item">
-                                    <input type="checkbox" id="inspectionRejected" name="inspectionResult"
-                                        value="Rejected">
-                                    <span class="inspection-label">Rejected</span>
-                                </label>
-                            </div>
+                        </div>
+                    </div>
 
-                            <!-- Checked By -->
-                            <div class="form-group">
-                                <label for="inspectionCheckedBy">Checked By:</label>
-                                <input type="text" id="inspectionCheckedBy">
-                            </div>
+                    <!-- Inspection Result & Approval Section (Separate) -->
+                    <div class="form-section">
+                        <div style="border: 2px solid #ddd; border-radius: 8px; padding: 1.5rem; background: #fafafa;">
+                            <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+                                <!-- Inspection & Acceptance Options -->
+                                <div style="display: flex; gap: 16px; align-items: center;">
+                                    <label class="inspection-item"
+                                        style="display: flex; align-items: center; gap: 8px; cursor: pointer; background: white;">
+                                        <input type="checkbox" id="inspectionAccepted" name="inspectionResult"
+                                            value="Accepted">
+                                        <span class="inspection-label">Accepted</span>
+                                    </label>
+                                    <label class="inspection-item"
+                                        style="display: flex; align-items: center; gap: 8px; cursor: pointer; background: white;">
+                                        <input type="checkbox" id="inspectionRejected" name="inspectionResult"
+                                            value="Rejected">
+                                        <span class="inspection-label">Rejected</span>
+                                    </label>
+                                </div>
 
+                                <!-- Checked By -->
+                                <div style="flex: 1; min-width: 250px; display: flex; align-items: center; gap: 12px;">
+                                    <label for="inspectionCheckedBy"
+                                        style="white-space: nowrap; font-weight: 500;">Checked By:</label>
+                                    <input type="text" id="inspectionCheckedBy" style="flex: 1; background: white;">
+                                </div>
+                            </div>
                         </div>
                     </div>
 

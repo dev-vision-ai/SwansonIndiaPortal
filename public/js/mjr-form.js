@@ -41,6 +41,7 @@ const State = {
 document.addEventListener('DOMContentLoaded', async () => {
     cacheDomElements();
     setupAutoExpandTextareas();
+    setupAutoCapitalization();
 
     // Auth Check
     const { data: { user } } = await supabase.auth.getUser();
@@ -101,6 +102,39 @@ function setupAutoExpandTextareas() {
         };
         textarea.addEventListener('input', expand);
         expand();
+    });
+}
+
+/**
+ * Auto-capitalize first letter of each word
+ * @param {string} str - Input string
+ * @returns {string} - Capitalized string
+ */
+function capitalizeWords(str) {
+    return str.replace(/\b\w/g, char => char.toUpperCase());
+}
+
+/**
+ * Setup auto-capitalization for specific input fields
+ */
+function setupAutoCapitalization() {
+    const fieldsToCapitalize = ['equipmentName', 'reqDeptHOD'];
+
+    fieldsToCapitalize.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', function (e) {
+                const cursorPos = this.selectionStart;
+                const oldValue = this.value;
+                const newValue = capitalizeWords(oldValue);
+
+                if (oldValue !== newValue) {
+                    this.value = newValue;
+                    // Restore cursor position
+                    this.setSelectionRange(cursorPos, cursorPos);
+                }
+            });
+        }
     });
 }
 
@@ -416,9 +450,9 @@ async function handleFormSubmit(e) {
             user_id: State.userId,
             form_type: 'regular',
             reqdept: els.reqDept?.value || 'Unknown',
-            reqdepthod: els.reqDeptHOD?.value?.trim() || '',
+            reqdepthod: capitalizeWords(els.reqDeptHOD?.value?.trim() || ''),
             requestorname: els.requestorName?.value?.trim() || '',
-            equipmentname: document.getElementById('equipmentName')?.value?.trim() || '', // Get dynamic reference
+            equipmentname: capitalizeWords(document.getElementById('equipmentName')?.value?.trim() || ''), // Get dynamic reference
             equipmentno: els.equipmentNo?.value?.trim() || null,
             equipmentinstalldate: formatDateForDatabase(els.equipmentInstallDate?.value),
             occurdate: els.occurDate?.value || '',

@@ -168,11 +168,20 @@ function addRowToTable(record) {
     // Create ISO Date for easy filtering
     const isoDate = record.issued_date.split('T')[0]; 
     const lotNo = record.lot_no || '-';
-    const uomDisplay = record.uom || '-';
+    const isRawMaterial = (record.material_type || '').toLowerCase().includes('raw') || 
+                           (record.material_type || '').toLowerCase().includes('resin') ||
+                           (record.material_type || '').toLowerCase() === 'rm';
+    const uomDisplay = record.uom || (isRawMaterial ? 'Kgs' : 'Nos');
+    const materialNameDisplay = record.is_loose ? `${record.material_name} <em>(Loose)</em>` : record.material_name;
+    
+    // Calculate bags for raw materials (25 kgs per bag) like consumption page
+    const calculatedBags = isRawMaterial && !record.is_loose && record.issued_qty > 0 
+        ? Math.round(record.issued_qty / 25) 
+        : (record.bags || 0);
 
     row.setAttribute('data-status', record.status); 
     row.setAttribute('data-date', isoDate);
-    const searchText = `${record.track_id} ${lotNo} ${record.material_name} ${record.status}`.toLowerCase();
+    const searchText = `${record.track_id} ${lotNo} ${materialNameDisplay} ${record.status}`.toLowerCase();
     row.setAttribute('data-search', searchText);
 
     row.innerHTML = `
@@ -185,10 +194,10 @@ function addRowToTable(record) {
         <td class="px-2 py-1.5 text-center border-r font-bold text-gray-800">${issuedDateStr}</td>
         
         <td class="px-2 py-1.5 text-center text-blue-800 font-mono text-xs border-r bg-yellow-50">${lotNo}</td>
-        <td class="px-2 py-1.5 text-left border-r font-medium">${record.material_name}</td>
+        <td class="px-2 py-1.5 text-left border-r font-medium">${materialNameDisplay}</td>
 
         <td class="px-2 py-1.5 text-center border-r" style="${displayStyle}">
-            ${Number(record.bags || 0).toFixed(0)} 
+            ${calculatedBags > 0 ? calculatedBags : 'N/A'}
         </td>
 
         <td class="px-2 py-1.5 text-center border-r font-semibold text-gray-700">${(record.issued_qty || 0).toFixed(2)}</td>

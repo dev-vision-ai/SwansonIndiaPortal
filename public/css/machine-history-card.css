@@ -147,6 +147,14 @@ body {
     border-right: none;
 }
 
+.history-table thead tr:first-child th:last-child {
+    border-right: none;
+}
+
+.history-table thead tr:nth-child(2) th:last-child {
+    border-right: 1px solid #374151;
+}
+
     .history-table td {
       padding: 8px 6px;
       border-bottom: 1px solid #d1d5db;

@@ -7,7 +7,7 @@ import { showToast, storePendingToast } from './toast.js';
  * Table: production_floor_inspections
  */
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('Production Floor DMS loaded');
 
     // Check if we're editing an existing record
@@ -48,84 +48,84 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-/**
- * Make form read-only
- */
-const makeFormReadOnly = () => {
-    const form = document.getElementById('production-inspection-form');
-    if (!form) return;
+    /**
+     * Make form read-only
+     */
+    const makeFormReadOnly = () => {
+        const form = document.getElementById('production-inspection-form');
+        if (!form) return;
 
-    // Disable all input fields, textareas, and selects
-    form.querySelectorAll('input, textarea, select').forEach(element => {
-        element.setAttribute('readonly', 'readonly');
-        element.style.backgroundColor = '';
-        element.style.cursor = 'default';
-    });
+        // Disable all input fields, textareas, and selects
+        form.querySelectorAll('input, textarea, select').forEach(element => {
+            element.setAttribute('readonly', 'readonly');
+            element.style.backgroundColor = '';
+            element.style.cursor = 'default';
+        });
 
-    // Disable all contenteditable elements
-    form.querySelectorAll('[contenteditable="true"]').forEach(element => {
-        element.setAttribute('contenteditable', 'false');
-        element.style.backgroundColor = '';
-        element.style.cursor = 'default';
-    });
+        // Disable all contenteditable elements
+        form.querySelectorAll('[contenteditable="true"]').forEach(element => {
+            element.setAttribute('contenteditable', 'false');
+            element.style.backgroundColor = '';
+            element.style.cursor = 'default';
+        });
 
-    // Hide submit button
-    const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
-    if (submitBtn) {
-        submitBtn.style.display = 'none';
-    }
+        // Hide submit button
+        const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+        if (submitBtn) {
+            submitBtn.style.display = 'none';
+        }
 
-    // Hide discard button
-    const discardBtn = form.querySelector('.cancel-btn');
-    if (discardBtn) {
-        discardBtn.style.display = 'none';
-    }
+        // Hide discard button
+        const discardBtn = form.querySelector('.cancel-btn');
+        if (discardBtn) {
+            discardBtn.style.display = 'none';
+        }
 
-    // Add read-only indicator
-    const header = document.querySelector('.inspection-form-header h2');
-    if (header) {
-        header.textContent = 'Production Floor DMS - Read Only';
-    }
-};
+        // Add read-only indicator
+        const header = document.querySelector('.inspection-form-header h2');
+        if (header) {
+            header.textContent = 'Production Floor DMS - Read Only';
+        }
+    };
 
-/**
- * Make form editable
- */
-const makeFormEditable = () => {
-    const form = document.getElementById('production-inspection-form');
-    if (!form) return;
+    /**
+     * Make form editable
+     */
+    const makeFormEditable = () => {
+        const form = document.getElementById('production-inspection-form');
+        if (!form) return;
 
-    // Enable all input fields, textareas, and selects
-    form.querySelectorAll('input, textarea, select').forEach(element => {
-        element.removeAttribute('readonly');
-        element.removeAttribute('disabled');
-    });
+        // Enable all input fields, textareas, and selects
+        form.querySelectorAll('input, textarea, select').forEach(element => {
+            element.removeAttribute('readonly');
+            element.removeAttribute('disabled');
+        });
 
-    // Enable all contenteditable elements
-    form.querySelectorAll('[contenteditable="true"]').forEach(element => {
-        element.setAttribute('contenteditable', 'true');
-        element.style.backgroundColor = '';
-        element.style.cursor = '';
-    });
+        // Enable all contenteditable elements
+        form.querySelectorAll('[contenteditable="true"]').forEach(element => {
+            element.setAttribute('contenteditable', 'true');
+            element.style.backgroundColor = '';
+            element.style.cursor = '';
+        });
 
-    // Show submit button
-    const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
-    if (submitBtn) {
-        submitBtn.style.display = '';
-    }
+        // Show submit button
+        const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+        if (submitBtn) {
+            submitBtn.style.display = '';
+        }
 
-    // Show discard button
-    const discardBtn = form.querySelector('.cancel-btn');
-    if (discardBtn) {
-        discardBtn.style.display = '';
-    }
+        // Show discard button
+        const discardBtn = form.querySelector('.cancel-btn');
+        if (discardBtn) {
+            discardBtn.style.display = '';
+        }
 
-    // Update header
-    const header = document.querySelector('.inspection-form-header h2');
-    if (header) {
-        header.textContent = 'Production Floor DMS';
-    }
-};
+        // Update header
+        const header = document.querySelector('.inspection-form-header h2');
+        if (header) {
+            header.textContent = 'Production Floor DMS';
+        }
+    };
 
     // Load existing record for editing
     const loadRecordForEditing = async (id) => {
@@ -170,17 +170,23 @@ const makeFormEditable = () => {
                     for (let i = 1; i <= 14; i++) {
                         // Check for single row or MC specific rows
                         if (i === 2 || i === 4 || i === 5 || i === 6 || i === 7 || i === 8 || i === 9) {
-                            // Merged rows - check both MC1 and MC2
+                            // Merged rows - check MC1, MC2, and MC3
                             const mc1Value = record.data[`check${i}_mc1`];
                             const mc2Value = record.data[`check${i}_mc2`];
-                            
+                            const mc3Value = record.data[`check${i}_mc3`];
+
                             if (mc1Value) {
                                 const radio = document.querySelector(`#production-inspection-form input[name="check${i}_mc1"][value="${mc1Value}"]`);
                                 if (radio) radio.checked = true;
                             }
-                            
+
                             if (mc2Value) {
                                 const radio = document.querySelector(`#production-inspection-form input[name="check${i}_mc2"][value="${mc2Value}"]`);
+                                if (radio) radio.checked = true;
+                            }
+
+                            if (mc3Value) {
+                                const radio = document.querySelector(`#production-inspection-form input[name="check${i}_mc3"][value="${mc3Value}"]`);
                                 if (radio) radio.checked = true;
                             }
                         } else {
@@ -195,7 +201,7 @@ const makeFormEditable = () => {
 
                     // Populate contenteditable fields
                     Object.keys(record.data).forEach(key => {
-                        if (key.startsWith('obs') || key.startsWith('action') || key.startsWith('who') || 
+                        if (key.startsWith('obs') || key.startsWith('action') || key.startsWith('who') ||
                             key.startsWith('when') || key.startsWith('status')) {
                             const element = document.querySelector(`[data-name="${key}"]`);
                             if (element && record.data[key]) {
@@ -252,7 +258,7 @@ const makeFormEditable = () => {
                         .select('full_name')
                         .eq('id', user.id)
                         .single();
-                    
+
                     defaultCheckedByName = userProfile?.full_name || user.email.split('@')[0] || '';
                     const currentDateValue = form.querySelector('input[name="inspection_date"]')?.value;
                     setFooterPersonDisplay('checked-by-display', defaultCheckedByName, currentDateValue);
@@ -274,11 +280,11 @@ const makeFormEditable = () => {
             });
         }
 
-        form.addEventListener('submit', async function(e) {
+        form.addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const formData = new FormData(this);
-            
+
             try {
                 // Get current user
                 const { data: { user } } = await supabase.auth.getUser();
@@ -305,20 +311,26 @@ const makeFormEditable = () => {
                     user_id: user.id,
                     inspection_date: formData.get('inspection_date'),
                     inspection_time: formData.get('inspection_time'),
-                    checked_by: userProfile.full_name || user.email.split('@')[0], // Use full_name or email prefix from auth
                     data: {}
                 };
+
+                // Only set checked_by for NEW records, not updates (preserve original creator)
+                if (!isEditMode || !form.dataset.recordId) {
+                    inspectionData.checked_by = userProfile.full_name || user.email.split('@')[0];
+                }
 
                 // Collect radio button data (only save non-null values)
                 for (let i = 1; i <= 14; i++) {
                     // Check for single row or MC specific rows
                     if (i === 2 || i === 4 || i === 5 || i === 6 || i === 7 || i === 8 || i === 9) {
-                        // Merged rows - check both MC1 and MC2
+                        // Merged rows - check MC1, MC2, and MC3
                         const mc1Radio = form.querySelector(`input[name="check${i}_mc1"]:checked`);
                         const mc2Radio = form.querySelector(`input[name="check${i}_mc2"]:checked`);
-                        
+                        const mc3Radio = form.querySelector(`input[name="check${i}_mc3"]:checked`);
+
                         if (mc1Radio) inspectionData.data[`check${i}_mc1`] = mc1Radio.value;
                         if (mc2Radio) inspectionData.data[`check${i}_mc2`] = mc2Radio.value;
+                        if (mc3Radio) inspectionData.data[`check${i}_mc3`] = mc3Radio.value;
                     } else {
                         // Single rows
                         const radio = form.querySelector(`input[name="check${i}"]:checked`);
@@ -395,7 +407,7 @@ const makeFormEditable = () => {
 
             } catch (error) {
                 console.error('Error submitting inspection:', error);
-                
+
                 // Reset loading state on error
                 if (submitBtn) {
                     submitBtn.disabled = false;
@@ -405,7 +417,7 @@ const makeFormEditable = () => {
                         submitBtn.value = originalBtnText || 'Submit Inspection';
                     }
                 }
-                
+
                 showToast('Error submitting inspection: ' + error.message, 'error');
             }
         });
@@ -413,7 +425,7 @@ const makeFormEditable = () => {
 
     // Disable Enter key in Product and Lot No input fields
     document.querySelectorAll('[data-name^="obs8_prod_"], [data-name^="obs8_lot_"]').forEach(el => {
-        el.addEventListener('keydown', function(e) {
+        el.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
             }
@@ -422,12 +434,12 @@ const makeFormEditable = () => {
 
     // Auto-fill logic for radio button selections
     document.querySelectorAll('input[type="radio"][name^="check"]').forEach(radio => {
-        radio.addEventListener('change', function() {
+        radio.addEventListener('change', function () {
             const value = this.value;
             const name = this.name;
             const id = name.replace('check', ''); // Extract id like "1" or "2_mc1"
             const isRow8 = id.startsWith('8');
-            
+
             // Find fields in the same row
             const obsField = document.querySelector(`[data-name="obs${id}"]`);
             const actionField = document.querySelector(`[data-name="action${id}"]`);
@@ -438,7 +450,7 @@ const makeFormEditable = () => {
             // Special fields for Row 8
             let prodField, lotField;
             if (isRow8) {
-                const suffix = id.replace('8', ''); // _mc1 or _mc2
+                const suffix = id.replace('8', ''); // _mc1, _mc2, or _mc3
                 prodField = document.querySelector(`[data-name="obs8_prod${suffix}"]`);
                 lotField = document.querySelector(`[data-name="obs8_lot${suffix}"]`);
             }
@@ -450,7 +462,7 @@ const makeFormEditable = () => {
                 prodField.classList.remove('bg-gray-100', 'cursor-not-allowed');
                 lotField.classList.remove('bg-gray-100', 'cursor-not-allowed');
             }
-            
+
             if (value === 'OK') {
                 if (obsField && !isRow8) obsField.innerText = 'OK';
                 if (obsField && isRow8) obsField.innerText = ''; // Don't auto-fill OK for Row 8
@@ -464,7 +476,7 @@ const makeFormEditable = () => {
                 if (whoField) whoField.innerText = '';
                 if (whenField) whenField.innerText = '';
                 if (statusField) statusField.innerText = '';
-                
+
                 // Special case for Row 8 Product/Lot - clear if it was auto-filled
                 if (isRow8 && prodField && lotField) {
                     if (prodField.innerText === 'NA') prodField.innerText = '';
@@ -476,7 +488,7 @@ const makeFormEditable = () => {
                 if (whoField) whoField.innerText = 'NA';
                 if (whenField) whenField.innerText = 'NA';
                 if (statusField) statusField.innerText = 'NA';
-                
+
                 // Special case for Row 8 Product/Lot - disable entry
                 if (isRow8 && prodField && lotField) {
                     prodField.innerText = '';

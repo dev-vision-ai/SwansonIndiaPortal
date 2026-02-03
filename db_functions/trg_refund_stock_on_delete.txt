@@ -1,0 +1,19 @@
+
+BEGIN
+    IF OLD.track_id IS NOT NULL AND OLD.qty_used > 0 THEN
+        -- Find the LATEST active record for this batch AND matching loose status to update
+        UPDATE pd_material_staging
+        SET 
+            balance_qty = balance_qty + OLD.qty_used,
+            consumed_qty = GREATEST(0, consumed_qty - OLD.qty_used),
+            status = CASE 
+                WHEN (balance_qty + OLD.qty_used) <= 0 THEN 'Out of Stock' 
+                WHEN (balance_qty + OLD.qty_used) <= (issued_qty * 0.20) THEN 'Low Stock' 
+                ELSE 'Available' 
+            END
+        WHERE track_id = OLD.track_id 
+          AND is_active = true
+          AND COALESCE(is_loose, false) = COALESCE(OLD.is_loose, false);
+    END IF;
+    RETURN OLD;
+END;

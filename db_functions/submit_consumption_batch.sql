@@ -1,19 +1,14 @@
--- 1. ADD COLUMN IF NOT EXISTS
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'pd_material_staging' AND column_name = 'is_loose') THEN
-        ALTER TABLE pd_material_staging ADD COLUMN is_loose BOOLEAN DEFAULT FALSE;
-    END IF;
-END $$;
-
--- Drop old versions to avoid PGRST203 ambiguity
-DROP FUNCTION IF EXISTS submit_consumption_batch(UUID, JSONB);
-DROP FUNCTION IF EXISTS submit_consumption_batch(UUID, JSONB[]);
+DROP FUNCTION IF EXISTS submit_consumption_batch(uuid, jsonb);
+DROP FUNCTION IF EXISTS submit_consumption_batch(uuid, jsonb[]);
 
 CREATE OR REPLACE FUNCTION submit_consumption_batch(
     p_header_id UUID,
     p_rows JSONB[]
-) RETURNS VOID AS $$
+)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
 DECLARE
     row_data JSONB;
     v_record_id UUID;
@@ -31,7 +26,6 @@ DECLARE
 BEGIN
     FOR row_data IN SELECT * FROM unnest(p_rows)
     LOOP
-        -- 1. EXTRACT DATA
         v_track_id := row_data->>'track_id';
         v_material_id := CASE 
             WHEN row_data->>'material_id' IS NOT NULL AND (row_data->>'material_id') != '' 
@@ -40,9 +34,6 @@ BEGIN
         END;
         v_qty_used_delta := COALESCE((row_data->>'qty_used')::numeric, 0);
 
-        -- 2. IDENTIFY THE BASE STAGING RECORD
-        -- We look for the latest active record for this material/track_id AND matching loose status
-        -- Treat NULL is_loose as FALSE for backward compatibility
         SELECT id, track_id, issued_qty, consumed_qty
         INTO v_old_staging_id, v_actual_track_id, v_issued_qty, v_current_consumed
         FROM pd_material_staging
@@ -52,15 +43,12 @@ BEGIN
         ORDER BY created_at DESC
         LIMIT 1;
 
-        -- Fallback: If no active staging record found, treat as a new manual entry
         IF v_old_staging_id IS NULL THEN
             v_actual_track_id := COALESCE(v_track_id, gen_random_uuid()::text);
             v_issued_qty := COALESCE((row_data->>'qty_available')::numeric, 0);
             v_current_consumed := 0;
         END IF;
 
-        -- 3. CALCULATE NEW TOTALS
-        -- Check if we are updating an existing consumption row
         IF row_data->>'id' IS NOT NULL AND (row_data->>'id') NOT LIKE 'temp-%' THEN
             v_record_id := (row_data->>'id')::uuid;
             
@@ -68,25 +56,22 @@ BEGIN
             FROM pd_material_consumption_data 
             WHERE id = v_record_id;
             
-            -- Delta for staging update: how much MORE/LESS did we use than before?
-            v_qty_used_delta := v_qty_used_delta - COALESCE(v_old_qty_used, 0);
-            v_new_consumed := v_current_consumed + v_qty_used_delta;
+            v_qty_used_delta := COALESCE(v_old_qty_used, 0) - v_qty_used_delta;
+            v_new_consumed := v_current_consumed - v_qty_used_delta;
         ELSE
-            -- New consumption row
             v_new_consumed := v_current_consumed + v_qty_used_delta;
             v_record_id := NULL;
         END IF;
 
         v_new_balance := v_issued_qty - v_new_consumed;
 
-        -- 4. UPDATE OR INSERT CONSUMPTION DATA
         IF v_record_id IS NOT NULL THEN
             UPDATE pd_material_consumption_data SET 
                 material_id = v_material_id,
                 material_name = row_data->>'material_name',
                 material_type = row_data->>'material_type',
                 is_loose = (row_data->>'is_loose')::boolean,
-                track_id = v_actual_track_id, -- Keep consistent track_id
+                track_id = v_actual_track_id,
                 qty_available = COALESCE((row_data->>'qty_available')::numeric, 0),
                 qty_used = (row_data->>'qty_used')::numeric,
                 qty_balance = v_new_balance,
@@ -112,10 +97,6 @@ BEGIN
             RETURNING id INTO v_record_id;
         END IF;
 
-        -- 5. UPDATE STAGING STOCK
-        -- Since track_id has a UNIQUE constraint, we cannot use the deactivate-and-insert approach.
-        -- We will update the existing staging record directly.
-        
         IF v_old_staging_id IS NOT NULL THEN
             UPDATE pd_material_staging 
             SET 
@@ -129,8 +110,6 @@ BEGIN
                 is_active = true
             WHERE id = v_old_staging_id;
         ELSE
-            -- Manual entry: No staging record exists yet, create one
-            -- Use ON CONFLICT to handle potential race conditions or existing track_ids
             INSERT INTO pd_material_staging (
                 track_id, material_id, material_name, material_type, lot_no, 
                 issued_qty, consumed_qty, balance_qty, status, is_active, issued_date, is_loose
@@ -153,54 +132,4 @@ BEGIN
 
     END LOOP;
 END;
-$$ LANGUAGE plpgsql;
-
--- 2. GLOBAL TRIGGER TO ENSURE ZERO BALANCES ON UPDATES
-CREATE OR REPLACE FUNCTION trg_zero_previous_balances()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.qty_balance > 0 THEN
-        UPDATE pd_material_consumption_data
-        SET qty_balance = 0
-        WHERE track_id = NEW.track_id
-          AND header_id = NEW.header_id  -- ONLY zero out rows in the SAME shift/header
-          AND id != NEW.id
-          AND qty_balance != 0
-          AND COALESCE(is_loose, false) = COALESCE(NEW.is_loose, false);
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS zero_previous_balances_trigger ON pd_material_consumption_data;
-CREATE TRIGGER zero_previous_balances_trigger
-AFTER INSERT OR UPDATE ON pd_material_consumption_data
-FOR EACH ROW EXECUTE FUNCTION trg_zero_previous_balances();
-
--- 3. REFUND TRIGGER (On Delete)
-CREATE OR REPLACE FUNCTION trg_refund_stock_on_delete()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF OLD.track_id IS NOT NULL AND OLD.qty_used > 0 THEN
-        -- Find the LATEST active record for this batch AND matching loose status to update
-        UPDATE pd_material_staging
-        SET 
-            balance_qty = balance_qty + OLD.qty_used,
-            consumed_qty = GREATEST(0, consumed_qty - OLD.qty_used),
-            status = CASE 
-                WHEN (balance_qty + OLD.qty_used) <= 0 THEN 'Out of Stock' 
-                WHEN (balance_qty + OLD.qty_used) <= (issued_qty * 0.20) THEN 'Low Stock' 
-                ELSE 'Available' 
-            END
-        WHERE track_id = OLD.track_id 
-          AND is_active = true
-          AND COALESCE(is_loose, false) = COALESCE(OLD.is_loose, false);
-    END IF;
-    RETURN OLD;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS refund_stock_on_delete_trigger ON pd_material_consumption_data;
-CREATE TRIGGER refund_stock_on_delete_trigger
-AFTER DELETE ON pd_material_consumption_data
-FOR EACH ROW EXECUTE FUNCTION trg_refund_stock_on_delete();
+$$;

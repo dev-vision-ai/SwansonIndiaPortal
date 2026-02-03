@@ -88,7 +88,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. Cache DOM & Setup UI
     State.initElements();
     setupAutoExpandTextareas();
+    setupAutoCapitalization();
     injectSpinnerCSS();
+
+    // Track where user came from for back button functionality
+    // Only update if referrer is not the current page to avoid loops on reload
+    if (document.referrer && !document.referrer.includes('mjr-action.html')) {
+        sessionStorage.setItem('mjrFormPrevPage', document.referrer);
+    }
+
+    // Expose back navigation globally
+    window.handleBackNavigation = function () {
+        const prev = sessionStorage.getItem('mjrFormPrevPage');
+        if (prev && !prev.includes('mjr-action.html')) {
+            window.location.href = prev;
+        } else {
+            // Fallback based on typical path
+            if (document.referrer && document.referrer.includes('mjr-table.html')) {
+                window.location.href = '../html/mjr-table.html';
+            } else if (document.referrer && document.referrer.includes('emp-mjr-table.html')) {
+                window.location.href = '../html/emp-mjr-table.html';
+            } else {
+                window.location.href = '../html/employee-dashboard.html';
+            }
+        }
+    };
 
     // 3. Core Functionality (Parallel)
     setupScheduleCalculation();
@@ -118,6 +142,39 @@ function setupAutoExpandTextareas() {
         };
         textarea.addEventListener('input', expand);
         expand();
+    });
+}
+
+/**
+ * Auto-capitalize first letter of each word
+ * @param {string} str - Input string
+ * @returns {string} - Capitalized string
+ */
+function capitalizeWords(str) {
+    return str.replace(/\b\w/g, char => char.toUpperCase());
+}
+
+/**
+ * Setup auto-capitalization for specific input fields
+ */
+function setupAutoCapitalization() {
+    const fieldsToCapitalize = ['equipmentName', 'technicianName', 'cleanRetrCheckedBy', 'inspectionCheckedBy'];
+
+    fieldsToCapitalize.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', function (e) {
+                const cursorPos = this.selectionStart;
+                const oldValue = this.value;
+                const newValue = capitalizeWords(oldValue);
+
+                if (oldValue !== newValue) {
+                    this.value = newValue;
+                    // Restore cursor position
+                    this.setSelectionRange(cursorPos, cursorPos);
+                }
+            });
+        }
     });
 }
 
@@ -537,6 +594,18 @@ async function handleUrlParameters() {
     if (!id) return;
 
     try {
+        const userId = await getLoggedInUserId();
+        const { data: profile } = await supabase
+            .from('users')
+            .select('department, user_level, is_admin')
+            .eq('id', userId)
+            .single();
+
+        const canBypassLock = profile && (
+            (profile.department === 'Maintenance' && parseInt(profile.user_level, 10) === 1) ||
+            (profile.is_admin === true)
+        );
+
         const { data, error } = await supabase
             .from('mt_job_requisition_master')
             .select('*')
@@ -549,10 +618,23 @@ async function handleUrlParameters() {
         }
 
         if (data) {
-            if (action === 'view') {
+            // Check if user came from emp-mjr-table (employee view)
+            const referrer = document.referrer || sessionStorage.getItem('mjrFormPrevPage') || '';
+            const isFromEmpTable = referrer.includes('emp-mjr-table.html');
+
+            if (data.submission_status === 'completed' && !canBypassLock) {
+                // If status is completed, force full read-only mode for everyone EXCEPT power users
                 disableAllFormFields();
                 populateFormFields(data);
-            } else if (action === 'edit') {
+            } else if (isFromEmpTable) {
+                // Employee accessing from their table - only allow inspection section editing
+                await enableInspectionSectionOnly();
+                populateFormFields(data);
+            } else if (action === 'view') {
+                disableAllFormFields();
+                populateFormFields(data);
+            } else if (action === 'edit' || (canBypassLock && action !== 'view')) {
+                // Power users can edit even if completed (unless explicitly viewing)
                 enableFormFieldsForEdit();
                 populateFormFields(data);
             }
@@ -700,9 +782,22 @@ function disableAllFormFields() {
     if (!form) return;
 
     form.querySelectorAll('input, select, textarea').forEach(el => {
-        el.readOnly = true;
-        el.style.backgroundColor = CONFIG.STYLES.VIEW_BG;
+        // Common: remove any read-only/disabled gray background
+        el.style.backgroundColor = '';
         el.style.cursor = 'default';
+
+        if (el.type === 'checkbox' || el.type === 'radio') {
+            // Make unclickable but keep visual contrast (don't use disabled=true which fades them)
+            el.onclick = (e) => e.preventDefault();
+            el.style.pointerEvents = 'none';
+        } else if (el.tagName === 'SELECT') {
+            el.disabled = true;
+            // Attempt to preserve visual fidelity
+            el.style.opacity = '1';
+            el.style.color = 'inherit';
+        } else {
+            el.readOnly = true;
+        }
     });
 
     const submitBtn = form.querySelector('button[type="submit"]');
@@ -727,6 +822,113 @@ function enableFormFieldsForEdit() {
     const deleteBtn = form.querySelector('.delete-btn');
     if (submitBtn) { submitBtn.style.display = 'block'; submitBtn.textContent = 'Update MJR'; }
     if (deleteBtn) deleteBtn.style.display = 'block';
+}
+
+/**
+ * Enable only the Inspection Result section for employee editing
+ * Used when employees access the form from emp-mjr-table to approve/reject
+ */
+async function enableInspectionSectionOnly() {
+    const form = document.getElementById('maintenanceForm');
+    if (!form) return;
+
+    // First, disable all fields
+    form.querySelectorAll('input, select, textarea').forEach(el => {
+        el.style.backgroundColor = '';
+        el.style.cursor = 'default';
+
+        if (el.type === 'checkbox' || el.type === 'radio') {
+            el.onclick = (e) => e.preventDefault();
+            el.style.pointerEvents = 'none';
+        } else if (el.tagName === 'SELECT') {
+            el.disabled = true;
+            el.style.opacity = '1';
+            el.style.color = 'inherit';
+        } else {
+            el.readOnly = true;
+        }
+    });
+
+    // Enable only inspection section fields
+    const inspectionAccepted = document.getElementById('inspectionAccepted');
+    const inspectionRejected = document.getElementById('inspectionRejected');
+    const inspectionCheckedBy = document.getElementById('inspectionCheckedBy');
+
+    if (inspectionAccepted) {
+        const wasChecked = inspectionAccepted.checked; // Preserve state
+        inspectionAccepted.disabled = false;
+        inspectionAccepted.style.pointerEvents = 'auto';
+        inspectionAccepted.style.cursor = 'pointer';
+        // Remove the preventDefault handler by cloning the element
+        const newAccepted = inspectionAccepted.cloneNode(true);
+        newAccepted.checked = wasChecked; // Restore state
+        inspectionAccepted.parentNode.replaceChild(newAccepted, inspectionAccepted);
+
+        // Update State cache if it exists
+        if (State.elements) State.elements.inspectionAccepted = newAccepted;
+    }
+    if (inspectionRejected) {
+        const wasChecked = inspectionRejected.checked; // Preserve state
+        inspectionRejected.disabled = false;
+        inspectionRejected.style.pointerEvents = 'auto';
+        inspectionRejected.style.cursor = 'pointer';
+        // Remove the preventDefault handler by cloning the element
+        const newRejected = inspectionRejected.cloneNode(true);
+        newRejected.checked = wasChecked; // Restore state
+        inspectionRejected.parentNode.replaceChild(newRejected, inspectionRejected);
+
+        // Update State cache if it exists
+        if (State.elements) State.elements.inspectionRejected = newRejected;
+    }
+    if (inspectionCheckedBy) {
+        inspectionCheckedBy.readOnly = false;
+        inspectionCheckedBy.style.cursor = 'text';
+
+        // Auto-populate with current user's name immediately
+        (async () => {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data: profile, error } = await supabase
+                        .from('users')
+                        .select('full_name')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (!error && profile && profile.full_name && !inspectionCheckedBy.value) {
+                        // Only set if field is empty (preserve existing data)
+                        inspectionCheckedBy.value = profile.full_name;
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching user name:', error);
+            }
+        })();
+    }
+
+    // Show submit button as "Update MJR"
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const deleteBtn = form.querySelector('.delete-btn');
+    if (submitBtn) {
+        submitBtn.style.display = 'block';
+        submitBtn.textContent = 'Update MJR';
+    }
+    if (deleteBtn) {
+        deleteBtn.style.display = 'none'; // Hide delete for employees
+    }
+
+    // Re-attach mutex event listeners for the cloned checkboxes
+    const acceptedCheckbox = document.getElementById('inspectionAccepted');
+    const rejectedCheckbox = document.getElementById('inspectionRejected');
+
+    if (acceptedCheckbox && rejectedCheckbox) {
+        acceptedCheckbox.addEventListener('change', function () {
+            if (this.checked) rejectedCheckbox.checked = false;
+        });
+        rejectedCheckbox.addEventListener('change', function () {
+            if (this.checked) acceptedCheckbox.checked = false;
+        });
+    }
 }
 
 // ==========================================
@@ -776,7 +978,22 @@ async function handleDeleteClick() {
         if (error) throw error;
 
         showToast('MJR record deleted successfully!', 'success');
-        setTimeout(() => window.location.href = '../html/mjr-table.html', 1500);
+        setTimeout(() => {
+            // Redirect back to appropriate page based on stored history or referrer
+            const prevPage = sessionStorage.getItem('mjrFormPrevPage');
+            const referrer = document.referrer;
+
+            if (prevPage) {
+                window.location.href = prevPage;
+            } else if (referrer && referrer.includes('emp-mjr-table.html')) {
+                window.location.href = '../html/emp-mjr-table.html';
+            } else if (referrer && referrer.includes('mjr-table.html')) {
+                window.location.href = '../html/mjr-table.html';
+            } else {
+                // Fallback to employee dashboard for safety
+                window.location.href = '../html/employee-dashboard.html';
+            }
+        }, 1500);
     } catch (e) {
         hideUploadOverlay();
         showToast('Error deleting record: ' + e.message, 'error');
@@ -786,87 +1003,160 @@ async function handleDeleteClick() {
 async function handleFormSubmit(event) {
     event.preventDefault();
 
-    if (!validateForm()) return;
-
-    showUploadOverlay(0, null, 'submitting...');
-    updateUploadProgress(0);
-
     const params = new URLSearchParams(window.location.search);
     const existingId = params.get('id');
     const action = params.get('action');
     const els = State.initElements();
 
+    // Check if this is an employee inspection update (from emp-mjr-table)
+    const referrer = document.referrer || sessionStorage.getItem('mjrFormPrevPage') || '';
+    const isEmployeeInspection = referrer.includes('emp-mjr-table.html') && existingId;
+
+    // Skip full validation for employee inspection mode
+    if (!isEmployeeInspection && !validateForm()) return;
+
+    showUploadOverlay(0, null, 'submitting...');
+    updateUploadProgress(0);
+
     try {
-        const insertData = {
-            form_type: 'action',
-            timestamp: new Date().toISOString(),
-            submission_status: 'submitted',
-            user_id: State.userId
-        };
+        let insertData;
 
-        // Field mapping
-        const fieldMap = {
-            reqDept: 'reqdept', reqDeptHOD: 'reqdepthod', requestorName: 'requestorname',
-            equipmentName: 'equipmentname', equipmentNo: 'equipmentno', equipmentInstallDate: 'equipmentinstalldate',
-            occurDate: 'occurdate', occurTime: 'occurtime', requisitionNo: 'requisitionno',
-            machineNo: 'machineno', requireCompletionDate: 'requirecompletiondate', completionTime: 'completiontime',
-            existingCondition: 'existingcondition', correction: 'correction', rootCause: 'rootcause',
-            technicianName: 'technicianname', materialRetrieval: 'materialretrieval', cleaningInspection: 'cleaninginspection',
-            scheduleStartDate: 'schedulestartdate', scheduleStartTime: 'schedulestarttime',
-            scheduleEndDate: 'scheduleenddate', scheduleEndTime: 'scheduleendtime', totalHrs: 'totalhours',
-            inspectionRemarks: 'inspectionremarks', inspectionCheckedBy: 'inspectioncheckedby',
-            cleanRetrCheckedBy: 'cleanretrcheckedby', purchaseReqNo: 'purchasereqno', costIncurred: 'costincurred'
-        };
+        if (isEmployeeInspection) {
+            // Employee inspection mode - only update inspection fields
+            // Get fresh references (elements may have been cloned)
+            const acceptedCheckbox = document.getElementById('inspectionAccepted');
+            const rejectedCheckbox = document.getElementById('inspectionRejected');
+            const checkedByField = document.getElementById('inspectionCheckedBy');
 
-        const dateFields = ['occurDate', 'requireCompletionDate', 'scheduleStartDate', 'scheduleEndDate', 'equipmentInstallDate'];
+            // Get the checked by value - ensure it's not empty
+            const checkedByValue = capitalizeWords(checkedByField?.value?.trim() || '');
 
-        Object.entries(fieldMap).forEach(([formId, dbField]) => {
-            const el = els[formId];
-            if (!el) return;
-            let value = el.value?.trim() || null;
-            if (value && dateFields.includes(formId)) value = formatDateForDatabase(value);
-            if (formId === 'costIncurred' && value) value = parseFloat(value);
-            insertData[dbField] = value;
-        });
+            if (!checkedByValue) {
+                hideUploadOverlay();
+                showToast('Checked By field cannot be empty', 'warning');
+                return;
+            }
 
-        // Complex fields
-        insertData.breakdowncodes = collectCheckboxValues('breakdownCode');
-        insertData.poweroptions = collectCheckboxValues('powerOption');
-        insertData.machineoptions = collectCheckboxValues('machineOption');
-        insertData.handleby = collectCheckboxValues('handleBy');
-        insertData.materials_used = collectMaterialsUsed();
+            insertData = {
+                inspectionresult: null,
+                inspectioncheckedby: checkedByValue,
+                submission_status: 'completed' // Mark as completed when employee inspects
+            };
 
-        // Inspection result
-        if (els.inspectionAccepted?.checked) insertData.inspectionresult = 'Accepted';
-        else if (els.inspectionRejected?.checked) insertData.inspectionresult = 'Rejected';
-        else insertData.inspectionresult = null;
+            // Set inspection result
+            if (acceptedCheckbox?.checked) insertData.inspectionresult = 'Accepted';
+            else if (rejectedCheckbox?.checked) insertData.inspectionresult = 'Rejected';
 
-        // Roller fields
-        if (isRollerEquipment(insertData.equipmentname)) {
-            const rc = document.getElementById('recoatingDate')?.value;
-            const rg = document.getElementById('regrindingDate')?.value;
-            if (rc) insertData.recoatingdate = formatDateForDatabase(rc);
-            if (rg) insertData.regrindingdate = formatDateForDatabase(rg);
+            // Validate that at least one inspection option is selected
+            if (!insertData.inspectionresult) {
+                hideUploadOverlay();
+                showToast('Please select Accepted or Rejected', 'warning');
+                return;
+            }
+
+        } else {
+            // Full form submission mode
+            insertData = {
+                form_type: 'action',
+                timestamp: new Date().toISOString(),
+                submission_status: 'submitted',
+                user_id: State.userId
+            };
+
+            // Field mapping
+            const fieldMap = {
+                reqDept: 'reqdept', reqDeptHOD: 'reqdepthod', requestorName: 'requestorname',
+                equipmentName: 'equipmentname', equipmentNo: 'equipmentno', equipmentInstallDate: 'equipmentinstalldate',
+                occurDate: 'occurdate', occurTime: 'occurtime', requisitionNo: 'requisitionno',
+                machineNo: 'machineno', requireCompletionDate: 'requirecompletiondate', completionTime: 'completiontime',
+                existingCondition: 'existingcondition', correction: 'correction', rootCause: 'rootcause',
+                technicianName: 'technicianname', materialRetrieval: 'materialretrieval', cleaningInspection: 'cleaninginspection',
+                scheduleStartDate: 'schedulestartdate', scheduleStartTime: 'schedulestarttime',
+                scheduleEndDate: 'scheduleenddate', scheduleEndTime: 'scheduleendtime', totalHrs: 'totalhours',
+                inspectionRemarks: 'inspectionremarks', inspectionCheckedBy: 'inspectioncheckedby',
+                cleanRetrCheckedBy: 'cleanretrcheckedby', purchaseReqNo: 'purchasereqno', costIncurred: 'costincurred'
+            };
+
+            const dateFields = ['occurDate', 'requireCompletionDate', 'scheduleStartDate', 'scheduleEndDate', 'equipmentInstallDate'];
+            const fieldsToCapitalize = ['equipmentName', 'technicianName', 'cleanRetrCheckedBy', 'inspectionCheckedBy'];
+
+            Object.entries(fieldMap).forEach(([formId, dbField]) => {
+                const el = els[formId];
+                if (!el) return;
+                let value = el.value?.trim() || null;
+
+                if (value && dateFields.includes(formId)) value = formatDateForDatabase(value);
+                if (value && fieldsToCapitalize.includes(formId)) value = capitalizeWords(value);
+                if (formId === 'costIncurred' && value) value = parseFloat(value);
+
+                insertData[dbField] = value;
+            });
+
+            // Complex fields
+            insertData.breakdowncodes = collectCheckboxValues('breakdownCode');
+            insertData.poweroptions = collectCheckboxValues('powerOption');
+            insertData.machineoptions = collectCheckboxValues('machineOption');
+            insertData.handleby = collectCheckboxValues('handleBy');
+            insertData.materials_used = collectMaterialsUsed();
+
+            // Inspection result
+            if (els.inspectionAccepted?.checked) insertData.inspectionresult = 'Accepted';
+            else if (els.inspectionRejected?.checked) insertData.inspectionresult = 'Rejected';
+            else insertData.inspectionresult = null;
+
+            // Roller fields
+            if (isRollerEquipment(insertData.equipmentname)) {
+                const rc = document.getElementById('recoatingDate')?.value;
+                const rg = document.getElementById('regrindingDate')?.value;
+                if (rc) insertData.recoatingdate = formatDateForDatabase(rc);
+                if (rg) insertData.regrindingdate = formatDateForDatabase(rg);
+            }
         }
 
         updateUploadProgress(50);
 
         let result;
-        if (action === 'edit' && existingId) {
-            result = await supabase.from('mt_job_requisition_master').update(insertData).eq('id', existingId);
+        if (existingId) {
+            // Update existing record (for both edit mode and employee inspection updates)
+            // Only remove user_id if it exists (it won't exist in employee inspection mode)
+            const updateData = insertData.user_id ? (() => {
+                const { user_id, ...rest } = insertData;
+                return rest;
+            })() : insertData;
+
+            result = await supabase.from('mt_job_requisition_master').update(updateData).eq('id', existingId);
         } else {
+            // Create new record
             insertData.id = generateUUID();
             result = await supabase.from('mt_job_requisition_master').insert([insertData]);
         }
 
-        if (result.error) throw result.error;
+        if (result.error) {
+            console.error('Supabase error:', result.error);
+            throw result.error;
+        }
 
         updateUploadProgress(100);
         setTimeout(() => {
             hideUploadOverlay();
-            showToast(action === 'edit' ? 'Maintenance Request updated successfully!' : 'Maintenance Request submitted successfully!', 'success');
-            if (action !== 'edit') State.elements.maintenanceForm.reset();
-            setTimeout(() => window.location.href = '../html/mjr-table.html', 1500);
+            showToast(existingId ? 'Maintenance Request updated successfully!' : 'Maintenance Request submitted successfully!', 'success');
+            if (!existingId) State.elements.maintenanceForm.reset();
+            setTimeout(() => {
+                // Redirect back to appropriate page based on stored history or referrer
+                const prevPage = sessionStorage.getItem('mjrFormPrevPage');
+                const referrer = document.referrer;
+
+                if (prevPage) {
+                    window.location.href = prevPage;
+                } else if (referrer && referrer.includes('emp-mjr-table.html')) {
+                    window.location.href = '../html/emp-mjr-table.html';
+                } else if (referrer && referrer.includes('mjr-table.html')) {
+                    window.location.href = '../html/mjr-table.html';
+                } else {
+                    // Fallback to employee dashboard for safety
+                    window.location.href = '../html/employee-dashboard.html';
+                }
+            }, 1500);
         }, 500);
 
     } catch (e) {

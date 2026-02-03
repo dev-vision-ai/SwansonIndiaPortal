@@ -46,7 +46,7 @@ function renderTable(data) {
     }
 
     tbody.innerHTML = data.map(alert => {
-        
+
         const incidentDate = alert.incidentdate ? new Date(alert.incidentdate).toLocaleDateString() : 'N/A';
 
         return `
@@ -384,61 +384,61 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (document.getElementById('alertsBody')) {
         await fetchLatestAlerts();
         // Add delegated click handler for 'View Actions' links
-        document.getElementById('alertsBody').addEventListener('click', function(e) {
+        document.getElementById('alertsBody').addEventListener('click', function (e) {
             const target = e.target;
             if (target.classList.contains('action-link') && target.textContent.includes('View Actions')) {
                 sessionStorage.setItem('empViewAccess', 'true');
             }
         });
     }
-   
+
     const logoutButton = document.getElementById('logoutButton');
     if (logoutButton) {
         logoutButton.addEventListener('click', async (e) => {
             e.preventDefault();
-            
+
             // Show logout confirmation modal
             const logoutModal = document.getElementById('logoutModal');
             logoutModal.classList.add('show');
         });
     }
-    
+
     // Logout modal event handlers
     const logoutModalClose = document.getElementById('logoutModalClose');
     const logoutCancel = document.getElementById('logoutCancel');
     const logoutConfirm = document.getElementById('logoutConfirm');
     const logoutModal = document.getElementById('logoutModal');
-    
+
     // Close modal handlers
     if (logoutModalClose) {
         logoutModalClose.addEventListener('click', () => {
             logoutModal.classList.remove('show');
         });
     }
-    
+
     if (logoutCancel) {
         logoutCancel.addEventListener('click', () => {
             logoutModal.classList.remove('show');
         });
     }
-    
+
     // Message modal event handlers
     const messageModalClose = document.getElementById('messageModalClose');
     const messageModalOk = document.getElementById('messageModalOk');
     const messageModal = document.getElementById('messageModal');
-    
+
     if (messageModalClose) {
         messageModalClose.addEventListener('click', () => {
             messageModal.classList.remove('show');
         });
     }
-    
+
     if (messageModalOk) {
         messageModalOk.addEventListener('click', () => {
             messageModal.classList.remove('show');
         });
     }
-    
+
     if (messageModal) {
         messageModal.addEventListener('click', (e) => {
             if (e.target === messageModal) {
@@ -446,12 +446,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
-    
+
     // Confirm logout handler
     if (logoutConfirm) {
         logoutConfirm.addEventListener('click', async () => {
             logoutModal.classList.remove('show');
-            
+
             try {
                 const { error } = await supabase.auth.signOut();
                 if (error) {
@@ -482,14 +482,14 @@ function showMessageModal(title, message, type = 'info') {
     const messageModalTitle = document.getElementById('messageModalTitle');
     const messageModalText = document.getElementById('messageModalText');
     const messageModalIcon = document.getElementById('messageModalIcon');
-    
+
     if (messageModalTitle) messageModalTitle.textContent = title;
     if (messageModalText) messageModalText.textContent = message;
-    
+
     // Set icon based on type
     let iconClass = 'fas fa-info-circle';
     let iconColor = '#17a2b8'; // info color
-    
+
     switch (type) {
         case 'success':
             iconClass = 'fas fa-check-circle';
@@ -504,11 +504,11 @@ function showMessageModal(title, message, type = 'info') {
             iconColor = '#ffc107';
             break;
     }
-    
+
     if (messageModalIcon) {
         messageModalIcon.innerHTML = `<i class="${iconClass}" style="color: ${iconColor}"></i>`;
     }
-    
+
     if (messageModal) {
         messageModal.classList.add('show');
     }
@@ -634,7 +634,8 @@ async function filterQuickActionsByDepartment(user, userDepartment, userLevel, i
                     shouldDisplay = false;
                 } else {
                     const requiredLevels = cardUserLevel.split(',').map(level => parseInt(level.trim()));
-                    shouldDisplay = requiredLevels.includes(userLevel);
+                    const numericUserLevel = parseInt(userLevel);
+                    shouldDisplay = requiredLevels.includes(numericUserLevel);
                 }
             }
 

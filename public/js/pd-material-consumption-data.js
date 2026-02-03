@@ -10,7 +10,7 @@ function generateUUID() {
     return crypto.randomUUID();
   }
 
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0;
     const v = c === 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
@@ -36,17 +36,17 @@ const NumericUtils = {
     const num = parseFloat(String(val).replace(/[^0-9.-]/g, '').trim());
     return isNaN(num) ? 0 : num;
   },
-  
+
   sum: (array, key) => {
     if (!Array.isArray(array)) return 0;
     return array.reduce((sum, item) => sum + (NumericUtils.parse(item[key]) || 0), 0);
   },
-  
+
   format: (num, decimals = 2) => {
     const parsed = NumericUtils.parse(num);
     return parsed.toFixed(decimals);
   },
-  
+
   validate: (value, columnName = 'Value') => {
     const trimmed = String(value).trim();
     if (trimmed === '-') return true; // Allow placeholder dash
@@ -81,7 +81,7 @@ class MaterialCatalogCache {
     this.lastUpdateTime = 0;
     this.cacheValidityMs = 5 * 60 * 1000; // 5-minute cache
   }
-  
+
   build(catalog) {
     this.cache.clear();
     catalog.forEach(item => {
@@ -89,15 +89,15 @@ class MaterialCatalogCache {
     });
     this.lastUpdateTime = Date.now();
   }
-  
+
   get(materialId) {
     return this.cache.get(materialId) || null;
   }
-  
+
   isExpired() {
     return Date.now() - this.lastUpdateTime > this.cacheValidityMs;
   }
-  
+
   size() {
     return this.cache.size;
   }
@@ -110,22 +110,22 @@ class ResourceManager {
     this.timeouts = new Set();
     this.listeners = [];
   }
-  
+
   addInterval(intervalId) {
     this.intervals.add(intervalId);
     return intervalId;
   }
-  
+
   addTimeout(timeoutId) {
     this.timeouts.add(timeoutId);
     return timeoutId;
   }
-  
+
   addListener(element, event, handler) {
     this.listeners.push({ element, event, handler });
     return handler;
   }
-  
+
   cleanup() {
     // Clear intervals
     this.intervals.forEach(intervalId => clearInterval(intervalId));
@@ -201,7 +201,7 @@ function formatDateToDDMMYYYY(dateString) {
  */
 function computeRejectedFromRow(row) {
   if (!row) return;
-  
+
   // Read from dailyLogData (prevents race conditions)
   const accNos = NumericUtils.parse(dailyLogData.accepted_rolls_nos);
   const accActual = NumericUtils.parse(dailyLogData.accepted_rolls_actual);
@@ -265,13 +265,13 @@ function renderMaterialDataTable() {
   const totalsBody = document.getElementById('materialTotalsBody');
   if (!mainBody || !totalsBody) return;
 
-    mainBody.innerHTML = materialData.map((record, index) => {
+  mainBody.innerHTML = materialData.map((record, index) => {
     const qtyUsed = record.qty_used !== undefined && record.qty_used !== null ? record.qty_used : '';
     const noOfBags = record.no_of_bags !== undefined && record.no_of_bags !== null ? record.no_of_bags : '';
     const type = (record.material_type || '').toUpperCase();
     const isRM = type === 'RM' || type.includes('RAW') || type.includes('RESIN');
     const isLoose = record.is_loose === true;
-    
+
     // Ensure we don't double-add (Loose) if it's already in the name string
     const cleanName = (record.material_name || '').replace(/\s*\(Loose\)$/i, '');
     const displayName = isLoose ? `${cleanName} (Loose)` : cleanName;
@@ -283,9 +283,9 @@ function renderMaterialDataTable() {
 
     // --- 3. LOOKUP UOM & APPLY COLORS ---
     const catalogItem = catalogCache.get(record.material_id) ||
-                       materialsCatalog.find(c => c.id === record.material_id);
+      materialsCatalog.find(c => c.id === record.material_id);
     const uomValue = catalogItem ? (catalogItem.uom || '-').toUpperCase() : '-';
-    
+
     let uomClass = 'text-gray-600 bg-gray-50'; // Default
     if (uomValue === 'KGS') uomClass = 'text-blue-700 bg-blue-50';
     else if (uomValue === 'NOS') uomClass = 'text-purple-700 bg-purple-50';
@@ -344,10 +344,10 @@ function renderMaterialDataTable() {
   // Render totals table rows (single row from dailyLogData)
   let totalsHtml = '';
   const hasTotals = (dailyLogData.produced_rolls && String(dailyLogData.produced_rolls).trim() !== '') ||
-                    (dailyLogData.produced_kgs_actual && String(dailyLogData.produced_kgs_actual).trim() !== '') ||
-                    (dailyLogData.accepted_rolls_nos && String(dailyLogData.accepted_rolls_nos).trim() !== '') ||
-                    (dailyLogData.accepted_rolls_actual && String(dailyLogData.accepted_rolls_actual).trim() !== '') ||
-                    (dailyLogData.total_scrap && String(dailyLogData.total_scrap).trim() !== '');
+    (dailyLogData.produced_kgs_actual && String(dailyLogData.produced_kgs_actual).trim() !== '') ||
+    (dailyLogData.accepted_rolls_nos && String(dailyLogData.accepted_rolls_nos).trim() !== '') ||
+    (dailyLogData.accepted_rolls_actual && String(dailyLogData.accepted_rolls_actual).trim() !== '') ||
+    (dailyLogData.total_scrap && String(dailyLogData.total_scrap).trim() !== '');
 
   if (hasTotals) {
     totalsHtml = `
@@ -417,7 +417,7 @@ function renderMaterialDataTable() {
 function setupTableListeners() {
   const mainBody = document.getElementById('materialMainBody');
   const totalsBody = document.getElementById('materialTotalsBody');
-  
+
   if (!mainBody || !totalsBody) {
     // Retry if DOM not ready - table elements must be present before binding listeners
     const timeoutId = setTimeout(() => setupTableListeners(), 50);
@@ -435,12 +435,12 @@ function setupTableListeners() {
     const columnType = cell.dataset.column;
     const rowIndex = parseInt(row.dataset.index, 10);
     const rowType = row.dataset.rowType;
-    
+
     // Safety check: for material rows, ensure materialData[rowIndex] exists
     if (rowType !== 'log' && (isNaN(rowIndex) || !materialData[rowIndex])) return;
 
     let newValue = cell.textContent.trim();
-    
+
     // Check if it's a log column or a material column
     const isLogColumn = ['produced_rolls', 'produced_kgs_std', 'produced_kgs_actual', 'accepted_rolls_nos', 'accepted_rolls_std', 'accepted_rolls_actual', 'rejected_rolls', 'rejected_kgs_std', 'rejected_kgs_actual'].includes(columnType);
 
@@ -488,7 +488,7 @@ function setupTableListeners() {
       let val = parseNum(newValue);
       const type = (materialData[rowIndex].material_type || '').toLowerCase();
       const isLoose = materialData[rowIndex].is_loose === true;
-      
+
       // Conversion logic for qty_available based on material type
       if (columnType === 'qty_available') {
         if (val > 0 && (type === 'rm' || type.includes('raw') || type.includes('resin')) && !isLoose) {
@@ -503,12 +503,12 @@ function setupTableListeners() {
       const avail = parseNum(materialData[rowIndex].qty_available);
       const used = parseNum(materialData[rowIndex].qty_used);
       materialData[rowIndex].qty_balance = avail - used;
-      
+
       // If qty_used changed, refresh live balances for other rows using the same batch
       if (columnType === 'qty_used') {
         refreshLiveBalances(true);
       }
-      
+
       // Update the current cell's visual helper without re-rendering the whole table if we didn't refresh all
       if (columnType === 'qty_available') {
         const typeLower = type.toLowerCase();
@@ -545,16 +545,16 @@ function setupTableListeners() {
       const record = materialData[rowIndex];
       const type = (record.material_type || '').toUpperCase();
       const isLoose = record.is_loose === true;
-      
+
       // Only calculate for Raw Materials (RM) that are NOT loose
       if ((type === 'RM' || type.includes('RAW') || type.includes('RESIN')) && !isLoose) {
         const bags = NumericUtils.parse(newValue);
         const calculatedQty = bags * 25;
         materialData[rowIndex].qty_used = calculatedQty;
-        
+
         // Refresh live balances for other rows using the same batch
         refreshLiveBalances(true);
-        
+
         // Update UI for qty_used cell
         const mainRow = mainBody.querySelector(`tr[data-index="${rowIndex}"]`);
         const qtyUsedCell = mainRow && mainRow.querySelector('[data-column="qty_used"]');
@@ -563,7 +563,7 @@ function setupTableListeners() {
     }
 
     // If accepted or rejected changed in totals table, recompute produced and std weights for that totals row
-    if (['accepted_rolls_nos','accepted_rolls_actual','rejected_rolls','rejected_kgs_actual'].includes(columnType)) {
+    if (['accepted_rolls_nos', 'accepted_rolls_actual', 'rejected_rolls', 'rejected_kgs_actual'].includes(columnType)) {
       const totalsRow = totalsBody.querySelector(`tr[data-index="${rowIndex}"]`);
       if (totalsRow) computeRejectedFromRow(totalsRow);
     }
@@ -588,13 +588,13 @@ function setupTableListeners() {
     const isLoose = record.is_loose === true;
     const isPM = type === 'pm' || type.includes('packing') || type.includes('pack') || type.includes('pallet') || type.includes('core');
     const val = parseNum(record.qty_available);
-    
+
     if (isRM && !isLoose && val > 0) {
       cell.textContent = Math.round(val / 25);
     } else if (val > 0) {
       cell.textContent = val;
     }
-    
+
     // Select all text on focus for easier editing
     setTimeout(() => {
       const range = document.createRange();
@@ -611,7 +611,7 @@ function setupTableListeners() {
   mainBody.addEventListener('input', (e) => {
     const col = e.target.dataset.column;
     if (col !== 'no_of_bags' && col !== 'qty_available' && col !== 'qty_used') return;
-    
+
     const cell = e.target;
     const row = cell.closest('tr');
     const rowIndex = parseInt(row.dataset.index, 10);
@@ -628,10 +628,10 @@ function setupTableListeners() {
         const bags = NumericUtils.parse(newValue);
         const calculatedQty = bags * 25;
         materialData[rowIndex].qty_used = calculatedQty;
-        
+
         const qtyUsedCell = row.querySelector('[data-column="qty_used"]');
         if (qtyUsedCell) qtyUsedCell.textContent = calculatedQty || '';
-        
+
         // Dynamic live balance update
         refreshLiveBalances(true);
       }
@@ -642,14 +642,14 @@ function setupTableListeners() {
     } else if (col === 'qty_available') {
       let val = NumericUtils.parse(newValue);
       const typeLower = type.toLowerCase();
-      
+
       if ((typeLower === 'rm' || typeLower.includes('raw') || typeLower.includes('resin')) && !isLoose) {
         // User is typing BAGS for RM, convert to KGS for storage/balance
         val = val * 25;
       }
-      
+
       materialData[rowIndex].qty_available = val;
-      
+
       // Update balance in model
       const used = NumericUtils.parse(materialData[rowIndex].qty_used);
       materialData[rowIndex].qty_balance = val - used;
@@ -672,15 +672,15 @@ function setupTableListeners() {
       dailyLogData[columnType] = currentCell.textContent.trim();
     } else if (!isNaN(rowIndex) && materialData[rowIndex]) {
       let val = currentCell.textContent.trim();
-      
+
       // If it was material_name, trigger the lookup with (Loose) detection
       if (columnType === 'material_name' && val) {
         const isLooseTyped = val.toLowerCase().includes('(loose)');
         const cleanVal = val.replace(/\s*\(Loose\)$/i, '').trim();
-        
+
         materialData[rowIndex].material_name = cleanVal;
         materialData[rowIndex].is_loose = isLooseTyped;
-        
+
         lookupMaterialAndPopulateDetails(cleanVal, rowIndex, null, isLooseTyped);
       } else {
         materialData[rowIndex][columnType] = val;
@@ -745,16 +745,46 @@ function setupTableListeners() {
  * DEBUG: If track_id not auto-assigned, check pd_material_staging has records with balance_qty > 0
  * DEBUG: If qty_available shows as 0, verify is_loose flag matches staging records
  */
+function findCarryForwardRow(rows, rowIndex, cleanMaterialName, isLooseChoice, allowLooseInference) {
+  const targetName = cleanMaterialName.toLowerCase();
+  for (let i = rowIndex - 1; i >= 0; i--) {
+    const row = rows[i];
+    if (!row || !row.material_name) continue;
+
+    const rowCleanName = row.material_name.replace(/\s*\(Loose\)$/i, '').trim().toLowerCase();
+    if (rowCleanName !== targetName) continue;
+
+    const rowIsLoose = row.is_loose === true;
+    if (isLooseChoice === rowIsLoose) {
+      return { row, inheritedLoose: false };
+    }
+
+    if (allowLooseInference && !isLooseChoice && rowIsLoose) {
+      return { row, inheritedLoose: true };
+    }
+  }
+
+  return { row: null, inheritedLoose: false };
+}
+
+function resolveCarryForwardFlag(row, allowCarryForward) {
+  if (!allowCarryForward) return false;
+  if (!row || row.skip_carry_forward !== true) return true;
+  row.skip_carry_forward = false;
+  return false;
+}
+
 const lookupInProgress = new Set();
-async function lookupMaterialAndPopulateDetails(materialName, rowIndex, catalogItem = null, isLooseChoice = false) {
+async function lookupMaterialAndPopulateDetails(materialName, rowIndex, catalogItem = null, isLooseChoice = false, allowLooseInference = true, allowCarryForward = true) {
   if (!materialName || rowIndex === -1) return;
-  
-  const lookupKey = `${materialName}-${rowIndex}`;
+
+  const effectiveCarryForward = resolveCarryForwardFlag(materialData[rowIndex], allowCarryForward);
+  const lookupKey = `${materialName}-${rowIndex}-${isLooseChoice ? 'loose' : 'std'}-${effectiveCarryForward ? 'carry' : 'fresh'}`;
   if (lookupInProgress.has(lookupKey)) return;
-  
+
   try {
     lookupInProgress.add(lookupKey);
-    
+
     // FASTER: Use provided catalogItem or find in local catalog first
     let catalogData = catalogItem;
     if (!catalogData) {
@@ -792,30 +822,14 @@ async function lookupMaterialAndPopulateDetails(materialName, rowIndex, catalogI
       // Automatically fetch the latest available Track ID and Lot No
       try {
         const cleanMaterialName = catalogData.material_name.trim();
-        
+
         // 1. Check if this material already exists in the current table (Carry Forward)
         let existingRow = null;
-        // Search backwards from the current row to find the most recent entry of the same material
-        for (let i = rowIndex - 1; i >= 0; i--) {
-          const row = materialData[i];
-          if (!row || !row.material_name) continue;
-
-          const rowCleanName = row.material_name.replace(/\s*\(Loose\)$/i, '').trim();
-          if (rowCleanName === cleanMaterialName) {
-            const rowIsLoose = row.is_loose === true;
-            
-            // If the user didn't explicitly specify Loose, or if they did and it matches, carry forward
-            if (isLooseChoice === rowIsLoose) {
-              existingRow = row;
-              break;
-            } else if (!isLooseChoice && rowIsLoose) {
-              // User typed "2047G" but the previous entry was "2047G (Loose)".
-              // Carry forward the "Loose" status as well.
-          console.log(`Inheriting 'is_loose' status from previous row for ${cleanMaterialName}`);
-              materialData[rowIndex].is_loose = true;
-              existingRow = row;
-              break;
-            }
+        if (effectiveCarryForward) {
+          const carryForwardResult = findCarryForwardRow(materialData, rowIndex, cleanMaterialName, isLooseChoice, allowLooseInference);
+          existingRow = carryForwardResult.row;
+          if (carryForwardResult.inheritedLoose) {
+            materialData[rowIndex].is_loose = true;
           }
         }
 
@@ -824,12 +838,12 @@ async function lookupMaterialAndPopulateDetails(materialName, rowIndex, catalogI
           materialData[rowIndex].track_id = existingRow.track_id;
           materialData[rowIndex].lot_no = existingRow.lot_no || '';
           materialData[rowIndex].is_loose = existingRow.is_loose === true; // Explicitly carry forward boolean
-          
+
           // The new row starts with whatever was left after the previous row's usage
           const currentTableBalance = parseNum(existingRow.qty_available) - parseNum(existingRow.qty_used);
           materialData[rowIndex].qty_available = Math.max(0, currentTableBalance);
           materialData[rowIndex].qty_available_original = parseNum(existingRow.qty_available_original) || parseNum(existingRow.qty_available);
-          
+
           console.log(`Carried forward balance and is_loose for ${cleanMaterialName} (${materialData[rowIndex].is_loose ? 'Loose' : 'Std'}) from Row ${materialData.indexOf(existingRow) + 1}`);
           renderMaterialDataTable();
           return; // Done
@@ -865,7 +879,7 @@ async function lookupMaterialAndPopulateDetails(materialName, rowIndex, catalogI
               .is('is_loose', null)
               .order('created_at', { ascending: true })
               .limit(1);
-            
+
             if (nullData && nullData.length > 0) {
               stagingData = nullData[0];
             }
@@ -880,7 +894,7 @@ async function lookupMaterialAndPopulateDetails(materialName, rowIndex, catalogI
           materialData[rowIndex].lot_no = stagingData.lot_no || '';
           materialData[rowIndex].qty_available = Math.max(0, parseNum(stagingData.balance_qty));
           materialData[rowIndex].qty_available_original = parseNum(stagingData.balance_qty);
-          
+
           // ONLY overwrite is_loose if the staging record explicitly says so (not null)
           if (stagingData.is_loose !== null && stagingData.is_loose !== undefined) {
             materialData[rowIndex].is_loose = stagingData.is_loose === true;
@@ -916,6 +930,55 @@ async function lookupMaterialAndPopulateDetails(materialName, rowIndex, catalogI
   }
 }
 
+function runMaterialSelectionTests() {
+  const results = [];
+  const assert = (name, pass) => results.push({ name, pass: !!pass });
+
+  const rows = [
+    { material_name: '2047G', is_loose: false, track_id: 'T1', qty_available: 100, qty_used: 10, qty_available_original: 100, lot_no: 'L1' },
+    { material_name: '2047G', is_loose: true, track_id: 'T2', qty_available: 50, qty_used: 5, qty_available_original: 50, lot_no: 'L2' }
+  ];
+
+  const result1 = findCarryForwardRow(rows, 2, '2047G', false, false);
+  assert('standard_after_loose_no_inherit', result1.row === rows[0] && result1.inheritedLoose === false);
+
+  const result2 = findCarryForwardRow(rows, 2, '2047G', false, true);
+  assert('standard_after_loose_inherit', result2.row === rows[1] && result2.inheritedLoose === true);
+
+  const result3 = findCarryForwardRow(rows, 2, '2047G', true, true);
+  assert('loose_selection_matches_loose', result3.row === rows[1] && result3.inheritedLoose === false);
+
+  const result4 = findCarryForwardRow(rows, 2, '2047X', false, true);
+  assert('different_material_no_match', result4.row === null && result4.inheritedLoose === false);
+
+  const rowsCase = [
+    { material_name: '2047g', is_loose: false, track_id: 'T3', qty_available: 10, qty_used: 0, qty_available_original: 10, lot_no: 'L3' }
+  ];
+  const result5 = findCarryForwardRow(rowsCase, 1, '2047G', false, false);
+  assert('case_insensitive_match', result5.row === rowsCase[0] && result5.inheritedLoose === false);
+
+  const rowWithFlag = { skip_carry_forward: true };
+  const result6 = resolveCarryForwardFlag(rowWithFlag, true);
+  assert('flag_disables_carry_forward', result6 === false && rowWithFlag.skip_carry_forward === false);
+
+  const result7 = resolveCarryForwardFlag({}, true);
+  assert('no_flag_keeps_carry_forward', result7 === true);
+
+  const result8 = resolveCarryForwardFlag({ skip_carry_forward: true }, false);
+  assert('explicit_disable_keeps_disabled', result8 === false);
+
+  const failed = results.filter(r => !r.pass);
+  if (failed.length) {
+    console.error('Material selection tests failed', failed);
+  } else {
+    console.log('Material selection tests passed', results.length);
+  }
+}
+
+if (typeof window !== 'undefined' && window.__RUN_MATERIAL_SELECTION_TESTS__) {
+  runMaterialSelectionTests();
+}
+
 /**
  * Recalculates available quantities for all material rows by batch
  * 
@@ -942,7 +1005,7 @@ function refreshLiveBalances(skipRender = false) {
     if (row.track_id && row.material_name) {
       const isLoose = row.is_loose === true;
       const batchKey = `${row.track_id}_${isLoose}`;
-      
+
       if (!batches[batchKey]) {
         batches[batchKey] = {
           original_avail: parseNum(row.qty_available_original) || parseNum(row.qty_available) || 0,
@@ -957,24 +1020,24 @@ function refreshLiveBalances(skipRender = false) {
   Object.keys(batches).forEach(batchKey => {
     const batch = batches[batchKey];
     let runningAvail = batch.original_avail;
-    
+
     batch.rows.forEach(item => {
       const rowData = item.data;
       const rowIndex = item.index;
-      
+
       rowData.qty_available = Math.max(0, runningAvail);
-      
+
       // Update UI for this specific row if it's not the one currently being edited
       if (skipRender) {
         const tr = mainBody.querySelector(`tr[data-index="${rowIndex}"]`);
         const availCell = tr ? tr.querySelector('[data-column="qty_available"]') : null;
-        
+
         // Only update if it's NOT the focused element to avoid jumping cursors
         if (availCell && document.activeElement !== availCell) {
           const type = (rowData.material_type || '').toLowerCase();
           const isLoose = rowData.is_loose === true;
           const avail = rowData.qty_available;
-          
+
           let display = '';
           if (avail > 0) {
             if ((type === 'rm' || type.includes('raw') || type.includes('resin')) && !isLoose) {
@@ -1032,13 +1095,13 @@ async function addNewRowsToDatabase(count = 1) {
   // Add blank rows ONLY to frontend memory - NO DATABASE OPERATIONS
   for (let i = 0; i < count; i++) {
     const tempRowId = generateUUID(); // Frontend-only identifier
-    
+
     const blankRow = {
-        id: `temp-${tempRowId}`,
-        temp_row_id: tempRowId,
-        header_id: currentHeaderId,
-        row_index: materialData.length, // Set initial row_index for new rows
-        track_id: null,
+      id: `temp-${tempRowId}`,
+      temp_row_id: tempRowId,
+      header_id: currentHeaderId,
+      row_index: materialData.length, // Set initial row_index for new rows
+      track_id: null,
       qty_available: 0,
       material_name: '',
       lot_no: '',
@@ -1149,15 +1212,15 @@ async function saveAllMaterialData() {
       return hasMaterial && String(r.id).startsWith('temp');
     });
 
-    const rowsToUpdate = materialData.filter(r => 
+    const rowsToUpdate = materialData.filter(r =>
       r.id && !String(r.id).startsWith('temp')
     );
 
     // Also check if log data has changed
     const hasLogData = (dailyLogData.produced_rolls && String(dailyLogData.produced_rolls).trim() !== '') ||
-                       (dailyLogData.produced_kgs_actual && String(dailyLogData.produced_kgs_actual).trim() !== '') ||
-                       (rejectTransferRows && rejectTransferRows.length > 0 && rejectTransferRows[0].product) ||
-                       (downtimeRows && downtimeRows.length > 0 && downtimeRows[0].from);
+      (dailyLogData.produced_kgs_actual && String(dailyLogData.produced_kgs_actual).trim() !== '') ||
+      (rejectTransferRows && rejectTransferRows.length > 0 && rejectTransferRows[0].product) ||
+      (downtimeRows && downtimeRows.length > 0 && downtimeRows[0].from);
 
     if (rowsToInsert.length === 0 && rowsToUpdate.length === 0 && !hasLogData) {
       isSaving = false;
@@ -1174,20 +1237,20 @@ async function saveAllMaterialData() {
     const materialPayload = [];
     // Only send rows that have a material name (prevent blank rows in DB)
     const validRows = materialData.filter(r => r.material_name && r.material_name.trim() !== '');
-    
+
     for (const row of validRows) {
       const cat = row.material_name ? materialsCatalog.find(c => c.material_name === row.material_name) : null;
       const visualIndex = materialData.indexOf(row);
       const isTemp = !row.id || String(row.id).startsWith('temp');
 
       materialPayload.push({
-        id: isTemp ? null : row.id, 
+        id: isTemp ? null : row.id,
         material_id: cat ? cat.id : (row.material_id || null),
         material_name: row.material_name || '',
         material_type: (cat ? cat.material_category : row.material_type) || '',
         is_loose: row.is_loose || false,
-        track_id: row.track_id || generateUUID(), 
-        lot_no: row.lot_no || '',      
+        track_id: row.track_id || generateUUID(),
+        lot_no: row.lot_no || '',
         bags_used: parseNum(row.no_of_bags),
         qty_available: parseNum(row.qty_available),
         qty_used: parseNum(row.qty_used),
@@ -1209,7 +1272,6 @@ async function saveAllMaterialData() {
     }
 
     // --- SAVE DAILY LOG DATA (Production, Rejects, Downtime) ---
-    const processScrapVal = parseNum(document.getElementById('processScrap')?.value);
     const resinScrapVal = parseNum(document.getElementById('resinScrap')?.value);
     const machineScrapVal = parseNum(document.getElementById('machineScrap')?.value);
     const qcScrapVal = parseNum(document.getElementById('qcScrap')?.value);
@@ -1218,21 +1280,21 @@ async function saveAllMaterialData() {
     const processWasteVal = parseNum(document.getElementById('processWaste')?.value);
     const inHouseUseVal = parseNum(document.getElementById('inHouseUse')?.value);
     const othersVal = parseNum(document.getElementById('others')?.value);
-    
+
     // Filter out blank rows from JSONB data before saving
-    const validRejectTransfer = (rejectTransferRows || []).filter(r => 
-      (r.product && r.product.trim() !== '') || 
-      (r.defect && r.defect.trim() !== '') || 
+    const validRejectTransfer = (rejectTransferRows || []).filter(r =>
+      (r.product && r.product.trim() !== '') ||
+      (r.defect && r.defect.trim() !== '') ||
       (r.qty && String(r.qty).trim() !== '')
     );
-    const validRejectIssued = (rejectIssuedRows || []).filter(r => 
-      (r.product && r.product.trim() !== '') || 
-      (r.defect && r.defect.trim() !== '') || 
+    const validRejectIssued = (rejectIssuedRows || []).filter(r =>
+      (r.product && r.product.trim() !== '') ||
+      (r.defect && r.defect.trim() !== '') ||
       (r.qty && String(r.qty).trim() !== '')
     );
-    const validDowntime = (downtimeRows || []).filter(r => 
-      (r.from && r.from.trim() !== '') || 
-      (r.to && r.to.trim() !== '') || 
+    const validDowntime = (downtimeRows || []).filter(r =>
+      (r.from && r.from.trim() !== '') ||
+      (r.to && r.to.trim() !== '') ||
       (r.description && r.description.trim() !== '')
     );
 
@@ -1248,8 +1310,7 @@ async function saveAllMaterialData() {
       rejected_kgs_actual: parseNum(dailyLogData.rejected_kgs_actual),
       rejected_kgs_std: parseNum(dailyLogData.rejected_kgs_std),
       total_scrap: {
-        process_scrap: processScrapVal,
-        resin_scrap: resinScrapVal,
+        total_scrap: resinScrapVal, // Renamed from resin_scrap per request
         machine_scrap: machineScrapVal,
         qc_scrap: qcScrapVal,
         resin_bag_scrap_detail: resinBagScrapDetailVal,
@@ -1369,7 +1430,7 @@ async function loadHeaderInfo() {
     // Silent return - currentHeaderId should always be set from URL parameter
     return;
   }
-  
+
   try {
     const { data: header, error } = await supabase
       .from('pd_material_consumption_records')
@@ -1498,112 +1559,114 @@ async function loadDefectsCatalog() {
  * DEBUG: If tables empty, verify currentHeaderId is correct and rows exist in DB
  */
 async function loadMaterialData() {
-    if(isProcessing) return;
-    isProcessing = true;
+  if (isProcessing) return;
+  isProcessing = true;
 
-    try {
-        // 1. Fetch Consumption Data (The Saved Rows)
-        const { data: consumptionData, error: consumptionError } = await supabase
-            .from('pd_material_consumption_data')
-            .select('*')
-            .eq('header_id', currentHeaderId)
-            .order('row_index', {ascending: true});
+  try {
+    // 1. Fetch Consumption Data (The Saved Rows)
+    const { data: consumptionData, error: consumptionError } = await supabase
+      .from('pd_material_consumption_data')
+      .select('*')
+      .eq('header_id', currentHeaderId)
+      .order('row_index', { ascending: true });
 
-        if (consumptionError) throw consumptionError;
+    if (consumptionError) throw consumptionError;
 
-        // 2. Fetch Daily Log Data
-        const { data: logData, error: logError } = await supabase
-            .from('pd_daily_log')
-            .select('*')
-            .eq('header_id', currentHeaderId)
-            .maybeSingle();
+    // 2. Fetch Daily Log Data
+    const { data: logData, error: logError } = await supabase
+      .from('pd_daily_log')
+      .select('*')
+      .eq('header_id', currentHeaderId)
+      .maybeSingle();
 
-        // It's okay if logData is null (no log saved yet) - log data optional on first load
-        if (logError) {
-            // Silent error - log data not critical on first load
-        }
-
-        materialData = (consumptionData || []).map(row => {
-           // Ensure we pick up the bag count from either column
-           const bags = (row.bags_used !== null && row.bags_used !== undefined) ? row.bags_used : row.no_of_bags;
-           const mappedRow = {
-             ...row,
-             no_of_bags: (bags !== null && bags !== undefined) ? bags : '',
-             is_loose: row.is_loose === true, // Ensure boolean
-             qty_available_original: row.qty_available_original || row.qty_available || 0,
-             qty_balance: row.qty_balance !== undefined ? row.qty_balance : (parseNum(row.qty_available) - parseNum(row.qty_used))
-           };
-           return mappedRow;
-         });
-
-        // 3. If log data exists, store it in dailyLogData
-        if (logData) {
-            dailyLogData = { ...logData };
-            
-            // Populate other logs
-            rejectTransferRows = logData.reject_transfer_data || [];
-            rejectIssuedRows = logData.reject_issued_data || [];
-            downtimeRows = logData.downtime_log_data || [];
-            
-            // Populate scrap inputs
-            const scrap = logData.total_scrap || {};
-            const resinScrapInput = document.getElementById('resinScrap');
-            if (resinScrapInput) {
-                resinScrapInput.value = scrap.resin_scrap != null ? scrap.resin_scrap : '';
-            }
-
-            // Populate additional scrap details
-            if (document.getElementById('machineScrap')) document.getElementById('machineScrap').value = scrap.machine_scrap != null ? scrap.machine_scrap : '';
-            if (document.getElementById('qcScrap')) document.getElementById('qcScrap').value = scrap.qc_scrap != null ? scrap.qc_scrap : '';
-            if (document.getElementById('resinBagScrapDetail')) document.getElementById('resinBagScrapDetail').value = scrap.resin_bag_scrap_detail != null ? scrap.resin_bag_scrap_detail : '';
-            if (document.getElementById('rewindedScrap')) document.getElementById('rewindedScrap').value = scrap.rewinded_scrap != null ? scrap.rewinded_scrap : '';
-            if (document.getElementById('processWaste')) document.getElementById('processWaste').value = scrap.process_waste != null ? scrap.process_waste : '';
-            if (document.getElementById('inHouseUse')) document.getElementById('inHouseUse').value = scrap.in_house_use != null ? scrap.in_house_use : '';
-            if (document.getElementById('others')) document.getElementById('others').value = scrap.others != null ? scrap.others : '';
-
-            // Populate downtime description
-            const downtimeDescInput = document.getElementById('downtimeDescription');
-            if (downtimeDescInput) {
-                downtimeDescInput.value = logData.downtime_description || '';
-                // Trigger autosize
-                const event = new Event('input', { bubbles: true });
-                downtimeDescInput.dispatchEvent(event);
-            }
-
-            // Update downtime summary display if data exists
-            if (logData.downtime_log_data) {
-                updateDowntimeSummaryDisplay();
-            }
-        } else {
-            // Reset if no log data found
-            dailyLogData = {};
-            rejectTransferRows = [];
-            rejectIssuedRows = [];
-            downtimeRows = [];
-        }
-        
-        // Ensure at least one blank row for editing if empty
-        if (rejectTransferRows.length === 0) {
-            rejectTransferRows.push({ id: `rtemp-${rejectTransferTempCounter++}`, product: '', defect: '', qty: '' });
-        }
-        if (rejectIssuedRows.length === 0) {
-            rejectIssuedRows.push({ id: `ritemp-${rejectIssuedTempCounter++}`, product: '', defect: '', qty: '' });
-        }
-        if (downtimeRows.length === 0) {
-            downtimeRows.push({ id: `dtemp-${downtimeTempCounter++}`, from: '', to: '', minutes: '', description: '' });
-        }
-
-        // 4. Render the tables
-        renderMaterialDataTable();
-        renderRejectTransferTable();
-        renderRejectIssuedTable();
-        renderDowntimeTable();
-
-    } catch (err) {
-        // Errors logged; execution continues with partial or empty data
-    } finally {
-        isProcessing = false;
+    // It's okay if logData is null (no log saved yet) - log data optional on first load
+    if (logError) {
+      // Silent error - log data not critical on first load
     }
+
+    materialData = (consumptionData || []).map(row => {
+      // Ensure we pick up the bag count from either column
+      const bags = (row.bags_used !== null && row.bags_used !== undefined) ? row.bags_used : row.no_of_bags;
+      const mappedRow = {
+        ...row,
+        no_of_bags: (bags !== null && bags !== undefined) ? bags : '',
+        is_loose: row.is_loose === true, // Ensure boolean
+        qty_available_original: row.qty_available_original || row.qty_available || 0,
+        qty_balance: row.qty_balance !== undefined ? row.qty_balance : (parseNum(row.qty_available) - parseNum(row.qty_used))
+      };
+      return mappedRow;
+    });
+
+    // 3. If log data exists, store it in dailyLogData
+    if (logData) {
+      dailyLogData = { ...logData };
+
+      // Populate other logs
+      rejectTransferRows = logData.reject_transfer_data || [];
+      rejectIssuedRows = logData.reject_issued_data || [];
+      downtimeRows = logData.downtime_log_data || [];
+
+      // Populate scrap inputs
+      const scrap = logData.total_scrap || {};
+      const resinScrapInput = document.getElementById('resinScrap');
+      if (resinScrapInput) {
+        // Try the new key 'total_scrap' first, fallback to old key 'resin_scrap'
+        const totalScrapVal = scrap.total_scrap != null ? scrap.total_scrap : scrap.resin_scrap;
+        resinScrapInput.value = totalScrapVal != null ? totalScrapVal : '';
+      }
+
+      // Populate additional scrap details
+      if (document.getElementById('machineScrap')) document.getElementById('machineScrap').value = scrap.machine_scrap != null ? scrap.machine_scrap : '';
+      if (document.getElementById('qcScrap')) document.getElementById('qcScrap').value = scrap.qc_scrap != null ? scrap.qc_scrap : '';
+      if (document.getElementById('resinBagScrapDetail')) document.getElementById('resinBagScrapDetail').value = scrap.resin_bag_scrap_detail != null ? scrap.resin_bag_scrap_detail : '';
+      if (document.getElementById('rewindedScrap')) document.getElementById('rewindedScrap').value = scrap.rewinded_scrap != null ? scrap.rewinded_scrap : '';
+      if (document.getElementById('processWaste')) document.getElementById('processWaste').value = scrap.process_waste != null ? scrap.process_waste : '';
+      if (document.getElementById('inHouseUse')) document.getElementById('inHouseUse').value = scrap.in_house_use != null ? scrap.in_house_use : '';
+      if (document.getElementById('others')) document.getElementById('others').value = scrap.others != null ? scrap.others : '';
+
+      // Populate downtime description
+      const downtimeDescInput = document.getElementById('downtimeDescription');
+      if (downtimeDescInput) {
+        downtimeDescInput.value = logData.downtime_description || '';
+        // Trigger autosize
+        const event = new Event('input', { bubbles: true });
+        downtimeDescInput.dispatchEvent(event);
+      }
+
+      // Update downtime summary display if data exists
+      if (logData.downtime_log_data) {
+        updateDowntimeSummaryDisplay();
+      }
+    } else {
+      // Reset if no log data found
+      dailyLogData = {};
+      rejectTransferRows = [];
+      rejectIssuedRows = [];
+      downtimeRows = [];
+    }
+
+    // Ensure at least one blank row for editing if empty
+    if (rejectTransferRows.length === 0) {
+      rejectTransferRows.push({ id: `rtemp-${rejectTransferTempCounter++}`, product: '', defect: '', qty: '' });
+    }
+    if (rejectIssuedRows.length === 0) {
+      rejectIssuedRows.push({ id: `ritemp-${rejectIssuedTempCounter++}`, product: '', defect: '', qty: '' });
+    }
+    if (downtimeRows.length === 0) {
+      downtimeRows.push({ id: `dtemp-${downtimeTempCounter++}`, from: '', to: '', minutes: '', description: '' });
+    }
+
+    // 4. Render the tables
+    renderMaterialDataTable();
+    renderRejectTransferTable();
+    renderRejectIssuedTable();
+    renderDowntimeTable();
+
+  } catch (err) {
+    // Errors logged; execution continues with partial or empty data
+  } finally {
+    isProcessing = false;
+  }
 }
 
 // ===== CLEANUP ON PAGE UNLOAD =====
@@ -1993,7 +2056,7 @@ function createRejectTableListeners(tableId, rowsArray) {
   tbody.addEventListener('blur', (e) => {
     const target = e.target;
     if (!target.hasAttribute('contenteditable') || !target.dataset?.row) return;
-    
+
     const rowIdx = parseInt(target.dataset.row, 10);
     const col = target.dataset.col;
     if (isNaN(rowIdx) || !rowsArray[rowIdx]) return;
@@ -2012,24 +2075,24 @@ function createRejectTableListeners(tableId, rowsArray) {
   tbody.addEventListener('input', (e) => {
     const target = e.target;
     if (!target.hasAttribute('contenteditable') || !target.dataset?.row) return;
-    
+
     const col = target.dataset.col;
     const searchTerm = target.textContent.trim().toLowerCase();
-    
+
     if (!searchTerm) {
       closeAutocomplete();
       return;
     }
 
     if (col === 'product') {
-      const matches = productsCatalog.filter(p => 
-        p.prod_code.toLowerCase().includes(searchTerm) || 
+      const matches = productsCatalog.filter(p =>
+        p.prod_code.toLowerCase().includes(searchTerm) ||
         p.customer?.toLowerCase().includes(searchTerm) ||
         p.spec?.toLowerCase().includes(searchTerm)
       ).slice(0, 20);
       showAutocompleteSuggestions(target, matches, 'product');
     } else if (col === 'defect') {
-      const matches = defectsCatalog.filter(d => 
+      const matches = defectsCatalog.filter(d =>
         d.toLowerCase().includes(searchTerm)
       ).slice(0, 20);
       showAutocompleteSuggestions(target, matches, 'defect');
@@ -2106,15 +2169,15 @@ function setupAllAutocomplete() {
  * - Hover effects for visual feedback
  */
 function showAutocompleteSuggestions(targetTd, suggestions, type) {
-    closeAutocomplete(); // Close existing
+  closeAutocomplete(); // Close existing
 
-    if (suggestions.length === 0) return;
+  if (suggestions.length === 0) return;
 
-    // Create Dropdown Container (Div instead of UL)
-    const container = document.createElement('div');
-    container.id = 'material-autocomplete-list';
-    container.className = 'autocomplete-dropdown';
-    container.style.cssText = `
+  // Create Dropdown Container (Div instead of UL)
+  const container = document.createElement('div');
+  container.id = 'material-autocomplete-list';
+  container.className = 'autocomplete-dropdown';
+  container.style.cssText = `
         position: absolute;
         background: #eaf4fb;
         border: 1px solid #ddd;
@@ -2124,30 +2187,30 @@ function showAutocompleteSuggestions(targetTd, suggestions, type) {
         overflow-y: auto;
         z-index: 1000;
     `;
-    
-    // Position it
-    const rect = targetTd.getBoundingClientRect();
-    container.style.top = (rect.bottom + window.scrollY) + 'px';
-    container.style.left = (rect.left + window.scrollX) + 'px';
-    container.style.width = Math.max(rect.width, type === 'track_id' ? 250 : 200) + 'px';
 
-    suggestions.forEach(item => {
-        if (type === 'material') {
-            // Option 1: Standard Material
-            createSuggestionItem(container, item, targetTd, false);
-            
-            // Option 2: Loose Material (if enabled in catalog)
-            if (item.is_loose) {
-                createSuggestionItem(container, item, targetTd, true);
-            }
-        } else if (type === 'product') {
-            createProductSuggestionItem(container, item, targetTd);
-        } else if (type === 'defect') {
-            createDefectSuggestionItem(container, item, targetTd);
-        }
-    });
+  // Position it
+  const rect = targetTd.getBoundingClientRect();
+  container.style.top = (rect.bottom + window.scrollY) + 'px';
+  container.style.left = (rect.left + window.scrollX) + 'px';
+  container.style.width = Math.max(rect.width, type === 'track_id' ? 250 : 200) + 'px';
 
-    document.body.appendChild(container);
+  suggestions.forEach(item => {
+    if (type === 'material') {
+      // Option 1: Standard Material
+      createSuggestionItem(container, item, targetTd, false);
+
+      // Option 2: Loose Material (if enabled in catalog)
+      if (item.is_loose) {
+        createSuggestionItem(container, item, targetTd, true);
+      }
+    } else if (type === 'product') {
+      createProductSuggestionItem(container, item, targetTd);
+    } else if (type === 'defect') {
+      createDefectSuggestionItem(container, item, targetTd);
+    }
+  });
+
+  document.body.appendChild(container);
 }
 
 /**
@@ -2155,9 +2218,9 @@ function showAutocompleteSuggestions(targetTd, suggestions, type) {
  * Used in reject transfer/issued tables
  */
 function createProductSuggestionItem(container, item, targetTd) {
-    const suggestionItem = document.createElement('div');
-    suggestionItem.className = 'suggestion-item';
-    suggestionItem.style.cssText = `
+  const suggestionItem = document.createElement('div');
+  suggestionItem.className = 'suggestion-item';
+  suggestionItem.style.cssText = `
         padding: 8px 12px;
         cursor: pointer;
         border-bottom: 1px solid #d1e9f9;
@@ -2165,37 +2228,37 @@ function createProductSuggestionItem(container, item, targetTd) {
         transition: background 0.2s;
         background: #eaf4fb;
     `;
-    
-    suggestionItem.innerHTML = `
+
+  suggestionItem.innerHTML = `
         <div style="font-weight: 500; color: #333;">${item.prod_code}</div>
         <div style="font-size: 11px; color: #666; margin-top: 2px;">
             ${item.customer || ''} • ${item.spec || ''}
         </div>
     `;
-    
-    suggestionItem.onmousedown = (e) => {
-        e.preventDefault();
-        targetTd.textContent = item.prod_code; 
-        
-        const rowIdx = parseInt(targetTd.dataset.row, 10);
-        const tbody = targetTd.closest('tbody');
-        if (tbody.id === 'rejectTransferTableBody') {
-            rejectTransferRows[rowIdx].product = item.prod_code;
-        } else if (tbody.id === 'rejectIssuedTableBody') {
-            rejectIssuedRows[rowIdx].product = item.prod_code;
-        }
-        
-        closeAutocomplete();
-    };
 
-    suggestionItem.addEventListener('mouseenter', () => {
-        suggestionItem.style.backgroundColor = '#bae6fd';
-    });
-    suggestionItem.addEventListener('mouseleave', () => {
-        suggestionItem.style.backgroundColor = '#eaf4fb';
-    });
+  suggestionItem.onmousedown = (e) => {
+    e.preventDefault();
+    targetTd.textContent = item.prod_code;
 
-    container.appendChild(suggestionItem);
+    const rowIdx = parseInt(targetTd.dataset.row, 10);
+    const tbody = targetTd.closest('tbody');
+    if (tbody.id === 'rejectTransferTableBody') {
+      rejectTransferRows[rowIdx].product = item.prod_code;
+    } else if (tbody.id === 'rejectIssuedTableBody') {
+      rejectIssuedRows[rowIdx].product = item.prod_code;
+    }
+
+    closeAutocomplete();
+  };
+
+  suggestionItem.addEventListener('mouseenter', () => {
+    suggestionItem.style.backgroundColor = '#bae6fd';
+  });
+  suggestionItem.addEventListener('mouseleave', () => {
+    suggestionItem.style.backgroundColor = '#eaf4fb';
+  });
+
+  container.appendChild(suggestionItem);
 }
 
 /**
@@ -2203,9 +2266,9 @@ function createProductSuggestionItem(container, item, targetTd) {
  * Used in reject transfer/issued tables
  */
 function createDefectSuggestionItem(container, item, targetTd) {
-    const suggestionItem = document.createElement('div');
-    suggestionItem.className = 'suggestion-item';
-    suggestionItem.style.cssText = `
+  const suggestionItem = document.createElement('div');
+  suggestionItem.className = 'suggestion-item';
+  suggestionItem.style.cssText = `
         padding: 8px 12px;
         cursor: pointer;
         border-bottom: 1px solid #d1e9f9;
@@ -2213,34 +2276,34 @@ function createDefectSuggestionItem(container, item, targetTd) {
         transition: background 0.2s;
         background: #eaf4fb;
     `;
-    
-    suggestionItem.innerHTML = `
+
+  suggestionItem.innerHTML = `
         <div style="font-weight: 500; color: #333;">${item}</div>
     `;
-    
-    suggestionItem.onmousedown = (e) => {
-        e.preventDefault();
-        targetTd.textContent = item; 
-        
-        const rowIdx = parseInt(targetTd.dataset.row, 10);
-        const tbody = targetTd.closest('tbody');
-        if (tbody.id === 'rejectTransferTableBody') {
-            rejectTransferRows[rowIdx].defect = item;
-        } else if (tbody.id === 'rejectIssuedTableBody') {
-            rejectIssuedRows[rowIdx].defect = item;
-        }
-        
-        closeAutocomplete();
-    };
 
-    suggestionItem.addEventListener('mouseenter', () => {
-        suggestionItem.style.backgroundColor = '#bae6fd';
-    });
-    suggestionItem.addEventListener('mouseleave', () => {
-        suggestionItem.style.backgroundColor = '#eaf4fb';
-    });
+  suggestionItem.onmousedown = (e) => {
+    e.preventDefault();
+    targetTd.textContent = item;
 
-    container.appendChild(suggestionItem);
+    const rowIdx = parseInt(targetTd.dataset.row, 10);
+    const tbody = targetTd.closest('tbody');
+    if (tbody.id === 'rejectTransferTableBody') {
+      rejectTransferRows[rowIdx].defect = item;
+    } else if (tbody.id === 'rejectIssuedTableBody') {
+      rejectIssuedRows[rowIdx].defect = item;
+    }
+
+    closeAutocomplete();
+  };
+
+  suggestionItem.addEventListener('mouseenter', () => {
+    suggestionItem.style.backgroundColor = '#bae6fd';
+  });
+  suggestionItem.addEventListener('mouseleave', () => {
+    suggestionItem.style.backgroundColor = '#eaf4fb';
+  });
+
+  container.appendChild(suggestionItem);
 }
 
 /**
@@ -2256,9 +2319,9 @@ function createDefectSuggestionItem(container, item, targetTd) {
  * 6. Auto-focuses next editable cell (bags or qty_used)
  */
 function createSuggestionItem(container, item, targetTd, isLoose) {
-    const suggestionItem = document.createElement('div');
-    suggestionItem.className = 'suggestion-item';
-    suggestionItem.style.cssText = `
+  const suggestionItem = document.createElement('div');
+  suggestionItem.className = 'suggestion-item';
+  suggestionItem.style.cssText = `
         padding: 8px 12px;
         cursor: pointer;
         border-bottom: 1px solid #d1e9f9;
@@ -2266,99 +2329,100 @@ function createSuggestionItem(container, item, targetTd, isLoose) {
         transition: background 0.2s;
         background: ${isLoose ? '#fff7ed' : '#eaf4fb'};
     `;
-    
-    const displayName = isLoose ? `${item.material_name} (Loose)` : item.material_name;
-    const subText = `${item.material_category || 'No category'} • ${item.uom || 'No UOM'}`;
-    
-    suggestionItem.innerHTML = `
+
+  const displayName = isLoose ? `${item.material_name} (Loose)` : item.material_name;
+  const subText = `${item.material_category || 'No category'} • ${item.uom || 'No UOM'}`;
+
+  suggestionItem.innerHTML = `
         <div style="font-weight: 500; color: #333;">${displayName}</div>
         <div style="font-size: 11px; color: #666; margin-top: 2px;">
             ${subText}
         </div>
     `;
-    
-    suggestionItem.onmousedown = (e) => {
-        e.preventDefault();
-        targetTd.textContent = displayName; 
-        const row = targetTd.closest('tr');
-        const rowIndex = parseInt(row.dataset.index, 10);
-        
-        if (materialData[rowIndex]) {
-            materialData[rowIndex].material_name = item.material_name;
-            materialData[rowIndex].material_id = item.id;
-            materialData[rowIndex].material_type = item.material_category || '';
-            materialData[rowIndex].is_loose = isLoose;
-            
-            // --- IMMEDIATE UI UPDATE ---
-            const mType = (item.material_category || '').toUpperCase();
-            const isRM = mType === 'RM' || mType.includes('RAW') || mType.includes('RESIN');
-            
-            // Update No of Bags Used immediately
-            const bagCell = row.querySelector('[data-column="no_of_bags"]');
-            if (bagCell) {
-                // If it's loose, disable bags even if it's RM
-                const skipBags = !isRM || isLoose;
-                const bagDisplay = (item.material_name && skipBags) ? '-' : '';
-                bagCell.textContent = bagDisplay;
-                bagCell.contentEditable = !skipBags;
-                
-                if (skipBags) {
-                    bagCell.classList.add('bg-gray-100', 'text-gray-500');
-                    materialData[rowIndex].no_of_bags = '';
-                } else {
-                    bagCell.classList.remove('bg-gray-100', 'text-gray-500');
-                }
-            }
-            
-            // Update UOM immediately & apply colors
-            const uomCell = row.querySelector('[data-column="uom_display"]');
-            if (uomCell) {
-                const uomVal = (item.uom || '-').toUpperCase();
-                uomCell.textContent = uomVal;
-                
-                // Reset classes then add the specific one
-                uomCell.className = 'border border-gray-300 px-2 py-1 text-center text-[10px] font-black';
-                
-                if (uomVal === 'KGS') uomCell.classList.add('text-blue-700', 'bg-blue-50');
-                else if (uomVal === 'NOS') uomCell.classList.add('text-purple-700', 'bg-purple-50');
-                else if (uomVal === 'MTR' || uomVal === 'MTRS') uomCell.classList.add('text-green-700', 'bg-green-50');
-                else if (uomVal === 'RLS' || uomVal === 'ROLLS') uomCell.classList.add('text-orange-700', 'bg-orange-50');
-                else if (uomVal === 'SET') uomCell.classList.add('text-teal-700', 'bg-teal-50');
-                else uomCell.classList.add('text-gray-600', 'bg-gray-50');
-            }
 
-            // Clear Track ID when material changes
-            materialData[rowIndex].track_id = '';
-            const trackCell = row.querySelector('[data-column="track_id"]');
-            if (trackCell) trackCell.textContent = '';
+  suggestionItem.onmousedown = (e) => {
+    e.preventDefault();
+    targetTd.textContent = displayName;
+    const row = targetTd.closest('tr');
+    const rowIndex = parseInt(row.dataset.index, 10);
+
+    if (materialData[rowIndex]) {
+      materialData[rowIndex].material_name = item.material_name;
+      materialData[rowIndex].material_id = item.id;
+      materialData[rowIndex].material_type = item.material_category || '';
+      materialData[rowIndex].is_loose = isLoose;
+      materialData[rowIndex].skip_carry_forward = true;
+
+      // --- IMMEDIATE UI UPDATE ---
+      const mType = (item.material_category || '').toUpperCase();
+      const isRM = mType === 'RM' || mType.includes('RAW') || mType.includes('RESIN');
+
+      // Update No of Bags Used immediately
+      const bagCell = row.querySelector('[data-column="no_of_bags"]');
+      if (bagCell) {
+        // If it's loose, disable bags even if it's RM
+        const skipBags = !isRM || isLoose;
+        const bagDisplay = (item.material_name && skipBags) ? '-' : '';
+        bagCell.textContent = bagDisplay;
+        bagCell.contentEditable = !skipBags;
+
+        if (skipBags) {
+          bagCell.classList.add('bg-gray-100', 'text-gray-500');
+          materialData[rowIndex].no_of_bags = '';
+        } else {
+          bagCell.classList.remove('bg-gray-100', 'text-gray-500');
         }
-        
-        closeAutocomplete();
-        lookupMaterialAndPopulateDetails(item.material_name, rowIndex, item, isLoose);
-        
-        // Focus logic
-        const skipBagsFocus = !((item.material_category || '').toUpperCase().includes('RM')) || isLoose;
-        const nextCell = skipBagsFocus ? row.querySelector('[data-column="qty_used"]') : row.querySelector('[data-column="no_of_bags"]');
-        if (nextCell) nextCell.focus();
-    };
+      }
 
-    // Add hover effect
-    suggestionItem.addEventListener('mouseenter', () => {
-        suggestionItem.style.backgroundColor = isLoose ? '#ffedd5' : '#bae6fd';
-    });
-    suggestionItem.addEventListener('mouseleave', () => {
-        suggestionItem.style.backgroundColor = isLoose ? '#fff7ed' : '#eaf4fb';
-    });
+      // Update UOM immediately & apply colors
+      const uomCell = row.querySelector('[data-column="uom_display"]');
+      if (uomCell) {
+        const uomVal = (item.uom || '-').toUpperCase();
+        uomCell.textContent = uomVal;
 
-    container.appendChild(suggestionItem);
+        // Reset classes then add the specific one
+        uomCell.className = 'border border-gray-300 px-2 py-1 text-center text-[10px] font-black';
+
+        if (uomVal === 'KGS') uomCell.classList.add('text-blue-700', 'bg-blue-50');
+        else if (uomVal === 'NOS') uomCell.classList.add('text-purple-700', 'bg-purple-50');
+        else if (uomVal === 'MTR' || uomVal === 'MTRS') uomCell.classList.add('text-green-700', 'bg-green-50');
+        else if (uomVal === 'RLS' || uomVal === 'ROLLS') uomCell.classList.add('text-orange-700', 'bg-orange-50');
+        else if (uomVal === 'SET') uomCell.classList.add('text-teal-700', 'bg-teal-50');
+        else uomCell.classList.add('text-gray-600', 'bg-gray-50');
+      }
+
+      // Clear Track ID when material changes
+      materialData[rowIndex].track_id = '';
+      const trackCell = row.querySelector('[data-column="track_id"]');
+      if (trackCell) trackCell.textContent = '';
+    }
+
+    closeAutocomplete();
+    lookupMaterialAndPopulateDetails(item.material_name, rowIndex, item, isLoose, false, false);
+
+    // Focus logic
+    const skipBagsFocus = !((item.material_category || '').toUpperCase().includes('RM')) || isLoose;
+    const nextCell = skipBagsFocus ? row.querySelector('[data-column="qty_used"]') : row.querySelector('[data-column="no_of_bags"]');
+    if (nextCell) nextCell.focus();
+  };
+
+  // Add hover effect
+  suggestionItem.addEventListener('mouseenter', () => {
+    suggestionItem.style.backgroundColor = isLoose ? '#ffedd5' : '#bae6fd';
+  });
+  suggestionItem.addEventListener('mouseleave', () => {
+    suggestionItem.style.backgroundColor = isLoose ? '#fff7ed' : '#eaf4fb';
+  });
+
+  container.appendChild(suggestionItem);
 }
 
 /**
  * Removes autocomplete dropdown from DOM
  */
 function closeAutocomplete() {
-    const existing = document.getElementById('material-autocomplete-list');
-    if (existing) existing.remove();
+  const existing = document.getElementById('material-autocomplete-list');
+  if (existing) existing.remove();
 }
 
 /**
@@ -2366,20 +2430,20 @@ function closeAutocomplete() {
  * Updates dailyLogData.total_scrap object when values change
  */
 function setupScrapListeners() {
-    const fields = [
-        'resinScrap', 'machineScrap', 'qcScrap', 
-        'resinBagScrapDetail', 'rewindedScrap', 'processWaste', 'inHouseUse', 'others'
-    ];
+  const fields = [
+    'resinScrap', 'machineScrap', 'qcScrap',
+    'resinBagScrapDetail', 'rewindedScrap', 'processWaste', 'inHouseUse', 'others'
+  ];
 
-    fields.forEach(id => {
-        const input = document.getElementById(id);
-        if (input) {
-            input.addEventListener('input', (e) => {
-                if (!dailyLogData.total_scrap) dailyLogData.total_scrap = {};
-                // Map camelCase ID to snake_case key if needed
-                const key = id.replace(/([A-Z])/g, "_$1").toLowerCase();
-                dailyLogData.total_scrap[key] = e.target.value;
-            });
-        }
-    });
+  fields.forEach(id => {
+    const input = document.getElementById(id);
+    if (input) {
+      input.addEventListener('input', (e) => {
+        if (!dailyLogData.total_scrap) dailyLogData.total_scrap = {};
+        // Map camelCase ID to snake_case key if needed
+        const key = id.replace(/([A-Z])/g, "_$1").toLowerCase();
+        dailyLogData.total_scrap[key] = e.target.value;
+      });
+    }
+  });
 }

@@ -1,0 +1,97 @@
+
+DECLARE
+    resolved_id uuid;
+    resolved_type text;
+    resolved_name text;
+    new_track_id text;
+    id_prefix text;
+BEGIN
+    -- Only run if Warehouse has issued stock (Qty > 0)
+    IF NEW.issued_qty > 0 THEN
+
+        -- 1. LOOKUP
+        SELECT id, material_category, material_name
+        INTO resolved_id, resolved_type, resolved_name
+        FROM pd_material_catalog 
+        WHERE id = NEW.material_id 
+           OR material_name = NEW.description 
+        LIMIT 1;
+
+        -- 2. VALIDATE
+        IF resolved_id IS NULL THEN
+            RAISE EXCEPTION 'System Error: Material "%" not found in Catalog.', NEW.description;
+        END IF;
+
+        -- 3. DETERMINE PREFIX (Updated)
+        CASE 
+            -- === RAW MATERIALS (RM) ===
+            WHEN resolved_type ILIKE 'Resin' 
+              OR resolved_type ILIKE 'Raw Material' THEN
+                id_prefix := 'RM';
+
+            -- === PACKING MATERIALS (PM) ===
+            WHEN resolved_type ILIKE 'Pallets' 
+              OR resolved_type ILIKE 'Paper Core'
+              OR resolved_type ILIKE 'Stretch Wrap'
+              OR resolved_type ILIKE 'Corrugated Sheets'
+              OR resolved_type ILIKE 'Bubble sheets'
+              OR resolved_type ILIKE 'Stickers'
+              OR resolved_type ILIKE 'Tapes'
+              OR resolved_type ILIKE 'Kraft paper'
+              OR resolved_type ILIKE 'Packing Material' THEN
+                id_prefix := 'PM';
+
+            -- === PRINTING MATERIALS (PRT-MAT) === <--- CHANGED HERE
+            WHEN resolved_type ILIKE 'Ink' 
+              OR resolved_type ILIKE 'Reducer'
+              OR resolved_type ILIKE 'Slip'
+              OR resolved_type ILIKE 'Medium'
+              OR resolved_type ILIKE 'Retarder'
+              OR resolved_type ILIKE 'Overcoat'
+              OR resolved_type ILIKE 'Extender'
+              OR resolved_type ILIKE 'Additive'
+              OR resolved_type ILIKE 'Intermediate' 
+              OR resolved_type ILIKE 'Printing Material' THEN
+                id_prefix := 'PRT-MAT';  -- <--- YOUR REQUEST
+
+            -- === FALLBACK ===
+            ELSE
+                id_prefix := 'GEN'; 
+        END CASE;
+
+        -- 4. GENERATE TRACK ID
+        -- Format: PRT-MAT + YYMM + - + 4 Random Chars
+        -- Example: PRT-MAT2601-A9F2
+        new_track_id := id_prefix || to_char(now(), 'YYMM') || '-' || substring(md5(random()::text) from 1 for 4);
+
+        -- 5. INSERT
+        INSERT INTO pd_material_staging (
+            track_id,
+            issued_date,
+            material_id,
+            material_name,
+            material_type,
+            lot_no,
+            issued_qty,
+            balance_qty,
+            consumed_qty,
+            status,
+            is_active
+        )
+        VALUES (
+            UPPER(new_track_id),
+            CURRENT_DATE,
+            resolved_id,
+            resolved_name,
+            resolved_type,
+            NEW.lot_no,
+            NEW.issued_qty,
+            NEW.issued_qty,
+            0,
+            'Available',
+            true
+        );
+        
+    END IF;
+    RETURN NEW;
+END;

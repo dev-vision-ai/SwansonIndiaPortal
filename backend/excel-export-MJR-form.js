@@ -459,6 +459,16 @@ module.exports = function (app, createAuthenticatedSupabaseClient) {
         return res.status(400).json({ error: 'No filtered data provided for export' });
       }
 
+      // Log first record keys to verify payload structure
+      if (data.length > 0) {
+        console.log('📋 First record keys in export payload:', Object.keys(data[0]));
+        console.log('📋 Sample time data:', {
+          schedulestarttime: data[0].schedulestarttime,
+          scheduleendtime: data[0].scheduleendtime,
+          total_bd_time: data[0].total_bd_time
+        });
+      }
+
       // Sort the data by occurdate from oldest to latest
       data.sort((a, b) => new Date(a.occurdate) - new Date(b.occurdate));
 
@@ -475,6 +485,48 @@ module.exports = function (app, createAuthenticatedSupabaseClient) {
     } catch (error) {
       console.error('❌ Error in POST export:', error);
       res.status(500).json({ error: `Error exporting machine history card: ${error.message}` });
+    }
+  });
+
+  // POST endpoint for exporting roller history card data
+  app.post('/api/export-roller-history-card', async (req, res) => {
+    try {
+      console.log('🔄 Roller History Card Export Request (POST)');
+      console.log('📋 Request body:', req.body);
+
+      const { data, filterSummary, selectedEquipmentName, selectedEquipmentId } = req.body;
+
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        console.error('❌ No filtered data provided for roller export');
+        return res.status(400).json({ error: 'No filtered data provided for roller export' });
+      }
+
+      // Log first record keys to verify payload structure
+      if (data.length > 0) {
+        console.log('📋 First record keys in roller export payload:', Object.keys(data[0]));
+        console.log('📋 Sample time data:', {
+          schedulestarttime: data[0].schedulestarttime,
+          scheduleendtime: data[0].scheduleendtime,
+          total_bd_time: data[0].total_bd_time
+        });
+      }
+
+      // Sort the data by occurdate from oldest to latest
+      data.sort((a, b) => new Date(a.occurdate) - new Date(b.occurdate));
+
+      console.log('✅ Received', data.length, 'filtered roller records for export');
+      if (filterSummary) {
+        console.log('📊 Filter summary:', filterSummary);
+      }
+      if (selectedEquipmentName) {
+        console.log('🏷️ Selected roller name:', selectedEquipmentName);
+      }
+
+      // Use the filtered data directly - same processing as machine history card
+      await processAndExportData(data, res, 'POST', filterSummary, selectedEquipmentName, selectedEquipmentId);
+    } catch (error) {
+      console.error('❌ Error in roller POST export:', error);
+      res.status(500).json({ error: `Error exporting roller history card: ${error.message}` });
     }
   });
 
@@ -536,16 +588,7 @@ module.exports = function (app, createAuthenticatedSupabaseClient) {
 
         // Column A: Breakdown Date (occurdate)
         if (record.occurdate) {
-          try {
-            const date = new Date(record.occurdate);
-            if (!isNaN(date.getTime())) {
-              sheet.cell(`A${rowNum}`).value(date.toLocaleDateString('en-IN'));
-            } else {
-              sheet.cell(`A${rowNum}`).value('N/A');
-            }
-          } catch (error) {
-            sheet.cell(`A${rowNum}`).value('N/A');
-          }
+          sheet.cell(`A${rowNum}`).value(formatDateToDDMMYYYY(record.occurdate));
         }
 
         // Column B: MJR# (requisitionno)
@@ -582,17 +625,17 @@ module.exports = function (app, createAuthenticatedSupabaseClient) {
           sheet.cell(`F${rowNum}`).value(record.existingcondition);
         }
 
-        // Column G: M/C BD Start Time (occurtime) - format as HH:MM
-        if (record.occurtime) {
+        // Column G: M/C BD Start Time (schedulestarttime) - format as HH:MM
+        if (record.schedulestarttime) {
           // Remove seconds if present (format as HH:MM only)
-          const startTime = record.occurtime.length > 5 ? record.occurtime.substring(0, 5) : record.occurtime;
+          const startTime = record.schedulestarttime.length > 5 ? record.schedulestarttime.substring(0, 5) : record.schedulestarttime;
           sheet.cell(`G${rowNum}`).value(startTime);
         }
 
-        // Column H: M/C BD Finish Time (completiontime) - format as HH:MM
-        if (record.completiontime) {
+        // Column H: M/C BD Finish Time (scheduleendtime) - format as HH:MM
+        if (record.scheduleendtime) {
           // Remove seconds if present (format as HH:MM only)
-          const finishTime = record.completiontime.length > 5 ? record.completiontime.substring(0, 5) : record.completiontime;
+          const finishTime = record.scheduleendtime.length > 5 ? record.scheduleendtime.substring(0, 5) : record.scheduleendtime;
           sheet.cell(`H${rowNum}`).value(finishTime);
         }
 
@@ -601,12 +644,12 @@ module.exports = function (app, createAuthenticatedSupabaseClient) {
         if (record.total_bd_time) {
           // IF provided by frontend (POST request), use it directly to ensure match
           sheet.cell(`I${rowNum}`).value(record.total_bd_time);
-        } else if (record.occurdate && record.occurtime && record.scheduleenddate && record.scheduleendtime) {
+        } else if (record.schedulestartdate && record.schedulestarttime && record.scheduleenddate && record.scheduleendtime) {
           // Fallback for GET request (calculate using full dates)
           try {
             const totalTime = calculateTotalBDTimeForExport(
-              record.occurdate,
-              record.occurtime,
+              record.schedulestartdate,
+              record.schedulestarttime,
               record.scheduleenddate,
               record.scheduleendtime
             );
