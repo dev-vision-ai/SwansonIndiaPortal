@@ -375,6 +375,8 @@ body {
     margin: 0;
     padding: 0;
     text-align: center;
+    width: 100% !important;
+    display: block;
 }
 
 .action-card-description {
@@ -396,6 +398,8 @@ body {
     margin: 0;
     padding: 0;
     text-align: center;
+    width: 100% !important;
+    display: block;
 }
 
 .action-card h3, .action-card p {

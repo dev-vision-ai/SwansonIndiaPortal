@@ -1349,19 +1349,45 @@ document.addEventListener('DOMContentLoaded', function() {
        }
        
        // Single debounced save function for database operations
-       let isSaving = false; // Flag to prevent duplicate saves
-       
-       function debouncedSave() {
-           if (isSaving) {
-               return; // Prevent duplicate saves
-           }
-           clearTimeout(saveTimeout);
-           saveTimeout = setTimeout(async () => {
-               isSaving = true;
-               await autoSaveToDatabase();
-               isSaving = false;
-           }, 200); // 200ms delay for better responsiveness
-       }
+let isSaving = false; // Flag to prevent duplicate saves
+let savePending = false; // Flag to track if a save was requested while saving
+let saveTimeout = null; // Moved here for better scoping
+
+function debouncedSave() {
+    // If a save is currently happening, just mark that we need another one later
+    if (isSaving) {
+        savePending = true;
+        return;
+    }
+    
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(async () => {
+        isSaving = true;
+        
+        try {
+            await autoSaveToDatabase();
+        } catch (error) {
+            console.error('Error during auto-save:', error);
+        } finally {
+            isSaving = false;
+            // If changes happened while we were saving, run it again
+            if (savePending) {
+                savePending = false;
+                debouncedSave(); 
+            }
+        }
+    }, 100); // 100ms delay for better responsiveness
+}
+
+// Warn user before leaving page if data is being saved
+window.addEventListener('beforeunload', function (e) {
+    if (isSaving || savePending) {
+        // Cancel the event
+        e.preventDefault(); 
+        // Chrome requires returnValue to be set
+        e.returnValue = 'Data is currently being saved. Are you sure you want to leave?';
+    }
+});
        
        // Helper function to add consolidated input event listener
        function addConsolidatedInputListener(input, tableBody, tr, columnIndex) {
@@ -2052,24 +2078,97 @@ document.addEventListener('DOMContentLoaded', function() {
                    
                case 'Enter':
                    e.preventDefault();
-                   // Move to cell below (next row) but stay within current page
+                   
                    const enterTable = currentCell.closest('tbody');
-                   const enterTableCells = Array.from(enterTable.querySelectorAll('td')).filter(cell => {
-                       const row = cell.closest('tr');
-                       const firstCellInRow = row.querySelector('td');
-                       return !firstCellInRow || !['Average', 'Minimum', 'Maximum'].includes(firstCellInRow.textContent.trim());
-                   });
+                   const tableId = enterTable.id;
                    
-                   const enterTableIndex = enterTableCells.indexOf(currentCell);
-                   const enterColumnsPerRow = getColumnsPerRow(enterTable);
+                   // Check for special horizontal navigation in Page 2 & 3 & 4
+                   // Page 2 (testingTableBody2) and Page 3 (testingTableBody3)
+                   // Subgroups: 
+                   // 1. Elongation: cols 3, 4, 5 (indices)
+                   // 2. Force: cols 7, 8, 9 (indices)
+                   // 3. Force 5% / Modulus: cols 11, 12, 13 (indices)
+                   // Page 4 (testingTableBody4)
+                   // 1. Gloss: cols 7, 8, 9 (indices)
                    
-                   // Move to next row within the same table
-                   const nextRowIndex = enterTableIndex + enterColumnsPerRow;
-                   if (nextRowIndex < enterTableCells.length) {
-                       nextCell = enterTableCells[nextRowIndex];
+                   const cellIndex = currentCell.cellIndex;
+                   const isSpecialTable = (tableId === 'testingTableBody2' || tableId === 'testingTableBody3');
+                   const isPage4 = (tableId === 'testingTableBody4');
+                   
+                   let isSpecialColumn = false;
+                   let groupStart = 0;
+                   let groupEnd = 0;
+                   
+                   if (isSpecialTable) {
+                       if (cellIndex >= 3 && cellIndex <= 5) {
+                           isSpecialColumn = true;
+                           groupStart = 3;
+                           groupEnd = 5;
+                       } else if (cellIndex >= 7 && cellIndex <= 9) {
+                           isSpecialColumn = true;
+                           groupStart = 7;
+                           groupEnd = 9;
+                       } else if (cellIndex >= 11 && cellIndex <= 13) {
+                           isSpecialColumn = true;
+                           groupStart = 11;
+                           groupEnd = 13;
+                       }
+                   } else if (isPage4) {
+                       if (cellIndex >= 7 && cellIndex <= 9) {
+                           isSpecialColumn = true;
+                           groupStart = 7;
+                           groupEnd = 9;
+                       }
+                   }
+
+                   
+                   if (isSpecialColumn) {
+                       // Horizontal navigation logic within the subgroup
+                       if (cellIndex < groupEnd) {
+                           // Move to next column in same row
+                           const currentRow = currentCell.closest('tr');
+                           const nextColCell = currentRow.cells[cellIndex + 1];
+                           if (nextColCell) {
+                               nextCell = nextColCell;
+                           }
+                       } else {
+                           // Move to first column of group in next row
+                           const currentRow = currentCell.closest('tr');
+                           const nextRow = currentRow.nextElementSibling;
+                           
+                           // Check if next row exists and is not a summary row
+                           if (nextRow) {
+                               const firstCell = nextRow.querySelector('td');
+                               const isSummary = firstCell && ['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
+                               
+                               if (!isSummary) {
+                                   const nextRowCell = nextRow.cells[groupStart];
+                                   if (nextRowCell) {
+                                       nextCell = nextRowCell;
+                                   }
+                               }
+                           }
+                       }
                    } else {
-                       // If at last row of current table, stay in the same cell
-                       nextCell = currentCell;
+                       // Default vertical navigation behavior
+                       // Move to cell below (next row) but stay within current page
+                       const enterTableCells = Array.from(enterTable.querySelectorAll('td')).filter(cell => {
+                           const row = cell.closest('tr');
+                           const firstCellInRow = row.querySelector('td');
+                           return !firstCellInRow || !['Average', 'Minimum', 'Maximum'].includes(firstCellInRow.textContent.trim());
+                       });
+                       
+                       const enterTableIndex = enterTableCells.indexOf(currentCell);
+                       const enterColumnsPerRow = getColumnsPerRow(enterTable);
+                       
+                       // Move to next row within the same table
+                       const nextRowIndex = enterTableIndex + enterColumnsPerRow;
+                       if (nextRowIndex < enterTableCells.length) {
+                           nextCell = enterTableCells[nextRowIndex];
+                       } else {
+                           // If at last row of current table, stay in the same cell
+                           nextCell = currentCell;
+                       }
                    }
                    break;
            }
@@ -2106,8 +2205,8 @@ document.addEventListener('DOMContentLoaded', function() {
            });
        }
        
-       // Debounced save timeout management
-       let saveTimeout = null;
+        // Debounced save timeout management
+        // let saveTimeout = null; // Moved to line 1352
 
     // Update row count for Page 1
     // Get current data row count (excluding summary rows)

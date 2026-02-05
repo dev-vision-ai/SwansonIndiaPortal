@@ -608,16 +608,7 @@ module.exports = function (app, createAuthenticatedSupabaseClient) {
 
         // Column E: Equipment Installation Date (equipmentinstalldate)
         if (record.equipmentinstalldate) {
-          try {
-            const installDate = new Date(record.equipmentinstalldate);
-            if (!isNaN(installDate.getTime())) {
-              sheet.cell(`E${rowNum}`).value(installDate.toLocaleDateString('en-IN'));
-            } else {
-              sheet.cell(`E${rowNum}`).value('N/A');
-            }
-          } catch (error) {
-            sheet.cell(`E${rowNum}`).value('N/A');
-          }
+          sheet.cell(`E${rowNum}`).value(formatDateToDDMMYYYY(record.equipmentinstalldate));
         }
 
         // Column F: Breakdown Description (existingcondition)

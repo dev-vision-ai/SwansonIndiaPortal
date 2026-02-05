@@ -289,6 +289,22 @@
    .kiv-details .form-row {
      flex-direction: column !important;
    }
+
+  body.emp-mjr-table .emp-mjr-table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.emp-mjr-table .emp-mjr-table-scroll table {
+    min-width: 900px;
+    table-layout: auto;
+  }
+
+  body.emp-mjr-table .emp-mjr-table-scroll th,
+  body.emp-mjr-table .emp-mjr-table-scroll td {
+    white-space: nowrap;
+  }
  }
 
  /* Table styles for MT tables */

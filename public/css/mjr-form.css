@@ -134,7 +134,7 @@ textarea:focus {
 }
 
 textarea {
-    height: 120px;
+    min-height: 40px;
     resize: vertical;
     overflow: auto;
 }
@@ -1112,161 +1112,214 @@ textarea {
     opacity: 1 !important;
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
+/* Mobile Responsive (Matching Quality Alert Form style) */
+@media (max-width: 600px) {
     body {
-        padding: 0.5rem;
+        padding: 4px !important;
+        padding-top: 60px !important;
+        margin: 0 !important;
+    }
+
+    main {
+        padding: 0 !important;
     }
 
     .maintenance-form-section {
-        padding: 1.5rem 1rem;
+        padding: 1rem 0.75rem !important;
+        margin-top: 0.5rem;
+        border-radius: 0.4rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-shadow: var(--shadow-md) !important;
     }
 
-    .form-row.grid-layout {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
+    /* Standardize Font Sizes (from quality-alert.css) */
+    form,
+    .form-group,
+    label,
+    input,
+    select,
+    textarea,
+    .split-container,
+    .split-item,
+    .section-label,
+    .breakdown-title,
+    .code-desc,
+    .power-label,
+    .handle-label,
+    .material-input {
+        font-size: 0.95rem !important;
     }
 
-    /* Equipment layout already has flex-direction: column by default */
+    label {
+        font-size: 0.92rem !important;
+        margin-bottom: 2px !important;
+    }
+
+    /* Standardize Input Styling (from quality-alert.css) */
+    input,
+    select,
+    textarea {
+        padding: 7px 8px !important;
+        min-height: 34px !important;
+        height: auto !important;
+        line-height: 1.2 !important;
+        border-radius: 4px !important;
+    }
+
+    textarea {
+        min-height: 70px !important;
+    }
+
+    .form-group {
+        margin-bottom: 12px !important;
+    }
+
+    /* Layout Adjustments */
+    .form-row {
+        flex-direction: row !important;
+        /* Keep side-by-side as in quality-alert split-container */
+        gap: 8px;
+        flex-wrap: nowrap;
+    }
+
+    .form-row .form-group {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    /* Specifically for 3-item rows that might be too tight */
+    .form-row:has(.form-group:nth-child(3)) {
+        flex-wrap: wrap !important;
+    }
+
+    .form-row:has(.form-group:nth-child(3)) .form-group {
+        flex: 1 1 45%;
+    }
+
+    .equipment-layout,
+    .time-completion-row,
+    .handle-by-content,
+    .remarks-correction-container,
+    .schedule-container,
+    .schedule-inputs,
+    .inspection-options {
+        flex-direction: column !important;
+        gap: 1rem;
+    }
 
     .equipment-left,
-    .equipment-right {
-        min-width: auto;
-    }
-
-
-    .occur-time-row {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .completion-date-row {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .time-completion-row {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
+    .equipment-right,
     .time-completion-left,
-    .time-completion-right {
-        min-width: auto;
-    }
-
-    .breakdown-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-
-    .breakdown-codes {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .handle-options {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .power-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-
-    .power-label {
-        margin-left: 2rem;
-    }
-
-    .handle-by-content {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .handle-options-row {
-        justify-content: space-around;
-        gap: 1rem;
-        flex-wrap: wrap;
-        align-items: stretch;
-    }
-
-    .handle-option {
-        width: 100px;
-        height: 80px;
-        min-width: auto;
-    }
-
+    .time-completion-right,
     .ots-bt-section {
-        min-width: auto;
-        height: 80px;
-        padding: 0.75rem;
+        min-width: 100% !important;
     }
 
-    .remarks-correction-container {
-        flex-direction: column;
-        gap: 1rem;
+    /* Breakdown Codes - 2 per row on mobile */
+    .breakdown-codes {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        white-space: normal !important;
     }
 
-    .schedule-container {
-        flex-direction: column;
-        gap: 1rem;
+    .code-item {
+        padding: 0.5rem !important;
+        min-height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
     }
 
-    .schedule-inputs {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .inspection-options {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .inspection-item {
-        min-width: auto;
-        justify-content: center;
+    /* Material Tracking Table Horizontal Scroll */
+    .inspection-material-container {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
     }
 
     .material-tracking-table {
-        font-size: 0.9rem;
+        min-width: 600px;
+        /* Force minimum width to enable scrolling */
     }
 
     .material-tracking-table thead th,
     .material-tracking-table tbody td {
-        padding: 0.5rem;
-        font-size: 0.85rem;
+        padding: 6px 4px !important;
+        font-size: 0.85rem !important;
     }
 
+    /* Buttons */
     .button-container {
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
+        flex-direction: row !important;
+        gap: 10px;
+        justify-content: center;
     }
 
-    #imageUploadContainer {
-        margin: 12px 0;
+    .submit-btn {
+        flex: 1;
+        max-width: 200px;
     }
 
+    /* Image Upload adjustments */
     #imageUploadContainer label button {
         padding: 8px 16px;
         font-size: 0.9rem;
         min-height: 40px;
     }
 
-    #imagePreviews {
-        margin-top: 0.75rem;
+    /* Breakdown header adjustment */
+    .breakdown-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .tick-instruction {
+        font-size: 0.8rem;
+    }
+
+    .handle-options-row {
+        display: flex !important;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        gap: 8px !important;
+        padding-bottom: 8px;
+        justify-content: flex-start !important;
+    }
+
+    .handle-option {
+        flex: 0 0 100px;
+        height: 80px;
+    }
+
+    /* Power Options */
+    .power-options-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.5rem !important;
+    }
+
+    .power-row {
+        padding: 0.4rem !important;
+    }
+
+    .power-label {
+        font-size: 0.75rem !important;
+        padding: 0.1rem 0.3rem !important;
     }
 }
 
-@media (max-width: 480px) {
-    .breakdown-codes {
-        grid-template-columns: 1fr;
+/* Very Small Devices */
+@media (max-width: 400px) {
+    .form-row {
+        flex-direction: column !important;
     }
 
-    .code-item {
-        justify-content: center;
-        text-align: center;
+    .button-container {
+        flex-direction: column !important;
+    }
+
+    .submit-btn {
+        max-width: 100%;
     }
 }

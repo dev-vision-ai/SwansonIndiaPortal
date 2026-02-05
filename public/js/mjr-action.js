@@ -136,13 +136,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 /** Auto-expand textareas to fit content */
 function setupAutoExpandTextareas() {
     document.querySelectorAll('textarea').forEach(textarea => {
-        const expand = () => {
-            textarea.style.height = 'auto';
-            textarea.style.height = textarea.scrollHeight + 'px';
-        };
-        textarea.addEventListener('input', expand);
-        expand();
+        textarea.removeAttribute('rows');
     });
+
+    // Legacy global trigger for compatibility
+    window.triggerTextareaExpand = () => { };
 }
 
 /**
@@ -717,6 +715,11 @@ function populateFormFields(data) {
             const rg = document.getElementById('regrindingDate');
             if (rg) rg.value = data.regrindingdate;
         }
+    }
+
+    // Trigger dynamic height expansion for loaded content
+    if (window.triggerTextareaExpand) {
+        window.triggerTextareaExpand();
     }
 }
 

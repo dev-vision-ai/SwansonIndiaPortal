@@ -1,110 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="google" content="notranslate">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Maintenance Job Requisitions Table</title>
-    <link rel="icon" type="image/png" href="../assets/logo2.png">
+  <link rel="icon" type="image/png" href="../assets/logo2.png">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
   <link rel="stylesheet" href="../css/mjr-table.css">
   <link rel="stylesheet" href="../css/common-header.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
   <style>
     /* Base font for the entire body */
     body {
-        font-family: 'Roboto', sans-serif;
-        font-weight: 500;
+      font-family: 'Roboto', sans-serif;
+      font-weight: 500;
     }
   </style>
 </head>
+
 <body class="bg-gray-100 text-gray-900 font-roboto-medium">
   <div class="header-container">
-    <button type="button" class="header-back-button" onclick="if(sessionStorage.getItem('mjrTablePrevPage')) { window.location.href = sessionStorage.getItem('mjrTablePrevPage'); } else { window.location.href='employee-dashboard.html'; }">Back</button>
+    <button type="button" class="header-back-button"
+      onclick="if(sessionStorage.getItem('mjrTablePrevPage')) { window.location.href = sessionStorage.getItem('mjrTablePrevPage'); } else { window.location.href='employee-dashboard.html'; }">Back</button>
     <div class="header-title">Maintenance Job Requisitions</div>
     <div class="company-logo">
-      <img src="../assets/logo.png" alt="Company Logo"/>
+      <img src="../assets/logo.png" alt="Company Logo" />
     </div>
   </div>
 
-    <h2 class="text-xl font-semibold mb-2 text-center" style="text-align: center; width: 100%; margin-top: 0px;">All Maintenance Job Requisitions</h2>
+  <h2 class="text-xl font-semibold mb-2 text-center" style="text-align: center; width: 100%; margin-top: 0px;">All
+    Maintenance Job Requisitions</h2>
 
-    <!-- Filter Section -->
-    <div id="filterSection" class="w-full flex justify-center mt-2 mb-2">
-      <div id="filterContainer" class="bg-white rounded-lg shadow-md p-2">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex-1"></div>
-          <h3 class="text-xs font-semibold text-gray-800 text-center flex-1">Find / Filter Requisitions</h3>
-                    <div class="flex items-center space-x-2 flex-1 justify-end">
-                        <span class="text-sm text-gray-600">Filter Status:</span>
-                        <span id="filterStatusIndicator" class="px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700">
-                            Off
-                        </span>
-                    </div>
+  <!-- Filter Section -->
+  <div id="filterSection" class="w-full flex justify-center mt-2 mb-2">
+    <div id="filterContainer" class="bg-white rounded-lg shadow-md p-2">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex-1"></div>
+        <h3 class="text-xs font-semibold text-gray-800 text-center flex-1">Find / Filter Requisitions</h3>
+        <div class="flex items-center space-x-2 flex-1 justify-end">
+          <span class="text-sm text-gray-600">Filter Status:</span>
+          <span id="filterStatusIndicator"
+            class="px-2 py-1 text-sm font-semibold rounded-full bg-gray-200 text-gray-700">
+            Off
+          </span>
         </div>
-        <div class="flex flex-wrap items-end justify-center gap-2">
-          <!-- Date Filter -->
-          <div class="flex flex-col items-center">
-            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Date:</label>
-            <input type="date" id="filterDate" class="w-32 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
-          </div>
-          <!-- Department Filter -->
-          <div class="flex flex-col items-center">
-            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Department:</label>
-            <select id="filterDept" class="w-36 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
-                <option value="">All Departments</option>
-                <option value="Production">Production</option>
-                <option value="Quality Control">Quality Control</option>
-                <option value="Maintenance">Maintenance</option>
-                <option value="Administration">Administration</option>
-                <option value="Quality Assurance">Quality Assurance</option>
-                <option value="Sales">Sales</option>
-                <option value="Human Resource">Human Resource</option>
-                <option value="Warehouse">Warehouse</option>
-                <option value="Logistics">Logistics</option>
-                <option value="Purchase">Purchase</option>
-            </select>
-          </div>
-          <!-- Equipment Filter -->
-          <div class="flex flex-col items-center">
-            <label class="block text-xs font-semibold text-gray-700 mb-0.5">Equipment:</label>
-            <input type="text" id="filterEquipment" placeholder="Filter by equipment" class="w-32 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
-          </div>
-          <!-- Filter Buttons -->
-          <div class="flex flex-col items-center">
-            <div class="h-4"></div> <!-- Spacer to align with inputs -->
-            <div class="flex space-x-2">
-              <button id="clearFilters" class="w-12 h-6 bg-gray-500 text-white text-xs font-semibold rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
-                Clear
-                </button>
-            </div>
+      </div>
+      <div class="flex flex-wrap items-end justify-center gap-2">
+        <!-- Date Filter -->
+        <div class="flex flex-col items-center">
+          <label class="block text-xs font-semibold text-gray-700 mb-0.5">Date:</label>
+          <input type="date" id="filterDate"
+            class="w-32 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+        </div>
+        <!-- Department Filter -->
+        <div class="flex flex-col items-center">
+          <label class="block text-xs font-semibold text-gray-700 mb-0.5">Department:</label>
+          <select id="filterDept"
+            class="w-36 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D] bg-white">
+            <option value="">All Departments</option>
+            <option value="Production">Production</option>
+            <option value="Quality Control">Quality Control</option>
+            <option value="Maintenance">Maintenance</option>
+            <option value="Administration">Administration</option>
+            <option value="Quality Assurance">Quality Assurance</option>
+            <option value="Sales">Sales</option>
+            <option value="Human Resource">Human Resource</option>
+            <option value="Warehouse">Warehouse</option>
+            <option value="Logistics">Logistics</option>
+            <option value="Purchase">Purchase</option>
+          </select>
+        </div>
+        <!-- Equipment Filter -->
+        <div class="flex flex-col items-center">
+          <label class="block text-xs font-semibold text-gray-700 mb-0.5">Equipment:</label>
+          <input type="text" id="filterEquipment" placeholder="Filter by equipment"
+            class="w-32 h-6 px-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-[#002E7D] focus:border-[#002E7D]">
+        </div>
+        <!-- Filter Buttons -->
+        <div class="flex flex-col items-center">
+          <div class="h-4"></div> <!-- Spacer to align with inputs -->
+          <div class="flex space-x-2">
+            <button id="clearFilters"
+              class="w-12 h-6 bg-gray-500 text-white text-xs font-semibold rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+              Clear
+            </button>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <table class="min-w-full bg-white shadow-md rounded text-xs">
-      <thead>
-        <tr class="bg-gray-200 text-left">
-          <!-- MT Job Requisition table headers -->
-          <th class="py-1 px-2" data-sort="requisitionno">Requisition No.</th>
-          <th class="py-1 px-2" data-sort="occurdate">Date</th>
-          <th class="py-1 px-2" data-sort="requestorname">Reported By</th>
-          <th class="py-1 px-2" data-sort="reqdept">Reporter Dept.</th>
-          <th class="py-1 px-2" data-sort="equipmentname">Equipment name</th>
-          <th class="py-1 px-2" data-sort="existingcondition">description</th>
-          <th class="py-1 px-2" data-sort="machineno">Machine / Area</th>
-          <th class="py-1 px-2" data-sort="status">Status</th>
-          <th class="py-1 px-2">Actions</th>
-        </tr>
-      </thead>
-      <tbody id="alertsBody">
-          <tr class="loading-row">
-              <td colspan="9" class="text-center py-4">Loading MT job requisitions...</td>
-          </tr>
-      </tbody>
-    </table>
+  <table class="min-w-full bg-white shadow-md rounded text-xs">
+    <thead>
+      <tr class="bg-gray-200 text-left">
+        <!-- MT Job Requisition table headers -->
+        <th class="py-1 px-2" data-sort="requisitionno">Requisition No.</th>
+        <th class="py-1 px-2" data-sort="occurdate">Date</th>
+        <th class="py-1 px-2" data-sort="requestorname">Reported By</th>
+        <th class="py-1 px-2" data-sort="reqdept">Reporter Dept.</th>
+        <th class="py-1 px-2" data-sort="equipmentname">Equipment name</th>
+        <th class="py-1 px-2" data-sort="existingcondition">description</th>
+        <th class="py-1 px-2" data-sort="machineno">Machine / Area</th>
+        <th class="py-1 px-2" data-sort="status">Status</th>
+        <th class="py-1 px-2">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="alertsBody">
+      <tr class="loading-row">
+        <td colspan="9" class="text-center py-4">Loading MT job requisitions...</td>
+      </tr>
+    </tbody>
+  </table>
   <script type="module" src="../js/mjr-table.js"></script>
 </body>
+
 </html>

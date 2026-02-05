@@ -121,8 +121,7 @@ input[type="date"],
 input[type="time"],
 input[type="datetime-local"],
 input[type="number"],
-select,
-textarea {
+select {
     width: 100%;
     padding: 0.5rem;
     border: 1px solid #ced4da;
@@ -132,6 +131,21 @@ textarea {
     min-height: 40px;
     height: 40px;
     line-height: 1.4;
+}
+
+textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+    field-sizing: content;
+    /* MODERN CSS AUTO-EXPAND */
+    min-height: 80px;
+    line-height: 1.4;
+    overflow: auto;
+    resize: vertical;
 }
 
 input:focus,
@@ -152,12 +166,6 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
-}
-
-textarea {
-    height: 40px;
-    resize: none;
-    overflow: hidden;
 }
 
 /* Section Labels */
@@ -595,7 +603,9 @@ textarea {
     background: var(--background-light);
     font-family: inherit;
     font-size: 0.9rem;
-    resize: vertical;
+    height: auto;
+    /* Ensure no fixed height here */
+    min-height: 80px;
     transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
@@ -924,131 +934,270 @@ textarea {
 
 /* Mobile Responsive */
 /* Mobile Responsive */
-@media (max-width: 768px) {
+/* Mobile Responsive (Matching Quality Alert Form style) */
+/* Mobile Responsive (Matching Quality Alert Form style) */
+@media (max-width: 600px) {
     body {
-        padding: 0.5rem;
+        padding: 4px !important;
+        margin: 0 !important;
     }
 
-    .maintenance-form-section {
-        padding: 1.5rem 1rem;
+    main {
+        padding: 0 !important;
     }
 
-    .header-container {
-        padding: 1rem;
+    /* Maximize container width - edge to edge */
+    .container {
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
-    .header-title {
-        font-size: 1.2rem;
+    .form-container {
+        padding: 1rem 0.75rem !important;
+        margin-top: 0.5rem !important;
+        margin-bottom: 0 !important;
+        border-radius: 0.4rem !important;
+        /* Square edges look better edge-to-edge */
+        width: 100% !important;
+        max-width: 100% !important;
+        box-shadow: var(--shadow) !important;
+        /* Remove shadow on mobile to look integrated */
     }
 
+    /* Standardize Font Sizes */
+    form,
+    .form-group,
+    label,
+    input,
+    select,
+    textarea,
+    .section-label,
+    .breakdown-title,
+    .code-desc,
+    .power-label,
+    .handle-label,
+    .material-input,
+    .handle-code,
+    .ots-bt-label,
+    .inspection-label {
+        font-size: 0.95rem !important;
+    }
+
+    label {
+        font-size: 0.92rem !important;
+        margin-bottom: 2px !important;
+    }
+
+    /* Standardize Input Styling (from quality-alert.css) */
+    input,
+    select {
+        padding: 7px 8px !important;
+        min-height: 34px !important;
+        height: auto !important;
+        line-height: 1.2 !important;
+        border-radius: 4px !important;
+    }
+
+    /* CRITICAL: Use modern field-sizing for auto-expansion */
+    textarea,
+    .correction-box textarea,
+    .remarks-box textarea,
+    .root-cause-box textarea {
+        field-sizing: content;
+        min-height: 100px !important;
+        overflow: auto !important;
+        line-height: 1.4 !important;
+        white-space: pre-wrap !important;
+        word-wrap: break-word !important;
+        padding: 10px 12px !important;
+        border-radius: 4px !important;
+        resize: vertical !important;
+    }
+
+    .form-group {
+        margin-bottom: 12px !important;
+    }
+
+    /* Standardize Child Container Padding to maximize inner width */
+    .equipment-details-container,
+    .condition-breakdown-container,
+    .handle-by-main-container,
+    .correction-tech-schedule-container,
+    .inspection-material-container,
+    .power-container,
+    .form-section>div[style*="border: 2px solid"] {
+        padding: 0.8rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    /* Layout Transitions - Force Column Stacking */
+    .equipment-layout,
+    .time-completion-row,
+    .handle-by-content,
+    .remarks-correction-container,
+    .schedule-container,
+    /* .schedule-inputs removed to allow row layout */
+    .inspection-options,
+    .handle-by-lower-row,
+    .root-cause-container,
+    .handle-options-row {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+
+    /* Force Schedule Date & Time to be Side-by-Side WITHOUT cropping */
+    .schedule-inputs {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 6px !important;
+        width: 100% !important;
+    }
+
+    .schedule-inputs .date-time-group {
+        min-width: 0 !important;
+    }
+
+    /* Date needs significantly more width than Time to avoid cropping the picker icon/string */
+    .schedule-inputs .date-time-group:first-child {
+        flex: 1.6 !important;
+        /* Date ~62% */
+    }
+
+    .schedule-inputs .date-time-group:last-child {
+        flex: 1 !important;
+        /* Time ~38% */
+    }
+
+    .schedule-inputs input {
+        width: 100% !important;
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+        text-indent: 2px !important;
+        font-size: 0.85rem !important;
+    }
+
+
+    /* Form Rows - Better Stacking Logic */
     .form-row {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
+        flex-direction: column !important;
+        gap: 0.75rem !important;
     }
 
-    .equipment-layout {
-        flex-direction: column;
+    /* Keep short rows side-by-side */
+    .occur-time-row,
+    .completion-date-row {
+        flex-direction: row !important;
+        gap: 8px !important;
+    }
+
+    .occur-field,
+    .completion-field {
+        min-width: 0 !important;
+        flex: 1 !important;
     }
 
     .equipment-left,
-    .equipment-right {
-        min-width: auto;
-    }
-
-
-    .occur-time-row {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .completion-date-row {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .time-completion-row {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
+    .equipment-right,
     .time-completion-left,
-    .time-completion-right {
-        min-width: auto;
+    .time-completion-right,
+    .ots-bt-section,
+    .cost-incurred-section,
+    .handle-option,
+    .correction-box,
+    .remarks-box,
+    .root-cause-box {
+        min-width: 100% !important;
+        width: 100% !important;
     }
 
-    .breakdown-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-
-    .breakdown-codes {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .handle-options {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .power-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-
-    .power-label {
-        margin-left: 2rem;
-    }
-
-    .handle-by-content {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
+    /* Handle Options - 2x2 grid */
     .handle-options-row {
-        justify-content: space-around;
-        gap: 1rem;
-        flex-wrap: wrap;
-        align-items: stretch;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        padding-bottom: 0 !important;
     }
 
     .handle-option {
-        width: 100px;
-        height: 80px;
-        min-width: auto;
+        height: auto !important;
+        padding: 1rem 0.5rem !important;
     }
 
-    .ots-bt-section {
-        min-width: auto;
-        height: 80px;
-        padding: 0.75rem;
+    /* Breakdown Codes - 2 per row */
+    .breakdown-codes {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
     }
 
-    .remarks-correction-container {
-        flex-direction: column;
-        gap: 1rem;
+    /* Standalone Inspection Result fix */
+    .form-section div[style*="display: flex"] {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 1rem !important;
     }
 
+    .form-section div[style*="display: flex"]>div {
+        width: 100% !important;
+        min-width: 0 !important;
+        flex: none !important;
+    }
+
+    /* Table Scroll */
+    .inspection-material-container {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        padding: 0.8rem 0.4rem !important;
+    }
+
+    .material-tracking-table {
+        min-width: 650px;
+    }
+
+    /* Buttons */
     .button-container {
-        flex-direction: column;
-        align-items: center;
+        flex-direction: column !important;
+        gap: 12px !important;
     }
 
     .submit-btn,
-    .draft-btn {
-        width: 100%;
-        max-width: 200px;
+    .delete-btn {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        padding: 12px !important;
+    }
+
+    /* Power Stacking */
+    .power-options-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.5rem !important;
     }
 }
 
-@media (max-width: 480px) {
-    .breakdown-codes {
-        grid-template-columns: 1fr;
+/* Phablet sizes */
+@media (min-width: 450px) and (max-width: 600px) {
+    .form-row:not(:has(textarea)) {
+        flex-direction: row !important;
     }
 
-    .code-item {
-        justify-content: center;
-        text-align: center;
+    .power-options-grid,
+    .breakdown-codes {
+        grid-template-columns: 1fr 1fr !important;
+    }
+}
+
+/* Very Small Devices */
+@media (max-width: 400px) {
+    .form-row {
+        flex-direction: column !important;
+    }
+
+    .button-container {
+        flex-direction: column !important;
+    }
+
+    .submit-btn,
+    .delete-btn {
+        max-width: 100%;
     }
 }
