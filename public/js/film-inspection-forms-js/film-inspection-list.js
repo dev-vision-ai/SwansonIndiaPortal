@@ -3633,6 +3633,29 @@ window.deleteFilmForm = async function(formId) {
                 }
             }
 
+            // Check for duplicate form (Product + Production Date + Inspection Date + Machine No)
+            // Reduced to 4 core fields to be safer - if these 4 match, it's very likely a duplicate
+            // We removed 'specification' and 'customer' from the check because minor text differences (spaces, case) can cause false negatives
+            if (data.product_code && data.production_date && data.inspection_date && data.machine_no) {
+                const { data: duplicateForms, error: duplicateCheckError } = await supabase
+                    .from(tableName)
+                    .select('form_id')
+                    .eq('product_code', data.product_code)
+                    .eq('production_date', data.production_date)
+                    .eq('inspection_date', data.inspection_date)
+                    .eq('machine_no', data.machine_no)
+                    .limit(1);
+
+                if (duplicateCheckError) {
+                    console.error('Error checking for duplicate forms:', duplicateCheckError.message);
+                    // Don't block submission on error, but log it
+                } else if (duplicateForms && duplicateForms.length > 0) {
+                    // Show toast message as requested
+                    showToast('Duplicate found! This form already exists!', 'error');
+                    return;
+                }
+            }
+
             let dbOperation;
             // Check for uniqueness before submission (only for new entries and only if lot_no is provided)
             if (data.lot_no) {

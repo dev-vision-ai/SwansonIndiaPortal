@@ -1,5 +1,6 @@
 // Supabase integration for auto-saving to database
 import { supabase } from '../../supabase-config.js';
+import { showToast } from '../toast.js';
 
 // Ensure consistent, stable rounding across browsers and avoid floating-point edge cases
 // (e.g. 12.75 displaying as 12.7 due to 12.749999999...)
@@ -2129,29 +2130,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (error || !historicalData || historicalData.length === 0) {
                     
-                    // If no data for previous date, find most recent form with same product + machine
-                    console.log('Searching for recent data:', { productCode, machineNo, productionDate });
-                    
-                    const { data: recentData, error: recentError } = await supabase
-                        .from('168_18c_white_jeddah')
-                        .select('*')
-                        .eq('product_code', productCode)
-                        .eq('machine_no', machineNo)
-                        .lt('production_date', productionDate)
-                        .order('production_date', { ascending: false })
-                        .limit(1);
-                    
-                    if (recentError) {
-                        console.error('Error fetching recent data:', recentError);
-                    }
-
-                    if (recentError || !recentData || recentData.length === 0) {
-                        console.log('No historical data found for this product/machine combination');
-                        return;
-                    }
-
-                    // Load most recent historical data
-                    await loadHistoricalDataIntoForm(recentData[0]);
+                    // If no data for previous date, show alert
+                    console.log('No historical data found for previous date:', previousDateStr);
+                    const formattedPreviousDate = formatDateToDDMMYYYY(previousDateStr);
+                    showToast(`No historical data found for previous date: ${formattedPreviousDate}`, 'warning');
+                    return;
                 } else {
                     // Load previous day's data
                     await loadHistoricalDataIntoForm(historicalData[0]);

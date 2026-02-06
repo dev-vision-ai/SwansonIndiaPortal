@@ -1,5 +1,6 @@
 // Supabase integration for auto-saving to database
 import { supabase } from '../../supabase-config.js';
+import { showToast } from '../toast.js';
 
 // ===== GLOBAL CONFIGURATION =====
 const CONFIG = {
@@ -119,8 +120,6 @@ const DOM_HELPERS = {
         if (element) element.focus();
     },
 
-    // Clear multiple inputs (unused)
-    // clearInputs: function (inputIds) { ... },
 
     // Set loading state for dropdown
     setDropdownLoading: function (dropdownId) {
@@ -138,8 +137,6 @@ const DOM_HELPERS = {
         }
     },
 
-    // Set success state for dropdown (unused)
-    // setDropdownReady: function (dropdownId) { ... },
 
     // Batch set equipment dropdown values from equipment object
     setEquipmentValues: function (equipment) {
@@ -147,28 +144,28 @@ const DOM_HELPERS = {
 
         // Page 1 equipment
         if (equipment.page1) {
-            if (equipment.page1.basic_weight) this.setDropdownValue(CONFIG.EQUIPMENT_IDS.BASIC_WEIGHT, equipment.page1.basic_weight);
-            if (equipment.page1.thickness) this.setDropdownValue(CONFIG.EQUIPMENT_IDS.THICKNESS, equipment.page1.thickness);
-            if (equipment.page1.opacity) this.setDropdownValue(CONFIG.EQUIPMENT_IDS.OPACITY, equipment.page1.opacity);
-            if (equipment.page1.cof) this.setDropdownValue(CONFIG.EQUIPMENT_IDS.COF, equipment.page1.cof);
-            if (equipment.page1.cut_width) this.setDropdownValue(CONFIG.EQUIPMENT_IDS.CUT_WIDTH, equipment.page1.cut_width);
-            if (equipment.page1.color_unprinted) this.setDropdownValue(CONFIG.EQUIPMENT_IDS.COLOR_UNPRINTED, equipment.page1.color_unprinted);
-            if (equipment.page1.color_printed) this.setDropdownValue(CONFIG.EQUIPMENT_IDS.COLOR_PRINTED, equipment.page1.color_printed);
+            this.setDropdownValue(CONFIG.EQUIPMENT_IDS.BASIC_WEIGHT, equipment.page1.basic_weight || '');
+            this.setDropdownValue(CONFIG.EQUIPMENT_IDS.THICKNESS, equipment.page1.thickness || '');
+            this.setDropdownValue(CONFIG.EQUIPMENT_IDS.OPACITY, equipment.page1.opacity || '');
+            this.setDropdownValue(CONFIG.EQUIPMENT_IDS.COF, equipment.page1.cof || '');
+            this.setDropdownValue(CONFIG.EQUIPMENT_IDS.CUT_WIDTH, equipment.page1.cut_width || '');
+            this.setDropdownValue(CONFIG.EQUIPMENT_IDS.COLOR_UNPRINTED, equipment.page1.color_unprinted || '');
+            this.setDropdownValue(CONFIG.EQUIPMENT_IDS.COLOR_PRINTED, equipment.page1.color_printed || '');
         }
 
         // Page 2 equipment
-        if (equipment.page2 && equipment.page2.common) {
-            this.setDropdownValue(CONFIG.EQUIPMENT_IDS.PAGE2_COMMON, equipment.page2.common);
+        if (equipment.page2) {
+            this.setDropdownValue(CONFIG.EQUIPMENT_IDS.PAGE2_COMMON, equipment.page2.common || '');
         }
 
         // Page 3 equipment
-        if (equipment.page3 && equipment.page3.common) {
-            this.setDropdownValue(CONFIG.EQUIPMENT_IDS.PAGE3_COMMON, equipment.page3.common);
+        if (equipment.page3) {
+            this.setDropdownValue(CONFIG.EQUIPMENT_IDS.PAGE3_COMMON, equipment.page3.common || '');
         }
 
         // Page 4 equipment
-        if (equipment.page4 && equipment.page4.gloss) {
-            this.setDropdownValue(CONFIG.EQUIPMENT_IDS.GLOSS, equipment.page4.gloss);
+        if (equipment.page4) {
+            this.setDropdownValue(CONFIG.EQUIPMENT_IDS.GLOSS, equipment.page4.gloss || '');
         }
     },
 
@@ -181,7 +178,7 @@ const DOM_HELPERS = {
         Object.values(CONFIG.EQUIPMENT_IDS).forEach(id => this.setDropdownError(id));
     },
 
-    // setAllEquipmentReady: function () { ... }
+
 };
 
 // ===== SPECIFICATION CONFIGURATION =====
@@ -1105,7 +1102,6 @@ document.addEventListener('DOMContentLoaded', function () {
     headerFields.forEach(field => {
         if (field) {
             field.readOnly = true;
-            // field.style.backgroundColor = '#f3f4f6'; // Light gray background - REMOVED for normal appearance
             field.style.cursor = 'default'; // Normal cursor instead of not-allowed
             field.style.fontSize = '16px'; // Bigger font size for better readability
             field.style.fontWeight = '500'; // Slightly bolder text
@@ -1141,7 +1137,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 input.readOnly = true;
                 input.disabled = true;
-                // input.style.backgroundColor = '#f9fafb'; // REMOVED for normal appearance
                 input.style.cursor = 'default';
                 input.style.color = '#000000'; // Force black text color
                 input.style.opacity = '1'; // Force full opacity
@@ -1214,12 +1209,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
-        // Only return equipment data if at least one equipment is selected
-        const hasEquipment = Object.values(equipmentData).some(page =>
-            Object.values(page).some(equipment => equipment && equipment !== '')
-        );
-
-        return hasEquipment ? equipmentData : null;
+        return equipmentData;
     }
 
     // Load equipment selections from database
@@ -2133,8 +2123,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Debounced save timeout management
-    // let saveTimeout = null; // Moved to line 1238
 
     // Update row count for Page 1
     // Get current data row count (excluding summary rows)
@@ -2255,27 +2243,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 .single();
 
             if (error || !historicalData) {
-                console.log('No historical data found for previous date, searching for most recent...');
-
-                // If no data for previous date, find most recent form with same product + machine
-                const { data: recentData, error: recentError } = await supabase
-                    .from('168_16cp_kranti')
-                    .select('*')
-                    .eq('product_code', productCode)
-                    .eq('machine_no', machineNo)
-                    .lt('production_date', productionDate)
-                    .order('production_date', { ascending: false })
-                    .limit(1)
-                    .single();
-
-                if (recentError || !recentData) {
-                    console.log('No historical data found at all:', recentError);
-                    return;
-                }
-
-                console.log('Found recent historical data:', recentData);
-                // Load most recent historical data
-                await loadHistoricalDataIntoForm(recentData);
+                console.log('No historical data found for previous date:', previousDateStr);
+                const formattedPreviousDate = formatDateToDDMMYYYY(previousDateStr);
+                showToast(`No historical data found for previous date: ${formattedPreviousDate}`, 'warning');
+                return;
             } else {
                 console.log('Found previous day historical data:', historicalData);
                 // Load previous day's data
@@ -5955,12 +5926,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Placeholder for validation functions - will be implemented as needed
-    // validateNumericInput()
-    // validateDecimalInput() 
-    // validatePercentageInput()
-    // validateTimeInput()
-    // validateAlphanumericInput()
 
     // Initialize verification functionality
     initializeVerification();

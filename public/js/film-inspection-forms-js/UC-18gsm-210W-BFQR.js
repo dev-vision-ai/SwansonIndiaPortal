@@ -1059,6 +1059,19 @@ function applyLotRollValidation(input) {
     input.addEventListener('input', function() {
         validateLotRoll(this);
         debouncedSave();
+
+        // Real-time synchronization to other pages
+        const row = this.closest('tr');
+        const tableBody = row.closest('tbody');
+        if (tableBody && tableBody.id === 'testingTableBody') {
+            const rowIndex = Array.from(tableBody.querySelectorAll('tr')).filter(r => {
+                const firstCell = r.querySelector('td');
+                return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
+            }).indexOf(row);
+            
+            // Sync Lot & Roll (Column 0)
+            syncSampleDataToOtherPages(rowIndex, 0, this.value);
+        }
     });
     
     input.addEventListener('keydown', function(e) {
@@ -1147,6 +1160,19 @@ function applyRollIDValidation(input) {
     input.addEventListener('input', function() {
         validateRollID(this);
         debouncedSave();
+
+        // Real-time synchronization to other pages
+        const row = this.closest('tr');
+        const tableBody = row.closest('tbody');
+        if (tableBody && tableBody.id === 'testingTableBody') {
+            const rowIndex = Array.from(tableBody.querySelectorAll('tr')).filter(r => {
+                const firstCell = r.querySelector('td');
+                return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
+            }).indexOf(row);
+            
+            // Sync Roll ID (Column 1)
+            syncSampleDataToOtherPages(rowIndex, 1, this.value);
+        }
     });
     
     input.addEventListener('keydown', function(e) {
@@ -1207,6 +1233,19 @@ function applyLotTimeValidation(input) {
     input.addEventListener('input', function() {
         validateLotTime(this);
         debouncedSave();
+
+        // Real-time synchronization to other pages
+        const row = this.closest('tr');
+        const tableBody = row.closest('tbody');
+        if (tableBody && tableBody.id === 'testingTableBody') {
+            const rowIndex = Array.from(tableBody.querySelectorAll('tr')).filter(r => {
+                const firstCell = r.querySelector('td');
+                return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
+            }).indexOf(row);
+            
+            // Sync Lot Time (Column 2)
+            syncSampleDataToOtherPages(rowIndex, 2, this.value);
+        }
     });
     
     input.addEventListener('keydown', function(e) {
@@ -1786,193 +1825,7 @@ function getDataCells(tableBody) {
     return getDataRows(tableBody).flatMap(row => Array.from(row.querySelectorAll('td')));
 }
 
-// ===== HISTORICAL DATA LOADING =====
-// Load historical data when user enters required fields
-function checkAndLoadHistoricalData() {
-    
-    const productCodeInput = document.querySelector('input[name="product_code"]') ||
-                             document.querySelector('#productCodeInput') ||
-                             document.querySelector('input[placeholder*="Product Code"]');
-    const machineInput = document.querySelector('input[name="machine"]') ||
-                         document.querySelector('input[placeholder="Enter Machine"]');
-    const productionDateInput = document.querySelector('input[name="production_date"]') ||
-                                document.querySelector('table input[type="date"]') ||
-                                document.querySelector('input[type="date"]');
-    const currentFormId = (typeof window !== 'undefined' && window.currentFormId) || document.getElementById('form_id')?.value;
 
-    /*
-    console.log('🔍 [HISTORICAL] Current input values:', {
-        productCode: productCodeInput?.value,
-        machine: machineInput?.value,
-        productionDate: productionDateInput?.value,
-        currentFormId: currentFormId
-    });
-    */
-
-    if (productCodeInput?.value && machineInput?.value && productionDateInput?.value && !currentFormId) {
-        
-        loadHistoricalDataForNewForm();
-    } else {
-        
-    }
-}
-
-// Safely resolve JSONB/array/string values from historical payload
-function getHistoricalCellValue(historicalData, key, historicalRow) {
-    if (!historicalData || !key) return undefined;
-    let container = historicalData[key];
-    if (!container) return undefined;
-    // Parse JSON strings
-    if (typeof container === 'string') {
-        try {
-            container = JSON.parse(container);
-        } catch (e) {
-            return undefined;
-        }
-    }
-    const rowKey1 = String(historicalRow);
-    const rowKey0 = String(historicalRow - 1);
-    // Object with 1-based or 0-based keys
-    if (typeof container === 'object' && !Array.isArray(container)) {
-        return container[rowKey1] ?? container[rowKey0];
-    }
-    // Array-like
-    if (Array.isArray(container)) {
-        return container[historicalRow - 1] ?? container[historicalRow];
-    }
-    return undefined;
-}
-
-// Determine total historical rows available by inspecting common JSONB fields
-function getHistoricalTotalRows(historicalData) {
-    if (!historicalData) return 0;
-    const candidateKeys = [
-        'lot_and_roll', 'roll_id', 'lot_time',
-        'page1_basis_weight', 'page1_thickness', 'page1_wettability', 'page1_cof_rr', 'page1_cof_cc', 'page1_tensile_break', 'page1_elongation', 'page1_modulus',
-        'page2_tensile_break', 'page2_cd_elongation', 'page2_modulus', 'page2_opacity', 'page2_roll_width', 'page2_diameter'
-    ];
-    let maxRows = 0;
-    for (const key of candidateKeys) {
-        let container = historicalData[key];
-        if (!container) continue;
-        if (typeof container === 'string') {
-            try { container = JSON.parse(container); } catch (e) { continue; }
-        }
-        if (Array.isArray(container)) {
-            maxRows = Math.max(maxRows, container.length);
-            continue;
-        }
-        if (typeof container === 'object') {
-            const numericKeys = Object.keys(container)
-                .map(k => parseInt(k, 10))
-                .filter(n => !Number.isNaN(n));
-            if (numericKeys.length) {
-                maxRows = Math.max(maxRows, Math.max(...numericKeys));
-            }
-        }
-    }
-    // If keys were 1-based, maxRows is good; if 0-based, this still gives the highest index
-    return maxRows;
-}
-
-// Load historical data into top rows
-function loadHistoricalDataIntoTopRows(historicalData, availableForHistorical) {
-    /* console.log('🔍 [HISTORICAL] loadHistoricalDataIntoTopRows CALLED with:', {
-        hasHistoricalData: !!historicalData,
-        availableForHistorical,
-        historicalDataKeys: historicalData ? Object.keys(historicalData).slice(0, 5) : []
-    }); */
-
-    getAllTableBodies().forEach(tableBody => {
-        if (!tableBody) return;
-        const rows = Array.from(tableBody.querySelectorAll('tr'));
-        let currentRow = 1;
-        const totalHistoricalRows = getHistoricalTotalRows(historicalData);
-        const historicalRowStart = Math.max(1, totalHistoricalRows - availableForHistorical + 1);
-        let historicalRow = historicalRowStart;
-        const endRow = Math.min(availableForHistorical, rows.length);
-        for (let i = 0; i < rows.length && currentRow <= endRow; i++) {
-            const row = rows[i];
-            if (isSummaryRow(row)) continue;
-            loadHistoricalRowData(row, historicalData, historicalRow);
-            currentRow++;
-            historicalRow++;
-        }
-    });
-}
-
-// Load historical data for a specific row
-function loadHistoricalRowData(row, historicalData, historicalRow) {
-    /* console.log('🔍 [HISTORICAL] loadHistoricalRowData CALLED for row:', {
-        hasRow: !!row,
-        hasHistoricalData: !!historicalData,
-        historicalRow,
-        rowInnerHTML: row?.innerHTML?.substring(0, 100)
-    }); */
-
-    if (!row || !historicalData) return;
-    const tableBody = row.closest('tbody');
-    if (!tableBody) return;
-    const config = getTableConfigById(tableBody.id);
-    if (!config) return;
-    const inputs = row.querySelectorAll('input');
-    const columns = [...config.sampleColumns, ...config.dataColumns];
-    columns.forEach(col => {
-        const val = getHistoricalCellValue(historicalData, col.key, historicalRow);
-        if (inputs[col.index] && val !== undefined && val !== null && val !== '') {
-            inputs[col.index].value = val;
-        }
-    });
-}
-
-function setupHistoricalDataTrigger() {
-    
-
-    const productCodeInput = document.querySelector('input[name="product_code"]') ||
-                             document.querySelector('#productCodeInput') ||
-                             document.querySelector('input[placeholder*="Product Code"]');
-    const machineInput = document.querySelector('input[name="machine"]') ||
-                         document.querySelector('input[placeholder="Enter Machine"]');
-    const productionDateInput = document.querySelector('input[name="production_date"]') ||
-                                document.querySelector('table input[type="date"]') ||
-                                document.querySelector('input[type="date"]');
-
-    
-
-    if (productCodeInput) {
-        const handler = () => {
-            
-            checkAndLoadHistoricalData();
-        };
-        productCodeInput.addEventListener('input', handler);
-        productCodeInput.addEventListener('change', handler);
-        productCodeInput.addEventListener('blur', handler);
-    }
-    if (machineInput) {
-        const handler = () => {
-            
-            checkAndLoadHistoricalData();
-        };
-        machineInput.addEventListener('input', handler);
-        machineInput.addEventListener('change', handler);
-        machineInput.addEventListener('blur', handler);
-    }
-    if (productionDateInput) {
-        const handler = () => {
-            
-            checkAndLoadHistoricalData();
-        };
-        productionDateInput.addEventListener('input', handler);
-        productionDateInput.addEventListener('change', handler);
-        productionDateInput.addEventListener('blur', handler);
-    }
-
-    // Initial check on page load
-    checkAndLoadHistoricalData();
-}
-
-// Call setupHistoricalDataTrigger when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', setupHistoricalDataTrigger);
 
 
 // ===== AUTO-SAVE TO DATABASE =====
@@ -4622,9 +4475,8 @@ function updateTabOrderForAllRows(tableBody) {
                     input.style.backgroundColor = 'transparent';
                     input.style.color = '#000000';
                 } else if (tableBody.id === 'testingTableBody3') {
-                    // Page 3: First column should be auto-populated with sample number
-                    const rowNumber = startRowIndex + i + 1;
-                    input.value = rowNumber.toString();
+                    // Page 3: First column should be synced from Page 1
+                    input.value = '';
                     input.readOnly = true;
                     input.style.backgroundColor = 'transparent';
                     input.style.color = '#000000';
@@ -4644,9 +4496,8 @@ function updateTabOrderForAllRows(tableBody) {
                     input.style.backgroundColor = 'transparent';
                     input.style.color = '#000000';
                 } else if (tableBody.id === 'testingTableBody3') {
-                    // Page 3: Second column should be auto-populated with sample number
-                    const rowNumber = startRowIndex + i + 1;
-                    input.value = rowNumber.toString();
+                    // Page 3: Second column should be synced from Page 1
+                    input.value = '';
                     input.readOnly = true;
                     input.style.backgroundColor = 'transparent';
                     input.style.color = '#000000';
@@ -4666,9 +4517,8 @@ function updateTabOrderForAllRows(tableBody) {
                     input.style.backgroundColor = 'transparent';
                     input.style.color = '#000000';
                 } else if (tableBody.id === 'testingTableBody3') {
-                    // Page 3: Third column should be auto-populated with sample number
-                    const rowNumber = startRowIndex + i + 1;
-                    input.value = rowNumber.toString();
+                    // Page 3: Third column should be synced from Page 1
+                    input.value = '';
                     input.readOnly = true;
                     input.style.backgroundColor = 'transparent';
                     input.style.color = '#000000';
@@ -5936,144 +5786,7 @@ function applyStatusStyling(element, statusValue) {
     }
 }
 
-// Load historical data for new form
-async function loadHistoricalDataForNewForm() {
-    
 
-    try {
-        const productCodeInput = document.querySelector('input[name="product_code"]') ||
-                                 document.querySelector('#productCodeInput') ||
-                                 document.querySelector('input[placeholder*="Product Code"]');
-        const machineInput = document.querySelector('input[name="machine"]') ||
-                             document.querySelector('input[placeholder="Enter Machine"]');
-        const productionDateInput = document.querySelector('input[name="production_date"]') ||
-                                    document.querySelector('table input[type="date"]') ||
-                                    document.querySelector('input[type="date"]');
-
-        
-
-        if (!productCodeInput || !machineInput || !productionDateInput) {
-            
-                return;
-            }
-            
-        const productCode = productCodeInput.value.trim();
-        const machineNo = machineInput.value.trim();
-        const productionDate = productionDateInput.value;
-
-        
-
-        
-        
-        if (!productCode || !machineNo || !productionDate) {
-            
-            return;
-        }
-
-        // Calculate previous date (local, avoid UTC shift)
-        const currentDate = new Date(`${productionDate}T00:00:00`);
-        const previousDate = new Date(currentDate);
-        previousDate.setDate(previousDate.getDate() - 1);
-        const previousDateStr = [
-            previousDate.getFullYear(),
-            String(previousDate.getMonth() + 1).padStart(2, '0'),
-            String(previousDate.getDate()).padStart(2, '0')
-        ].join('-');
-
-        
-
-        // First try to find data from previous day with matching criteria
-        
-        const { data: historicalData, error } = await supabase
-            .from('uc-18gsm-210w-bfqr')
-            .select('*')
-            .eq('product_code', productCode)
-            .eq('machine_no', machineNo)
-            .eq('production_date', previousDateStr)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-        
-
-        if (error || !historicalData) {
-            
-
-            // If no data for previous date, find most recent form with same product + machine
-            const { data: recentData, error: recentError } = await supabase
-                .from('uc-18gsm-210w-bfqr')
-                .select('*')
-                .eq('product_code', productCode)
-                .eq('machine_no', machineNo)
-                .lt('production_date', productionDate)
-                .order('production_date', { ascending: false })
-                .limit(1)
-                .maybeSingle();
-
-            if (recentError || !recentData) {
-                
-                return;
-            }
-
-            
-            // Load most recent historical data
-            await loadHistoricalDataIntoForm(recentData);
-        } else {
-            
-            // Load previous day's data
-            await loadHistoricalDataIntoForm(historicalData);
-        }
-        
-    } catch (error) {
-        console.error('📚 [HISTORICAL] Error loading historical data:', error);
-    }
-}
-
-// Load historical data into form with dynamic row allocation (like 16 GSM Kranti)
-async function loadHistoricalDataIntoForm(historicalData) {
-    console.log('🔍 [HISTORICAL] loadHistoricalDataIntoForm CALLED with data:', {
-        hasHistoricalData: !!historicalData,
-        historicalDataKeys: historicalData ? Object.keys(historicalData) : []
-    });
-
-    try {
-        console.log('🔍 [HISTORICAL] Loading historical data into form...');
-
-        // Get requested rows for fresh data (from user input)
-        const numRowsInput = document.getElementById('numRowsInput');
-        const requestedRows = parseInt(numRowsInput?.value, 10) || 12;
-        const availableForHistorical = 30 - requestedRows;
-
-        console.log(`Loading historical data: ${availableForHistorical} rows for historical, ${requestedRows} rows for fresh data`);
-
-        // Load historical data into top rows (1 to availableForHistorical)
-        loadHistoricalDataIntoTopRows(historicalData, availableForHistorical);
-
-        // Clear bottom rows for fresh data entry
-        clearBottomRowsForFreshData(requestedRows);
-
-        // Calculate statistics immediately after loading historical data
-        console.log('Calculating statistics for historical data...');
-        calculatePage1ColumnStats(testingTableBody);
-        calculatePage2ColumnStats(testingTableBody2);
-        calculatePage2ColumnStats(testingTableBody3);
-        recalculateAllRowAverages();
-        forceRecalculateAllSummaryStatistics();
-
-        // Apply OOS/red-text validation immediately after data population
-        applyOOSValidationToAllInputs();
-        applyValidationToExistingInputs();
-
-        // Auto-save the form with historical data loaded
-        console.log('Auto-saving form with historical data...');
-        await autoSaveToDatabase();
-        
-
-        
-    } catch (error) {
-        console.error('📚 [HISTORICAL] Error loading historical data into form:', error);
-    }
-}
 
 // Function to add event listeners to existing input fields for real-time calculation
 function addAverageCalculationListeners() {
@@ -6176,35 +5889,7 @@ function updateAllRowCounts() {
     }
 }
 
-// Clear bottom rows for fresh data entry
-function clearBottomRowsForFreshData(requestedRows) {
 
-    
-    const allTables = getAllTableBodies();
-    allTables.forEach(tableBody => {
-        if (!tableBody) return;
-        
-        // Get all data rows (excluding summary rows)
-        const dataRows = Array.from(tableBody.querySelectorAll('tr')).filter(row => {
-            const firstCell = row.querySelector('td');
-            return firstCell && !['Average', 'Minimum', 'Maximum'].includes(firstCell.textContent.trim());
-        });
-        
-        // Clear the last requestedRows rows
-        const startIndex = Math.max(0, dataRows.length - requestedRows);
-        for (let i = startIndex; i < dataRows.length; i++) {
-            const row = dataRows[i];
-            const inputs = row.querySelectorAll('input');
-            inputs.forEach(input => {
-                if (input.value !== '') {
-                    input.value = '';
-                }
-            });
-        }
-        
-
-    });
-}
 
 // ===== INITIALIZATION =====
 // Initialize everything when page loads
@@ -6227,12 +5912,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Set form title
     setFormTitle();
 
-    // Setup historical data loading triggers
-    console.log('🔍 [HISTORICAL] Setting up historical data triggers in DOMContentLoaded...');
-    console.log('🔍 [HISTORICAL] About to call setupHistoricalDataTrigger()...');
-    setupHistoricalDataTrigger();
-    console.log('🔍 [HISTORICAL] setupHistoricalDataTrigger() called successfully!');
-    
     // Debug: Check if modern-header-table class is applied
     const headerTable = document.querySelector('.modern-header-table');
     if (headerTable) {
@@ -6294,8 +5973,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Load QC equipment dropdowns
     loadQCEquipmentDropdowns();
 
-    // Note: Historical data trigger is already set up in DOMContentLoaded
-    
     // Initialize verification functionality
     initializeVerification();
     
@@ -6350,13 +6027,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 updateRowCountByPage(3);
             }
             
-            // Load historical data if available
-            await loadHistoricalDataForNewForm();
+
             
-            // Clear bottom rows for fresh data entry
-            clearBottomRowsForFreshData(requestedRows);
-            
-            // Auto-save the form after loading historical data
+            // Auto-save the form
             await autoSaveToDatabase();
             
 

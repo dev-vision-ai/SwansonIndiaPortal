@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase-config.js';
+import { showToast } from '../toast.js';
 
 /**
  * Calculates the average of modulus readings for a specific row.
@@ -3555,25 +3556,11 @@ async function loadHistoricalDataForNewForm() {
         if (error || !historicalData) {
 
 
-            // If no data for previous date, find most recent form with same product + machine
-            const { data: recentData, error: recentError } = await supabase
-                .from('234_18_micro_white')
-                .select('*')
-                .eq('product_code', productCode)
-                .eq('machine_no', machineNo)
-                .lt('production_date', productionDate)
-                .order('production_date', { ascending: false })
-                .limit(1)
-                .maybeSingle();
-
-            if (recentError || !recentData) {
-
-                return;
-            }
-
-
-            // Load most recent historical data
-            await loadHistoricalDataIntoForm(recentData);
+            // If no data for previous date, show alert
+            console.log('No historical data found for previous date:', previousDateStr);
+            const formattedPreviousDate = formatDateToDDMMYYYY(previousDateStr);
+            showToast(`No historical data found for previous date: ${formattedPreviousDate}`, 'warning');
+            return;
         } else {
 
             // Load previous day's data
